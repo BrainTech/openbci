@@ -11,7 +11,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
         self.blinks = int(self.conn.query(message = "Blinks", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
         self.blinkPeriod = float(self.conn.query(message = "BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
         self.squares = int(self.conn.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-
+	self.trainingSequence = self.conn.query(message = "TrainingSequence", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
 
 
         self.buffer = collections.deque()
@@ -53,7 +53,17 @@ class SuperDiodeControl(BaseMultiplexerServer):
                  self.blinkPeriod = float(self.conn.query(message = "BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
                  self.squares = int(self.conn.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
                  self.seq = self.generateSequence(self.blinks, self.squares)
+		 s = ""
+                 for x in self.seq:
+                     s += str(x) + ","
+                 s = s[:len(s) - 1]
+                 var = variables_pb2.Variable()
+                 var.key = "DiodSequence"
+                 var.value = s
+
                  self.conn.send_message(message = var.SerializeToString(), type = types.DICT_SET_MESSAGE, flush=True)
+ 
+		 print "dc ds ", self.seq
                  for x in self.seq:
                      blinker.blink_p300(x, self.blinkPeriod)
                      time.sleep(.75)
