@@ -20,6 +20,7 @@ class UGM(QtGui.QWidget):
         self.connection = connect_client(type = peers.MONITOR)
         self.squares = int(self.connection.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
         self.szer = int(self.connection.query(message = "FrameWidth", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
+	self.trainingSequence = self.connection.query(message = "TrainingSequence", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
         self.freqs = self.connection.query(message = "Freqs", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
         self.freqs = self.freqs.split(" ")
         for i in range(len(self.freqs)):
@@ -55,8 +56,9 @@ class UGM(QtGui.QWidget):
     def paintEvent(self, event):
         szer = self.szer    
         painter = QtGui.QPainter(self)
-        #painter.setBrush(QBrush(QColor(0, 220, 0)))
-        painter.setBrush(QBrush(QColor(255, 255, 255)))
+        # painter.setBrush(QBrush(QColor(0, 220, 0)))
+	#painter.setBrush(QBrush(QColor(255, 255, 255)))
+	painter.setBrush(QtGui.QColor(0, 0, 0))
 
         painter.drawRect(event.rect())
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -75,8 +77,10 @@ class UGM(QtGui.QWidget):
 
 
 
-        painter.setPen(QtGui.QColor(70, 200, 33))
-        painter.setFont(QtGui.QFont('Decorative', 20))
+        # painter.setPen(QtGui.QColor(9, 249, 17))
+	#painter.setPen(QtGui.QColor(255, 255, 255))
+
+        painter.setFont(QtGui.QFont('Bold', 25, 50))
         self.message = self.connection.query(message = "Message", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 0.1).message
         self.modeMessage = self.connection.query(message = "BlinkingMode", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 0.1).message
 
@@ -86,29 +90,38 @@ class UGM(QtGui.QWidget):
         for i in range(len(squares)):
             squares[i] = squares[i].split('|')
             squares[i] = [x.strip() for x in squares[i]]
-    	painter.setPen(QtGui.QColor(0, 0, 0))
-        painter.drawText(15, 30, self.message)
-	painter.setFont(QtGui.QFont('Decorative', 30))
-        painter.drawText(self.screenW - 300, 40, "Mode: " + str(self.modeMessage))	
+    	#painter.setPen(QtGui.QColor(0, 0, 0))
+	painter.setPen(QtGui.QColor(255, 255, 255))
+
+        #painter.drawText(15, 40, self.message)
+	painter.drawText(15, 40, self.trainingSequence)
+
+	#painter.setFont(QtGui.QFont('e', 45))	
+	painter.setFont(QtGui.QFont('Bold', 45))	
+
+        painter.drawText(self.screenW - 250, 80, self.modeMessage)	
 
         fsize = 80
         bigfsize = 120
         offset = 25
         bigoffset = 80
         off = 80
-        painter.setFont(QtGui.QFont('Decorative', 15))
+        painter.setFont(QtGui.QFont('Bold', 45, 100))
         #painter.drawText((2 * 341) + off, fsize + off, "backspace")
-        painter.setPen(QtGui.QColor(0, 0, 0))
+        # painter.setPen(QtGui.QColor(0, 0, 0))
+	#painter.setPen(QtGui.QColor(255, 255, 255))
+
         painter.setFont(QtGui.QFont('Decorative', 30))
+	painter.setFont(QtGui.QFont('Bold', 75, 85))
+
         for i in range(self.squares):
             if (len(squares[i][0]) > 0):
                 #print QtCore.QString(squares[i][0])
                 pic = QtGui.QImage(QtCore.QString(squares[i][0]))
-                print "PIC: ", QtCore.QString(squares[i][0])
                 pic = pic.scaled(self.screenW/self.Cols - self.szer , self.screenH/self.Rows - self.szer)
                 painter.drawImage((i%self.Cols) * self.screenW/self.Cols + self.szer/2, self.statusBar + self.screenH/self.Rows * (i/self.Cols) + self.szer/2, pic)
             if (len(squares[i][1]) > 0):
-                painter.drawText(((i%self.Cols) * self.screenW/self.Cols) + 50, self.statusBar + self.screenH/self.Rows * (i/self.Cols) + bigfsize + bigoffset, squares[i][1])
+                painter.drawText(((i%self.Cols) * self.screenW/self.Cols) + bigoffset, self.statusBar + self.screenH/self.Rows * (i/self.Cols) + bigfsize + bigoffset, squares[i][1])
 
         
 
