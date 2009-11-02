@@ -23,6 +23,19 @@
 #      Magdalena Michalska <jezzy.nietoperz@gmail.com>
 #
 
+
+# To change layut of the menu edit file hashtable.py
+# modify values of following variables in data dictionary:
+# "FrameWidth": "<integer>" :: width of frame dividing squares
+# "Squares": "<integer>",   :: number of squares into which screen is devided
+# "ScreenH": "integer",     :: height of screen (without status bar)
+# "ScreenW": "<integer>",   :: width of screen
+# "StatusBar": "<integer>", :: height of status bar
+# "Rows": "<integer>",      :: number of rows of squares
+# "Cols": "<integer>",      :: number of columns of squares
+# "Panel":  " <path_to_pic_for_square_1> | <text_for_square_1> :: ... |  ... :: ... "
+# Panel contains the content to be presented on the screen, square by square
+
 import numpy, cPickle, os, time, sys, random, Image#, blinker
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import *
@@ -80,8 +93,8 @@ class UGM(QtGui.QWidget):
         szer = self.szer    
         painter = QtGui.QPainter(self)
         # painter.setBrush(QBrush(QColor(0, 220, 0)))
-	#painter.setBrush(QBrush(QColor(255, 255, 255)))
-	painter.setBrush(QtGui.QColor(0, 0, 0))
+	    #painter.setBrush(QBrush(QColor(255, 255, 255)))
+	    painter.setBrush(QtGui.QColor(0, 0, 0))
 
         painter.drawRect(event.rect())
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -101,7 +114,7 @@ class UGM(QtGui.QWidget):
 
 
         # painter.setPen(QtGui.QColor(9, 249, 17))
-	#painter.setPen(QtGui.QColor(255, 255, 255))
+	    #painter.setPen(QtGui.QColor(255, 255, 255))
 
         painter.setFont(QtGui.QFont('Bold', 25, 50))
         self.message = self.connection.query(message = "Message", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 0.1).message
@@ -114,13 +127,13 @@ class UGM(QtGui.QWidget):
             squares[i] = squares[i].split('|')
             squares[i] = [x.strip() for x in squares[i]]
     	#painter.setPen(QtGui.QColor(0, 0, 0))
-	painter.setPen(QtGui.QColor(255, 255, 255))
+	    painter.setPen(QtGui.QColor(255, 255, 255))
 
         #painter.drawText(15, 40, self.message)
-	painter.drawText(15, 40, self.trainingSequence)
+	    painter.drawText(15, 40, self.trainingSequence)
 
-	#painter.setFont(QtGui.QFont('e', 45))	
-	painter.setFont(QtGui.QFont('Bold', 45))	
+	    #painter.setFont(QtGui.QFont('e', 45))	
+	    painter.setFont(QtGui.QFont('Bold', 45))	
 
         painter.drawText(self.screenW - 250, 80, self.modeMessage)	
 
@@ -132,10 +145,10 @@ class UGM(QtGui.QWidget):
         painter.setFont(QtGui.QFont('Bold', 45, 100))
         #painter.drawText((2 * 341) + off, fsize + off, "backspace")
         # painter.setPen(QtGui.QColor(0, 0, 0))
-	#painter.setPen(QtGui.QColor(255, 255, 255))
+	    #painter.setPen(QtGui.QColor(255, 255, 255))
 
         painter.setFont(QtGui.QFont('Decorative', 30))
-	painter.setFont(QtGui.QFont('Bold', 75, 85))
+	    painter.setFont(QtGui.QFont('Bold', 75, 85))
 
         for i in range(self.squares):
             if (len(squares[i][0]) > 0):
