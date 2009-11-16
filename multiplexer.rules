@@ -111,6 +111,17 @@ peer {
     type: 122
     name: "SUPER_DIODE"
 }
+
+peer {
+     type: 124
+     name: "SIGNAL_SAVER"
+}
+
+peer {
+     type: 125
+     name: "SIGNAL_SAVER_CONTROL"
+}
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -239,6 +250,10 @@ type {
     to {
         peer: "FILTER"
         whom: ALL
+    }   
+    to {
+	peer: "SIGNAL_SAVER"
+	whom: ALL
     }
 }
 
@@ -344,4 +359,13 @@ type {
         peer: "SUPER_DIODE"
         whom: ALL
     }
+}
+
+type {
+     type: 146
+     name: "SIGNAL_SAVER_CONTROL_MESSAGE"
+     to {
+     	peer: "SIGNAL_SAVER"
+	whom: ALL
+	}
 }
