@@ -1,0 +1,15 @@
+#!/bin/bash
+./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:1234 &
+export PYTHONPATH=openbci/:azouk-libraries/build/
+
+
+
+# Fire ./openbci/data_storage/signal_saver_control.py in other shell, then type finish_saving to finish signal_saver.py - temporary solution ...
+./openbci/hashtable.py &
+
+
+./openbci/amplifiers/virtual_amplifier.py &
+
+sleep 1
+
+./openbci/data_storage/signal_saver.py $1 $2 &
