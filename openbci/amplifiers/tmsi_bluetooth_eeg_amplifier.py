@@ -121,7 +121,7 @@ class TMSiBluetoothEEGAmplifier:
                     print "Digi: Battery is low"
             
                 # send samples
-                for i in len(channel_data[0]):
+                for i in range(len(channel_data[0])):
                     sample_vector = variables_pb2.SampleVector()
                     for j in self.channel_numbers:
                         samp = sample_vector.samples.add()
