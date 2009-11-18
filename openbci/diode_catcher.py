@@ -42,7 +42,7 @@ class DiodeCatcher(BaseMultiplexerServer):
                 vector = variables_pb2.BlinkVector()
                 #ind = int(mxmsg.message)
                 #for i in range(len(self.buffer[ind])):
-                for i in range(8)
+                for i in range(8):
                     s = vector.blinks.add()
                     s.CopyFrom(self.buffer.popleft())
 
