@@ -10,8 +10,7 @@ message Blink {
 }
 
 message BlinkVector {
-    repeated Blink blinks = 1;
-    
+    repeated Blink blinks = 1;  
 }
 message Sample {
     required double value = 1;
