@@ -54,7 +54,7 @@ _BLINK = descriptor.Descriptor(
       options=None),
     descriptor.FieldDescriptor(
       name='timestamp', full_name='variables.Blink.timestamp', index=1,
-      number=2, type=2, cpp_type=6, label=2,
+      number=2, type=1, cpp_type=5, label=2,
       default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,

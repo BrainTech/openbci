@@ -38,8 +38,15 @@ class DiodeCatcher(BaseMultiplexerServer):
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DIODE_REQUEST:
-            if (len(self.buffer) > 0):
-                self.send_message(message = self.buffer.popleft(), type = types.DIODE_RESPONSE)
+            if (len(self.buffer) >= 8):
+                vector = variables_pb2.BlinkVector()
+                #ind = int(mxmsg.message)
+                #for i in range(len(self.buffer[ind])):
+                for i in range(8)
+                    s = vector.blinks.add()
+                    s.CopyFrom(self.buffer.popleft())
+
+                self.send_message(message = vector.SerializeToString(), type = types.DIODE_RESPONSE)
             else:
                 self.send_message(message = '', type = types.DIODE_RESPONSE)
         elif mxmsg.type == types.DIODE_MESSAGE:

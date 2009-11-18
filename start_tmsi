@@ -3,36 +3,29 @@
 
 rfcomm connect 0 &
 
+sleep 2
+
+
+
 export PYTHONPATH=openbci/:azouk-libraries/build/
-#export PYTHONPATH=/home/pi/finals/final-1.1/openbci/:/home/pi/finals/final-1.1/azouk-libraries/build/
+
 ./openbci/hashtable.py &
 
 sleep 1
 
 ./openbci/signal_catcher.py &
 
-sleep 1
-
-./openbci/filters/filter.py &
-
-sleep 1
-
-
-./openbci/amplifiers/tmsi_eeg_amplifier.py &
-
-sleep 8
-
-./openbci/ugm.py &
-
-sleep 1
-
-./openbci/logics/logic_speller.py &
-
-sleep 1
-
-./openbci/analysis/ssvep_analysis.py &
-
-
 #sleep 1
 
-#./stop
+#./openbci/filters/filter.py &
+
+sleep 1
+
+#./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py 
+./openbci/amplifiers/tmsi_eeg_amplifier.py 
+
+
+sleep 4
+
+./openbci/monitors/monitor.py 0 &
+

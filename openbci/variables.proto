@@ -6,7 +6,7 @@ message Variable {
 }
 message Blink {
     required int32 index = 1;
-    required float timestamp = 2;
+    required double timestamp = 2;
 }
 
 message BlinkVector {
