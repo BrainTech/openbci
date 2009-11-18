@@ -44,9 +44,10 @@ class DiodeCatcher(BaseMultiplexerServer):
                 #for i in range(len(self.buffer[ind])):
                 for i in range(8):
                     s = vector.blinks.add()
-                    s.CopyFrom(self.buffer.popleft())
+                    s.CopyFrom(self.buffer[i])
 
-                
+                for i in range(8):
+                    self.buffer.popleft()
                 self.send_message(message = vector.SerializeToString(), type = types.DIODE_RESPONSE)
             else:
                 self.send_message(message = '', type = types.DIODE_RESPONSE)

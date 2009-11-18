@@ -39,7 +39,7 @@ class Hashtable(BaseMultiplexerServer):
 	#"0 1 2 3 4 5 6 7 8 9",
 	# "12 6 11 13 17 18 19 21 22 23",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "128",
+        "SamplingRate": "256",
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 11)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",

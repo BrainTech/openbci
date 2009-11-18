@@ -22,7 +22,7 @@ sleep 1
 sleep 1
 
 #./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py 
-./openbci/amplifiers/tmsi_eeg_amplifier.py 
+./openbci/amplifiers/tmsi_eeg_amplifier.py &
 
 
 sleep 4
