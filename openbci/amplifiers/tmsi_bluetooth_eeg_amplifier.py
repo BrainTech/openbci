@@ -130,7 +130,15 @@ class TMSiBluetoothEEGAmplifier:
                     self.connection.send_message( \
                         message=sample_vector.SerializeToString(), \
                         type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
-                
+                    if i != len(channel_data[0]) - 1:
+                        # if this is not the last sample we want to send
+                        # this implies that we are decoding vldelta packet
+                        # then we want to send samples with self.sampling_rate/2
+                        # frequency (/2 because before we multiplied it by *2),
+                        # so we want to wait 2./self.sampling_rate seconds
+                        # after last sample we don't want to sleep - it will be
+                        # done in next read call
+                        time.sleep(2./self.sampling_rate)                
                 # send keep alive if there was 10s before previous ack
                 if timestamp - last_keep_alive > 10:
                     last_keep_alive = timestamp
