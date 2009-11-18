@@ -3,7 +3,7 @@
 # OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
 # Project was initiated by Magdalena Michalska and Krzysztof Kulewski
 # as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski
+# Copyright (C) 2009 Krzysztof Kulewski
 #
 # Project home: OpenBCI.com
 #

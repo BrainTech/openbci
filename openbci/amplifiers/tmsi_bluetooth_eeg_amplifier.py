@@ -22,8 +22,6 @@
 #
 # Author:
 #      Krzysztof Kulewski <kulewski@gmail.com>
-#
-# TMSi amplifier support.
 
 """
 TMSi amplifier support.
