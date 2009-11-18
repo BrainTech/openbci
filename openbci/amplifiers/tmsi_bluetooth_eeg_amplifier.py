@@ -63,7 +63,7 @@ class TMSiBluetoothEEGAmplifier:
 
         # send FrontendInfoRequest
         self.device.write(tmsi.Packet.construct( \
-            tmsi.PACKET_TYPE.TMS_FRONTEND_INFO_REQUEST))
+            tmsi.PACKET_TYPE.TMS_FRONTEND_INFO_REQUEST).get_raw())
 
         # receive FrontendInfo
         frontend_info = tmsi.FrontendInfo.read_one(self.device)
@@ -76,7 +76,7 @@ class TMSiBluetoothEEGAmplifier:
             # obtain vl delta info
             vldelta_info_request = tmsi.Packet.construct( \
                 tmsi.PACKET_TYPE.TMS_VL_DELTA_INFO_REQUEST)
-            self.device.write(vldelta_info_request)
+            self.device.write(vldelta_info_request.get_raw())
             self.vldelta_info = tmsi.VLDeltaInfo.read_one(self.device)
             # we have to multiply sampling rate by 2 - because channels are sent
             # 2x slower (channels 1-24)
@@ -135,7 +135,7 @@ class TMSiBluetoothEEGAmplifier:
                 if timestamp - last_keep_alive > 10:
                     last_keep_alive = timestamp
                     self.device.write(tmsi.Packet.construct( \
-                        tmsi.PACKET_TYPE.TMS_KEEP_ALIVE))
+                        tmsi.PACKET_TYPE.TMS_KEEP_ALIVE).get_raw())
             except AssertionError, exception:
                 if str(exception) == "Invalid checksum":
                     # silently ignore such samples
