@@ -27,7 +27,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import settings, cPickle, collections
+import settings, cPickle, collections, variables_pb2
 
 
 class DiodeCatcher(BaseMultiplexerServer):
