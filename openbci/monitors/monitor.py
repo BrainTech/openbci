@@ -47,6 +47,9 @@ class Monitor(QtGui.QWidget):
         self.resize(512, 512)
 
         self.connection = connect_client(type = peers.MONITOR)
+        
+        self.sampling_rate = int(self.connection.query(message="SamplingRate", \
+            type=types.DICT_GET_REQUEST_MESSAGE).message)
 
     
     def average(self, data):
@@ -63,15 +66,15 @@ class Monitor(QtGui.QWidget):
         painter.setPen(Monitor.colorb)
 
         data = self.connection.query(message = str(self.channel_number), type = types.SIGNAL_CATCHER_REQUEST_MESSAGE, timeout = 5).message
-	vec = variables_pb2.SampleVector()
-	vec.ParseFromString(data)
-	d = []
-	for x in vec.samples:
-	   d.append(x.value) 	
+        vec = variables_pb2.SampleVector()
+        vec.ParseFromString(data)
+        d = []
+        for x in vec.samples:
+            d.append(x.value) 	
         #data = cPickle.loads(data)
         #data = list(data)
-	data = d
-        data = data[-512:]
+        data = d
+        data = data[-4 * self.sampling_rate:]
     
         # TO JEST FILTROWANIE 50HZ jesli FALSE to wylaczone
         filtruj = True
@@ -84,7 +87,7 @@ class Monitor(QtGui.QWidget):
             data = numpy.fft.irfft(data)
         
         av = self.average(data)
-        data = [(x - av) / 5 for x in data]
+        data = [(x - av) / 5 for x in data][-512:]
 
         painter.drawLine(0, 512 / 2, 1024, 512 / 2)
 
