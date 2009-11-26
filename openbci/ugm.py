@@ -94,7 +94,7 @@ class UGM(QtGui.QWidget):
         painter = QtGui.QPainter(self)
         # painter.setBrush(QBrush(QColor(0, 220, 0)))
 	    #painter.setBrush(QBrush(QColor(255, 255, 255)))
-	    painter.setBrush(QtGui.QColor(0, 0, 0))
+        painter.setBrush(QtGui.QColor(0, 0, 0))
 
         painter.drawRect(event.rect())
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -133,7 +133,7 @@ class UGM(QtGui.QWidget):
 	    painter.drawText(15, 40, self.trainingSequence)
 
 	    #painter.setFont(QtGui.QFont('e', 45))	
-	    painter.setFont(QtGui.QFont('Bold', 45))	
+            painter.setFont(QtGui.QFont('Bold', 45))	
 
         painter.drawText(self.screenW - 250, 80, self.modeMessage)	
 
@@ -148,7 +148,7 @@ class UGM(QtGui.QWidget):
 	    #painter.setPen(QtGui.QColor(255, 255, 255))
 
         painter.setFont(QtGui.QFont('Decorative', 30))
-	    painter.setFont(QtGui.QFont('Bold', 75, 85))
+        painter.setFont(QtGui.QFont('Bold', 75, 85))
 
         for i in range(self.squares):
             if (len(squares[i][0]) > 0):
