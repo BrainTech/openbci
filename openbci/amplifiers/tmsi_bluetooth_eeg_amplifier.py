@@ -102,6 +102,8 @@ class TMSiBluetoothEEGAmplifier:
         Start sending samples forever.
         """
         last_keep_alive = time.time()
+        ii = 0
+        start = time.time()
         while True:
             try:
                 timestamp = time.time()
@@ -119,7 +121,7 @@ class TMSiBluetoothEEGAmplifier:
                     print "Digi: Trigger active"
                 if data.battery_low():
                     print "Digi: Battery is low"
-            
+                print ii/(timestamp - start)
                 # send samples
                 for i in range(len(channel_data[0])):
                     sample_vector = variables_pb2.SampleVector()
@@ -130,6 +132,7 @@ class TMSiBluetoothEEGAmplifier:
                     self.connection.send_message( \
                         message=sample_vector.SerializeToString(), \
                         type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
+                    ii += 1
                     if i != len(channel_data[0]) - 1:
                         # if this is not the last sample we want to send
                         # this implies that we are decoding vldelta packet
@@ -138,7 +141,8 @@ class TMSiBluetoothEEGAmplifier:
                         # so we want to wait 2./self.sampling_rate seconds
                         # after last sample we don't want to sleep - it will be
                         # done in next read call
-                        time.sleep(2./self.sampling_rate)                
+                        pass
+                        #time.sleep(2./self.sampling_rate)                
                 # send keep alive if there was 10s before previous ack
                 if timestamp - last_keep_alive > 10:
                     last_keep_alive = timestamp
