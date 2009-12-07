@@ -50,6 +50,7 @@ class Monitor(QtGui.QWidget):
         
         self.sampling_rate = int(self.connection.query(message="SamplingRate", \
             type=types.DICT_GET_REQUEST_MESSAGE).message)
+	self.vec = variables_pb2.SampleVector()
 
     
     def average(self, data):
@@ -66,10 +67,10 @@ class Monitor(QtGui.QWidget):
         painter.setPen(Monitor.colorb)
 
         data = self.connection.query(message = str(self.channel_number), type = types.SIGNAL_CATCHER_REQUEST_MESSAGE, timeout = 5).message
-        vec = variables_pb2.SampleVector()
-        vec.ParseFromString(data)
+        #vec = variables_pb2.SampleVector()
+        self.vec.ParseFromString(data)
         d = []
-        for x in vec.samples:
+        for x in self.vec.samples:
             d.append(x.value) 	
         #data = cPickle.loads(data)
         #data = list(data)

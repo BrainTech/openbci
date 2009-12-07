@@ -117,10 +117,30 @@ class TMSiBluetoothEEGAmplifier:
             
                 if data.on_off_pressed():
                     print "Digi: On/Off button is pressed"
+                    var = variables_pb2.Variable()
+                    var.key = "Trigger"
+                    var.value = "1"
+                    self.connection.send_message( \
+                        message=var.SerializeToString(), \
+                        type=types.DICT_SET_MESSAGE, flush=True)
+
                 if data.trigger_active():
                     print "Digi: Trigger active"
                 if data.battery_low():
                     print "Digi: Battery is low"
+                    var = variables_pb2.Variable()
+                    var.key = "AmpBattery"
+                    var.value = "0"
+                else:
+                    var = variables_pb2.Variable()
+                    var.key = "AmpBattery"
+                    var.value = "1"
+                self.connection.send_message( \
+                        message=var.SerializeToString(), \
+                        type=types.DICT_SET_MESSAGE, flush=True)                     
+                                                            
+                                                                              
+
                 print ii/(timestamp - start)
                 # send samples
                 for i in range(len(channel_data[0])):

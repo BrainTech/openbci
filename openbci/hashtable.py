@@ -39,7 +39,7 @@ class Hashtable(BaseMultiplexerServer):
 	#"0 1 2 3 4 5 6 7 8 9",
 	# "12 6 11 13 17 18 19 21 22 23",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "256",
+        "SamplingRate": "128",
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 11)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",
@@ -61,8 +61,8 @@ class Hashtable(BaseMultiplexerServer):
         "Repeats": "1",
         "FrameWidth": "20",
         "Squares": "8",
-        "ScreenH": "700",
-        "ScreenW": "1366",
+        "ScreenH": "650",
+        "ScreenW": "1024",
         "StatusBar": "100",
         "Rows": "2",
         "Cols": "4",
@@ -74,6 +74,8 @@ class Hashtable(BaseMultiplexerServer):
         "TrainingSequence": "0 1",
         "Session": "NormalSession",
     	"BlinkingMode": "P300",
+        "AmpBattery": "0",
+        "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
         
@@ -93,7 +95,8 @@ class Hashtable(BaseMultiplexerServer):
             value = pair.value
             #key, value = cPickle.loads(mxmsg.message)
             self.data[key] = value
-            #print "SET: ", key, str(value)
+            if (key == "Trigger"):
+                print "SET SET SET SET SET SET SET SET SET SET SET SET SET SET SET SET: ", key, str(value)
             self.no_response()
         elif mxmsg.type == types.DICT_GET_REQUEST_MESSAGE:
             #pair = variables_pb2.Variable()
