@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
 # Project was initiated by Magdalena Michalska and Krzysztof Kulewski
@@ -22,10 +22,10 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-
 import logic_speller_engine
 import logic_speller_server
 import settings
+
 if __name__ == "__main__":
     l_server = logic_speller_server.LogicSpellerServer(settings.MULTIPLEXER_ADDRESSES)
     l_engine = logic_speller_engine.LogicSpellerEngine(l_server)
