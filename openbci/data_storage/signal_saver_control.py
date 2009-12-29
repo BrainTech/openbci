@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-
-import math
-import time
-import sys
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 
@@ -17,11 +13,12 @@ class SignalSaverControl(object):
             print("Type: finish_saving and hit enter to stop signal_saver...")
             l_input = raw_input()
             if l_input == 'finish_saving':
-                self._connection.send_message(message=l_input, type=l_msg_type, flush=True)
+                self._connection.send_message(message=l_input, 
+                                              type=l_msg_type, flush=True)
             else:
                 print("Unrecognised input: "+l_input)
                 print("Try again:)")
 
 if __name__ == "__main__":
-   SignalSaverControl().run()
+    SignalSaverControl().run()
 

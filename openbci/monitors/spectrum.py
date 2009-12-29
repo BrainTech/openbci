@@ -67,7 +67,6 @@ class Spectrum(QtGui.QWidget):
         d = []
         for x in vec.samples:
             d.append(x.value)
-        print "DANE ",d
         d2 = d[-int(self.sampling_rate * 4):]
         d2 = abs(numpy.fft.rfft(d2))
         d2[0] = 0
