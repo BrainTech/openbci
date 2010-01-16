@@ -13,24 +13,12 @@ class UgmField(ugm_stimuluses.UgmRectStimulus):
 class UgmGenericCanvas(QtGui.QWidget):
     def __init__(self, p_parent, p_config_manager):
         QtGui.QWidget.__init__(self, p_parent)
-        
-        #self.setGeometry(0, 0, 1000, 1000) #TODO - chyba trzeba ustawic tego rozmiar
         self._config_manager = p_config_manager
         self.setWindowTitle('Colors')
         
         # Create ugm fields as children
         for i_field_config in self._config_manager.get_ugm_fields():
             UgmField(self, i_field_config)
-#        print("GENERIC STIMULUS:")
-#        for i in dir(self):
-#            print(i)
-#        print("JUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUHU")
-#        print(self.sizeHint())
-#        self.setSizePolicy(QtGui.QSizePolicy.Expanding,
-#                           QtGui.QSizePolicy.Expanding)
-#        print(self.sizeHint())
-#        print(p_parent.geometry()) #TODODODODO
-#        print(self.geometry())
 
     def _get_width(self):
         return self.frameSize().width()
@@ -41,9 +29,6 @@ class UgmGenericCanvas(QtGui.QWidget):
         return self._config_manager
 
     def resizeEvent(self, event):
-        print("resizeEvent UGMGENERICCANVAS:", event)
-        #print(self.parent().geometry())
-        #print(self.geometry())
         self.update_geometry()
 
     def update_geometry(self):
@@ -64,9 +49,6 @@ class SpellerWindow(QtGui.QFrame):
         hbox.addWidget(self.canvas)
         self.setLayout(hbox)
 
-    def resizeEvent(self, event):
-        print("resizeEvent SpellerWindow:")
-        print(self.geometry())
     def update_geometry(self):
         self.canvas.update_geometry()
 
@@ -89,7 +71,7 @@ class UgmMainWindow(QtGui.QMainWindow):
         file.addAction(exit)
     def update(self):
         self.view.update_geometry()
-        print("update main window")
+
 class UgmEngine(object):
     def __init__(self, p_config_manager):
         self._config_manager = p_config_manager
@@ -99,15 +81,10 @@ class UgmEngine(object):
         self._window.showFullScreen()
         sys.exit(app.exec_())
     def update(self):
-        print("Update ugm engine")
-        print(self._config_manager.get_config_for(41))
         self._window.update()
 
 if __name__ == '__main__':
     UgmEngine(ugm_config_manager.UgmConfigManager()).run()
 
-#TODO - 
 
-# - zrobic takie ustawienie zeby fieldy wygladaly juz tak jak trzeba
-# - stworzyc mozliwosc modyfikowania ugma online - formaty i identyfikatory
 

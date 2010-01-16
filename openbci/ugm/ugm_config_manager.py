@@ -190,9 +190,7 @@ class UgmRectConfig(object):
             elif p_config_dict['position_vertical'] == 'bottom':
                 self.position_y = p_parent.height - self.height
             elif p_config_dict['position_vertical'] == 'center':
-                print("KURRRRRRRRRRRRRRRRRRRRRRRRRRRRR ")
                 self.position_y = p_parent.height/2 - self.height/2
-                print(self.position_y)
             else:
                 raise UgmUnknownConfigValue('position_vertical',
                                             p_config_dict)

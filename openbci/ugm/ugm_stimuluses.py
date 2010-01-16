@@ -28,7 +28,6 @@ class UgmStimulus(QtGui.QWidget):
 
     def update_geometry(self):
         """Called from resize event."""
-        print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUPADE STIMULUS")
         l_config = self.get_config_manager().get_config_for(self._ugm_id)
         self._update_geometry_from_config(l_config)
         for i in self.children():
@@ -60,7 +59,6 @@ class UgmImageStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         self._set_rect_config(p_parent, p_config_dict)
 
     def paintEvent(self, event):
-        print("IMAGE PAINT EVEEEEEEEEEEN")
         paint = QtGui.QPainter()
         paint.begin(self)
         paint.drawImage(0, 0, self._image)
@@ -98,7 +96,6 @@ class UgmRectStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         self._set_rect_config(p_parent, p_config_dict)
 
     def paintEvent(self, event):
-        print("RECT PAINT EVEEEEEEEEEEN")
         paint = QtGui.QPainter()
         paint.begin(self)
         l_bg_color = QtGui.QColor(0, 0, 0)

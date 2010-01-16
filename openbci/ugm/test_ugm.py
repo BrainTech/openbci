@@ -11,7 +11,7 @@ class UgmEngineThread(object):
             r.receive()
 class UgmTestServer(object):
     def __init__(self):
-        l_config_manager = ugm_config_manager.UgmConfigManager('ugm_config_for_tests')
+        l_config_manager = ugm_config_manager.UgmConfigManager('test1')
         l_engine = ugm_engine.UgmEngine(l_config_manager)
         l_engine_thread = cg.spawn(UgmEngineThread(l_engine).run)
         print("You are running ugm with config from ugm_config_for_tests.py")
@@ -38,6 +38,13 @@ class UgmTestServer(object):
                     pass
 
                 l_config_manager.set_config_for(int(i[0]),i[1],i[2])
+                l_engine.update()
+                print("DONE!")
+            elif i == 'load_from':
+                print("Type module name with ugm config.")
+                print("For test you can type: test1, test2, test3, test4")
+                i = raw_input()
+                l_config_manager.update_from_file(i)
                 l_engine.update()
                 print("DONE!")
 

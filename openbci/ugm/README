@@ -1,0 +1,21 @@
+FILES:
+- UGM CORE:
+-- ugm_engine.py - main gui for ugm
+-- ugm_stimuluses.py - gui for particular available stimuluses (like rectangle, image, text)
+-- ugm_config_manager.py - as named, ugm configuration manager, required by ugm_engine
+
+- TESTS:
+-- test_ugm_config_manager.py - predefined tests for ugm_config_manager, just fire python test_ugm_config_manager.py
+-- test_ugm.py - an application to view ugm and change its content on the fly
+
+- IMAGES:
+-- juhu.jpg
+-- nie_juhu.jpg
+
+- CONFIG FILES:
+-- ugm_config.py - config used as default by ugm
+-- ugm_config_for_tests.py - as called
+-- tes1.py - sample ugm configuration
+-- test2.py - sample ugm configuration
+-- test3.py - sample ugm configuration
+-- test4.py - sample ugm configuration
