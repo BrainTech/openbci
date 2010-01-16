@@ -23,7 +23,8 @@ fields = [
                 'position_vertical_type':'absolute',
                 'position_vertical':0,
                 'color':'#ffffff', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 },
             {
                 'id':12,
@@ -36,7 +37,8 @@ fields = [
                 'position_vertical_type':'relative',
                 'position_vertical':0.333, 
                 'color':'#000000', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 }
             ]
         }, # End of 1 field definition
@@ -64,7 +66,8 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'center',
                 'color':'#ffffff', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 },
             {
                 'id':22,
@@ -77,7 +80,8 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'bottom',
                 'color':'#000000', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 }
             ]
         }, #End of 2 field config
@@ -105,7 +109,8 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'center',
                 'color':'#ffffff', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 },
             {
                 'id':32,
@@ -114,7 +119,8 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'center',
                 'stimulus_type':'image',
-                'image_path':'nie_juhu.png'
+                'image_path':'nie_juhu.png',
+                'stimuluses':[]
                 },
             {
                 'id':33,
@@ -127,7 +133,8 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'center',
                 'color':'#ffffff', 
-                'stimulus_type':'rectangle'
+                'stimulus_type':'rectangle',
+                'stimuluses':[]
                 },
             {
                 'id':34,
@@ -139,7 +146,8 @@ fields = [
                 'message':'NIEEE JUHU',
                 'font_family':"Times",
                 'font_size':20,
-                'font_color':"#000000"
+                'font_color':"#000000",
+                'stimuluses':[]
                 }
             ]
         }, #End of 3 field config
@@ -164,7 +172,8 @@ fields = [
                 'position_vertical':'center',
                 'color':'#ffffff', 
                 'stimulus_type':'image',
-                'image_path':'juhu.png'
+                'image_path':'juhu.png',
+                'stimuluses':[]
                 }
             ]
         } #End of 4 field config

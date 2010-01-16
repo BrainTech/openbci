@@ -20,22 +20,27 @@ class UgmStimulus(QtGui.QWidget):
         QtGui.QWidget.__init__(self, p_parent)
         self._ugm_id = p_config_dict['id']
         self._update_geometry_from_config(p_config_dict)
-    def resizeEvent(self, event):
-        print("stumuls resize event")
-#        self.update_geometry()
-#        print("resizeEvent UGM STIMULUS:")
-#        print(self.parent().geometry())
-#        print(self.geometry())  
+
+        l_stims_factory = UgmStimulusFactory()
+        for i_stim_config in p_config_dict['stimuluses']:
+            l_stims_factory.createStimulus(self, i_stim_config)
+
+
     def update_geometry(self):
         """Called from resize event."""
         print("UUUUUUUUUUUUUUUUUUUUUUUUUUUUPADE STIMULUS")
         l_config = self.get_config_manager().get_config_for(self._ugm_id)
         self._update_geometry_from_config(l_config)
+        for i in self.children():
+            i.update_geometry()
     def _update_geometry_from_config(self, p_config):
         self._set_config(self.parent(), p_config)
         # Below I must call the method every time, as we need to
         # refresh stimuli after refreshing UgmField
-        self.setGeometry(0, 0, self.parent().width, self.parent().height)
+        self.setGeometry(self.position_x, self.position_y,
+                         self.position_x + self.width,
+                         self.position_y + self.height)
+#        self.setGeometry(0, 0, self.parent().width, self.parent().height)
         self.update()
 
     def get_config_manager(self):
@@ -58,7 +63,7 @@ class UgmImageStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         print("IMAGE PAINT EVEEEEEEEEEEN")
         paint = QtGui.QPainter()
         paint.begin(self)
-        paint.drawImage(self.position_x, self.position_y, self._image)
+        paint.drawImage(0, 0, self._image)
         paint.end()
         
 class UgmTextStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
@@ -83,8 +88,7 @@ class UgmTextStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         l_color.setNamedColor(self._color)
     	paint.setPen(l_color)
         paint.setFont(self._font)
-        paint.drawText(self.position_x,
-                       self.position_y + self.height, self._message)
+        paint.drawText(0, self.height, self._message)
         paint.end()
     #TODO
     pass
@@ -101,6 +105,6 @@ class UgmRectStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         l_bg_color.setNamedColor(self.color)
         paint.setBrush(l_bg_color)
         
-        paint.drawRect(self.position_x, self.position_y, self.width, self.height)
+        paint.drawRect(0, 0, self.width, self.height)
         paint.end()
 

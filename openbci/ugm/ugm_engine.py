@@ -6,48 +6,9 @@ import ugm_config_manager
 import ugm_stimuluses
 
     
-class UgmField(QtGui.QWidget, ugm_config_manager.UgmRectConfig):
-    def __init__(self, p_parent, p_config): 
-        QtGui.QWidget.__init__(self, p_parent)
-        self._ugm_id = p_config['id']
-        self._update_geometry_from_config(p_config)
-        # TODO - set border to 0
-        l_stims_factory = ugm_stimuluses.UgmStimulusFactory()
-        for i_stim_config in p_config['stimuluses']:
-            l_stims_factory.createStimulus(self, i_stim_config)
-
-    def paintEvent(self, event):
-        paint = QtGui.QPainter()
-        paint.begin(self)
-        l_bg_color = QtGui.QColor(0, 0, 0)
-        l_bg_color.setNamedColor(self.color)
-        paint.setBrush(l_bg_color)
-        paint.drawRect(0, 0, self.width, self.height)
-        paint.end()
-    def update_geometry(self):
-        """Called from resize event and parent`s update_geometry()."""
-        print("update_ugm_field")
-        l_config = self.get_config_manager().get_config_for(self._ugm_id)
-        self._update_geometry_from_config(l_config)
-        for i in self.children():
-            i.update_geometry()
-    def _update_geometry_from_config(self, p_config):
-        self._set_rect_config(self.parent(), p_config)
-        self.setGeometry(self.position_x, self.position_y,
-                         self.position_x + self.width,
-                         self.position_y + self.height)
-
-    def resizeEvent(self, event):
-#        self.update_geometry()
-        print("resizeEvent UGM FIELD:")
-        print(self.parent().geometry())
-        print(self.geometry()) 
-#        for i in self.children():
-#            i.resizeEvent(event)
-    def get_config_manager(self):
-        return self.parent().get_config_manager()
-
-
+class UgmField(ugm_stimuluses.UgmRectStimulus):
+    "For now, just to express it..."
+    pass
 
 class UgmGenericCanvas(QtGui.QWidget):
     def __init__(self, p_parent, p_config_manager):

@@ -69,9 +69,11 @@ class UgmConfigManager(object):
     # ----------------------------------------------------------------------
     # PUBLIC GETTERS -------------------------------------------------------
     def get_config_for(self, p_id):
-        return copy.deepcopy(self._configs[p_id])
+        return copy.deepcopy(self._configs(p_id))
     def get_full_config(self):
-        return copy.deepcopy(self._configs)
+        #TODO - implement
+        pass
+#        return copy.deepcopy(self._configs)
 
     def get_ugm_fields(self):
         """Return a list of dictionaries representing configuration
@@ -90,24 +92,36 @@ class UgmConfigManager(object):
 
     # ----------------------------------------------------------------------
     # PUBLIC SETTERS -------------------------------------------------------
-
+    def _configs(self, p_id):
+        return self._get_recursive_config(self._fields, p_id)
+    def _get_recursive_config(self, p_fields, p_id):
+        for i in p_fields:
+            if i['id'] == p_id:
+                return i
+            j = self._get_recursive_config(i['stimuluses'], p_id)
+            if j != None:
+                return j
+        return None
     def set_full_config(self, p_config_fields):
-        self._configs = dict()
+        #self._configs = dict()
         self._fields = p_config_fields
-        for i_field in self._fields:
-            self._configs[i_field['id']] = i_field
-            for i_stim in i_field['stimuluses']:
-                self._configs[i_stim['id']] = i_stim
+#        self._set_recursive_config(self._fields)
+
+#    def _set_recursive_config(self, p_elems):
+#        for i_field in p_elems:
+#            #self._configs[i_field['id']] = i_field
+#            self._set_recursive_config(i_field['stimuluses'])
+
     def set_config(self, p_elem_config):
         # Don`create a new entry, use existing one so 
         # that corresponding element in self._fields is also updated
-        l_elem = self._configs[p_elem_config['id']]
+        l_elem = self._configs(p_elem_config['id'])
         l_elem.clear()
         for i_key, i_value in p_elem_config.iteritems():
             l_elem[i_key] = i_value
 
     def set_config_for(self, p_elem_id, p_attr_id, p_attr_value):
-        self._configs[p_elem_id][p_attr_id] = p_attr_value
+        self._configs(p_elem_id)[p_attr_id] = p_attr_value
         # Notice - corresponding element in self._fields is also updated
 
     # PUBLIC SETTERS -------------------------------------------------------
@@ -174,9 +188,11 @@ class UgmRectConfig(object):
             if p_config_dict['position_vertical'] == 'top':
                 self.position_y = 0
             elif p_config_dict['position_vertical'] == 'bottom':
-                self.position_y = p_parent.width - self.height
+                self.position_y = p_parent.height - self.height
             elif p_config_dict['position_vertical'] == 'center':
+                print("KURRRRRRRRRRRRRRRRRRRRRRRRRRRRR ")
                 self.position_y = p_parent.height/2 - self.height/2
+                print(self.position_y)
             else:
                 raise UgmUnknownConfigValue('position_vertical',
                                             p_config_dict)
