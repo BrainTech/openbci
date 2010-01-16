@@ -1,157 +1,117 @@
 #!/usr/bin/python
+import copy
+class UgmAttributesManager(object):
+    def __init__(self):
+        self.attributes_def = {
+            'id':{'value':'int'},
+            'width_type':{'value':['absolute', 'relative']},
+            'width':{'value':'int'},
+            'height_type':{'value':['absolute', 'relative']},
+            'height':{'value':'int'},
+            'position_horizontal_type':{
+                'value':['absolute', 'relative', 'aligned']},
+            'position_horizontal':{
+                'value':['int',['left','center','right'], 'int'],
+                'depend_from':'position_horizontal_type'},
+            'position_vertical_type':{
+                'value':['absolute', 'relative', 'aligned']},
+            'position_vertical':{
+                'value':['int',['top','center','bottom'], 'int'],
+                'depend_from':'position_horizontal_type'},
+            'color':{'value':'string'},
+            'stimulus_type':{'value':['rectangle', 'image', 'text']},
+            'image_path':{'value':'string'},
+            'message':{'value':'string'},
+            'font_family':{'value':'string'},
+            'font_color':{'value':'string'},
+            'font_size':{'value':'int'}
+            }
+        self.attributes_for_elem = {
+            'field':['id', 'width_type', 'width', 'height_type',
+                     'height', 'position_horizontal_type',
+                     'position_horizontal', 'position_vertical_type',
+                     'position_vertical', 'color'],
+            'rectangle':['id', 'width_type', 'width', 'height_type',
+                         'height', 'position_horizontal_type',
+                         'position_horizontal', 'position_vertical_type',
+                         'position_vertical', 'color'],
+            'image':['id', 'position_horizontal_type',
+                     'position_horizontal', 'position_vertical_type',
+                     'position_vertical', 'image_path'],
+            'text':['id', 'position_horizontal_type',
+                    'position_horizontal', 'position_vertical_type',
+                    'position_vertical', 'message', 'font_family',
+                    'font_size', 'font_color']
+            }
 
 class UgmConfigManager(object):
-    def __init__(self):
+    def __init__(self, p_config_file='ugm_config'):
+        self._config_file = p_config_file
+        self._attributes_manager = UgmAttributesManager()
+        self.update_from_file()
+    # ----------------------------------------------------------------------
+    # CONFIG FILE MANAGMENT ------------------------------------------------
+    def update_from_file(self, p_config_file=None):
+        if p_config_file == None: l_config_file = self._config_file
+        else: l_config_file = p_config_file
+        l_config_module = __import__(l_config_file)
+        reload(l_config_module) # To be sure that the file is reloaded
+        self.set_full_config(l_config_module.fields)
+    def update_to_file(self, p_config_file=None):
+        if p_config_file == None: l_config_file = self._config_file
+        else: l_config_file = p_config_file
+        f = open(l_config_file+'.py', 'w') #TODO -try except
+        f.write(''.join(["fields = ", repr(self._fields)]))
+        f.close()
+    # CONFIG FILE MANAGMENT ------------------------------------------------
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # PUBLIC GETTERS -------------------------------------------------------
+    def get_config_for(self, p_id):
+        return copy.deepcopy(self._configs[p_id])
+    def get_full_config(self):
+        return copy.deepcopy(self._configs)
+
+    def get_ugm_fields(self):
+        """Return a list of dictionaries representing configuration
+        of every UgmField.
+        Notice, that we don`t return in-memory list, but we return 
+        a deep copy, as gui might want to alter config while processing."""
+        return copy.deepcopy(self._fields)
+    def get_attributes_config(self):
+        return {'attributes_def':
+                    self._attributes_manager.attributes_def,
+                'attributes_for_elem':
+                    self._attributes_manager.attributes_for_elem
+                }
+    # PUBLIC GETTERS -------------------------------------------------------
+    # ----------------------------------------------------------------------
+
+    # ----------------------------------------------------------------------
+    # PUBLIC SETTERS -------------------------------------------------------
+
+    def set_full_config(self, p_config_fields):
         self._configs = dict()
-    def get_config(self, p_id):
-        return self._configs[p_id]
-    def ugm_fields(self):
-        l_fields = []
-        h = 100
-        w = 100
-        d = {
-            'id':1,
-            'width_type':'absolute',
-            'width':w, 
-            'height_type':'absolute',
-            'height':h,
-            'position_horizontal_type':'absolute',
-            'position_horizontal':0,
-            'position_vertical_type':'absolute',
-            'position_vertical':0,
-            'color':'#d4d4d4'
-            }
-        self._configs[d['id']] = d
-        stims = [
-            {
-                'id':11,
-                'width_type':'absolute',
-                'width':70, 
-                'height_type':'absolute',
-                'height':70, 
-                'position_horizontal_type':'absolute',
-                'position_horizontal':0,
-                'position_vertical_type':'absolute',
-                'position_vertical':0,
-                'color':'#ffffff', 
-                'stimulus_type':'rectangle'
-             },
-            {
-                'id':12,
-                'width_type':'absolute',
-                'width':60, 
-                'height_type':'absolute',
-                'height':40, 
-                'position_horizontal_type':'relative',
-                'position_horizontal':3,
-                'position_vertical_type':'relative',
-                'position_vertical':3, 
-               'color':'#000000', 
-                'stimulus_type':'rectangle'
-             }
-            ]
-        d['stimuluses'] = stims
-        for i_stim in stims:
-            self._configs[i_stim['id']] = i_stim
-        l_fields.append(d)
+        self._fields = p_config_fields
+        for i_field in self._fields:
+            self._configs[i_field['id']] = i_field
+            for i_stim in i_field['stimuluses']:
+                self._configs[i_stim['id']] = i_stim
+    def set_config(self, p_elem_config):
+        # Don`create a new entry, use existing one so 
+        # that corresponding element in self._fields is also updated
+        l_elem = self._configs[p_elem_config['id']]
+        l_elem.clear()
+        for i_key, i_value in p_elem_config.iteritems():
+            l_elem[i_key] = i_value
 
-        d = {
-            'id':2,
-            'width_type':'absolute',
-            'width':w, 
-            'height_type':'absolute',
-            'height':h,
-            'position_horizontal_type':'absolute',
-            'position_horizontal':0,
-            'position_vertical_type':'absolute',
-            'position_vertical':100,
-            'color':'#eee4d4'
-            }
-        self._configs[d['id']] = d
-        stims = [
-            {
-                'id':21,
-                'width_type':'absolute',
-                'width':60, 
-                'height_type':'absolute',
-                'height':40, 
-                'position_horizontal_type':'aligned',
-                'position_horizontal':'right',
-                'position_vertical_type':'aligned',
-                'position_vertical':'center',
-                'color':'#ffffff', 
-                'stimulus_type':'rectangle'
-                },
-            {
-                'id':22,
-                'width_type':'relative',
-                'width':2, 
-                'height_type':'relative',
-                'height':2, 
-                'position_horizontal_type':'aligned',
-                'position_horizontal':'center',
-                'position_vertical_type':'aligned',
-                'position_vertical':'bottom',
-                'color':'#000000', 
-                'stimulus_type':'rectangle'
-                }
+    def set_config_for(self, p_elem_id, p_attr_id, p_attr_value):
+        self._configs[p_elem_id][p_attr_id] = p_attr_value
+        # Notice - corresponding element in self._fields is also updated
 
-            ]
-        d['stimuluses'] = stims
-        for i_stim in stims:
-            self._configs[i_stim['id']] = i_stim
-
-        l_fields.append(d)
-        d = {
-            'id':3,
-            'width_type':'relative',
-            'width':3, 
-            'height_type':'relative',
-            'height':3,
-            'position_horizontal_type':'absolute',
-            'position_horizontal':100,
-            'position_vertical_type':'absolute',
-            'position_vertical':100,
-            'color':'#eeefff'
-            }
-        self._configs[d['id']] = d
-        stims = [
-            {
-                'id':31,
-                'width_type':'absolute',
-                'width':60, 
-                'height_type':'absolute',
-                'height':40, 
-                'position_horizontal_type':'aligned',
-                'position_horizontal':'right',
-                'position_vertical_type':'aligned',
-                'position_vertical':'center',
-                'color':'#ffffff', 
-                'stimulus_type':'rectangle'
-                },
-            {
-                'id':32,
-                'width_type':'relative',
-                'width':2, 
-                'height_type':'relative',
-                'height':2, 
-                'position_horizontal_type':'aligned',
-                'position_horizontal':'center',
-                'position_vertical_type':'aligned',
-                'position_vertical':'center',
-                'color':'#000000', 
-                'stimulus_type':'rectangle'
-                }
-
-            ]
-
-        d['stimuluses'] = stims
-        for i_stim in stims:
-            self._configs[i_stim['id']] = i_stim
-
-        l_fields.append(d)
-        return l_fields
-
+    # PUBLIC SETTERS -------------------------------------------------------
+    # ----------------------------------------------------------------------
 
 class UgmUnknownConfigValue(Exception):
     def __init__(self, p_key, p_config_dict):
@@ -172,7 +132,7 @@ class UgmRectConfig(object):
         if p_config_dict['width_type'] == 'absolute':
             self.width = p_config_dict['width']
         elif p_config_dict['width_type'] == 'relative':
-            self.width = p_parent.width / p_config_dict['width']
+            self.width = p_parent.width * p_config_dict['width']
         else:
             raise UgmUnknownConfigValue('width_type',
                                         p_config_dict)
@@ -181,7 +141,7 @@ class UgmRectConfig(object):
         if p_config_dict['height_type'] == 'absolute':
             self.height = p_config_dict['height']
         elif p_config_dict['height_type'] == 'relative':
-            self.height = p_parent.width / p_config_dict['height']
+            self.height = p_parent.height * p_config_dict['height']
         else:
             raise UgmUnknownConfigValue('height_type',
                                         p_config_dict)
@@ -190,7 +150,7 @@ class UgmRectConfig(object):
         if p_config_dict['position_horizontal_type'] == 'absolute':
             self.position_x = p_config_dict['position_horizontal']
         elif p_config_dict['position_horizontal_type'] == 'relative':
-            self.position_x = p_parent.width / p_config_dict['position_horizontal']
+            self.position_x = p_parent.width * p_config_dict['position_horizontal']
         elif p_config_dict['position_horizontal_type'] == 'aligned': #TODO - alligned? aligned?
             if p_config_dict['position_horizontal'] == 'left':
                 self.position_x = 0
@@ -209,7 +169,7 @@ class UgmRectConfig(object):
         if p_config_dict['position_vertical_type'] == 'absolute':
             self.position_y = p_config_dict['position_vertical']
         elif p_config_dict['position_vertical_type'] == 'relative':
-            self.position_y = p_parent.height / p_config_dict['position_vertical']
+            self.position_y = p_parent.height * p_config_dict['position_vertical']
         elif p_config_dict['position_vertical_type'] == 'aligned': #TODO - alligned? aligned?
             if p_config_dict['position_vertical'] == 'top':
                 self.position_y = 0
@@ -225,6 +185,9 @@ class UgmRectConfig(object):
                                         p_config_dict)
             
             
-        #set color
-        self.color = p_config_dict['color']
+        #set color #TODO ????
+        try:
+            self.color = p_config_dict['color']
+        except:
+            pass
 

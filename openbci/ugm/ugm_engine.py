@@ -24,10 +24,13 @@ class UgmField(QtGui.QWidget, ugm_config_manager.UgmRectConfig):
         paint.setBrush(l_bg_color)
         paint.drawRect(0, 0, self.width, self.height)
         paint.end()
-    def _update_geometry(self):
-        """Called from resize event."""
-        l_config = self.get_config_manager().get_config(self._ugm_id)
+    def update_geometry(self):
+        """Called from resize event and parent`s update_geometry()."""
+        print("update_ugm_field")
+        l_config = self.get_config_manager().get_config_for(self._ugm_id)
         self._update_geometry_from_config(l_config)
+        for i in self.children():
+            i.update_geometry()
     def _update_geometry_from_config(self, p_config):
         self._set_rect_config(self.parent(), p_config)
         self.setGeometry(self.position_x, self.position_y,
@@ -35,15 +38,17 @@ class UgmField(QtGui.QWidget, ugm_config_manager.UgmRectConfig):
                          self.position_y + self.height)
 
     def resizeEvent(self, event):
-        self._update_geometry()
+#        self.update_geometry()
         print("resizeEvent UGM FIELD:")
         print(self.parent().geometry())
         print(self.geometry()) 
-        for i in self.children():
-            i.resizeEvent(event)
-
+#        for i in self.children():
+#            i.resizeEvent(event)
     def get_config_manager(self):
         return self.parent().get_config_manager()
+
+
+
 class UgmGenericCanvas(QtGui.QWidget):
     def __init__(self, p_parent, p_config_manager):
         QtGui.QWidget.__init__(self, p_parent)
@@ -53,7 +58,7 @@ class UgmGenericCanvas(QtGui.QWidget):
         self.setWindowTitle('Colors')
         
         # Create ugm fields as children
-        for i_field_config in self._config_manager.ugm_fields():
+        for i_field_config in self._config_manager.get_ugm_fields():
             UgmField(self, i_field_config)
 #        print("GENERIC STIMULUS:")
 #        for i in dir(self):
@@ -66,29 +71,33 @@ class UgmGenericCanvas(QtGui.QWidget):
 #        print(p_parent.geometry()) #TODODODODO
 #        print(self.geometry())
 
-    def resizeEvent(self, event):
-        print("resizeEvent UGMGENERICCANVAS:")
-        print(self.parent().geometry())
-        print(self.geometry())
-        for i in self.children():
-            i.resizeEvent(event)
-
     def _get_width(self):
         return self.frameSize().width()
     def _get_height(self):
         return self.frameSize().height()
+
     def get_config_manager(self):
         return self._config_manager
+
+    def resizeEvent(self, event):
+        print("resizeEvent UGMGENERICCANVAS:", event)
+        #print(self.parent().geometry())
+        #print(self.geometry())
+        self.update_geometry()
+
+    def update_geometry(self):
+        for i in self.children():
+            i.update_geometry()
+
     width = property(_get_width)
     height = property(_get_height)
 
 class SpellerWindow(QtGui.QFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, p_config_manager):
         QtGui.QFrame.__init__(self, parent)
 
         hbox = QtGui.QVBoxLayout()
-        l_config_manager = ugm_config_manager.UgmConfigManager()
-        self.canvas = UgmGenericCanvas(self, l_config_manager)       
+        self.canvas = UgmGenericCanvas(self, p_config_manager)       
         self.text = QtGui.QLineEdit()
         hbox.addWidget(self.text)
         hbox.addWidget(self.canvas)
@@ -97,11 +106,13 @@ class SpellerWindow(QtGui.QFrame):
     def resizeEvent(self, event):
         print("resizeEvent SpellerWindow:")
         print(self.geometry())
+    def update_geometry(self):
+        self.canvas.update_geometry()
 
-class MainWindow(QtGui.QMainWindow):
-    def __init__(self):
+class UgmMainWindow(QtGui.QMainWindow):
+    def __init__(self, p_config_manager):
         QtGui.QMainWindow.__init__(self)
-        self.view = SpellerWindow(self)
+        self.view = SpellerWindow(self, p_config_manager)
         self.setCentralWidget(self.view)
         self.setWindowTitle('statusbar')
 
@@ -115,18 +126,27 @@ class MainWindow(QtGui.QMainWindow):
         menubar = self.menuBar()
         file = menubar.addMenu('&File')
         file.addAction(exit)
+    def update(self):
+        self.view.update_geometry()
+        print("update main window")
+class UgmEngine(object):
+    def __init__(self, p_config_manager):
+        self._config_manager = p_config_manager
+    def run(self):
+        app = QtGui.QApplication(sys.argv)
+        self._window = UgmMainWindow(self._config_manager)
+        self._window.showFullScreen()
+        sys.exit(app.exec_())
+    def update(self):
+        print("Update ugm engine")
+        print(self._config_manager.get_config_for(41))
+        self._window.update()
 
 if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    main = MainWindow()
-    main.showFullScreen()
-    sys.exit(app.exec_())
-
+    UgmEngine(ugm_config_manager.UgmConfigManager()).run()
 
 #TODO - 
-# - ustawic rozmiar ugm generic canvas tak zeby fieldy mogly ustawiac swoje relatywne polozenie
+
 # - zrobic takie ustawienie zeby fieldy wygladaly juz tak jak trzeba
-# - zrobic stimulus text i image
-# - przeniesc konfiguracje do pliku konfiguracyjnego
 # - stworzyc mozliwosc modyfikowania ugma online - formaty i identyfikatory
 
