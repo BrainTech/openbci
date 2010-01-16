@@ -23,7 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 """
->>> import logic_speller_engine as l
+>>> import speller_graphics_manager as l
 
 >>> m = l.SpellerGraphicsManager()
 
