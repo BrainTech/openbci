@@ -89,9 +89,6 @@ class UgmConfigManager(object):
                 }
     # PUBLIC GETTERS -------------------------------------------------------
     # ----------------------------------------------------------------------
-
-    # ----------------------------------------------------------------------
-    # PUBLIC SETTERS -------------------------------------------------------
     def _configs(self, p_id):
         return self._get_recursive_config(self._fields, p_id)
     def _get_recursive_config(self, p_fields, p_id):
@@ -102,15 +99,12 @@ class UgmConfigManager(object):
             if j != None:
                 return j
         return None
-    def set_full_config(self, p_config_fields):
-        #self._configs = dict()
-        self._fields = p_config_fields
-#        self._set_recursive_config(self._fields)
 
-#    def _set_recursive_config(self, p_elems):
-#        for i_field in p_elems:
-#            #self._configs[i_field['id']] = i_field
-#            self._set_recursive_config(i_field['stimuluses'])
+    # ----------------------------------------------------------------------
+    # PUBLIC SETTERS -------------------------------------------------------
+    def set_full_config(self, p_config_fields):
+        #TODO - gdzies tam wczesniej sprawdzac, czy nowy zbior pol jest zbiotem obiektow o tych samych typach, jesli tak to fajnie, ale jesli nie, to ugmi_engine musi sie przebudowac a nie tylko odswierzyc
+        self._fields = p_config_fields
 
     def set_config(self, p_elem_config):
         # Don`create a new entry, use existing one so 
