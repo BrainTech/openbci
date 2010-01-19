@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="buttons" >
+    <file alias="remove" >icons/remove.png</file>
+    <file alias="add" >icons/add.png</file>
+  </qresource>
+</RCC>
