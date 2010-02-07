@@ -1,19 +1,13 @@
-import ugm_config_manager
-import ugm_engine
-import candygram as cg
-class UgmEngineThread(object):
-    def __init__(self, p_engine):
-        self._engine = p_engine
-    def run(self):
-        r = cg.Receiver()
-        self._engine.run()
-        while True:
-            r.receive()
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+from ugm import ugm_config_manager
+from ugm import ugm_engine
+import threading
 class UgmTestServer(object):
-    def __init__(self):
-        l_config_manager = ugm_config_manager.UgmConfigManager('test1')
+    def __init__(self, p_config):
+        l_config_manager = ugm_config_manager.UgmConfigManager(p_config)
         l_engine = ugm_engine.UgmEngine(l_config_manager)
-        l_engine_thread = cg.spawn(UgmEngineThread(l_engine).run)
+        l_engine_thread = threading.Thread(target=l_engine.run).start()
         print("You are running ugm with config from ugm_config_for_tests.py")
         while True:
             print("")
@@ -48,5 +42,11 @@ class UgmTestServer(object):
                 l_engine.update()
                 print("DONE!")
 
+import sys
 if __name__ == '__main__':
-    UgmTestServer()
+    try:
+        conf = sys.argv[1]
+    except:
+        conf = 'ugm.configs.test1'
+    finally:
+        UgmTestServer(conf)

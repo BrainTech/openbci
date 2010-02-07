@@ -23,7 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 """
->>> import ugm_config_manager as m
+>>> from ugm import ugm_config_manager as m
 
 >>> mgr = m.UgmConfigManager('ugm_config_for_tests_dont_touch_this_file')
 
@@ -82,7 +82,7 @@ True
 
 >>> full = mgr.get_ugm_fields()
 
->>> mgr.update_to_file('trash.py')
+>>> mgr.update_to_file('trash')
 
 >>> also_full = __import__('trash').fields
 

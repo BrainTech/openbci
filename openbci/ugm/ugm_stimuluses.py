@@ -14,6 +14,8 @@ class UgmStimulusFactory(object):
             return UgmImageStimulus(p_parent, p_stim_config)
         elif l_stim == 'text':
             return UgmTextStimulus(p_parent, p_stim_config)
+        elif l_stim == 'diode':
+            return UgmDiodeStimulus(p_parent, p_stim_config)
 
 class UgmStimulus(QtGui.QWidget):
     def __init__(self, p_parent, p_config_dict):
@@ -105,3 +107,26 @@ class UgmRectStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
         paint.drawRect(0, 0, self.width, self.height)
         paint.end()
 
+"""import virtual_diode_stimulus
+class UgmDiodeStimulus(UgmStimulus, ugm_config_manager.UgmRectConfig):
+    def _set_config(self, p_parent, p_config_dict):
+        #TODO - set default config values
+        self._set_rect_config(p_parent, p_config_dict)
+        self.freq = p_config_dict['freq']
+
+    def paintEvent(self, event):
+        l_geom = self._get_absolute_geometry()
+        virtual_diode_stimulus.show_diode_in_thread(self._ugm_id, l_geom, self.width, self.height, self.freq)
+
+    def _get_absolute_geometry(self):
+        l_parent = self.parent()
+        l_geom = [self.geometry().x(), self.geometry().y()]
+        while l_parent:
+            l_new_geom = l_parent.geometry()
+            l_geom[0] = l_geom[0] + l_new_geom.x()
+            l_geom[1] = l_geom[1] + l_new_geom.y()
+            l_parent = l_parent.parent()
+        return l_geom"""
+            
+            
+    

@@ -45,17 +45,29 @@ class UgmAttributesManager(object):
             }
 
 class UgmConfigManager(object):
-    def __init__(self, p_config_file='ugm_config'):
+    def __init__(self, p_config_file='ugm.configs.ugm_config'):
         self._config_file = p_config_file
         self._attributes_manager = UgmAttributesManager()
         self.update_from_file()
     # ----------------------------------------------------------------------
     # CONFIG FILE MANAGMENT ------------------------------------------------
     def update_from_file(self, p_config_file=None):
-        if p_config_file == None: l_config_file = self._config_file
-        else: l_config_file = p_config_file
-        l_config_module = __import__(l_config_file)
-        reload(l_config_module) # To be sure that the file is reloaded
+        """Import config file from p_config_file or self._config_file
+        if p_config_file is None. If we have config in file xxxx.py then
+        p_config_file should be a string in format:
+        xxxx or aaa.bbb.xxxx if file xxxx.py is in package aaa.bbb."""
+
+        if p_config_file:
+            self._config_file = p_config_file
+        #In case l_config_file is in format aaa.bbb.ccc lets add aaa.bbb to
+        # fromlist parameter in import call:
+        l_dot = self._config_file.rfind('.')
+        if l_dot == -1:
+            l_config_module = __import__(self._config_file)
+        else:
+            l_config_module = __import__(self._config_file, 
+                                         fromlist = [self._config_file[:l_dot]])
+        reload(l_config_module) # To be sure that the file is imported
         self.set_full_config(l_config_module.fields)
     def update_to_file(self, p_config_file=None):
         if p_config_file == None: l_config_file = self._config_file
@@ -105,21 +117,33 @@ class UgmConfigManager(object):
     def set_full_config(self, p_config_fields):
         #TODO - gdzies tam wczesniej sprawdzac, czy nowy zbior pol jest zbiotem obiektow o tych samych typach, jesli tak to fajnie, ale jesli nie, to ugmi_engine musi sie przebudowac a nie tylko odswierzyc
         self._fields = p_config_fields
-
+    def set_full_config_from_message(self, p_msg):
+        l_full_config = self.config_from_message(p_msg)
+        self.set_full_config(l_full_config)
     def set_config(self, p_elem_config):
         # Don`create a new entry, use existing one so 
         # that corresponding element in self._fields is also updated
         l_elem = self._configs(p_elem_config['id'])
-        l_elem.clear()
         for i_key, i_value in p_elem_config.iteritems():
             l_elem[i_key] = i_value
-
+    def set_config_from_message(self, p_msg):
+        l_configs = self.config_from_message(p_msg)
+        for i_config in l_configs:
+            self.set_config(i_config)
     def set_config_for(self, p_elem_id, p_attr_id, p_attr_value):
         self._configs(p_elem_id)[p_attr_id] = p_attr_value
         # Notice - corresponding element in self._fields is also updated
 
     # PUBLIC SETTERS -------------------------------------------------------
     # ----------------------------------------------------------------------
+    def update_message_is_full(self, p_msg_type):
+        return p_msg_type == 0
+    def update_message_is_simple(self, p_msg_type):
+        return p_msg_type == 1
+    def config_from_message(self, p_msg):
+        return eval(p_msg)
+    def config_to_message(self):
+        return str(self._fields)
 
 class UgmUnknownConfigValue(Exception):
     def __init__(self, p_key, p_config_dict):

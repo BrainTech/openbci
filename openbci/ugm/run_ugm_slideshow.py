@@ -12,7 +12,8 @@ class UgmEngineThread(object):
             r.receive()
 class UgmTestServer(object):
     def __init__(self):
-        l_config_module = __import__('ugm_slideshow_config')
+        l_config_module = __import__('ugm.configs.ugm_slideshow_config',
+                                     fromlist = ['ugm.configs'])
         l_configs = l_config_module.configs
         l_secs = l_config_module.seconds
         l_config_manager = ugm_config_manager.UgmConfigManager(l_configs[0])
