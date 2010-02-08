@@ -24,3 +24,7 @@ message Decision {
     required int32 decision = 1;
     optional int32 type = 2;
 }
+message UgmUpdate {
+	required int32 type = 1;
+	required string value = 2;
+}

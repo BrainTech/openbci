@@ -23,6 +23,7 @@ peer {
 
 #   PEERS 100-999 are plain peers
 
+
 # peers 100-105 reserved
 
 peer {
@@ -113,6 +114,11 @@ peer {
 }
 
 peer {
+    type: 123
+    name: "SIGNAL_STREAMER"
+}
+
+peer {
      type: 124
      name: "SIGNAL_SAVER"
 }
@@ -120,6 +126,11 @@ peer {
 peer {
      type: 125
      name: "SIGNAL_SAVER_CONTROL"
+}
+
+peer {
+     type: 126
+     name: "UGM"
 }
 
 # packages and routing rules definitions
@@ -250,7 +261,12 @@ type {
     to {
         peer: "FILTER"
         whom: ALL
-    }   
+    }  
+    to {
+	peer: "SIGNAL_STREAMER"
+	whom: ALL
+    }    
+ 
     to {
 	peer: "SIGNAL_SAVER"
 	whom: ALL
@@ -362,10 +378,44 @@ type {
 }
 
 type {
+    type: 143
+    name: "STREAMED_SIGNAL_MESSAGE"
+    
+}
+type {
+    type: 144
+    name: "SIGNAL_STREAMER_START"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ANY
+    }
+}
+
+type {
+    type: 145
+    name: "SIGNAL_STREAMER_STOP"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+
+type {
      type: 146
      name: "SIGNAL_SAVER_CONTROL_MESSAGE"
      to {
      	peer: "SIGNAL_SAVER"
 	whom: ALL
 	}
+}
+
+
+type {
+    type: 147
+    name: "UGM_UPDATE_MESSAGE"
+    to {
+        peer: "UGM"
+        whom: ALL
+    }
 }
