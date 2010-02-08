@@ -22,41 +22,76 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
+"""Current script is supposed to be fired if you want to run 
+ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, thread
+import os
+
 import variables_pb2
+
 from ugm import ugm_engine
 from ugm import ugm_config_manager
 from ugm import ugm_server
-import os, sys, subprocess
+from ugm import ugm_logging
+
+LOGGER = ugm_logging.get_logger('run_ugm')
 
 class TcpServer(object):
+    """The class solves a problem with PyQt - it`s main window MUST be 
+    created in the main thread. As a result I just can`t fire multiplexer
+    and fire ugm_engine in a separate thread because it won`t work. I can`t
+    fire ugm_engine and then fire multiplexer in a separate thread as 
+    then multiplexer won`t work ... To solve this i fire ugm_engine in the 
+    main thread, fire multiplexer in separate PROCESS and create TcpServer
+    to convey data from multiplexer to ugm_engine."""
     def __init__(self, p_ugm_engine):
+        """Init server and store ugm engine."""
         self._ugm_engine = p_ugm_engine
     def run(self):
+        """Do forever:
+        wait for data from ugm_server (it should be UgmUpdate() message
+        type by now), parse data and send it to self._ugm_engine."""
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((ugm_server.TCP_IP, ugm_server.TCP_PORT))
-            s.listen(5)
+            l_soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # Get config form ugm_server module
+            l_soc.bind((ugm_server.TCP_IP, ugm_server.TCP_PORT))
+            l_soc.listen(5)
             while True:
-                conn, addr = s.accept()
-                d = ''
+                # Wait for data from ugm_server
+                l_conn = l_soc.accept()[0] # Don`t need address...
+                l_full_data = ''
                 while True:
-                    data = conn.recv(ugm_server.BUFFER_SIZE)
-                    if not data: break
-                    d = ''.join([d,data])
+                    l_data = l_conn.recv(ugm_server.BUFFER_SIZE)
+                    if not l_data: 
+                        break
+                    l_full_data = ''.join([l_full_data, l_data])
+                # d should represent UgmUpdate type...
                 l_msg = variables_pb2.UgmUpdate()
-                l_msg.ParseFromString(d)
+                l_msg.ParseFromString(l_full_data)
+                #LOGGER.debug(''.join(['TcpServer got: ',
+                #                      str(l_msg.type),
+                #                      ' / ',
+                #                      l_msg.value]))
+                # Not working properly while multithreading ...
                 self._ugm_engine.update_from_message(
-                    int(l_msg.type), l_msg.value)
-                conn.close()
+                    l_msg.type, l_msg.value)
+                l_conn.close()
+        except Exception, l_exc:
+            LOGGER.error('An error occured in TcpServer: '+str(l_exc))
+            raise(l_exc)
         finally:
-            s.close()
+            l_soc.close()
 
 if __name__ == "__main__":
-    e = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())
-    thread.start_new_thread(TcpServer(e).run, ())
+    # Create instance of ugm_engine with config manager (created from
+    # default config file
+    ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())
+    # Start TcpServer in a separate thread with ugm engine on slot
+    thread.start_new_thread(TcpServer(ENG).run, ())
+    # Start multiplexer in a separate process
     os.system("./openbci/ugm/ugm_server.py &")
     #TODO - works only when running from openbci directiory...
-    e.run()
+    # fire ugm engine in MAIN thread (current thread)
+    ENG.run()
 
 

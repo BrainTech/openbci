@@ -22,27 +22,40 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-import settings, variables_pb2
+"""This module should be fired as script so that UGM_UPDATE_MESSAGE
+is received and send by tcp to ugm_engine"""
+import settings
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import socket
 TCP_IP = '127.0.0.1'
 TCP_PORT = 5010
 BUFFER_SIZE = 1024
+import ugm_logging
+LOGGER = ugm_logging.get_logger("ugm_server")
 
 class UgmServer(BaseMultiplexerServer):
+    """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
+    to ugm_engine using udp. That level of comminication is needed, as
+    pyqt won`t work with multithreading..."""
     def __init__(self, p_addresses):
         """Init server."""
         super(UgmServer, self).__init__(addresses=p_addresses, 
                                         type=peers.UGM)
     def handle_message(self, mxmsg):
-        """Method fired by multiplexer. It conveys decision to logic engine."""
+        """Method fired by multiplexer. It conveys update message to 
+        ugm_engine using udp sockets."""
         print("UGM GOT: ", mxmsg.type)
         if (mxmsg.type == types.UGM_UPDATE_MESSAGE):
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.connect((TCP_IP, TCP_PORT))
-            self.socket.send(mxmsg.message)
-            self.socket.close()
+            try:
+                l_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                l_socket.connect((TCP_IP, TCP_PORT))
+                l_socket.send(mxmsg.message)
+            except Exception, l_exc:
+                LOGGER.error("An error occured while sending data to ugm_engine")
+                raise(l_exc)
+            finally:
+                l_socket.close()
         self.no_response() 
 
 if __name__ == "__main__":
