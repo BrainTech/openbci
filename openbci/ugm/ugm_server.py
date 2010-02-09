@@ -45,14 +45,14 @@ class UgmServer(BaseMultiplexerServer):
     def handle_message(self, mxmsg):
         """Method fired by multiplexer. It conveys update message to 
         ugm_engine using udp sockets."""
-        print("UGM GOT: ", mxmsg.type)
+        LOGGER.info('UgmServer.handle_message type: '+str(mxmsg.type))
         if (mxmsg.type == types.UGM_UPDATE_MESSAGE):
             try:
                 l_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 l_socket.connect((TCP_IP, TCP_PORT))
                 l_socket.send(mxmsg.message)
             except Exception, l_exc:
-                LOGGER.error("An error occured while sending data to ugm_engine")
+                LOGGER.errior("An error occured while sending data to ugm_engine")
                 raise(l_exc)
             finally:
                 l_socket.close()

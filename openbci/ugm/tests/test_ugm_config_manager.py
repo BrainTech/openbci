@@ -77,12 +77,12 @@ True
 >>> c == also_c
 True
 
->>> print(also_c)
-{'cos_tam': 2, 'id': 1}
+>>> print(also_c)['cos_tam']
+2
 
 >>> full = mgr.get_ugm_fields()
 
->>> mgr.update_to_file('trash')
+>>> mgr.update_to_file('trash.py')
 
 >>> also_full = __import__('trash').fields
 

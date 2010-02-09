@@ -165,7 +165,7 @@ fields = [
                         'position_vertical':'center', 
                         'color':'#000000', 
                         'stimulus_type':'image',
-                        'image_path':'cross.png',
+                        'image_path':'ugm.resources.cross.png',
                         'stimuluses':[]
                         }
                     ]
@@ -193,7 +193,7 @@ fields = [
                 'position_vertical':'center',
                 'color':'#fffeee', 
                 'stimulus_type':'image',
-                'image_path':'juhu.png',
+                'image_path':'ugm.resources.juhu.png',
                 'stimuluses':[]
                 }
             ]

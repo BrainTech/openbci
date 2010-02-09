@@ -196,7 +196,7 @@ fields = [
                 'position_vertical':'center',
                 'color':'#fffeee', 
                 'stimulus_type':'image',
-                'image_path':'juhu.png',
+                'image_path':'ugm.resources.juhu.png',
                 'stimuluses':[]
                 }
             ]

@@ -47,6 +47,6 @@ if __name__ == '__main__':
     try:
         conf = sys.argv[1]
     except:
-        conf = 'ugm.configs.test1'
+        conf = 'ugm.tests.ugm_config_for_tests'
     finally:
         UgmTestServer(conf)

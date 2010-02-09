@@ -119,7 +119,7 @@ fields = [
                 'position_vertical_type':'aligned',
                 'position_vertical':'center',
                 'stimulus_type':'image',
-                'image_path':'nie_juhu.png',
+                'image_path':'ugm.resources.nie_juhu.png',
                 'stimuluses':[]
                 },
             {
@@ -172,7 +172,7 @@ fields = [
                 'position_vertical':'center',
                 'color':'#ffffff', 
                 'stimulus_type':'image',
-                'image_path':'juhu.png',
+                'image_path':'ugm.resources.juhu.png',
                 'stimuluses':[]
                 }
             ]
