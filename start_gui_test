@@ -7,6 +7,6 @@ export PYTHONPATH=openbci/:azouk-libraries/build/
 
 sleep 1
 
-./openbci/ugm.py &
+./openbci/ugm/run_ugm.py &
 
 
