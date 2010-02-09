@@ -78,6 +78,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
+        "UgmConfig": "ugm.configs.ugm_config"
         
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
