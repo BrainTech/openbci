@@ -86,7 +86,7 @@ class UgmRectConfig(object):
             raise UgmUnknownConfigValue('height_type',
                                         p_config_dict)
     def _set_horizontal_position(self, p_parent, p_config_dict):
-        ""b"Set horizontal position."""
+        """Set horizontal position."""
         if p_config_dict['position_horizontal_type'] == 'absolute':
             self.position_x = p_config_dict['position_horizontal']
         elif p_config_dict['position_horizontal_type'] == 'relative':
