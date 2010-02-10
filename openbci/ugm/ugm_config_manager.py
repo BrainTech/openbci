@@ -106,7 +106,7 @@ class UgmAttributesManager(object):
 
             'position_vertical':{
                 'value':['int', 'float', ['top','center','bottom']],
-                'depend_from':'position_horizontal_type'},
+                'depend_from':'position_vertical_type'},
             # Same as position_horizontal
 
             'color':{'value':'string'},
