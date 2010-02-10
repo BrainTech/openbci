@@ -139,6 +139,10 @@ class UgmAttributesManager(object):
             # relative to other specific 'containing' stimuluses
             }
         self.attributes_for_elem = {
+	    'field':['id', 'width_type', 'width', 'height_type',
+                     'height', 'position_horizontal_type',
+                     'position_horizontal', 'position_vertical_type',
+                     'position_vertical', 'color'],
             'rectangle':['id', 'width_type', 'width', 'height_type',
                          'height', 'position_horizontal_type',
                          'position_horizontal', 'position_vertical_type',

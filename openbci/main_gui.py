@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #import sip
@@ -9,11 +10,7 @@ import sys
 import platform
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-import xml.dom.minidom as xml_dom
-import time
 from config.modules import MODULES_LIST
-
-APP_DIR = os.getcwd() + '/'
 
 class BCIMainWindow(QMainWindow):
     """Main window of the BCI application - shows list of available plugins and enables configuration of them"""
@@ -69,8 +66,9 @@ class BCIMainWindow(QMainWindow):
     
     def processModule(self, p_moduleName):
         """Processes sing module with given name and load it into program"""
-        (l_file, l_filename, l_data) = imp.find_module(p_moduleName + '_module', ['modules/' + p_moduleName + '/'])
-        l_bciModule = imp.load_module(p_moduleName + '_module', l_file, l_filename, l_data)
+        #(l_file, l_filename, l_data) = imp.find_module("modules.%s.%s_module" % (p_moduleName, p_moduleName))
+        #l_bciModule = imp.load_module(p_moduleName + '_module', l_file, l_filename, l_data)
+	l_bciModule = __import__("modules.%s.%s_module" % (p_moduleName, p_moduleName), fromlist=["modules.%s" % (p_moduleName)])
         self.modules[p_moduleName] = eval("bci_module.%s_module()" % (p_moduleName), {'bci_module' : l_bciModule})
     
 if __name__ == "__main__":

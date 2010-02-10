@@ -3,7 +3,7 @@
 #import sip
 #sip.setapi('QVariant', 2)
 
-from ugm import UgmConfigManager
+from ugm.ugm_config_manager import UgmConfigManager
 from modules.ugm.gui.ugm_module_dock_widget import UGMModuleDockWidget
 
 class ugm_module(object):
