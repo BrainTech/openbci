@@ -1,0 +1,3 @@
+MODULES_LIST = [
+        'ugm'
+    ]

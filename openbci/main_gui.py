@@ -11,6 +11,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import xml.dom.minidom as xml_dom
 import time
+from config.modules import MODULES_LIST
 
 APP_DIR = os.getcwd() + '/'
 
@@ -20,8 +21,7 @@ class BCIMainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(BCIMainWindow, self).__init__(parent)
         self.modules = {}
-        self.process_config_xml(xml_dom.parse(APP_DIR + "config/config.xml"))
-        
+        self.processModules(MODULES_LIST)
         self.setMinimumSize(600,450)
         self.pluginsList = QTreeWidget()
         self.pluginsList.setMinimumSize(200,200)
@@ -62,18 +62,16 @@ class BCIMainWindow(QMainWindow):
             self.restoreDockWidget(p_pluginDock)
             self.currentDockWidget = p_pluginDock
     
-    def process_config_xml(self, p_xml):
-        """Processes configuration xml and load information into program"""
-        for i_main_element in p_xml.getElementsByTagName('modules'):
-            self.process_modules_xml(i_main_element)
+    def processModules(self, p_modulesList):
+        """Processes list with module names, and loads appropriate modules into program"""
+        for i_moduleName in p_modulesList:
+            self.processModule(i_moduleName)
     
-    def process_modules_xml(self, p_xml):
-        """Processes 'module' tag from configuration xml"""
-        for i_module_element in p_xml.getElementsByTagName('module'):
-            l_module_name = i_module_element.attributes['name'].value
-            (l_file, l_filename, l_data) = imp.find_module(l_module_name + '_module', ['modules/' + l_module_name + '/'])
-            l_bci_module = imp.load_module(l_module_name + '_module', l_file, l_filename, l_data)
-            self.modules[l_module_name] = eval("bci_module.%s_module()" % (l_module_name), {'bci_module' : l_bci_module})
+    def processModule(self, p_moduleName):
+        """Processes sing module with given name and load it into program"""
+        (l_file, l_filename, l_data) = imp.find_module(p_moduleName + '_module', ['modules/' + p_moduleName + '/'])
+        l_bciModule = imp.load_module(p_moduleName + '_module', l_file, l_filename, l_data)
+        self.modules[p_moduleName] = eval("bci_module.%s_module()" % (p_moduleName), {'bci_module' : l_bciModule})
     
 if __name__ == "__main__":
     app = QApplication(sys.argv)
