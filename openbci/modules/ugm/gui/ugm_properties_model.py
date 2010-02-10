@@ -11,7 +11,6 @@ class UGMPropertiesModel(QAbstractItemModel):
     def __init__(self, p_attributes, p_attributesForElements, p_data, parent=None):
         super(UGMPropertiesModel, self).__init__(parent)
         self.loadAttributeTypes(p_attributes)
-	print p_attributesForElements
         self.setAttributeSubtypes()
         self.setAttributesForElements(p_attributesForElements)
         self.rootItem = self.createRoot(p_data, 'fields', 'Root')
