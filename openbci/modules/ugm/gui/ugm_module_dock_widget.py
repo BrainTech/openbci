@@ -93,11 +93,9 @@ class UGMModuleDockWidget(QDockWidget):
         self.configManager.update_to_file('new_config')
     
     def addRoot(self, p_type):
-        print "Add " + p_type
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         self.propertiesModel.addRoot(l_currentIndex, p_type) 
         
     def removeRoot(self):
-        print "Remove"
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         self.propertiesModel.removeRoot(l_currentIndex.parent(), l_currentIndex.row())

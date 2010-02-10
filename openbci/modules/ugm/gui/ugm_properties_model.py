@@ -87,7 +87,6 @@ class UGMPropertiesModel(QAbstractItemModel):
             l_type = 'field'
             l_attributes = self.fieldAttributes
         else: # stimuluses
-            print p_field
             l_type = p_field['stimulus_type']
             l_rootName = 'Bodziec (typ: ' + l_type + ')'
             l_attributes = self.stimulusAttributes[l_type]
@@ -115,7 +114,6 @@ class UGMPropertiesModel(QAbstractItemModel):
         self.beginInsertRows(l_parentIndex, l_parent.childCount(), l_parent.childCount())
         l_parent.addChild(l_newRoot)
         self.endInsertRows()
-        print l_parent.childCount()
         
     def createEmptyRoot(self, p_type):
         if p_type == 'field':
