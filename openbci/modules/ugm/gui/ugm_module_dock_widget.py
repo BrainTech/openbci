@@ -1,7 +1,30 @@
 # -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#
+# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
+# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
+# as part of their MSc theses at the University of Warsaw.
+# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author:
+#      Łukasz Polak <l.polak@gmail.com>
+#
+"""Dock widget for configuring UGM"""
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PyQt4 import QtCore, QtGui
 from modules.ugm.gui.UGMMain import Ui_UGMMainWidget
 from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
 from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
@@ -9,10 +32,13 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
 import variables_pb2
 
-class UGMModuleDockWidget(QDockWidget):
+class UGMModuleDockWidget(QtGui.QDockWidget):
+    """Dock widget which is used to configure all UGM properties"""
+    
     def __init__(self, p_configManager, parent=None):
         super(UGMModuleDockWidget, self).__init__(parent)
         self.configManager = p_configManager
+        # UI auto-generated from QT Designer
         self.ui = Ui_UGMMainWidget()
         self.ui.setupUi(self)
         l_attributesConfig = self.configManager.get_attributes_config()
@@ -20,23 +46,26 @@ class UGMModuleDockWidget(QDockWidget):
                                                   l_attributesConfig['attributes_for_elem'], 
                                                   self.configManager.get_ugm_fields())
         self.propertiesDelegate = UGMPropertiesDelegate()
+        # Preparing model
         self.ui.propertyList.setModel(self.propertiesModel)
         self.ui.propertyList.setItemDelegate(self.propertiesDelegate)
-        self.ui.propertyList.setEditTriggers(QAbstractItemView.AllEditTriggers)
+        self.ui.propertyList.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        # Initialising everything
         self.resizeColumns()
-        self.connect(self.ui.propertyList, SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
-        self.connect(self.ui.propertyList, SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
-        
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
         self.initActions()
         self.ui.propertyList.selectionModel().selectionChanged.connect(self.updateActions)
         
         self._connection = None
     
-    def resizeColumns(self, p_index=None):
-        for i_column in range(self.propertiesModel.columnCount(QModelIndex())):
+    def resizeColumns(self):
+        """Resizes columns, to fit contents"""
+        for i_column in range(self.propertiesModel.columnCount(QtCore.QModelIndex())):
             self.ui.propertyList.resizeColumnToContents(i_column)
     
     def initActions(self):
+        """Initialises all actions used by UGM dock widget"""
         self.ui.saveButton.setDefaultAction(self.ui.actionSave)
         self.ui.addButton.setDefaultAction(self.ui.actionAdd)
         self.ui.addRectangleButton.setDefaultAction(self.ui.actionAddRectangle)
@@ -54,48 +83,63 @@ class UGMModuleDockWidget(QDockWidget):
         self.updateActions()    
     
     def updateActions(self):
+        """Called every time something happens, that can change availability of
+        this plugins actions"""
         # We can always add new field
         self.ui.actionAdd.setEnabled(True)
         
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         if not self.ui.propertyList.selectionModel().selection().isEmpty() and l_currentIndex.isValid():
             l_item = self.propertiesModel.getItem(l_currentIndex)
+            # We can only remove fields or stimuluses...
             l_canRemove = (l_item.type == 'field' or l_item.type == 'rectangle' or l_item.type == 'image' or l_item.type == 'text')
-            l_canAdd = (l_item.type == 'list')
-            self.ui.actionAddRectangle.setEnabled(l_canAdd)
-            self.ui.actionAddImage.setEnabled(l_canAdd)
-            self.ui.actionAddText.setEnabled(l_canAdd)
+            # ...and we can only add stimuluses to lists
+            l_canAddStimulus = (l_item.type == 'list')
+            self.ui.actionAddRectangle.setEnabled(l_canAddStimulus)
+            self.ui.actionAddImage.setEnabled(l_canAddStimulus)
+            self.ui.actionAddText.setEnabled(l_canAddStimulus)
             self.ui.actionRemove.setEnabled(l_canRemove)
         else:
+            # Nothing is selected, so we can't add or remove anything :)
             self.ui.actionAddRectangle.setEnabled(False)
             self.ui.actionAddImage.setEnabled(False)
             self.ui.actionAddText.setEnabled(False)
             self.ui.actionRemove.setEnabled(False)
     
     def saveConfig(self):
+        """Saves config and sends it to running UGM"""
+        # Change config managers loaded config
         self.configManager.set_full_config(self.propertiesModel.createConfigNode())
+        # We check whether we changed model structure: added or removed fields,
+        # changed ids, because if we did then we must send different message type
         if self.propertiesModel.structureModified:
             l_type = 0
             self.propertiesModel.structureModified = False
         else:
             l_type = 1
-        l_msg = variables_pb2.UgmUpdate()
-        l_msg.type = int(l_type)
-        l_msg.value = self.configManager.config_to_message()
+            l_msg = variables_pb2.UgmUpdate()
+            l_msg.type = int(l_type)
+            l_msg.value = self.configManager.config_to_message()
+            
+        # Everything done :) All that is left is to establish connection if needed...
         if not self._connection:
             self._connection = connect_client(type = peers.LOGIC)
-        
+        # ...and send message to UGM
         self._connection.send_message(
             message = l_msg.SerializeToString(), 
             type=types.UGM_UPDATE_MESSAGE, flush=True)
-        
+    
         # We also save new config to file
         self.configManager.update_to_file('new_config')
     
     def addRoot(self, p_type):
+        """Adds root item of given type to the list/model"""
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
-        self.propertiesModel.addRoot(l_currentIndex, p_type) 
+        self.propertiesModel.addRoot(l_currentIndex, p_type)
+        self.updateActions()
         
     def removeRoot(self):
+        """Removes currently selected root item from list/model"""
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         self.propertiesModel.removeRoot(l_currentIndex.parent(), l_currentIndex.row())
+        self.updateActions()
