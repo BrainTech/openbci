@@ -117,9 +117,9 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
             self.propertiesModel.structureModified = False
         else:
             l_type = 1
-            l_msg = variables_pb2.UgmUpdate()
-            l_msg.type = int(l_type)
-            l_msg.value = self.configManager.config_to_message()
+        l_msg = variables_pb2.UgmUpdate()
+        l_msg.type = int(l_type)
+        l_msg.value = self.configManager.config_to_message()
             
         # Everything done :) All that is left is to establish connection if needed...
         if not self._connection:

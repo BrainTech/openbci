@@ -135,9 +135,10 @@ class UgmAttributesManager(object):
 
             'stimuluses':{'value':'list'}
             # A list of child stimuluses for current stimulus.
-            # It is reasonable, as we migHT want to position some stimuluses
+            # It is reasonable, as we might want to position some stimuluses
             # relative to other specific 'containing' stimuluses
             }
+	# TODO: Stimuluses as attribute?
         self.attributes_for_elem = {
 	    'field':['id', 'width_type', 'width', 'height_type',
                      'height', 'position_horizontal_type',
@@ -146,14 +147,14 @@ class UgmAttributesManager(object):
             'rectangle':['id', 'width_type', 'width', 'height_type',
                          'height', 'position_horizontal_type',
                          'position_horizontal', 'position_vertical_type',
-                         'position_vertical', 'color', 'stimuluses'],
+                         'position_vertical', 'color'],
             'image':['id', 'position_horizontal_type',
                      'position_horizontal', 'position_vertical_type',
-                     'position_vertical', 'image_path', 'stimuluses'],
+                     'position_vertical', 'image_path'],
             'text':['id', 'position_horizontal_type',
                     'position_horizontal', 'position_vertical_type',
                     'position_vertical', 'message', 'font_family',
-                    'font_size', 'font_color', 'stimuluses']
+                    'font_size', 'font_color']
             }
 
 class UgmConfigManager(object):
