@@ -29,7 +29,13 @@ class StateMachine(object):
     """
     def __init__(self, p_logic_config_name='speller_config'): 
         """import p_logic_config_name, store state configs for every state."""
-        l_logic_config = __import__(p_logic_config_name)
+        self._config_file = p_logic_config_name
+        self.update_from_file()
+    def update_from_file(self, p_config_file=None):
+        if not  p_config_file:
+            p_config_file = self._config_file
+        l_logic_config = __import__(p_config_file)
+        reload(l_logic_config)
         self._states = []
         for i_state_ind in range(l_logic_config.number_of_states):
             l_state = dict()

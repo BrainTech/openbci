@@ -3,7 +3,7 @@ number_of_states = 8
 
 # A list of all configs defined for every single state.
 states_configs = ['screen', 'graphics', 'graphics_solver', 
-                  'signs', 'actions', 'actions_solver']
+                  'actions', 'actions_solver']
 
 # A list of all configs defined as globals, 
 # not assigned to any particular state.
@@ -47,20 +47,6 @@ graphics_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""
 
 
 
-# string signs[i][j] will be added to message in state i when person is looking at square j
-# if you wish no sign to be added leave it empty
-signs = number_of_states * [number_of_decisions * [""]]
-signs[0] = ['', '', '', '', '', '', '', '']
-signs[1] = ['', 'N', 'I', 'E', ' ', 'A', 'F', ''] # taki smiec, ale potrzebny
-signs[2] = ['', 'N', 'I', 'E', ' ', 'A', 'F', '']
-signs[3] = ['', 'P', 'R', 'O', 'W', 'T', 'L', '']
-signs[4] = ['', 'C', 'Z', 'H', 'S', 'Y', 'B', '']
-signs[5] = ['', 'M', 'D', 'K', 'J', 'U', 'G', '']
-signs[6] = ['', '', '', '', '', '', '', '']
-signs[7] = ['', '', '', '', '', '', '', '']
-
-
-
 # actions[i][j] will be performed in state i when person is looking on square j
 # If you wish no action - leave it empty.
 # If you have a 'dynamic' state and you want the program to be chosen at runtime, set here a collection of programs - 
@@ -71,11 +57,11 @@ actions[0] = [['run_ext(\'tahoe  "power on 1"\')', 'run_ext(\'tahoe  "power off 
               ['run_ext(\'tahoe  "power on 2"\')', 'run_ext(\'tahoe  "power off 2"\')'], 
               ['run_ext(\'tahoe  "power on 3"\')', 'run_ext(\'tahoe  "power off 3"\')'], 
               "", "", "", "", ""]
-actions[1] = ["backspace()", "", "", "", "", "sey()", "", ""] 
-actions[2] = ["backspace()", "", "", "", "", "", "", ""]
-actions[3] = ["backspace()", "", "", "", "", "", "", ""]
-actions[4] = ["backspace()", "", "", "", "", "", "", ""]
-actions[5] = ["backspace()", "", "", "", "", "", "", ""]
+actions[1] = ["backspace()", "msg('N')", "msg('I')", "msg('E')", "", "msg('A')", "msg('F')", ""] 
+actions[2] = ["backspace()", "msg('N')", "msg('I')", "msg('E')", "", "msg('A')", "msg('F')", ""] 
+actions[3] = ["backspace()", "msg('P')", "msg('R')", "msg('O')", "msg('W')", "msg('T')", "msg('L')", ""] 
+actions[4] = ["backspace()", "msg('C')", "msg('Z')", "msg('H')", "msg('S')", "msg('Y')", "msg('B')", ""] 
+actions[5] = ["backspace()", "msg('M')", "msg('D')", "msg('K')", "msg('J')", "msg('U')", "msg('G')", ""] 
 actions[6] = ["backspace()", "say()", "", "", "", "", "", ""]
 actions[7] = ["backspace()", "say()", "", "", "", "", "", ""]
 
