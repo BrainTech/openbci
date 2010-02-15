@@ -66,6 +66,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     
     def initActions(self):
         """Initialises all actions used by UGM dock widget"""
+        self.ui.sendToUgmButton.setDefaultAction(self.ui.actionSendToUgm)
         self.ui.saveButton.setDefaultAction(self.ui.actionSave)
         self.ui.addButton.setDefaultAction(self.ui.actionAdd)
         self.ui.addRectangleButton.setDefaultAction(self.ui.actionAddRectangle)
@@ -73,6 +74,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         self.ui.addTextButton.setDefaultAction(self.ui.actionAddText)
         self.ui.removeButton.setDefaultAction(self.ui.actionRemove)
         
+        self.ui.actionSendToUgm.triggered.connect(self.sendToUgm)
         self.ui.actionSave.triggered.connect(self.saveConfig)
         self.ui.actionAdd.triggered.connect(lambda p_unused, p_type="field": self.addRoot(p_type))
         self.ui.actionAddRectangle.triggered.connect(lambda p_unused, p_type="rectangle": self.addRoot(p_type))
@@ -85,8 +87,10 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     def updateActions(self):
         """Called every time something happens, that can change availability of
         this plugins actions"""
-        # We can always add new field
+        # We can always add new field, sen to ugm or save
         self.ui.actionAdd.setEnabled(True)
+        self.ui.actionSendToUgm.setEnabled(True)
+        self.ui.actionSave.setEnabled(True)
         
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         if not self.ui.propertyList.selectionModel().selection().isEmpty() and l_currentIndex.isValid():
@@ -106,8 +110,8 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
             self.ui.actionAddText.setEnabled(False)
             self.ui.actionRemove.setEnabled(False)
     
-    def saveConfig(self):
-        """Saves config and sends it to running UGM"""
+    def sendToUgm(self):
+        """Sends currently edited config to UGM, if it's running"""
         # Change config managers loaded config
         self.configManager.set_full_config(self.propertiesModel.createConfigNode())
         # We check whether we changed model structure: added or removed fields,
@@ -129,8 +133,14 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
             message = l_msg.SerializeToString(), 
             type=types.UGM_UPDATE_MESSAGE, flush=True)
     
+    
+    def saveConfig(self):
+        """Saves config and sends it to running UGM"""
+        # Change config managers loaded config
+        self.configManager.set_full_config(self.propertiesModel.createConfigNode())
+        
         # We also save new config to file
-        self.configManager.update_to_file('new_config')
+        self.configManager.update_to_file()
     
     def addRoot(self, p_type):
         """Adds root item of given type to the list/model"""

@@ -44,7 +44,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>22</height>
+        <height>40</height>
        </size>
       </property>
       <property name="frameShape">
@@ -64,6 +64,41 @@
         <number>2</number>
        </property>
        <item>
+        <widget class="QToolButton" name="sendToUgmButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/resources.qrc">
+           <normaloff>:/buttons/send_to_ugm</normaloff>:/buttons/send_to_ugm</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>false</bool>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::NoArrow</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="saveButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -73,8 +108,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>40</width>
+           <height>40</height>
           </size>
          </property>
          <property name="text">
@@ -84,6 +119,12 @@
           <iconset>
            <normalon>:/buttons/save</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
@@ -119,8 +160,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>36</width>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -130,6 +171,12 @@
           <iconset>
            <normalon>:/buttons/add</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="popupMode">
           <enum>QToolButton::DelayedPopup</enum>
@@ -146,6 +193,22 @@
         </widget>
        </item>
        <item>
+        <spacer name="toolbarSeparator_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>4</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QToolButton" name="addRectangleButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -155,8 +218,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>36</width>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -166,6 +229,12 @@
           <iconset>
            <normalon>:/buttons/add_rectangle</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
@@ -185,8 +254,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>36</width>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -196,6 +265,12 @@
           <iconset>
            <normalon>:/buttons/add_image</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
@@ -215,8 +290,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>36</width>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -226,6 +301,12 @@
           <iconset>
            <normalon>:/buttons/add_text</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
@@ -261,8 +342,8 @@
          </property>
          <property name="maximumSize">
           <size>
-           <width>18</width>
-           <height>18</height>
+           <width>36</width>
+           <height>36</height>
           </size>
          </property>
          <property name="text">
@@ -272,6 +353,12 @@
           <iconset>
            <normalon>:/buttons/remove</normalon>
           </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
@@ -359,15 +446,14 @@
   </widget>
   <action name="actionSave">
    <property name="icon">
-    <iconset>
-     <normalon>:/buttons/save</normalon>
-    </iconset>
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/buttons/save</normaloff>:/buttons/save</iconset>
    </property>
    <property name="text">
-    <string>Save</string>
+    <string>Zapisz</string>
    </property>
    <property name="toolTip">
-    <string>Save</string>
+    <string>Zapisz</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -375,14 +461,14 @@
   </action>
   <action name="actionAdd">
    <property name="icon">
-    <iconset resource="../resources.qrc">
+    <iconset resource="../resources/resources.qrc">
      <normaloff>:/buttons/add</normaloff>:/buttons/add</iconset>
    </property>
    <property name="text">
-    <string>Add</string>
+    <string>Dodaj</string>
    </property>
    <property name="toolTip">
-    <string>Add</string>
+    <string>Dodaj pole</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
@@ -390,29 +476,29 @@
   </action>
   <action name="actionRemove">
    <property name="icon">
-    <iconset resource="../resources.qrc">
+    <iconset resource="../resources/resources.qrc">
      <normaloff>:/buttons/remove</normaloff>:/buttons/remove</iconset>
    </property>
    <property name="text">
-    <string>Remove</string>
+    <string>Usuń</string>
    </property>
    <property name="toolTip">
-    <string>Remove</string>
+    <string>Usuń aktualnie zaznaczony element</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+R</string>
+    <string>Ctrl+Shift+Backspace</string>
    </property>
   </action>
   <action name="actionAddRectangle">
    <property name="icon">
-    <iconset resource="../resources.qrc">
+    <iconset resource="../resources/resources.qrc">
      <normaloff>:/buttons/add_rectangle</normaloff>:/buttons/add_rectangle</iconset>
    </property>
    <property name="text">
-    <string>Add rectangle</string>
+    <string>Dodaj prostokąt</string>
    </property>
    <property name="toolTip">
-    <string>Add rectangle</string>
+    <string>Dodaj prostokąt</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+R</string>
@@ -420,14 +506,14 @@
   </action>
   <action name="actionAddImage">
    <property name="icon">
-    <iconset resource="../resources.qrc">
+    <iconset resource="../resources/resources.qrc">
      <normaloff>:/buttons/add_image</normaloff>:/buttons/add_image</iconset>
    </property>
    <property name="text">
-    <string>Add image</string>
+    <string>Dodaj obrazek</string>
    </property>
    <property name="toolTip">
-    <string>Add image</string>
+    <string>Dodaj obrazek</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+I</string>
@@ -435,17 +521,32 @@
   </action>
   <action name="actionAddText">
    <property name="icon">
-    <iconset resource="../resources.qrc">
+    <iconset resource="../resources/resources.qrc">
      <normaloff>:/buttons/add_text</normaloff>:/buttons/add_text</iconset>
    </property>
    <property name="text">
-    <string>Add text</string>
+    <string>Dodaj tekst</string>
    </property>
    <property name="toolTip">
-    <string>Add text</string>
+    <string>Dodaj tekst</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+T</string>
+   </property>
+  </action>
+  <action name="actionSendToUgm">
+   <property name="icon">
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/buttons/send_to_ugm</normaloff>:/buttons/send_to_ugm</iconset>
+   </property>
+   <property name="text">
+    <string>Wyślij do UGMa</string>
+   </property>
+   <property name="toolTip">
+    <string>Wyślij aktualną konfigurację do UGMa</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
  </widget>
@@ -455,7 +556,7 @@
   <tabstop>addRectangleButton</tabstop>
  </tabstops>
  <resources>
-  <include location="../resources.qrc"/>
+  <include location="../resources/resources.qrc"/>
  </resources>
  <connections/>
 </ui>
