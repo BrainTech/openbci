@@ -28,15 +28,16 @@ from PyQt4 import QtCore, QtGui
 from modules.ugm.gui.UGMMain import Ui_UGMMainWidget
 from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
 from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
-from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import connect_client 
-import variables_pb2
+#from multiplexer.multiplexer_constants import peers, types
+#from multiplexer.clients import connect_client 
+#import variables_pb2
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""
     
     def __init__(self, p_configManager, parent=None):
         super(UGMModuleDockWidget, self).__init__(parent)
+        self.fileName = None
         self.configManager = p_configManager
         # UI auto-generated from QT Designer
         self.ui = Ui_UGMMainWidget()
@@ -67,7 +68,9 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     def initActions(self):
         """Initialises all actions used by UGM dock widget"""
         self.ui.sendToUgmButton.setDefaultAction(self.ui.actionSendToUgm)
+        self.ui.loadButton.setDefaultAction(self.ui.actionLoad)
         self.ui.saveButton.setDefaultAction(self.ui.actionSave)
+        self.ui.saveAsButton.setDefaultAction(self.ui.actionSaveAs)
         self.ui.addButton.setDefaultAction(self.ui.actionAdd)
         self.ui.addRectangleButton.setDefaultAction(self.ui.actionAddRectangle)
         self.ui.addImageButton.setDefaultAction(self.ui.actionAddImage)
@@ -75,7 +78,9 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         self.ui.removeButton.setDefaultAction(self.ui.actionRemove)
         
         self.ui.actionSendToUgm.triggered.connect(self.sendToUgm)
+        self.ui.actionLoad.triggered.connect(self.loadConfig)
         self.ui.actionSave.triggered.connect(self.saveConfig)
+        self.ui.actionSaveAs.triggered.connect(self.saveConfigAs)
         self.ui.actionAdd.triggered.connect(lambda p_unused, p_type="field": self.addRoot(p_type))
         self.ui.actionAddRectangle.triggered.connect(lambda p_unused, p_type="rectangle": self.addRoot(p_type))
         self.ui.actionAddImage.triggered.connect(lambda p_unused, p_type="image": self.addRoot(p_type))
@@ -87,10 +92,12 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     def updateActions(self):
         """Called every time something happens, that can change availability of
         this plugins actions"""
-        # We can always add new field, sen to ugm or save
+        # We can always add new field, sen to ugm or save/load
         self.ui.actionAdd.setEnabled(True)
         self.ui.actionSendToUgm.setEnabled(True)
+        self.ui.actionLoad.setEnabled(True)
         self.ui.actionSave.setEnabled(True)
+        self.ui.actionSaveAs.setEnabled(True)
         
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         if not self.ui.propertyList.selectionModel().selection().isEmpty() and l_currentIndex.isValid():
@@ -112,35 +119,62 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     
     def sendToUgm(self):
         """Sends currently edited config to UGM, if it's running"""
-        # Change config managers loaded config
+        # # Change config managers loaded config
+        # self.configManager.set_full_config(self.propertiesModel.createConfigNode())
+        # # We check whether we changed model structure: added or removed fields,
+        # # changed ids, because if we did then we must send different message type
+        # if self.propertiesModel.structureModified:
+        #     l_type = 0
+        #     self.propertiesModel.structureModified = False
+        # else:
+        #     l_type = 1
+        # l_msg = variables_pb2.UgmUpdate()
+        # l_msg.type = int(l_type)
+        # l_msg.value = self.configManager.config_to_message()
+        #     
+        # # Everything done :) All that is left is to establish connection if needed...
+        # if not self._connection:
+        #     self._connection = connect_client(type = peers.LOGIC)
+        # # ...and send message to UGM
+        # self._connection.send_message(
+        #     message = l_msg.SerializeToString(), 
+        #     type=types.UGM_UPDATE_MESSAGE, flush=True)
+        
+        #### TEMPORARY FOR LOCAL UGM ####
         self.configManager.set_full_config(self.propertiesModel.createConfigNode())
-        # We check whether we changed model structure: added or removed fields,
-        # changed ids, because if we did then we must send different message type
-        if self.propertiesModel.structureModified:
-            l_type = 0
-            self.propertiesModel.structureModified = False
-        else:
-            l_type = 1
-        l_msg = variables_pb2.UgmUpdate()
-        l_msg.type = int(l_type)
-        l_msg.value = self.configManager.config_to_message()
-            
-        # Everything done :) All that is left is to establish connection if needed...
-        if not self._connection:
-            self._connection = connect_client(type = peers.LOGIC)
-        # ...and send message to UGM
-        self._connection.send_message(
-            message = l_msg.SerializeToString(), 
-            type=types.UGM_UPDATE_MESSAGE, flush=True)
+        self.configManager.update_to_file()
+        
     
+    def loadConfig(self):
+        """Loads config from file and rebuilds whole tree"""
+        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"))
+        if l_fileName == "": 
+            return
+        self.fileName = str(l_fileName)
+        
+        self.configManager.update_from_file(self.fileName)
+        l_attributesConfig = self.configManager.get_attributes_config()
+        self.propertiesModel = UGMPropertiesModel(l_attributesConfig['attributes_def'], 
+                                                  l_attributesConfig['attributes_for_elem'], 
+                                                  self.configManager.get_ugm_fields())
+        self.ui.propertyList.setModel(self.propertiesModel)
     
     def saveConfig(self):
-        """Saves config and sends it to running UGM"""
+        """Saves config to default file, if none were loaded or to last loaded file"""
         # Change config managers loaded config
         self.configManager.set_full_config(self.propertiesModel.createConfigNode())
         
         # We also save new config to file
-        self.configManager.update_to_file()
+        self.configManager.update_to_file(self.fileName)
+        
+    def saveConfigAs(self):
+        """Saves config to specified file"""
+        l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."))
+        if l_fileName == "": 
+            return
+        self.fileName = l_fileName
+        
+        self.saveConfig()
     
     def addRoot(self, p_type):
         """Adds root item of given type to the list/model"""

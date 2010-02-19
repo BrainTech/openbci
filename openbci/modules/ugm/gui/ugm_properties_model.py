@@ -77,7 +77,17 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
                     }
         else:
             # Simple type
-            l_attributeType = {'type': l_value, 'parameters': None, 'default' : 0}
+            if l_value == 'int' or l_value == 'double':
+                l_default = 0
+            elif l_value == 'color':
+                l_default = '#000000'
+            elif l_value == 'font':
+                l_default = 'serif'
+            elif l_value == 'string':
+                l_default = ''
+            else:
+                l_default = None
+            l_attributeType = {'type': l_value, 'parameters': None, 'default' : l_default}
         
         return l_attributeType
         

@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="buttons" >
+    <file alias="color_dialog" >icons/color.png</file>
+    <file alias="load" >icons/load_from_disk.png</file>
+    <file alias="save_as" >icons/save_as_to_disk.png</file>
     <file alias="add_image" >icons/add-image.png</file>
     <file alias="add_rectangle" >icons/add-rectangle.png</file>
     <file alias="add_text" >icons/add-text.png</file>

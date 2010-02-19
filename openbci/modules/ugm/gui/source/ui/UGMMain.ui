@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>384</width>
+    <width>400</width>
     <height>445</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>384</width>
+    <width>400</width>
     <height>208</height>
    </size>
   </property>
@@ -99,6 +99,42 @@
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="loadButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normalon>:/buttons/load</normalon>
+          </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>false</bool>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::NoArrow</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="saveButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -118,6 +154,42 @@
          <property name="icon">
           <iconset>
            <normalon>:/buttons/save</normalon>
+          </iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>false</bool>
+         </property>
+         <property name="arrowType">
+          <enum>Qt::NoArrow</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="saveAsButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>40</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normalon>:/buttons/save_as</normalon>
           </iconset>
          </property>
          <property name="iconSize">
@@ -546,7 +618,37 @@
     <string>Wyślij aktualną konfigurację do UGMa</string>
    </property>
    <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/buttons/save_as</normaloff>:/buttons/save_as</iconset>
+   </property>
+   <property name="text">
+    <string>Zapisz jako</string>
+   </property>
+   <property name="toolTip">
+    <string>Zapisz jako</string>
+   </property>
+   <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="icon">
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/buttons/load</normaloff>:/buttons/load</iconset>
+   </property>
+   <property name="text">
+    <string>Wczytaj</string>
+   </property>
+   <property name="toolTip">
+    <string>Wczytaj konfigurację z pliku</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
  </widget>

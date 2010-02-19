@@ -37,7 +37,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         l_type = l_item.type
         l_typeParameters = l_item.typeParameters
         
-        # TODO: Currently thins are depended on enumerated editors, so only those
+        # TODO: Currently things depend only on enumerated editors, so only those
         # changes are effective immediately. Ultimately, it should be checked,
         # whether something depends on given thing
         if l_type == 'int':
@@ -58,13 +58,46 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             for i_value in l_typeParameters['values']:
                 editor.addItem(i_value)
             self.connect(editor, QtCore.SIGNAL('currentIndexChanged(int)'), self.editorValueChanged)
+        elif l_type == 'color':
+            editor = QtGui.QFrame(parent)
+            editor.setObjectName("Frame")
+            editor.resize(334, 53)
+            editor.setFrameShape(QtGui.QFrame.StyledPanel)
+            editor.setFrameShadow(QtGui.QFrame.Raised)
+            l_horizontalLayout = QtGui.QHBoxLayout(editor)
+            l_horizontalLayout.setSpacing(0)
+            l_horizontalLayout.setMargin(0)
+            l_horizontalLayout.setObjectName("horizontalLayout")
+            l_lineEdit = QtGui.QLineEdit(editor)
+            l_lineEdit.setObjectName("lineEdit")
+            editor.setFocusProxy(l_lineEdit)
+            l_horizontalLayout.addWidget(l_lineEdit)
+            l_toolButton = QtGui.QToolButton(editor)
+            l_toolButton.setObjectName("toolButton")
+            l_toolButton.setText("...")
+            l_toolButton.setMaximumSize(QtCore.QSize(14, 14))
+            l_actionColorChoose = QtGui.QAction('...', parent)
+            l_toolButton.setDefaultAction(l_actionColorChoose)
+            l_colorButtonIcon = QtGui.QIcon()
+            l_colorButtonIcon.addPixmap(QtGui.QPixmap(":/buttons/color_dialog"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            l_toolButton.setIcon(l_colorButtonIcon)
+            l_actionColorChoose.triggered.connect(lambda p_unused, p_lineEdit=l_lineEdit, 
+                p_editor=editor: self._chooseColor(p_lineEdit, p_editor))
+            l_horizontalLayout.addWidget(l_toolButton)
+        elif l_type == 'font':
+            editor = None
         else:
             editor = None
         
         return editor
+        
+    def _chooseColor(self, p_lineEdit, p_editor):
+        l_colorName = QtGui.QColorDialog.getColor().name()
+        p_lineEdit.setText(QtCore.QString(str(l_colorName)))
+        self.emit(QtCore.SIGNAL('commitData(QWidget *)'), p_editor)
     
     def setEditorData(self, editor, index):
-        """Sets data for editor of given item"""
+        """Set data for editor of given item"""
         l_value = index.model().data(index, QtCore.Qt.EditRole)
         l_item = self.getItem(index)
         l_type = l_item.type
@@ -75,9 +108,12 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             editor.setText(QtCore.QString(str(l_value)))
         elif l_type == 'enumerated':
             editor.setCurrentIndex(editor.findText(l_value))
+        elif l_type == 'color':
+            l_lineEdit = editor.findChild(QtGui.QLineEdit, 'lineEdit')
+            l_lineEdit.setText(QtCore.QString(str(l_value)))
     
     def setModelData(self, p_editor, model, index):
-        """Saves data entered into editor of given item, into the model"""
+        """Save data entered into editor of given item, into the model"""
         l_item = self.getItem(index)
         l_type = l_item.type
         
@@ -88,6 +124,9 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             l_value = str(p_editor.text())
         elif l_type == 'enumerated':
             l_value = str(p_editor.currentText())
+        elif l_type == 'color':
+            l_lineEdit = p_editor.findChild(QtGui.QLineEdit, 'lineEdit')
+            l_value = str(l_lineEdit.text())
         else:
             return
         
