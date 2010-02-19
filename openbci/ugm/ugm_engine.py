@@ -154,10 +154,7 @@ class UgmEngine(QtCore.QObject):
         if self._config_manager.update_message_is_full(p_msg_type):
             LOGGER.info('ugm_engine got full message to update.')
             self._config_manager.set_full_config_from_message(p_msg_value)
-            if self._config_manager.old_new_fields_differ():
-                self.rebuild()
-            else:
-                self.update()
+            self.update_or_rebuild()
             
         elif self._config_manager.update_message_is_simple(p_msg_type):
             LOGGER.info('ugm_engine got simple message to update.')
@@ -166,6 +163,13 @@ class UgmEngine(QtCore.QObject):
         else:
             LOGGER.error("Wrong UgmUpdate message type!")
             raise Exception("Wrong UgmUpdate message type!")
+
+    def update_or_rebuild(self):
+        if self._config_manager.old_new_fields_differ():
+            self.rebuild()
+        else:
+            self.update()
+
     def update(self):
         """Fired when self._config_manager has changed its state, but only 
         stimuluses`es attributes, not their number or ids."""
@@ -178,7 +182,9 @@ class UgmEngine(QtCore.QObject):
         Send signal, as we need gui to be rebuilt in the main thread."""
         LOGGER.info("ugm_engine rebuild")
         self.emit(QtCore.SIGNAL("ugm_rebuild"))
+
     def ugm_rebuild_signal(self):
+        """See __init__ and rebuild."""
         self._window.rebuild()
 
 if __name__ == '__main__':

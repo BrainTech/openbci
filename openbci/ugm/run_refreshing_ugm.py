@@ -8,11 +8,7 @@ class UgmTestServer(object):
         while True:
             time.sleep(1)
             self.config_manager.update_from_file()
-            if self.config_manager.old_new_fields_differ():
-                self.engine.rebuild()
-            else:
-                self.engine.update()
-        
+            self.engine.update_or_rebuild()
     def __init__(self):
         print("Ugm has just been displayed. It refreshes from ugm.configs.ugm_config file every 1 second, so feel free to modify the file and inspect results.")
         self.config_manager = ugm_config_manager.UgmConfigManager('ugm.configs.ugm_config')

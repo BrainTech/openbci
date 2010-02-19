@@ -44,6 +44,7 @@ UGM_UPDATE_MESSAGE handling:
 - config_to_message()
 - update_message_is_full()
 - update_message_is_simple()
+- old_new_fields_differ()
 """
 import copy
 class UgmAttributesManager(object):
@@ -263,6 +264,7 @@ class UgmConfigManager(object):
             l_ret_dict[i['id']] = i
             self._int_get_recursive_configs(i['stimuluses'], l_ret_dict)
     def _update_old_fields(self):
+        """Set _old_fields to _fields."""
         self._old_fields = self._fields
         
     # ----------------------------------------------------------------------
