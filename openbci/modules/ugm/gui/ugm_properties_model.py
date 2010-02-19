@@ -77,7 +77,7 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
                     }
         else:
             # Simple type
-            if l_value == 'int' or l_value == 'double':
+            if l_value == 'int' or l_value == 'float':
                 l_default = 0
             elif l_value == 'color':
                 l_default = '#000000'
