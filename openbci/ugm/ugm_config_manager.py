@@ -320,6 +320,7 @@ class UgmConfigManager(object):
             except KeyError:
                 return True
             else:
+                # None, as 'fields' don`t have 'type' attribute
                 if l_new_value.get('type', None) != \
                         i_old_value.get('type', None):
                     return True

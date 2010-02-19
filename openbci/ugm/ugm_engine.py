@@ -165,6 +165,7 @@ class UgmEngine(QtCore.QObject):
             raise Exception("Wrong UgmUpdate message type!")
 
     def update_or_rebuild(self):
+        """Update or rebuild ugm depending on config manager`s decison..."""
         if self._config_manager.old_new_fields_differ():
             self.rebuild()
         else:
