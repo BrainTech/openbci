@@ -89,6 +89,33 @@ True
 >>> full == also_full
 True
 
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':22, 'type':'type3', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> x = mgr._get_recursive_configs(mgr._fields)
+
+>>> len(x) == 4
+True
+
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':22, 'type':'type3', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> mgr.old_new_fields_differ()
+False
+
+
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':22, 'type':'type3', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':22, 'type':'type1', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> mgr.old_new_fields_differ()
+True
+
+
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':23, 'type':'type3', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> mgr.set_full_config([{'id':1, 'type':'type1', 'stimuluses':[{'id':2, 'type':'type2', 'stimuluses':[{'id':22, 'type':'type1', 'stimuluses':[]}]}, {'id':3, 'type':'type2', 'stimuluses': []}]}])
+
+>>> mgr.old_new_fields_differ()
+True
 
 """ 
 if __name__ == '__main__':

@@ -152,9 +152,15 @@ class UgmEngine(QtCore.QObject):
         so that ugm`s widget might remain the same, 
         they should only redraw."""
         if self._config_manager.update_message_is_full(p_msg_type):
+            LOGGER.info('ugm_engine got full message to update.')
             self._config_manager.set_full_config_from_message(p_msg_value)
-            self.rebuild()
+            if self._config_manager.old_new_fields_differ():
+                self.rebuild()
+            else:
+                self.update()
+            
         elif self._config_manager.update_message_is_simple(p_msg_type):
+            LOGGER.info('ugm_engine got simple message to update.')
             self._config_manager.set_config_from_message(p_msg_value)
             self.update()
         else:
@@ -163,12 +169,14 @@ class UgmEngine(QtCore.QObject):
     def update(self):
         """Fired when self._config_manager has changed its state, but only 
         stimuluses`es attributes, not their number or ids."""
+        LOGGER.info("ugm_engine update")
         self._window.update()
     def rebuild(self):
         """Fired when self._config_manager has changed its state 
         considerably - eg number of stimuluses or its ids changed.
         In that situation we need to rebuild gui, not only refresh.
         Send signal, as we need gui to be rebuilt in the main thread."""
+        LOGGER.info("ugm_engine rebuild")
         self.emit(QtCore.SIGNAL("ugm_rebuild"))
     def ugm_rebuild_signal(self):
         self._window.rebuild()

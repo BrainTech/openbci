@@ -170,6 +170,8 @@ class UgmConfigManager(object):
         """Init manager from config in format 
         package.subpackage...module_with_configuration."""
         self._config_file = p_config_file
+        self._fields = []
+        self._old_fields = []
         self.update_from_file()
     # ----------------------------------------------------------------------
     # CONFIG FILE MANAGMENT ------------------------------------------------
@@ -251,12 +253,24 @@ class UgmConfigManager(object):
             if j != None:
                 return j
         return None
+    def _get_recursive_configs(self, p_fields):
+        l_ret_dict = dict()
+        self._int_get_recursive_configs(p_fields, l_ret_dict)
+        return l_ret_dict
 
+    def _int_get_recursive_configs(self, p_fields, l_ret_dict):      
+        for i in p_fields:
+            l_ret_dict[i['id']] = i
+            self._int_get_recursive_configs(i['stimuluses'], l_ret_dict)
+    def _update_old_fields(self):
+        self._old_fields = self._fields
+        
     # ----------------------------------------------------------------------
     # PUBLIC SETTERS -------------------------------------------------------
     def set_full_config(self, p_config_fields):
         """Set self`s in-memory ugm configuration to p_config_fields 
         being a list of dictionaries representin ugm stimuluses."""
+        self._update_old_fields()
         self._fields = p_config_fields
 
     def set_full_config_from_message(self, p_msg):
@@ -269,9 +283,9 @@ class UgmConfigManager(object):
         """Update config for stimulus with id p_elem_config['id'].
         For dictionary representing that stimulus override attributes
         defined id p_elem_config."""
-
         # Don`create a new entry, use existing one so 
         # that corresponding element in self._fields is also updated
+        self._update_old_fields()
         l_elem = self._configs(p_elem_config['id'])
         for i_key, i_value in p_elem_config.iteritems():
             l_elem[i_key] = i_value
@@ -292,6 +306,24 @@ class UgmConfigManager(object):
     def update_message_is_simple(self, p_msg_type):
         """Return true if p_msg_type represents simple update message."""
         return p_msg_type == 1
+    def old_new_fields_differ(self):
+        """Return true if self._old_fields and self._fields 
+        are different."""
+
+        l_olds = self._get_recursive_configs(self._old_fields)
+        l_news = self._get_recursive_configs(self._fields)
+        for i_old_key, i_old_value in l_olds.iteritems():
+            try:
+                l_new_value = l_news[i_old_key]
+            except KeyError:
+                return True
+            else:
+                if l_new_value.get('type', None) != \
+                        i_old_value.get('type', None):
+                    return True
+        return False
+            
+        
     def config_from_message(self, p_msg):
         """Create python configuration structure 
         from message string p_msg."""
