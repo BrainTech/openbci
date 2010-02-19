@@ -90,7 +90,7 @@ class SpellerWindow(QtGui.QFrame):
         l_hbox = QtGui.QVBoxLayout()
         self.canvas = UgmGenericCanvas(self, p_config_manager)       
         self.text = QtGui.QLineEdit()
-        l_hbox.addWidget(self.text)
+#        l_hbox.addWidget(self.text)
         l_hbox.addWidget(self.canvas)
         self.setLayout(l_hbox)
 
@@ -105,6 +105,7 @@ class UgmMainWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setWindowTitle('statusbar')
+        self._config_manager = p_config_manager
         self.statusBar().showMessage('Ready')
         self.view = SpellerWindow(self, p_config_manager)
         self.setCentralWidget(self.view)
@@ -113,26 +114,36 @@ class UgmMainWindow(QtGui.QMainWindow):
         """Update self`s view.Fired when config manager has
         updated it`s state."""
         self.view.update_geometry()
+    def rebuild(self):
+        """Delete and once again create self`s central widget."""
+        self.view.deleteLater()
+        self.view = SpellerWindow(self, self._config_manager)
+        self.setCentralWidget(self.view)
+        
 
-class UgmEngine(object):
+class UgmEngine(QtCore.QObject):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
     ugm pyqt structure so that it can refresh."""
     def __init__(self, p_config_manager):
         """Store config manager."""
+        super(UgmEngine, self).__init__()
         self._config_manager = p_config_manager
+        self.ugm_rebuild = QtCore.pyqtSignal()
+        self.connect(self, QtCore.SIGNAL("ugm_rebuild"), 
+                     self.ugm_rebuild_signal)
+
     def run(self):
         """Fire pyqt application with UgmMainWindow. 
         Refire when app is being closed. (This is justified as if 
         ugm_config_manager has changed its state remarkably main window
-        needs to be completely rebuilt. For performin such flow close()
-        method is fired on self._window, that`s why we need a loop here."""
-        app = QtGui.QApplication(sys.argv)
-        while True:
-            self._window = UgmMainWindow(self._config_manager)
-            self._window.showFullScreen()
-            app.exec_()
-            LOGGER.info('ugm_engine main window has closed')
+        needs to be completely rebuilt."""
+        LOGGER.info("ugm_engine run")
+        l_app = QtGui.QApplication(sys.argv)
+        self._window = UgmMainWindow(self._config_manager)
+        self._window.showFullScreen()
+        l_app.exec_()
+        LOGGER.info('ugm_engine main window has closed')
 
     def update_from_message(self, p_msg_type, p_msg_value):
         """Update ugm from config defined by dictionary p_msg_value.
@@ -142,8 +153,6 @@ class UgmEngine(object):
         they should only redraw."""
         if self._config_manager.update_message_is_full(p_msg_type):
             self._config_manager.set_full_config_from_message(p_msg_value)
-            # See run() method - closing window results in building it
-            # once again (still in MAIN thread which is required)...
             self.rebuild()
         elif self._config_manager.update_message_is_simple(p_msg_type):
             self._config_manager.set_config_from_message(p_msg_value)
@@ -159,8 +168,10 @@ class UgmEngine(object):
         """Fired when self._config_manager has changed its state 
         considerably - eg number of stimuluses or its ids changed.
         In that situation we need to rebuild gui, not only refresh.
-        Closing self._window will do the job... see self.run()."""
-        self._window.close() 
+        Send signal, as we need gui to be rebuilt in the main thread."""
+        self.emit(QtCore.SIGNAL("ugm_rebuild"))
+    def ugm_rebuild_signal(self):
+        self._window.rebuild()
 
 if __name__ == '__main__':
     try:
