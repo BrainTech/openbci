@@ -147,7 +147,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     
     def loadConfig(self):
         """Loads config from file and rebuilds whole tree"""
-        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"))
+        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(), "Pliki UGMa (*.ugm)")
         if l_fileName == "": 
             return
         self.fileName = str(l_fileName)
@@ -169,7 +169,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         
     def saveConfigAs(self):
         """Saves config to specified file"""
-        l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."))
+        l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."), QtCore.QString(), "Plik UGMa (*.ugm)")
         if l_fileName == "": 
             return
         self.fileName = l_fileName

@@ -47,6 +47,8 @@ UGM_UPDATE_MESSAGE handling:
 - old_new_fields_differ()
 """
 import copy
+import os
+import pickle
 class UgmAttributesManager(object):
     """Manager possible keys and values for config.
     Attributes:
@@ -110,7 +112,7 @@ class UgmAttributesManager(object):
                 'depend_from':'position_vertical_type'},
             # Same as position_horizontal
 
-            'color':{'value':'string'},
+            'color':{'value':'color'},
             # Stimulus`es background color (in format #222111)
 
             'stimulus_type':{'value':['rectangle', 'image', 'text']},
@@ -125,7 +127,7 @@ class UgmAttributesManager(object):
             'message':{'value':'string'},
             # A text message of UgmTextStimulus
 
-            'font_family':{'value':'string'},
+            'font_family':{'value':'font'},
             # Font family (as string) for UgmTextStimulus
 
             'font_color':{'value':'string'},
@@ -141,7 +143,7 @@ class UgmAttributesManager(object):
             }
 	# TODO: Stimuluses as attribute?
         self.attributes_for_elem = {
-	    'field':['id', 'width_type', 'width', 'height_type',
+	        'field':['id', 'width_type', 'width', 'height_type',
                      'height', 'position_horizontal_type',
                      'position_horizontal', 'position_vertical_type',
                      'position_vertical', 'color'],
@@ -167,54 +169,63 @@ class UgmConfigManager(object):
     (for file ...../ugm/configs/ugm_config.py)
     - _fields = a python-list taken from config file representing ugm config
     """
-    def __init__(self, p_config_file='ugm.configs.ugm_config'):
+    def __init__(self, p_config_file='ugm_config', p_standard_directory=True):
         """Init manager from config in format 
         package.subpackage...module_with_configuration."""
         self._config_file = p_config_file
+        self._standard_config = p_standard_directory
+        self._standard_config_dir = os.path.dirname(__import__('ugm.configs', fromlist=['ugm.configs']).__file__) + os.path.sep
         self._fields = []
         self._old_fields = []
-        self.update_from_file()
+        self.update_from_file(p_standard_config=self._standard_config)
     # ----------------------------------------------------------------------
     # CONFIG FILE MANAGMENT ------------------------------------------------
-    def update_from_file(self, p_config_file=None):
+    def update_from_file(self, p_config_file=None, p_standard_config=False):
         """Import config file from p_config_file or self._config_file
         if p_config_file is None. If we have config in file xxxx.py then
         p_config_file should be a string in format:
         xxxx or aaa.bbb.xxxx if file xxxx.py is in package aaa.bbb."""
+        self._standard_config = p_standard_config
         if p_config_file:
             self._config_file = p_config_file
-        l_config_module = self._get_module_from_config(self._config_file)
-        reload(l_config_module) # To be sure that the file is imported
-        self.set_full_config(l_config_module.fields)
+        l_config_fields = self._get_module_from_config(self._config_file)
+        #reload(l_config_module) # To be sure that the file is imported
+        self.set_full_config(l_config_fields)
 
     def update_to_file(self, p_config_file=None):
         """Write self`s configuration stored in self._fields to file
         defined by path p_config_file or to self._config_file if
         p_config_file is not defined. p_config_file should be a path
-        to the file, eg. 'a/b/c/config.py'. """
+        to the file, eg. 'a/b/c/config.py'."""
         if p_config_file:
-            l_file_path = p_config_file
+            l_config_file = p_config_file
+            l_standard_config = False
         else:
-            l_module_path = self._get_module_from_config(self._config_file).__file__
-            l_file_path = ''.join([l_module_path[:l_module_path.rfind('.')],
-                                   '.py']) # Replace .pyc with .py
-        l_file = open(l_file_path, 'w') #TODO -try except
-        l_file.write(''.join(["fields = ", repr(self._fields)]))
+            l_config_file = self._config_file
+            l_standard_config = self._standard_config
+        
+        if l_standard_config:
+            l_file_path = self._standard_config_dir + l_config_file + '.ugm'
+        else:
+            l_file_path = l_config_file
+        l_file = open(l_file_path, 'wb') #TODO -try except
+        pickle.dump(self._fields, l_file)
         l_file.close()
+    
     def _get_module_from_config(self, p_config_file):
         """ For given string p_config_file representing config file
         in format aaa.bbb.ccc return module instance representing the file
         """
-
-        # In case l_config_file is in format aaa.bbb.ccc lets add aaa.bbb to
-        # fromlist parameter in import call:
-        l_dot = self._config_file.rfind('.')
-        if l_dot == -1:
-            l_config_module = __import__(p_config_file)
+        #TODO update docstrings
+        if self._standard_config:
+            l_file_path = self._standard_config_dir + self._config_file + '.ugm'
         else:
-            l_config_module = __import__(p_config_file, 
-                                         fromlist = [p_config_file[:l_dot]])
-        return l_config_module
+            l_file_path = self._config_file
+        l_file = open(l_file_path, 'rb') # TODO add try except
+        l_fields = pickle.load(l_file)
+        l_file.close()
+            
+        return l_fields
 
     # CONFIG FILE MANAGMENT ------------------------------------------------
     # ----------------------------------------------------------------------
