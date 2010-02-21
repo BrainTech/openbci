@@ -77,8 +77,7 @@ class Hashtable(BaseMultiplexerServer):
         "AmpBattery": "0",
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
-	"CeilingTimeBoundry" : "0.4",
-        "UgmConfig": "ugm.configs.ugm_config"
+	"CeilingTimeBoundry" : "0.4"
         
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
@@ -103,8 +102,6 @@ class Hashtable(BaseMultiplexerServer):
             #pair = variables_pb2.Variable()
             key = mxmsg.message
             value = self.data[key] if key in self.data else ""
-            # print key, str(value)
-
             self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE)
 
 
