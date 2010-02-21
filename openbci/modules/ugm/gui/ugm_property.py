@@ -56,6 +56,8 @@ class UGMProperty(UGMTreeElement):
             if p_modify_value:
                 if self.type == 'int':
                     self.value = 0
+                elif self.type == 'float':
+                    self.value = 0
                 elif self.type == 'string':
                     self.value = ''
                 elif self.type == 'enumerated':
