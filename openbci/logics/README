@@ -14,3 +14,9 @@ Those are 'public' modules that can be fired from outside as scripts.
   - test_speller_graphics_manager.py - unit tests for speller_graphics_manager.py
   - state_machine.py - config file reader
   - speller_config.py - speller logic config file
+
+
+* HOW TO RUN SPELLER LOGIC?
+- fire openbci/start_new_logic_test
+- fire test_manually_logic_speller.py
+- type 0-7 number to send 'decisions' to logic (logic will send changes to ugm)
