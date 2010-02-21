@@ -95,7 +95,7 @@ peer {
 }
 peer {
     type: 119
-    name: "SVAROG"
+    name: "STREAM_RECEIVER"
 }
 
 peer {
@@ -262,10 +262,6 @@ type {
         peer: "FILTER"
         whom: ALL
     }  
-    to {
-	peer: "SIGNAL_STREAMER"
-	whom: ALL
-    }    
  
     to {
 	peer: "SIGNAL_SAVER"
@@ -278,6 +274,10 @@ type {
     name: "FILTERED_SIGNAL_MESSAGE"
     to {
         peer: "SIGNAL_CATCHER"
+        whom: ALL
+    }
+    to {
+        peer: "SIGNAL_STREAMER"
         whom: ALL
     }
 }
@@ -380,14 +380,18 @@ type {
 type {
     type: 143
     name: "STREAMED_SIGNAL_MESSAGE"
-    
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+    }
 }
+
 type {
     type: 144
     name: "SIGNAL_STREAMER_START"
     to {
         peer: "SIGNAL_STREAMER"
-        whom: ANY
+        whom: ALL
     }
 }
 
@@ -400,9 +404,26 @@ type {
     }
 }
 
+type {
+    type: 146
+    name: "SAMPLING_FREQUENCY"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
 
 type {
-     type: 146
+    type: 147
+    name: "CALIBRATION"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+type {
+     type: 148
      name: "SIGNAL_SAVER_CONTROL_MESSAGE"
      to {
      	peer: "SIGNAL_SAVER"
@@ -412,7 +433,7 @@ type {
 
 
 type {
-    type: 147
+    type: 149
     name: "UGM_UPDATE_MESSAGE"
     to {
         peer: "UGM"
