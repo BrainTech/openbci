@@ -25,6 +25,8 @@
 import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
+import logic_logging
+LOGGER = logic_logging.get_logger("logic_speller_engine")
 
 class LogicSpellerServer(BaseMultiplexerServer):
     """A facade between multiplexer and logic_speller_engine."""
@@ -33,10 +35,11 @@ class LogicSpellerServer(BaseMultiplexerServer):
         super(LogicSpellerServer, self).__init__(addresses=p_addresses, 
                                                  type=peers.LOGIC)
         self._init_types()
-        self._message_var = variables_pb2.Variable()
+        
     def _init_types(self):
         """Create a map of protobuf types."""
         self._types = {'switch_mode':types.SWITCH_MODE,
+                       'ugm_update_message':types.UGM_UPDATE_MESSAGE,
                        'dict_set_message':types.DICT_SET_MESSAGE,
                        'dict_get_request_message': types.DICT_GET_REQUEST_MESSAGE}
     def _get_type(self, p_type):
@@ -49,13 +52,22 @@ class LogicSpellerServer(BaseMultiplexerServer):
 
     def send_message(self, p_params):
         """Method fired by logic_engine. It sends p_params data."""
+        LOGGER.info("Speller server got send message with: "+str(p_params))
         l_message = ''
-        if p_params.get('key','') == '':
-            l_message = p_params['value']
+        if p_params.get('key','') != '': #dictionary message
+            l_msg_var = variables_pb2.Variable()
+            l_msg_var.key = p_params['key']
+            l_msg_var.value = p_params['value']
+            l_message = l_msg_var.SerializeToString()
+        elif p_params['type'] == 'ugm_update_message':
+            l_msg_var = variables_pb2.UgmUpdate()
+            l_msg_var.type = 1 #'simple' update type 
+            l_msg_var.value = p_params['value']
+            l_message = l_msg_var.SerializeToString()
         else:
-            self._message_var.key = p_params['key']
-            self._message_var.value = p_params['value']
-            l_message = self._message_var.SerializeToString()
+            l_message = p_params['value']
+
+
         self.conn.send_message(message = l_message, 
                                type = self._get_type(p_params['type']), 
                                flush = True)

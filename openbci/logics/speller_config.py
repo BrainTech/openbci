@@ -57,7 +57,7 @@ actions[0] = [['run_ext(\'tahoe  "power on 1"\')', 'run_ext(\'tahoe  "power off 
               ['run_ext(\'tahoe  "power on 2"\')', 'run_ext(\'tahoe  "power off 2"\')'], 
               ['run_ext(\'tahoe  "power on 3"\')', 'run_ext(\'tahoe  "power off 3"\')'], 
               "", "", "", "", ""]
-actions[1] = ["backspace()", "msg('N')", "msg('I')", "msg('E')", "", "msg('A')", "msg('F')", ""] 
+actions[1] = ["backspace()", "", "", "", "", "", "", ""] 
 actions[2] = ["backspace()", "msg('N')", "msg('I')", "msg('E')", "", "msg('A')", "msg('F')", ""] 
 actions[3] = ["backspace()", "msg('P')", "msg('R')", "msg('O')", "msg('W')", "msg('T')", "msg('L')", ""] 
 actions[4] = ["backspace()", "msg('C')", "msg('Z')", "msg('H')", "msg('S')", "msg('Y')", "msg('B')", ""] 

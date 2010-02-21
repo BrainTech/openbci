@@ -51,6 +51,7 @@ class LogicEngine(object):
         #         'type':'dict_get_request_message'}))
         #TODO - shouldn`t WE set numOfFreq in hashtable here?
 
+        #TODO - send ugm`s initial config (path to that configu should be defined in logics_config_manager
         self._paradigm = 0
         # for now: 0: ssvep, 1: p300
         self._pause = 0
@@ -115,8 +116,7 @@ class LogicEngine(object):
         l_graphics_string = sgm.SpellerGraphicsManager().pack(l_graphics)
         self._server.send_message({
                 'value':l_graphics_string,
-                'key':'Panel',
-                'type':'dict_set_message'})
+                'type':'ugm_update_message'})
 
     def _update_global_paradigm(self):
         """Update locally stored paradigm code and send 

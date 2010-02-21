@@ -39,11 +39,23 @@ class SpellerGraphicsManager(object):
         The method is fired in logic, just before sendin data to ugm.
         See self.unpack method te learn how to receive data in ugm.
         """
-        l_tmp_packed = SpellerGraphicsManager.DIVIDER.join(p_graphics_elements)
-        l_packed = ''.join([SpellerGraphicsManager.HEAD, 
-                           l_tmp_packed, 
-                           SpellerGraphicsManager.TAIL])
+        l_id = 900
+        l_packed = []
+        for i_letters in p_graphics_elements:
+            l_conf = {'id':l_id,
+                      'message':i_letters}
+            l_packed.append(l_conf)
+            l_id = l_id + 1
+        return str(l_packed)
+#        l_tmp_packed = SpellerGraphicsManager.DIVIDER.join(p_graphics_elements)
+#        l_packed = ''.join([SpellerGraphicsManager.HEAD, 
+#                          l_tmp_packed, 
+#                           SpellerGraphicsManager.TAIL])
         return l_packed
+    def pack_one(self, p_message, p_id):
+        """For given string and id, pack that value and return it."""
+        return str([{'id': p_id,
+                    'message': p_message}])
     def unpack(self, p_packed_graphics):
         """For given string p_packed_graphics return a collection of
         strings understandable by ugm. 

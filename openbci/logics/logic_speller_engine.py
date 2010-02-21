@@ -23,6 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import logic_engine
+import speller_graphics_manager as sgm
 class LogicSpellerEngine(logic_engine.LogicEngine):
     def __init__(self, p_server):
         self._menu_state = [0, 0, 0]
@@ -50,7 +51,7 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
     def msg(self, p_message):
         """Update stored message considering:
         """
-        ''.join([self._message, p_message])
+        self._message = ''.join([self._message, p_message])
 
 
     
@@ -69,9 +70,10 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         """Sent to self._server current logic data:
         - current message,
         """
-        self._server.send_message({'value':self._message,
-                                   'key':'Message',
-                                   'type':'dict_set_message'})
+        l_graphics_string = sgm.SpellerGraphicsManager().pack_one(self._message, 909)
+        self._server.send_message({
+                'value':l_graphics_string,
+                'type':'ugm_update_message'})
         super(LogicSpellerEngine, self)._update_global_gui()
     def _update_main_menu(self, p_decision):
         """Update locally stored menu_state. The method is fired
