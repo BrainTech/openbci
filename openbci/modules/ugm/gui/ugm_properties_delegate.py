@@ -31,6 +31,10 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
     """Delegate for UGM properties list view - creates editors for different
     properties"""
     
+    def __init__(self, parent=None):
+        super(UGMPropertiesDelegate, self).__init__(parent)
+        self.doNotSetEditorData = False
+    
     def createEditor(self, parent, option, index):
         """Creates editor for given item, depending on its type"""
         l_item = self.getItem(index)
@@ -44,15 +48,15 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             editor = QtGui.QSpinBox(parent)
             editor.setSingleStep(1)
             editor.setMaximum(1000)
-            #self.connect(editor, QtCore.SIGNAL('valueChanged(int)'), self.editorValueChanged)
+            self.connect(editor, QtCore.SIGNAL('valueChanged(int)'), self.editorValueChanged)
         elif l_type == 'float':
             editor = QtGui.QDoubleSpinBox(parent)
             editor.setSingleStep(0.05)
             editor.setMaximum(1000)   
-            #self.connect(editor, QtCore.SIGNAL('valueChanged(double)'), self.editorValueChanged)
+            self.connect(editor, QtCore.SIGNAL('valueChanged(double)'), self.editorValueChanged)
         elif l_type == 'string':
             editor = QtGui.QLineEdit(parent)
-            #self.connect(editor, QtCore.SIGNAL('textChanged(QString)'), self.editorValueChanged)
+            self.connect(editor, QtCore.SIGNAL('textChanged(QString)'), self.editorValueChanged)
         elif l_type == 'enumerated':
             editor = QtGui.QComboBox(parent)
             for i_value in l_typeParameters['values']:
@@ -71,6 +75,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             l_lineEdit = QtGui.QLineEdit(editor)
             l_lineEdit.setObjectName("lineEdit")
             editor.setFocusProxy(l_lineEdit)
+            self.connect(l_lineEdit, QtCore.SIGNAL('currentIndexChanged(int)'), self.editorValueChanged)
             l_horizontalLayout.addWidget(l_lineEdit)
             l_toolButton = QtGui.QToolButton(editor)
             l_toolButton.setObjectName("toolButton")
@@ -98,6 +103,9 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
     
     def setEditorData(self, editor, index):
         """Set data for editor of given item"""
+        if self.doNotSetEditorData:
+            return
+        
         l_value = index.model().data(index, QtCore.Qt.EditRole)
         l_item = self.getItem(index)
         l_type = l_item.type
@@ -136,7 +144,9 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         """Emits signal to commit data of current editor to model.
         Because some fields are dependent on others we want to do it as soon
         as value changes"""
+        self.doNotSetEditorData = True
         self.emit(QtCore.SIGNAL('commitData(QWidget *)'), self.sender())
+        self.doNotSetEditorData = False
     
     def updateEditorGeometry(self, editor, option, index):
         """Sets editors geometry to rect"""

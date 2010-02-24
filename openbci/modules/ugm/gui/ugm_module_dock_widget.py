@@ -28,6 +28,8 @@ from PyQt4 import QtCore, QtGui
 from modules.ugm.gui.UGMMain import Ui_UGMMainWidget
 from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
 from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
+from ugm.ugm_config_manager import UgmConfigManager
+import os
 #from multiplexer.multiplexer_constants import peers, types
 #from multiplexer.clients import connect_client 
 #import variables_pb2
@@ -141,16 +143,19 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         #     type=types.UGM_UPDATE_MESSAGE, flush=True)
         
         #### TEMPORARY FOR LOCAL UGM ####
-        self.configManager.set_full_config(self.propertiesModel.createConfigNode())
-        self.configManager.update_to_file()
+        l_tempConfigManager = UgmConfigManager()
+        l_tempConfigManager.set_full_config(self.propertiesModel.createConfigNode())
+        l_tempConfigManager.update_to_file()
         
     
     def loadConfig(self):
         """Loads config from file and rebuilds whole tree"""
         l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(), "Pliki UGMa (*.ugm)")
         if l_fileName == "": 
-            return
+            return    
         self.fileName = str(l_fileName)
+        l_shortFileName = os.path.split(str(l_fileName))[1]
+        self.setWindowTitle(QtGui.QApplication.translate("UGMMainWidget", "UGM Configuration - %s" % (l_shortFileName), None, QtGui.QApplication.UnicodeUTF8))
         
         self.configManager.update_from_file(self.fileName)
         l_attributesConfig = self.configManager.get_attributes_config()
