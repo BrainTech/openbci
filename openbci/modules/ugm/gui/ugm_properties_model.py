@@ -154,6 +154,7 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
         """Add single element - field or stimulus - to already created model."""
         self.structureModified = True
         if p_type == 'field':
+            # Field has root as parent, which is empty index
             l_parentIndex = QtCore.QModelIndex()
             l_parent = self.rootItem
         else:
@@ -265,7 +266,7 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
     
     def index(self, row, column, parent=QtCore.QModelIndex()):
         """Returns or creates QModelIndex for given row/column and parent"""
-        if parent.isValid() and parent.column() != 0:
+        if (not self.hasIndex(row, column, parent)) or (parent.isValid() and parent.column() != 0):
             return QtCore.QModelIndex()
         
         parentItem = self.getItem(parent)

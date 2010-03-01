@@ -53,17 +53,24 @@ class UGMProperty(UGMTreeElement):
             # Type changed! Our values type possibly could change too :)
             self.type = l_newType['type']
             self.typeParameters = l_newType['parameters']
-            if p_modify_value:
-                if self.type == 'int':
-                    self.value = 0
-                elif self.type == 'float':
-                        self.value = 0
-                elif self.type == 'string':
-                    self.value = ''
-                elif self.type == 'enumerated':
-                    self.value = self.typeParameters['values'][0]
-                else:
-                    self.value = None
+            if self.value == None or p_modify_value:
+                self.setDefaultValue()
+                    
+    def setDefaultValue(self):
+        if self.type == 'int':
+            self.value = 0
+        elif self.type == 'float':
+            self.value = 0
+        elif self.type == 'string':
+            self.value = ''
+        elif self.type == 'color':
+            self.value = '#000000'
+        elif self.type == 'font':
+            self.value = 'serif'
+        elif self.type == 'enumerated':
+            self.value = self.typeParameters['values'][0]
+        else:
+            self.value = None
     
     def hasDependents(self):
         """Returns true if any property depends on this one"""

@@ -208,7 +208,7 @@ class UgmConfigManager(object):
             l_file_path = self._standard_config_dir + l_config_file + '.ugm'
         else:
             l_file_path = l_config_file
-        l_file = open(l_file_path, 'wb') #TODO -try except
+        l_file = open(unicode(l_file_path), 'wb') #TODO -try except
         pickle.dump(self._fields, l_file)
         l_file.close()
     
@@ -221,7 +221,7 @@ class UgmConfigManager(object):
             l_file_path = self._standard_config_dir + self._config_file + '.ugm'
         else:
             l_file_path = self._config_file
-        l_file = open(l_file_path, 'rb') # TODO add try except
+        l_file = open(unicode(l_file_path), 'rb') # TODO add try except
         l_fields = pickle.load(l_file)
         l_file.close()
             
