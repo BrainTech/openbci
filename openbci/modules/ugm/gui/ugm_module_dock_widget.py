@@ -153,8 +153,8 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(), "Pliki UGMa (*.ugm)")
         if l_fileName == "": 
             return    
-        self.fileName = str(l_fileName)
-        l_shortFileName = os.path.split(str(l_fileName))[1]
+        self.fileName = unicode(l_fileName)
+        l_shortFileName = os.path.split(unicode(l_fileName))[1]
         self.setWindowTitle(QtGui.QApplication.translate("UGMMainWidget", "UGM Configuration - %s" % (l_shortFileName), None, QtGui.QApplication.UnicodeUTF8))
         
         self.configManager.update_from_file(self.fileName)
