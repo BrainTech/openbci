@@ -45,20 +45,9 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         self.ui = Ui_UGMMainWidget()
         self.ui.setupUi(self)
         l_attributesConfig = self.configManager.get_attributes_config()
-        self.propertiesModel = UGMPropertiesModel(l_attributesConfig['attributes_def'], 
-                                                  l_attributesConfig['attributes_for_elem'], 
-                                                  self.configManager.get_ugm_fields())
-        self.propertiesDelegate = UGMPropertiesDelegate()
-        # Preparing model
-        self.ui.propertyList.setModel(self.propertiesModel)
-        self.ui.propertyList.setItemDelegate(self.propertiesDelegate)
-        self.ui.propertyList.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
-        # Initialising everything
-        self.resizeColumns()
-        self.connect(self.ui.propertyList, QtCore.SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
-        self.connect(self.ui.propertyList, QtCore.SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
-        self.initActions()
-        self.ui.propertyList.selectionModel().selectionChanged.connect(self.updateActions)
+        self._initModel(UGMPropertiesModel(l_attributesConfig['attributes_def'], 
+                                           l_attributesConfig['attributes_for_elem'], 
+                                           self.configManager.get_ugm_fields()))
         
         self._connection = None
     
@@ -159,10 +148,10 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         
         self.configManager.update_from_file(self.fileName)
         l_attributesConfig = self.configManager.get_attributes_config()
-        self.propertiesModel = UGMPropertiesModel(l_attributesConfig['attributes_def'], 
-                                                  l_attributesConfig['attributes_for_elem'], 
-                                                  self.configManager.get_ugm_fields())
-        self.ui.propertyList.setModel(self.propertiesModel)
+        self._initModel(UGMPropertiesModel(l_attributesConfig['attributes_def'], 
+                                             l_attributesConfig['attributes_for_elem'], 
+                                             self.configManager.get_ugm_fields()))
+        
     
     def saveConfig(self):
         """Saves config to default file, if none were loaded or to last loaded file"""
@@ -192,3 +181,18 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         self.propertiesModel.removeRoot(l_currentIndex.parent(), l_currentIndex.row())
         self.updateActions()
+        
+    def _initModel(self, p_model):
+        """Creates and initialises model, from given parameter"""
+        self.propertiesModel = p_model
+        self.propertiesDelegate = UGMPropertiesDelegate()
+        # Preparing model
+        self.ui.propertyList.setModel(self.propertiesModel)
+        self.ui.propertyList.setItemDelegate(self.propertiesDelegate)
+        self.ui.propertyList.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+        # Initialising everything
+        self.resizeColumns()
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
+        self.initActions()
+        self.ui.propertyList.selectionModel().selectionChanged.connect(self.updateActions)
