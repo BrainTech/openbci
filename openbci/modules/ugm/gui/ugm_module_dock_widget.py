@@ -49,6 +49,9 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
                                            l_attributesConfig['attributes_for_elem'], 
                                            self.configManager.get_ugm_fields()))
         
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
+        self.connect(self.ui.propertyList, QtCore.SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
+        self.initActions()
         self._connection = None
     
     def resizeColumns(self):
@@ -80,9 +83,14 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         
         self.updateActions()    
     
-    def updateActions(self):
+    def updateActions(self, p_newSelection=None):
         """Called every time something happens, that can change availability of
         this plugins actions"""
+        # If this was called by signal, we will have new selection send as parameter
+        if p_newSelection != None and p_newSelection.count() > 0 and p_newSelection.first().isValid():
+            l_currentIndex = p_newSelection.first().topLeft()
+        else:
+            l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
         # We can always add new field, sen to ugm or save/load
         self.ui.actionAdd.setEnabled(True)
         self.ui.actionSendToUgm.setEnabled(True)
@@ -90,7 +98,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         self.ui.actionSave.setEnabled(True)
         self.ui.actionSaveAs.setEnabled(True)
         
-        l_currentIndex = self.ui.propertyList.selectionModel().currentIndex()
+        
         if not self.ui.propertyList.selectionModel().selection().isEmpty() and l_currentIndex.isValid():
             l_item = self.propertiesModel.getItem(l_currentIndex)
             # We can only remove fields or stimuluses...
@@ -192,7 +200,4 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         self.ui.propertyList.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
         # Initialising everything
         self.resizeColumns()
-        self.connect(self.ui.propertyList, QtCore.SIGNAL("collapsed(QModelIndex)"), self.resizeColumns)
-        self.connect(self.ui.propertyList, QtCore.SIGNAL("expanded(QModelIndex)"), self.resizeColumns)
-        self.initActions()
         self.ui.propertyList.selectionModel().selectionChanged.connect(self.updateActions)
