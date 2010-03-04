@@ -28,7 +28,7 @@ of those experiments and makes it possible to run them"""
 
 # FIXME: Temporarily we create config here, and not from files
 CONFIG = {}
-CONFIG['screens'] = [['zolty', 'czerwony'], ['bialy', 'czarny'], ['niebieski', 'zielony']]
+CONFIG['screens'] = [['lipne/zolty', 'lipne/czerwony'], ['lipne/bialy', 'lipne/czarny'], ['lipne/niebieski', 'lipne/zielony']]
 CONFIG['delay'] = 10
 
 from ugm.ugm_config_manager import UgmConfigManager
