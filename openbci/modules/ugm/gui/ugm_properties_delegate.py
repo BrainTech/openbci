@@ -47,12 +47,12 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         if l_type == 'int':
             editor = QtGui.QSpinBox(parent)
             editor.setSingleStep(1)
-            editor.setMaximum(1000)
+            editor.setMaximum(99999)
             self.connect(editor, QtCore.SIGNAL('valueChanged(int)'), self.editorValueChanged)
         elif l_type == 'float':
             editor = QtGui.QDoubleSpinBox(parent)
             editor.setSingleStep(0.05)
-            editor.setMaximum(1000)   
+            editor.setMaximum(99999)   
             self.connect(editor, QtCore.SIGNAL('valueChanged(double)'), self.editorValueChanged)
         elif l_type == 'string':
             editor = QtGui.QLineEdit(parent)
