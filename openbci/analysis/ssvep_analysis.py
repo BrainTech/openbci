@@ -86,6 +86,15 @@ class SSVEPAnalysis:
         d = []
         for s in data.samples:
             d.append(s.value)
+# TODO: cos tu nie gralo, na poczatku czasem przychodzilo mniej danych i sypalo sie
+#        if len(d) < 500:
+#            print("ZEEERO")
+#            print(len(d))
+#            return 
+#        else:
+#            pass
+#            print("NIE:")
+#            print(len(d))
         #d = list(d)
         #rint "d: ", d
         mul = 4
