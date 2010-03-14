@@ -1,0 +1,21 @@
+#!/bin/bash
+./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+export PYTHONPATH=openbci/:azouk-libraries/build/
+
+./svarog/pinger.py &
+
+sleep 1
+
+./openbci/hashtable.py &
+
+#sleep 1
+
+#./openbci/signal_streamer.py &
+
+#sleep 1
+
+#./openbci/filters/filter.py &
+
+#sleep 1
+
+#./openbci/amplifiers/virtual_amplifier.py file $1 $2 &

@@ -1,28 +1,5 @@
 #!/usr/bin/env python
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Author:
-#      Krzysztof Kulewski <kulewski@gmail.com>
-#      Magdalena Michalska <jezzy.nietoperz@gmail.com>
-#
-
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
@@ -34,10 +11,13 @@ class Hashtable(BaseMultiplexerServer):
     #
 
     data = {
+        "DataScale": "1.0",
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord":  "0 1",
-	#"0 1 2 3 4 5 6 7 8 9",
-	# "12 6 11 13 17 18 19 21 22 23",
+        "ChannelsNames": "Oz;O1",
+        "Gain":"1 1",
+        "Offset":"0 0",
+        "NumOfChannels": "2",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
         "SamplingRate": "128",
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 11)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
@@ -57,7 +37,9 @@ class Hashtable(BaseMultiplexerServer):
         #" | < :: | say :: | A :: | B :: | C :: | D :: | E :: | back ",
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
-        "Freqs": "5 10 61 61 15 20 61 61",
+        "Freqs": "11 10 12 13 15 20 8 7",
+        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
+        "Reps": "1 1 1 1 1 1 1 1" ,
         "Repeats": "1",
         "FrameWidth": "20",
         "Squares": "8",
@@ -78,8 +60,6 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4"
-        
-
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 
@@ -93,16 +73,14 @@ class Hashtable(BaseMultiplexerServer):
             pair.ParseFromString(mxmsg.message)
             key = pair.key
             value = pair.value
-            #key, value = cPickle.loads(mxmsg.message)
             self.data[key] = value
-            if (key == "Trigger"):
-                print "SET SET SET SET SET SET SET SET SET SET SET SET SET SET SET SET: ", key, str(value)
             self.no_response()
         elif mxmsg.type == types.DICT_GET_REQUEST_MESSAGE:
             #pair = variables_pb2.Variable()
             key = mxmsg.message
             value = self.data[key] if key in self.data else ""
-            self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE)
+            #self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE)
+            self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE, to=int(mxmsg.from_), flush=True)
 
 
 if __name__ == "__main__":

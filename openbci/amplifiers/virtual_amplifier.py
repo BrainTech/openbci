@@ -132,8 +132,8 @@ if __name__ == "__main__":
     2) with file info_file data_file parameters to run amplifier from file 
     (eg. python virtual_amplifier.py file test.obci.info test.obci.dat)"""
     l_mode = 'function'
-    l_info_file = './openbci/amplifiers/test.obci.info'
-    l_data_file = './openbci/amplifiers/test.obci.dat'
+    l_info_file = './openbci/data_storage/sample_data/juhu_speller_full.obci.info'
+    l_data_file = './openbci/data_storage/sample_data/juhu_speller_full.obci.dat'
     try:
         l_mode = sys.argv[1]
     except IndexError:
@@ -149,7 +149,7 @@ if __name__ == "__main__":
             l_info_file = sys.argv[2]
             l_data_file = sys.argv[3]
         except IndexError:
-            print("No info and data files giver. Using test.obci.info and test.obci.dat files.")
+            print("No info and data files giver. Using data_storage/sample_data/juhu_speller_full*")
         print("Run VirtualAmplifier from '"+l_data_file+"' file.")
         VirtualEEGAmplifier('file', {'info_file':l_info_file, 'data_file':l_data_file}).do_sampling()
 

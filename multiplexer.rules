@@ -133,6 +133,11 @@ peer {
      name: "UGM"
 }
 
+peer {
+     type: 127
+     name: "PINGER"
+}
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -140,6 +145,10 @@ type {
     type: 1
     name: "PING"
     comment: "I'm alive packet; it never carries any significant message."
+    to {
+	peer: "PINGER"
+        whom: ALL
+    }
 }
 
 type {
@@ -440,3 +449,5 @@ type {
         whom: ALL
     }
 }
+
+     
