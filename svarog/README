@@ -6,21 +6,22 @@ Files:
 [ ]	svarog-mock.rules	09-Mar-2010 11:55 	4.0K	 
 [ ]	svarog.jar	09-Mar-2010 16:58 	12M	 
 [ ]	svarog.rules
-
 downloaded from:
 http://escher.fuw.edu.pl/~mariusz/svarog/
-
 on 14.03.2010
 
 
-To run 
+
+To run svarog with openbci:
+../start_mx_for_svarog
+../start_svarog
+
+
+To run mock-svarog:
 
 java -jar jmx-0.9-withdeps.jar server -host 127.0.0.1 -port 31889 -rules svarog-mock.rules
-
 java -jar eegmock.jar
-
 java -jar htmock.jar
-
 java -jar svarog.jar 
 
 

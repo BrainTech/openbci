@@ -1,0 +1,17 @@
+For now if you want svarog and obci to work together change file:
+/azouk_repo/src/azouk/multiplexer/Server.h line 304 from:
+
+
+case types::PING:
+     return false;
+
+
+to:
+
+case types::PING:
+     return true;
+
+
+
+
+and recompile azouk
