@@ -111,7 +111,10 @@ class SignalmlReadManager(object):
     def _create_tags_control(self):
         """Register getter functions for signal parameters. See self.__init__ docstring for more details."""
         self._tags_control = {
-        'channels_names':self._get_channels_names,
+        'channels_names':self._get_list_param,
+        'channels_numbers':self._get_list_param,
+        'channels_gains':self._get_list_param,
+        'channels_offsets':self._get_list_param,
         'file':self._get_file_name,
         'number_of_samples':self._get_simple_param,
         'number_of_channels':self._get_simple_param,
@@ -125,18 +128,20 @@ class SignalmlReadManager(object):
         for i_param in l_params:
             if i_param.getAttribute('id') == p_param_name:
                 return i_param.firstChild.nodeValue
+    def _get_list_param(self, p_param_name):
+        l_xml_root_element = self._xml_doc.getElementsByTagName(p_param_name)[0]
+        l_elements = []
+        for i_node in l_xml_root_element.childNodes:
+            l_elements.append(i_node.firstChild.nodeValue)
+        return l_elements
+        
     def _get_file_name(self, p_param_name):
         """Return file name from tag <file>file_name</file>."""
         return self._xml_doc.getElementsByTagName(p_param_name)[0].firstChild.nodeValue
 
-    def _get_channels_names(self, p_param_name):
-        """
-        Return a collection of channel names from tags: 
-        <p_param_name><channel_name>name1</channel_name><channel_name>name2</channel_name></p_param_name>.
-        """
-        l_xml_root_element = self._xml_doc.getElementsByTagName(p_param_name)[0]
-        l_channels_names = []
-        for i_channel_name_node in l_xml_root_element.childNodes:
-            l_channels_names.append(i_channel_name_node.firstChild.nodeValue)
-        return l_channels_names
+#    def _get_channels_names(self, p_param_name):
+#        """
+#        Return a collection of channel names from tags: 
+#        <p_param_name><channel_name>name1</channel_name><channel_name>name2</channel_name></p_param_name>."""
+
     # Getter methods for info file parameters ****************************************************************************

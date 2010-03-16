@@ -105,14 +105,23 @@ class InfoFileProxy(object):
 
 
     #Setter methods for every recogisable signal parameter ********************************************************************
+    def _set_channels_gains(self, p_channels_gains):
+        self._set_list_param_tag('channels_gains', p_channels_gains)        
+
+    def _set_channels_offsets(self, p_channels_offsets):
+        self._set_list_param_tag('channels_offsets', p_channels_offsets)        
+
     def _set_channels_names(self, p_channels_names):
         """Create xml element for 'channels_names' parameter. 
         p_channels_names should be a list of channel names."""
-        l_xml_channel_root = self._xml_factory.createElement('channels_names')
-        for i_channel_name in p_channels_names:
-            l_channel_xml = self._create_xml_text_element('param', i_channel_name, 'channel_name')
-            l_xml_channel_root.appendChild(l_channel_xml)
-        self._xml_root.appendChild(l_xml_channel_root)
+        self._set_list_param_tag('channels_names', p_channels_names)
+    def _set_channels_numbers(self, p_channels_numbers):
+        self._set_list_param_tag('channels_numbers', p_channels_numbers)        
+#        l_xml_channel_root = self._xml_factory.createElement('channels_names')
+#        for i_channel_name in p_channels_names:
+#            l_channel_xml = self._create_xml_text_element('param', i_channel_name, 'channel_name')
+#            l_xml_channel_root.appendChild(l_channel_xml)
+#        self._xml_root.appendChild(l_xml_channel_root)
 
     def _set_number_of_samples(self, p_samples_count):
         """Create xml element for 'number_of_samples' parameter. 
@@ -138,7 +147,13 @@ class InfoFileProxy(object):
         """
         l_xml_element = self._create_xml_text_element('param', p_tag_value, p_tag_id)
         self._xml_root.appendChild(l_xml_element)
-        
+    def _set_list_param_tag(self, p_tag_id, p_tag_values):
+        l_xml_list_root = self._xml_factory.createElement(p_tag_id)
+        for i_value in p_tag_values:
+            l_xml_elem = self._create_xml_text_element('param', i_value)
+            l_xml_list_root.appendChild(l_xml_elem)
+        self._xml_root.appendChild(l_xml_list_root)
+
     def _create_xml_text_element(self, p_tag_name, p_text_value, p_id_value=''):
         """A generic method for adding an xml text element with
         - tag name: 'p_tag_name', 
@@ -154,6 +169,9 @@ class InfoFileProxy(object):
         """Define tags control functions for every recognisable parameter. See self.__init__ for more details."""
         self._tags_controls = {
             'channels_names':self._set_channels_names,
+            'channels_numbers':self._set_channels_numbers,
+            'channels_gains':self._set_channels_gains,
+            'channels_offsets':self._set_channels_offsets,
             'number_of_samples':self._set_number_of_samples,
             'number_of_channels':self._set_number_of_channels,
             'sampling_frequency': self._set_sampling_frequency

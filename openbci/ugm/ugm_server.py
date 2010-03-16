@@ -52,7 +52,7 @@ class UgmServer(BaseMultiplexerServer):
                 l_socket.connect((TCP_IP, TCP_PORT))
                 l_socket.send(mxmsg.message)
             except Exception, l_exc:
-                LOGGER.errior("An error occured while sending data to ugm_engine")
+                LOGGER.error("An error occured while sending data to ugm_engine")
                 raise(l_exc)
             finally:
                 l_socket.close()

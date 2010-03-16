@@ -59,7 +59,9 @@ class Hashtable(BaseMultiplexerServer):
         "AmpBattery": "0",
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
-	"CeilingTimeBoundry" : "0.4"
+	"CeilingTimeBoundry" : "0.4",
+        "SaveFileName" : "nazwa_zdefiniowana_w_hashtable",
+        "SaveFilePath" : "./"
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 

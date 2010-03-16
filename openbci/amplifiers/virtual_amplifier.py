@@ -42,7 +42,7 @@ class VirtualEEGAmplifier:
             self.source_provider = FunctionSourceProvider(p_source_params)
         elif p_source == "file":
             self.source_provider = FileSourceProvider(p_source_params)
-            self.channel_numbers = [int(num) for num in self.source_provider.get_channel_names()]
+            self.channel_numbers = [int(num) for num in self.source_provider.get_channels_numbers()]
             self.sampling_rate = int(self.source_provider.get_sampling_rate())
 
             l_var = variables_pb2.Variable()
@@ -109,9 +109,9 @@ class FileSourceProvider(object):
                 print("Data file is empty!")
                 sys.exit(1)
                 
-    def get_channel_names(self):
+    def get_channels_numbers(self):
         """Return a collection of channel numbers (as ints) that are stored in the file."""
-        return [int(num) for num in self._signal_reader.get_param('channels_names')]
+        return [int(num) for num in self._signal_reader.get_param('channels_numbers')]
 
     def get_sampling_rate(self):
         """Return sampling rate from info file."""
