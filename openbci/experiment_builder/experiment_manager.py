@@ -71,7 +71,7 @@ class Experiment_manager(object):
             l_msg = variables_pb2.UgmUpdate()
             l_msg.type = int(l_type)
             l_msg.value = self.config_manager.config_to_message()
-                
+          	      
             # Everything done :) All that is left is to establish connection if needed...
             if not self._connection:
                 self._connection = connect_client(type = peers.LOGIC)
@@ -83,11 +83,34 @@ class Experiment_manager(object):
             self.config_manager.update_to_file('ugm_config', True)
         
     def _post_screen_package(self):
-        print('\a')
+        self._play_sound('chime.wav')
         
     def _post_screen(self):
-        print('\a')
-
+        self._play_sound('whoosh.wav')
+        
+    def _play_sound(self, p_wave_file):
+        import os
+        from wave import open as waveOpen
+        from ossaudiodev import open as ossOpen
+        l_dir = os.path.dirname(__import__('experiment_builder.resources', 
+                                           fromlist=['experiment_builder.resources']).__file__
+                               ) + os.path.sep
+        s = waveOpen(l_dir + p_wave_file,'rb')
+        (nc,sw,fr,nf,comptype, compname) = s.getparams( )
+        dsp = ossOpen('/dev/dsp','w')
+        try:
+            from ossaudiodev import AFMT_S16_NE
+        except ImportError:
+            if byteorder == "little":
+                AFMT_S16_NE = ossaudiodev.AFMT_S16_LE
+            else:
+                AFMT_S16_NE = ossaudiodev.AFMT_S16_BE
+        dsp.setparameters(AFMT_S16_NE, nc, fr)
+        data = s.readframes(nf)
+        s.close()
+        dsp.write(data)
+        dsp.close()
+    
 def main():
     l_experiment_manager = Experiment_manager()
     l_experiment_manager.run()
