@@ -26,7 +26,6 @@
 This class is responsible for managing UGM experiments. It loads and holds configs
 of those experiments and makes it possible to run them"""
 
-# FIXME: Temporarily we create config here, and not from files
 from ugm.ugm_config_manager import UgmConfigManager
 from experiment_builder.config.config import CONFIG, USE_MULTIPLEXER
 import random	
@@ -55,13 +54,13 @@ class Experiment_manager(object):
             random.shuffle(i_screens_pack)
         random.shuffle(self.screens)
         
+        time.sleep(10)
         for i_screens_pack in self.screens:
             print('pack')
             for i_screen in i_screens_pack:
-                print('screen')
+                print('screen ' + i_screen)
                 self.config_manager.update_from_file(i_screen, True)
                 self.send_to_ugm()
-                
                 time.sleep(10)
                 self._post_screen()
             self._post_screen_package()
@@ -71,7 +70,7 @@ class Experiment_manager(object):
             l_type = 0
             l_msg = variables_pb2.UgmUpdate()
             l_msg.type = int(l_type)
-            l_msg.value = self.configManager.config_to_message()
+            l_msg.value = self.config_manager.config_to_message()
                 
             # Everything done :) All that is left is to establish connection if needed...
             if not self._connection:
