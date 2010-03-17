@@ -66,7 +66,7 @@ class Experiment_manager(object):
                 self._post_screen()
             self._post_screen_package()
 
-    def send_to_ugm()
+    def send_to_ugm(self):
         if USE_MULTIPLEXER:
             l_type = 0
             l_msg = variables_pb2.UgmUpdate()

@@ -192,14 +192,14 @@ class UgmConfigManager(object):
         #reload(l_config_module) # To be sure that the file is imported
         self.set_full_config(l_config_fields)
 
-    def update_to_file(self, p_config_file=None):
+    def update_to_file(self, p_config_file=None, p_standard_config=False):
         """Write self`s configuration stored in self._fields to file
         defined by path p_config_file or to self._config_file if
         p_config_file is not defined. p_config_file should be a path
         to the file, eg. 'a/b/c/config.py'."""
         if p_config_file:
             l_config_file = p_config_file
-            l_standard_config = False
+            l_standard_config = p_standard_config
         else:
             l_config_file = self._config_file
             l_standard_config = self._standard_config
