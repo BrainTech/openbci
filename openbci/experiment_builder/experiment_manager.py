@@ -27,13 +27,15 @@ This class is responsible for managing UGM experiments. It loads and holds confi
 of those experiments and makes it possible to run them"""
 
 # FIXME: Temporarily we create config here, and not from files
-CONFIG = {}
-CONFIG['screens'] = [['lipne/zolty', 'lipne/czerwony'], ['lipne/bialy', 'lipne/czarny'], ['lipne/niebieski', 'lipne/zielony']]
-CONFIG['delay'] = 10
-
 from ugm.ugm_config_manager import UgmConfigManager
-import random
+from experiment_builder.config.config import CONFIG, USE_MULTIPLEXER
+import random	
 import time
+
+if USE_MULTIPLEXER:
+    from multiplexer.multiplexer_constants import peers, types
+    from multiplexer.clients import connect_client
+    import variables_pb2
 
 class Experiment_manager(object):
     """This class is responsible for managing UGM experiments. It loads and holds configs
@@ -45,6 +47,8 @@ class Experiment_manager(object):
         p_config_file = CONFIG
         self.screens = p_config_file['screens']
         self.delay = p_config_file['delay']
+        self.config_manager = UgmConfigManager()
+        self._connection = None
         
     def run(self):
         for i_screens_pack in self.screens:
@@ -55,12 +59,29 @@ class Experiment_manager(object):
             print('pack')
             for i_screen in i_screens_pack:
                 print('screen')
-                l_tempConfigManager = UgmConfigManager()
-                l_tempConfigManager.update_from_file(i_screen, True)
-                l_tempConfigManager.update_to_file('ugm_config', True)
+                self.config_manager.update_from_file(i_screen, True)
+                self.send_to_ugm()
+                
                 time.sleep(10)
                 self._post_screen()
             self._post_screen_package()
+
+    def send_to_ugm()
+        if USE_MULTIPLEXER:
+            l_type = 0
+            l_msg = variables_pb2.UgmUpdate()
+            l_msg.type = int(l_type)
+            l_msg.value = self.configManager.config_to_message()
+                
+            # Everything done :) All that is left is to establish connection if needed...
+            if not self._connection:
+                self._connection = connect_client(type = peers.LOGIC)
+            # ...and send message to UGM
+            self._connection.send_message(
+                message = l_msg.SerializeToString(), 
+                type=types.UGM_UPDATE_MESSAGE, flush=True)
+        else:
+            self.config_manager.update_to_file('ugm_config', True)
         
     def _post_screen_package(self):
         print('\a')
