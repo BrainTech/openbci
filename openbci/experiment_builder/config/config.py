@@ -29,4 +29,4 @@ CONFIG = {}
 CONFIG['screens'] = [['lipne/zolty', 'lipne/czerwony'], ['lipne/bialy', 'lipne/czarny'], ['lipne/niebieski', 'lipne/zielony']]
 CONFIG['delay'] = 10
 
-USE_MULTIPLEXER = False
+USE_MULTIPLEXER = True

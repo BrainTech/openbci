@@ -1,0 +1,3 @@
+bialy=brak punktu fiksacji=odleg³oœæ œrednia=œrednia odleg³oœæ,œrednia wielkoœæ
+wielkoœæ œredni=odleg³oœæ najmniejsza  //ew. odleg³oœæ najmniejsz=wielkoœæ najmniejsza
+du¿y,ma³a odleg³oœæ=najwiêkszy
