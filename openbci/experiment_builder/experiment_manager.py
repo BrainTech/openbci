@@ -30,6 +30,16 @@ from ugm.ugm_config_manager import UgmConfigManager
 from experiment_builder.config.config import CONFIG, USE_MULTIPLEXER
 import random	
 import time
+import sys
+
+# We must check if we are running this script directly, and if we do,
+# then perhaps command-line option overriden config
+print (len(sys.argv), sys.argv)
+if len(sys.argv) >= 2 and sys.argv[0].find('experiment_manager.py') >= 0 :
+    if sys.argv[1] == 'mx-on':
+        USE_MULTIPLEXER = True
+    elif sys.argv[1] == 'mx-off':
+        USE_MULTIPLEXER = False
 
 if USE_MULTIPLEXER:
     from multiplexer.multiplexer_constants import peers, types

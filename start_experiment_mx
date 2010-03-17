@@ -11,7 +11,7 @@ sleep 1
 
 sleep 1
 
-python ./openbci/experiment_builder/experiment_manager.py &
+python ./openbci/experiment_builder/experiment_manager.py mx-on &
 
 #sleep 1
 
