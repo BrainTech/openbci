@@ -32,7 +32,7 @@ import settings, variables_pb2
 import data_storage_logging
 LOGGER = data_storage_logging.get_logger("signal_saver")
 
-from tags import tags_manager
+from tags import tagger
 class SignalSaver(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(SignalSaver, self).__init__(addresses=addresses, 
@@ -62,7 +62,7 @@ class SignalSaver(BaseMultiplexerServer):
         elif mxmsg.type == types.TAG and \
                 self._session_is_active:
             #TODO - decide which type of tag is to be saved
-            l_tag = tags_manager.unpack_tag(mxmsg.message)
+            l_tag = tagger.unpack_tag(mxmsg.message)
             LOGGER.info("Signal saver got tag: "+str(l_tag))
             self._save_manager.tag_received(l_tag)
   
