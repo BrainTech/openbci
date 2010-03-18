@@ -332,7 +332,7 @@ class SignalmlSaveManager(object):
             print(e)
             sys.exit(1)
         self._timestamps_proxy.data_received(p_timestamp)
-        if self._first_sample_timestamp < 0:
+        if self._first_sample_timestamp < 0:#TODO - zrobic, zeby za kazdym razem to sie nie sprawdzalo
             self._first_sample_timestamp = p_timestamp
     def tag_received(self, p_tag_dict):
         self._tags_proxy.tag_received(p_tag_dict)
