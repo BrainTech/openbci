@@ -29,6 +29,8 @@ import xml.dom.minidom
 
 data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
+tags_file_extension = ".obci.tags"
+timestamps_file_extension = ".obci.timestamps"
 
 class BadSampleFormat(Exception):
     """An exception that should be raised when data sample has arrived and it is not float (struct is unable to pack it)."""
@@ -72,10 +74,11 @@ class InfoFileProxy(object):
         self._create_tags_controls()
         self._process_signal_params(p_signal_params)
 
-    def finish_saving(self, p_samples_count):
+    def finish_saving(self, p_samples_count, p_timestamp):
         """Write xml_doc to the file, return the file`s path."""
         #TODO - lapac bledy
         self._set_tag('number_of_samples', p_samples_count)
+        self._set_tag('first_sample_timestamp', p_timestamp)
         f = open(self._file_name, 'w')
         f.write(self._xml_factory.toxml('utf-8')) #TODO ustawic kodowanie
         f.close()
@@ -137,6 +140,8 @@ class InfoFileProxy(object):
         """Create xml element for 'sampling_frequency' parameter. 
         p_sampling should be a number representing sampling fraequency."""
         self._set_simple_param_tag('sampling_frequency', str(p_sampling))
+    def _set_first_sample_timestamp(self, p_timestamp):
+        self._set_simple_param_tag('first_sample_timestamp', str(p_timestamp))        
     #Setter methods for every recogisable signal parameter ********************************************************************
 
     def _set_simple_param_tag(self, p_tag_id, p_tag_value):
@@ -174,7 +179,8 @@ class InfoFileProxy(object):
             'channels_offsets':self._set_channels_offsets,
             'number_of_samples':self._set_number_of_samples,
             'number_of_channels':self._set_number_of_channels,
-            'sampling_frequency': self._set_sampling_frequency
+            'sampling_frequency': self._set_sampling_frequency,
+            'first_sample_timestamp': self._set_first_sample_timestamp
             }
         
 
@@ -188,10 +194,10 @@ class DataFileProxy(object):
     - finish_saving() - closes data file and return its path,
     - data_received(p_data_sample) - gets and saves next sample of signal
     """
-    def __init__(self, p_file_name, p_dir_path):
+    def __init__(self, p_file_name, p_dir_path, p_file_extension):
         """Open p_file_name file in p_dir_path directory."""
         self._number_of_samples = 0
-        self._file_name = os.path.normpath(os.path.join(p_dir_path, p_file_name + data_file_extension))
+        self._file_name = os.path.normpath(os.path.join(p_dir_path, p_file_name + p_file_extension))
         #TODO works in windows and linux on path with spaces?
         try:
             #TODO - co jesli plik istnieje?
@@ -220,7 +226,65 @@ class DataFileProxy(object):
         #store number of samples
         self._number_of_samples = self._number_of_samples + 1
 
+class AsciFileProxy(object):
+    def __init__(self, p_file_name, p_dir_path, p_file_extension):
+        """Open p_file_name file in p_dir_path directory."""
+        self._file_name = os.path.normpath(os.path.join(p_dir_path, p_file_name + p_file_extension))
+        try:
+            self._file = open(self._file_name, 'w') #open file in a binary mode
+        except IOError:
+            print "Error! Can`t create a file!!!."
+            sys.exit(1)
 
+    def finish_saving(self):
+        """Close the file, return a tuple - file`s name and number of samples."""
+        self._file.close()
+        return self._file_name
+
+    def data_received(self, p_data):
+        """ Write p_data t self._file as raw int. Here we assume, that
+        p_data is of float type. Type verification should be conducted earlier."""
+        try:
+            self._file.write(str(p_data)+'\n')
+        except ValueError:
+            print("Warning! Trying to write data to closed data file!")
+            return
+
+        self._file.flush()
+
+class TagsFileProxy(object):
+    def __init__(self, p_file_name, p_dir_path):
+        self._file_name = os.path.normpath(os.path.join(p_dir_path, p_file_name + tags_file_extension)) 
+        #TODO works in windows and linux on path with spaces?
+        self._xml_factory = xml.dom.minidom.Document() #an object useful in the future to easily create xml elements
+        self._xml_root = self._xml_factory.createElement('openbci_tags_data_format') #this is going to be an in-memory representation of xml info file
+        #TODO self._tags_def_root = self._xml_factory.createElement('tags_definitions')
+        self._xml_factory.appendChild(self._xml_root)
+        self._tags_root = self._xml_factory.createElement('tags')
+        self._xml_root.appendChild(self._tags_root)
+    def tag_received(self, p_tag_dict):
+        l_tag = self._xml_factory.createElement('tag')
+        l_tag.appendChild(self._create_xml_param_element('name', p_tag_dict['name']))
+        l_tag.appendChild(self._create_xml_param_element('start_timestamp', 
+                                                         str(p_tag_dict['start_timestamp'])))
+        l_tag.appendChild(self._create_xml_param_element('end_timestamp', 
+                                                         str(p_tag_dict['end_timestamp'])))
+        for i_key, i_value in p_tag_dict['desc'].iteritems():
+            l_tag.appendChild(self._create_xml_param_element(i_key, str(i_value)))
+        self._tags_root.appendChild(l_tag)
+                                                 
+    def _create_xml_param_element(self, p_key, p_value):
+        l_elem = self._xml_factory.createElement('param')
+        l_elem.setAttribute('key', p_key)
+        l_elem.setAttribute('value', p_value)
+        return l_elem
+    def finish_saving(self):
+        """Write xml tags to the file, return the file`s path."""
+        #TODO - lapac bledy
+        f = open(self._file_name, 'w')
+        f.write(self._xml_factory.toxml('utf-8')) #TODO ustawic kodowanie
+        f.close()
+        return self._file_name
 
 class SignalmlSaveManager(object):
     """A class that is responsible for implementing logics of openbci signal stroing
@@ -240,10 +304,12 @@ class SignalmlSaveManager(object):
         p_signal_params- a dictionary of signal parameters like number of channels etc, 
         params should be readablye by InfoFileProxy, see its __init__ method t learn more.
         """
-        self._info_proxy = InfoFileProxy(p_session_name, p_dir_path, p_signal_params)
-        self._data_proxy = DataFileProxy(p_session_name, p_dir_path)
-        #TODO co z tagami? trzeba by tutaj chyba dostarczac jakiś obiekt, ktory takie tagi rozumie, hmmm, ale też chyba SignamlSignalSaver musi takie tagi rozmiec...
-        #na razie przyjmiemy że tagów nie ma
+        self._info_proxy = InfoFileProxy(p_session_name, p_dir_path, 
+                                         p_signal_params)
+        self._data_proxy = DataFileProxy(p_session_name, p_dir_path, data_file_extension)
+        self._tags_proxy = TagsFileProxy(p_session_name, p_dir_path)
+        self._timestamps_proxy = AsciFileProxy(p_session_name, p_dir_path, timestamps_file_extension)
+        self._first_sample_timestamp = -1.0
 
     def finish_saving(self):
         """ Return a tuple x,y where:
@@ -252,15 +318,23 @@ class SignalmlSaveManager(object):
         """
         #TODO - sprawdzanie bledow
         l_data_file_path, l_samples_count = self._data_proxy.finish_saving()
-        l_info_file_path = self._info_proxy.finish_saving(l_samples_count)
-        return l_info_file_path, l_data_file_path
+        l_info_file_path = self._info_proxy.finish_saving(l_samples_count, self._first_sample_timestamp)
+        l_tags_file_path = self._tags_proxy.finish_saving()
+        l_timestamps_file_path = self._timestamps_proxy.finish_saving()
+        return l_info_file_path, l_data_file_path, l_tags_file_path, l_timestamps_file_path
 
 
-    def data_received(self, p_data):
+    def data_received(self, p_data, p_timestamp):
         """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy."""
         try:
             self._data_proxy.data_received(p_data)
         except BadSampleFormat, e:
             print(e)
             sys.exit(1)
+        self._timestamps_proxy.data_received(p_timestamp)
+        if self._first_sample_timestamp < 0:
+            self._first_sample_timestamp = p_timestamp
+    def tag_received(self, p_tag_dict):
+        self._tags_proxy.tag_received(p_tag_dict)
+
             

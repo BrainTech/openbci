@@ -45,6 +45,9 @@ if USE_MULTIPLEXER:
     from multiplexer.multiplexer_constants import peers, types
     from multiplexer.clients import connect_client
     import variables_pb2
+    from data_storage import signal_saver_control
+
+
 
 class Experiment_manager(object):
     """This class is responsible for managing UGM experiments. It loads and holds configs
@@ -65,15 +68,22 @@ class Experiment_manager(object):
         random.shuffle(self.screens)
         
         time.sleep(10)
+        l_saver_control = signal_saver_control.SignalSaverControl()
+        l_saver_control.start_saving()
+#        i = 0
         for i_screens_pack in self.screens:
             print('pack')
             for i_screen in i_screens_pack:
+#                i = i + 1
+#                if i > 3:
+#                    break
                 print('screen ' + i_screen)
                 self.config_manager.update_from_file(i_screen, True)
                 self.send_to_ugm()
                 time.sleep(10)
                 self._post_screen()
             self._post_screen_package()
+        l_saver_control.finish_saving()
 
     def send_to_ugm(self):
         if USE_MULTIPLEXER:

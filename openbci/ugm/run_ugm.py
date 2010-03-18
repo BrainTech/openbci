@@ -25,7 +25,8 @@
 """Current script is supposed to be fired if you want to run 
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, thread
-import os
+import os, time
+from tags import tagger
 
 import variables_pb2
 
@@ -73,8 +74,10 @@ class TcpServer(object):
                 #                      ' / ',
                 #                      l_msg.value]))
                 # Not working properly while multithreading ...
+                l_time = time.time()
                 self._ugm_engine.update_from_message(
                     l_msg.type, l_msg.value)
+                tagger.send_tag(l_time, time.time(), "ugm_update", {"ugm_config":str(l_msg.value)})
                 l_conn.close()
         except Exception, l_exc:
             LOGGER.error('An error occured in TcpServer: '+str(l_exc))

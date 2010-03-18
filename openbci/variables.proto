@@ -4,6 +4,11 @@ message Variable {
     required string key = 1;
     required string value = 2;
 }
+
+message VariableVector {
+	repeated Variable variables = 1;
+}
+
 message Blink {
     required int32 index = 1;
     required double timestamp = 2;
@@ -27,4 +32,11 @@ message Decision {
 message UgmUpdate {
 	required int32 type = 1;
 	required string value = 2;
+}
+
+message Tag {
+	required double start_timestamp = 1;
+	required double end_timestamp = 2;
+	required string name = 3;
+	required VariableVector desc = 4;
 }

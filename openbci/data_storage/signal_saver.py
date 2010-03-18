@@ -32,13 +32,13 @@ import settings, variables_pb2
 import data_storage_logging
 LOGGER = data_storage_logging.get_logger("signal_saver")
 
+from tags import tags_manager
 class SignalSaver(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(SignalSaver, self).__init__(addresses=addresses, 
                                           type=peers.SIGNAL_SAVER)
         self._session_is_active = False
         self._save_manager = None
-
     def handle_message(self, mxmsg):
         """Handle messages:
         * amplifier_signal_message - raw data from mx.
@@ -50,7 +50,7 @@ class SignalSaver(BaseMultiplexerServer):
             l_vec = variables_pb2.SampleVector()
             l_vec.ParseFromString(mxmsg.message)
 	    for i_sample in l_vec.samples:
-                self._save_manager.data_received(i_sample.value)
+                self._save_manager.data_received(i_sample.value, i_sample.timestamp)
 
         elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
             LOGGER.info("Signal saver got signal_saver_control_message: "+\
@@ -59,6 +59,13 @@ class SignalSaver(BaseMultiplexerServer):
                 self.finish_saving_session()
             elif mxmsg.message == 'start_saving':
                 self.start_saving_session()
+        elif mxmsg.type == types.TAG and \
+                self._session_is_active:
+            #TODO - decide which type of tag is to be saved
+            l_tag = tags_manager.unpack_tag(mxmsg.message)
+            LOGGER.info("Signal saver got tag: "+str(l_tag))
+            self._save_manager.tag_received(l_tag)
+  
                 
     def start_saving_session(self):
         if self._session_is_active:
@@ -109,7 +116,7 @@ class SignalSaver(BaseMultiplexerServer):
             return
         l_files = self._save_manager.finish_saving()
         self._session_is_active = False
-        LOGGER.info("Saved files: \n"+l_files[0]+"\n"+l_files[1])
+        LOGGER.info("Saved files: \n"+str(l_files))
         return l_files
 
 if __name__ == "__main__":

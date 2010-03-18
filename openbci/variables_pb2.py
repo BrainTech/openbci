@@ -38,6 +38,28 @@ _VARIABLE = descriptor.Descriptor(
   options=None)
 
 
+_VARIABLEVECTOR = descriptor.Descriptor(
+  name='VariableVector',
+  full_name='variables.VariableVector',
+  filename='variables.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='variables', full_name='variables.VariableVector.variables', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+
 _BLINK = descriptor.Descriptor(
   name='Blink',
   full_name='variables.Blink',
@@ -198,12 +220,61 @@ _UGMUPDATE = descriptor.Descriptor(
   options=None)
 
 
+_TAG = descriptor.Descriptor(
+  name='Tag',
+  full_name='variables.Tag',
+  filename='variables.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='start_timestamp', full_name='variables.Tag.start_timestamp', index=0,
+      number=1, type=1, cpp_type=5, label=2,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='end_timestamp', full_name='variables.Tag.end_timestamp', index=1,
+      number=2, type=1, cpp_type=5, label=2,
+      default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='name', full_name='variables.Tag.name', index=2,
+      number=3, type=9, cpp_type=9, label=2,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='desc', full_name='variables.Tag.desc', index=3,
+      number=4, type=11, cpp_type=10, label=2,
+      default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+
+_VARIABLEVECTOR.fields_by_name['variables'].message_type = _VARIABLE
 _BLINKVECTOR.fields_by_name['blinks'].message_type = _BLINK
 _SAMPLEVECTOR.fields_by_name['samples'].message_type = _SAMPLE
+_TAG.fields_by_name['desc'].message_type = _VARIABLEVECTOR
 
 class Variable(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _VARIABLE
+
+class VariableVector(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _VARIABLEVECTOR
 
 class Blink(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
@@ -228,4 +299,8 @@ class Decision(message.Message):
 class UgmUpdate(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _UGMUPDATE
+
+class Tag(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _TAG
 
