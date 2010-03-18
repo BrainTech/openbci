@@ -58,6 +58,8 @@ class Experiment_manager(object):
         global CONFIG
         p_config_file = CONFIG
         self.screens = p_config_file['screens']
+        for i_nr in range(len(self.screens)):
+            self.screens[i_nr] = self.screens[i_nr] * 40
         self.delay = p_config_file['delay']
         self.config_manager = UgmConfigManager()
         self._connection = None
@@ -73,10 +75,12 @@ class Experiment_manager(object):
 #        i = 0
         for i_screens_pack in self.screens:
             print('pack')
+            print i_screens_pack
             for i_screen in i_screens_pack:
 #                i = i + 1
 #                if i > 3:
 #                    break
+
                 print('screen ' + i_screen)
                 self.config_manager.update_from_file(i_screen, True)
                 self.send_to_ugm()
@@ -104,6 +108,7 @@ class Experiment_manager(object):
         
     def _post_screen_package(self):
         self._play_sound('chime.wav')
+        time.sleep(30)
         
     def _post_screen(self):
         self._play_sound('whoosh.wav')

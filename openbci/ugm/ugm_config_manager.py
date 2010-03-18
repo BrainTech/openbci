@@ -189,6 +189,11 @@ class UgmConfigManager(object):
         if p_config_file:
             self._config_file = p_config_file
         l_config_fields = self._get_module_from_config(self._config_file)
+        ## FIX FIX FIX FIX FIX
+        ## FIX FIX FIX FIX FIX
+        l_config_fields.insert(0, {'width_type': 'absolute', 'position_horizontal': 0, 'color': '#000000', 'height_type': 'absolute', 'height': 9999.0, 'width': 9999.0, 'position_horizontal_type': 'absolute', 'stimuluses': [], 'position_vertical': 0, 'id': 0, 'position_vertical_type': 'absolute'})
+        ## FIX FIX FIX FIX FIX
+        ## FIX FIX FIX FIX FIX
         #reload(l_config_module) # To be sure that the file is imported
         self.set_full_config(l_config_fields)
 

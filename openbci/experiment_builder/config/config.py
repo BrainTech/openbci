@@ -26,7 +26,15 @@
 
 DUPA = 3
 CONFIG = {}
-CONFIG['screens'] = [['lipne/zolty', 'lipne/czerwony'], ['lipne/bialy', 'lipne/czarny'], ['lipne/niebieski', 'lipne/zielony']]
+CONFIG['screens'] = [
+#        ['zosia/strz1', 'zosia/strz2'], 
+        ['ania/mk-mo', 'ania/sk-mo', 'ani/dk-mo'],
+        ['zosia/wiel1', 'zosia/wiel2', 'zosia/wiel3', 'zosia/wiel4']
+#        ['zosia/kolc', 'zosia/koln', 'zosia/kolrozne', 'zosia/kolziel', 'zosia/kolzol'],
+#        ['zosia/pf0', 'zosia/pf1'],
+#        ['zosia/wielodl1', 'zosia/wielodl3'],
+#        ['ania/sk-mo', 'ania/mk-mo', 'ania/dk-mo'], 
+]
 CONFIG['delay'] = 10
 
-USE_MULTIPLEXER = True
+USE_MULTIPLEXER = True      
