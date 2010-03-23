@@ -36,5 +36,6 @@ CONFIG['screens'] = [
 #        ['ania/sk-mo', 'ania/mk-mo', 'ania/dk-mo'], 
 ]
 CONFIG['delay'] = 10
+CONFIG['repeats'] = 40
 
 USE_MULTIPLEXER = True      

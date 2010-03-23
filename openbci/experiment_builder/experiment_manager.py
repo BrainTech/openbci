@@ -28,7 +28,8 @@ of those experiments and makes it possible to run them"""
 
 from ugm.ugm_config_manager import UgmConfigManager
 from experiment_builder.config.config import CONFIG, USE_MULTIPLEXER
-import random	
+#from data_storage import signal_saver_control
+import random
 import time
 import sys
 
@@ -47,31 +48,42 @@ if USE_MULTIPLEXER:
     import variables_pb2
     from data_storage import signal_saver_control
 
-
-
 class Experiment_manager(object):
     """This class is responsible for managing UGM experiments. It loads and holds configs
     of those experiments and makes it possible to run them"""
     def __init__(self, p_config_file=None):
         super(Experiment_manager, self).__init__()
-        # FIXME: Temporarily we just use some built-in values
-        global CONFIG
         p_config_file = CONFIG
         self.screens = p_config_file['screens']
         for i_nr in range(len(self.screens)):
-            self.screens[i_nr] = self.screens[i_nr] * 40
+            l_original_screens = self.screens[i_nr]
+            if len(l_original_screens) > 2:
+                l_current_screens = []
+                l_last_screen = None
+                for i_iterations in range(p_config_file['repeats']):
+                    random.shuffle(l_original_screens)
+                    if l_original_screens[0] == l_last_screen:
+                        l_tmp = l_original_screens[0]
+                        l_original_screens[0] = l_original_screens[1]
+                        l_original_screens[1] = l_tmp
+                    l_last_screen = l_original_screens[-1]
+                    l_current_screens += l_original_screens
+            else:
+                l_current_screens = self.screens[i_nr] * p_config_file['repeats']
+                random.shuffle(l_current_screens)
+            self.screens[i_nr] = l_current_screens
         self.delay = p_config_file['delay']
         self.config_manager = UgmConfigManager()
         self._connection = None
         
     def run(self):
-        for i_screens_pack in self.screens:
-            random.shuffle(i_screens_pack)
+        #for i_screens_pack in self.screens:
+        #    random.shuffle(i_screens_pack)
         random.shuffle(self.screens)
         
         time.sleep(10)
-        l_saver_control = signal_saver_control.SignalSaverControl()
-        l_saver_control.start_saving()
+        #FIX FIX FIX FIX FIX l_saver_control = signal_saver_control.SignalSaverControl()
+        #FIX FIX FIX FIX FIX l_saver_control.start_saving()
 #        i = 0
         for i_screens_pack in self.screens:
             print('pack')
@@ -87,7 +99,7 @@ class Experiment_manager(object):
                 time.sleep(10)
                 self._post_screen()
             self._post_screen_package()
-        l_saver_control.finish_saving()
+        #FIX FIX FIX FIX FIX l_saver_control.finish_saving()
 
     def send_to_ugm(self):
         if USE_MULTIPLEXER:
