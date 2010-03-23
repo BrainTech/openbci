@@ -26,17 +26,17 @@
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, thread
 import os, time
-from tags import tagger
-
 import variables_pb2
 
 from ugm import ugm_engine
 from ugm import ugm_config_manager
 from ugm import ugm_server
-from ugm import ugm_logging
 
-LOGGER = ugm_logging.get_logger('run_ugm')
+from tags import tagger
+import ugm_logging as logger
 
+LOGGER = logger.get_logger('run_ugm')
+TAGGER = tagger.get_tagger()
 class TcpServer(object):
     """The class solves a problem with PyQt - it`s main window MUST be 
     created in the main thread. As a result I just can`t fire multiplexer
@@ -77,7 +77,8 @@ class TcpServer(object):
                 l_time = time.time()
                 self._ugm_engine.update_from_message(
                     l_msg.type, l_msg.value)
-                tagger.send_tag(l_time, time.time(), "ugm_update", {"ugm_config":str(l_msg.value)})
+                TAGGER.send_tag(l_time, l_time, "ugm_update", 
+                                {"ugm_config":str(l_msg.value)})
                 l_conn.close()
         except Exception, l_exc:
             LOGGER.error('An error occured in TcpServer: '+str(l_exc))
