@@ -28,14 +28,34 @@ DUPA = 3
 CONFIG = {}
 CONFIG['screens'] = [
 #        ['zosia/strz1', 'zosia/strz2'], 
-        ['ania/mk-mo', 'ania/sk-mo', 'ani/dk-mo'],
+        ['ania/mk-mo', 'ania/sk-mo', 'ania/dk-mo'],
         ['zosia/wiel1', 'zosia/wiel2', 'zosia/wiel3', 'zosia/wiel4']
 #        ['zosia/kolc', 'zosia/koln', 'zosia/kolrozne', 'zosia/kolziel', 'zosia/kolzol'],
 #        ['zosia/pf0', 'zosia/pf1'],
 #        ['zosia/wielodl1', 'zosia/wielodl3'],
 #        ['ania/sk-mo', 'ania/mk-mo', 'ania/dk-mo'], 
 ]
+
+# [square1, 2, 3, 4,
+#        5, 6, 7, 8]
+CONFIG['freqs'] = [
+    [
+        [70, 12, 15, 70, 70, 13, 14, 70], # 'ania/mk-mo'
+        [70, 12, 15, 70, 70, 13, 14, 70], # 'ania/sk-mo'
+        [70, 12, 15, 70, 70, 13, 14, 70]], # etc....
+    [
+        [70, 12, 15, 70, 70, 13, 14, 70],  # 'zosia/wiel1'
+        [70, 12, 15, 70, 70, 13, 14, 70],  # 'zosia/wiel2'
+        [70, 12, 15, 70, 70, 13, 14, 70], # ...
+        [70, 12, 15, 70, 70, 13, 14, 70]]
+        ]
 CONFIG['delay'] = 10
 CONFIG['repeats'] = 40
 
 USE_MULTIPLEXER = True      
+
+# set this to True and set DEFAULT_FREQS to use one frequencies set for all
+# screens. Then you can omit defining CONFIG['freqs']
+USE_DEFAULT_FREQS = False
+
+DEFAULT_FREQS = [60, 12, 15, 60, 60, 13, 14, 60]

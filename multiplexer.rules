@@ -474,3 +474,12 @@ type {
 	}
 }
 
+type {
+    type: 151
+    name: "DIODE_UPDATE_MESSAGE"
+    to {
+        peer: "SUPER_DIODE"
+        whom: ALL
+    }
+}
+

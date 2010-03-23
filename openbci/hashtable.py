@@ -55,7 +55,7 @@ class Hashtable(BaseMultiplexerServer):
         "DiodSequence": "1,2",
         "TrainingSequence": "0 1",
         "Session": "NormalSession",
-    	"BlinkingMode": "P300",
+    	"BlinkingMode": "SSVEP",
         "AmpBattery": "0",
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
