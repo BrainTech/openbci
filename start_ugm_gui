@@ -1,7 +1,8 @@
 #!/bin/bash
-../azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+export PYTHONPATH=openbci/:azouk-libraries/build/
 
-export PYTHONPATH=openbci/:../azouk-libraries/build/:PYTHONPATH
+#export PYTHONPATH=openbci/:../azouk-libraries/build/:PYTHONPATH
 
 python ./openbci/ugm/run_ugm.py &
 

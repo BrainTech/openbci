@@ -103,7 +103,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
 
         print "dc ds ", self.seq
         for x in self.seq:
-                blinker.blink_p300(x, self.blinkPeriod)
+            blinker.blink_p300(x, self.blinkPeriod)
             time.sleep(.75)
             tstamp = time.time()
             msg = variables_pb2.Blink()
