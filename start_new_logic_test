@@ -3,7 +3,7 @@
 
 sleep 2
 
-export PYTHONPATH=openbci/:azouk-libraries/build/
+export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
 
 ./openbci/hashtable.py &
 sleep 1

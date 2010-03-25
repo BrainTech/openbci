@@ -1,3 +1,27 @@
+#!/usr/bin/env python
+#
+# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
+# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
+# as part of their MSc theses at the University of Warsaw.
+# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author:
+#      Mateusz Kruszynski <mateusz.kruszynski@gmail.com>
+#
+
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
 import variables_pb2
@@ -6,9 +30,13 @@ import tags_logging as logger
 LOGGER = logger.get_logger('tagger')
 class Tagger(object):
     def __init__(self):
+        """Initialize mx connection."""
         self._connection = connect_client(type = peers.TAGS_SENDER)
+
     def pack_tag(self, p_start_timestamp, p_end_timestamp, 
                  p_tag_name, p_tag_desc):
+        """Return tag with given values. 
+        Returned tag is serialised to string."""
         l_tag = variables_pb2.Tag()
         l_tag.start_timestamp = p_start_timestamp
         l_tag.end_timestamp = p_end_timestamp
@@ -20,6 +48,12 @@ class Tagger(object):
         return l_tag.SerializeToString()
         
     def unpack_tag(self, p_tag_msg):
+        """For given tag serialised to string, return tag as a dict with fields:
+        - 'start_timestamp' - float
+        - 'end_timestamp' - float
+        - 'name' - string
+        - 'desc' - dictionary
+        """
         l_tag = variables_pb2.Tag()
         l_tag.ParseFromString(p_tag_msg)
         l_tag_dict = dict()
@@ -31,9 +65,31 @@ class Tagger(object):
             l_tag_desc[i_var.key] = i_var.value
         l_tag_dict['desc'] = l_tag_desc
         return l_tag_dict
-
+    def unpack_tag_from_dict(self, p_dict):
+        """For given dictinary describing tag in strings, return dictionary
+        where numeric values are numbers, not strings.
+        The method is fired by file tags reader, while parsing xml tags file."""
+        l_tag_dict = {}
+        l_tag_dict['start_timestamp'] = float(p_dict['start_timestamp'])
+        l_tag_dict['end_timestamp'] = float(p_dict['end_timestamp'])
+        l_tag_dict['name'] = p_dict['name']
+        l_tag_desc = {}
+        for i_key, i_value in p_dict.iteritems():
+            if i_key not in ['start_timestamp', 'end_timestamp', 'name']:
+                # TODO - use tag definition in case i_value is not a string
+                # but some more complex structure
+                l_tag_desc[i_key] = i_value
+        l_tag_dict['desc'] = l_tag_desc
+        return l_tag_dict
     def send_tag(self, p_start_timestamp, p_end_timestamp, 
                  p_tag_name, p_tag_desc):
+        """For given parameters create tag and send it to mx.
+        Parameters:
+        - p_start_timestamp - float 
+        - p_end_timestamp - float
+        - p_tag_name - string
+        - p_tag_desc - dictionary
+        """
         l_info_desc = "Sending tag: start: "+str(p_start_timestamp)+ \
                     " end: "+str(p_end_timestamp)+" name: "+p_tag_name
         LOGGER.info(l_info_desc)
@@ -44,6 +100,12 @@ class Tagger(object):
             message = l_tag_msg, 
             type=types.TAG, flush=True)
 
+    def send_unpacked_tag(self, p_tag_dict):
+        """A helper method to send tag in dictionary format."""
+        self.send_tag(p_tag_dict['start_timestamp'],
+                      p_tag_dict['end_timestamp'],
+                      p_tag_dict['name'],
+                      p_tag_dict['desc'])
 def get_tagger():
     return Tagger()
 #def send_start_half_tag(p_timestamp, p_tag_name, p_tag_desc)

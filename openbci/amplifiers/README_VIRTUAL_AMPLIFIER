@@ -1,0 +1,20 @@
+Wanna fire virtual amplifier from your 'name' file?
+Run:
+python virtual_amplifier.py file name.obci.info name.obci.dat name.obci.tags
+First two files are required, the third is optional.
+
+
+
+Wanna fire virtual amplifier from any file?
+Run (while being in trunk/ location):
+python virtual_amplifier.py file
+Amplifier will run from:
+    l_info_file = 'openbci/data_storage/sample_data/juhu_speller_full.obci.info'
+    l_data_file = 'openbci/data_storage/sample_data/juhu_speller_full.obci.dat'
+    l_tags_file = "openbci/data_storage/sample_data/juhu_speller_full.obci.tags"
+
+
+
+Wanna fire virtual amplifier from function?
+Run:
+python virtual_amplifier.py

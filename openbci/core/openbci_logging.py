@@ -36,14 +36,17 @@ def get_logger(p_name, p_level='info'):
     p_level should be in (starting with the most talkactive):
     'debug', 'info', 'warning', 'error', 'critical'."""
     logger = logging.getLogger(p_name)
-    handler = logging.StreamHandler()
-
-
-    level = LEVELS[p_level]
-    logger.setLevel(level)
-    handler.setLevel(level)
-
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    if len(logger.handlers) == 0:
+        # Some module migh be imported few times. In every get_logger call 
+        # with p_name = "X" we return the same instance of logger, bu we must
+        # ensure, that the logger has no more than one handler.
+        handler = logging.StreamHandler()
+        
+        level = LEVELS[p_level]
+        logger.setLevel(level)
+        handler.setLevel(level)
+        
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
     return logger

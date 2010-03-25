@@ -25,8 +25,9 @@
 import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import logic_logging
-LOGGER = logic_logging.get_logger("logic_speller_engine")
+
+import logic_logging as logger
+LOGGER = logger.get_logger("logic_speller_server")
 
 class LogicSpellerServer(BaseMultiplexerServer):
     """A facade between multiplexer and logic_speller_engine."""
@@ -52,7 +53,8 @@ class LogicSpellerServer(BaseMultiplexerServer):
 
     def send_message(self, p_params):
         """Method fired by logic_engine. It sends p_params data."""
-        LOGGER.info("Speller server got send message with: "+str(p_params))
+        LOGGER.info("Speller server will send message type: "+p_params['type'])
+        LOGGER.debug("Speller server will send message type: "+str(p_params))
         l_message = ''
         if p_params.get('key','') != '': #dictionary message
             l_msg_var = variables_pb2.Variable()

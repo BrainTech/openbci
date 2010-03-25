@@ -24,16 +24,9 @@
 
 """Module defines a single method get_logger that returns logger with
 set logging level. Change loggin.INFO lines to change logging level."""
-import logging
-def get_logger(p_name):
-    """Return logger with p_name as name."""
-    logger = logging.getLogger(p_name)
-    handler = logging.StreamHandler()
-
-    logger.setLevel(logging.INFO)
-    handler.setLevel(logging.INFO)
-
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
+from openbci.core import openbci_logging
+def get_logger(p_name, p_level='info'):
+    """Return logger with p_name as name. And logging level p_level.
+    p_level should be in (starting with the most talkactive):
+    'debug', 'info', 'warning', 'error', 'critical'."""
+    return openbci_logging.get_logger(p_name, p_level)

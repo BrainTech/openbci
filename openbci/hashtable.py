@@ -4,6 +4,8 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 
+from openbci.core import core_logging as logger
+LOGGER = logger.get_logger("hashtable")
 
 
 class Hashtable(BaseMultiplexerServer):
@@ -77,11 +79,16 @@ class Hashtable(BaseMultiplexerServer):
             value = pair.value
             self.data[key] = value
             self.no_response()
+            LOGGER.info("Got DICT_SET_MESSAGE with: key="+key+", value="+value)
         elif mxmsg.type == types.DICT_GET_REQUEST_MESSAGE:
             #pair = variables_pb2.Variable()
             key = mxmsg.message
             value = self.data[key] if key in self.data else ""
+            LOGGER.info("Got DICT_GET_RESPONSE_MESSAGE with key="+key+
+                        ". Send response value="+str(value))
+
             #self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE)
+
             self.send_message(message=str(value), type=types.DICT_GET_RESPONSE_MESSAGE, to=int(mxmsg.from_), flush=True)
 
 

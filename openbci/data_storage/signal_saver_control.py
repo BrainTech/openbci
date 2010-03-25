@@ -26,8 +26,9 @@ import sys
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import variables_pb2
-import data_storage_logging
-LOGGER = data_storage_logging.get_logger("signal_saver_control")
+
+import data_storage_logging as logger
+LOGGER = logger.get_logger("signal_saver_control")
 
 
 class SignalSaverControl(object):

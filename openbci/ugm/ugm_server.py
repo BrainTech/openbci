@@ -31,8 +31,9 @@ import socket
 TCP_IP = '127.0.0.1'
 TCP_PORT = 5013
 BUFFER_SIZE = 1024
-import ugm_logging
-LOGGER = ugm_logging.get_logger("ugm_server")
+
+import ugm_logging as logger
+LOGGER = logger.get_logger("ugm_server")
 
 class UgmServer(BaseMultiplexerServer):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)

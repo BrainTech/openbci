@@ -27,8 +27,9 @@ import sys
 from PyQt4 import QtGui, QtCore
 import ugm_config_manager
 import ugm_stimuluses
-import ugm_logging
-LOGGER = ugm_logging.get_logger("ugm_engine")
+
+import ugm_logging as logger
+LOGGER = logger.get_logger("ugm_engine")
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
     """For now, just to express it..."""
@@ -88,10 +89,14 @@ class SpellerWindow(QtGui.QFrame):
         """Init UgmGenericCanvas and other widgets, lay them out."""
         QtGui.QFrame.__init__(self, p_parent)
         l_hbox = QtGui.QVBoxLayout()
+        l_hbox.setContentsMargins(0,0,0,0)
+
+        #self.text = QtGui.QLineEdit()
+        #l_hbox.addWidget(self.text)
+
         self.canvas = UgmGenericCanvas(self, p_config_manager)       
-        self.text = QtGui.QLineEdit()
-#        l_hbox.addWidget(self.text)
         l_hbox.addWidget(self.canvas)
+
         self.setLayout(l_hbox)
 
     def update_geometry(self):
@@ -104,9 +109,7 @@ class UgmMainWindow(QtGui.QMainWindow):
     def __init__(self, p_config_manager):
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.setWindowTitle('statusbar')
         self._config_manager = p_config_manager
-        self.statusBar().showMessage('Ready')
         self.view = SpellerWindow(self, p_config_manager)
         self.setCentralWidget(self.view)
 

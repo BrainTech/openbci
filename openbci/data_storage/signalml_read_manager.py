@@ -24,16 +24,25 @@
 #
 import sys, struct
 import xml.dom.minidom
+from tags import tags_file_reader
+import data_storage_logging as logger
+LOGGER = logger.get_logger("signalml_read_manager")
 
 data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
+tags_file_extension = ".obci.tags"
 
 class NoNextValue(Exception):
     """Raised when end of data file is met in self.get_next_value()."""
     pass
 
+class NoNextTag(Exception):
+    """Raised when end of tag file is met in self.get_next_tag()."""
+    pass
+
 class NoParameter(Exception):
-    """Raised when a ther is a requrest for non-existing parameter in info file."""
+    """Raised when a ther is a requrest for non-existing parameter in 
+    info file."""
     def __init__(self, p_param):
         self._param = p_param
     def __str__(self):
@@ -47,18 +56,24 @@ class SignalmlReadManager(object):
     - get_param(param_name) - get param_name parameter from info file.
 
     Wanna be able to read a new parameter 'new_param'?
-    1. Register reading function in self._create_tags_control() under 'new_param' key.
+    1. Register reading function in self._create_info_tags_control() under 'new_param' key.
     2. Implement the function (it should be considered as class private function, not callable from outside; 
     the function should return a value for 'new_param' request).
     3. Call get_param('new_param') every time you want to get the param.
     """
-    def __init__(self, p_info_file, p_data_file):
+    def __init__(self, p_info_file, p_data_file, p_tags_file=""):
         """Just remember info file path and data file path."""
         self._info_file_name = p_info_file
         self._data_file_name = p_data_file
-        self._create_tags_control()
+        if len(p_tags_file) == 0:
+            self._tags_reader = None            
+        else:
+            self._tags_reader = tags_file_reader.TagsFileReader(p_tags_file)
+        self._create_info_tags_control()
     def start_reading(self):
-        """Open info file, parse it and remember xml structure. Open data file."""
+        """Open info file, parse it and remember xml structure. 
+        Open data file."""
+        LOGGER.info("Try reading info and data file ...")
         l_info_file = ''
         try:
             l_info_file = open(self._info_file_name, 'rt')
@@ -70,47 +85,54 @@ class SignalmlReadManager(object):
             #Analyse xml info file, get what we want and close the file.
                 self._parse_info_file(l_info_file)
             except xml.parsers.expat.ExpatError:
+                LOGGER.error("Info file is not a well-formatted xml file. \
+Reading aborted!")
                 l_info_file.close()
                 sys.exit(1)
             try:
                 self._data_file = open(self._data_file_name, 'rb')
             except IOError:
                 l_info_file.close()
-                print("An error occured while opening the data file!")
+                LOGGER.error("An error occured while opening the data file!")
                 sys.exit(1)
+        if self._tags_reader:
+            self._tags_reader.start_tags_reading()
                 
     def get_next_value(self):
-        """Return next value from data file (as python float). Close data file and raise NoNextValue exception if eof."""
+        """Return next value from data file (as python float). 
+        Close data file and raise NoNextValue exception if eof."""
         l_raw_data = self._data_file.read(8)
         try:
-            #TODO - by now it is assumed that error means eof.. What if it is not eof but eg. 4-chars string from the end of a broken file?
+            #TODO - by now it is assumed that error means eof.. 
+            #What if it is not eof but eg. 4-chars 
+            #string from the end of a broken file?
             return struct.unpack('d', l_raw_data)[0]
         except struct.error:
             self._data_file.close()
             raise(NoNextValue())
+    def get_next_tag(self):
+        l_tag = self._tags_reader.get_next_tag()
+        if not l_tag:
+            raise(NoNextTag())
+        return l_tag
     def get_param(self, p_param_name):
         """Return parameter value for p_param_name.
-        Raise NoParameter exception if p_param_name parameters was not found."""
+        Raise NoParameter exception if p_param_name 
+        parameters was not found."""
         try:
-            return self._tags_control[p_param_name](p_param_name)
+            return self._info_tags_control[p_param_name](p_param_name)
         except KeyError:
             raise(NoParameter(p_param_name))
 
     def _parse_info_file(self, p_info_file):
-        """
-        Parse p_info_file xml info file and store it in memory.
-        Raise exception if the file is not well-formatted.
-        """
+        """Parse p_info_file xml info file and store it in memory."""
         #TODO - validate xml regarding dtd
-        try:
-            self._xml_doc = xml.dom.minidom.parse(p_info_file)
-        except Exception, e:
-            print("Info file is not a well-formatted xml file. Reading aborted!")
-            raise(e)
+        self._xml_doc = xml.dom.minidom.parse(p_info_file)
 
-    def _create_tags_control(self):
-        """Register getter functions for signal parameters. See self.__init__ docstring for more details."""
-        self._tags_control = {
+    def _create_info_tags_control(self):
+        """Register getter functions for signal parameters. 
+        See self.__init__ docstring for more details."""
+        self._info_tags_control = {
         'channels_names':self._get_list_param,
         'channels_numbers':self._get_list_param,
         'channels_gains':self._get_list_param,
@@ -118,17 +140,26 @@ class SignalmlReadManager(object):
         'file':self._get_file_name,
         'number_of_samples':self._get_simple_param,
         'number_of_channels':self._get_simple_param,
-        'sampling_frequency':self._get_simple_param
+        'sampling_frequency':self._get_simple_param,
+        'first_sample_timestamp':self._get_simple_param
         }
         
-    # Getter methods for info file parameters ****************************************************************************
+    # Getter methods for info file parameters ******************************
     def _get_simple_param(self, p_param_name):
-        """Return text value from tag in format <param id=p_param_name>text_value</param>."""
+        """Return text value from tag in format:
+        <param id=p_param_name>text_value</param>."""
         l_params = self._xml_doc.getElementsByTagName('param')
         for i_param in l_params:
             if i_param.getAttribute('id') == p_param_name:
                 return i_param.firstChild.nodeValue
     def _get_list_param(self, p_param_name):
+        """Return a list of text values form tag in format:
+        <p_param_name>
+            <param>text value1</param>
+            <param>text value2</param>
+            ...
+        </p_param_name>
+        """
         l_xml_root_element = self._xml_doc.getElementsByTagName(p_param_name)[0]
         l_elements = []
         for i_node in l_xml_root_element.childNodes:
@@ -138,10 +169,3 @@ class SignalmlReadManager(object):
     def _get_file_name(self, p_param_name):
         """Return file name from tag <file>file_name</file>."""
         return self._xml_doc.getElementsByTagName(p_param_name)[0].firstChild.nodeValue
-
-#    def _get_channels_names(self, p_param_name):
-#        """
-#        Return a collection of channel names from tags: 
-#        <p_param_name><channel_name>name1</channel_name><channel_name>name2</channel_name></p_param_name>."""
-
-    # Getter methods for info file parameters ****************************************************************************

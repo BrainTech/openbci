@@ -3,7 +3,7 @@
 
 #rfcomm connect 0 &
 
-export PYTHONPATH=openbci/:azouk-libraries/build/
+export PYTHONPATH=./:openbci/:azouk-libraries/build/
 #export PYTHONPATH=/home/pi/finals/final-1.1/openbci/:/home/pi/finals/final-1.1/azouk-libraries/build/
 ./openbci/hashtable.py &
 
