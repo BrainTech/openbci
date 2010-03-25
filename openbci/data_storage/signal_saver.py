@@ -65,7 +65,16 @@ class SignalSaver(BaseMultiplexerServer):
                 self._session_is_active:
             #TODO - decide which type of tag is to be saved
             l_tag = TAGGER.unpack_tag(mxmsg.message)
-            LOGGER.info("Signal saver got tag: "+str(l_tag))
+            LOGGER.info(''.join(['Signal saver got tag: ',
+                                'start_timestamp:',
+                                str(l_tag['start_timestamp']),
+                                ', end_timestamp: ', 
+                                str(l_tag['end_timestamp']),
+                                ', name: ',
+                                l_tag['name'],
+                                '. <Change debug level to see desc.>']))
+                                  
+            LOGGER.debug("Signal saver got tag: "+str(l_tag))
             self._save_manager.tag_received(l_tag)
   
                 
