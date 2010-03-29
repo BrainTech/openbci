@@ -40,3 +40,7 @@ message Tag {
 	required string name = 3;
 	required VariableVector desc = 4;
 }
+
+message TagVector {
+    repeated Tag tags = 1;
+}

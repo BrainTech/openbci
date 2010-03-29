@@ -148,6 +148,15 @@ peer {
      name: "TAGS_RECEIVER"
 }
 
+peer {
+    type: 130
+    name: "CALIBRATOR"
+}
+peer {
+    type: 131
+    name: "TAG_CATCHER"
+}
+
 
 # packages and routing rules definitions
 #
@@ -483,3 +492,15 @@ type {
     }
 }
 
+type {
+    type: 152
+    name: "TAG_CATCHER_REQUEST_MESSAGE"
+    to {
+        peer: "TAGS_RECEIVER"
+        whom: ALL
+    }
+}
+type {
+    type: 153
+    name: "TAG_CATCHER_RESPONSE_MESSAGE"
+}
