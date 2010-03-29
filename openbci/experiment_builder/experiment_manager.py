@@ -63,6 +63,7 @@ class Experiment_manager(object):
         super(Experiment_manager, self).__init__()
         if p_config_file == None:
             p_config_file = CONFIG
+        self.config_file = p_config_file
         self.screens = p_config_file['screens']
         self.sc_configs = []
         self.repeats = p_config_file['repeats']
@@ -119,9 +120,6 @@ class Experiment_manager(object):
         # sleep to synchronize with other modules loading
         time.sleep(10)
         
-        # remember last used frequencies and do not bother diode control too much
-        previous_freqs = []
-
         if USE_MULTIPLEXER:
             l_saver_control = signal_saver_control.SignalSaverControl()
             l_saver_control.start_saving()
@@ -131,6 +129,7 @@ class Experiment_manager(object):
             self._pre_screen_package(i_screens_pack)
             LOGGER.debug("PACK: \n" + str(i_screens_pack))
             for i_screen_conf in i_screens_pack:
+
                 self._pre_screen(i_screen_conf)
                 LOGGER.info('screen ' + str(i_screen_conf[0]) + '  freqs: ' +\
                         str(i_screen_conf[1]))
@@ -138,13 +137,15 @@ class Experiment_manager(object):
                 self.config_manager.update_from_file(i_screen_conf[0], True)
                 # ...then update itself
                 self.send_to_ugm()
-                # change diode frequencies if needed
-                if i_screen_conf[1] != previous_freqs: 
-                    self.update_diode_freqs(i_screen_conf[1])
-                    previous_freqs = i_screen_conf[1]
+                # change diode frequencies 
+                self.update_diode_freqs(i_screen_conf[1])
 
                 time.sleep(self.delay)
                 self._post_screen(i_screen_conf)
+                if self.config_file['make_breaks']:
+                    self.update_diode_freqs(self.config_file['break_freqs'])
+                    time.sleep(self.config_file['break_len'])
+
             self._post_screen_package(i_screens_pack)
         if USE_MULTIPLEXER:
             l_saver_control.finish_saving()
@@ -179,7 +180,7 @@ class Experiment_manager(object):
             # Everything done :) All that is left is to establish connection if needed...
             if not self._connection:
                 self._connection = connect_client(type = peers.LOGIC)
-            # ...and send message to UGM
+            # ...and send message to diode control
             self._connection.send_message(
                 message = l_msg.SerializeToString(), 
                 type=types.DIODE_UPDATE_MESSAGE, flush=True)
@@ -188,7 +189,7 @@ class Experiment_manager(object):
         print('New screen package: ' + str(p_screen_package))
         
     def _post_screen_package(self, p_screen_package):
-        self._play_sound('chime.wav')
+       self._play_sound('chime.wav')
         time.sleep(30)
     
     def _pre_screen(self, p_screen_config):
@@ -202,8 +203,10 @@ class Experiment_manager(object):
             l_screen_name = l_screen_config_name
         TAGGER.send_tag(l_time, l_time, "experiment_update", 
                         {
-                            "concentrating_on_field" : 9999999, # FIXME: normalna wartość
-                            "screen" : l_screen_name
+                            "concentrating_on_field" : 2, # FIXME: normalna wartość
+                            "screen" : l_screen_name,
+                            "Freqs" : p_screen_config[1],
+                            "delay" : self.config_file['delay'] # TODO
                         }) 
     
     def _post_screen(self, p_screen_config):
