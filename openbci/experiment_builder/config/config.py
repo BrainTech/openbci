@@ -51,6 +51,15 @@ CONFIG['freqs'] = [
         ]
 CONFIG['delay'] = 10
 CONFIG['repeats'] = 40
+CONFIG['readable_names'] = {
+    'ania/mk-mo' : 'murr',
+    'ania/sk-mo' : 'surr',
+    'ani/dk-mo' : 'durr',
+    'zosia/wiel1' : 'w1rr',
+    'zosia/wiel2' : 'w2rr',
+    'zosia/wiel3' : 'w3rr',
+    'zosia/wiel4' : 'w4rr',
+}
 
 USE_MULTIPLEXER = True      
 

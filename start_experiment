@@ -1,5 +1,5 @@
 #!/bin/bash
-export PYTHONPATH=openbci/:PYTHONPATH
+export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
 
 python ./openbci/ugm/run_refreshing_ugm.py &
 
