@@ -32,7 +32,7 @@ CONFIG['screens'] = [
         ['zosia/wiel1', 'zosia/wiel2', 'zosia/wiel3', 'zosia/wiel4']
 #        ['zosia/kolc', 'zosia/koln', 'zosia/kolrozne', 'zosia/kolziel', 'zosia/kolzol'],
 #        ['zosia/pf0', 'zosia/pf1'],
-#        ['zosia/wielodl1', 'zosia/wielodl3'],
+##        ['zosia/wielodl1', 'zosia/wielodl3'],
 #        ['ania/sk-mo', 'ania/mk-mo', 'ania/dk-mo'], 
 ]
 
@@ -67,4 +67,40 @@ USE_MULTIPLEXER = True
 # screens. Then you can omit defining CONFIG['freqs']
 USE_DEFAULT_FREQS = False
 
-DEFAULT_FREQS = [60, 12, 15, 60, 60, 13, 14, 60]
+DEFAULT_FREQS = [70, 12, 15, 70, 70, 13, 14, 70]
+
+CONFIG['make_breaks'] = True
+CONFIG['break_len'] = CONFIG['delay']
+CONFIG['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
+
+
+CONFIG1 = {}
+CONFIG1['screens'] = [
+        ['kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1',  'kali/kali1']
+]
+CONFIG1['readable_names'] = {
+        'kali/kali1' : 'plansza kalibracyjna'
+        }
+
+# [square1, 2, 3, 4,
+#        5, 6, 7, 8]
+CONFIG1['freqs'] = [
+    [
+        [70, 15, 70, 70, 70, 70, 70, 70],
+        [70, 12, 70, 70, 70, 70, 70, 70],
+        [70, 17, 70, 70, 70, 70, 70, 70], 
+        [70, 10, 70, 70, 70, 70, 70, 70],
+        [70, 11, 70, 70, 70, 70, 70, 70],
+        [70, 13, 70, 70, 70, 70, 70, 70],
+        [70, 16, 70, 70, 70, 70, 70, 70]
+  ]
+        ]
+CONFIG1['delay'] = 2
+CONFIG1['repeats'] = 1
+
+USE_MULTIPLEXER = True      
+
+CONFIG1['make_breaks'] = True
+CONFIG1['break_len'] = CONFIG1['delay']
+CONFIG1['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
+
