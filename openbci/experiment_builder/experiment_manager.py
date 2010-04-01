@@ -71,7 +71,7 @@ class Experiment_manager(object):
         self.readable_names = self.config_file['readable_names']
         
         # set up screens configuration - pair screens with diode freqs
-        if not self.config_file['USE_DEFAULT_FREQS']:
+        if not self.config_file.get('USE_DEFAULT_FREQS'):
             self.freq_sets = self.config_file['freqs']
             assert(len(self.screens) == len(self.freq_sets))
             self.sc_configs = [zip(scr, fre) for scr, fre in zip(self.screens,
