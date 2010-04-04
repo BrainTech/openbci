@@ -179,7 +179,9 @@ class UgmStimulusFactory(object):
         - image,
         - text."""
         l_stim = p_stim_config['stimulus_type']
-        if l_stim == 'rectangle':
+        if l_stim == 'feedback':
+            return UgmFeedbackStimulus(p_parent, p_stim_config)
+        elif l_stim == 'rectangle':
             return UgmRectStimulus(p_parent, p_stim_config)
         elif l_stim == 'image':
             return UgmImageStimulus(p_parent, p_stim_config)
@@ -237,6 +239,46 @@ class UgmStimulus(QtGui.QWidget):
 
 # --------------------------------------------------------------------------
 # Below you see classes representing concrete stimuluses ------------------
+class UgmFeedbackStimulus(UgmStimulus, UgmRectConfig):
+    """Feedback stimulus definition. See ugm_config_manager to see 
+    configuration options.
+    Attributes:
+    (From UgmRectconfig):
+    - height
+    - width
+    - position_x
+    - position_y
+    - color
+    - feedback_level - float in [0;1] representing percentage of 'hit'
+    """
+    def _set_config(self, p_parent, p_config_dict):
+        """Set positioning and presentation configuration 
+        from p_config_dict."""
+
+        self._set_rect_config(p_parent, p_config_dict)
+        self._feed_level = p_config_dict['feedback_level']
+        self._feed_px = self._feed_level * self.height
+        self.setContentsMargins(1,1,1,1)
+
+    def paintEvent(self, event):
+        """Draw rectangle from attributes set in self _set_config.
+        Draw BAR regargind self._feed_px."""
+        paint = QtGui.QPainter()
+        paint.begin(self)
+        l_bg_color = QtGui.QColor(0, 0, 0)
+        l_bg_color.setNamedColor(self.color)
+        if self._feed_level > 0:
+            paint.drawRect(0, 0, self.width, self.height)
+            paint.setBrush(l_bg_color)
+            paint.drawRect(0, self.height-self._feed_px, 
+                           self.width, self._feed_px)            
+        else:
+            paint.drawRect(0, 0, self.width, self.height)
+        paint.end()
+            
+
+        
+
 
 class UgmImageStimulus(UgmStimulus, UgmRectConfig):
     """Image stimulus definition. It inherits form UgmRectconfig, 

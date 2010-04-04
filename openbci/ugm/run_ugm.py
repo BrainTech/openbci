@@ -57,6 +57,10 @@ class TcpServer(object):
             # Get config form ugm_server module
             l_soc.bind((ugm_server.TCP_IP, ugm_server.TCP_PORT))
             l_soc.listen(5)
+        except Exception, l_exc:
+            LOGGER.error('An error occured in TcpServer: '+str(l_exc))
+            raise(l_exc)
+        if 1 == 1:
             while True:
                 # Wait for data from ugm_server
                 l_conn = l_soc.accept()[0] # Don`t need address...
@@ -80,12 +84,7 @@ class TcpServer(object):
                 TAGGER.send_tag(l_time, l_time, "ugm_update", 
                                 {"ugm_config":str(l_msg.value)})
                 l_conn.close()
-        except Exception, l_exc:
-            LOGGER.error('An error occured in TcpServer: '+str(l_exc))
-            raise(l_exc)
-        finally:
             l_soc.close()
-
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
     # default config file
