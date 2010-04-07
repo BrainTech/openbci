@@ -1,0 +1,74 @@
+Do zrobienia:
+    - jakiś switch do zmiany, czy używamy multiplexera, czy nie. Należy zrobić jakiegoś ifa przy        
+      importach i w funkcji sendToUgm
+    - problem z defaultami - obecnie ustawiane w property, nie powinny być tam
+
+Wszystkie pliki programu znajdują się w katalogu gui/
+
+opis poszczególnych plików i ważne informacje o nich:
+
+source/ - katalog zawierający pliki źródłowe Qt
+	resources/
+		icons/* - pliki graficzne ikon używane w programie
+		
+		resources.qrc - plik z zasobami używanymi w GUI programu, czyli ikony na przyciski, wraz z
+		                opisami i skrótami, używany przez UGMMain.ui
+
+	ui/
+		UGMMain.ui - plik QtDesignera, zawierający interfejsu całego widgetu konfigurującego UGMa,
+		             jeśli chcemy zmieniać wygląd graficzny interfejsu (dodać przycisk, coś 
+		             kontrolki zmienić), to w tym pliku, po czym należy go skompilować build_ui
+
+    build_qrc, build_ui - skrypty do kompilowania pliku z zasobami i interfejsem do Pythona, powinny
+                          być odpalane z katalogu source, używają pyrcc4 i pyuic4
+ugm_module_dock_widget.py - plik zawierający kod widgeta dla konfiguratora ugma.
+        Ważne metody:
+    - initActions - ta metoda jest wołana przy tworzeniu okienka i inicjalizuje wszystkie akcje
+                    które chcemy używać, np. przypisuje je do odpowiednich guzików i robi triggery
+    - updateActions - wołana po każdej zmianie modelu, kliknięciu w GUI, itp., w celu zupdatowania
+                      statusu akcji, w razie gdyby w aktualnym stanie jakieś akcje np. były
+                      nieaktywne
+                      
+ugm_properties_delegate.py - delegat, dla modelu właściowości UGMowych, używany do tworzenia
+                             odpowiednich edytorów w drzewku właściwości. Jeśli chcemy dodać
+                             nowy typ wartości, musimy też dodać dla tego typu edytor. 
+        Ważne metody:
+    - createEditor - tworzy edytor dla danego w parametrze pola, gdy dodajemy nowy typ musimy go            
+                     dodać do ifa tej metody i tworzyć w nim odpowiedni edytor
+    - setEditorData - ustawianie danej wartości dla edytora utworzonego w createEditor, wysyłane np.
+                      zaraz po utworzeniu, żeby edytor miał ustawioną aktualną wartość danej
+                      właściwości
+    - setModelData - zapisywanie wartości z danego edytora do modelu - odwrotnie jak powyżej,
+                     zmieniliśmy coś w edytorze i chcemy to zapisać w modelu
+                     
+ugm_properties_model.py - model dla właściwości ugma, w nim przetrzymywany jest aktualny stan
+                          właściwości zawartych w drzewku.
+        Ważne metody:
+    - getAttributeType - funkcja przekształca opis atrybutu otrzymany od ugm_managera do postaci
+                         używanej przez model. Jeśli dodamy tam nowy typ, musimy zmienić też tutaj
+                         wartości, należy zwrócić słownik z kluczami:
+                          - type - nazwa typu atrybutu
+                          - parameters - parametry, dla atrybutu, może to być np. zakres wartości
+                          - default - wartość domyślna dla parametru (OBECNIE NIEUŻYWANE)
+                          
+ugm_tree_element.py - nadrzędna klasa, dla każdego elementu z modelu drzewka właściwości
+
+ugm_property.py - pojedyncza właściwość, w modelu drzewka właściwości
+        Ważne metody:
+    - setDefaultValue - domyślna wartość, warto zmienić przy dodawaniu nowego typu (do naprawy,
+                        nie powinno być tutaj ustalane)
+    
+ugm_properties_root.py - element modelu, będący korzeniem, czyli np. stimulus z właściwościami, czy
+                         pole, czy zbiór pól
+                         
+UGMMain.py, resources_rc.py - skompilowane pliki z katalogu source
+
+Standardowe case'y:
+
+==Dodawanie nowego stimulusa==
+- dodajemy nowego stimulusa do ugm_config_managera
+- jeśli były nowe typy atrybutów, musimy zmodyfikować ugm_properties_delegate (p.w.), 
+  ugm_properties_model (p.w.) i ugm_property (p.w. :) )
+- zmieniamy UGMMain.ui, dodając ikonę, guzik i akcję, dla nowego stimulusa
+- budujemy gui i zasoby skryptami build_qrc i build_ui
+- podpinamy akcje w ugm_module_dock_widget, w metodach initActions i updateActions

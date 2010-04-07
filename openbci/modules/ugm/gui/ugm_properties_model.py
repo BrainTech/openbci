@@ -41,7 +41,8 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
         self.setAttributesForElements(p_attributesForElements)
         self.rootItem = self.createRoot(p_data, 'fields', 'Root')
         self.structureModified = True
-        # TODO: setFirstColumnSpanned na rootach
+        # TODO: należy użyć setFirstColumnSpanned na korzeniach drzewa, żeby rozpinały się one na
+        # dwa pola i ładnie to wyglądało:)
     
     def createConfigNode(self):
         """Creates list in format, that is understood by UgmConfigManager"""

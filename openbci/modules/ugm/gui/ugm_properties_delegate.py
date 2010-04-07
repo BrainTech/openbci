@@ -41,9 +41,6 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         l_type = l_item.type
         l_typeParameters = l_item.typeParameters
         
-        # TODO: Currently things depend only on enumerated editors, so only those
-        # changes are effective immediately. Ultimately, it should be checked,
-        # whether something depends on given thing
         if l_type == 'int':
             editor = QtGui.QSpinBox(parent)
             editor.setSingleStep(1)
