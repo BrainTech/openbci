@@ -35,7 +35,9 @@ from multiplexer.clients import connect_client
 import virtual_eeg_amplifier
 import amplifiers_logging as logger
 from openbci.tags import tagger
-from data_storage import signalml_read_manager
+from openbci.data_storage import signalml_read_manager
+from openbci.data_storage import data_storage_exceptions
+
 
 LOGGER = logger.get_logger("file_amplifier")
 TAGGER = tagger.get_tagger()
@@ -103,7 +105,7 @@ class FileEEGAmplifier(virtual_eeg_amplifier.VirtualEEGAmplifier):
         while True:
             try:
                 l_tag = self._get_next_tag()
-            except signalml_read_manager.NoNextTag:
+            except data_storage_exceptions.NoNextTag:
                 LOGGER.info("End of tags file. Reding stopped.")
                 break
             # Hmmm... lets look at the timeline

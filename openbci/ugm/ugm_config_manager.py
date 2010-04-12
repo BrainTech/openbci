@@ -136,10 +136,14 @@ class UgmAttributesManager(object):
             'font_size':{'value':'int'},
             # Font size for UgmTextStimulus
 
-            'stimuluses':{'value':'list'}
+            'stimuluses':{'value':'list'},
             # A list of child stimuluses for current stimulus.
             # It is reasonable, as we might want to position some stimuluses
             # relative to other specific 'containing' stimuluses
+
+            'feedback_level':{'value':'float'}
+            # Feedback level for feedback stimulus (float in [0;1]
+
             }
 	# TODO: Stimuluses as attribute?
         self.attributes_for_elem = {
@@ -157,7 +161,13 @@ class UgmAttributesManager(object):
             'text':['id', 'position_horizontal_type',
                     'position_horizontal', 'position_vertical_type',
                     'position_vertical', 'message', 'font_family',
-                    'font_size', 'font_color']
+                    'font_size', 'font_color'],
+            'feedback':['id', 'width_type', 'width', 'height_type',
+                         'height', 'position_horizontal_type',
+                         'position_horizontal', 'position_vertical_type',
+                         'position_vertical', 'color', 'feedback_level']
+
+                
             }
 
 class UgmConfigManager(object):

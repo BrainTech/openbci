@@ -36,6 +36,7 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import amplifiers_logging as logger
 from openbci.data_storage import signalml_read_manager
+from openbci.data_storage import data_storage_exceptions
 LOGGER = logger.get_logger("virtual_eeg_amplifier")
 
 class VirtualEEGAmplifier(object):
@@ -59,7 +60,7 @@ class VirtualEEGAmplifier(object):
             try:
                 for channel_number in self.channel_numbers:
                     channels_data.append(self._get_next_value(offset))
-            except signalml_read_manager.NoNextValue:
+            except data_storage_exceptions.NoNextValue:
                 LOGGER.info("All samples has been red. Sampling finished.")
                 break
             offset += 1
@@ -72,8 +73,9 @@ class VirtualEEGAmplifier(object):
                 samp = sampleVector.samples.add()
                 samp.value = float(x)
                 samp.timestamp = t
-            self.connection.send_message(message=sampleVector.SerializeToString(), 
-                                         type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
+            self.connection.send_message(
+                message=sampleVector.SerializeToString(), 
+                type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             time_to_sleep = real_start_time + offset * (1. / self.sampling_rate) - time.time()
             if time_to_sleep > 0:
                 time.sleep(time_to_sleep)

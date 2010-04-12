@@ -53,6 +53,7 @@ class TagsFileReader(object):
                 self._parse_tags_file(l_tags_file)
             except xml.parsers.expat.ExpatError:
                 LOGGER.error("An error occured while parsing tags xml file.")
+            finally:
                 l_tags_file.close()
 
     def get_next_tag(self):

@@ -25,6 +25,7 @@
 import sys, struct
 import xml.dom.minidom
 from tags import tags_file_reader
+from openbci.data_storage import data_storage_exceptions
 import data_storage_logging as logger
 LOGGER = logger.get_logger("signalml_read_manager")
 
@@ -32,21 +33,6 @@ data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
 tags_file_extension = ".obci.tags"
 
-class NoNextValue(Exception):
-    """Raised when end of data file is met in self.get_next_value()."""
-    pass
-
-class NoNextTag(Exception):
-    """Raised when end of tag file is met in self.get_next_tag()."""
-    pass
-
-class NoParameter(Exception):
-    """Raised when a ther is a requrest for non-existing parameter in 
-    info file."""
-    def __init__(self, p_param):
-        self._param = p_param
-    def __str__(self):
-        return "No parameter '"+self._param+"' was found in info xml file!"
 
 class SignalmlReadManager(object):
     """A class responsible for reding openbci file format.
@@ -78,7 +64,7 @@ class SignalmlReadManager(object):
         try:
             l_info_file = open(self._info_file_name, 'rt')
         except IOError:
-            print("An error occured while opening the info file!")
+            LOGGER.error("An error occured while opening the info file!")
             sys.exit(1)
         else:
             try:
@@ -109,11 +95,11 @@ Reading aborted!")
             return struct.unpack('d', l_raw_data)[0]
         except struct.error:
             self._data_file.close()
-            raise(NoNextValue())
+            raise(data_storage_exceptions.NoNextValue())
     def get_next_tag(self):
         l_tag = self._tags_reader.get_next_tag()
         if not l_tag:
-            raise(NoNextTag())
+            raise(data_storage_exceptions.NoNextTag())
         return l_tag
     def get_param(self, p_param_name):
         """Return parameter value for p_param_name.
@@ -122,7 +108,7 @@ Reading aborted!")
         try:
             return self._info_tags_control[p_param_name](p_param_name)
         except KeyError:
-            raise(NoParameter(p_param_name))
+            raise(data_storage_exceptions.NoParameter(p_param_name))
 
     def _parse_info_file(self, p_info_file):
         """Parse p_info_file xml info file and store it in memory."""

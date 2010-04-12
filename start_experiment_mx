@@ -10,9 +10,9 @@ sleep 1
 ./openbci/ugm/run_ugm.py &
 sleep 1
 
-./openbci/super_diode_control.py &
+#./openbci/super_diode_control.py &
 
-sleep 1
+#sleep 1
 
 ./openbci/amplifiers/virtual_amplifier.py &
 

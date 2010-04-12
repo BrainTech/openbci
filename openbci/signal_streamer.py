@@ -32,24 +32,29 @@ class SignalStreamer(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(SignalStreamer, self).__init__(addresses=addresses, type=peers.SIGNAL_STREAMER)
         self.state = 0 # temporarily: 0 = nothing; 1 = transmission
-        self.channels = [0]
+        self.channels = self.conn.query(message="AmplifierChannelsToRecord", type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")
         self.subscribers = {}
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
+        if mxmsg.type == types.FILTERED_SIGNAL_MESSAGE:
+#            print("GOOOOOOOOOOOOOOOOOOOOOOOOOOT")
             if self.state == 1:
                 for node in self.subscribers:
-                    channels = self.subscribers[node].split(" ")
+#                    print("2222222222222222")
+                    #print "self.subscribers[node] ", self.subscribers[node]
+                    #channels = self.subscribers[node].split(" ")
                     sampVec = variables_pb2.SampleVector()
                     sampVec.ParseFromString(mxmsg.message)
                     newVec = variables_pb2.SampleVector()
-                    for i in channels:
+                    for i in self.channels:
+#                        print("333333333333333333333#")
                         samp = newVec.samples.add()
                         samp.CopyFrom(sampVec.samples[int(i)])
                     self.conn.send_message(message=newVec.SerializeToString(), type=types.STREAMED_SIGNAL_MESSAGE, flush=True, to=int(node))  
                  
         elif mxmsg.type == types.SIGNAL_STREAMER_START:
             self.subscribers[str(mxmsg.from_)] = mxmsg.message
+            print "channels: ", mxmsg.message
             self.state = 1
             self.no_response()
         elif mxmsg.type == types.SIGNAL_STREAMER_STOP:
