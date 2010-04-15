@@ -30,9 +30,9 @@ from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
 from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
 from ugm.ugm_config_manager import UgmConfigManager
 import os
-#from multiplexer.multiplexer_constants import peers, types
-#from multiplexer.clients import connect_client 
-#import variables_pb2
+from multiplexer.multiplexer_constants import peers, types
+from multiplexer.clients import connect_client 
+import variables_pb2
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""
@@ -119,30 +119,30 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     def sendToUgm(self):
         """Sends currently edited config to UGM, if it's running"""
         # # Change config managers loaded config
-        # self.configManager.set_full_config(self.propertiesModel.createConfigNode())
+        self.configManager.set_full_config(self.propertiesModel.createConfigNode())
         # # We check whether we changed model structure: added or removed fields,
         # # changed ids, because if we did then we must send different message type
-        # if self.propertiesModel.structureModified:
-        #     l_type = 0
-        #     self.propertiesModel.structureModified = False
-        # else:
-        #     l_type = 1
-        # l_msg = variables_pb2.UgmUpdate()
-        # l_msg.type = int(l_type)
-        # l_msg.value = self.configManager.config_to_message()
+        if self.propertiesModel.structureModified:
+            l_type = 0
+            self.propertiesModel.structureModified = False
+        else:
+            l_type = 1
+        l_msg = variables_pb2.UgmUpdate()
+        l_msg.type = int(l_type)
+        l_msg.value = self.configManager.config_to_message()
         #     
         # # Everything done :) All that is left is to establish connection if needed...
-        # if not self._connection:
-        #     self._connection = connect_client(type = peers.LOGIC)
-        # # ...and send message to UGM
-        # self._connection.send_message(
-        #     message = l_msg.SerializeToString(), 
-        #     type=types.UGM_UPDATE_MESSAGE, flush=True)
+        if not self._connection:
+            self._connection = connect_client(type = peers.LOGIC)
+         # ...and send message to UGM
+        self._connection.send_message(
+            message = l_msg.SerializeToString(), 
+            type=types.UGM_UPDATE_MESSAGE, flush=True)
         
         #### TEMPORARY FOR LOCAL UGM ####
-        l_tempConfigManager = UgmConfigManager()
-        l_tempConfigManager.set_full_config(self.propertiesModel.createConfigNode())
-        l_tempConfigManager.update_to_file()
+        #l_tempConfigManager = UgmConfigManager()
+        #l_tempConfigManager.set_full_config(self.propertiesModel.createConfigNode())
+        #l_tempConfigManager.update_to_file()
         
     
     def loadConfig(self):

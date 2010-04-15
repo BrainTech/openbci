@@ -340,8 +340,15 @@ class UgmConfigManager(object):
 
         l_olds = self._get_recursive_configs(self._old_fields)
         l_news = self._get_recursive_configs(self._fields)
+        l_first = self._old_new_fields_differ_helper(l_olds, l_news)
+        if not l_first:
+            return self._old_new_fields_differ_helper(l_news, l_olds)
+        else:
+            return l_first
+    def _old_new_fields_differ_helper(self, l_olds, l_news):
         for i_old_key, i_old_value in l_olds.iteritems():
             try:
+                #TODO this in unnesesary
                 l_new_value = l_news[i_old_key]
             except KeyError:
                 return True
@@ -351,8 +358,6 @@ class UgmConfigManager(object):
                         i_old_value.get('type', None):
                     return True
         return False
-            
-        
     def config_from_message(self, p_msg):
         """Create python configuration structure 
         from message string p_msg."""
