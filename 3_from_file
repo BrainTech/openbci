@@ -1,0 +1,21 @@
+#!/bin/bash
+export PYTHONPATH=./:openbci/:./azouk-libraries/build/:PYTHONPATH
+#CONNECT TO AMPLIFIER
+
+./openbci/hashtable.py &
+sleep 1
+
+./svarog/pinger.py &
+sleep 1
+
+./openbci/filters/filter.py &
+sleep 1
+
+./openbci/signal_streamer.py &
+sleep 1
+
+./openbci/signal_catcher.py &
+sleep 1
+
+./openbci/amplifiers/virtual_amplifier.py file melanie.obci.info melanie.obci.dat melanie.obci.tags &
+

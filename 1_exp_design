@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
+
+python ./openbci/ugm/run_ugm.py &
+
+sleep 1
+
+python ./openbci/main_gui.py &

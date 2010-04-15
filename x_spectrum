@@ -1,0 +1,3 @@
+export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
+
+./openbci/monitors/spectrum.py $1 &

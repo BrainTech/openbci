@@ -1,0 +1,40 @@
+#!/bin/bash
+export PYTHONPATH=./:openbci/:./azouk-libraries/build/:PYTHONPATH
+#CONNECT TO AMPLIFIER
+
+./openbci/hashtable.py &
+
+sleep 1
+
+./svarog/pinger.py &
+sleep 1
+
+./openbci/ugm/run_ugm.py &
+sleep 1
+
+./openbci/filters/filter.py &
+sleep 1
+
+./openbci/signal_streamer.py &
+sleep 1
+
+./openbci/signal_catcher.py &
+sleep 1
+
+./openbci/super_diode_control.py &
+
+sleep 1
+
+./openbci/amplifiers/virtual_amplifier.py file&
+
+sleep 1
+
+./openbci/data_storage/signal_saver.py &
+
+sleep 1
+
+python ./openbci/experiment_builder/experiment_manager.py mx-on &
+
+#sleep 1
+
+#./stop
