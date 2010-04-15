@@ -13,11 +13,13 @@ class Hashtable(BaseMultiplexerServer):
     #
 
     data = {
-        "DataScale": "1.0",
+        "MinData": "-1000",
+        "MaxData": "1000",
+        "DataScale": "0.01",
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord":  "0 1 2",
-        "ChannelsNames": "Oz;O1;O2",
-        "Gain":"1 1 1",
+        "ChannelsNames": "Oz;O2;03",
+        "Gain":"0.0715 0.0715 0.0715",
         "Offset":"0 0 0",
         "NumOfChannels": "3",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
@@ -62,7 +64,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "nazwa_zdefiniowana_w_hashtable",
+        "SaveFileName" : "melanie",
         "SaveFilePath" : "./"
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

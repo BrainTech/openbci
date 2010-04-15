@@ -41,6 +41,9 @@ class SmartTag(object):
         return self._start_tag
 
     def get_data(self):
+        """Return stored data. It is a list in format: 
+        [[list of all samples from ch 0], [list of all samples from ch 1] ...]
+        """
         return self._data
 
     def get_data_for(self, p_ch_num):
