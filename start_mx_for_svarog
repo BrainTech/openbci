@@ -4,13 +4,10 @@ export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
 
 sleep 2
 ./svarog/pinger.py &
-
-sleep 1
-
 ./openbci/hashtable.py &
 
 sleep 1
-
+./openbci/filters/autoscale_generator.py &
 ./openbci/signal_streamer.py &
 
 sleep 1

@@ -157,6 +157,10 @@ peer {
     name: "TAG_CATCHER"
 }
 
+peer {
+     type: 132
+     name: "AUTOSCALE_GENERATOR"
+}
 
 # packages and routing rules definitions
 #
@@ -309,6 +313,11 @@ type {
         peer: "SIGNAL_STREAMER"
         whom: ALL
     }
+    
+    to {
+       peer: "AUTOSCALE_GENERATOR"
+       whom: ALL
+       }
 }
 
 type {
