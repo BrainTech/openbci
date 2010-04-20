@@ -141,7 +141,7 @@ class TMSiBluetoothEEGAmplifier:
                                                             
                                                                               
 
-                print ii/(timestamp - start)
+                #print ii/(timestamp - start)
                 # send samples
                 for i in range(len(channel_data[0])):
                     sample_vector = variables_pb2.SampleVector()
