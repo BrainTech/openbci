@@ -248,9 +248,38 @@ _TAG = descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
-      name='desc', full_name='variables.Tag.desc', index=3,
-      number=4, type=11, cpp_type=10, label=2,
+      name='channels', full_name='variables.Tag.channels', index=3,
+      number=4, type=9, cpp_type=9, label=2,
+      default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='desc', full_name='variables.Tag.desc', index=4,
+      number=5, type=11, cpp_type=10, label=1,
       default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],  # TODO(robinson): Implement.
+  enum_types=[
+  ],
+  options=None)
+
+
+_TAGVECTOR = descriptor.Descriptor(
+  name='TagVector',
+  full_name='variables.TagVector',
+  filename='variables.proto',
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='tags', full_name='variables.TagVector.tags', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -267,6 +296,7 @@ _VARIABLEVECTOR.fields_by_name['variables'].message_type = _VARIABLE
 _BLINKVECTOR.fields_by_name['blinks'].message_type = _BLINK
 _SAMPLEVECTOR.fields_by_name['samples'].message_type = _SAMPLE
 _TAG.fields_by_name['desc'].message_type = _VARIABLEVECTOR
+_TAGVECTOR.fields_by_name['tags'].message_type = _TAG
 
 class Variable(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
@@ -303,4 +333,8 @@ class UgmUpdate(message.Message):
 class Tag(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _TAG
+
+class TagVector(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _TAGVECTOR
 

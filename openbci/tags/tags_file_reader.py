@@ -27,10 +27,9 @@ give on demand subsequential tags."""
 
 import xml.dom.minidom
 from Queue import Queue
-import tagger
+import tag_utils
 import tags_logging as logger
 LOGGER = logger.get_logger('tags_file_reader')
-TAGGER = tagger.get_tagger()
 
 
 class TagsFileReader(object):
@@ -77,4 +76,4 @@ class TagsFileReader(object):
                 l_raw_tag[l_key] = i_param_node.getAttribute('value')
             # TODO - in case tags aren`t sorted by start_timestamp, 
             # sort them at the end of current method
-            self._tags.put(TAGGER.unpack_tag_from_dict(l_raw_tag))
+            self._tags.put(tag_utils.unpack_tag_from_dict(l_raw_tag))

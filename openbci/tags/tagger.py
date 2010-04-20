@@ -28,19 +28,21 @@ import variables_pb2
 
 import tags_logging as logger
 LOGGER = logger.get_logger('tagger')
+
 class Tagger(object):
     def __init__(self):
         """Initialize mx connection."""
         self._connection = connect_client(type = peers.TAGS_SENDER)
 
     def pack_tag(self, p_start_timestamp, p_end_timestamp, 
-                 p_tag_name, p_tag_desc):
+                 p_tag_name, p_tag_desc={}, p_tag_channels=""):
         """Return tag with given values. 
         Returned tag is serialised to string."""
         l_tag = variables_pb2.Tag()
         l_tag.start_timestamp = p_start_timestamp
         l_tag.end_timestamp = p_end_timestamp
         l_tag.name = p_tag_name
+        l_tag.channels = p_tag_channels
         for i_key, i_value in p_tag_desc.iteritems():
             l_new_var = l_tag.desc.variables.add()
             l_new_var.key = i_key
@@ -60,42 +62,33 @@ class Tagger(object):
         l_tag_dict['start_timestamp'] = l_tag.start_timestamp
         l_tag_dict['end_timestamp'] = l_tag.end_timestamp
         l_tag_dict['name'] = l_tag.name
+        l_tag_dict['channels'] = l_tag.channels
         l_tag_desc = dict()
         for i_var in l_tag.desc.variables:
             l_tag_desc[i_var.key] = i_var.value
         l_tag_dict['desc'] = l_tag_desc
         return l_tag_dict
-    def unpack_tag_from_dict(self, p_dict):
-        """For given dictinary describing tag in strings, return dictionary
-        where numeric values are numbers, not strings.
-        The method is fired by file tags reader, while parsing xml tags file."""
-        l_tag_dict = {}
-        l_tag_dict['start_timestamp'] = float(p_dict['start_timestamp'])
-        l_tag_dict['end_timestamp'] = float(p_dict['end_timestamp'])
-        l_tag_dict['name'] = p_dict['name']
-        l_tag_desc = {}
-        for i_key, i_value in p_dict.iteritems():
-            if i_key not in ['start_timestamp', 'end_timestamp', 'name']:
-                # TODO - use tag definition in case i_value is not a string
-                # but some more complex structure
-                l_tag_desc[i_key] = i_value
-        l_tag_dict['desc'] = l_tag_desc
-        return l_tag_dict
+
     def send_tag(self, p_start_timestamp, p_end_timestamp, 
-                 p_tag_name, p_tag_desc):
+                 p_tag_name, p_tag_desc={}, p_tag_channels=""):
         """For given parameters create tag and send it to mx.
         Parameters:
         - p_start_timestamp - float 
         - p_end_timestamp - float
         - p_tag_name - string
         - p_tag_desc - dictionary
+        - p_tag_channels = string
         """
-        l_info_desc = "Sending tag: start: "+str(p_start_timestamp)+ \
-                    " end: "+str(p_end_timestamp)+" name: "+p_tag_name
+        l_info_desc = ''.join(
+            ["Sending tag:\n",
+             "start:", str(p_start_timestamp),
+             ", end:", str(p_end_timestamp),
+             ", name:", p_tag_name,
+             ", channels:", p_tag_channels])
         LOGGER.info(l_info_desc)
         LOGGER.debug(l_info_desc + "DESC: "+str(p_tag_desc))
         l_tag_msg = self.pack_tag(p_start_timestamp, p_end_timestamp,
-                             p_tag_name, p_tag_desc)
+                             p_tag_name, p_tag_desc, p_tag_channels)
         self._connection.send_message(
             message = l_tag_msg, 
             type=types.TAG, flush=True)
@@ -105,7 +98,8 @@ class Tagger(object):
         self.send_tag(p_tag_dict['start_timestamp'],
                       p_tag_dict['end_timestamp'],
                       p_tag_dict['name'],
-                      p_tag_dict['desc'])
+                      p_tag_dict.get('desc', {}),
+                      p_tag_dict.get('channels', ''))
 def get_tagger():
     return Tagger()
 #def send_start_half_tag(p_timestamp, p_tag_name, p_tag_desc)
