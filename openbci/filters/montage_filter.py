@@ -7,7 +7,8 @@ import settings, variables_pb2
 class Filter(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(Filter, self).__init__(addresses=addresses, type=peers.FILTER)
-        montage_path = "/home/ssvep/openbci-testing/openbci/trunk/openbci/filters/montage.list"
+        montage_path = ''.join([settings.module_abs_path(), "montage.list"])
+        print(montage_path)
         #channels_path = "channels.list"
         lines = file(montage_path).readlines()
 	print lines
