@@ -23,24 +23,29 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 
-class NoNextValue(Exception):
-    """Raised when end of data file is met in self.get_next_value()."""
-    pass
+"""
+>>> from openbci.data_storage import info_file_proxy as p
 
-class NoNextTag(Exception):
-    """Raised when end of tag file is met in self.get_next_tag()."""
-    pass
+>>> px = p.InfoFileWriteProxy('tescik', './', {'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2']}, '.obci.info')
 
-class NoParameter(Exception):
-    """Raised when a ther is a requrest for non-existing parameter in 
-    info file."""
-    def __init__(self, p_param):
-        self._param = p_param
-    def __str__(self):
-        return "No parameter '"+self._param+"' was found in info xml file!"
+>>> px.finish_saving()
+'tescik.obci.info'
 
-class BadSampleFormat(Exception):
-    """An exception that should be raised when data sample has arrived and it is not float (struct is unable to pack it)."""
-    def __str__(self):
-        return "Error! Received data sample is not of 'float' type! Writing to file aborted!"
+>>> py = p.InfoFileReadProxy('tescik.obci.info')
+
+>>> py.start_reading()
+
+>>> print(py.get_param('number_of_channels'))
+2
+
+>>> print(py.get_param('channels_names')[0])
+1
+
+"""
+
+if __name__ == '__main__':
+    import doctest, sys
+    res = doctest.testmod(sys.modules[__name__])
+    if res.failed == 0:
+        print("All tests succeeded!")
 
