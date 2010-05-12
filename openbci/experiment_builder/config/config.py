@@ -24,8 +24,10 @@
 #
 """Holds experiment builder config"""
 
+import settings
 DUPA = 3
 CONFIG = {}
+CONFIG['dir'] = settings.module_abs_path()
 CONFIG['screens'] = [
 #        ['zosia/strz1', 'zosia/strz2'], 
         ['ania/mk-mo', 'ania/sk-mo', 'ania/dk-mo'],
@@ -49,8 +51,8 @@ CONFIG['freqs'] = [
         [70, 12, 15, 70, 70, 13, 14, 70], # ...
         [70, 12, 15, 70, 70, 13, 14, 70]]
         ]
-CONFIG['delay'] = 10
-CONFIG['repeats'] = 40
+CONFIG['delay'] = 2
+CONFIG['repeats'] = 5
 CONFIG['readable_names'] = {
     'ania/mk-mo' : 'murr',
     'ania/sk-mo' : 'surr',
@@ -73,7 +75,7 @@ CONFIG['make_breaks'] = True
 CONFIG['break_len'] = CONFIG['delay']
 CONFIG['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
 
-
+CONFIG['sounds'] = ['resources/1one.wav', 'resources/2two.wav', 'resources/3three.wav', 'resources/4four.wav']
 CONFIG1 = {}
 CONFIG1['screens'] = [
         ['kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1',  'kali/kali1']
@@ -103,4 +105,6 @@ USE_MULTIPLEXER = True
 CONFIG1['make_breaks'] = True
 CONFIG1['break_len'] = CONFIG1['delay']
 CONFIG1['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
+
+
 
