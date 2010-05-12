@@ -33,6 +33,7 @@ from experiment_builder.config.config import USE_MULTIPLEXER
 import random
 import time
 import sys
+import os.path
 from openbci.tags import tagger
 
 TAGGER = tagger.get_tagger()
@@ -92,6 +93,13 @@ class Experiment_manager(object):
         self.delay = self.config_file['delay']
         self.config_manager = UgmConfigManager()
         self._connection = None
+        self._screen_sounds = self.config_file.get('sounds', None)
+        self._screen_look_num = 0
+        if self._screen_sounds:
+            import pygame
+            pygame.init()
+            for i in range(len(self._screen_sounds)):
+                self._screen_sounds[i] = os.path.join(self.config_file['dir'], self._screen_sounds[i])
         
 
     def _shuffle_screens(self, p_sc_set):
@@ -120,7 +128,7 @@ class Experiment_manager(object):
         random.shuffle(self.sc_configs)
 
         # sleep to synchronize with other modules loading
-        time.sleep(10)
+        time.sleep(5)
         
         if USE_MULTIPLEXER:
             l_saver_control = signal_saver_control.SignalSaverControl()
@@ -195,6 +203,7 @@ class Experiment_manager(object):
     
     def _pre_screen_package(self, p_screen_package):
         print('New screen package: ' + str(p_screen_package))
+        self._screen_look_num = 0
         
     def _post_screen_package(self, p_screen_package):
     #  self._play_sound('chime.wav')
@@ -209,9 +218,10 @@ class Experiment_manager(object):
             l_screen_name = self.readable_names[l_screen_config_name]
         else:
             l_screen_name = l_screen_config_name
+        self._play_sound()
         TAGGER.send_tag(l_time, l_time, "experiment_update", 
                         {
-                            "concentrating_on_field" : 2, # FIXME: normalna wartość
+                            "concentrating_on_field" : self._screen_look_num,
                             "screen" : l_screen_name,
                             "Freqs" : p_screen_config[1],
                             "delay" : self.config_file['delay'] # TODO
@@ -221,36 +231,14 @@ class Experiment_manager(object):
     #   self._play_sound('whoosh.wav')
         pass
         
-    def _play_sound(self, p_wave_file):
-        import os
-        import sys
-        import pyaudio
-        import wave
-        
-        l_chunk_length = 1024
-        
-        l_dir = os.path.dirname(__import__('experiment_builder.resources', 
-                                           fromlist=['experiment_builder.resources']).__file__
-                               ) + os.path.sep
-        l_wave_file = wave.open(l_dir + p_wave_file, 'rb')
-        l_pyaudio = pyaudio.PyAudio()
+    def _play_sound(self):
+        if not self._screen_sounds:
+            return 
+        import pygame
+        p_wave_file = self._screen_sounds[self._screen_look_num]
+        pygame.mixer.Sound(p_wave_file).play()
+        self._screen_look_num = (self._screen_look_num + 1) % len(self._screen_sounds)
 
-        # open stream
-        l_stream = l_pyaudio.open(format = l_pyaudio.get_format_from_width(l_wave_file.getsampwidth()),
-                                  channels = l_wave_file.getnchannels(),
-                                  rate = l_wave_file.getframerate(),
-                                  output = True)
-
-        # read data
-        l_data = l_wave_file.readframes(l_chunk_length)
-
-        # play stream
-        while l_data != '':
-            l_stream.write(l_data)
-            l_data = l_wave_file.readframes(l_chunk_length)
-
-        l_stream.close()
-        l_pyaudio.terminate()
 
     def read_experiment_config(self, p_config_name):
         module_prefix = 'experiment_builder.config'
