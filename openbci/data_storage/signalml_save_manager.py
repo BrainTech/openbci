@@ -31,9 +31,13 @@ from openbci.tags import tags_file_writer
 import data_storage_exceptions
 data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
+svarog_info_file_extension = ".obci.svarog.info"
 tags_file_extension = ".obci.tags"
 timestamps_file_extension = ".obci.timestamps"
 
+
+USE_SVAROG_INFO_PROXY = True
+"""set to true if we want to have two info proxies saved - our`s, obci cool proxy, and svarog`s dirty proxy."""
 
 class SignalmlSaveManager(object):
     """A class that is responsible for implementing logics of openbci signal stroing
@@ -53,8 +57,17 @@ class SignalmlSaveManager(object):
         p_signal_params- a dictionary of signal parameters like number of channels etc, 
         params should be readablye by InfoFileProxy, see its __init__ method t learn more.
         """
-        self._info_proxy = info_file_proxy.InfoFileWriteProxy(
-            p_session_name, p_dir_path, p_signal_params, info_file_extension)
+        self._info_proxies = []
+        self._info_proxies.append(info_file_proxy.InfoFileWriteProxy(
+            p_session_name, p_dir_path, 
+            p_signal_params, info_file_extension))
+        if USE_SVAROG_INFO_PROXY:
+            import svarog_file_proxy
+            self._info_proxies.append(
+                svarog_file_proxy.SvarogFileWriteProxy(
+                    p_session_name, p_dir_path, 
+                    p_signal_params, svarog_info_file_extension)
+                )
         self._data_proxy = data_file_proxy.DataFileWriteProxy(
             p_session_name, p_dir_path, data_file_extension)
         self._tags_proxy = tags_file_writer.TagsFileWriter(
@@ -70,15 +83,18 @@ class SignalmlSaveManager(object):
         """
         #TODO - sprawdzanie bledow
         l_data_file_path, l_samples_count = self._data_proxy.finish_saving()
-        self._info_proxy.set_attributes({
-                'number_of_samples': l_samples_count,
-                'first_sample_timestamp': self._first_sample_timestamp,
-                'file': os.path.basename(l_data_file_path)})
-                                        
-        l_info_file_path = self._info_proxy.finish_saving()
+        l_info_files_paths = []
+        for i_proxy in self._info_proxies:
+            i_proxy.set_attributes({
+                    'number_of_samples': l_samples_count,
+                    'first_sample_timestamp': self._first_sample_timestamp,
+                    'file': os.path.basename(l_data_file_path)})
+            l_info_files_paths.append(i_proxy.finish_saving())
         l_tags_file_path = self._tags_proxy.finish_saving()
         l_timestamps_file_path = self._timestamps_proxy.finish_saving()
-        return l_info_file_path, l_data_file_path, l_tags_file_path, l_timestamps_file_path
+        return tuple([l_info_files_paths[0], l_data_file_path, 
+                      l_tags_file_path, l_timestamps_file_path] + \
+                         l_info_files_paths[1:])
 
 
     def data_received(self, p_data, p_timestamp):

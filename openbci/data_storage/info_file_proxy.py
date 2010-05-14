@@ -28,6 +28,13 @@ from openbci.data_storage import data_storage_logging as logger
 from openbci.data_storage import data_storage_exceptions
 LOGGER = logger.get_logger("info_file_proxy")
 
+
+"""Below we have tags definitions - for every tag we have entry in format:
+'tag_universal_name': (tag_type('list' or 'simple'), 
+                       list of tag translations (one element for 'simple'
+                                                 two elemenso for 'list')
+                       )
+"""
 TAGS_DEFINITIONS = {
             'channels_names':
                 ('list', ['channelLabels', 'label']),
@@ -58,19 +65,16 @@ TAGS_DEFINITIONS = {
             'page_size': 
             ('simple', ['pageSize']),
             'blocks_per_page': 
-            ('simple', ['blocksPerPage'])
+            ('simple', ['blocksPerPage']),
+            'export_file_name': 
+            ('simple', ['exportFileName']),
+            'export_date': 
+            ('simple', ['exportDate'])
             }
 
 class OpenBciDocument(xml.dom.minidom.Document, object):
-    prefix = 'rs:'
-    def createElement(self, tagName):
-        """Redefine the method so that every added tag has 'rs:' prefix."""
-        return super(OpenBciDocument, self).createElement(
-            ''.join([OpenBciDocument.prefix, tagName]))
-
-    def getElementsByTagName(self, tagName):
-        return super(OpenBciDocument, self).getElementsByTagName(
-            ''.join([OpenBciDocument.prefix, tagNam]))
+    """Abstract class for future developement, used in proxies."""
+    pass
 
 class InfoFileWriteProxy(object):
     """A class that is responsible for implementing logics of openbci 
@@ -107,12 +111,14 @@ class InfoFileWriteProxy(object):
         self._short_file_name = ''.join([p_file_name, p_file_extension])
         self._dir_path = p_dir_path
         #TODO works in windows and linux on path with spaces?
-        self._xml_factory = OpenBciDocument() 
+        self._xml_factory = self._create_xml_factory()
         #an object useful in the future to easily create xml elements
         self._create_xml_root()
         self._create_tags_controls()
         self.set_attributes(p_signal_params)
-
+    
+    def _create_xml_factory(self):
+        return OpenBciDocument()
     def set_attributes(self, p_attrs_dict):
         """For every pair key-> value in p_attrs_dict create tag.
         The type of tag depends on self._tags_control."""
@@ -134,12 +140,8 @@ class InfoFileWriteProxy(object):
         """Set all default (hardcoded) tags and other tags as now we
         we have all needed data."""
         self.set_attributes({
-                'file_format':[''],
-                'calibration':1.0,
                 'sample_type':'DOUBLE',
                 'byte_order':'LITTLE_ENDIAN',
-                'page_size':20.0,
-                'blocks_per_page':5
                 })
 
     def _create_xml_root(self):
@@ -147,10 +149,8 @@ class InfoFileWriteProxy(object):
         'sample_type' (double by now)
         'file' (data file`s name).
         """
-        self._xml_root = self._xml_factory.createElement('rawSignal') 
+        self._xml_root = self._xml_factory.createElement('OpenBciDataFormat') 
         #this is going to be an in-memory representation of xml info file
-        self._xml_root.setAttribute('xmlns:rs', 
-                                    "http://signalml.org/rawsignal")
         self._xml_factory.appendChild(self._xml_root)
 
     def _set_tag(self, p_tag_name, p_tag_params):
@@ -265,7 +265,7 @@ Reading aborted!")
         """Return text value from tag in format:
         <param id=p_param_name>text_value</param>."""
         LOGGER.info("Read "+p_param_name+" tag from in-memory info xml.")
-        l_name = ''.join([OpenBciDocument.prefix, p_param_name])
+        l_name = p_param_name
         l_param = self._xml_doc.getElementsByTagName(l_name)[0]
         return l_param.firstChild.nodeValue
 
@@ -277,13 +277,10 @@ Reading aborted!")
             ...
         </p_param_name>
         """
-        l_xml_root_element = self._xml_doc.getElementsByTagName(
-            ''.join([OpenBciDocument.prefix, p_param_name]))[0]
+        l_xml_root_element = self._xml_doc.getElementsByTagName(p_param_name)[0]
         l_elements = []
-        l_full_subparam = ''.join([OpenBciDocument.prefix, p_subparam_name])
-        for i_node in l_xml_root_element.childNodes:
-            if i_node.nodeName == l_full_subparam:
-                l_elements.append(i_node.firstChild.nodeValue)
+        for i_node in l_xml_root_element.getElementsByTagName(p_subparam_name):
+            l_elements.append(i_node.firstChild.nodeValue)
         return l_elements
 
     def _create_tags_control(self):

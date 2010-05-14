@@ -24,61 +24,28 @@
 #
 
 """
->>> from openbci.data_storage import signalml_save_manager, signalml_read_manager
+>>> from openbci.data_storage import svarog_file_proxy as p
 
->>> import os
+>>> px = p.SvarogFileWriteProxy('tescik', './', {'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2'], 'file':'soufce.obci.dat', 'number_of_samples':3}, '.obci.info')
 
->>> from openbci import settings 
+>>> px.finish_saving()
+'tescik.obci.info'
 
->>> os.system("rm -f "+settings.module_abs_path()+"tescik.obci.*")
-0
+>>> py = p.SvarogFileReadProxy('tescik.obci.info')
 
->>> svr = signalml_save_manager.SignalmlSaveManager('tescik', settings.module_abs_path(), {'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2']})
+>>> py.start_reading()
 
->>> svr.data_received(float(1), 1.0)
+>>> print(py.get_param('number_of_channels'))
+2
 
->>> svr.data_received(float(2), 2.0)
-
->>> files = svr.finish_saving()
-
->>> (inf, dat, tags, timestamps) = files[0:4]
-
->>> mgr = signalml_read_manager.SignalmlReadManager(inf, dat)
-
->>> mgr.start_reading()
-
->>> mgr.get_next_value()
-1.0
-
->>> mgr.get_next_value()
-2.0
-
->>> mgr.get_next_value()
-Traceback (most recent call last):
-...    
-NoNextValue
-
-
->>> mgr.get_param(u'file')
-u'tescik.obci.dat'
-
->>> mgr.get_param(u'number_of_samples')
-u'2'
-
->>> mgr.get_param(u'sampling_frequency')
-u'128'
-
->>> mgr.get_param('channels_names')
-[u'1', u'2']
-
->>> mgr.get_param('im_not_there')
-Traceback (most recent call last):
-...
-NoParameter: No parameter 'im_not_there' was found in info xml file!
+>>> print(py.get_param('channels_names')[0])
+1
 
 """
+
 if __name__ == '__main__':
     import doctest, sys
     res = doctest.testmod(sys.modules[__name__])
     if res.failed == 0:
         print("All tests succeeded!")
+
