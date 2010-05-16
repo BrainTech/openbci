@@ -101,7 +101,7 @@ class AsciFileWriteProxy(object):
         p_data is of float type. 
         Type verification should be conducted earlier."""
         try:
-            self._file.write(str(p_data)+'\n')
+            self._file.write(repr(p_data)+'\n')
         except ValueError:
             print("Warning! Trying to write data to closed data file!")
             return
