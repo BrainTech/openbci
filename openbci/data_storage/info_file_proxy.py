@@ -173,7 +173,7 @@ class InfoFileWriteProxy(object):
         - value: p_tag_value.
         """
         l_xml_element = self._create_xml_text_element(p_tag_name,
-                                                      str(p_tag_value))
+                                                      repr(p_tag_value))
         self._xml_root.appendChild(l_xml_element)
     def _set_list_tag(
         self, p_tag_name, p_subtag_name, p_tag_values):
@@ -186,7 +186,7 @@ class InfoFileWriteProxy(object):
         """
         l_xml_list_root = self._xml_factory.createElement(p_tag_name)
         for i_value in p_tag_values:
-            l_xml_elem = self._create_xml_text_element(p_subtag_name, str(i_value))
+            l_xml_elem = self._create_xml_text_element(p_subtag_name, repr(i_value))
             l_xml_list_root.appendChild(l_xml_elem)
         self._xml_root.appendChild(l_xml_list_root)
 

@@ -9,7 +9,7 @@ class Writer(object):
             #If i_elem is float replace . with , before writing it to csv
             try:
                 i_elem + 1
-                p_row[i] = str(i_elem).replace('.',',')
+                p_row[i] = repr(i_elem).replace('.',',')
             except TypeError: #i_elem is string
                 pass
         self._writer.writerow(p_row)

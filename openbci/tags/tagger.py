@@ -46,7 +46,7 @@ class Tagger(object):
         for i_key, i_value in p_tag_desc.iteritems():
             l_new_var = l_tag.desc.variables.add()
             l_new_var.key = i_key
-            l_new_var.value = str(i_value)
+            l_new_var.value = repr(i_value)
         return l_tag.SerializeToString()
         
     def unpack_tag(self, p_tag_msg):
@@ -81,8 +81,8 @@ class Tagger(object):
         """
         l_info_desc = ''.join(
             ["Sending tag:\n",
-             "start:", str(p_start_timestamp),
-             ", end:", str(p_end_timestamp),
+             "start:", repr(p_start_timestamp),
+             ", end:", repr(p_end_timestamp),
              ", name:", p_tag_name,
              ", channels:", p_tag_channels])
         LOGGER.info(l_info_desc)

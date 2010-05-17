@@ -55,10 +55,10 @@ class TagsFileWriter(object):
             if i_key == 'desc':
                 for i_k, i_v in i_value.iteritems():
                     l_tag.appendChild(self._create_xml_param_element(
-                            i_k, str(i_v)))
+                            i_k, repr(i_v)))
             else:
                 l_tag.appendChild(self._create_xml_param_element(
-                        i_key, str(i_value)))
+                        i_key, repr(i_value)))
 
         self._tags_root.appendChild(l_tag)
                                                  
