@@ -26,6 +26,7 @@ import os.path
 import xml.dom.minidom
 from openbci.data_storage import data_storage_logging as logger
 from openbci.data_storage import data_storage_exceptions
+from openbci.core import types_utils
 LOGGER = logger.get_logger("info_file_proxy")
 
 
@@ -172,8 +173,8 @@ class InfoFileWriteProxy(object):
         - id: 'p_tag_name', 
         - value: p_tag_value.
         """
-        l_xml_element = self._create_xml_text_element(p_tag_name,
-                                                      repr(p_tag_value))
+        l_xml_element = self._create_xml_text_element(
+            p_tag_name, types_utils.to_string(p_tag_value))
         self._xml_root.appendChild(l_xml_element)
     def _set_list_tag(
         self, p_tag_name, p_subtag_name, p_tag_values):
@@ -186,7 +187,8 @@ class InfoFileWriteProxy(object):
         """
         l_xml_list_root = self._xml_factory.createElement(p_tag_name)
         for i_value in p_tag_values:
-            l_xml_elem = self._create_xml_text_element(p_subtag_name, repr(i_value))
+            l_xml_elem = self._create_xml_text_element(
+                p_subtag_name, types_utils.to_string(i_value))
             l_xml_list_root.appendChild(l_xml_elem)
         self._xml_root.appendChild(l_xml_list_root)
 

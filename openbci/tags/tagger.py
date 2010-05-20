@@ -26,6 +26,8 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
 import variables_pb2
 
+from openbci.core import types_utils
+
 import tags_logging as logger
 LOGGER = logger.get_logger('tagger')
 
@@ -46,7 +48,7 @@ class Tagger(object):
         for i_key, i_value in p_tag_desc.iteritems():
             l_new_var = l_tag.desc.variables.add()
             l_new_var.key = i_key
-            l_new_var.value = repr(i_value)
+            l_new_var.value = types_utils.to_string(i_value)
         return l_tag.SerializeToString()
         
     def unpack_tag(self, p_tag_msg):

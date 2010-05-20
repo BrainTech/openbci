@@ -25,6 +25,7 @@
 
 import os.path
 import xml.dom.minidom
+from openbci.core import types_utils
 
 class TagsFileWriter(object):
     """A proxy for openbci tags file, that writes every next tag to file.
@@ -55,10 +56,10 @@ class TagsFileWriter(object):
             if i_key == 'desc':
                 for i_k, i_v in i_value.iteritems():
                     l_tag.appendChild(self._create_xml_param_element(
-                            i_k, repr(i_v)))
+                            i_k, types_utils.to_string(i_v)))
             else:
                 l_tag.appendChild(self._create_xml_param_element(
-                        i_key, repr(i_value)))
+                        i_key, types_utils.to_string(i_value)))
 
         self._tags_root.appendChild(l_tag)
                                                  

@@ -1,7 +1,11 @@
 #!/bin/bash
-./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+./azouk-libraries/build/mxcontrol run_multiplexer 0.0.0.0:31889 &
 
 export PYTHONPATH=./:openbci/:./azouk-libraries/build/:PYTHONPATH
+
+rfcomm connect 0 &
+
+sleep 2
 
 ./openbci/hashtable.py &
 
@@ -14,15 +18,29 @@ sleep 1
 
 #sleep 1
 
-./openbci/amplifiers/virtual_amplifier.py &
+./openbci/signal_catcher.py &
+sleep 1
+
+./openbci/filters/filter.py &
+sleep 1
+
+#./openbci/amplifiers/virtual_amplifier.py &
+./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py &
+
+
 
 sleep 1
 
 ./openbci/data_storage/signal_saver.py &
 
-sleep 1
+#sleep 1
 
-python ./openbci/experiment_builder/experiment_manager.py mx-on &
+#./openbci/tag_catcher.py &
+
+sleep 1
+python ./openbci/experiment_builder/experiment_manager.py mx-on config &
+#echo "koniec managera" &&
+#python ./openbci/experiment_builder/calibrator.py 2 8 8 10 &
 
 #sleep 1
 
