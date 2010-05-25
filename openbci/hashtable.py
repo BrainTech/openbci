@@ -5,8 +5,21 @@ from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 
 from openbci.core import core_logging as logger
-LOGGER = logger.get_logger("hashtable")
+LOGGER = logger.get_logger("hashtable", "error")
 
+def channels_gen(num):
+    return ' '.join([str(i) for i in range(num)])
+
+def gains_gen(num):
+    return ' '.join(['1']*num)
+
+def offsets_gen(num):
+    return ' '.join(['0.0715']*num)    
+
+def names_gen(num):
+    return ' '.join(['nazwa']*num)
+
+CHANNELS = 23
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -17,17 +30,18 @@ class Hashtable(BaseMultiplexerServer):
         "MaxData": "1000",
         "DataScale": "1.0",
         "TMSiDeviceName": "/dev/rfcomm0",
-        "AmplifierChannelsToRecord":  "0 1 2",
+        "AmplifierChannelsToRecord": channels_gen(CHANNELS),
         #"ChannelsNames": "O1;Oz;O2;Pz;M1;M2",
-        "ChannelsNames": "O1;Oz;O2",
+        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2",
+# names_gen(CHANNELS),
         #"Gain": "1 1 1 1 1 1",
-        "Gain":"0.0715 0.0715 0.0715",
+        "Gain":gains_gen(CHANNELS),
         #"Gain":"0.0715 0.0715 0.0715 0.0715 0.0715 0.0715",
-        "Offset":"500 -10000 20000",
-        "NumOfChannels": "3",
+        "Offset": offsets_gen(CHANNELS),
+        "NumOfChannels": CHANNELS,
         "BraintronicsDeviceName": "/dev/ttyUSB0",
         "SamplingRate": "128",
-        "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 11)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
+        "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",
         "Border": "0.4",
@@ -44,8 +58,13 @@ class Hashtable(BaseMultiplexerServer):
         #" | < :: | say :: | A :: | B :: | C :: | D :: | E :: | back ",
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
-        "Freqs": "11 10 12 13 15 20 8 7",
-        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
+#       "Freqs": "12 13 23 9 16 17 15 19",
+        "Freqs": "0 0 0 0 0 0 0 0",
+
+#        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
+        "Borders": "0.6 0.4 1.2 .4 .6 .8 1 .2",
+        #"Borders": ".7 .2 .7 .7 .7 .2 .6 .6",
+
         "Reps": "1 1 1 1 1 1 1 1" ,
         "Repeats": "1",
         "FrameWidth": "20",
@@ -67,8 +86,8 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "melanie",
-        "SaveFilePath" : "./"
+        "SaveFileName" : "maciek25hz",
+        "SaveFilePath" : "./dane/maciek/",
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 
