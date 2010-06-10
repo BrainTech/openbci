@@ -29,27 +29,27 @@ TMSi amplifier support.
 
 __author__ = "kulewski@gmail.com (Krzysztof Kulewski)"
 
-import serial, variables_pb2, time
+import bluetooth, variables_pb2, time
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import tmsi
+import gflags
+import sys
+import re
 
 
 class TMSiBluetoothEEGAmplifier:
     """
     Main class implementing TMSi Bluetooth EEG Amplifier support.
     """
-    def __init__(self):
+    def __init__(self, device):
         self.connection = connect_client(type = peers.AMPLIFIER)
-        device_name = self.connection.query(message="TMSiDeviceName", \
-            type=types.DICT_GET_REQUEST_MESSAGE).message
         self.sampling_rate = int(self.connection.query(message="SamplingRate", \
             type=types.DICT_GET_REQUEST_MESSAGE).message)
         self.channel_numbers = [int(x) for x in \
             self.connection.query(message="AmplifierChannelsToRecord", \
                 type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")]
-        self.device = serial.Serial(device_name, baudrate=230400, \
-            timeout=3)
+        self.device = device
         self.vldelta = False
         self.hardware_number_of_channels = -1
         self.vldelta_info = None
@@ -58,12 +58,12 @@ class TMSiBluetoothEEGAmplifier:
         """
         Turns amplifier into straming mode.
         """
-        # clean buffer
-        self.device.read(10000000)
 
         # send FrontendInfoRequest
         self.device.write(tmsi.Packet.construct( \
             tmsi.PACKET_TYPE.TMS_FRONTEND_INFO_REQUEST).get_raw())
+
+        self.device.prepare(tmsi.PacketType.TMS_FRONTEND_INFO)
 
         # receive FrontendInfo
         frontend_info = tmsi.FrontendInfo.read_one(self.device)
@@ -77,6 +77,7 @@ class TMSiBluetoothEEGAmplifier:
             vldelta_info_request = tmsi.Packet.construct( \
                 tmsi.PACKET_TYPE.TMS_VL_DELTA_INFO_REQUEST)
             self.device.write(vldelta_info_request.get_raw())
+            self.device.prepare(tmsi.PacketType.TMS_VL_DELTA_INFO)
             self.vldelta_info = tmsi.VLDeltaInfo.read_one(self.device)
             # we have to multiply sampling rate by 2 - because channels are sent
             # 2x slower (channels 1-24)
@@ -88,6 +89,8 @@ class TMSiBluetoothEEGAmplifier:
         # send corrected frontend info back into amplifier
         frontend_info.recalculate_checksum()
         self.device.write(frontend_info.get_raw())
+
+        self.device.prepare(tmsi.PacketType.TMS_ACKNOWLEDGE)
 
         # receive ack and check its status
         ack = tmsi.Acknowledge.read_one(self.device)
@@ -108,9 +111,11 @@ class TMSiBluetoothEEGAmplifier:
             try:
                 timestamp = time.time()
                 if self.vldelta:
+                    self.device.prepare(tmsi.PacketType.TMS_VL_DELTA_DATA)
                     data = tmsi.VLDeltaData.read_one(self.device, search=True)
                     data.set_vldelta_info(self.vldelta_info)
                 else:
+                    self.device.prepare(tmsi.PacketType.TMS_CHANNEL_DATA)
                     data = tmsi.ChannelData.read_one(self.device, search=True)
                 data.set_number_of_channels(self.hardware_number_of_channels)
                 channel_data = data.decode()
@@ -120,9 +125,9 @@ class TMSiBluetoothEEGAmplifier:
                     var = variables_pb2.Variable()
                     var.key = "Trigger"
                     var.value = "1"
-                    self.connection.send_message( \
-                        message=var.SerializeToString(), \
-                        type=types.DICT_SET_MESSAGE, flush=True)
+                    #self.connection.send_message( \
+                    #    message=var.SerializeToString(), \
+                    #    type=types.DICT_SET_MESSAGE, flush=True)
 
                 if data.trigger_active():
                     print "Digi: Trigger active"
@@ -135,9 +140,9 @@ class TMSiBluetoothEEGAmplifier:
                     var = variables_pb2.Variable()
                     var.key = "AmpBattery"
                     var.value = "1"
-                self.connection.send_message( \
-                        message=var.SerializeToString(), \
-                        type=types.DICT_SET_MESSAGE, flush=True)                     
+                #self.connection.send_message( \
+                #        message=var.SerializeToString(), \
+                #        type=types.DICT_SET_MESSAGE, flush=True)                     
                                                             
                                                                               
 
@@ -164,7 +169,7 @@ class TMSiBluetoothEEGAmplifier:
                         pass
                         #time.sleep(2./self.sampling_rate)                
                 # send keep alive if there was 10s before previous ack
-                if timestamp - last_keep_alive > 10:
+                if timestamp - last_keep_alive > 4:
                     last_keep_alive = timestamp
                     self.device.write(tmsi.Packet.construct( \
                         tmsi.PACKET_TYPE.TMS_KEEP_ALIVE).get_raw())
@@ -176,6 +181,96 @@ class TMSiBluetoothEEGAmplifier:
                     raise exception
                 
 
+class RBuf:
+    def __init__(self, f, n=0):
+        self.f = f
+        self.n = n
+        self.buf = []
+        self.cnt = 0
+    
+    def prepare(self, msg_type):
+        ok = False
+        while not ok:
+            level = 0
+            while level != 2:
+                x = self.read(1)
+                if x == "\xaa":
+                    level += 1
+                else:
+                    level = 0
+            head = self.read(2)
+            size = ord(head[0])
+            type = ord(head[1])
+            m = self.read(size * 2 + 2)
+            packet = "\xaa\xaa" + head + m
+            sum = tmsi.calculate_checksum(packet)
+            sum = tmsi.string_word_to_number(sum)
+            if sum == 0 and type == msg_type:
+                ok = True
+                self.buf = packet
+                self.cnt = len(packet)
+
+    def read(self, cnt=-1):
+        if cnt < 0:
+            out = self.buf + self.f.recv(10**6)
+            self.cnt = 0
+            self.buf = []
+        else:
+            if cnt > self.cnt:
+                rem = cnt + self.n - self.cnt
+                while rem > 0:
+                    dd = self.f.recv(rem)
+                    rem -= len(dd)
+                    self.buf += dd
+            out = self.buf[:cnt]
+            self.buf = self.buf[cnt:]
+            self.cnt = len(self.buf)
+        return "".join(out)
+
+    def write(self, s):
+        return self.f.send(s)
+
 if __name__ == "__main__":
-    TMSiBluetoothEEGAmplifier().start_amplifier().do_sampling()
+    gflags.DEFINE_bool('scan', False, 'Find some porti device to connect to')
+    gflags.DEFINE_integer('duration', 8, 'How long scan should take')
+    gflags.DEFINE_string("regex", "MobiMini", "Regex specifying TMSi device names")
+    gflags.DEFINE_string("bt_addr", "", "Address of the amplifier we want to connect to")
+    gflags.DEFINE_integer('port', 1, "Bluetooth port to use")
+    gflags.DEFINE_integer("prefetch", 2048, "Number of bytes to be prefetched in reading")
+
+    FLAGS = gflags.FLAGS
+    try:
+        argv = FLAGS(sys.argv)
+    except gflags.FlagsError, e:
+        print "%s\nUsage: %s ARGS\n%s" % (e, sys.argv[0], FLAGS)
+        sys.exit(1)
+
+    bt_addr = None
+    bt_name = None
+    if FLAGS.scan:
+        print "Searching..."
+        regexp = re.compile(FLAGS.regex)
+        devs = bluetooth.discover_devices(duration=FLAGS.duration, lookup_names=True)
+        for addr, name in devs:
+            print 'Find', addr, name
+            if regexp.search(name):
+                print "Match!"
+                bt_addr = addr
+                bt_name = name
+                break
+        if not bt_addr:
+            print "%s\n\nUsage: %s ARGS\n%s" % ("Cannot find any device matching " + FLAGS.regex, sys.argv[0], FLAGS)
+            sys.exit(1)
+    elif FLAGS.bt_addr:
+        bt_addr = FLAGS.bt_addr
+        bt_name = bluetooth.lookup_name(FLAGS.bt_addr)
+    else:
+        print "%s\n\nUsage: %s ARGS\n%s" % ("You should specify bt_addr or select scan", sys.argv[0], FLAGS)
+        sys.exit(1)
+
+    print "Connecting to", bt_addr, bt_name
+    sock = bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+    sock.connect((bt_addr, FLAGS.port))
+
+    TMSiBluetoothEEGAmplifier(RBuf(sock, 0)).start_amplifier().do_sampling()
 

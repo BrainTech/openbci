@@ -107,6 +107,40 @@ def bits_to_num(bits):
         num = 2 * num + bit
     return num
 
+def encode_tmsi_bluetooth_number(num):
+    """
+    Convert number into TMSi internal format.
+    
+    @type num:      int
+    @param num:     number to be converted
+    @rtype:         string (3 bytes)
+    @return:        number represented in internal TMSi format 
+    """
+    sign = num < 0
+    if sign:
+        num = 2 ** 23 - abs(num)
+    data = chr(num % 256)
+    num = num / 256
+    data += chr(num % 256)
+    num = num / 256
+    data += chr(num % 256 + (128 if sign else 0))
+    assert num / 256 == 0, "To big number to be encoded in this format"
+    return data
+
+def decode_tmsi_bluetooth_number(data):
+    """
+    Convert number in TMSi internal format into int.
+    
+    @type data:     string (3 bytes)
+    @param data:    number represented in internal TMSi format
+    @rtype:         int
+    @return:        number after conversion
+    """
+    return ord(data[0]) + \
+           ord(data[1]) * 256 + \
+           ord(data[2]) * 65536 - \
+           (2 ** 24 if ord(data[2]) > 128 else 0)
+
 class PacketType(object):
     """
     This class names all suported packet types.
@@ -517,10 +551,8 @@ class ChannelData(Packet):
         @rtype:                 number
         @return:                value of channel_number-th channel data
         """
-        return ord(self.data[3 * channel_number]) + \
-               ord(self.data[1 + 3 * channel_number]) * 256 + \
-               ord(self.data[2 + 3 * channel_number]) * 65536 - \
-               (2 ** 24 if ord(self.data[2 + 3 * channel_number]) > 128 else 0)
+        return decode_tmsi_bluetooth_number( \
+            self.data[3 * channel_number:3 * channel_number + 3])
 
     def get_digi(self):
         """
