@@ -5,7 +5,7 @@ from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 
 from openbci.core import core_logging as logger
-LOGGER = logger.get_logger("hashtable", "error")
+LOGGER = logger.get_logger("hashtable")#, "error")
 
 def channels_gen(num):
     return ' '.join([str(i) for i in range(num)])
@@ -31,12 +31,9 @@ class Hashtable(BaseMultiplexerServer):
         "DataScale": "1.0",
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord": channels_gen(CHANNELS),
-        #"ChannelsNames": "O1;Oz;O2;Pz;M1;M2",
         "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2",
-# names_gen(CHANNELS),
-        #"Gain": "1 1 1 1 1 1",
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;POD_OKIEM;NAD_OKIEM;BIPOLARNA_OKO",
         "Gain":gains_gen(CHANNELS),
-        #"Gain":"0.0715 0.0715 0.0715 0.0715 0.0715 0.0715",
         "Offset": offsets_gen(CHANNELS),
         "NumOfChannels": CHANNELS,
         "BraintronicsDeviceName": "/dev/ttyUSB0",
@@ -86,8 +83,12 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "maciek25hz",
-        "SaveFilePath" : "./dane/maciek/",
+        "SaveFileName" : "NAME_DEFINED_IN_HASHTABLE",
+        "SaveFilePath" : "./",
+        "FilterLevel": "3",
+        "FilterBand": "bandpass",
+        "FilterUp": "32",
+        "FilterDown": "2",
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 
