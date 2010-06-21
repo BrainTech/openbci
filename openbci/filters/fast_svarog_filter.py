@@ -38,37 +38,32 @@ class Filter(BaseMultiplexerServer):
                                  timeout = 1).message
 
         b,a = signal.butter(f_level,[down/sampling, up/sampling],btype=f_band)
-        self.b = b
-        self.a = a
-        f_size = len(self.a)+1
+        b = list(b)
+        a = list(a)
+
+        # reverse a and b for more convinient use
+        self.a0 = a[0]
+        a = a[1:]
+        a.reverse()
+        b.reverse()
+
+        self.a = numpy.array(a)
+        self.b = numpy.array(b)
+        self.len_x = len(b)
+        self.len_y = len(a)
+
+
         self.last_x = [[0.0]]*channels_num
         self.last_y = [[0.0]]*channels_num
         for i in range(channels_num):
-            self.last_x[i] = [0.0]*f_size
-            self.last_y[i] = [0.0]*f_size
+            self.last_x[i] = numpy.array([0.0]*len(b))
+            self.last_y[i] = numpy.array([0.0]*len(a))
         self.i = 0
+
         self.vec = variables_pb2.SampleVector()
         self.time = time.time()
         self.processing_time = 0.0
 
-    def _get_lfiltered_sample(self, x, y):
-        """Having filter data on slots (self.a, self.b) computer and return 
-        filtered sample as defined on:
-        http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html#scipy.signal.lfilter
-        Parameters:
-        x - a vector of few last raw data
-        y - a vetore of few last filtered data
-        TO be precise: if we we are trying to generate n-th filtered sample
-        the last element in x is n-th raw sample
-        the last element in y is n-1 -th filtered sample.
-        """
-        ret = 0.0
-        for i, b_value in enumerate(self.b):
-            ret = ret + b_value*x[-1-i]
-        for i, a_value in enumerate(self.a[1:]):
-            ret = ret - a_value*y[-1-i]
-        return ret/self.a[0]
-        
 
     def handle_message(self, mxmsg):
         """For every sample computer filtered value and send it further.
@@ -78,13 +73,24 @@ class Filter(BaseMultiplexerServer):
 	    self.vec.ParseFromString(mxmsg.message)
             #start_t = time.time()
 	    for i, x in enumerate(self.vec.samples):
-                self.last_x[i].append(x.value)
-                new_y = self._get_lfiltered_sample(self.last_x[i], 
-                                                   self.last_y[i])
-                self.last_y[i].append(new_y)
-                # truncate stored last values so that it keeps its size
-                self.last_y[i] = self.last_y[i][1:] 
-                self.last_x[i] = self.last_x[i][1:]
+                for j in range(self.len_x-1): #shift self.last_x[i] to the left
+                    self.last_x[i][j] = self.last_x[i][j+1]
+                # append x.value to self.last_x
+                self.last_x[i][self.len_x-1] = x.value 
+                
+                # compute a new filtered value
+                # Having filter data on slots (self.a, self.b) compute
+                # filtered sample as defined on:
+                # http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.lfilter.html#scipy.signal.lfilter
+                new_y = (numpy.inner(self.b, self.last_x[i]) - \
+                             numpy.inner(self.a, self.last_y[i]))/self.a0
+
+                for j in range(self.len_y-1): #shift self.last_y[i] to the left
+                    self.last_y[i][j] = self.last_y[i][j+1]
+
+                #append new filtered value to self.last_y
+                self.last_y[i][self.len_y-1] = new_y
+
                 self.vec.samples[i].value = new_y
             #end_t = time.time()
             #self.processing_time = self.processing_time + end_t - start_t

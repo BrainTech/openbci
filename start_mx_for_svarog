@@ -11,8 +11,10 @@ sleep 1
 
 ./openbci/filters/svarog_filter.py &
 
-sleep 1
-./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB &
+#./openbci/filters/fast_svarog_filter.py &
 
-#./openbci/amplifiers/virtual_amplifier.py file /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.info /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.dat /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.tags &
+sleep 1
+#./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB &
+
+./openbci/amplifiers/virtual_amplifier.py file /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.info /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.dat /media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_dane_15_06_2010/KAMIL_15_06_2010_karolina2.obci.tags &
 
