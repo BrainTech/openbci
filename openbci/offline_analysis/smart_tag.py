@@ -51,7 +51,11 @@ class SmartTag(object):
 
     def set_data(self, p_data):
         self._data = p_data
-
+        
+    def data_empty(self):
+        return self._data == []
+    
+    
 class SmartTagEndTag(SmartTag):
     """Public interface:
     - get_data() <- this is the only method to be really used outside
@@ -79,7 +83,10 @@ class SmartTagEndTag(SmartTag):
         self._end_tag = p_tag
 
     def get_end_timestamp(self):
-        return self._end_tag['start_timestamp'] + self._tag_def.end_offest
+        return self._end_tag['start_timestamp'] + self._tag_def.end_offset
+
+    def get_end_tag(self):
+        return self._end_tag
 
 class SmartTagDuration(SmartTag):
     """Public interface:

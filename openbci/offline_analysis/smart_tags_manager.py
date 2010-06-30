@@ -26,7 +26,7 @@ import smart_tag
 from openbci.data_storage import signalml_read_manager
 from openbci.data_storage import data_storage_exceptions
 from openbci.offline_analysis import offline_analysis_logging as logger
-
+import Queue
 LOGGER = logger.get_logger("smart_tags_manager")
 
        
@@ -61,7 +61,8 @@ class SmartTagsManager(object):
         self._num_of_channels = len(self._read_manager.get_param(
             'channels_numbers'))
         l_freq_str = self._read_manager.get_param('sampling_frequency')
-        self._sample_duration = 1000.0/float(l_freq_str)
+        self._sampling_rate = float(l_freq_str)
+        self._sample_duration = 1/float(self._sampling_rate)
         self._samples_no = 0
 
         #Init smart tags, here just create smart tags objects without
@@ -138,6 +139,9 @@ class SmartTagsManager(object):
 
                 LOGGER.debug("Tag start timestamp: "+str(l_start))
                 LOGGER.debug("Tag end timestamp: "+str(l_end))
+                if not i_st.data_empty():
+                    yield i_st
+                    continue
                 # To-be-returned data
                 l_data = [[] for i in range(self._num_of_channels)] 
 
@@ -178,3 +182,7 @@ class SmartTagsManager(object):
         """Return new current sample timestamp."""
         return self._first_sample_timestamp + \
             self._samples_no * self._sample_duration
+
+    def get_sampling_rate(self):
+        return self._sampling_rate
+

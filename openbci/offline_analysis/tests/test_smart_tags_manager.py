@@ -8,6 +8,7 @@
 
 >>> f = {'info': 'openbci/offline_analysis/tests/lukasz_experyment_1.obci.info', 'data':'openbci/offline_analysis/tests/lukasz_experyment_1.obci.dat', 'tags':'openbci/offline_analysis/tests/lukasz_experyment_1.obci.tags'}
 
+
 >>> m = mgr.SmartTagsManager(d, f)
 
 >>> print(len(m._smart_tags))
@@ -22,7 +23,7 @@
 
 >>> dd = df.SmartTagEndTagDefinition(start_tag_name='ugm_update', start_offset=0, end_offset=0, end_tags_names=['ugm_update'])
 
->>> mm = mgr.SmartTagsManager(d, f)
+>>> mm = mgr.SmartTagsManager(dd, f)
 
 >>> iter_all_tags(m)
 69

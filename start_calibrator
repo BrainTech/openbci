@@ -1,0 +1,9 @@
+#!/bin/bash
+#./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+
+export PYTHONPATH=./:openbci/:./azouk-libraries/build/:PYTHONPATH
+
+# parameters: <mode 1|2> <base signal file name> <signal dir> <channel no>
+python ./openbci/calibration/calibrator.py 1 jt_test_save './' 0 &
+python ./openbci/calibration/calibrator.py 2 jt_test_save2 './' 0 &
+

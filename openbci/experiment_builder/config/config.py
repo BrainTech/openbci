@@ -24,10 +24,8 @@
 #
 """Holds experiment builder config"""
 
-import settings
 DUPA = 3
 CONFIG = {}
-CONFIG['dir'] = settings.module_abs_path()
 CONFIG['screens'] = [
 #        ['zosia/strz1', 'zosia/strz2'], 
         ['ania/mk-mo', 'ania/sk-mo', 'ania/dk-mo'],
@@ -51,8 +49,8 @@ CONFIG['freqs'] = [
         [70, 12, 15, 70, 70, 13, 14, 70], # ...
         [70, 12, 15, 70, 70, 13, 14, 70]]
         ]
-CONFIG['delay'] = 2
-CONFIG['repeats'] = 5
+CONFIG['delay'] = 10
+CONFIG['repeats'] = 40
 CONFIG['readable_names'] = {
     'ania/mk-mo' : 'murr',
     'ania/sk-mo' : 'surr',
@@ -67,44 +65,12 @@ USE_MULTIPLEXER = True
 
 # set this to True and set DEFAULT_FREQS to use one frequencies set for all
 # screens. Then you can omit defining CONFIG['freqs']
-USE_DEFAULT_FREQS = False
+CONFIG['USE_DEFAULT_FREQS'] = False
 
-DEFAULT_FREQS = [70, 12, 15, 70, 70, 13, 14, 70]
+CONFIG['default_freqs'] = [70, 12, 15, 70, 70, 13, 14, 70]
 
 CONFIG['make_breaks'] = True
 CONFIG['break_len'] = CONFIG['delay']
 CONFIG['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
-
-CONFIG['sounds'] = ['resources/1one.wav', 'resources/2two.wav', 'resources/3three.wav', 'resources/4four.wav']
-CONFIG1 = {}
-CONFIG1['screens'] = [
-        ['kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1',  'kali/kali1']
-]
-CONFIG1['readable_names'] = {
-        'kali/kali1' : 'plansza kalibracyjna'
-        }
-
-# [square1, 2, 3, 4,
-#        5, 6, 7, 8]
-CONFIG1['freqs'] = [
-    [
-        [70, 15, 70, 70, 70, 70, 70, 70],
-        [70, 12, 70, 70, 70, 70, 70, 70],
-        [70, 17, 70, 70, 70, 70, 70, 70], 
-        [70, 10, 70, 70, 70, 70, 70, 70],
-        [70, 11, 70, 70, 70, 70, 70, 70],
-        [70, 13, 70, 70, 70, 70, 70, 70],
-        [70, 16, 70, 70, 70, 70, 70, 70]
-  ]
-        ]
-CONFIG1['delay'] = 2
-CONFIG1['repeats'] = 1
-
-USE_MULTIPLEXER = True      
-
-CONFIG1['make_breaks'] = True
-CONFIG1['break_len'] = CONFIG1['delay']
-CONFIG1['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
-
 
 

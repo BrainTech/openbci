@@ -3,8 +3,12 @@
 
 CONFIG = {}
 CONFIG['screens'] = [
-        ['kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1',  'kali/kali1']
+        ['kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1', 'kali/kali1',  'kali/kali1', 'kali/kali1']
 ]
+# 'concentrating_on_field', counted 'naturally', from 1
+CONFIG['square_numbers'] = [
+        [1,2,3,4,5,6,7,8]
+        ]
 CONFIG['readable_names'] = {
         'kali/kali1' : 'plansza kalibracyjna'
         }
@@ -13,13 +17,14 @@ CONFIG['readable_names'] = {
 #        5, 6, 7, 8]
 CONFIG['freqs'] = [
     [
-        [70, 15, 70, 70, 70, 70, 70, 70],
-        [70, 12, 70, 70, 70, 70, 70, 70],
-        [70, 17, 70, 70, 70, 70, 70, 70], 
-        [70, 10, 70, 70, 70, 70, 70, 70],
-        [70, 11, 70, 70, 70, 70, 70, 70],
-        [70, 13, 70, 70, 70, 70, 70, 70],
-        [70, 16, 70, 70, 70, 70, 70, 70]
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14], 
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14],
+        [12, 15, 17, 10, 11, 13, 16, 14]
     ]
 ]
 CONFIG['delay'] = 2
