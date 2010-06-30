@@ -25,8 +25,7 @@ sleep 1
 
 
 sleep 3
-python ./openbci/experiment_builder/experiment_manager.py mx-on cal_conf_a &&
-python ./openbci/experiment_builder/calibrator.py 2 3 9 3 &
+python ./openbci/experiment_builder/experiment_manager.py mx-on cal_conf_a &
 
 #sleep 1
 
