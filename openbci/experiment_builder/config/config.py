@@ -24,20 +24,28 @@
 #
 """Holds experiment builder config"""
 
-DUPA = 3
+
+
+#A complicated constant. Don't change it.
+USE_MULTIPLEXER = True      
+
 CONFIG = {}
+
+#Set this to true if you want shuffled packages and screens in packages
+CONFIG['shuffle'] = True
+
+
+#Set screens to be shown, divided into packages. Each package is determined 
+#by one list of strings representing relative path to ugm config file
+#located in openbci/ugm/config/ directory.
 CONFIG['screens'] = [
-#        ['zosia/strz1', 'zosia/strz2'], 
         ['ania/mk-mo', 'ania/sk-mo', 'ania/dk-mo'],
         ['zosia/wiel1', 'zosia/wiel2', 'zosia/wiel3', 'zosia/wiel4']
-#        ['zosia/kolc', 'zosia/koln', 'zosia/kolrozne', 'zosia/kolziel', 'zosia/kolzol'],
-#        ['zosia/pf0', 'zosia/pf1'],
-##        ['zosia/wielodl1', 'zosia/wielodl3'],
-#        ['ania/sk-mo', 'ania/mk-mo', 'ania/dk-mo'], 
 ]
 
-# [square1, 2, 3, 4,
-#        5, 6, 7, 8]
+
+#Set diode frequencies for every screen. Structure of 'freqs' should be
+#the same as structure of 'screens'
 CONFIG['freqs'] = [
     [
         [70, 12, 15, 70, 70, 13, 14, 70], # 'ania/mk-mo'
@@ -49,8 +57,25 @@ CONFIG['freqs'] = [
         [70, 12, 15, 70, 70, 13, 14, 70], # ...
         [70, 12, 15, 70, 70, 13, 14, 70]]
         ]
-CONFIG['delay'] = 10
-CONFIG['repeats'] = 40
+
+#Set delay for every screen. Use intiger to set constant delay for every screen.
+#Use tuple eg. (2, 5) to set random delay between two numbers.
+#Delay is in seconds
+#CONFIG['delay'] = (2, 5)
+CONFIG['delay'] = 3
+
+
+#Define how many repeaded cycles from one package should be presented.
+#Eg. having 'packages' = [['x','y'],['a','b','c']] and repeats = 3
+#(and 'shuffle' = False)  you'll get subsequent sequence of screens:
+# x,y,x,y,x,y,a,b,c,a,b,c,a,b,c
+#when repeats = 1 you'll get:
+# x,y,a,b,c
+CONFIG['repeats'] = 5
+
+
+#Set readable descriptions for every config file
+#Those descriptions will be visible in tags
 CONFIG['readable_names'] = {
     'ania/mk-mo' : 'murr',
     'ania/sk-mo' : 'surr',
@@ -61,16 +86,47 @@ CONFIG['readable_names'] = {
     'zosia/wiel4' : 'w4rr',
 }
 
-USE_MULTIPLEXER = True      
-
 # set this to True and set DEFAULT_FREQS to use one frequencies set for all
 # screens. Then you can omit defining CONFIG['freqs']
-CONFIG['USE_DEFAULT_FREQS'] = False
-
+CONFIG['use_default_freqs'] = True
 CONFIG['default_freqs'] = [70, 12, 15, 70, 70, 13, 14, 70]
 
+
+#Set this to True if you want to have breaks between packages.
+#What happens during the break is defined below.
 CONFIG['make_breaks'] = True
-CONFIG['break_len'] = CONFIG['delay']
+
+#Set break duration in seconds
+CONFIG['break_len'] = 3
+
+#Set break screen (in format as in 'screens')
+CONFIG['break_screen'] = 'black'
+
+#Set dides frequencies for the break
 CONFIG['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
 
 
+
+#Set welcoming screen (in format as in 'screens')
+CONFIG['hi_screen'] = 'hi_screen'
+
+#Set welcoming screen duration (in seconds)
+CONFIG['hi_screen_delay'] = 3
+
+#Set ending screen (in format as in 'screens')
+CONFIG['bye_screen'] = 'bye_screen'
+
+#Set ending screen duration (in seconds)
+CONFIG['bye_screen_delay'] = 3
+
+
+#Set a list of sounds played before every screen.
+#Sounds are played in a cycle, eg having 'sound' = ['a.wav', 'b.wav', 'c.wav']
+#and first 5 screens like q,w,e,r,t you'll get 
+#subsequend pairs screen -> sound:
+# q -> a.wav, w ->b.wav, e->c.wav, r->a.wav, t->b.wav
+#
+#Format of the sound -> a path to the sound starting from 
+#openbci/experiment_builder directory
+#CONFIG['sounds'] = ['resources/ping.wav', 'resources/ping.wav',
+#                    'resources/ping.wav', 'resources/ping.wav']

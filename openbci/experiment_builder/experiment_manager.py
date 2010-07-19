@@ -42,16 +42,13 @@ TAGGER = tagger.get_tagger()
 # then perhaps command-line option overriden config
 print (len(sys.argv), sys.argv)
 config_file_name = None
-config_module_name = None
-if len(sys.argv) >= 3 and sys.argv[0].find('experiment_manager.py') >= 0 :
+if len(sys.argv) >= 2 and sys.argv[0].find('experiment_manager.py') >= 0 :
     if sys.argv[1] == 'mx-on':
         USE_MULTIPLEXER = True
     elif sys.argv[1] == 'mx-off':
         USE_MULTIPLEXER = False
     if len(sys.argv) >= 3:
         config_file_name = sys.argv[2]
-    if len(sys.argv) >= 4:
-        config_module_name = sys.argv[3]
 
 if USE_MULTIPLEXER:
     from multiplexer.multiplexer_constants import peers, types
@@ -60,28 +57,26 @@ if USE_MULTIPLEXER:
     from data_storage import signal_saver_control
 
 import experiment_logging
-LOGGER = experiment_logging.get_logger('experiment_manager')
+LOGGER = experiment_logging.get_logger('experiment_manager', 'debug')
 
 class Experiment_manager(object):
     """This class is responsible for managing UGM experiments. It loads and holds configs
     of those experiments and makes it possible to run them"""
-    def __init__(self, p_config_name=None, p_config_module='experiment_manager.config'):
+    def __init__(self, p_config_name=None):
         super(Experiment_manager, self).__init__()
-
-        self.config_file = self.read_experiment_config(p_config_name, p_config_module)
+        self.config_file = self.read_experiment_config(p_config_name)
         print self.config_file
         self.screens = self.config_file['screens']
         self.sc_configs = []
         self.repeats = self.config_file['repeats']
         self.readable_names = self.config_file['readable_names']
-        self.sq_numbers = self.config_file['square_numbers']
         
         # set up screens configuration - pair screens with diode freqs
         if not self.config_file.get('USE_DEFAULT_FREQS'):
             self.freq_sets = self.config_file['freqs']
             assert(len(self.screens) == len(self.freq_sets))
-            self.sc_configs = [zip(scr, fre, s_no) for scr, fre, s_no in zip(self.screens,
-                self.freq_sets, self.sq_numbers)]
+            self.sc_configs = [zip(scr, fre) for scr, fre in zip(self.screens,
+                self.freq_sets)]
         else:
             def_freqs = self.config_file['DEFAULT_FREQS']
             assert(def_freqs != None)
@@ -90,28 +85,41 @@ class Experiment_manager(object):
         LOGGER.info("screens and freqs: \n" + \
                 str(self.sc_configs))
 
-        self._shuffle_screens(self.sc_configs)
+        self._prepare_screens(self.sc_configs)
 
         LOGGER.debug("SHUFFLED screens and freqs: \n" + \
                 str(self.sc_configs))
 
-        self.delay = self.config_file['delay']
+        self._delay = self.config_file['delay']
+        self._last_delay = None
+        try:
+            self._delay + 0
+            # No error, delay is not random, just a number
+            self._rand_delay = False
+        except TypeError:
+            self._rand_delay = True
+
         self.config_manager = UgmConfigManager()
         self._connection = None
         self._screen_sounds = self.config_file.get('sounds', None)
         self._screen_look_num = 0
         if self._screen_sounds:
             import pygame
+            import settings
             pygame.init()
-            for i in range(len(self._screen_sounds)):
-                self._screen_sounds[i] = os.path.join(self.config_file['dir'], self._screen_sounds[i])
+            for i, s in enumerate(self._screen_sounds):
+                self._screen_sounds[i] = os.path.join(
+                    settings.module_abs_path(), 
+                    self._screen_sounds[i])
         
 
-    def _shuffle_screens(self, p_sc_set):
+    def _prepare_screens(self, p_sc_set):
         """ Shuffle screens in each pack """
         for i_nr in range(len(p_sc_set)):
             l_original_screens = p_sc_set[i_nr]
-            if len(l_original_screens) > 2:
+            if not self.config_file.get('shuffle', True):
+                l_current_screens = l_original_screens*self.repeats
+            elif len(l_original_screens) > 2:
                 l_current_screens = []
                 l_last_screen = None
                 for i_iterations in range(self.repeats):
@@ -126,19 +134,18 @@ class Experiment_manager(object):
                 l_current_screens = p_sc_set[i_nr] * self.repeats
                 random.shuffle(l_current_screens)
             p_sc_set[i_nr] = l_current_screens
+        if self.config_file.get('shuffle', True):
+            # shuffle screen packs
+            random.shuffle(p_sc_set)
+            
 
 
     def run(self):
-        # shuffle screen packs
-        random.shuffle(self.sc_configs)
-
-        # sleep to synchronize with other modules loading
-        time.sleep(5)
+        self.send_hi_screen()
         
         if USE_MULTIPLEXER:
             l_saver_control = signal_saver_control.SignalSaverControl()
             l_saver_control.start_saving()
-            time.sleep(1)
         
         l_time = time.time()
         TAGGER.send_tag(l_time, l_time, "experiment_start",
@@ -153,8 +160,6 @@ class Experiment_manager(object):
             for i_screen_conf in i_screens_pack:
 
                 self._pre_screen(i_screen_conf)
-                LOGGER.info('screen ' + str(i_screen_conf[0]) + '  freqs: ' +\
-                        str(i_screen_conf[1]))
                 # let ugm read config for new screen...
                 self.config_manager.update_from_file(i_screen_conf[0], True)
                 # ...then update itself
@@ -162,25 +167,41 @@ class Experiment_manager(object):
                 # change diode frequencies 
                 self.update_diode_freqs(i_screen_conf[1])
 
-                time.sleep(self.delay)
+                time.sleep(self._get_delay())
                 self._post_screen(i_screen_conf)
-                if self.config_file['make_breaks']:
-                    l_time = time.time()
-                    TAGGER.send_tag(l_time, l_time, "experiment_update", 
-                        {
-                            "break" : True,
-                            "Freqs" : self.config_file['break_freqs'],
-                            "delay" : self.config_file['break_len'] # TODO
-                        }) 
-                    self.update_diode_freqs(self.config_file['break_freqs'])
-                    time.sleep(self.config_file['break_len'])
 
             self._post_screen_package(i_screens_pack)
+
+
+        self.send_bye_screen()
         l_time = time.time()
-        TAGGER.send_tag(l_time, l_time, "experiment_end",
-                {})
+        TAGGER.send_tag(l_time, l_time, "experiment_end", {})
+
         if USE_MULTIPLEXER:
             l_saver_control.finish_saving()
+
+    def send_hi_screen(self):
+        l_sc = self.config_file['hi_screen']
+        l_sc_del = self.config_file['hi_screen_delay']
+        if l_sc:
+            self._send_simple_screen(l_sc, 'experiment_hi', l_sc_del)
+            time.sleep(l_sc_del)
+
+    def send_bye_screen(self):
+        l_sc = self.config_file['bye_screen']
+        l_sc_del = self.config_file.get('bye_screen_delay',0)
+        if l_sc:
+            self._send_simple_screen(l_sc, 'experiment_bye', l_sc_del)
+            time.sleep(l_sc_del)
+    
+    def _send_simple_screen(self, p_screen, p_tag_name, p_delay):
+        self.config_manager.update_from_file(p_screen, True)
+        self.send_to_ugm()
+        l_time = time.time()
+        TAGGER.send_tag(l_time, l_time, p_tag_name, 
+                        {
+                "delay" : p_delay
+                })
 
     def send_to_ugm(self):
         if USE_MULTIPLEXER:
@@ -217,36 +238,53 @@ class Experiment_manager(object):
                 message = l_msg.SerializeToString(), 
                 type=types.DIODE_UPDATE_MESSAGE, flush=True)
     
+    def _get_delay(self):
+        ret = None
+        if self._rand_delay:
+            ret = self._delay[0] + random.random()*(self._delay[1]-self._delay[0])
+        else:
+            ret = self._delay
+        self._last_delay = ret
+        LOGGER.debug("Computed stimulus delay: "+str(ret))
+        return ret
+
     def _pre_screen_package(self, p_screen_package):
         print('New screen package: ' + str(p_screen_package))
         self._screen_look_num = 0
         
     def _post_screen_package(self, p_screen_package):
-    #  self._play_sound('chime.wav')
-        time.sleep(30)
+        if self.config_file['make_breaks']:
+            self.update_diode_freqs(self.config_file['break_freqs'])
+            l_delay = self.config_file['break_len']
+            self._send_simple_screen(self.config_file['break_screen'],
+                                     'experiment_break', l_delay)
+            time.sleep(l_delay)
     
     def _pre_screen(self, p_screen_config):
         print('New screen: ' + str(p_screen_config[0]))
         # TODO: wybieranie pola do koncentracji, dzwiek oznajmiajacy o tym, zapis do tagu
+        self._play_sound()
+    
+    def _post_screen(self, p_screen_config):
         l_screen_config_name = p_screen_config[0]
-        l_time = time.time()
+
         if l_screen_config_name in self.readable_names:
             l_screen_name = self.readable_names[l_screen_config_name]
         else:
             l_screen_name = l_screen_config_name
-        self._play_sound()
+
+        l_time = time.time()
         TAGGER.send_tag(l_time, l_time, "experiment_update", 
                         {
-                            "concentrating_on_field" : p_screen_config[2],#self._screen_look_num,
+                            "concentrating_on_field" : self._screen_look_num,
                             "screen" : l_screen_name,
                             "Freqs" : p_screen_config[1],
-                            "delay" : self.config_file['delay'] # TODO
+                            "delay" : self._last_delay 
                         }) 
-    
-    def _post_screen(self, p_screen_config):
-    #   self._play_sound('whoosh.wav')
-        pass
-        
+        LOGGER.info('screen ' + str(p_screen_config[0]) + '  freqs: ' +\
+                        str(p_screen_config[1]) + ' delay: '+ str(self._last_delay))
+
+
     def _play_sound(self):
         if not self._screen_sounds:
             return 
@@ -256,8 +294,8 @@ class Experiment_manager(object):
         self._screen_look_num = (self._screen_look_num + 1) % len(self._screen_sounds)
 
 
-    def read_experiment_config(self, p_config_name, p_module_prefix='experiment_builder.config'):
-        module_prefix = p_module_prefix
+    def read_experiment_config(self, p_config_name):
+        module_prefix = 'experiment_builder.config'
         config_module = None
         if p_config_name == None:
             config_module = __import__(module_prefix + '.config', \
@@ -273,7 +311,7 @@ class Experiment_manager(object):
 
 
 def main():
-    l_experiment_manager = Experiment_manager(config_file_name, config_module_name)
+    l_experiment_manager = Experiment_manager(config_file_name)
     l_experiment_manager.run()
 
 if __name__ == '__main__':
