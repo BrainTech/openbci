@@ -1,0 +1,18 @@
+#!/bin/bash
+export PYTHONPATH=./:openbci/:azouk-libraries/build/
+
+#tags
+python openbci/tags/tests/test_file_tags_writer.py
+python openbci/tags/tests/test_file_tags_reader.py
+python openbci/tags/tests/test_file_tags_writer_reader.py
+
+
+#data_storage
+python openbci/data_storage/tests/test_info_file_proxy.py 
+python openbci/data_storage/tests/test_data_file_proxy.py 
+python openbci/data_storage/tests/test_csv_write.py
+python openbci/data_storage/tests/test_signalml_managers.py
+
+
+
+
