@@ -94,28 +94,33 @@ CONFIG['default_freqs'] = [70, 12, 15, 70, 70, 13, 14, 70]
 
 #Set this to True if you want to have breaks between packages.
 #What happens during the break is defined below.
-CONFIG['make_breaks'] = True
-
+CONFIG['make_package_breaks'] = True
 #Set break duration in seconds
-CONFIG['break_len'] = 3
-
+CONFIG['break_package_len'] = 3
 #Set break screen (in format as in 'screens')
-CONFIG['break_screen'] = 'black'
-
+CONFIG['break_package_screen'] = 'black'
 #Set dides frequencies for the break
-CONFIG['break_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
+CONFIG['break_package_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
+
+
+#Set this to True if you want to have breaks between screens.
+#What happens during the break is defined below.
+CONFIG['make_screen_breaks'] = True
+#Set break duration in seconds
+CONFIG['break_screen_len'] = 3
+#Set break screen (in format as in 'screens')
+CONFIG['break_screen_screen'] = 'black'
+#Set dides frequencies for the break
+CONFIG['break_screen_freqs'] = [70, 70, 70, 70, 70, 70, 70, 70]
 
 
 
 #Set welcoming screen (in format as in 'screens')
 CONFIG['hi_screen'] = 'hi_screen'
-
 #Set welcoming screen duration (in seconds)
 CONFIG['hi_screen_delay'] = 3
-
 #Set ending screen (in format as in 'screens')
 CONFIG['bye_screen'] = 'bye_screen'
-
 #Set ending screen duration (in seconds)
 CONFIG['bye_screen_delay'] = 3
 

@@ -253,11 +253,11 @@ class Experiment_manager(object):
         self._screen_look_num = 0
         
     def _post_screen_package(self, p_screen_package):
-        if self.config_file['make_breaks']:
-            self.update_diode_freqs(self.config_file['break_freqs'])
-            l_delay = self.config_file['break_len']
-            self._send_simple_screen(self.config_file['break_screen'],
-                                     'experiment_break', l_delay)
+        if self.config_file['make_package_breaks']:
+            self.update_diode_freqs(self.config_file['break_package_freqs'])
+            l_delay = self.config_file['break_package_len']
+            self._send_simple_screen(self.config_file['break_package_screen'],
+                                     'experiment_package_break', l_delay)
             time.sleep(l_delay)
     
     def _pre_screen(self, p_screen_config):
@@ -272,7 +272,7 @@ class Experiment_manager(object):
             l_screen_name = self.readable_names[l_screen_config_name]
         else:
             l_screen_name = l_screen_config_name
-
+        
         l_time = time.time()
         TAGGER.send_tag(l_time, l_time, "experiment_update", 
                         {
@@ -283,6 +283,14 @@ class Experiment_manager(object):
                         }) 
         LOGGER.info('screen ' + str(p_screen_config[0]) + '  freqs: ' +\
                         str(p_screen_config[1]) + ' delay: '+ str(self._last_delay))
+
+        # Make after-screen beak if defined in config
+        if self.config_file['make_screen_breaks']:
+            self.update_diode_freqs(self.config_file['break_screen_freqs'])
+            l_delay = self.config_file['break_screen_len']
+            self._send_simple_screen(self.config_file['break_screen_screen'],
+                                     'experiment__screen_break', l_delay)
+            time.sleep(l_delay)
 
 
     def _play_sound(self):
