@@ -27,13 +27,13 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 
 import signalml_save_manager
-import sys
+import sys, time
 import settings, variables_pb2
 
 import data_storage_logging as logger
 from tags import tagger
 
-LOGGER = logger.get_logger("signal_saver")
+LOGGER = logger.get_logger("signal_saver", 'info')
 TAGGER = tagger.get_tagger()
 class SignalSaver(BaseMultiplexerServer):
     def __init__(self, addresses):
@@ -41,6 +41,8 @@ class SignalSaver(BaseMultiplexerServer):
                                           type=peers.SIGNAL_SAVER)
         self._session_is_active = False
         self._save_manager = None
+        #self.ile = 0
+        #self.last = 0.0
     def handle_message(self, mxmsg):
         """Handle messages:
         * amplifier_signal_message - raw data from mx.
@@ -53,6 +55,11 @@ class SignalSaver(BaseMultiplexerServer):
             l_vec.ParseFromString(mxmsg.message)
 	    for i_sample in l_vec.samples:
                 self._save_manager.data_received(i_sample.value, i_sample.timestamp)
+            #self.ile = self.ile + 1
+            #if self.ile % 128 == 0:
+            #    now = time.time()
+            #    print("Czas ostatnich 128; ", str(now - self.last))
+            #    self.last = now
 
         elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
             LOGGER.info("Signal saver got signal_saver_control_message: "+\
@@ -125,8 +132,9 @@ class SignalSaver(BaseMultiplexerServer):
         if not self._session_is_active:
             LOGGER.error("Attempting to stop saving signal to file while no file being opened!")
             return
-        l_files = self._save_manager.finish_saving()
         self._session_is_active = False
+        l_files = self._save_manager.finish_saving()
+
         LOGGER.info("Saved files: \n"+str(l_files))
         return l_files
 

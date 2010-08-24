@@ -33,10 +33,12 @@ data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
 svarog_info_file_extension = ".obci.svarog.info"
 tags_file_extension = ".obci.tags"
+svarog_tags_file_extension = ".obci.svarog.tags"
 timestamps_file_extension = ".obci.timestamps"
 
 
 USE_SVAROG_INFO_PROXY = True
+USE_TIMESTAMPS = False
 """set to true if we want to have two info proxies saved - our`s, obci cool proxy, and svarog`s dirty proxy."""
 
 class SignalmlSaveManager(object):
@@ -48,6 +50,47 @@ class SignalmlSaveManager(object):
     - finish_saving()
     - data_received(p_data_sample)
     """
+    def _all_but_first_data_received(self, p_data, p_timestamp):
+        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
+        _all_but_first_data_received is set to self.data_received in 
+        self._first_sample_data_received, so in fact _all_but_first_data_received
+        is fired externally by calling self.data_received."""
+
+        try:
+            self._data_proxy.data_received(p_data)
+        except data_storage_exceptions.BadSampleFormat, e:
+            LOGGER.error("Received sample is not of a good size. Writing aborted!")
+            sys.exit(1)
+
+    def _all_but_first_data_received_with_timestamp(self, p_data, p_timestamp):
+        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
+        _all_but_first_data_received_with_timestamp is set to self.data_received in 
+        self._first_sample_data_received, so in fact _all_but_first_data_received_with_timestamp
+        is fired externally by calling self.data_received."""
+
+        self._all_but_first_data_received(p_data, p_timestamp)
+        self._timestamps_proxy.data_received(p_timestamp)
+
+    def _first_sample_data_received(self, p_data, p_timestamp):
+        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
+        first_sample_data_received is set to self.data_received in self.__init__, so in fact
+        first_sample_data_received is fired externally by calling self.data_received"""
+
+        # 
+        if USE_TIMESTAMPS:
+            self.data_received = self._all_but_first_data_received_with_timestamp
+        else:
+            self.data_received = self._all_but_first_data_received
+
+        self.data_received(p_data, p_timestamp)
+
+        # Set some additional first_sample-like data
+        self._first_sample_timestamp = p_timestamp
+        if USE_SVAROG_INFO_PROXY:
+            self._svarog_tags_proxy.set_first_sample_timestamp(p_timestamp)
+            
+
+
     def __init__(self, p_session_name, p_dir_path, p_signal_params):
         """
         Init data file and info file proxies representing saving process.
@@ -57,10 +100,13 @@ class SignalmlSaveManager(object):
         p_signal_params- a dictionary of signal parameters like number of channels etc, 
         params should be readablye by InfoFileProxy, see its __init__ method t learn more.
         """
+
+        # Init info proxies - files for storing metadata
         self._info_proxies = []
         self._info_proxies.append(info_file_proxy.InfoFileWriteProxy(
             p_session_name, p_dir_path, 
             p_signal_params, info_file_extension))
+
         if USE_SVAROG_INFO_PROXY:
             import svarog_file_proxy
             self._info_proxies.append(
@@ -68,13 +114,30 @@ class SignalmlSaveManager(object):
                     p_session_name, p_dir_path, 
                     p_signal_params, svarog_info_file_extension)
                 )
+
+            from openbci.tags import svarog_tags_file_writer as wr
+            self._svarog_tags_proxy = wr.SvarogTagsFileWriter(
+            p_session_name, p_dir_path, svarog_tags_file_extension,
+            p_signal_params['sampling_frequency'], p_signal_params['number_of_channels'])
+                
+        # Init standard: data and tags proxy
         self._data_proxy = data_file_proxy.DataFileWriteProxy(
             p_session_name, p_dir_path, data_file_extension)
         self._tags_proxy = tags_file_writer.TagsFileWriter(
             p_session_name, p_dir_path, tags_file_extension)
-        self._timestamps_proxy = data_file_proxy.AsciFileWriteProxy(
-            p_session_name, p_dir_path, timestamps_file_extension)
+
+
+        if USE_TIMESTAMPS:
+            # Init additional proxy
+            self._timestamps_proxy = data_file_proxy.AsciFileWriteProxy(
+                p_session_name, p_dir_path, timestamps_file_extension)
+
+        # As we want to tread first sample individually we need to jungle with
+        # self.data_received function - see self.first_sample_data_received
+        # The reason is efficency, we don`t want any extra 'if' in self.data_received
+        # as the function is being called very often
         self._first_sample_timestamp = -1.0
+        self.data_received = self._first_sample_data_received
 
     def finish_saving(self):
         """ Return a tuple x,y where:
@@ -91,24 +154,21 @@ class SignalmlSaveManager(object):
                     'file': os.path.basename(l_data_file_path)})
             l_info_files_paths.append(i_proxy.finish_saving())
         l_tags_file_path = self._tags_proxy.finish_saving()
-        l_timestamps_file_path = self._timestamps_proxy.finish_saving()
-        return tuple([l_info_files_paths[0], l_data_file_path, 
-                      l_tags_file_path, l_timestamps_file_path] + \
-                         l_info_files_paths[1:])
+        if USE_SVAROG_INFO_PROXY:
+            self._svarog_tags_proxy.finish_saving()
 
+        l_saved_files = [l_info_files_paths[0], l_data_file_path, 
+                         l_tags_file_path, l_info_files_paths[1:]]
+        if USE_TIMESTAMPS:
+            l_timestamps_file_path = self._timestamps_proxy.finish_saving()
+            l_saved_files.append(l_timestamps_file_path)
+            
+        return tuple(l_saved_files)
 
-    def data_received(self, p_data, p_timestamp):
-        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy."""
-        try:
-            self._data_proxy.data_received(p_data)
-        except data_storage_exceptions.BadSampleFormat, e:
-            LOGGER.error("Received sample is not of a good size. Writing aborted!")
-            sys.exit(1)
-        self._timestamps_proxy.data_received(p_timestamp)
-        if self._first_sample_timestamp < 0:#TODO - zrobic, zeby za kazdym razem to sie nie sprawdzalo
-            self._first_sample_timestamp = p_timestamp
 
     def tag_received(self, p_tag_dict):
         self._tags_proxy.tag_received(p_tag_dict)
+        if USE_SVAROG_INFO_PROXY:
+            self._svarog_tags_proxy.tag_received(p_tag_dict)
 
             
