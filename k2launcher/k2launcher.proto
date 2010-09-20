@@ -1,0 +1,86 @@
+package k2launcher;
+
+message KeyValue {
+    required string key = 1;
+    required string value = 2;
+}
+
+message Task {
+    optional string cmd = 1;
+    required string task_id = 2;
+    optional string node = 3 [default = "__ANY__"];
+    repeated KeyValue env = 4;
+    optional string screen_name = 5;
+    optional bool babysit_pidfile = 6 [default = false];
+    optional bool babysit_screen = 7 [default = false];
+    optional string pidfile = 8;
+    optional string working_dir = 9;
+    optional bool bash_debug = 10 [default = true];
+    optional bool bash_after = 11 [default = true];
+    optional bool date_at_the_beginning = 12 [default = true];
+    optional double babysit_delay = 13 [default = 5.];
+    optional bool expose_pidfile_in_env = 14 [default = true];
+    optional bool generate_pidfile = 15 [default = false];
+}
+
+message LaunchedTask {
+    enum State {
+        BORN = 0;  // scheduled to be started (running)
+        RUNNING = 1;
+    }
+    required Task task = 1;
+    required string launched_node = 2;
+    required State state = 3;
+    optional int32 restart_counter = 4;
+}
+
+// Valid pairs of optional parameters:
+// Id and type is always required.
+//   1. Command flow to controller (from captain)
+//     START => task.cmd, when (optional), priority (optional)
+//     KILL => task.task_id, when (optional), priority (optional)
+//     RESTART => task.task_id, task.cmd (optional), when (optional), priority (optional)
+//   2. Command flow from controller (to nurse)
+//     START => task
+//     KILL => task_id
+//     RESTART => task_id, task
+// When:
+//   When < 0 means timestamp = now(controller) - when
+//   When = 0 menas now
+//   When > 0 means timestamp = when
+// Priority:
+//  Grater = more important
+// Special type STOP means stop everything.
+
+message Command {
+    enum Type {
+        START = 0;
+        KILL = 1;
+        RESTART = 2;
+        STOP = 3;
+    }
+    required uint64 id = 1;
+    required Type type = 2;
+    optional Task task = 3;
+    optional double when = 4;
+    optional double priority = 5;
+}
+
+message ScheduleResponse {
+    enum Type {
+        OK = 0;
+        ERROR_TASK_NOT_SPECIFIED = 1;
+        ERROR_NOT_ENOUGH_ARGUMENTS = 2;
+        ERROR_BAD_BABYSITTER = 3;
+    }
+    required Type type = 1;
+    optional string message = 2;
+}
+
+message GetNext {
+    required string node = 1;
+}
+
+message GetTaskState {
+    required string task_id = 1;
+}
