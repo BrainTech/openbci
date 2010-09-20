@@ -1,4 +1,0 @@
-#!/bin/bash
-export PYTHONPATH=./:openbci/:./azouk-libraries/build/:PYTHONPATH
-
-python ./openbci/data_storage/tests/test_manually_signal_saver_control.py finish_saving

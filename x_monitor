@@ -1,3 +1,0 @@
-export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
-
-./openbci/monitors/monitor.py $1 &
