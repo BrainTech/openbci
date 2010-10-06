@@ -29,7 +29,7 @@ import variables_pb2
 from openbci.core import types_utils
 
 import tags_logging as logger
-LOGGER = logger.get_logger('tagger')
+LOGGER = logger.get_logger('tagger', 'info')
 
 class Tagger(object):
     def __init__(self):
@@ -39,7 +39,14 @@ class Tagger(object):
     def pack_tag(self, p_start_timestamp, p_end_timestamp, 
                  p_tag_name, p_tag_desc={}, p_tag_channels=""):
         """Return tag with given values. 
-        Returned tag is serialised to string."""
+        Returned tag is serialised to string.
+        Parameters:
+        - p_start_timestamp - float 
+        - p_end_timestamp - float
+        - p_tag_name - string
+        - p_tag_desc - dictionary
+        - p_tag_channels - string like "0 6 7" - numbers of channels
+        """
         l_tag = variables_pb2.Tag()
         l_tag.start_timestamp = p_start_timestamp
         l_tag.end_timestamp = p_end_timestamp
@@ -79,7 +86,7 @@ class Tagger(object):
         - p_end_timestamp - float
         - p_tag_name - string
         - p_tag_desc - dictionary
-        - p_tag_channels = string
+        - p_tag_channels - string like "0 6 7" - numbers of channels
         """
         l_info_desc = ''.join(
             ["Sending tag:\n",

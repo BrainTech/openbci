@@ -26,7 +26,9 @@
 """
 >>> from openbci.data_storage import data_file_proxy as p
 
->>> px = p.DataFileWriteProxy('tescik', './', '.obci.dat')
+>>> import settings, os.path
+
+>>> px = p.DataFileWriteProxy('tescik', settings.module_abs_path(), '.obci.dat')
 
 >>> px.data_received(1.2)
 
@@ -34,7 +36,11 @@
 
 >>> px.data_received(-123.456)
 
->>> py = p.DataFileReadProxy('tescik.obci.dat')
+>>> nic = px.finish_saving()
+
+>>> f = os.path.join(settings.module_abs_path(),'tescik.obci.dat')
+
+>>> py = p.DataFileReadProxy(f)
 
 >>> py.start_reading()
 
@@ -46,6 +52,12 @@
 
 >>> py.get_next_value()
 -123.456
+
+>>> py.goto_value(1)
+
+>>> py.get_next_value()
+0.0023
+
 
 """
 

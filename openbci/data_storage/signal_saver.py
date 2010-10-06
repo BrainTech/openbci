@@ -41,8 +41,10 @@ class SignalSaver(BaseMultiplexerServer):
                                           type=peers.SIGNAL_SAVER)
         self._session_is_active = False
         self._save_manager = None
-        #self.ile = 0
-        #self.last = 0.0
+        if __debug__:
+            from openbci.core import streaming_debug
+            self.debug = streaming_debug.Debug(128, LOGGER)
+
     def handle_message(self, mxmsg):
         """Handle messages:
         * amplifier_signal_message - raw data from mx.
@@ -55,11 +57,9 @@ class SignalSaver(BaseMultiplexerServer):
             l_vec.ParseFromString(mxmsg.message)
 	    for i_sample in l_vec.samples:
                 self._save_manager.data_received(i_sample.value, i_sample.timestamp)
-            #self.ile = self.ile + 1
-            #if self.ile % 128 == 0:
-            #    now = time.time()
-            #    print("Czas ostatnich 128; ", str(now - self.last))
-            #    self.last = now
+            if __debug__:
+                #Log module real sampling rate
+                self.debug.next_sample()
 
         elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
             LOGGER.info("Signal saver got signal_saver_control_message: "+\

@@ -28,7 +28,7 @@ import sys
 import os.path
 from openbci.data_storage import data_storage_exceptions
 from openbci.data_storage import data_storage_logging as logger
-LOGGER = logger.get_logger("data_file_proxy", 'debug')
+LOGGER = logger.get_logger("data_file_proxy", 'info')
 import time
 SAMPLE_SIZE = 8 #float
 class DataFileWriteProxy(object):
@@ -133,8 +133,6 @@ class DataFileReadProxy(object):
         except struct.error:
             self._data_file.close()
             raise(data_storage_exceptions.NoNextValue())
-        except Exception, e:
-            raise(e)
 
     def goto_value(self, p_value_no):
         """Set the engine, so that nex 'get_next_value' call will return

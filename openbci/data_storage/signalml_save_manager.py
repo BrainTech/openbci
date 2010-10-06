@@ -29,6 +29,9 @@ import info_file_proxy
 import data_file_proxy
 from openbci.tags import tags_file_writer
 import data_storage_exceptions
+import data_storage_logging as logger
+LOGGER = logger.get_logger("signalml_save_manager", 'info')
+
 data_file_extension = ".obci.dat"
 info_file_extension = ".obci.info"
 svarog_info_file_extension = ".obci.svarog.info"
@@ -169,6 +172,9 @@ class SignalmlSaveManager(object):
     def tag_received(self, p_tag_dict):
         self._tags_proxy.tag_received(p_tag_dict)
         if USE_SVAROG_INFO_PROXY:
-            self._svarog_tags_proxy.tag_received(p_tag_dict)
+            if self._first_sample_timestamp < 0:
+                LOGGER.error("Can't save tag to svarog_tags_proxy as no sample hasn`t been received yet and we don`t have first_sample_timestamp")
+            else:
+                self._svarog_tags_proxy.tag_received(p_tag_dict)
 
             

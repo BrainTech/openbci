@@ -24,85 +24,62 @@
 #
 
 """
->>> from openbci.data_storage import signalml_save_manager, signalml_read_manager
+>>> from openbci.data_storage import signalml_read_manager
 
->>> import os
+>>> import os, os.path
 
 >>> from openbci import settings 
 
->>> os.system("rm -f "+settings.module_abs_path()+"tescik.obci.*")
-0
+>>> f = os.path.join(settings.module_abs_path(),'data')
 
->>> svr = signalml_save_manager.SignalmlSaveManager('tescik', settings.module_abs_path(), {'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2']})
+>>> f = f+'/data'
 
->>> svr.data_received(float(1), 1.0)
-
->>> svr.data_received(float(2), 2.0)
-
->>> svr.data_received(float(3), 3.0)
-
->>> svr.data_received(float(4), 4.0)
-
->>> files = svr.finish_saving()
-
->>> (inf, dat, tags, timestamps) = files[0:4]
-
->>> mgr = signalml_read_manager.SignalmlReadManager(inf, dat)
+>>> mgr = signalml_read_manager.SignalmlReadManager(f+'.obci.info', f+'.obci.dat')
 
 >>> mgr.start_reading()
 
->>> mgr.get_next_value()
-1.0
 
 >>> mgr.get_next_value()
-2.0
+-27075.0
 
 >>> mgr.get_next_value()
-3.0
+39641.0
 
->>> mgr.get_next_value()
-4.0
-
->>> mgr.get_next_value()
-Traceback (most recent call last):
-...    
-NoNextValue
+>>> mgr.get_all_values()[1]
+39641.0
 
 >>> mgr.start_reading()
 
->>> mgr.get_all_channeled_values()
-array([[ 1.,  3.],
-       [ 2.,  4.]])
+>>> ch = mgr.get_all_channeled_values()
 
->>> mgr.get_all_channeled_values()
-array([[ 1.,  3.],
-       [ 2.,  4.]])
+>>> ch[0][0]
+-27075.0
 
+>>> ch[1][0]
+39641.0
 
->>> mgr.get_all_values()
-[1.0, 2.0, 3.0, 4.0]
+>>> [len(x) for x in ch]
+[112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407, 112407]
 
->>> mgr.get_all_channeled_values(True)
-array([[ 1.,  3.],
-       [ 2.,  4.]])
-
-
->>> mgr.get_param(u'file')
-u'tescik.obci.dat'
 
 >>> mgr.get_param(u'number_of_samples')
-u'4'
+u'2810175'
 
 >>> mgr.get_param(u'sampling_frequency')
 u'128'
 
 >>> mgr.get_param('channels_names')
-[u'1', u'2']
+[u'Fp1', u'Fpz', u'Fp2', u'F7', u'F3', u'Fz', u'F4', u'F8', u'M1', u'C7', u'C3', u'Cz', u'C4', u'T8', u'M2', u'P7', u'P3', u'Pz', u'P4', u'P8', u'O1', u'Oz', u'O2', u'NIC', u'OKO_GORA_DOL']
+
 
 >>> mgr.get_param('im_not_there')
 Traceback (most recent call last):
 ...
 NoParameter: No parameter 'im_not_there' was found in info xml file!
+
+
+
+
 
 """
 if __name__ == '__main__':

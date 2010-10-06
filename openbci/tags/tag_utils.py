@@ -41,3 +41,24 @@ def unpack_tag_from_dict(p_dict):
             l_tag_desc[i_key] = i_value
     l_tag_dict['desc'] = l_tag_desc
     return l_tag_dict
+
+def pack_tag_to_dict(p_start_timestamp, p_end_timestamp, 
+                 p_tag_name, p_tag_desc={}, p_tag_channels=""):
+    """For given tag parameters return a dictionary representing
+    tag with those parameters.
+    Parameters:
+    - p_start_timestamp - float 
+    - p_end_timestamp - float
+    - p_tag_name - string
+    - p_tag_desc - dictionary
+    - p_tag_channels - string like "0 6 7" - numbers of channels
+    """
+    l_tag_dict = {}
+    l_tag_dict['start_timestamp'] = p_start_timestamp
+    l_tag_dict['end_timestamp'] = p_end_timestamp
+    l_tag_dict['name'] = p_tag_name
+    l_tag_dict['channels'] =p_tag_channels
+    l_tag_dict['desc'] = p_tag_desc
+
+    return l_tag_dict
+
