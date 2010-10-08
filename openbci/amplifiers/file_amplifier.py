@@ -78,6 +78,7 @@ class FileEEGAmplifier(virtual_eeg_amplifier.VirtualEEGAmplifier):
         l_var.value = ' '.join([str(num) for num in self.channel_numbers])
         self.connection.send_message(message = l_var.SerializeToString(), 
                                      type = types.DICT_SET_MESSAGE, flush=True)
+        time.sleep(5) #Give other modules a time to read data from dictionary
 
     def _get_channels_numbers(self):
         """Return a collection of channel numbers (as ints) that are stored 

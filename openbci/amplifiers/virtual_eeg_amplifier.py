@@ -52,23 +52,31 @@ class VirtualEEGAmplifier(object):
 
     def do_sampling(self):
         """Start flooding multiplexer with data..."""
-        offset = 0
+        if __debug__:
+            from openbci.core import streaming_debug
+            self.debug = streaming_debug.Debug(128, LOGGER)
+
+        offset = 0.0
+        brek = 1/float(self.sampling_rate)
         real_start_time = time.time()
-        data_start_time = self._get_sampling_start_time()
+        data_start_time = real_start_time #self._get_sampling_start_time()
+        channels_data = [0]*len(self.channel_numbers)
+        channels_data_len = len(channels_data)
         while True:
-            channels_data = []
+
             try:
-                for channel_number in self.channel_numbers:
-                    channels_data.append(self._get_next_value(offset))
+                for i in range(channels_data_len):
+                    channels_data[i] = self._get_next_value(offset)
+                                   
             except data_storage_exceptions.NoNextValue:
                 LOGGER.info("All samples has been red. Sampling finished.")
                 break
-            offset += 1
+            offset += 1.0
             sampleVector = variables_pb2.SampleVector()
             # For real-time data: t = time.time() = real_start_time + (time.time() - real_start_time)
             # For historical-time data: t = data_start_time + (time.time() - real_start_time)
             # But for real-time data: real_start_time == data_start_time, so:
-            t = float(data_start_time + (time.time() - real_start_time))
+            t = data_start_time + (time.time() - real_start_time)
             for x in channels_data:
                 samp = sampleVector.samples.add()
                 samp.value = float(x)
@@ -76,7 +84,11 @@ class VirtualEEGAmplifier(object):
             self.connection.send_message(
                 message=sampleVector.SerializeToString(), 
                 type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
-            time_to_sleep = real_start_time + offset * (1. / self.sampling_rate) - time.time()
+
+            if __debug__:
+                #Log module real sampling rate
+                self.debug.next_sample()
+            time_to_sleep = brek - (time.time() - t)
             if time_to_sleep > 0:
                 time.sleep(time_to_sleep)
     def _get_sampling_start_time(self):
