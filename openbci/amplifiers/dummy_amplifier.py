@@ -62,8 +62,6 @@ class DummyAmplifier(object):
                 samplesVector.samples[i].value = random.random()
                 samplesVector.samples[i].timestamp = t
 
-            x = [samplesVector.samples[i].value for i in range(self.num_of_channels)]
-            print(x)
             self.connection.send_message(
                 message=samplesVector.SerializeToString(), 
                 type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
