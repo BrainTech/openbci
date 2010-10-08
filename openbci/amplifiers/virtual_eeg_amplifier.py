@@ -46,9 +46,21 @@ class VirtualEEGAmplifier(object):
     should be defined and set."""
     def __init__(self):
         self.connection = connect_client(type = peers.AMPLIFIER)
-        time.sleep(1)
-        self.sampling_rate = None #To redefine in subclass
-        self.channel_numbers = None #To redefine in subclass
+        # We need to get basic configuration from hashtable as
+        # other modules will expect the same configuration..
+
+        # sampling rate
+        self.sampling_rate = int(self.connection.query(
+                message="SamplingRate", 
+                type=types.DICT_GET_REQUEST_MESSAGE).message)
+
+        # determine number of channels
+        # channel_numbers_string will be sth like: "0 1 2 3"
+        channel_numbers_string = self.connection.query(
+                message="AmplifierChannelsToRecord", 
+                type=types.DICT_GET_REQUEST_MESSAGE).message
+
+        self.num_of_channels = len(channel_numbers_string.split(" "))
 
     def do_sampling(self):
         """Start flooding multiplexer with data..."""
