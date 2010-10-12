@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
 # OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
@@ -20,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Author:
-#      Łukasz Polak <l.polak@gmail.com>
+#      ukasz Polak <l.polak@gmail.com>
 #      Joanna Tustanowska <asia.tustanowska@gmail.com>
 #
 """Holds Experiment_manager class:
@@ -30,6 +29,7 @@ of those experiments and makes it possible to run them"""
 from ugm.ugm_config_manager import UgmConfigManager
 from experiment_builder.config.config import USE_MULTIPLEXER 
 
+import ConfigParser
 import random
 import time
 import sys
@@ -74,6 +74,13 @@ class Experiment_manager(object):
         # set up screens configuration - pair screens with diode freqs
         if not self.config_file.get('USE_DEFAULT_FREQS'):
             self.freq_sets = self.config_file['freqs']
+	    print "UWAGA"
+	    print ""
+	    print ""
+	    print self.screens
+	    print len(self.screens)
+	    print self.freq_sets
+	    print len(self.freq_sets)
             assert(len(self.screens) == len(self.freq_sets))
             self.sc_configs = [zip(scr, fre) for scr, fre in zip(self.screens,
                 self.freq_sets)]
@@ -305,17 +312,28 @@ class Experiment_manager(object):
     def read_experiment_config(self, p_config_name):
         module_prefix = 'experiment_builder.config'
         config_module = None
-        if p_config_name == None:
-            config_module = __import__(module_prefix + '.config', \
-                    fromlist=['CONFIG'])
-        else:
-            try:
-                config_module = __import__(module_prefix +'.'+ p_config_name, \
-                        fromlist=['CONFIG'])
-            except: 
-                print "INVALID EXPERIMENT CONFIG NAME! ", p_config_name
-                raise
-        return config_module.CONFIG 
+        CONFIG = {}
+        Config = ConfigParser.ConfigParser()
+        Config.read("/home/mrygacz/openbci/openbci/openbci/experiment_builder/config/config_file.ini")
+        for section in Config.sections():
+                print section
+                for option in Config.options(section):
+                        print Config.get(section, option)
+			CONFIG[option] = eval(Config.get(section, option))
+	#CONFIG['screens'] = eval(CONFIG['screens'])
+	#CONFIG['freqs'] = eval(CONFIG['freq_sets'])
+	
+        #if p_config_name == None:
+        #    config_module = __import__(module_prefix + '.config', \
+        #            fromlist=['CONFIG'])
+        #else:
+        #    try:
+        #        config_module = __import__(module_prefix +'.'+ p_config_name, \
+        #                fromlist=['CONFIG'])
+        #    except: 
+        #        print "INVALID EXPERIMENT CONFIG NAME! ", p_config_name
+        #        raise
+        return CONFIG 
 
 
 def main():

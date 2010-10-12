@@ -15,7 +15,7 @@ from nurse_helper import close_screen, start_screen
 
 
 class Captain(object):
-    def __init__(self, mx_addresses=None, mx_password=None, default_env={}, mx_path=""):
+    def __init__(self,global_path, mx_addresses=None, mx_password=None, default_env={}, mx_path=""):
         """
         mx_addresses = comma separated list of type
         """
@@ -35,6 +35,7 @@ class Captain(object):
         self.connection = None
         self.default_env = default_env
         self.mx_path = mx_path
+	self.global_path = global_path
 
     def connect(self):
         self.connection = connect_client(type=peers.K2_LAUNCHER_CAPTAIN,
@@ -87,9 +88,9 @@ class Captain(object):
             x = x.strip(" ")
             start_screen("mx_" + str(i), self.mx_path + 'mxcontrol run_multiplexer ' + x + ' --multiplexer-password "' + self.mx_password + '"')
         time.sleep(0.5)
-        start_screen("controller", "python controller.py", env=self.default_env)
+        start_screen("controller", "cd " + self.global_path + "; python controller.py", env=self.default_env)
         time.sleep(0.5)
-        start_screen("nurse", "python nurse.py", env=self.default_env)
+        start_screen("nurse", "cd " + self.global_path + "; python nurse.py", env=self.default_env)
 
     def stop_one_node(self):
         self.do_task(k2launcher_pb2.Command.STOP, None, sync=True)

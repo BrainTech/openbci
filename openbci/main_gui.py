@@ -44,9 +44,9 @@ class BCIMainWindow(QtGui.QMainWindow):
         # Loads modules from config into dictionary
         self.processModules(MODULES_LIST)
         # TODO: main gui should be made in designer, and not in code here
-        self.setMinimumSize(600, 450)
+        self.setMinimumSize(800, 300)
         self.pluginsList = QtGui.QTreeWidget()
-        self.pluginsList.setMinimumSize(200, 200)
+        self.pluginsList.setMinimumSize(50, 200)
         self.pluginsList.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.pluginsList.setHeaderLabels(["Nazwa"])
         for i_plugin in self.modules.values():

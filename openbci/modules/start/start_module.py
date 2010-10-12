@@ -22,10 +22,24 @@
 # Author:
 #      Łukasz Polak <l.polak@gmail.com>
 #
-"""This list contains modules names, that will be shown in main GUI window.
-For each name on this list there should be a corresponding module in modules
-directory"""
+"""Module file for experiment configuration"""
 
-MODULES_LIST = [
-        'ugm', 'exp', 'start'
-    ]
+#from ugm.ugm_config_manager import UgmConfigManager
+from modules.start.start_module_dock_widget import StartModuleDockWidget
+
+class StartModule(object):
+    """Module file for EXP. Creates and manages its configuration GUI"""
+
+    #name of this module, that will be shown in GUI
+    name = "Start"
+    
+    def __init__(self): 
+        self.dockWidget = None
+        #self.ugmConfigManager = UgmConfigManager()
+    
+    def buildGui(self, p_parent):
+        """Return configuration GUI in form of dock widget"""
+        if self.dockWidget == None:
+            self.dockWidget = StartModuleDockWidget(p_parent)
+        return self.dockWidget
+    
