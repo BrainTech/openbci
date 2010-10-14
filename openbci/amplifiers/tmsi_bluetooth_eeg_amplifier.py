@@ -104,9 +104,9 @@ class TMSiBluetoothEEGAmplifier:
         """
         Start sending samples forever.
         """
-        if __debug__:
-            from openbci.core import streaming_debug
-            self.debug = streaming_debug.Debug(128, LOGGER)
+        #if __debug__:
+        #    from openbci.core import streaming_debug
+        #    self.debug = streaming_debug.Debug(128, LOGGER)
 
         last_keep_alive = time.time()
         start = time.time()
@@ -160,10 +160,10 @@ class TMSiBluetoothEEGAmplifier:
                     self.connection.send_message( \
                         message=sample_vector.SerializeToString(), \
                         type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
-                    if __debug__:
-                		#Log module real sampling rate
-                		self.debug.next_sample()
-                    ii += 1
+                    #if __debug__:
+                	#	#Log module real sampling rate
+                	#	self.debug.next_sample()
+                    #ii += 1
                     if i != len(channel_data[0]) - 1:
                         # if this is not the last sample we want to send
                         # this implies that we are decoding vldelta packet

@@ -47,7 +47,7 @@ task("./data_storage/signal_saver.py; ./data_storage/tests/test_manually_signal_
 task("./experiment_builder/experiment_manager.py mx-on config", "experiment_manager")
 task("./super_diode_control.py", "diode_control")
 
-task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB &", "amplifier")
+task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB ", "amplifier")
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
