@@ -1,4 +1,5 @@
 # vim:ft=conf:
+# no_filter
 
 # peer definitions
 #
@@ -62,6 +63,7 @@ peer {
 peer {
     type: 112
     name: "AMPLIFIER"
+    queue_size: 32768
 }
 
 peer {
@@ -82,6 +84,7 @@ peer {
 peer {
     type: 116
     name: "FILTER"
+    queue_size: 32768
 }
 
 peer {
@@ -96,6 +99,7 @@ peer {
 peer {
     type: 119
     name: "STREAM_RECEIVER"
+    queue_size: 32768
 }
 
 peer {
@@ -116,11 +120,13 @@ peer {
 peer {
     type: 123
     name: "SIGNAL_STREAMER"
+    queue_size: 32768
 }
 
 peer {
-     type: 124
+     type: 124	
      name: "SIGNAL_SAVER"
+    queue_size: 32768
 }
 
 peer {
@@ -141,11 +147,14 @@ peer {
 peer {
      type: 128
      name: "TAGS_SENDER"
+    queue_size: 32768
+
 }
 
 peer { 
      type: 129
      name: "TAGS_RECEIVER"
+    queue_size: 32768
 }
 
 peer {
@@ -155,6 +164,7 @@ peer {
 peer {
     type: 131
     name: "TAG_CATCHER"
+    queue_size: 32768
 }
 
 peer {
@@ -292,14 +302,19 @@ type {
     type: 129
     name: "AMPLIFIER_SIGNAL_MESSAGE"
     to {
-        peer: "FILTER"
+       peer: "SIGNAL_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+    to {
+        peer: "SIGNAL_CATCHER"
         whom: ALL
 	report_delivery_error: false
     }  
- 
     to {
-	peer: "SIGNAL_SAVER"
-	whom: ALL
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
 	report_delivery_error: false
     }
 }
@@ -318,12 +333,6 @@ type {
 	report_delivery_error: false
     }
     
-    to {
-       peer: "AUTOSCALE_GENERATOR"
-       whom: ALL
-	report_delivery_error: false
-
-     }
 }
 
 type {
@@ -496,6 +505,10 @@ type {
      	peer: "TAGS_RECEIVER"
 	whom: ANY
 	}
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+    }
 }
 
 type {
