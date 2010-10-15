@@ -26,6 +26,10 @@
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
+from openbci.core import  core_logging as logger
+LOGGER = logger.get_logger("streamer", 'info')
+import time
+
 
 
 class SignalStreamer(BaseMultiplexerServer):
@@ -34,23 +38,22 @@ class SignalStreamer(BaseMultiplexerServer):
         self.state = 0 # temporarily: 0 = nothing; 1 = transmission
         self.channels = self.conn.query(message="AmplifierChannelsToRecord", type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")
         self.subscribers = {}
+        if __debug__:
+            from openbci.core import streaming_debug
+            self.debug = streaming_debug.Debug(128, LOGGER)
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.FILTERED_SIGNAL_MESSAGE:
-#            print("GOOOOOOOOOOOOOOOOOOOOOOOOOOT")
+        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
             if self.state == 1:
                 for node in self.subscribers:
-#                    print("2222222222222222")
-                    #print "self.subscribers[node] ", self.subscribers[node]
-                    #channels = self.subscribers[node].split(" ")
-                    sampVec = variables_pb2.SampleVector()
-                    sampVec.ParseFromString(mxmsg.message)
-                    newVec = variables_pb2.SampleVector()
-                    for i in self.channels:
-#                        print("333333333333333333333#")
-                        samp = newVec.samples.add()
-                        samp.CopyFrom(sampVec.samples[int(i)])
-                    self.conn.send_message(message=newVec.SerializeToString(), type=types.STREAMED_SIGNAL_MESSAGE, flush=True, to=int(node))  
+                    self.conn.send_message(
+                        message=mxmsg.message, 
+                        type=types.STREAMED_SIGNAL_MESSAGE, 
+                        flush=True, to=int(node))  
+
+            if __debug__:
+                #Log module real sampling rate
+                self.debug.next_sample()
                  
         elif mxmsg.type == types.SIGNAL_STREAMER_START:
             self.subscribers[str(mxmsg.from_)] = mxmsg.message
