@@ -24,4 +24,7 @@ class Tester(object):
             if self.type == "" or self.type == tag['name']:
                 tags.append(tag)
         return tags
-            
+
+import sys            
+if __name__ == "__main__":
+    print(Tester(sys.argv[1], sys.argv[2]).show_times_diffs())
