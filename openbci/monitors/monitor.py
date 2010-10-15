@@ -74,6 +74,11 @@ class Monitor(QtGui.QWidget):
             d.append(x.value) 	
         #data = cPickle.loads(data)
         #data = list(data)
+        #print(len(d))
+        if len(d) < 100:
+            print("RETURNED")
+            print(len(d))
+            return
         data = d
         data = data[-4 * self.sampling_rate:]
     
