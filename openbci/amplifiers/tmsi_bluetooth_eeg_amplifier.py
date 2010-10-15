@@ -36,6 +36,8 @@ import tmsi
 import gflags
 import sys
 import re
+import amplifiers_logging as logger
+LOGGER = logger.get_logger("file_amplifier", "info")
 
 
 class TMSiBluetoothEEGAmplifier:
