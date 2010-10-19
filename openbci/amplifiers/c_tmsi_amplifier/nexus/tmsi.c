@@ -258,12 +258,10 @@ char *tms_get_string(uint8_t *msg, int32_t n, int32_t start) {
   if (i>n)
   {
       fprintf(stderr,"# Error: tms_get_string: index 0x%04X out of range 0x%04X\n",i,n);
-      return "ERROR";
   }
   size=2*(tms_get_int(msg,&i,2)-1);
   if (i+size>n || size<=0) {
     fprintf(stderr,"# Error: tms_get_string: index 0x%04X out of range 0x%04X (length:%d)\n",i+size,n,size);
-    return "ERROR";
   } else {
 
     /* malloc space for the string */
@@ -906,14 +904,20 @@ int16_t tms_put_chksum(uint8_t *msg, int32_t n) {
   /* return total size of 'msg' including checksum */
   return(i);
 }
+#ifdef AMP_DEBUG
 #define DUMP_OPEN int fd2=open("dump.amp",O_WRONLY|O_APPEND);
 #define DUMP(msg,br)  if (br>0) write(fd2,msg,br);
 #define DC close(fd2);
-
+#else
+#define DUMP_OPEN ;
+#define DUMP(msg,br);
+#define DC ;
+#endif
 /** Read at max 'n' bytes of TMS message 'msg' for 
  *   bluetooth device descriptor 'fd'.
  * @return number of bytes read.
 */
+#define TIMEOUT 10000
 int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n) {
   
   int32_t i=0;         /**< byte index */
@@ -929,7 +933,7 @@ int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n) {
   /* wait (not too long) for sync block */
   br=0;
   DUMP_OPEN
-  while ((rtc<1000) && (sync!=TMSBLOCKSYNC)) {
+  while ((rtc<TIMEOUT) && (sync!=TMSBLOCKSYNC)) {
     if (br>0) {
       msg[0]=msg[1];
     }
@@ -940,26 +944,26 @@ int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n) {
     }
     rtc++;
   }
-  if (rtc>=1000) {
+  if (rtc>=TIMEOUT) {
     fprintf(stderr,"# Error: timeout on waiting for block sync\n");DC
     return(-1);    
   }
   /* read 2 byte description */
-  while ((rtc<1000) && (i<4)) {
+  while ((rtc<TIMEOUT) && (i<4)) {
     br=read(fd,&msg[i],1);DUMP(&msg[i],br);i++; tbr+=br;
     rtc++;
   }
-  if (rtc>=1000) {
+  if (rtc>=TIMEOUT) {
     fprintf(stderr,"# Error: timeout on waiting description\n");DC
     return(-2);    
   }
   size=msg[2]; 
   /* read rest of message */
-  while ((rtc<1000) && (i<(2*size+6)) && (i<n)) {
+  while ((rtc<TIMEOUT) && (i<(2*size+6)) && (i<n)) {
     br=read(fd,&msg[i],1);DUMP(&msg[i],br); i++; tbr+=br;
     rtc++;
   }
-  if (rtc>=1000) {
+  if (rtc>=TIMEOUT) {
     fprintf(stderr,"# Error: timeout on rest of message\n");DC
     return(-3);    
   }
@@ -1315,10 +1319,10 @@ int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n) {
   
   rtc=0;
   /* keep on requesting id data until all data is read */
-  while ((rtc<10) && (len>0) && (tbw<n)) {
+  while ((rtc<20) && (len>0) && (tbw<n)) {
     rtc++;
     if (tms_send_iddata_request(fd,adr,len) < 0) {
-      continue;
+      //continue;
     }
     /* get response */
     br=tms_rcv_msg(fd,rcv,sizeof(rcv)); 
@@ -1336,6 +1340,7 @@ int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n) {
       /* get length */
       length=tms_get_int(rcv,&i,2);
       /* copy response to final result */
+      fprintf(stderr,"IDDATA Received!! Address: %d, length: %d",start,length);
       if (tbw+2*length>n) {
         fprintf(stderr,"# Error: tms_get_iddata: msg too small %d\n",tbw+2*length);
       } else { 
@@ -1405,13 +1410,22 @@ int32_t tms_get_input_device(uint8_t *msg, int32_t n, int32_t start, tms_input_d
   /* goto first channel descriptor */
   i=idx;
   /* get all channel descriptions */
+  bool error=false;
   for (j=0; j<inpdev->NrOfChannels; j++) {
     idx=2*tms_get_int(msg,&i,2)+start;
-    if (idx+sizeof(tms_type_desc_t)>=n) return -1;
+    if (idx+sizeof(tms_type_desc_t)>=n)
+    {
+        error=true;
+    } else
     tms_get_type_desc(msg,n,idx,&inpdev->Channel[j].Type);
     idx=2*tms_get_int(msg,&i,2)+start;
-    if (idx>=n) return -1;
-    inpdev->Channel[j].ChannelDescription=tms_get_string(msg,n,idx);
+    char * desc = tms_get_string(msg,n,idx);
+    if (desc==NULL){
+        error=true;
+        desc="ERROR";
+    }
+    inpdev->Channel[j].ChannelDescription=desc;
+
     inpdev->Channel[j].GainCorrection    =tms_get_float(msg,&i);
     inpdev->Channel[j].OffsetCorrection  =tms_get_float(msg,&i);
   }
@@ -1428,7 +1442,7 @@ int32_t tms_get_input_device(uint8_t *msg, int32_t n, int32_t start, tms_input_d
     fprintf(stderr,"# Warning: tms_get_input_device: total bits count %d %% 16 !=0\n",tnb);
   }
   inpdev->DataPacketSize=tnb/16;
-
+  if (error) return -1;
   if (i<=n) { return(0); } else { return(-1); }
 }
 
@@ -1660,6 +1674,18 @@ int32_t tms_prt_bits(FILE *fp, uint8_t *msg, int32_t n, int32_t idx)
   nc+=fprintf(fp," LSB\n");
   return(nc);
 }
+int32_t get_channel_data_int(uint8_t *msg, int *s,int b)
+{
+    int ans=0;
+    int i=*s;
+    if (b==4)
+      ans=(msg[i+1]<<24)|(msg[i]<<16)|(msg[i+3]<<8)|(msg[i+2]);
+    else if (b==3)
+      ans= (msg[i+1])<<16|(msg[i]<<8)|(msg[i+2]);
+    (*s)+=b;
+    return ans;
+
+}
 
 /** Get TMS data from message 'msg' of 'n' bytes into floats 'val'.
  * @return number of samples.
@@ -1688,7 +1714,7 @@ int32_t tms_get_data(uint8_t *msg, int32_t n, tms_input_device_t *dev,
     /* only 1, 2 or 3 bytes width expected !!! */
     nbps=(dev->Channel[j].Type.Format & 0xFF)/8;
     /* get integer sample values */
-    chd[j].data[0].isample=tms_get_int(msg,&i,nbps);
+    chd[j].data[0].isample=get_channel_data_int(msg,&i,nbps);
     /* sign extension for signed samples */    
     if (dev->Channel[j].Type.Format & 0x0100) {
       chd[j].data[0].isample=(chd[j].data[0].isample<<(32-8*nbps))>>(32-8*nbps);

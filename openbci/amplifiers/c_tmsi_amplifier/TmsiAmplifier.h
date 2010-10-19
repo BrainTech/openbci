@@ -19,9 +19,13 @@
 #define ON_OFF_BUTTON 0x01
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
-
+#define KEEP_ALIVE_RATE 7 //seconds between every keep_alive message
 using namespace std;
-
+#ifdef AMP_DEBUG
+#define debug(...) fprintf(stderr,__VA_ARGS__)
+#else
+#define debug(...) ;
+#endif
 struct channel_desc {
     string name;
     float gain;
@@ -93,9 +97,10 @@ private:
     int br; //actual msg length;
     int channel_data_index;
     int sample_rate_div;
+    int keep_alive;
     int get_digi();
 public:
-    TmsiAmplifier(const char *address, const char *read_address=NULL,int type = USB_AMPLIFIER);
+    TmsiAmplifier(const char *address,int type = USB_AMPLIFIER, const char *read_address=NULL);
     TmsiAmplifier(const TmsiAmplifier& orig);
     int number_of_channels()
     {
@@ -103,7 +108,7 @@ public:
     }
     int set_sampling_rate(int sample_rate) {
         int tmp = 0, bsr = fei.basesamplerate;
-        while (tmp < 4 && abs(sample_rate - bsr >> tmp) > abs(sample_rate - bsr >> (tmp + 1))) tmp++;
+        while (tmp < 4 && abs(sample_rate - (bsr >> tmp)) > abs(sample_rate - (bsr >> (tmp + 1)))) tmp++;
         sample_rate_div = tmp;
         sampling_rate = bsr>>tmp;
         return sampling_rate;
@@ -119,7 +124,6 @@ public:
     void stop_sampling();
     int fill_samples(vector<int> &samples);
     int fill_samples(vector<float> &samples);
-    void set_active_channels(vector<int> &channels);
     bool is_battery_low()
     {
         return get_digi()&BATTERY_LOW;
@@ -143,7 +147,7 @@ private:
     bool update_info(int type);
     void _refreshInfo(int type);
     void load_channel_desc();
-    tms_channel_data_t* alloc_channel_data();
+    tms_channel_data_t* alloc_channel_data(bool vldelta);
     void free_channel_data(tms_channel_data_t * &channel_data)
     {
         if (channel_data!=NULL)
@@ -165,12 +169,10 @@ private:
     }
 
     void refreshVLDeltaInfo() {
-        free_channel_data(channel_data);
         _refreshInfo(TMSVLDELTAINFO);
-        channel_data=alloc_channel_data();
     }
     bool get_samples();
-    void print_message(FILE *);
+    int print_message(FILE *);
     void receive();
     const char * get_type_name(int type);
 };
