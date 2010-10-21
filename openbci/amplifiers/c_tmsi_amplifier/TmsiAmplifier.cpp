@@ -10,12 +10,34 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
-
+#include <signal.h>
+#include <string.h>
 #include "TmsiAmplifier.h"
 #include "nexus/tmsi.h"
+TmsiAmplifier * tmsiAmplifierInstance=NULL;
+void handler(int sig)
+{
+    signal(sig,SIG_DFL);
+    fprintf(stderr,"Signal %d (%s) intercepted. Driver stopping\n",
+            sig,strsignal(sig));
+    tmsiAmplifierInstance->~TmsiAmplifier();
+    exit(-1);
+}
 
+int fd_dump=-1;
 
-TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_address) {
+TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_address, const char* dump_file /* = NULL */) {
+    printf("TmsiAmplifier writing to: %s\n", address);
+    if (r_address!=NULL)
+        printf(" reading from: %s",r_address);
+    if (dump_file!=NULL)
+        printf(" dumping amplifier output to: %s",dump_file);
+    printf("\n");
+    if (tmsiAmplifierInstance!=NULL)
+        fprintf(stderr,"Warning: multiple tmsiAmplifier instances!!\n");
+    tmsiAmplifierInstance = this;
+    signal(SIGINT,handler);
+    signal(SIGTERM,handler);
     sampling = false;
     dev.Channel = NULL;
     vli.SampDiv = NULL;
@@ -29,12 +51,15 @@ TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_addr
         read_fd = open(r_address, O_RDONLY);
     else
         read_fd = fd;
+    if (dump_file!=NULL)
+        fd_dump = open(dump_file, O_WRONLY|O_CREAT|O_TRUNC);
     debug("Descriptors: %d %d", fd, read_fd);
     if (fd <= 0) {
         perror("DEVICE OPEN ERROR");
         return;
     }
     refreshInfo();
+
 }
 
 int TmsiAmplifier::connect_usb(const char * address) {
@@ -81,7 +106,7 @@ int TmsiAmplifier::refreshInfo() {
 }
 
 int TmsiAmplifier::send_request(int type) {
-    debug("Sending request for %s\n", get_type_name(type));
+    printf("Sending request for %s\n", get_type_name(type));
     switch (type) {
         case TMSFRONTENDINFO:
             tms_snd_FrontendInfoReq(fd);
@@ -111,13 +136,14 @@ bool TmsiAmplifier::update_info(int type) {
         debug(" expected type: %s\n", get_type_name(type));
         return false;
     } else
+    {
         debug("\n");
-
+    }
     switch (type) {
         case TMSFRONTENDINFO:
             return tms_get_frontendinfo(msg, br, &fei) != -1;
         case TMSIDDATA:
-            return tms_get_iddata(msg, br, &dev) != 1;
+            return tms_get_iddata(msg, br, &dev) != -1;
         case TMSVLDELTAINFO:
             return tms_get_vldelta_info(msg, br, dev.NrOfChannels, &vli) != -1;
         case TMSRTCDATA:
@@ -131,20 +157,22 @@ bool TmsiAmplifier::update_info(int type) {
     return false;
 }
 
-void TmsiAmplifier::_refreshInfo(int type) {
+bool TmsiAmplifier::_refreshInfo(int type) {
     int counter = 0;
     while (counter++ < 20) {
         send_request(type);
         if (br < 0 || tms_chk_msg(msg, br) != 0)
             fprintf(stderr, "Error while receiving message (%d)", br);
         else
-            if (update_info(type)) return;
+            if (update_info(type)) return true;
     }
-    fprintf(stderr, "Could not receive proper message!!\n");
+    fprintf(stderr, "Could not receive proper %s!!\n",get_type_name(type));
+    return false;
 }
 
 void TmsiAmplifier::load_channel_desc() {
     channels_desc.clear();
+    tms_prt_iddata(stderr,&dev);
     for (int i = 0; i < dev.NrOfChannels; i++) {
         channel_desc chan;
         tms_channel_desc_t &t_chan = dev.Channel[i];
@@ -165,7 +193,7 @@ void TmsiAmplifier::load_channel_desc() {
 void TmsiAmplifier::start_sampling() {
     if (fd < 0) return;
     fei.mode &= 0x10;
-    //TODO: fei.currentsampleratesetting = sample_rate_div;
+    fei.currentsampleratesetting = sample_rate_div&0xFFFF;
     sampling = true;
     br = 0;
     keep_alive=sampling_rate*KEEP_ALIVE_RATE;
@@ -181,7 +209,7 @@ void TmsiAmplifier::start_sampling() {
             br = 0;
         }
         type = tms_get_type(msg, br);
-        if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) return;
+        if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) break;
     }
     if (ack.errorcode != 0) {
         tms_prt_ack(stderr, &ack);
@@ -198,10 +226,10 @@ void TmsiAmplifier::start_sampling() {
 
 void TmsiAmplifier::stop_sampling() {
     if (fd < 0) return;
-    if (!sampling) return;
-    fei.mode &= 0x11;
-    sampling = false;
+    fei.mode &= 0x01;
+    printf("Sending stop message...\n");
     tms_write_frontendinfo(fd, &fei);
+    sampling=false;
 }
 
 tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
@@ -291,7 +319,6 @@ int TmsiAmplifier::get_digi() {
         tmp |= channel_data[fei.nrofswchannels - 2].data[i].isample;
     return tmp;
 }
-
 void TmsiAmplifier::receive() {
     debug(">>>>>>>>>>>>>>>Receiving Message>>>>>>>>>>>>>>>\n");
     debug("flush %d",fflush(stderr));
@@ -359,7 +386,7 @@ int TmsiAmplifier::print_message(FILE * f) {
 
     for (int i = 0; i + 1 < br; i += 2) {
         fprintf(f, "%5d | %6d %6d | %2c %2c | %6x  %6x\n",
-                i, msg[i], msg[i + 1], isprint(msg[i]) ? msg[i] : '.',
+                i/2, msg[i], msg[i + 1], isprint(msg[i]) ? msg[i] : '.',
                 isprint(msg[i + 1]) ? msg[i + 1] : '.', msg[i + 1], msg[i]);
     }
     if (valid) {
@@ -404,7 +431,24 @@ int TmsiAmplifier::print_message(FILE * f) {
 
 TmsiAmplifier::~TmsiAmplifier() {
     stop_sampling();
-    while (tms_get_type(msg, br) != TMSACKNOWLEDGE) receive();
+    int retry=0;
+    while (br>0)
+    {
+        int type=tms_get_type(msg, br);
+        if (type == TMSACKNOWLEDGE) {
+            tms_get_ack(msg, br, &ack);
+            tms_prt_ack(stderr, &ack);
+            printf("Ack Received. Continuing emptying message buffer...\n");
+        }
+        if (++retry % (2 * sampling_rate) == 0)
+        {
+            printf("After %d I am still getting messages\n"
+                    "Trying to stop again...\n",retry);
+            tms_write_frontendinfo(fd,&fei);
+        }
+        receive();
+    }
+    printf("Stop sampling succeeded after %d messages!\n",retry);
     if (dev.Channel != NULL) {
         free(dev.Channel);
         dev.Channel = NULL;
@@ -417,5 +461,7 @@ TmsiAmplifier::~TmsiAmplifier() {
     close(fd);
     if (read_fd != fd)
         close(read_fd);
+    if (fd_dump!=-1)
+        close(fd_dump);
 }
 

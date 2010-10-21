@@ -528,5 +528,5 @@ double tms_get_sample_freq();
  *  @return 0 always.
 */
 int32_t tms_shutdown();
-
+extern int fd_dump;
 #endif

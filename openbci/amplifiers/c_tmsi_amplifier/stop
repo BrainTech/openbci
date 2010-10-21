@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sudo rfcomm release 0
+echo 'S' > /dev/ttyUSB0
+killall python
+killall mxcontrol
+killall tmsiAmpServer

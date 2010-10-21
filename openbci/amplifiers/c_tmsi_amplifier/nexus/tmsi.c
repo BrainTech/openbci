@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <time.h>
+#include <string.h>
 
 //#include <sys/socket.h>
 //#include <bluetooth/bluetooth.h>
@@ -869,6 +870,8 @@ int32_t tms_chk_msg(uint8_t *msg, int32_t n) {
   }
   /* size check */
   size=tms_msg_size(msg,n,&i);
+  if (size==255)
+      size=tms_get_int(msg,&i,4);
   if (n!=(2*size+i+2)) {
     fprintf(stderr,"# Warning: found size %d != expected size %d\n",size,(n-i-2)/2);
   }  
@@ -904,77 +907,100 @@ int16_t tms_put_chksum(uint8_t *msg, int32_t n) {
   /* return total size of 'msg' including checksum */
   return(i);
 }
-#ifdef AMP_DEBUG
-#define DUMP_OPEN int fd2=open("dump.amp",O_WRONLY|O_APPEND);
-#define DUMP(msg,br)  if (br>0) write(fd2,msg,br);
-#define DC close(fd2);
-#else
-#define DUMP_OPEN ;
-#define DUMP(msg,br);
-#define DC ;
-#endif
+
 /** Read at max 'n' bytes of TMS message 'msg' for 
  *   bluetooth device descriptor 'fd'.
  * @return number of bytes read.
 */
-#define TIMEOUT 10000
+#define TIMEOUT 100
+#define NUMBER_OF_ERRORS 2
+#define MINIMUM_MESSAGE_LENGTH 6
 int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n) {
   
   int32_t i=0;         /**< byte index */
   int32_t br=0;        /**< bytes read */
   int32_t tbr=0;       /**< total bytes read */
   int32_t sync=0x0000; /**< sync block */
-  int32_t rtc=0;       /**< retry counter */
+  int32_t rtc=TIMEOUT;       /**< retry counter */
   int32_t size=0;      /**< payload size [uint16_t] */
-  
+  int32_t errors=NUMBER_OF_ERRORS;
+  int32_t meta_data=MINIMUM_MESSAGE_LENGTH;
+  int32_t end;
   /* clear recieve buffer */
-  memset(msg,0x00,n);
+  //memset(msg,0x00,n);
 
   /* wait (not too long) for sync block */
   br=0;
-  DUMP_OPEN
-  while ((rtc<TIMEOUT) && (sync!=TMSBLOCKSYNC)) {
-    if (br>0) {
-      msg[0]=msg[1];
-    }
-    br=read(fd,&msg[1],1); tbr+=br;
-    DUMP(&msg[1],br);
-    if ((br>0) && (tbr>1)) {
-      i=0; sync=tms_get_int(msg,&i,2);
-    }
-    rtc++;
+  msg[0]=0;
+  i=0;
+  while (rtc && errors &&i<meta_data)
+  {
+      br=read(fd,&msg[i],meta_data-i);
+      if (br<0)
+      {
+          perror("# Receive message: file read error");
+        --errors;
+        continue;
+      }
+      else if (br==0) --rtc;
+      else { if (fd_dump!=-1) write(fd_dump,&msg[i],br);
+          if (msg[0] == msg[1] && msg[0] == 0xAA)
+                i += br;
+            else { int j=i;
+                for (j = i; j < i + br; j++)
+                    if (j>0 && msg[j] == msg[j - 1] && msg[j] == 0xAA) {
+                        memcpy(msg, msg + j-1, i + br - j+1);
+                        i = i + br - j+1;
+                        break;
+                    }
+            if (j>=i+br)
+            {
+                msg[0] = msg[i + br - 1];
+                i = 1;
+            }
+            }
+      }
+      
   }
-  if (rtc>=TIMEOUT) {
-    fprintf(stderr,"# Error: timeout on waiting for block sync\n");DC
-    return(-1);    
+  if (!rtc) {
+    fprintf(stderr,"# Error: timeout on waiting for message begin\n");
+    return(-1);
   }
-  /* read 2 byte description */
-  while ((rtc<TIMEOUT) && (i<4)) {
-    br=read(fd,&msg[i],1);DUMP(&msg[i],br);i++; tbr+=br;
-    rtc++;
+  size=msg[2]&0xFF;
+  if (size==255)
+  {
+      i=4;
+      size=tms_get_int(msg,&i,4);
+      meta_data+4;
   }
-  if (rtc>=TIMEOUT) {
-    fprintf(stderr,"# Error: timeout on waiting description\n");DC
-    return(-2);    
-  }
-  size=msg[2]; 
+
   /* read rest of message */
-  while ((rtc<TIMEOUT) && (i<(2*size+6)) && (i<n)) {
-    br=read(fd,&msg[i],1);DUMP(&msg[i],br); i++; tbr+=br;
-    rtc++;
+  end = 2*size+meta_data;
+  if (end>n) {
+    fprintf(stderr,"# Warning: message buffer size %d too small (required %d) !\n",n,end);
+    return (-1);
   }
-  if (rtc>=TIMEOUT) {
-    fprintf(stderr,"# Error: timeout on rest of message\n");DC
+  while (rtc && errors && (i<end) ) {
+    br=read(fd,&msg[i],end-i);
+    if (br<0){
+        perror("# Receive message file read error");
+        --errors;
+        continue;
+    }
+    else if (br==0) --rtc;
+    if (fd_dump!=-1&&br) write(fd_dump,&msg[i],br);
+    i+=br;
+  }
+  if (!rtc) {
+    fprintf(stderr,"# Error: timeout on rest of message\n");
     return(-3);    
   }
-  if (i>n) {
-    fprintf(stderr,"# Warning: message buffer size %d too small %d !\n",n,i);
-  }
+  
   if (vb&0x01) {
     /* log response */
     tms_write_log_msg(msg,tbr,"receive message");
-  }DC
-  return(tbr);
+  }
+  return (i);
 }
   
 
@@ -1208,7 +1234,7 @@ int32_t tms_write_frontendinfo(int32_t fd, tms_frontendinfo_t *fei) {
   }
   /* send request */
   bw=write(fd,msg,bw);
-  /* return number of byte actualy written */ 
+  /* return number of byte actualy written */
   return(bw);
 }
 
@@ -1322,6 +1348,7 @@ int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n) {
   while ((rtc<20) && (len>0) && (tbw<n)) {
     rtc++;
     if (tms_send_iddata_request(fd,adr,len) < 0) {
+        fprintf(stderr,"# Sending request for IDDATA for addr %d failed \n",adr);
       //continue;
     }
     /* get response */
@@ -1340,7 +1367,7 @@ int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n) {
       /* get length */
       length=tms_get_int(rcv,&i,2);
       /* copy response to final result */
-      fprintf(stderr,"IDDATA Received!! Address: %d, length: %d",start,length);
+      fprintf(stderr,"IDDATA Received!! Address: %d length: %d write to %d\n",start,length,tbw/2);
       if (tbw+2*length>n) {
         fprintf(stderr,"# Error: tms_get_iddata: msg too small %d\n",tbw+2*length);
       } else { 
@@ -1410,18 +1437,18 @@ int32_t tms_get_input_device(uint8_t *msg, int32_t n, int32_t start, tms_input_d
   /* goto first channel descriptor */
   i=idx;
   /* get all channel descriptions */
-  bool error=false;
+  int error=0;
   for (j=0; j<inpdev->NrOfChannels; j++) {
     idx=2*tms_get_int(msg,&i,2)+start;
     if (idx+sizeof(tms_type_desc_t)>=n)
     {
-        error=true;
+        error=1;
     } else
     tms_get_type_desc(msg,n,idx,&inpdev->Channel[j].Type);
     idx=2*tms_get_int(msg,&i,2)+start;
     char * desc = tms_get_string(msg,n,idx);
     if (desc==NULL){
-        error=true;
+        error=1;
         desc="ERROR";
     }
     inpdev->Channel[j].ChannelDescription=desc;
@@ -1442,7 +1469,7 @@ int32_t tms_get_input_device(uint8_t *msg, int32_t n, int32_t start, tms_input_d
     fprintf(stderr,"# Warning: tms_get_input_device: total bits count %d %% 16 !=0\n",tnb);
   }
   inpdev->DataPacketSize=tnb/16;
-  if (error) return -1;
+  if (error==1) return (-1);
   if (i<=n) { return(0); } else { return(-1); }
 }
 

@@ -10,6 +10,9 @@ GENERALFLAGS	+= $(O) -Wall \
 			#-DAMP_DEBUG
 			 \
 			#
+ifdef DEBUG
+GENERALFLAGS	+= -DAMP_DEBUG
+endif
 CXXFLAGS	+= $(GENERALFLAGS)
 INCLUDEDIRS =			-I . \
 			-I $(AZOUKDIR)/build \
@@ -24,15 +27,14 @@ LDFLAGS		+= $(GENERALFLAGS) \
 			-lboost_program_options \
 			-lboost_signals \
 			-lboost_system \
-			-lboost_thread \
 			-lpthread \
 			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python
     			#
 
 LIBRARIES	:= $(shell find $(SOURCEDIRS) -name '*.o' | grep -v '\.svn')
 
-driver: TmsiAmplifier.o tmsi.o
-	g++ -o $@ $(CFLAGS) $<
+test_driver: TmsiAmplifier.o tmsi.o tests/test_driver.cpp
+	g++ -o $@ $(CXXFLAGS) -lboost_date_time $^
 
 TmsiAmplifier.o: TmsiAmplifier.cpp
 	g++ -c $(CXXFLAGS) $<
@@ -57,7 +59,10 @@ testAmplifierServer.o: tests/testAmplifierServer.cpp
 tmsiAmpServer.o: tmsiAmpServer.cpp
 	g++ -c $(CXXFLAGS) $(INCLUDEDIRS) $^
 
-variables.pb.o: $(ROOTDIR)/openbci/variables.pb.cc
+variables.pb.cc: $(ROOTDIR)/openbci/variables.proto
+	protoc --cpp_out='.' --proto_path $(ROOTDIR)/openbci/ $<
+
+variables.pb.o: variables.pb.cc
 	g++ -c $(CXXFLAGS) $<
 
 tmsiAmpServer:  AmplifierServer.o variables.pb.o tmsiAmpServer.o TmsiAmplifier.o tmsi.o Logger.h

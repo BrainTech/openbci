@@ -100,7 +100,7 @@ private:
     int keep_alive;
     int get_digi();
 public:
-    TmsiAmplifier(const char *address,int type = USB_AMPLIFIER, const char *read_address=NULL);
+    TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address=NULL, const char* dump_file = NULL);
     TmsiAmplifier(const TmsiAmplifier& orig);
     int number_of_channels()
     {
@@ -145,7 +145,7 @@ private:
     int connect_bluetooth(const char *address);
     int send_request(int type);
     bool update_info(int type);
-    void _refreshInfo(int type);
+    bool _refreshInfo(int type);
     void load_channel_desc();
     tms_channel_data_t* alloc_channel_data(bool vldelta);
     void free_channel_data(tms_channel_data_t * &channel_data)
@@ -160,7 +160,7 @@ private:
     }
 
     void refreshFrontEndInfo() {
-        _refreshInfo(TMSFRONTENDINFO);
+        while(!_refreshInfo(TMSFRONTENDINFO));
     }
 
     void refreshIDData() {
