@@ -20,11 +20,14 @@
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
 #define KEEP_ALIVE_RATE 7 //seconds between every keep_alive message
+#define MAX_ERRORS 10
 using namespace std;
 #ifdef AMP_DEBUG
 #define debug(...) fprintf(stderr,__VA_ARGS__)
+#define in_debug(...) __VA_ARGS__;
 #else
 #define debug(...) ;
+#define in_debug(...) ;
 #endif
 struct channel_desc {
     string name;
@@ -83,9 +86,10 @@ struct channel_desc {
     short exp; // Unit exponent, 3 for Kilo, -6 for micro, etc.
 
 };
+
 class TmsiAmplifier:public AmplifierDriver {
 private:
-    int fd,read_fd; //device descriptor
+    int fd,read_fd,dump_fd; //device descriptor
     vector<channel_desc> channels_desc;
     tms_frontendinfo_t fei;
     tms_vldelta_info_t vli;
@@ -98,6 +102,8 @@ private:
     int channel_data_index;
     int sample_rate_div;
     int keep_alive;
+    int read_errors;
+    int messages;
     int get_digi();
 public:
     TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address=NULL, const char* dump_file = NULL);
@@ -114,7 +120,8 @@ public:
         return sampling_rate;
     }
     void set_sampling_rate_div(int sampling_rate_div) {
-        sampling_rate_div = sampling_rate_div;
+        sample_rate_div = sampling_rate_div;
+        sampling_rate=fei.basesamplerate>>sample_rate_div;
     }
 
     int get_sampling_rate_div() {
@@ -161,10 +168,18 @@ private:
 
     void refreshFrontEndInfo() {
         while(!_refreshInfo(TMSFRONTENDINFO));
+        set_sampling_rate_div(fei.currentsampleratesetting);
+        sampling=true;
+        stop_sampling();
     }
 
     void refreshIDData() {
-        _refreshInfo(TMSIDDATA);
+        int counter=20;
+        while (counter--)
+        {
+            send_request(TMSIDDATA);
+            if (update_info(TMSIDDATA)) break;
+        }
         load_channel_desc();
     }
 
@@ -172,7 +187,14 @@ private:
         _refreshInfo(TMSVLDELTAINFO);
     }
     bool get_samples();
-    int print_message(FILE *);
+    int _print_message(FILE *,uint8_t * msg, int br);
+    int print_message(FILE * f)
+    {
+        return _print_message(f,msg,br);
+    }
+
+    int rcv_message(uint8_t *,int n);
+    int fetch_iddata();
     void receive();
     const char * get_type_name(int type);
 };

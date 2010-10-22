@@ -66,10 +66,11 @@ int main(int argc, char ** argv) {
         //                printf("%3d: %f\n", j, fsamples[j]);
     }
     ptime end=microsec_clock::local_time();
-    amp.stop_sampling();
-    printf("Sampling stopped at %s after %d samples\n",
+    printf("Sampling will be stopped at %s after %d samples\n",
             to_simple_string(end).c_str(), length*sample_rate);
     printf("Duration: %s\n",to_simple_string(end-start).c_str());
     printf("Actual frequency: %f\n",length*sample_rate/(double)(end-start).total_microseconds()*1000000);
+    amp.stop_sampling();
+    
     return 0;
 }

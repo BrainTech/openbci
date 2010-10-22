@@ -58,13 +58,13 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
     MultiplexerMessage msg;
     msg.set_from(conn->instance_id());
     msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
+    int j=0;
     while (driver->is_sampling()) {
         time_t t = time(NULL);
         if (driver->fill_samples(isamples) < 0) {
             stop_sampling();
             return;
         }
-        debug("Received samples\n");
         for (int i = 0; i < number_of_channels; i++) {
             variables::Sample *samp = s_vector.mutable_samples(i);
             samp->set_value(isamples[i]);
@@ -74,7 +74,12 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
         s_vector.SerializeToString(&msgstr);
         msg.set_id(conn->random64());
         msg.set_message(msgstr);
-        conn->flush(conn->schedule_one(msg));
+        Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
+        if (!tracker) {
+                fprintf(stderr,"Error: sending failed.\n");
+                return;
+        }
+        conn->flush(tracker, -1);
         check_status(isamples);
         if (logger != NULL) logger->next_sample();
     }
@@ -88,6 +93,7 @@ void AmplifierServer::start_sampling() {
     driver->start_sampling();
     //  sampling_thread = new boost::thread(t);
     pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);
+    if (logger!=NULL) logger->restart();
 }
 
 void AmplifierServer::stop_sampling() {
@@ -95,7 +101,8 @@ void AmplifierServer::stop_sampling() {
     if (!driver->is_sampling()) return;
     driver->stop_sampling();
     //sampling_thread->join();
-    pthread_join(sampling_thread, NULL);
+    if (!pthread_equal(pthread_self(),sampling_thread))
+        pthread_join(sampling_thread, NULL);
     debug("Sampling stopped\n");
 }
 

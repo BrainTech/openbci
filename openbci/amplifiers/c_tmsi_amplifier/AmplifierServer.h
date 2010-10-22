@@ -23,7 +23,7 @@
 
 using namespace multiplexer;
 #ifdef AMP_DEBUG
-#define debug(...) printf("AmplifierServer: " __VA_ARGS__)
+#define debug(...) fprintf(stderr,"AmplifierServer: " __VA_ARGS__)
 #else
 #define debug(...) ;
 #endif

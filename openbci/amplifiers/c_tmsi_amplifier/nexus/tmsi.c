@@ -291,7 +291,7 @@ int16_t tms_cal_chksum(uint8_t *msg, int32_t n) {
  * @return packet type.
 */
 int16_t tms_get_type(uint8_t *msg, int32_t n) {
-
+  if (n<4) return -1;
   int16_t rv =(int16_t)msg[3]; /**< packet type */
   
   return(rv);
@@ -307,7 +307,7 @@ int32_t tms_msg_size(uint8_t *msg, int32_t n, int32_t *i) {
   
   (*i)=2; /* address location */
   size=tms_get_int(msg,i,1);
-  (*i)=4; 
+  (*i)=4;
   if (size==0xFF) {
     size=tms_get_int(msg,i,4);
   }
@@ -908,101 +908,7 @@ int16_t tms_put_chksum(uint8_t *msg, int32_t n) {
   return(i);
 }
 
-/** Read at max 'n' bytes of TMS message 'msg' for 
- *   bluetooth device descriptor 'fd'.
- * @return number of bytes read.
-*/
-#define TIMEOUT 100
-#define NUMBER_OF_ERRORS 2
-#define MINIMUM_MESSAGE_LENGTH 6
-int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n) {
-  
-  int32_t i=0;         /**< byte index */
-  int32_t br=0;        /**< bytes read */
-  int32_t tbr=0;       /**< total bytes read */
-  int32_t sync=0x0000; /**< sync block */
-  int32_t rtc=TIMEOUT;       /**< retry counter */
-  int32_t size=0;      /**< payload size [uint16_t] */
-  int32_t errors=NUMBER_OF_ERRORS;
-  int32_t meta_data=MINIMUM_MESSAGE_LENGTH;
-  int32_t end;
-  /* clear recieve buffer */
-  //memset(msg,0x00,n);
 
-  /* wait (not too long) for sync block */
-  br=0;
-  msg[0]=0;
-  i=0;
-  while (rtc && errors &&i<meta_data)
-  {
-      br=read(fd,&msg[i],meta_data-i);
-      if (br<0)
-      {
-          perror("# Receive message: file read error");
-        --errors;
-        continue;
-      }
-      else if (br==0) --rtc;
-      else { if (fd_dump!=-1) write(fd_dump,&msg[i],br);
-          if (msg[0] == msg[1] && msg[0] == 0xAA)
-                i += br;
-            else { int j=i;
-                for (j = i; j < i + br; j++)
-                    if (j>0 && msg[j] == msg[j - 1] && msg[j] == 0xAA) {
-                        memcpy(msg, msg + j-1, i + br - j+1);
-                        i = i + br - j+1;
-                        break;
-                    }
-            if (j>=i+br)
-            {
-                msg[0] = msg[i + br - 1];
-                i = 1;
-            }
-            }
-      }
-      
-  }
-  if (!rtc) {
-    fprintf(stderr,"# Error: timeout on waiting for message begin\n");
-    return(-1);
-  }
-  size=msg[2]&0xFF;
-  if (size==255)
-  {
-      i=4;
-      size=tms_get_int(msg,&i,4);
-      meta_data+4;
-  }
-
-  /* read rest of message */
-  end = 2*size+meta_data;
-  if (end>n) {
-    fprintf(stderr,"# Warning: message buffer size %d too small (required %d) !\n",n,end);
-    return (-1);
-  }
-  while (rtc && errors && (i<end) ) {
-    br=read(fd,&msg[i],end-i);
-    if (br<0){
-        perror("# Receive message file read error");
-        --errors;
-        continue;
-    }
-    else if (br==0) --rtc;
-    if (fd_dump!=-1&&br) write(fd_dump,&msg[i],br);
-    i+=br;
-  }
-  if (!rtc) {
-    fprintf(stderr,"# Error: timeout on rest of message\n");
-    return(-3);    
-  }
-  
-  if (vb&0x01) {
-    /* log response */
-    tms_write_log_msg(msg,tbr,"receive message");
-  }
-  return (i);
-}
-  
 
 /** Convert buffer 'msg' of 'n' bytes into tms_acknowledge_t 'ack'.
  * @return >0 on failure and 0 on success 
@@ -1309,88 +1215,6 @@ int32_t tms_send_iddata_request(int32_t fd, int32_t adr, int32_t len)
   return bw;
 }
 
-/** Get IDData from device descriptor 'fd' into byte array 'msg'
- *   with maximum size 'n'.
- * @return bytes in 'msg'.
-*/
-int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n) {
-
-  int32_t i,j;        /**< general index */
-  int16_t adr=0x0000; /**< start address of buffer ID data */
-  int16_t len=0x80;   /**< amount of words requested */
-  int32_t br=0;       /**< bytes read */
-  int32_t tbw=0;      /**< total bytes written in 'msg' */
-  uint8_t rcv[512];   /**< recieve buffer */
-  int32_t type;       /**< received IDData type */
-  int32_t size;       /**< received IDData size */
-  int32_t tsize=0;    /**< total received IDData size */
-  int32_t start=0;    /**< start address in receive ID Data packet */
-  int32_t length=0;   /**< length in receive ID Data packet */
-  int32_t rtc=0;      /**< retry counter */
-  
-  /* prepare response header */
-  tbw=0;
-  /* block sync */ 
-  tms_put_int(TMSBLOCKSYNC,msg,&tbw,2);
-  /* length 0xFF */
-  tms_put_int(0xFF,msg,&tbw,1);
-  /* IDData type */
-  tms_put_int(TMSIDDATA,msg,&tbw,1);
-  /* temp zero length, final will be put at the end */
-  tms_put_int(0,msg,&tbw,4);
-  
-  /* start address and maximum length */
-  adr=0x0000; 
-  len=0x80;
-  
-  rtc=0;
-  /* keep on requesting id data until all data is read */
-  while ((rtc<20) && (len>0) && (tbw<n)) {
-    rtc++;
-    if (tms_send_iddata_request(fd,adr,len) < 0) {
-        fprintf(stderr,"# Sending request for IDDATA for addr %d failed \n",adr);
-      //continue;
-    }
-    /* get response */
-    br=tms_rcv_msg(fd,rcv,sizeof(rcv)); 
-    
-    /* check checksum and get type of response */
-    type=tms_get_type(rcv,br);
-    if (type!=TMSIDDATA) {
-      fprintf(stderr,"# Warning: tms_get_iddata: unexpected type 0x%02X\n",type);
-      continue;
-    } else {
-      /* get payload of 'rcv' */
-      size=tms_msg_size(rcv,sizeof(rcv),&i);
-      /* get start address */
-      start=tms_get_int(rcv,&i,2);
-      /* get length */
-      length=tms_get_int(rcv,&i,2);
-      /* copy response to final result */
-      fprintf(stderr,"IDDATA Received!! Address: %d length: %d write to %d\n",start,length,tbw/2);
-      if (tbw+2*length>n) {
-        fprintf(stderr,"# Error: tms_get_iddata: msg too small %d\n",tbw+2*length);
-      } else { 
-        for (j=0; j<2*length; j++) {
-          msg[tbw+j]=rcv[i+j];
-        }
-        tbw+=2*length;
-        tsize+=length; 
-      }
-      /* update address admin */
-      adr+=length;
-      /* if block ends with 0xFFFF, then this one was the last one */ 
-      if ((rcv[2*size-2]==0xFF) && (rcv[2*size-1]==0xFF)) { len=0; }
-    }
-  }
-  /* put final total size */
-  i=4; tms_put_int(tsize,msg,&i,4);
-  /* add checksum */
-  tbw=tms_put_chksum(msg,tbw);
-  
-  /* return number of byte actualy written */ 
-  return(tbw);
-}
 
 /** Convert buffer 'msg' of 'n' bytes into tms_type_desc_t 'td'
  * @return 0 on success, -1 on failure
@@ -2191,7 +2015,8 @@ void tms_free_channel_data(tms_channel_data_t *chd)
 
 static int32_t state=0;   /**< State machine */
 static int32_t fd=0;      /**< File descriptor of bluetooth socket */
-
+int32_t tms_rcv_msg(int fd, uint8_t *msg, int32_t n){return 0;}
+int32_t tms_fetch_iddata(int32_t fd, uint8_t *msg, int32_t n){return 0;};
 /** Initialize TMSi device with Bluetooth address 'fname' and
  *   sample rate divider 'sample_rate_div'.
  * @note no timeout implemented yet.

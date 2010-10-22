@@ -20,11 +20,15 @@ public:
     const char * name;
     Logger(int p_sampling, const char * p_name)
     {
+        sampling=p_sampling;
+        name = p_name;
+        restart();
+    }
+    void restart()
+    {
         start_time=microsec_clock::local_time();
         last_pack_time=start_time;
-        sampling=p_sampling;
         number_of_samples=0;
-        name = p_name;
     }
     void next_sample()
     {
@@ -33,8 +37,6 @@ public:
             char buffer[100];
             ptime now=boost::posix_time::microsec_clock::local_time();
             struct tm  timeinfo=to_tm(now);
-            
-
             strftime(buffer,100,"%Y-%m-%d %H:%M:%S",&timeinfo);
             fprintf(stderr,"%s,%.3d - ",buffer,now.time_of_day().total_microseconds()%1000000/1000);
             fprintf(stderr,"%s - INFO - Time of last %d samples / all avg:"\

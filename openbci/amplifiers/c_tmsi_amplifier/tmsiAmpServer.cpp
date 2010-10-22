@@ -21,15 +21,25 @@ void TmsiAmpServer::check_status(std::vector<int>& isamples){
         printf("TmsiAmpServer: Trigger is active\n");
     }
 }
-
+void print_help()
+{
+     printf("Usage: \n"\
+                            "[-a multiplexer_addres] default=\"127.0.0.1\"\n"\
+                            "[-p port] defaut=\"31889\"\n"\
+                            "[-d device_path or bluetooth address] default=\"/dev/fusbi0\"\n"\
+                            "[-b] if set device path is bluetooth address\n"\
+                            "[-r file] file with stored amplifier responses\n"\
+                            "[-l nr_of_samples] print log message after number_of_samples" \
+                            "[-h] show this message\n");
+}
 int main(int argc, char**argv)
 {
-    char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL;
+    char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
     int port=31889,type=USB_AMPLIFIER;
     Logger *log=NULL;;
     for (int i =1; i<argc; i++)
     {
-        if (argv[i][0]=='-' && i<argc-1)
+        if (argv[i][0]=='-' && i<argc)
             switch (argv[i][1])
             {
                 case 'a':
@@ -45,23 +55,20 @@ int main(int argc, char**argv)
                 case 'l':
                     log=new Logger(atoi(argv[i+1]),"tmsiAmpServer"); break;
                 case 'h':
+                    print_help();
+                    exit(0);
+                case 'D':
+                    dump_file=argv[i+1]; break;
                 default:
-                    printf("Usage: \n"\
-                            "[-a multiplexer_addres] default=\"127.0.0.1\"\n"\
-                            "[-p port] defaut=\"31889\"\n"\
-                            "[-d device_path or bluetooth address] default=\"/dev/fusbi0\"\n"\
-                            "[-b] if set device path is bluetooth address\n"\
-                            "[-r file] file with stored amplifier responses\n"\
-                            "[-l nr_of_samples] print log message after number_of_samples" \
-                            "[-h] show this message\n");
+                    printf("Unknown option -%c",argv[i][1]);
+                    print_help();
             }
 
     }
-    TmsiAmplifier driver(device,type,read_db);
+    TmsiAmplifier driver(device,type,read_db,dump_file);
     TmsiAmpServer server(host,port,&driver);
     server.set_logger(log);
     server.start_sampling();
-    clock_t cl=clock();
     server.loop();
     return 0;
 }
