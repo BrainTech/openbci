@@ -31,8 +31,12 @@ class Hashtable(BaseMultiplexerServer):
         "DataScale": "1.0",
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord": channels_gen(CHANNELS),
-        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
-        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT",
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
+        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #23
+        #"ChannelsNames": "a;b;c;",
+
+        #"ChannelsNames":"REKA",
         #"ChannelsNames":"A;B",
         "Gain":gains_gen(CHANNELS),
         "Offset": offsets_gen(CHANNELS),
@@ -84,20 +88,34 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "alfa_ass_oskar_20_07_2010_1",
-        "SaveFilePath" : "./",
+        "SaveFileName" : "test_kamil_24_10_2010",
+        "SaveFilePath" : "./temp",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",
         "FilterBand": "bandpass",
         "FilterUp": "32",
         "FilterDown": "2",
+        "AppendTriggerInDriver":"0",
+        "AmplifierNull":"32872",
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 
     def __init__(self, addresses):
         super(Hashtable, self).__init__(addresses=addresses, type=peers.HASHTABLE)
+        self.update_driver_trigger()
 
-
+    def update_driver_trigger(self):
+        """Check AppendTriggerInDriver value.
+        If it is set to true ("1") then update other self.data values
+        depending on the information that driver will append auxilary channel."""
+        if int(self.data.get("AppendTriggerInDriver","0")):
+            # If that value is set to "1" We append required data to channelNames Gains etc
+            # so that stream readers will not be confused by one-more channel
+            self.data["ChannelsNames"] = ''.join([self.data["ChannelsNames"],";TRIGGER"])
+            self.data["Gain"] = ''.join([self.data["Gain"], " 100.0"])
+            self.data["Offset"] = ''.join([self.data["Offset"], " 0.0"])
+            self.data["NumOfChannels"] = self.data["NumOfChannels"]+1
+        
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DICT_SET_MESSAGE:
             pair = variables_pb2.Variable()
