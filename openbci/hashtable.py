@@ -19,7 +19,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 25
+CHANNELS = 26
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -32,8 +32,8 @@ class Hashtable(BaseMultiplexerServer):
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord": channels_gen(CHANNELS),
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
-        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
-        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #23
+        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #23
         #"ChannelsNames": "a;b;c;",
 
         #"ChannelsNames":"REKA",
@@ -88,7 +88,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "test_kamil_24_10_2010",
+        "SaveFileName" : "test_save",
         "SaveFilePath" : "./temp",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",
@@ -96,7 +96,7 @@ class Hashtable(BaseMultiplexerServer):
         "FilterUp": "32",
         "FilterDown": "2",
         "AppendTriggerInDriver":"0",
-        "AmplifierNull":"32872",
+        "AmplifierNull":"8388608.0",
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 
