@@ -25,7 +25,7 @@
 """Current script is supposed to be fired if you want to run 
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, thread
-import os, time
+import os, os.path, time
 import variables_pb2
 
 from ugm import ugm_engine
@@ -34,8 +34,8 @@ from ugm import ugm_server
 
 from tags import tagger
 import ugm_logging as logger
+import settings
 
-PATH = "/home/mrygacz/openbci/openbci/openbci/"
 LOGGER = logger.get_logger('run_ugm')
 TAGGER = tagger.get_tagger()
 class TcpServer(object):
@@ -93,7 +93,8 @@ if __name__ == "__main__":
     # Start TcpServer in a separate thread with ugm engine on slot
     thread.start_new_thread(TcpServer(ENG).run, ())
     # Start multiplexer in a separate process
-    os.system("python " + PATH + "ugm/ugm_server.py &")
+    path = os.path.join(settings.module_abs_path(), "ugm_server.py")
+    os.system("python " + path + " &")
     #TODO - works only when running from openbci directiory...
     # fire ugm engine in MAIN thread (current thread)
     ENG.run()
