@@ -9,7 +9,7 @@ from utils import pb2_construct, set_env
 import k2launcher_pb2
 
 home = "/home/mrygacz/openbci/openbci/"
-
+#home = "/home/mati/bci_dev/google_openbci/openbci/"
 mx_path = '%sazouk-libraries/build/' % home
 obci_path = '%sopenbci/' % home
 
@@ -33,7 +33,7 @@ def task(cmd, task_id, **kwargs):
             cmd=cmd, task_id=task_id, working_dir=obci_path, **kwargs)
 task("./svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
-task("./amplifiers/virtual_amplifier.py", "virtual_amplifier")
+task("./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
 task("./signal_catcher.py", "signal_catcher")
 task("./filters/filter.py", "filter")
 task("./monitors/monitor.py 0", "monitor")
@@ -43,11 +43,13 @@ task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
-task("./data_storage/signal_saver.py; ./data_storage/tests/test_manually_signal_saver_control.py start_saving", "signal_saver")
+task("./data_storage/signal_saver.py; sleep 1; ./data_storage/tests/test_manually_signal_saver_control.py start_saving", "signal_saver")
+task("./data_storage/tests/test_manually_signal_saver_control.py finish_saving", "finish_saver")
 task("./experiment_builder/experiment_manager.py mx-on config", "experiment_manager")
 task("./super_diode_control.py", "diode_control")
 
 task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB ", "amplifier")
+task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
@@ -126,6 +128,25 @@ start("gui_test", "ugm")
 start("gui", "hashtable")
 start("gui","ugm")
 start("gui", "gui")
+
+
+start("svarog_test", "hashtable")
+start("svarog_test", "svarog_pinger")
+start("svarog_test", "signal_streamer")
+start("svarog_test", "amplifier")
+start("svarog_test", "manual_tags_sending")
+
+start("svarog_v_test", "hashtable")
+start("svarog_v_test", "svarog_pinger")
+start("svarog_v_test", "signal_streamer")
+start("svarog_v_test", "virtual_amplifier")
+start("svarog_v_test", "manual_tags_sending")
+
+start("add_saver", "signal_saver")
+
+start("finish_saver", "finish_saver")
+
+
 # signal, add_experiment, start_experiment, add_monitor, start_monitor, 
 
 
