@@ -533,6 +533,17 @@ type {
     name: "TAG_CATCHER_RESPONSE_MESSAGE"
 }
 
+
+type {
+     type: 154
+     name: "BLINK_MESSAGE"
+     to {
+     	peer: "ANALYSIS"
+	whom: ALL
+	}
+     	
+}
+
 peer {
     type: 201
     name: "K2_LAUNCHER_CONTROLLER"

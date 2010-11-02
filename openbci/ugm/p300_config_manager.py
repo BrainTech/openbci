@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#
+# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
+# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
+# as part of their MSc theses at the University of Warsaw.
+# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+
 import ugm_config_manager
 import copy
 
@@ -11,7 +33,7 @@ class P300ConfigManager(object):
     def get_blink_col(self, col):
         return self.blink_cols[col], self.non_blink_cols[col]
 
-    def generate_config(self, rows, cols, sq_size, font_size, letters, blink_mode):
+    def generate_config(self, rows, cols, sq_size, font_size, letters, blink_mode, blink_color):
         mgr = ugm_config_manager.UgmConfigManager('p300_base')
         top = mgr.get_config_for(888)
         bot = mgr.get_config_for(999)
@@ -20,7 +42,7 @@ class P300ConfigManager(object):
         bot['stimuluses'] = stims
         mgr.set_full_config([top, bot])
         #mgr.update_to_file('5_5_p300', True)
-        self._set_blinks(mgr, rows, cols, blink_mode, '#ffffff')
+        self._set_blinks(mgr, rows, cols, blink_mode, blink_color)
         return [top, bot]
 
 
@@ -67,8 +89,6 @@ class P300ConfigManager(object):
                 blink_col.append(stim)
             self.blink_cols.append(blink_col)
             self.non_blink_cols.append(non_blink_col)
-        print([(r['id'], r['color']) for r in self.blink_rows[0]])
-        print([(r['id'], r['color']) for r in self.non_blink_rows[0]])
 
     def _get_stim_id_for(self, row, col, rows, cols, stim_type):
         if stim_type == 'letter':

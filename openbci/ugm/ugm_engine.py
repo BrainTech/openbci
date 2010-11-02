@@ -29,7 +29,7 @@ import ugm_config_manager
 import ugm_stimuluses
 
 import ugm_logging as logger
-LOGGER = logger.get_logger("ugm_engine")
+LOGGER = logger.get_logger("ugm_engine", "error")
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
     """For now, just to express it..."""
@@ -177,7 +177,7 @@ class UgmEngine(QtCore.QObject):
     def update(self):
         """Fired when self._config_manager has changed its state, but only 
         stimuluses`es attributes, not their number or ids."""
-        LOGGER.info("ugm_engine update")
+        LOGGER.debug("ugm_engine update")
         self._window.update()
     def rebuild(self):
         """Fired when self._config_manager has changed its state 

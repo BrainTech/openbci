@@ -42,6 +42,7 @@ task("./monitors/spectrum.py 0", "spectrum")
 task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
 task("./ugm/run_ugm.py p300", "p300_ugm")
+task("./analysis/p300.py", "p300_analysis")
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
 task("./data_storage/signal_saver.py; sleep 1; ./data_storage/tests/test_manually_signal_saver_control.py start_saving", "signal_saver")
@@ -72,7 +73,7 @@ start("amplifier", "amplifier" )
 
 start("virtual_amplifier", "svarog_pinger")
 start("virtual_amplifier", "hashtable")
-start("virtual_amplifier", "signal_catcher")
+#start("virtual_amplifier", "signal_catcher")
 start("virtual_amplifier", "signal_streamer")
 start("virtual_amplifier", "virtual_amplifier" )
 
@@ -132,9 +133,9 @@ start("gui", "hashtable")
 start("gui","ugm")
 start("gui", "gui")
 
-start("p300", "hashtable")
-start("p300", "p300_ugm")
-
+start("p300_test", "hashtable")
+start("p300_test", "p300_ugm")
+start("p300_test", "p300_analysis")
 
 
 start("svarog_test", "hashtable")
