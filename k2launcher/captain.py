@@ -41,6 +41,7 @@ task("./monitors/spectrum.py 0", "spectrum")
 
 task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
+task("./ugm/run_ugm.py p300", "p300_ugm")
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
 task("./data_storage/signal_saver.py; sleep 1; ./data_storage/tests/test_manually_signal_saver_control.py start_saving", "signal_saver")
@@ -50,6 +51,7 @@ task("./super_diode_control.py", "diode_control")
 
 task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB ", "amplifier")
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
+task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
@@ -124,10 +126,15 @@ start("demo", "monitor")
 
 start("gui_test", "hashtable")
 start("gui_test", "ugm")
+start("gui_test", "manual_ugm_updating")
 
 start("gui", "hashtable")
 start("gui","ugm")
 start("gui", "gui")
+
+start("p300", "hashtable")
+start("p300", "p300_ugm")
+
 
 
 start("svarog_test", "hashtable")

@@ -25,10 +25,10 @@
 """Current script is supposed to be fired if you want to run 
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, thread
-import os, os.path, time
+import os, os.path, time, sys
 import variables_pb2
 
-from ugm import ugm_engine
+
 from ugm import ugm_config_manager
 from ugm import ugm_server
 
@@ -89,7 +89,16 @@ class TcpServer(object):
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
     # default config file
-    ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())
+    try:
+        l_eng_type = sys.argv[1]
+    except IndexError:
+        l_eng_type = 'simple'
+    if l_eng_type == 'p300':
+        from ugm import p300_ugm_engine
+        ENG = p300_ugm_engine.P300UgmEngine()        
+    else:
+        from ugm import ugm_engine
+        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())
     # Start TcpServer in a separate thread with ugm engine on slot
     thread.start_new_thread(TcpServer(ENG).run, ())
     # Start multiplexer in a separate process

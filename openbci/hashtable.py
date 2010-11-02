@@ -97,6 +97,15 @@ class Hashtable(BaseMultiplexerServer):
         "FilterDown": "2",
         "AppendTriggerInDriver":"0",
         "AmplifierNull":"8388608.0",
+        "P300Rows":"5",
+        "P300Cols":"5",
+        "P300BlinkMode":"square",
+        "P300BlinkPeriod":"0.1",
+        "P300BlinkBreak":"0.5",
+        "P300SquareSize":"50.0",
+        "P300FontSize":"30",
+        "P300Letters": "A B C D E F G H I J K L M N O P R S T U W Y Z _ <",
+
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
 

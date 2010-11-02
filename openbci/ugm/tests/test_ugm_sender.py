@@ -42,17 +42,17 @@ class TestUgmSender(object):
         i = 0
         while True:
             i = i + 1
-            print("Type: 0 ugm.configs.some_config to rebuild ugm from some_config.py")
-            print("Type 1 ugm.configs.some_config to update config for ugm from some_config.py")
+            print("Type: 0 some_config to rebuild ugm from some_config.py in ugm/configs/ directory.")
+            print("Type 1 some_config to update config for ugm from some_config.py in ugm/configs/ directory.")
             if i > 1:
                 l_input = raw_input()
             else:
-                l_input = '0 ugm.configs.test1'
+                l_input = '0 black'
             l_type, l_config = l_input.split(" ")
             l_msg = variables_pb2.UgmUpdate()
             l_msg.type = int(l_type)
             # Let config manager read data from config file
-            l_mgr.update_from_file(l_config)
+            l_mgr.update_from_file(l_config, True)
             # Data is red...
             # Let`s convert red data to message ready to be sent
             l_msg.value = l_mgr.config_to_message()
