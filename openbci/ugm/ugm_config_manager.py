@@ -47,7 +47,7 @@ UGM_UPDATE_MESSAGE handling:
 - old_new_fields_differ()
 """
 import copy
-import os
+import os, os.path, sys
 import pickle
 class UgmAttributesManager(object):
     """Manager possible keys and values for config.
@@ -184,7 +184,10 @@ class UgmConfigManager(object):
         package.subpackage...module_with_configuration."""
         self._config_file = p_config_file
         self._standard_config = p_standard_directory
-        self._standard_config_dir = os.path.dirname(__import__('ugm.configs', fromlist=['ugm.configs']).__file__) + os.path.sep
+        self._standard_config_dir = ''.join([
+                os.path.split(os.path.realpath(os.path.dirname(__file__)))[0], 
+                os.path.sep, 'ugm', os.path.sep, 'configs', os.path.sep])
+
         self._fields = []
         self._old_fields = []
         self.update_from_file(p_standard_config=self._standard_config)
