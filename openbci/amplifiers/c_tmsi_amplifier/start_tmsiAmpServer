@@ -7,5 +7,5 @@ export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
 ./openbci/hashtable.py &
 
 sleep 2
-time ./openbci/amplifiers/c_tmsi_amplifier/tmsiAmpServer -l 128 -D dump.amp &
+time ./openbci/amplifiers/c_tmsi_amplifier/tmsiAmpServer -l 128 &
 

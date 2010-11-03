@@ -30,13 +30,16 @@ void print_help()
                             "[-b] if set device path is bluetooth address\n"\
                             "[-r file] file with stored amplifier responses\n"\
                             "[-l nr_of_samples] print log message after number_of_samples" \
+                            "[-D file] whole amplifier output will be dumped to file"\
+                            "[-s sampling_rate] force set sampling rate in Hz"\
                             "[-h] show this message\n");
 }
 int main(int argc, char**argv)
 {
     char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
-    int port=31889,type=USB_AMPLIFIER;
-    Logger *log=NULL;;
+    int port=31889,type=USB_AMPLIFIER,sampling_rate=-1;
+    Logger *log=NULL;
+
     for (int i =1; i<argc; i++)
     {
         if (argv[i][0]=='-' && i<argc)
@@ -59,6 +62,8 @@ int main(int argc, char**argv)
                     exit(0);
                 case 'D':
                     dump_file=argv[i+1]; break;
+                case 's':
+                    sampling_rate=atoi(argv[i+1]); break;
                 default:
                     printf("Unknown option -%c",argv[i][1]);
                     print_help();
@@ -68,6 +73,8 @@ int main(int argc, char**argv)
     TmsiAmplifier driver(device,type,read_db,dump_file);
     TmsiAmpServer server(host,port,&driver);
     server.set_logger(log);
+    if (sampling_rate>0)
+        server.set_sampling_rate(sampling_rate);
     server.start_sampling();
     server.loop();
     return 0;

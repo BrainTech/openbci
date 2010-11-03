@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include "AmplifierServer.h"
-#include "AmplifierDriver.h" 
+#include "AmplifierDriver.h"
+#include "Logger.h"
 
 /*
  * Simple C++ Test Suite
@@ -17,21 +18,21 @@
 void test1(AmplifierServer &server) {
     std::cout << "testAmplifierServer test 1" << std::endl;
     server.start_sampling();
-    sleep(10);
+    sleep(100);
     server.stop_sampling();
 }
 
-void test2() {
-    std::cout << "testAmplifierServer test 2" << std::endl;
-    std::cout << "%TEST_FAILED% time=0 testname=test2 (testAmplifierServer) message=error message sample" << std::endl;
-}
-
 int main(int argc, char** argv) {
+    debug("test\n");
     std::cout << "%SUITE_STARTING% testAmplifierServer" << std::endl;
     AmplifierDriver driver;
+    std::cout << "Amplifier driver created" << std::endl;
     AmplifierServer server("127.0.0.1", 31889,&driver);
-    server.loop_in_thread();
+    Logger log(2048,"testServer");
+    server.set_logger(&log);
+    server.set_sampling_rate(2048);
     std::cout << "%SUITE_STARTED%" << std::endl;
+    server.loop_in_thread();
     std::cout << "%TEST_STARTED% test1 (testAmplifierServer)" << std::endl;
     test1(server);
     std::cout << "%TEST_FINISHED% time=0 test1 (testAmplifierServer)" << std::endl;

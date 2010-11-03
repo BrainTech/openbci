@@ -8,6 +8,7 @@
 #include "AmplifierServer.h"
 #include "Logger.h"
 #include <boost/shared_ptr.hpp>
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <vector>
 using namespace multiplexer;
 
@@ -15,7 +16,9 @@ AmplifierServer::AmplifierServer(const std::string& host, boost::uint16_t port,
         AmplifierDriver *driv) :
 BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
 
+    debug("Connecting....");
     conn->connect(host, port);
+    debug("Sending query...");
     shared_ptr<MultiplexerMessage> msg =
             conn->query("AmplifierChannelsToRecord", types::DICT_GET_REQUEST_MESSAGE).second;
     std::string s_channels = msg->message();
@@ -27,14 +30,17 @@ BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
     number_of_channels = channels.size();
     driver = driv;
     driver->set_active_channels(channels);
+    debug("Sending query");
     msg = conn->query("SamplingRate", types::DICT_GET_REQUEST_MESSAGE).second;
     int samp_rate = atoi(msg->message().c_str());
+    logger = NULL;
+}
+void AmplifierServer::set_sampling_rate(int samp_rate)
+{
     if (driver->set_sampling_rate(samp_rate) != samp_rate)
         fprintf(stderr, "Warning: sampling rate set to %d Hz instead of %d Hz",
             driver->get_sampling_rate(), samp_rate);
-    logger = NULL;
 }
-
 void * _receive(void *amp) {
     ((AmplifierServer *) amp)->loop();
 }
@@ -60,7 +66,9 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
     msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
     int j=0;
     while (driver->is_sampling()) {
-        time_t t = time(NULL);
+        boost::posix_time::ptime t=boost::posix_time::microsec_clock::local_time();
+        double ti=time(NULL);
+        ti+=(t.time_of_day().total_nanoseconds()%1000000000)/1000000000.0;
         if (driver->fill_samples(isamples) < 0) {
             stop_sampling();
             return;
@@ -68,7 +76,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
         for (int i = 0; i < number_of_channels; i++) {
             variables::Sample *samp = s_vector.mutable_samples(i);
             samp->set_value(isamples[i]);
-            samp->set_timestamp(t);
+            samp->set_timestamp(ti);
         }
         std::string msgstr;
         s_vector.SerializeToString(&msgstr);
@@ -79,7 +87,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
                 fprintf(stderr,"Error: sending failed.\n");
                 return;
         }
-        conn->flush(tracker, -1);
+        //conn->flush(tracker, -1);
         check_status(isamples);
         if (logger != NULL) logger->next_sample();
     }

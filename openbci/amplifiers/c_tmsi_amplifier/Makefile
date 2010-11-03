@@ -23,6 +23,7 @@ INCLUDEDIRS =			-I . \
 			#
 
 LDFLAGS		+= $(GENERALFLAGS) \
+			-lboost_date_time\
     			-lprotobuf \
 			-lboost_program_options \
 			-lboost_signals \
@@ -33,7 +34,10 @@ LDFLAGS		+= $(GENERALFLAGS) \
 
 LIBRARIES	:= $(shell find $(SOURCEDIRS) -name '*.o' | grep -v '\.svn')
 
-test_driver: TmsiAmplifier.o tmsi.o tests/test_driver.cpp
+AmplifierDriver.o: AmplifierDriver.cpp AmplifierDriver.h
+	g++ -c $(CXXFLAGS) $<
+	
+test_driver: TmsiAmplifier.o tmsi.o tests/test_driver.cpp AmplifierDriver.o
 	g++ -o $@ $(CXXFLAGS) -lboost_date_time $^
 
 TmsiAmplifier.o: TmsiAmplifier.cpp
@@ -44,7 +48,7 @@ tmsi.o: nexus/tmsi.c
 SOURCES := AmplifierServer.cpp tests/testAmplifierServer.cpp tmsiAmpServer.cpp
 
 
-testServer: AmplifierServer.o testAmplifierServer.o variables.pb.o
+testServer: AmplifierServer.o testAmplifierServer.o variables.pb.o AmplifierDriver.o
 	g++ -o $@ $(LDFLAGS) $^ $(LIBRARIES)
 
 objects: $(SOURCES)
@@ -65,7 +69,7 @@ variables.pb.cc: $(ROOTDIR)/openbci/variables.proto
 variables.pb.o: variables.pb.cc
 	g++ -c $(CXXFLAGS) $<
 
-tmsiAmpServer:  AmplifierServer.o variables.pb.o tmsiAmpServer.o TmsiAmplifier.o tmsi.o Logger.h
+tmsiAmpServer:  AmplifierServer.o variables.pb.o tmsiAmpServer.o TmsiAmplifier.o tmsi.o Logger.h AmplifierDriver.o
 	g++ -o $@ $(LDFLAGS) $^ $(LIBRARIES)
 
 clean:
@@ -73,3 +77,6 @@ clean:
 
 test_logger: tests/test_logger.cpp Logger.h
 	g++ -o $@ $<
+
+dummyReceiver: DummyReceiver.cpp DummyReceiver.h
+	g++ -o $@ $(LDFLAGS) $(INCLUDEDIRS) $(LIBRARIES) $^ 

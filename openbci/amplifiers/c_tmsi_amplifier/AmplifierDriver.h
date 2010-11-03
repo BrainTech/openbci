@@ -9,40 +9,38 @@
 #define	AMPLIFIERDRIVER_H
 #include <vector>
 #include <stdlib.h>
-#include <ctime>
-using namespace std;
+#include <stdint.h>
+
 class AmplifierDriver
 {
 protected:
     bool sampling;
     int sampling_rate;
-    vector<int> active_channels;
-    clock_t last_sample;
+    std::vector<int> active_channels;
+    uint64_t last_sample;
 public:
     AmplifierDriver(){};
-    virtual void start_sampling()
-    {
-        sampling=true;
-    }
+    virtual void start_sampling();
+    
     virtual void stop_sampling()
     {
         sampling=false;
     }
-    virtual int fill_samples(vector<int> &samples)
+    virtual int fill_samples(std::vector<int> &samples)
     {   if (!sampling) return -1;
         for (unsigned int i=0;i<active_channels.size();i++)
             samples[i]=rand();
     synchronize();
     return active_channels.size();
     }
-    virtual int fill_samples(vector<float> &samples)
+    virtual int fill_samples(std::vector<float> &samples)
     {   if (!sampling) return -1;
         for (unsigned int i=0;i<active_channels.size();i++)
             samples[i]=((float)rand())/RAND_MAX;
     synchronize();
     return active_channels.size();
     }
-    virtual void set_active_channels(vector<int> &channels)
+    virtual void set_active_channels(std::vector<int> &channels)
     {
         active_channels = channels;
     }
@@ -54,14 +52,7 @@ public:
     virtual int get_sampling_rate()
     {return sampling_rate;}
 private:
-    void synchronize()
-    {
-    clock_t this_sample=clock();
-    float wait= (1.0/sampling_rate)-(this_sample-last_sample)/CLOCKS_PER_SEC;
-    if (wait>0)
-        usleep((int)(wait*1000000));
-    last_sample=this_sample;
-    }
+    void synchronize();
 };
 
 

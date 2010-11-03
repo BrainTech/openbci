@@ -20,7 +20,9 @@
 
 #include <pthread.h>
 #include <string>
+#include <vector>
 
+using namespace std;
 using namespace multiplexer;
 #ifdef AMP_DEBUG
 #define debug(...) fprintf(stderr,"AmplifierServer: " __VA_ARGS__)
@@ -30,6 +32,7 @@ using namespace multiplexer;
 class AmplifierServer:public backend::BaseMultiplexerServer {
 public:
     AmplifierServer(const std::string& host, boost::uint16_t port,AmplifierDriver *);
+    virtual void set_sampling_rate(int samp_rate);
     virtual void start_sampling();
     virtual void stop_sampling();
     virtual void handle_message(MultiplexerMessage & msg);
