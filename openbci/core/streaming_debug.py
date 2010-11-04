@@ -36,19 +36,40 @@ class Debug(object):
         self.num_of_samples = 0
         self.sampling = p_sampling
         self.logger = logger
-        self.start_time = time.time()
-        self.last_pack_time = self.start_time
 
     def next_sample(self):
         """Called after every new sample received.
         Aftet sel.sampling sample print stats info."""
+        if self.num_of_samples == 0:
+            self.start_time = time.time()
+
         self.num_of_samples += 1
-        if self.num_of_samples % self.sampling == 0:
+        rest = self.num_of_samples % self.sampling 
+        if rest == 0:
             self.logger.info(''.join(
                     ["Time of last ",
                      str(self.sampling),
                      " samples / all avg: ",
-                     str(time.time() - self.last_pack_time),
+                     str(time.time() - self.last_pack_first_sample_ts),
                      ' / ', 
                      str(self.sampling*(time.time() - self.start_time)/float(self.num_of_samples))]))
-            self.last_pack_time = time.time()
+        elif rest == 1:
+            self.last_pack_first_sample_ts = time.time()
+
+    def next_sample_timestamp(self, sample_timestamp):
+        if self.num_of_samples == 0:
+            self.first_sample_timestamp = sample_timestamp
+        self.num_of_samples += 1
+        rest = self.num_of_samples % self.sampling 
+        if rest == 0:
+            self.logger.info(''.join(
+                    ["Time of last ",
+                     str(self.sampling),
+                     " samples / all avg: ",
+                     str(sample_timestamp - self.first_st_in_pack),
+                     ' / ', 
+                     str(self.sampling*(sample_timestamp - self.first_sample_timestamp)/float(self.num_of_samples))]))
+
+        elif rest == 1:
+            self.first_st_in_pack = sample_timestamp
+        
