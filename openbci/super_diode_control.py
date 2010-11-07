@@ -38,7 +38,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
         self.updatable_params = ["Freqs"]
         # save needed configuration.
         self._cache_diode_params()
-
+	self.check_mode_and_start_blinking()
     def start_blinking(self, freqs):
         d = []
         [d.append(int(x)) for x in freqs]

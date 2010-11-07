@@ -55,12 +55,12 @@ def blink(d, p1, p2):
     str = chr(3) #'R'
     for i in range(len(d)):
         # diode i OFF
-        if d[i] == -1:                       
+        if d[i] == 0:                       
             str += to_hex_word(0) + to_hex_word(255) 
         # diode i ON
-        elif d[i] == 0:
-            #str += to_hex_word(255) + to_hex_word(0)
-	    str = 'S'
+        elif d[i] == -1:
+            str += to_hex_word(255) + to_hex_word(0)
+	    #str = 'S'
         # diode i blinks d[i] times per second, p1:p2 = on_time:off_time in one blink
         else:
 	    period = clock/d[i]

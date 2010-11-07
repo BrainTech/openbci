@@ -45,7 +45,7 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         A place where this action is defined to be fired
         is speller config file.
         """
-        #run_ext('milena '+self._message)
+        run_ext('milena_say '+self._message)
         pass
 
     def msg(self, p_message):

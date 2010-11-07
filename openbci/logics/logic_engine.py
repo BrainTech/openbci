@@ -87,8 +87,8 @@ class LogicEngine(object):
 
                 if (l_decision == MAGIC):
                     self._update_global_paradigm()
-                self._server.send_message({'value':' ', 
-                                           'type': 'switch_mode'}) 
+                #self._server.send_message({'value':' ', 
+                #                           'type': 'switch_mode'}) 
                 #TODO - why do we need this above?
             elif (time.time() - self._pause_point > 4):
                 self._pause = 0

@@ -82,7 +82,10 @@ class SSVEPAnalysis:
         data = variables_pb2.SampleVector()
         #data = self.connection.query(message = str(0), type = types.SIGNAL_CATCHER_REQUEST_MESSAGE, timeout = 10).message
         data.ParseFromString(self.connection.query(message = str(0), type = types.SIGNAL_CATCHER_REQUEST_MESSAGE, timeout = 10).message)
-        #d = cPickle.loads(data)
+        while (len(data.samples) < 128 * 4 - 1):
+	    data = variables_pb2.SampleVector()
+            data.ParseFromString(self.connection.query(message = str(0), type = types.SIGNAL_CATCHER_REQUEST_MESSAGE, timeout = 10).message)
+	#d = cPickle.loads(data)
         d = []
         for s in data.samples:
             d.append(s.value)
@@ -97,8 +100,9 @@ class SSVEPAnalysis:
 #            print(len(d))
         #d = list(d)
         #rint "d: ", d
-        mul = 4
+        mul = 2
         d = d[-int(self.sampling_rate * mul):]
+	d = numpy.array(d) - numpy.average(numpy.array(d))  
         #d = d[-int(self.sampling_rate * (now - tt)):]
         #d.extend((window - now + tt) * [0])	
         d2 = abs(numpy.fft.fft(d))
@@ -194,6 +198,7 @@ class SSVEPAnalysis:
             dec.type = 0
             #print "decyzja ", decision, " freq index ", freqIndex
             self.connection.send_message(message = dec.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
+	    time.sleep(3)
 
 
     

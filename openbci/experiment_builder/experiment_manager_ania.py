@@ -169,7 +169,13 @@ class Experiment_manager(object):
 
                 self._pre_screen(i_screen_conf)
 		# perform some action, like executing other stimuli than visual
-		os.system("python " + self.programme)
+		#os.system("python " + self.programme)
+		import test3
+		l_time1, l_time2 = test3.action(440, 40)
+		TAGGER.send_tag(l_time1, l_time2, "sound", 
+                        {
+                       }) 
+        
                 # let ugm read config for new screen...
                 self.config_manager.update_from_file(i_screen_conf[0], True)
                 # ...then update itself
@@ -177,7 +183,7 @@ class Experiment_manager(object):
                 # change diode frequencies 
                 self.update_diode_freqs(i_screen_conf[1])
 
-                time.sleep(self._get_delay())
+                #time.sleep(self._get_delay())
                 self._post_screen(i_screen_conf)
 
             self._post_screen_package(i_screens_pack)

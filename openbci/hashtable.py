@@ -5,10 +5,8 @@ from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 
 from openbci.core import core_logging as logger
-LOGGER = logger.get_logger("hashtable")#, "error")
+LOGGER = logger.get_logger("hashtable")
 
-def channels_gen(num):
-    return ' '.join([str(i) for i in range(num)])
 
 def gains_gen(num):
     return ' '.join(['1']*num)
@@ -26,9 +24,9 @@ class Hashtable(BaseMultiplexerServer):
     #
 
     data = {
-        "MinData": "-1000",
-        "MaxData": "1000",
         "DataScale": "1.0",
+	"MinData":"-100",
+	"MaxData":"100",
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord": channels_gen(CHANNELS),
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
@@ -46,7 +44,7 @@ class Hashtable(BaseMultiplexerServer):
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",
-        "Border": "0.4",
+        "Border": "2",
         "Panel":  " | K :: | L :: | M ::  | del ::  | N ::  | O ::  | say ::  | <- " ,
 
 	# " gr1.jpg | :: gr2.jpg |  :: gr3.jpg | :: gr4.jpg |  :: gr5.jpg | :: gr6.jpg |  :: gr7.jpg| :: gr8.jpg | " ,
@@ -61,13 +59,17 @@ class Hashtable(BaseMultiplexerServer):
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
-        "Freqs": "0 0 0 0 0 0 0 0",
+        "Freqs": "13 15 7 12 8 9 10 11",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
-        "Borders": "0.6 0.4 1.2 .4 .6 .8 1 .2",
+        "Borders": "1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5",
         #"Borders": ".7 .2 .7 .7 .7 .2 .6 .6",
+        "FilterLevel": "3",
+        "FilterBand": "bandpass",
+        "FilterUp": "32",
+        "FilterDown": "2",
 
-        "Reps": "1 1 1 1 1 1 1 1" ,
+        "Reps": "2 2 2 2 2 2 2 2" ,
         "Repeats": "1",
         "FrameWidth": "20",
         "Squares": "8",

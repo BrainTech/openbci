@@ -1,0 +1,25 @@
+#!/bin/bash
+./azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+
+export PYTHONPATH=./:openbci/:azouk-libraries/build/:PYTHONPATH
+./svarog/pinger.py &
+./openbci/hashtable.py &
+
+sleep 1
+#./openbci/amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB &
+#python -O ./openbci/amplifiers/virtual_amplifier.py file openbci/data_storage/tests/data/sample_data.obci.info openbci/data_storage/tests/data/sample_data.obci.dat  &
+python ./openbci/amplifiers/virtual_amplifier.py file openbci/data_storage/tests/data/sample_data.obci.info openbci/data_storage/tests/data/sample_data.obci.dat  openbci/data_storage/tests/data/sample_data.obci.tags &
+
+sleep 1
+#python -O ./openbci/signal_streamer_no_filter.py &
+python ./openbci/signal_streamer_no_filter.py &
+
+sleep 1
+./openbci/data_storage/signal_saver.py &
+
+sleep 1 
+./openbci/data_storage/tests/test_manually_signal_saver_control.py start_saving &
+
+
+
+

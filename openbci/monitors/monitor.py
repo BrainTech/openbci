@@ -108,11 +108,13 @@ class Monitor(QtGui.QWidget):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage:", sys.argv[0], "<channel number>"
-        sys.exit(1)
+    #if len(sys.argv) < 2:
+    #    print "Usage:", sys.argv[0], "<channel number>"
+    #    sys.exit(1)
 
     app = QtGui.QApplication(sys.argv)
-    monitor = Monitor(int(sys.argv[1]))
+    monitor = Monitor(0)
+
+    #monitor = Monitor(int(sys.argv[1]))
     monitor.show()
     sys.exit(app.exec_())

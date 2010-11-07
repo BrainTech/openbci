@@ -135,7 +135,8 @@ class TMSiBluetoothEEGAmplifier:
                     #    type=types.DICT_SET_MESSAGE, flush=True)
 
                 if data.trigger_active():
-                    print "Digi: Trigger active"
+                    print "Digi: Trigger active ", timestamp
+			
                 if data.battery_low():
                     print "Digi: Battery is low"
                     var = variables_pb2.Variable()

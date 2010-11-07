@@ -25,6 +25,7 @@
 import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
+import socket
 
 import logic_logging as logger
 LOGGER = logger.get_logger("logic_speller_server")
@@ -50,7 +51,7 @@ class LogicSpellerServer(BaseMultiplexerServer):
     def set_engine(self, p_engine):
         """Setter for logic_engine slot."""
         self._logic_engine = p_engine
-
+	self._logic_engine._update_global_gui()
     def send_message(self, p_params):
         """Method fired by logic_engine. It sends p_params data."""
         LOGGER.info("Speller server will send message type: "+p_params['type'])
@@ -73,12 +74,26 @@ class LogicSpellerServer(BaseMultiplexerServer):
         self.conn.send_message(message = l_message, 
                                type = self._get_type(p_params['type']), 
                                flush = True)
-        
+    def _update_igui(self, decision):
+        UDP_IP="127.0.0.1"
+        UDP_PORT=4002
+        MESSAGES = {"0":"First Stimuli 401", "1":"Second Stimulu 402", "2":"Third Stimuli 403", "4":"Fourth Stimuli 404"}
+        MESSAGE=MESSAGES[decision]
+
+        print "UDP target IP:", UDP_IP
+        print "UDP target port:", UDP_PORT
+        print "message:", MESSAGE
+        sock = socket.socket( socket.AF_INET, socket.SOCK_DGRAM ) # UDP
+        sock.sendto( MESSAGE, (UDP_IP, UDP_PORT) )
+ 
     def handle_message(self, mxmsg):
         """Method fired by multiplexer. It conveys decision to logic engine."""
+	print "received message"
         if (mxmsg.type == types.DECISION_MESSAGE):
             dec = variables_pb2.Decision()
             dec.ParseFromString(mxmsg.message)
+	    print "decision message"
+	    #self._update_igui(str(dec.decision))
             self._logic_engine.handle_decision(dec)
         self.no_response() 
 
