@@ -8,6 +8,10 @@ from openbci.core import core_logging as logger
 LOGGER = logger.get_logger("hashtable")
 
 
+def channels_gen(num):
+    return ' '.join([str(i) for i in range(num)])
+
+
 def gains_gen(num):
     return ' '.join(['1']*num)
 
@@ -17,7 +21,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 26
+CHANNELS = 23
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -30,7 +34,7 @@ class Hashtable(BaseMultiplexerServer):
         "TMSiDeviceName": "/dev/rfcomm0",
         "AmplifierChannelsToRecord": channels_gen(CHANNELS),
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
-        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
+        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;", #26
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #23
         #"ChannelsNames": "a;b;c;",
 
@@ -40,9 +44,9 @@ class Hashtable(BaseMultiplexerServer):
         "Offset": offsets_gen(CHANNELS),
         "NumOfChannels": CHANNELS,
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "128",
+        "SamplingRate": "512",
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
-        "SignalCatcherBufferSize": "1024",
+        "SignalCatcherBufferSize": "2048",
         "NumOfFreq": "8",
         "Border": "2",
         "Panel":  " | K :: | L :: | M ::  | del ::  | N ::  | O ::  | say ::  | <- " ,
@@ -90,8 +94,8 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "test_save",
-        "SaveFilePath" : "./temp",
+        "SaveFileName" : "ania_test_eeg6-20hz",
+        "SaveFilePath" : "/home/mrygacz/openbci/openbci/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",
         "FilterBand": "bandpass",

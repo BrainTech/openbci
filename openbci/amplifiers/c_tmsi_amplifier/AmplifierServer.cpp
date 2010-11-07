@@ -33,6 +33,7 @@ BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
     debug("Sending query");
     msg = conn->query("SamplingRate", types::DICT_GET_REQUEST_MESSAGE).second;
     int samp_rate = atoi(msg->message().c_str());
+    set_sampling_rate(samp_rate);
     logger = NULL;
 }
 void AmplifierServer::set_sampling_rate(int samp_rate)
@@ -87,7 +88,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
                 fprintf(stderr,"Error: sending failed.\n");
                 return;
         }
-        //conn->flush(tracker, -1);
+        conn->flush(tracker, -1);
         check_status(isamples);
         if (logger != NULL) logger->next_sample();
     }
@@ -100,7 +101,10 @@ void * _do_sampling(void * amp) {
 void AmplifierServer::start_sampling() {
     driver->start_sampling();
     //  sampling_thread = new boost::thread(t);
-    pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);
+    if (logger!=NULL) logger->restart();
+    //pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);
+    do_sampling();
+    
     if (logger!=NULL) logger->restart();
 }
 

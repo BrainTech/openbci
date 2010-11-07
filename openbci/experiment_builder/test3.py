@@ -63,7 +63,7 @@ def main():
     pygame.mixer.pre_init(sample_rate, -16, 1) # 44.1kHz, 16-bit signed, mono
     pygame.init()
     fc = sine_array(440, 10)
-    fm = sine_array(40, 10)
+    fm = sine_array(20, 10)
     res = fc * fm
     #pyplot.plot(res)
     #pyplot.show()

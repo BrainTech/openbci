@@ -29,6 +29,7 @@ LDFLAGS		+= $(GENERALFLAGS) \
 			-lboost_signals \
 			-lboost_system \
 			-lpthread \
+			-lbluetooth \
 			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python
     			#
 
@@ -38,7 +39,7 @@ AmplifierDriver.o: AmplifierDriver.cpp AmplifierDriver.h
 	g++ -c $(CXXFLAGS) $<
 	
 test_driver: TmsiAmplifier.o tmsi.o tests/test_driver.cpp AmplifierDriver.o
-	g++ -o $@ $(CXXFLAGS) -lboost_date_time $^
+	g++ -o $@ $(CXXFLAGS) -lboost_date_time -lbluetooth $^
 
 TmsiAmplifier.o: TmsiAmplifier.cpp
 	g++ -c $(CXXFLAGS) $<

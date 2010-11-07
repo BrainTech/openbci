@@ -6,7 +6,9 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
-//#include <net/bluetooth/bluetooth.h>
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/rfcomm.h>
+#include <sys/socket.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
@@ -41,6 +43,7 @@ TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_addr
     channel_data = NULL;
     channel_data_index=0;
     read_errors=0;
+    mode=type;
     if (type == USB_AMPLIFIER)
         fd = connect_usb(address);
     else
@@ -68,22 +71,23 @@ int TmsiAmplifier::connect_usb(const char * address) {
 }
 
 int TmsiAmplifier::connect_bluetooth(const char * address) {
-    //    struct sockaddr_rc addr = { 0 };
-    //  int s, status;
-    //
-    //  /* allocate a socket */
-    //  s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-    //
-    //  /* set the connection parameters (who to connect to) */
-    //  addr.rc_family = AF_BLUETOOTH;
-    //  addr.rc_channel = (uint8_t) 1;
-    //  str2ba(fname, &addr.rc_bdaddr );
-    //
-    //  /* open connection to TMSi hardware */
-    //  status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
-    //
-    //  /* return socket */
-    //  return(s);
+       struct sockaddr_rc addr = {0};
+      int s, status;
+    
+      /* allocate a socket */
+      s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    
+      /* set the connection parameters (who to connect to) */
+      addr.rc_family = AF_BLUETOOTH;
+      addr.rc_channel = (uint8_t) 1;
+      addr.rc_bdaddr = *BDADDR_ANY;
+      str2ba(address, &addr.rc_bdaddr );
+    
+      /* open connection to TMSi hardware */
+      status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
+    
+      /* return socket */
+      return(s);
     return -1;
 }
 
@@ -248,6 +252,7 @@ void TmsiAmplifier::stop_sampling() {
             tms_prt_ack(stderr, &ack);
             printf("Ack Received. Clearing buffer from pending messages...\n");
             in_debug(return);
+            if (mode==BLUETOOTH_AMPLIFIER) return;
         }
         if (++retry % (2 * sampling_rate) == 0)
         {
@@ -271,22 +276,13 @@ bool TmsiAmplifier::get_samples() {
         receive();
         int type = tms_get_type(msg, br);
         if (tms_chk_msg(msg, br) != 0) {
-            fprintf(stderr, "# checksum error !!!\n");
-            if (type == TMSCHANNELDATA || type == TMSVLDELTADATA)
-                return false;
-            else
-                continue;
+            fprintf(stderr, "Sample dropped!!!\n");
+            continue;
         }
         if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
             tms_get_data(msg, br, &dev, channel_data);
             channel_data_index = 0;
             debug("Channel data received...\n");
-            if (--keep_alive==0)
-            {
-                keep_alive=sampling_rate*KEEP_ALIVE_RATE;
-                debug("Sending keep_alive\n");
-                tms_snd_keepalive(fd);
-            }
             return true;
         }
     }
@@ -301,7 +297,13 @@ int TmsiAmplifier::fill_samples(vector<int>& samples) {
     {
         for (unsigned int i = 0; i < active_channels.size(); i++)
             samples[i] = channel_data[active_channels[i]].data[channel_data_index].isample;
-    channel_data_index++;
+        channel_data_index++;
+        if (--keep_alive==0)
+            {
+                keep_alive=sampling_rate*KEEP_ALIVE_RATE;
+                printf("Sending keep_alive\n");
+                tms_snd_keepalive(fd);
+            }
     return active_channels.size();
     }
     return -1;
@@ -388,7 +390,7 @@ int TmsiAmplifier::_print_message(FILE * f,uint8_t *msg, int br) {
     fprintf(f, "Message length: %d, type: %x(%20s), valid: %s\n",
             br, type, get_type_name(type), valid ? "YES" : "NO");
     if (br < 2) return -1;
-    if (type==TMSCHANNELDATA) return 0;
+    //if (type==TMSCHANNELDATA) return 0;
     fprintf(f, "%5s | %6s %6s | %5s | %6s %6s\n", "nr", "[nr]", "[nr+1]", "chars", "[nr+1]", "[nr]");
 
     for (int i = 0; i + 1 < br; i += 2) {

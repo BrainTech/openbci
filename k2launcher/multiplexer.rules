@@ -62,6 +62,7 @@ peer {
 peer {
     type: 112
     name: "AMPLIFIER"
+    queue_size: 32768
 }
 
 peer {
@@ -96,6 +97,7 @@ peer {
 peer {
     type: 119
     name: "STREAM_RECEIVER"
+    queue_size: 32768
 }
 
 peer {
@@ -116,11 +118,13 @@ peer {
 peer {
     type: 123
     name: "SIGNAL_STREAMER"
+    queue_size: 32768
 }
 
 peer {
      type: 124
      name: "SIGNAL_SAVER"
+     queue_size: 32768
 }
 
 peer {
@@ -291,11 +295,21 @@ type {
 type {
     type: 129
     name: "AMPLIFIER_SIGNAL_MESSAGE"
+    #to {
+    #    peer: "FILTER"
+    #    whom: ALL
+    #	report_delivery_error: false
+    #}  
     to {
-        peer: "FILTER"
+        peer: "SIGNAL_CATCHER"
         whom: ALL
-	report_delivery_error: false
-    }  
+        report_delivery_error: false
+    }
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+        report_delivery_error: false
+    }
  
     to {
 	peer: "SIGNAL_SAVER"

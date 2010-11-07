@@ -66,8 +66,8 @@ class SignalCatcher(BaseMultiplexerServer):
                 s = vector.samples.add()
                 s.CopyFrom(self.buffer[ind][i])
             self.send_message(message = vector.SerializeToString(), type = types.SIGNAL_CATCHER_RESPONSE_MESSAGE)
-        elif mxmsg.type == types.FILTERED_SIGNAL_MESSAGE:
-        #elif mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
+        #elif mxmsg.type == types.FILTERED_SIGNAL_MESSAGE:
+        elif mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
             self.add(mxmsg.message)
             self.no_response()
 

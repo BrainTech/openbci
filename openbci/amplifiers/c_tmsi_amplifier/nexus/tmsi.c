@@ -1532,7 +1532,7 @@ int32_t get_channel_data_int(uint8_t *msg, int *s,int b)
     if (b==4)
       ans=(msg[i+1]<<24)|(msg[i]<<16)|(msg[i+3]<<8)|(msg[i+2]);
     else if (b==3)
-      ans= (msg[i+1])<<16|(msg[i]<<8)|(msg[i+2]);
+      ans=((msg[i+2])<<24|(msg[i+1]<<16)|(msg[i]<<8))>>8;
     (*s)+=b;
     return ans;
 

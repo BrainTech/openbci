@@ -19,7 +19,8 @@
 #define ON_OFF_BUTTON 0x01
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
-#define KEEP_ALIVE_RATE 7 //seconds between every keep_alive message
+#define KEEP_ALIVE_RATE 10 //seconds between every keep_alive message
+#define MAX_ERRORS 10
 #define MAX_ERRORS 10
 using namespace std;
 #ifdef AMP_DEBUG
@@ -104,6 +105,7 @@ private:
     int keep_alive;
     int read_errors;
     int messages;
+    int mode;
     int get_digi();
 public:
     TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address=NULL, const char* dump_file = NULL);
@@ -117,6 +119,8 @@ public:
         while (tmp < 4 && abs(sample_rate - (bsr >> tmp)) > abs(sample_rate - (bsr >> (tmp + 1)))) tmp++;
         sample_rate_div = tmp;
         sampling_rate = bsr>>tmp;
+        if (sample_rate>128 && mode==BLUETOOTH_AMPLIFIER)
+            sample_rate_div-=1;
         return sampling_rate;
     }
     void set_sampling_rate_div(int sampling_rate_div) {

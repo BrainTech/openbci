@@ -171,7 +171,7 @@ class Experiment_manager(object):
 		# perform some action, like executing other stimuli than visual
 		#os.system("python " + self.programme)
 		import test3
-		l_time1, l_time2 = test3.action(440, 40)
+		l_time1, l_time2 = test3.action(440, 20)
 		TAGGER.send_tag(l_time1, l_time2, "sound", 
                         {
                        }) 
