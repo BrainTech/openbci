@@ -35,6 +35,9 @@ from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')
 TAGGER = tagger.get_tagger()
+
+TIMESTAMPS_AS_SEPARATE_CHANNEL = False
+
 class SignalSaver(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(SignalSaver, self).__init__(addresses=addresses, 
@@ -44,6 +47,8 @@ class SignalSaver(BaseMultiplexerServer):
         if __debug__:
             from openbci.core import streaming_debug
             self.debug = streaming_debug.Debug(128, LOGGER)
+
+        self.start_saving_session()
 
     def handle_message(self, mxmsg):
         """Handle messages:
@@ -56,7 +61,11 @@ class SignalSaver(BaseMultiplexerServer):
             l_vec = variables_pb2.SampleVector()
             l_vec.ParseFromString(mxmsg.message)
 	    for i_sample in l_vec.samples:
-                self._save_manager.data_received(i_sample.value, i_sample.timestamp)
+                ts = i_sample.timestamp
+                self._save_manager.data_received(i_sample.value, ts)
+                
+            if TIMESTAMPS_AS_SEPARATE_CHANNEL:
+                self._save_manager.data_received(ts, ts)
             if __debug__:
                 #Log module real sampling rate
                 self.debug.next_sample()
@@ -119,6 +128,12 @@ class SignalSaver(BaseMultiplexerServer):
         l_signal_params['channels_names'] = l_ch_names
         l_signal_params['channels_gains'] = l_ch_gains
         l_signal_params['channels_offsets'] = l_ch_offsets
+        if TIMESTAMPS_AS_SEPARATE_CHANNEL:
+            l_signal_params['number_of_channels'] += 1
+            l_signal_params['channels_gains'].append(1.0)
+            l_signal_params['channels_offsets'].append(0.0)
+            l_signal_params['channels_names'].append('TIMESTAMPS')
+            l_signal_params['channels_numbers'].append(1000)
 
         l_log = "Start saving to file "+l_f_path+l_f_name+" with values:\n"
         for i_key, i_value in l_signal_params.iteritems():
