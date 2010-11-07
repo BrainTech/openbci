@@ -8,6 +8,7 @@
 #ifndef AMPLIFIERDRIVER_H
 #define	AMPLIFIERDRIVER_H
 #include <vector>
+#include <string>
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -16,7 +17,7 @@ class AmplifierDriver
 protected:
     bool sampling;
     int sampling_rate;
-    std::vector<int> active_channels;
+    std::vector<std::string> active_channels;
     uint64_t last_sample;
 public:
     AmplifierDriver(){};
@@ -40,7 +41,7 @@ public:
     synchronize();
     return active_channels.size();
     }
-    virtual void set_active_channels(std::vector<int> &channels)
+    virtual void set_active_channels(std::vector<std::string> &channels)
     {
         active_channels = channels;
     }

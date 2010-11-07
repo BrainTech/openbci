@@ -45,10 +45,12 @@ int main(int argc, char ** argv) {
     TmsiAmplifier amp(dev, mode,read_dev,dump_file);
     sample_rate=amp.set_sampling_rate(sample_rate);
     printf("Sampling rate: %d Hz\n",sample_rate);
-    vector<int> channels;
-    for (int i = 0; i < 3; i++) channels.push_back(i);
-    channels.push_back(3);
-    channels.push_back(32);
+    vector<string> channels;
+    channels.push_back("1");
+    channels.push_back("2");
+    channels.push_back("trigger");
+    channels.push_back("onoff");
+    channels.push_back("battery");
     amp.set_active_channels(channels);
     amp.start_sampling();
     ptime start=microsec_clock::local_time();
@@ -59,7 +61,7 @@ int main(int argc, char ** argv) {
         amp.fill_samples(isamples);
         printf("Samples %d:\n",i);
         for (int j = 0; j < channels.size(); j++)
-            printf("%3d: %d %x\n", channels[j], isamples[j], isamples[j]);
+            printf("%7s: %d %x\n", channels[j].c_str(), isamples[j], isamples[j]);
         //            amp.fill_samples(fsamples);
         //            printf("Float samples form channels:\n");
         //            for (int j = 0; j < fsamples.size(); j++)

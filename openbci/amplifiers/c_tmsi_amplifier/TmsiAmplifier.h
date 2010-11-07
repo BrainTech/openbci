@@ -9,6 +9,7 @@
 #define	TMSIAMPLIFIER_H
 #include <string>
 #include <vector>
+#include <stdio.h>
 
 #include "nexus/tmsi.h"
 #include "AmplifierDriver.h"
@@ -17,6 +18,10 @@
 #define USB_AMPLIFIER 2
 #define MESSAGE_SIZE 1024*1024
 #define ON_OFF_BUTTON 0x01
+#define ONOFF_CHANNEL 0
+#define TRIGGER_CHANNEL 1
+#define BATTERY_CHANNEL 2
+#define ADDITIONAL_CHANNELS 3
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
 #define KEEP_ALIVE_RATE 10 //seconds between every keep_alive message
@@ -92,6 +97,7 @@ class TmsiAmplifier:public AmplifierDriver {
 private:
     int fd,read_fd,dump_fd; //device descriptor
     vector<channel_desc> channels_desc;
+    vector<int> act_channels,spec_channels;
     tms_frontendinfo_t fei;
     tms_vldelta_info_t vli;
     tms_input_device_t dev;
@@ -106,6 +112,8 @@ private:
     int read_errors;
     int messages;
     int mode;
+    int digi;
+    int digi_channel;
     int get_digi();
 public:
     TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address=NULL, const char* dump_file = NULL);
@@ -133,21 +141,47 @@ public:
     }
     void start_sampling();
     void stop_sampling();
-    int fill_samples(vector<int> &samples);
-    int fill_samples(vector<float> &samples);
-    bool is_battery_low()
+//    template<typename T>
+//    int fill_samples(vector<T> &samples);
+    //int fill_samples(vector<float> &samples);
+    inline bool is_battery_low()
     {
         return get_digi()&BATTERY_LOW;
     }
-    bool is_trigger()
+    inline bool is_trigger()
     {
         return get_digi()&TRIGGER_ACTIVE;
     }
-    bool is_onoff_pressed()
+    void set_active_channels(std::vector<std::string> &channels);
+    inline bool is_onoff_pressed()
     {
         return get_digi()&ON_OFF_BUTTON;
     }
     int refreshInfo();
+inline void _put_sample(int *s,tms_data_t &data){(*s)=data.isample;}
+inline void _put_sample(float *s,tms_data_t &data){(*s)=data.sample;}
+
+template<typename T>
+int fill_samples(vector<T>& samples) {
+    debug("Filling samples\n");
+    if (!get_samples()) return -1;
+    //printf("fill_samplse %d\n",sampling);
+    if (sampling)
+    {
+        for (unsigned int i = 0; i < act_channels.size(); i++)
+            _put_sample(&samples[i],channel_data[act_channels[i]].data[channel_data_index]);
+        channel_data_index++;
+    debug("Filling special channels\n");
+    if (spec_channels[TRIGGER_CHANNEL]!=-1)
+        samples[spec_channels[TRIGGER_CHANNEL]]=is_trigger();
+    if (spec_channels[ONOFF_CHANNEL]!=-1)
+        samples[spec_channels[ONOFF_CHANNEL]]=is_onoff_pressed();
+    if (spec_channels[BATTERY_CHANNEL]!=-1)
+        samples[spec_channels[BATTERY_CHANNEL]]=is_battery_low()?1:0;
+    return active_channels.size();
+    }
+    return -1;
+}
 
     ~TmsiAmplifier();
 private:

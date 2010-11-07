@@ -23,8 +23,8 @@ BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
             conn->query("AmplifierChannelsToRecord", types::DICT_GET_REQUEST_MESSAGE).second;
     std::string s_channels = msg->message();
     std::stringstream ss_chan(s_channels);
-    int tmp;
-    vector<int> channels;
+    std::string tmp;
+    vector<std::string> channels;
     while (ss_chan >> tmp)
         channels.push_back(tmp);
     number_of_channels = channels.size();
@@ -105,7 +105,6 @@ void AmplifierServer::start_sampling() {
     //pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);
     do_sampling();
     
-    if (logger!=NULL) logger->restart();
 }
 
 void AmplifierServer::stop_sampling() {

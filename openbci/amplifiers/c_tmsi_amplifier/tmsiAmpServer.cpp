@@ -29,9 +29,9 @@ void print_help()
                             "[-d device_path or bluetooth address] default=\"/dev/fusbi0\"\n"\
                             "[-b] if set device path is bluetooth address\n"\
                             "[-r file] file with stored amplifier responses\n"\
-                            "[-l nr_of_samples] print log message after number_of_samples" \
-                            "[-D file] whole amplifier output will be dumped to file"\
-                            "[-s sampling_rate] force set sampling rate in Hz"\
+                            "[-l nr_of_samples] print log message after number_of_samples\n" \
+                            "[-D file] whole amplifier output will be dumped to file\n"\
+                            "[-s sampling_rate] force set sampling rate in Hz\n"\
                             "[-h] show this message\n");
 }
 int main(int argc, char**argv)

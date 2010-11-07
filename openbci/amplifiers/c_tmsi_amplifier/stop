@@ -5,3 +5,5 @@ echo 'S' > /dev/ttyUSB0
 killall python
 killall mxcontrol
 killall tmsiAmpServer
+killall testServer
+killall dummyReceiver

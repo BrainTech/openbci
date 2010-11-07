@@ -7,8 +7,20 @@
 
 #include "DummyReceiver.h"
 
-int main()
+int main(int argc,char ** argv)
 {
-    DummyReceiver dr("127.0.0.1",31889);
+
+    int port=31889,log=128;
+    char *host = "127.0.0.1";
+    for (int i=1;i<argc;i++)
+        if (argv[i][0]=='-')
+            switch (argv[i][1])
+            {
+                case 'l': log=atoi(argv[i+1]); break;
+                case 'p': port=atoi(argv[i+1]); break;
+                case 'h': host=argv[i+1];
+            }
+    
+    DummyReceiver dr(host,port,log);
     dr.loop();
 }

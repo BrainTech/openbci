@@ -19,11 +19,12 @@ class DummyReceiver:public backend::BaseMultiplexerServer {
 private:
     Logger logger;
 public:
-    DummyReceiver(const std::string& host, boost::uint16_t port):
-    BaseMultiplexerServer(new Client(peers::SIGNAL_CATCHER), peers::SIGNAL_CATCHER),logger(2048,"DummyReceiver")
+    DummyReceiver(const std::string& host, boost::uint16_t port,int log):
+    BaseMultiplexerServer(new Client(peers::SIGNAL_CATCHER), peers::SIGNAL_CATCHER),logger(log,"DummyReceiver")
     {
         conn->connect(host, port);
         logger.restart();
+        printf("DummyReceiver: Logging every %d samples. Connecting to: %s:%d\n",log,host.c_str(),port);
     }
     virtual void handle_message(MultiplexerMessage & msg)
     {

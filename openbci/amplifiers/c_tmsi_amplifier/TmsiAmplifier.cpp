@@ -13,7 +13,9 @@
 #include <errno.h>
 #include <time.h>
 #include <signal.h>
-#include <string.h>
+#include <string>
+#include <iostream>
+#include <sstream>
 #include "TmsiAmplifier.h"
 #include "nexus/tmsi.h"
 TmsiAmplifier * tmsiAmplifierInstance=NULL;
@@ -194,7 +196,16 @@ void TmsiAmplifier::load_channel_desc() {
         chan.is_signed = t_chan.Type.Format & 0x100;
         chan.bit_length = t_chan.Type.Format & 0x11;
         channels_desc.push_back(chan);
+        if (chan.name=="Digi")
+            digi_channel=i;
     }
+    channel_desc ch;
+    ch.name="trig";
+    channels_desc.push_back(ch);
+    ch.name="onoff";
+    channels_desc.push_back(ch);
+    ch.name="bat";
+    channels_desc.push_back(ch);
 }
 
 void TmsiAmplifier::start_sampling() {
@@ -202,7 +213,7 @@ void TmsiAmplifier::start_sampling() {
     fei.mode &= 0x10;
     fei.currentsampleratesetting = sample_rate_div&0xFFFF;
     br = 0;
-    keep_alive=sampling_rate*KEEP_ALIVE_RATE;
+    keep_alive=1;
     int counter = 0;
     int type;
     signal(SIGINT,handler);
@@ -282,49 +293,65 @@ bool TmsiAmplifier::get_samples() {
         if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
             tms_get_data(msg, br, &dev, channel_data);
             channel_data_index = 0;
+            digi=-1;
             debug("Channel data received...\n");
+            if (--keep_alive==0)
+            {
+                keep_alive=sampling_rate*KEEP_ALIVE_RATE/channel_data[0].ns;
+                printf("Sending keep_alive\n");
+                tms_snd_keepalive(fd);
+            }
+
             return true;
         }
     }
     return false;
 }
+//template<typename T>
+//int TmsiAmplifier::fill_samples(vector<T>& samples) {
+//    debug("Filling samples\n");
+//    if (!get_samples()) return -1;
+//    //printf("fill_samplse %d\n",sampling);
+//    if (sampling)
+//    {
+//        for (unsigned int i = 0; i < act_channels.size(); i++)
+//            _put_sample(&samples[i],channel_data[act_channels[i]].data[channel_data_index]);
+//        channel_data_index++;
+//    debug("Filling special channels\n");
+//    if (spec_channels[TRIGGER_CHANNEL]!=-1)
+//        samples[spec_channels[TRIGGER_CHANNEL]]=is_trigger();
+//    if (spec_channels[ONOFF_CHANNEL]!=-1)
+//        samples[spec_channels[ONOFF_CHANNEL]]=is_onoff_pressed();
+//    if (spec_channels[BATTERY_CHANNEL]!=-1)
+//        samples[spec_channels[BATTERY_CHANNEL]]=is_battery_low()?1:0;
+//    return active_channels.size();
+//    }
+//    return -1;
+//}
 
-int TmsiAmplifier::fill_samples(vector<int>& samples) {
-    debug("Filling samples\n");
-    if (!get_samples()) return -1;
-    //printf("fill_samplse %d\n",sampling);
-    if (sampling)
-    {
-        for (unsigned int i = 0; i < active_channels.size(); i++)
-            samples[i] = channel_data[active_channels[i]].data[channel_data_index].isample;
-        channel_data_index++;
-        if (--keep_alive==0)
-            {
-                keep_alive=sampling_rate*KEEP_ALIVE_RATE;
-                printf("Sending keep_alive\n");
-                tms_snd_keepalive(fd);
-            }
-    return active_channels.size();
-    }
-    return -1;
-}
+//int TmsiAmplifier::fill_samples(vector<float>& samples) {
+//    if (!get_samples()) return -1;
+//    if (sampling){
+//        for (unsigned int i = 0; i < act_channels.size(); i++)
+//            samples[i] = channel_data[act_channels[i]].data[channel_data_index].sample;
+//    channel_data_index++;
+//    if (spec_channels[TRIGGER_CHANNEL]!=-1)
+//        samples[spec_channels[TRIGGER_CHANNEL]]=get_digi()&TRIGGER_ACTIVE;
+//    if (spec_channels[ONOFF_CHANNEL]!=-1)
+//        samples[spec_channels[ONOFF_CHANNEL]]=get_digi()&ON_OFF_BUTTON;
+//    if (spec_channels[BATTERY_CHANNEL]!=-1)
+//        samples[spec_channels[BATTERY_CHANNEL]]=get_digi()&BATTERY_LOW;
+//    return active_channels.size();}
+//    return -1;
+//}
 
-int TmsiAmplifier::fill_samples(vector<float>& samples) {
-    if (!get_samples()) return -1;
-    if (sampling){
-        for (unsigned int i = 0; i < active_channels.size(); i++)
-            samples[i] = channel_data[active_channels[i]].data[channel_data_index].sample;
-    channel_data_index++;
-    return active_channels.size();}
-    return -1;
-}
-
-int TmsiAmplifier::get_digi() {
+ int TmsiAmplifier::get_digi() {
     if (channel_data == NULL) return 0;
-    int tmp = channel_data[fei.nrofswchannels - 2].data[0].isample;
+    if (digi!=-1) return digi;
+    digi = channel_data[fei.nrofswchannels - 2].data[0].isample;
     for (int i = 1; i < channel_data[fei.nrofswchannels - 1].ns; i++)
-        tmp |= channel_data[fei.nrofswchannels - 2].data[i].isample;
-    return tmp;
+        digi |= channel_data[fei.nrofswchannels - 2].data[i].isample;
+    return digi;
 }
 void TmsiAmplifier::receive() {
     debug(">>>>>>>>>>>>>>>Receiving Message>>>>>>>>>>>>>>>\n");
@@ -631,11 +658,14 @@ tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
     /* allocate storage space for all channels */
     tms_channel_data_t *channel_data = (tms_channel_data_t *) calloc(dev.NrOfChannels, sizeof (tms_channel_data_t));
     for (i = 0; i < dev.NrOfChannels; i++) {
+        if (i<dev.NrOfChannels)
         if (!vldelta) {
             channel_data[i].ns = 1;
         } else {
             channel_data[i].ns = (vli.TransFreqDiv + 1) / (vli.SampDiv[i] + 1);
         }
+        else
+            channel_data[i].ns=ns_max;
         /* reset sample counter */
         channel_data[i].sc = 0;
         if (channel_data[i].ns > ns_max) {
@@ -647,4 +677,61 @@ tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
         channel_data[i].td = ns_max / (channel_data[i].ns * tms_get_sample_freq());
     }
     return channel_data;
+}
+using namespace std;
+void TmsiAmplifier::set_active_channels(vector<string>& channels)
+{
+    int tmp;
+    
+    act_channels.clear();
+    spec_channels.clear();
+    for (int i=0;i<ADDITIONAL_CHANNELS;i++)
+        spec_channels.push_back(-1);
+    for (int i=0;i<channels.size();i++)
+    {
+        stringstream stream(channels[i]),tmpstr(channels[i]);
+        cout<< channels[i]<<" "<<(tmpstr>>tmp)<<' ';
+        if ((stream>>tmp)==0)
+        {
+            bool ok=false;
+            for(int j=0;j<channels_desc.size();j++)
+                if (channels_desc[j].name==channels[i])
+                    if (j<fei.nrofswchannels){
+                        act_channels.push_back(j);
+                        cout << j;
+                        ok=true;
+                    }
+                    else
+                    {
+                        act_channels.push_back(0);
+                        spec_channels[j-fei.nrofswchannels]=i;
+                        cout << "0-"<<j-fei.nrofswchannels;
+                        ok=true;
+                    }
+            if (!ok)
+            {
+                fprintf(stderr,"Unknown channel name: %s",channels[i].c_str());
+                exit(-1);
+            }
+        }
+        else { cout<<"tmp "<<tmp;
+            if (tmp>=0)
+                if (tmp>=fei.nrofswchannels)
+                {
+                    fprintf(stderr,"Channel index to big:%d (max:%d)!\n",tmp,fei.nrofswchannels);
+                    exit(-1);
+                }
+                else
+                    act_channels.push_back(tmp);
+            else
+                if (-tmp>=ADDITIONAL_CHANNELS)
+                {
+                    fprintf(stderr,"Unknown special channel: %d!\n",tmp);
+                    exit(-1);
+                }
+                else
+                    spec_channels[-tmp]=i;
+        }
+        cout<<"\n";
+    }
 }
