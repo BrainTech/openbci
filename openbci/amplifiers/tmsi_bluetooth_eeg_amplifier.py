@@ -37,9 +37,10 @@ import gflags
 import sys
 import re
 import amplifiers_logging as logger
-LOGGER = logger.get_logger("file_amplifier", "info")
+LOGGER = logger.get_logger("tmsi_bluetooth_eeg_amplifier", "info")
 
 
+SPECIAL_CHANNELS = ["trig", "bat", "onoff"]
 class TMSiBluetoothEEGAmplifier:
     """
     Main class implementing TMSi Bluetooth EEG Amplifier support.
@@ -48,9 +49,24 @@ class TMSiBluetoothEEGAmplifier:
         self.connection = connect_client(type = peers.AMPLIFIER)
         self.sampling_rate = int(self.connection.query(message="SamplingRate", \
             type=types.DICT_GET_REQUEST_MESSAGE).message)
-        self.channel_numbers = [int(x) for x in \
-            self.connection.query(message="AmplifierChannelsToRecord", \
-                type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")]
+        channels_to_record = self.connection.query(message="AmplifierChannelsToRecord",
+                                                   type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")
+        
+
+        self.channel_numbers = []
+        # Gather channels ids to slot - notice, ch_id might be integer or string.
+        # String represents special channel: "trig" for trigger, "bat" for battery, "onoff" for on off button.
+        print(channels_to_record)
+        for ch_id in channels_to_record:
+            try:
+                ch = int(ch_id)
+            except ValueError:
+                if ch_id not in SPECIAL_CHANNELS:
+                    raise Exception(''.join(["Channel to record doesn't match any valid name. Requrested name is: ",
+                                             ch_id,". Valid names are: ", str(SPECIAL_CHANNELS)]))
+                ch = ch_id
+            self.channel_numbers.append(ch)
+
         self.device = device
         self.vldelta = False
         self.hardware_number_of_channels = -1
@@ -112,6 +128,9 @@ class TMSiBluetoothEEGAmplifier:
 
         last_keep_alive = time.time()
         start = time.time()
+        trigger_value = 0.0
+        battery_value = 0.0
+        onoff_value = 0.0
         while True:
             try:
                 timestamp = time.time()
@@ -125,45 +144,46 @@ class TMSiBluetoothEEGAmplifier:
                 data.set_number_of_channels(self.hardware_number_of_channels)
                 channel_data = data.decode()
             
+                # Gather special channels values
                 if data.on_off_pressed():
-                    print "Digi: On/Off button is pressed"
-                    var = variables_pb2.Variable()
-                    var.key = "Trigger"
-                    var.value = "1"
-                    #self.connection.send_message( \
-                    #    message=var.SerializeToString(), \
-                    #    type=types.DICT_SET_MESSAGE, flush=True)
+                    onoff_value = 1.0
+                else:
+                    onoff_value = 0.0
 
                 if data.trigger_active():
-                    print "Digi: Trigger active ", timestamp
-			
-                if data.battery_low():
-                    print "Digi: Battery is low"
-                    var = variables_pb2.Variable()
-                    var.key = "AmpBattery"
-                    var.value = "0"
+                    trigger_value = 1.0
                 else:
-                    var = variables_pb2.Variable()
-                    var.key = "AmpBattery"
-                    var.value = "1"
-                #self.connection.send_message( \
-                #        message=var.SerializeToString(), \
-                #        type=types.DICT_SET_MESSAGE, flush=True)                     
-                                                            
+                    trigger_value = 0.0
+
+                if data.battery_low():
+                    battery_value = 0.0
+                else:
+                    battery_value = 1.0
                                                                               
                 # send samples
                 for i in range(len(channel_data[0])):
                     sample_vector = variables_pb2.SampleVector()
                     for j in self.channel_numbers:
                         samp = sample_vector.samples.add()
-                        samp.value = float(channel_data[j][i])
+                        try:
+                            samp.value = float(channel_data[j][i])
+                        except TypeError:
+                            if j == "trig":
+                                samp.value = trigger_value
+                            elif j == "bat":
+                                samp.value = battery_value
+                            elif j == "onoff":
+                                samp.value = onoff_value
+                            else:
+                                raise Exception("This should never happen, as j is checked as being in SPECIAL_CHANNELS in init method...")
+                            
                         samp.timestamp = timestamp
                     self.connection.send_message( \
                         message=sample_vector.SerializeToString(), \
                         type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
                     if __debug__:
                 		#Log module real sampling rate
-                		self.debug.next_sample()
+                		self.debug.next_sample_timestamp(timestamp)
 
                     if i != len(channel_data[0]) - 1:
                         # if this is not the last sample we want to send
