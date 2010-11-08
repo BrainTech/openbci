@@ -36,7 +36,7 @@ void print_help()
 }
 int main(int argc, char**argv)
 {
-    char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
+    const char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
     int port=31889,type=USB_AMPLIFIER,sampling_rate=-1;
     Logger *log=NULL;
 

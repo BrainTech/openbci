@@ -44,7 +44,7 @@ test_driver: TmsiAmplifier.o tmsi.o tests/test_driver.cpp AmplifierDriver.o
 TmsiAmplifier.o: TmsiAmplifier.cpp
 	g++ -c $(CXXFLAGS) $<
 tmsi.o: nexus/tmsi.c
-	g++ -c $(CXXFLAGS) $<
+	g++ -c $<
 	
 SOURCES := AmplifierServer.cpp tests/testAmplifierServer.cpp tmsiAmpServer.cpp
 

@@ -44,6 +44,7 @@ void AmplifierServer::set_sampling_rate(int samp_rate)
 }
 void * _receive(void *amp) {
     ((AmplifierServer *) amp)->loop();
+    return NULL;
 }
 
 int AmplifierServer::loop_in_thread() {
@@ -65,7 +66,6 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
     MultiplexerMessage msg;
     msg.set_from(conn->instance_id());
     msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
-    int j=0;
     while (driver->is_sampling()) {
         boost::posix_time::ptime t=boost::posix_time::microsec_clock::local_time();
         double ti=time(NULL);
@@ -74,9 +74,11 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
             stop_sampling();
             return;
         }
+        debug("Received samples:\n");
         for (int i = 0; i < number_of_channels; i++) {
             variables::Sample *samp = s_vector.mutable_samples(i);
             samp->set_value(isamples[i]);
+            debug("%2d: %d %x\n",i,isamples[i],isamples[i]);
             samp->set_timestamp(ti);
         }
         std::string msgstr;
@@ -96,6 +98,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
 
 void * _do_sampling(void * amp) {
     ((AmplifierServer *) amp)->do_sampling();
+    return NULL;
 }
 
 void AmplifierServer::start_sampling() {

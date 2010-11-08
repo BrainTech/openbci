@@ -200,6 +200,8 @@ void TmsiAmplifier::load_channel_desc() {
             digi_channel=i;
     }
     channel_desc ch;
+    ch.name="Empty";
+    channels_desc.push_back(ch);
     ch.name="trig";
     channels_desc.push_back(ch);
     ch.name="onoff";
@@ -263,7 +265,7 @@ void TmsiAmplifier::stop_sampling() {
             tms_prt_ack(stderr, &ack);
             printf("Ack Received. Clearing buffer from pending messages...\n");
             in_debug(return);
-            if (mode==BLUETOOTH_AMPLIFIER) return;
+            if (mode==BLUETOOTH_AMPLIFIER|| read_fd!=fd) return;
         }
         if (++retry % (2 * sampling_rate) == 0)
         {
@@ -682,39 +684,39 @@ using namespace std;
 void TmsiAmplifier::set_active_channels(vector<string>& channels)
 {
     int tmp;
-    
     act_channels.clear();
     spec_channels.clear();
-    for (int i=0;i<ADDITIONAL_CHANNELS;i++)
+    for (int i=0;i<=ADDITIONAL_CHANNELS;i++)
         spec_channels.push_back(-1);
-    for (int i=0;i<channels.size();i++)
+    printf("Sending channels: ");
+    for (unsigned int i=0;i<channels.size();i++)
     {
-        stringstream stream(channels[i]),tmpstr(channels[i]);
-        cout<< channels[i]<<" "<<(tmpstr>>tmp)<<' ';
+        stringstream stream(channels[i]);
         if ((stream>>tmp)==0)
         {
             bool ok=false;
-            for(int j=0;j<channels_desc.size();j++)
-                if (channels_desc[j].name==channels[i])
+            for(unsigned int j=0;j<channels_desc.size();j++)
+                if (channels_desc[j].name==channels[i]){
                     if (j<fei.nrofswchannels){
                         act_channels.push_back(j);
-                        cout << j;
+                        printf("%s(%d), ",channels_desc[j].name.c_str(),j);
                         ok=true;
                     }
                     else
                     {
                         act_channels.push_back(0);
                         spec_channels[j-fei.nrofswchannels]=i;
-                        cout << "0-"<<j-fei.nrofswchannels;
+                        printf("%s(%d), ",channels_desc[j].name.c_str(),fei.nrofswchannels-j);
                         ok=true;
                     }
+                }
             if (!ok)
             {
                 fprintf(stderr,"Unknown channel name: %s",channels[i].c_str());
                 exit(-1);
             }
         }
-        else { cout<<"tmp "<<tmp;
+        else {
             if (tmp>=0)
                 if (tmp>=fei.nrofswchannels)
                 {
@@ -722,16 +724,21 @@ void TmsiAmplifier::set_active_channels(vector<string>& channels)
                     exit(-1);
                 }
                 else
+                {
                     act_channels.push_back(tmp);
+                    printf("%s(%d), ",channels_desc[tmp].name.c_str(),tmp);
+                }
             else
-                if (-tmp>=ADDITIONAL_CHANNELS)
+                if (-tmp>ADDITIONAL_CHANNELS)
                 {
                     fprintf(stderr,"Unknown special channel: %d!\n",tmp);
                     exit(-1);
                 }
-                else
+                else{
                     spec_channels[-tmp]=i;
+                    printf("%s(%d), ",channels_desc[fei.nrofuserchannels-tmp].name.c_str(),tmp);
+                }
         }
-        cout<<"\n";
     }
+    printf("\n");
 }

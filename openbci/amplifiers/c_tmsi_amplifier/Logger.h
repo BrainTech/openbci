@@ -38,7 +38,7 @@ public:
             ptime now=boost::posix_time::microsec_clock::local_time();
             struct tm  timeinfo=to_tm(now);
             strftime(buffer,100,"%Y-%m-%d %H:%M:%S",&timeinfo);
-            fprintf(stderr,"%s,%.3d - ",buffer,now.time_of_day().total_microseconds()%1000000/1000);
+            fprintf(stderr,"%s,%.3lld - ",buffer,now.time_of_day().total_microseconds()%1000000/1000);
             fprintf(stderr,"%s - INFO - Time of last %d samples / all avg:"\
                     "%f / %f \n",name,sampling,
                     ((double)(now-last_pack_time).total_microseconds())/1000000,

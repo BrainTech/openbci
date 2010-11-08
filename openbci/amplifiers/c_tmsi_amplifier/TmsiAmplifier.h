@@ -18,9 +18,9 @@
 #define USB_AMPLIFIER 2
 #define MESSAGE_SIZE 1024*1024
 #define ON_OFF_BUTTON 0x01
-#define ONOFF_CHANNEL 0
-#define TRIGGER_CHANNEL 1
-#define BATTERY_CHANNEL 2
+#define TRIGGER_CHANNEL -1
+#define ONOFF_CHANNEL -2
+#define BATTERY_CHANNEL -3
 #define ADDITIONAL_CHANNELS 3
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
@@ -28,6 +28,7 @@
 #define MAX_ERRORS 10
 #define MAX_ERRORS 10
 using namespace std;
+#undef debug
 #ifdef AMP_DEBUG
 #define debug(...) fprintf(stderr,__VA_ARGS__)
 #define in_debug(...) __VA_ARGS__;
@@ -35,6 +36,7 @@ using namespace std;
 #define debug(...) ;
 #define in_debug(...) ;
 #endif
+
 struct channel_desc {
     string name;
     float gain;
@@ -93,11 +95,11 @@ struct channel_desc {
 
 };
 
-class TmsiAmplifier:public AmplifierDriver {
+class TmsiAmplifier : public AmplifierDriver {
 private:
-    int fd,read_fd,dump_fd; //device descriptor
+    int fd, read_fd, dump_fd; //device descriptor
     vector<channel_desc> channels_desc;
-    vector<int> act_channels,spec_channels;
+    vector<int> act_channels, spec_channels;
     tms_frontendinfo_t fei;
     tms_vldelta_info_t vli;
     tms_input_device_t dev;
@@ -115,25 +117,57 @@ private:
     int digi;
     int digi_channel;
     int get_digi();
+
+    inline void _put_sample(int *s, tms_data_t &data) {
+        (*s) = data.isample;
+    }
+
+    inline void _put_sample(float *s, tms_data_t &data) {
+        (*s) = data.sample;
+    }
+
+    template<typename T>
+    int _fill_samples(vector<T>& samples) {
+        debug("Filling samples\n");
+        if (!get_samples()) return -1;
+        //printf("fill_samplse %d\n",sampling);
+        if (sampling) {
+            for (unsigned int i = 0; i < act_channels.size(); i++)
+                _put_sample(&samples[i], channel_data[act_channels[i]].data[channel_data_index]);
+            channel_data_index++;
+            debug("Filling special channels\n");
+            if (spec_channels[-TRIGGER_CHANNEL] != -1)
+                samples[spec_channels[-TRIGGER_CHANNEL]] = is_trigger();
+            if (spec_channels[ONOFF_CHANNEL] != -1)
+                samples[spec_channels[-ONOFF_CHANNEL]] = is_onoff_pressed();
+            if (spec_channels[BATTERY_CHANNEL] != -1)
+                samples[spec_channels[-BATTERY_CHANNEL]] = is_battery_low() ? 1 : 0;
+            return active_channels.size();
+        }
+        return -1;
+    }
+
 public:
-    TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address=NULL, const char* dump_file = NULL);
+    TmsiAmplifier(const char *address, int type = USB_AMPLIFIER, const char *read_address = NULL, const char* dump_file = NULL);
     TmsiAmplifier(const TmsiAmplifier& orig);
-    int number_of_channels()
-    {
+
+    int number_of_channels() {
         return fei.nrofswchannels;
     }
+
     int set_sampling_rate(int sample_rate) {
         int tmp = 0, bsr = fei.basesamplerate;
         while (tmp < 4 && abs(sample_rate - (bsr >> tmp)) > abs(sample_rate - (bsr >> (tmp + 1)))) tmp++;
         sample_rate_div = tmp;
-        sampling_rate = bsr>>tmp;
-        if (sample_rate>128 && mode==BLUETOOTH_AMPLIFIER)
-            sample_rate_div-=1;
+        sampling_rate = bsr >> tmp;
+        if (sample_rate > 128 && mode == BLUETOOTH_AMPLIFIER)
+            sample_rate_div -= 1;
         return sampling_rate;
     }
+
     void set_sampling_rate_div(int sampling_rate_div) {
         sample_rate_div = sampling_rate_div;
-        sampling_rate=fei.basesamplerate>>sample_rate_div;
+        sampling_rate = fei.basesamplerate >> sample_rate_div;
     }
 
     int get_sampling_rate_div() {
@@ -141,47 +175,32 @@ public:
     }
     void start_sampling();
     void stop_sampling();
-//    template<typename T>
-//    int fill_samples(vector<T> &samples);
+    //    template<typename T>
+    //    int fill_samples(vector<T> &samples);
     //int fill_samples(vector<float> &samples);
-    inline bool is_battery_low()
-    {
-        return get_digi()&BATTERY_LOW;
+
+    inline bool is_battery_low() {
+        return get_digi() & BATTERY_LOW;
     }
-    inline bool is_trigger()
-    {
-        return get_digi()&TRIGGER_ACTIVE;
+
+    inline bool is_trigger() {
+        return get_digi() & TRIGGER_ACTIVE;
     }
     void set_active_channels(std::vector<std::string> &channels);
-    inline bool is_onoff_pressed()
-    {
-        return get_digi()&ON_OFF_BUTTON;
+
+    inline bool is_onoff_pressed() {
+        return get_digi() & ON_OFF_BUTTON;
     }
     int refreshInfo();
-inline void _put_sample(int *s,tms_data_t &data){(*s)=data.isample;}
-inline void _put_sample(float *s,tms_data_t &data){(*s)=data.sample;}
 
-template<typename T>
-int fill_samples(vector<T>& samples) {
-    debug("Filling samples\n");
-    if (!get_samples()) return -1;
-    //printf("fill_samplse %d\n",sampling);
-    if (sampling)
-    {
-        for (unsigned int i = 0; i < act_channels.size(); i++)
-            _put_sample(&samples[i],channel_data[act_channels[i]].data[channel_data_index]);
-        channel_data_index++;
-    debug("Filling special channels\n");
-    if (spec_channels[TRIGGER_CHANNEL]!=-1)
-        samples[spec_channels[TRIGGER_CHANNEL]]=is_trigger();
-    if (spec_channels[ONOFF_CHANNEL]!=-1)
-        samples[spec_channels[ONOFF_CHANNEL]]=is_onoff_pressed();
-    if (spec_channels[BATTERY_CHANNEL]!=-1)
-        samples[spec_channels[BATTERY_CHANNEL]]=is_battery_low()?1:0;
-    return active_channels.size();
+    virtual int fill_samples(vector<int> &samples) {
+        debug("TmsiAmplifier filling samples\n");
+        return _fill_samples(samples);
     }
-    return -1;
-}
+
+    virtual int fill_samples(vector<float> &samples) {
+        return _fill_samples(samples);
+    }
 
     ~TmsiAmplifier();
 private:
@@ -193,28 +212,26 @@ private:
     bool _refreshInfo(int type);
     void load_channel_desc();
     tms_channel_data_t* alloc_channel_data(bool vldelta);
-    void free_channel_data(tms_channel_data_t * &channel_data)
-    {
-        if (channel_data!=NULL)
-        {
-            for (int i=0;i<dev.NrOfChannels;i++)
+
+    void free_channel_data(tms_channel_data_t * &channel_data) {
+        if (channel_data != NULL) {
+            for (int i = 0; i < dev.NrOfChannels; i++)
                 free(channel_data[i].data);
             free(channel_data);
-            channel_data=NULL;
+            channel_data = NULL;
         }
     }
 
     void refreshFrontEndInfo() {
-        while(!_refreshInfo(TMSFRONTENDINFO));
+        while (!_refreshInfo(TMSFRONTENDINFO));
         set_sampling_rate_div(fei.currentsampleratesetting);
-        sampling=true;
+        sampling = true;
         stop_sampling();
     }
 
     void refreshIDData() {
-        int counter=20;
-        while (counter--)
-        {
+        int counter = 20;
+        while (counter--) {
             send_request(TMSIDDATA);
             if (update_info(TMSIDDATA)) break;
         }
@@ -225,13 +242,13 @@ private:
         _refreshInfo(TMSVLDELTAINFO);
     }
     bool get_samples();
-    int _print_message(FILE *,uint8_t * msg, int br);
-    int print_message(FILE * f)
-    {
-        return _print_message(f,msg,br);
+    int _print_message(FILE *, uint8_t * msg, int br);
+
+    int print_message(FILE * f) {
+        return _print_message(f, msg, br);
     }
 
-    int rcv_message(uint8_t *,int n);
+    int rcv_message(uint8_t *, int n);
     int fetch_iddata();
     void receive();
     const char * get_type_name(int type);
