@@ -41,6 +41,11 @@
 >>> print(py.get_param('channels_names')[0])
 1
 
+>>> import os
+
+>>> os.system("rm tescik.obci*")
+0
+
 """
 
 if __name__ == '__main__':
