@@ -18,9 +18,9 @@
 #define USB_AMPLIFIER 2
 #define MESSAGE_SIZE 1024*1024
 #define ON_OFF_BUTTON 0x01
-#define TRIGGER_CHANNEL -1
-#define ONOFF_CHANNEL -2
-#define BATTERY_CHANNEL -3
+#define TRIGGER_CHANNEL 1
+#define ONOFF_CHANNEL 2
+#define BATTERY_CHANNEL 3
 #define ADDITIONAL_CHANNELS 3
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
@@ -136,12 +136,12 @@ private:
                 _put_sample(&samples[i], channel_data[act_channels[i]].data[channel_data_index]);
             channel_data_index++;
             debug("Filling special channels\n");
-            if (spec_channels[-TRIGGER_CHANNEL] != -1)
-                samples[spec_channels[-TRIGGER_CHANNEL]] = is_trigger();
+            if (spec_channels[TRIGGER_CHANNEL] != -1)
+                samples[spec_channels[TRIGGER_CHANNEL]] = is_trigger();
             if (spec_channels[ONOFF_CHANNEL] != -1)
-                samples[spec_channels[-ONOFF_CHANNEL]] = is_onoff_pressed();
+                samples[spec_channels[ONOFF_CHANNEL]] = is_onoff_pressed();
             if (spec_channels[BATTERY_CHANNEL] != -1)
-                samples[spec_channels[-BATTERY_CHANNEL]] = is_battery_low() ? 1 : 0;
+                samples[spec_channels[BATTERY_CHANNEL]] = is_battery_low() ? 1 : 0;
             return active_channels.size();
         }
         return -1;

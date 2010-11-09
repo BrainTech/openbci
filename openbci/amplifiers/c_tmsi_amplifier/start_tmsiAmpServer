@@ -11,5 +11,5 @@ sleep 2
 #./openbci/signal_catcher.py &
 #./svarog/pinger.py &
 ./openbci/amplifiers/c_tmsi_amplifier/dummyReceiver -l 1024 &
-time ./openbci/amplifiers/c_tmsi_amplifier/tmsiAmpServer -d dev.txt -r dump.amp  &
+time ./openbci/amplifiers/c_tmsi_amplifier/tmsiAmpServer  &
 

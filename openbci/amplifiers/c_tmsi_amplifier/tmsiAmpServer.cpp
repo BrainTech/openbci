@@ -8,13 +8,14 @@
 #include "tmsiAmpServer.h"
 
 void TmsiAmpServer::check_status(std::vector<int>& isamples){
+    return;
     if (tmsi_driver->is_onoff_pressed())
     {
         printf("TmsiAmpServer: On/Off is pressed\n");
     }
     if (tmsi_driver->is_battery_low())
     {
-        printf("TmsiAmpServer: Amplifiers battery is low\n");
+        printf("TmsiAmpServer: Amplifier battery is low\n");
     }
     if (tmsi_driver->is_trigger())
     {
