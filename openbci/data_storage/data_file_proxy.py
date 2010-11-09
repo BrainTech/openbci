@@ -31,6 +31,7 @@ from openbci.data_storage import data_storage_logging as logger
 LOGGER = logger.get_logger("data_file_proxy", 'info')
 import time
 SAMPLE_SIZE = 8 #float
+BUF_SIZE = 4098*2
 class DataFileWriteProxy(object):
     """
     A class representing data file. 
@@ -43,6 +44,7 @@ class DataFileWriteProxy(object):
     """
     def __init__(self, p_file_name, p_dir_path, p_file_extension):
         """Open p_file_name file in p_dir_path directory."""
+        self.buffer = [0.0]*BUF_SIZE
         self._number_of_samples = 0
         self._file_name = os.path.normpath(os.path.join(
                 p_dir_path, p_file_name + p_file_extension))
@@ -60,6 +62,7 @@ class DataFileWriteProxy(object):
     def finish_saving(self):
         """Close the file, return a tuple - 
         file`s name and number of samples."""
+        self._file.write(''.join(self.buffer[:(self._number_of_samples % BUF_SIZE)]))
         self._file.flush()
         self._file.close()
         return self._file_name, self._number_of_samples
@@ -68,17 +71,22 @@ class DataFileWriteProxy(object):
         """ Write p_data t self._file as raw float(C++ double). Here we assume, that
         p_data is of float type. 
         Type verification should be conducted earlier."""
-        try:
-            self._file.write(struct.pack("d", p_data)) 
-        except ValueError:
-            LOGGER.error("Warning! Trying to write data to closed data file!")
-            return
-        except struct.error:
-            LOGGER.error("Error while writhing to file. Bad sample format.")
-            raise(data_storage_exceptions.BadSampleFormat())
+        ind = self._number_of_samples % BUF_SIZE
+        self.buffer[ind] = struct.pack("d", p_data)
+        self._number_of_samples = self._number_of_samples + 1
+        
+        if (ind + 1) == BUF_SIZE:
+            try:
+                self._file.write(''.join(self.buffer))#struct.pack("d", p_data)) 
+            except ValueError:
+                LOGGER.error("Warning! Trying to write data to closed data file!")
+                return
+            except struct.error:
+                LOGGER.error("Error while writhing to file. Bad sample format.")
+                raise(data_storage_exceptions.BadSampleFormat())
 
         #store number of samples
-        self._number_of_samples = self._number_of_samples + 1
+
 
 
 class AsciFileWriteProxy(object):
