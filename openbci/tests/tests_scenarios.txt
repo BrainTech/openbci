@@ -1,0 +1,22 @@
+
+
+Ensure auto_trigger_test runs REAL amplifier!!!!!
+
+
+1. ONE COMPUTER, DRIVER TEST USING TRIGGER
+   a) everything on one computer
+   - just run ./start.py auto_trigger_test
+
+   b) everything on one computer with diagnosis on svarog on other computer
+   - configure properly mx address
+   - run ./start.py auto_trigger_test
+   - run ./start.py add_svarog
+   - open svarog on other computer
+
+   c) trigger and driver on one computer, storing/diagnosis on the other
+   - configure properly mx address
+   - configure properly hashtable save path
+   - run ./start.py auto_trigger_test_no_storing
+   - on the other computer: ./start.py add_storing (you have 10 secs, as first tag will be send after 10 secs)
+   - open svarog on other computer if you like
+
