@@ -25,8 +25,10 @@
 import sys, struct, time, numpy
 import xml.dom.minidom
 from openbci.tags import tags_file_reader
+from openbci.tags import svarog_tags_file_reader
 from openbci.data_storage import data_storage_exceptions
 import info_file_proxy
+import svarog_file_proxy
 import data_file_proxy
 import data_storage_logging as logger
 LOGGER = logger.get_logger("signalml_read_manager", "info")
@@ -149,14 +151,25 @@ class SignalmlReadManager(object):
     """
     def __init__(self, p_info_file, p_data_file, p_tags_file=""):
         """Just remember info file path and data file path."""
-        self._info_reader = info_file_proxy.InfoFileReadProxy(p_info_file)
+
+        if p_info_file[-len(info_file_extension):].rfind(info_file_extension) > -1:
+                #obci info file
+            self._info_reader = info_file_proxy.InfoFileReadProxy(p_info_file)
+        else:
+            self._info_reader = svarog_file_proxy.SvarogFileReadProxy(p_info_file)
+
+
         self._data_mgr = DataFileManager(p_data_file)
 
 
         if len(p_tags_file) == 0:
             self._tags_reader = None            
         else:
-            self._tags_reader = tags_file_reader.TagsFileReader(p_tags_file)
+            if p_tags_file[-len(tags_file_extension):].rfind(tags_file_extension) > -1:
+                #obci tag
+                self._tags_reader = tags_file_reader.TagsFileReader(p_tags_file)
+            else:
+                self._tags_reader = svarog_tags_file_reader.SvarogTagsFileReader(p_tags_file)
 
     def start_reading(self):
         """Open info file, parse it and remember xml structure. 

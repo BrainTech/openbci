@@ -56,9 +56,9 @@ TAG_STYLES = {
     }
 
 TAG_DEFS = {
-    'default': 'gray',
-    'word': 'red',
-    'mask2': 'blue'
+    #'default': 'gray',
+    #'word': 'red',
+    #'mask2': 'blue'
     }
 class SvarogTagsFileWriter(object):
     """A proxy for openbci tags file, that writes every next tag to file.
@@ -67,17 +67,11 @@ class SvarogTagsFileWriter(object):
     - finish_saving()
     """
     def __init__(self, p_file_name, p_dir_path, p_tags_file_extension,
-                 p_sampling_rate,  p_num_of_channels,
-                 p_defs = [{'name':'default', 
-                            'description':'default description'}]
+                 p_defs=None
+                 #p_defs = [{'name':'default', 
+                 #           'description':'default description'}]
                  ):
         """Prepare data structure for storing in-memory xml file."""
-
-        #Store below values to compute svarog-style tag params: 
-        #Length of tag, its starting time in seconds, relative to 
-        #the beginning of the signal
-        self._sampling_rate = p_sampling_rate
-        self._num_of_channels = p_num_of_channels
 
         self._file_name = os.path.normpath(os.path.join(
                 p_dir_path, p_file_name + p_tags_file_extension)) 
@@ -85,7 +79,8 @@ class SvarogTagsFileWriter(object):
         self._xml_factory = xml.dom.minidom.Document() 
         #an object useful in the future to easily create xml elements
         self._xml_root = self._xml_factory.createElement(
-            'annotations') 
+            'tagFile') 
+        self._xml_root.setAttribute('formatVersion', '1.0')
         #this is going to be an in-memory representation of xml info file
         self._xml_factory.appendChild(self._xml_root)
 
@@ -93,7 +88,7 @@ class SvarogTagsFileWriter(object):
         self._init_tags_defs(p_defs)
 
         #create 'tags' tag structure
-        l_td = self._xml_factory.createElement('tag_data')
+        l_td = self._xml_factory.createElement('tagData')
         self._xml_root.appendChild(l_td)
         self._tags_root = self._xml_factory.createElement('tags')
         l_td.appendChild(self._tags_root)
@@ -114,6 +109,9 @@ class SvarogTagsFileWriter(object):
         
         tag_item paramteres are taken from TAG_DEFS.
         """
+
+        if not p_defs:
+            return 
         l_td = self._xml_factory.createElement('tag_definitions')
         self._xml_root.appendChild(l_td)
 
@@ -135,6 +133,7 @@ class SvarogTagsFileWriter(object):
 
     def set_first_sample_timestamp(self, p_ts):
         self._first_sample_timestamp = p_ts
+
     def tag_received(self, p_tag_dict):
         """For give dictionary with pirs key -> value create an xml element.
         An exception is with key 'desc' where xml elements are created for
@@ -142,25 +141,31 @@ class SvarogTagsFileWriter(object):
 
         l_tag_params = {}
         l_tag_params['name'] = self._get_tag_def_for(p_tag_dict['name'])
-        l_tag_params['length'] = max(
-            float(p_tag_dict['end_timestamp']) - \
-            float(p_tag_dict['start_timestamp']),
-            0.02)
+        l_tag_params['length'] = float(p_tag_dict['end_timestamp']) - \
+            float(p_tag_dict['start_timestamp'])
         l_tag_params['position'] = float(p_tag_dict['start_timestamp']) - \
             self._first_sample_timestamp
-        for i_channel in range(self._num_of_channels):
-            l_tag = self._xml_factory.createElement('tag')
-            l_tag.setAttribute('channel_number', str(i_channel))
-            for i_key, i_value in l_tag_params.iteritems():
-                l_tag.setAttribute(i_key, types_utils.to_string(i_value))
-            self._tags_root.appendChild(l_tag)
 
+        l_tag = self._xml_factory.createElement('tag')
+        l_tag.setAttribute('channelNumber', str(-1))
+        for i_key, i_value in l_tag_params.iteritems():
+            l_tag.setAttribute(i_key, types_utils.to_string(i_value))
+
+        for i_key, i_value in p_tag_dict['desc'].iteritems():
+            elem = self._xml_factory.createElement(i_key)
+            val = self._xml_factory.createTextNode(types_utils.to_string(i_value))
+            elem.appendChild(val)
+            l_tag.appendChild(elem)
+
+        
+        self._tags_root.appendChild(l_tag)
+        
 
     def _get_tag_def_for(self, p_tag_name):
         if p_tag_name in TAG_DEFS.keys():
             return p_tag_name
         else:
-            return 'default'
+            return p_tag_name
 
     def finish_saving(self):
         """Write xml tags to the file, return the file`s path."""

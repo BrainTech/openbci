@@ -75,7 +75,6 @@ class VirtualEEGAmplifier(object):
         channels_data = [0]*len(self.channel_numbers)
         channels_data_len = len(channels_data)
         while True:
-
             try:
                 for i in range(channels_data_len):
                     channels_data[i] = self._get_next_value(offset)

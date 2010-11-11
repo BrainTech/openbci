@@ -120,8 +120,7 @@ class SignalmlSaveManager(object):
 
             from openbci.tags import svarog_tags_file_writer as wr
             self._svarog_tags_proxy = wr.SvarogTagsFileWriter(
-            p_session_name, p_dir_path, svarog_tags_file_extension,
-            p_signal_params['sampling_frequency'], p_signal_params['number_of_channels'])
+            p_session_name, p_dir_path, svarog_tags_file_extension)
                 
         # Init standard: data and tags proxy
         self._data_proxy = data_file_proxy.DataFileWriteProxy(

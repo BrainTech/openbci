@@ -5,6 +5,7 @@ export PYTHONPATH=./:openbci/:azouk-libraries/build/
 python openbci/tags/tests/test_file_tags_writer.py
 python openbci/tags/tests/test_file_tags_reader.py
 python openbci/tags/tests/test_file_tags_writer_reader.py
+python openbci/tags/tests/test_svarog_file_tags_writer_reader.py
 
 
 #data_storage
