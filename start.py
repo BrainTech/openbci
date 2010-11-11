@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-import os
-PATH = "/home/mrygacz/openbci/openbci/"
+import os, os.path
+PATH = ''.join([
+            os.path.realpath(os.path.dirname(sys.argv[0])), 
+                    os.path.sep
+            ])
 
 if __name__ == "__main__":
 	
@@ -12,6 +15,6 @@ if __name__ == "__main__":
 	else:
 		alias_id = sys.argv[1]
 
-	os.system("python " + PATH + "/k2launcher/captain.py --ac init_one_node; python " + PATH + "/k2launcher/captain.py --ac alias --alias_id " + alias_id)
+	os.system("python " + PATH + "k2launcher/captain.py --ac init_one_node; python " + PATH + "k2launcher/captain.py --ac alias --alias_id " + alias_id)
 
 

@@ -317,6 +317,12 @@ type {
         whom: ALL
 	report_delivery_error: false
     }
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+	report_delivery_error: false
+    }
+
 }
 
 type {

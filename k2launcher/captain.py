@@ -8,8 +8,9 @@ import sys
 from utils import pb2_construct, set_env
 import k2launcher_pb2
 
-home = "/home/mrygacz/openbci/openbci/"
-#home = "/home/mati/bci_dev/google_openbci/openbci/"
+home = ''.join([os.path.split(
+    os.path.realpath(os.path.dirname(__file__)))[0], '/'])
+
 mx_path = '%sazouk-libraries/build/' % home
 obci_path = '%sopenbci/' % home
 
@@ -33,7 +34,6 @@ def task(cmd, task_id, **kwargs):
             cmd=cmd, task_id=task_id, working_dir=obci_path, **kwargs)
 task("./svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
-task("./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
 task("./signal_catcher.py", "signal_catcher")
 task("./filters/filter.py", "filter")
 task("./monitors/monitor.py 0", "monitor")
@@ -45,15 +45,17 @@ task("./ugm/run_ugm.py p300", "p300_ugm")
 task("./analysis/p300.py", "p300_analysis")
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
-task("sleep 2; ./data_storage/signal_saver.py", "signal_saver")
-task("sleep 10; ./data_storage/tests/test_manually_signal_saver_control.py start_saving", "signal_saver2")
+task("./data_storage/signal_saver.py", "signal_saver")
 task("./data_storage/tests/test_manually_signal_saver_control.py finish_saving", "finish_saver")
 task("./experiment_builder/experiment_manager.py mx-on config", "experiment_manager")
 task("sleep 20; ./experiment_builder/experiment_manager_ania.py mx-on config", "experiment_manager_ania")
 task("sleep 1; ./super_diode_control.py", "diode_control")
 task("sleep 1; ./diode_catcher.py", "diode_catcher")
-task("sleep 1; ./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB ", "amplifier")
-task("sleep 1; ./amplifiers/c_tmsi_amplifier/tmsiAmpServer", "usb_amplifier")
+
+task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB", "python_bt_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer", "c++_usb_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer -b -d 00:A0:96:1B:48:DB", "c++_bt_amplifier")
+task("./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
 
 task("sleep 4; ./filters/svarog_filter.py", "svarog_filter")
 task("sleep 1; ./logics/logic_speller.py", "logics")
@@ -61,6 +63,7 @@ task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
 task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
+task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 200 -s 1.0 -b 2.0 -t yes -f yes", "auto_trigger")
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
@@ -73,21 +76,10 @@ def start(alias, task_id, **kwargs):
     aliases[alias].append(pb2_construct(k2launcher_pb2.Command,
         type=k2launcher_pb2.Command.START, task=tasks[task_id], **kwargs))
 
-start("amplifier", "svarog_pinger")
-start("amplifier", "hashtable")
-start("amplifier", "signal_catcher")
-start("amplifier", "signal_streamer")
-start("amplifier", "amplifier" )
 
-start("data_storing", "svarog_pinger")
-start("data_storing", "hashtable")
-start("data_storing", "signal_catcher")
-start("data_storing", "signal_streamer")
-start("data_storing", "amplifier" )
-start("data_storing", "signal_saver")
-start("data_storing", "finish_saver")
-
-
+start("add_saver", "signal_saver")
+start("finish_saver", "finish_saver")
+start("add_svarog", "svarog_pinger")
 
 start("virtual_amplifier", "svarog_pinger")
 start("virtual_amplifier", "hashtable")
@@ -100,7 +92,7 @@ start("virtual_amplifier", "virtual_amplifier" )
 
 start("pokaz", "svarog_pinger")
 #start("pokaz", "virtual_amplifier")
-start("pokaz", "amplifier")
+start("pokaz", "python_bt_amplifier")
 start("pokaz", "signal_catcher")
 start("pokaz", "signal_streamer")
 #start("pokaz", "filter")
@@ -121,7 +113,6 @@ start("add_experiment", "experiment_manager")
 
 #start("add_data_storing", "tag_catcher")
 start("add_data_storing", "signal_saver")
-#start("add_data_storing", "signal_saver2")
 
 start("stop_storing", "finish_saver")
 
@@ -146,22 +137,20 @@ start("test_experiment", "experiment_manager")
 start("exp_ani1", "hashtable")
 start("exp_ani2", "ugm")
 #start("exp_ani1", "signal_streamer")
-start("exp_ani1", "usb_amplifier")
-#start("exp_ani", "amplifier")
+start("exp_ani1", "c++_usb_amplifier")
+#start("exp_ani", "python_bt_amplifier")
 start("exp_ani2", "tag_catcher")
 start("exp_ani2", "signal_saver")
-start("exp_ani2", "signal_saver2")
 start("exp_ani2", "experiment_manager_ania")
 
 #start("exp_ani1", "svarog_pinger")
 start("exp_ani", "hashtable")
 start("exp_ani", "ugm")
 #start("exp_ani1", "signal_streamer")
-start("exp_ani", "usb_amplifier")
-#start("exp_ani", "amplifier")
+start("exp_ani", "c++_usb_amplifier")
+#start("exp_ani", "python_bt_amplifier")
 start("exp_ani", "tag_catcher")
 start("exp_ani", "signal_saver")
-start("exp_ani", "signal_saver2")
 start("exp_ani", "experiment_manager_ania")
 
 
@@ -175,7 +164,6 @@ start("exp_ani_test", "signal_streamer")
 start("exp_ani_test", "virtual_amplifier")
 start("exp_ani_test", "tag_catcher")
 start("exp_ani_test", "signal_saver")
-start("exp_ani_test", "signal_saver2")
 
 start("exp_ani_test", "experiment_manager_ania")
 
@@ -189,7 +177,7 @@ start("experiment", "ugm")
 start("experiment", "diode_control")
 start("experiment", "signal_catcher")
 start("experiment", "signal_streamer")
-start("experiment", "amplifier")
+start("experiment", "python_bt_amplifier")
 start("experiment", "tag_catcher")
 start("experiment", "signal_saver")
 start("experiment", "experiment_manager")
@@ -237,24 +225,54 @@ start("p300_test", "p300_ugm")
 start("p300_test", "p300_analysis")
 
 
-start("svarog_test", "hashtable")
-start("svarog_test", "svarog_pinger")
-start("svarog_test", "signal_streamer")
-start("svarog_test", "amplifier")
-start("svarog_test", "manual_tags_sending")
+start("svarog_test_py_bt", "hashtable")
+start("svarog_test_py_bt", "svarog_pinger")
+start("svarog_test_py_bt", "python_bt_amplifier")
+start("svarog_test_py_bt", "manual_tags_sending")
+
+start("svarog_test_c++_bt", "hashtable")
+start("svarog_test_c++_bt", "svarog_pinger")
+start("svarog_test_c++_bt", "c++_bt_amplifier")
+start("svarog_test_c++_bt", "manual_tags_sending")
+
+start("svarog_test_c++_usb", "hashtable")
+start("svarog_test_c++_usb", "svarog_pinger")
+start("svarog_test_c++_usb", "c++_bt_amplifier")
+start("svarog_test_c++_usb", "manual_tags_sending")
 
 start("svarog_v_test", "hashtable")
 start("svarog_v_test", "svarog_pinger")
-start("svarog_v_test", "signal_streamer")
 start("svarog_v_test", "virtual_amplifier")
 start("svarog_v_test", "manual_tags_sending")
 
-start("add_saver", "signal_saver")
 
-start("finish_saver", "finish_saver")
+start("auto_trigger_py_bt", "hashtable")
+start("auto_trigger_py_bt", "python_bt_amplifier")
+start("auto_trigger_py_bt", "signal_saver")
+start("auto_trigger_py_bt", "auto_trigger")
+
+start("auto_trigger_c++_bt", "hashtable")
+start("auto_trigger_c++_bt", "c++_bt_amplifier")
+start("auto_trigger_c++_bt", "signal_saver")
+start("auto_trigger_c++_bt", "auto_trigger")
+
+start("auto_trigger_c++_usb", "hashtable")
+start("auto_trigger_c++_usb", "c++_usb_amplifier")
+start("auto_trigger_c++_usb", "signal_saver")
+start("auto_trigger_c++_usb", "auto_trigger")
 
 
-# signal, add_experiment, start_experiment, add_monitor, start_monitor, 
+start("auto_trigger_py_bt_no_storing", "hashtable")
+start("auto_trigger_py_bt_no_storing", "python_bt_amplifier")
+start("auto_trigger_py_bt_no_storing", "auto_trigger")
+
+start("auto_trigger_c++_bt_no_storing", "hashtable")
+start("auto_trigger_c++_bt_no_storing", "c++_bt_amplifier")
+start("auto_trigger_c++_bt_no_storing", "auto_trigger")
+
+start("auto_trigger_c++_usb_no_storing", "hashtable")
+start("auto_trigger_c++_usb_no_storing", "c++_usb_amplifier")
+start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 
 
 if __name__ == "__main__":
