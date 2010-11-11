@@ -11,7 +11,6 @@ LOGGER = logger.get_logger("hashtable")
 def channels_gen(num):
     return ' '.join([str(i) for i in range(num)])
 
-
 def gains_gen(num):
     return ' '.join(['1']*num)
 
@@ -21,21 +20,27 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 23
+CHANNELS = 22
 
 class Hashtable(BaseMultiplexerServer):
 
     #
 
     data = {
+        "MinData": "-1000",
+        "MaxData": "1000",
         "DataScale": "1.0",
-	"MinData":"-100",
-	"MaxData":"100",
         "TMSiDeviceName": "/dev/rfcomm0",
-        "AmplifierChannelsToRecord": channels_gen(CHANNELS),
+        "AmplifierChannelsToRecord": channels_gen(CHANNELS), #You dont need to add here special channels names (trigg, bat etc.), use
+                                                             #DriverTriggerIndex, DriverOnoffIndex, DriverBatteryIndex values instead,
+                                                             #to define special channels indices.
+                                                             #Hashtable.update_driver_special_channels() will do the rest.
+
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
-        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;", #26
-        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #23
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
+        #"ChannelsNames":"gen1;gen2;gen3",
+        "ChannelsNames": "gen1;gen2;gen3;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz", #22
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
         #"ChannelsNames": "a;b;c;",
 
         #"ChannelsNames":"REKA",
@@ -46,9 +51,9 @@ class Hashtable(BaseMultiplexerServer):
         "BraintronicsDeviceName": "/dev/ttyUSB0",
         "SamplingRate": "512",
         "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
-        "SignalCatcherBufferSize": "2048",
+        "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",
-        "Border": "2",
+        "Border": "0.4",
         "Panel":  " | K :: | L :: | M ::  | del ::  | N ::  | O ::  | say ::  | <- " ,
 
 	# " gr1.jpg | :: gr2.jpg |  :: gr3.jpg | :: gr4.jpg |  :: gr5.jpg | :: gr6.jpg |  :: gr7.jpg| :: gr8.jpg | " ,
@@ -68,10 +73,6 @@ class Hashtable(BaseMultiplexerServer):
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
         "Borders": "1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5",
         #"Borders": ".7 .2 .7 .7 .7 .2 .6 .6",
-        "FilterLevel": "3",
-        "FilterBand": "bandpass",
-        "FilterUp": "32",
-        "FilterDown": "2",
 
         "Reps": "2 2 2 2 2 2 2 2" ,
         "Repeats": "1",
@@ -101,7 +102,9 @@ class Hashtable(BaseMultiplexerServer):
         "FilterBand": "bandpass",
         "FilterUp": "32",
         "FilterDown": "2",
-        "AppendTriggerInDriver":"0",
+        "DriverTriggerIndex":str(CHANNELS), #,Append trigger at the end
+        "DriverOnoffIndex": "-1",
+        "DriverBatteryIndex": "-1",
         "AmplifierNull":"8388608.0",
         "P300Rows":"5",
         "P300Cols":"5",
@@ -118,19 +121,39 @@ class Hashtable(BaseMultiplexerServer):
 
     def __init__(self, addresses):
         super(Hashtable, self).__init__(addresses=addresses, type=peers.HASHTABLE)
-        self.update_driver_trigger()
+        self.update_driver_special_channels()
 
-    def update_driver_trigger(self):
-        """Check AppendTriggerInDriver value.
-        If it is set to true ("1") then update other self.data values
-        depending on the information that driver will append auxilary channel."""
-        if int(self.data.get("AppendTriggerInDriver","0")):
-            # If that value is set to "1" We append required data to channelNames Gains etc
-            # so that stream readers will not be confused by one-more channel
-            self.data["ChannelsNames"] = ''.join([self.data["ChannelsNames"],";TRIGGER"])
-            self.data["Gain"] = ''.join([self.data["Gain"], " 100.0"])
-            self.data["Offset"] = ''.join([self.data["Offset"], " 0.0"])
-            self.data["NumOfChannels"] = self.data["NumOfChannels"]+1
+    def update_driver_special_channels(self):
+        """Check Driver...Index values. If any is > -1, then add special channel 
+        to specified index and update all related values: 
+        gain, offset, number of channels, channel names, amplifier channels to record"""
+        d = []
+        d.append(('trig', int(self.data.get("DriverTriggerIndex", "-1")), "TRIGGER"))
+        d.append(('bat', int(self.data.get("DriverBatteryIndex", "-1")), "BATTERY"))
+        d.append(('onoff', int(self.data.get("DriverOnoffIndex", "-1")), "ONOFF"))
+        for ch_sym, ch_ind, ch_name in d:
+            if ch_ind > -1:
+                self.data["NumOfChannels"] = self.data["NumOfChannels"]+1
+
+                # Add name to special channel
+                ch_r =  self.data["AmplifierChannelsToRecord"].split(" ")
+                ch_r.insert(ch_ind, ch_sym)
+                self.data["AmplifierChannelsToRecord"] = ' '.join(ch_r)
+
+                # Add name to special channel
+                ch_names =  self.data["ChannelsNames"].split(";")
+                ch_names.insert(ch_ind, ch_name)
+                self.data["ChannelsNames"] = ';'.join(ch_names)
+
+                # Add gain to special channel
+                gains = self.data["Gain"].split(" ")
+                gains.insert(ch_ind, "100.0")
+                self.data["Gain"] = ' '.join(gains)
+
+                # Add offset to special channel
+                offsets = self.data["Offset"].split(" ")
+                offsets.insert(ch_ind, "0.0")
+                self.data["Offset"] = ' '.join(offsets)
         
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DICT_SET_MESSAGE:
