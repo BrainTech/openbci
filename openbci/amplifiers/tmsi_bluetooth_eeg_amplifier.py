@@ -40,7 +40,7 @@ import amplifiers_logging as logger
 LOGGER = logger.get_logger("tmsi_bluetooth_eeg_amplifier", "info")
 
 
-SPECIAL_CHANNELS = ["trig", "bat", "onoff"]
+SPECIAL_CHANNELS = ["trig", "bat", "onoff", "sample"]
 class TMSiBluetoothEEGAmplifier:
     """
     Main class implementing TMSi Bluetooth EEG Amplifier support.
@@ -131,6 +131,7 @@ class TMSiBluetoothEEGAmplifier:
         trigger_value = 0.0
         battery_value = 0.0
         onoff_value = 0.0
+        sample_no = 0.0
         while True:
             try:
                 timestamp = time.time()
@@ -159,7 +160,8 @@ class TMSiBluetoothEEGAmplifier:
                     battery_value = 0.0
                 else:
                     battery_value = 1.0
-                                                                              
+                                
+                sample_no += 1.0;
                 # send samples
                 for i in range(len(channel_data[0])):
                     sample_vector = variables_pb2.SampleVector()
@@ -174,6 +176,8 @@ class TMSiBluetoothEEGAmplifier:
                                 samp.value = battery_value
                             elif j == "onoff":
                                 samp.value = onoff_value
+                            elif j == "sample":
+                                samp.value = sample_no
                             else:
                                 raise Exception("This should never happen, as j is checked as being in SPECIAL_CHANNELS in init method...")
                             

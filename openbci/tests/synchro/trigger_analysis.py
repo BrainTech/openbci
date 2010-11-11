@@ -34,8 +34,6 @@ import trigger_change
 from core import core_logging as logger
 LOGGER = logger.get_logger("trigger_analysis", "debug")
 
-TEST = False
-
 from pylab import *
 def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss):
     sent_vals = sent_vals[1:]
@@ -78,10 +76,6 @@ def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss):
 
 
 if __name__ == "__main__":
-   
-    if TEST:
-        test()
-        sys.exit(0)
     
     dr = '/home/mati/bci_dev/google_openbci/openbci/temp/'
     f_name = 'test_trigger10_09_11_2010_c++usb_svarog_22channels_512Hz'

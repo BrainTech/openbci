@@ -105,6 +105,7 @@ class Hashtable(BaseMultiplexerServer):
         "DriverTriggerIndex":str(CHANNELS), #,Append trigger at the end
         "DriverOnoffIndex": "-1",
         "DriverBatteryIndex": "-1",
+        "DriverSampleNoIndex":"-1",
         "AmplifierNull":"8388608.0",
         "P300Rows":"5",
         "P300Cols":"5",
@@ -131,6 +132,7 @@ class Hashtable(BaseMultiplexerServer):
         d.append(('trig', int(self.data.get("DriverTriggerIndex", "-1")), "TRIGGER"))
         d.append(('bat', int(self.data.get("DriverBatteryIndex", "-1")), "BATTERY"))
         d.append(('onoff', int(self.data.get("DriverOnoffIndex", "-1")), "ONOFF"))
+        d.append(('sample', int(self.data.get("DriverSampleNoIndex", "-1")), "SAMPLE_NUMBER"))
         for ch_sym, ch_ind, ch_name in d:
             if ch_ind > -1:
                 self.data["NumOfChannels"] = self.data["NumOfChannels"]+1
