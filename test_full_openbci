@@ -10,8 +10,14 @@ python openbci/tags/tests/test_file_tags_writer_reader.py
 #data_storage
 python openbci/data_storage/tests/test_info_file_proxy.py 
 python openbci/data_storage/tests/test_data_file_proxy.py 
+python openbci/data_storage/tests/test_svarog_file_proxy.py
 python openbci/data_storage/tests/test_csv_write.py
 python openbci/data_storage/tests/test_signalml_managers.py
+python openbci/data_storage/tests/test_signalml_read_manager.py
+
+
+#offline_analysis
+python openbci/offline_analysis/tests/test_smart_tags_manager.py
 
 
 
