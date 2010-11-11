@@ -24,6 +24,7 @@
 
 """Implement Smart tags classes: SmartTagEndTag, SmartTagDuration."""
 
+import numpy
 class SmartTag(object):
     def __init__(self, p_tag_def, p_start_tag):
         self._data = []
@@ -31,10 +32,11 @@ class SmartTag(object):
         self._tag_def = p_tag_def
         
     def get_start_timestamp(self):
-        return self._start_tag['start_timestamp'] + \
+        return self._tag_def.start_param_func(self._start_tag) + \
             self._tag_def.start_offset
 
     def get_end_timestamp(self):
+        """To be subclassed."""
         pass
     
     def get_start_tag(self):
@@ -50,7 +52,7 @@ class SmartTag(object):
         return self._data[p_ch_num]
 
     def set_data(self, p_data):
-        self._data = p_data
+        self._data = numpy.array(p_data)
         
     def data_empty(self):
         return self._data == []
@@ -70,7 +72,7 @@ class SmartTagEndTag(SmartTag):
     - set_end_tag()
     """
     def __init__(self, p_tag_def, p_start_tag):
-        """l
+        """
         - p_tag_def - must be an instance of SmartTagEndTagDefinition.
         - p_start_tag - must be a dictionary representaion of existing tag.
         """
@@ -83,7 +85,8 @@ class SmartTagEndTag(SmartTag):
         self._end_tag = p_tag
 
     def get_end_timestamp(self):
-        return self._end_tag['start_timestamp'] + self._tag_def.end_offset
+        return self._tag_def.end_param_func(self._end_tag) + \
+            self._tag_def.end_offset
 
     def get_end_tag(self):
         return self._end_tag
@@ -108,7 +111,7 @@ class SmartTagDuration(SmartTag):
         super(SmartTagDuration, self).__init__(p_tag_def, p_start_tag)
 
     def get_end_timestamp(self):
-        return self._start_tag['start_timestamp'] + \
+        return self._tag_def.start_param_func(self._start_tag) + \
             self._tag_def.duration + self._tag_def.end_offset
 
 

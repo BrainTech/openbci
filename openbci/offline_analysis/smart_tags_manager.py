@@ -23,9 +23,11 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 """Implement one class - SmartTagsManager."""
 import smart_tag
+import Queue
 from openbci.data_storage import signalml_read_manager
 from openbci.data_storage import data_storage_exceptions
 from openbci.offline_analysis import offline_analysis_logging as logger
+from openbci.core import types_utils
 import Queue
 LOGGER = logger.get_logger("smart_tags_manager")
 
@@ -67,11 +69,31 @@ class SmartTagsManager(object):
 
         #Init smart tags, here just create smart tags objects without
         #data slot set.
+
+        #PUBLIC SLOTS
+        self.num_of_channels = int(self._read_manager.get_param(
+            'number_of_channels'))
+        l_freq_str = self._read_manager.get_param('sampling_frequency')
+        self.sampling_freq = float(l_freq_str)
+        #PUBLIC SLOTS
+
         self._smart_tags = []
         self._init_smart_tags(p_tag_def)
 
+    def __str__(self):
+        return str({'tags_num': len(self._smart_tags),
+                'num_of_channels': self.num_of_channels,
+                'sampling_freq': self.sampling_freq})
+        
+    def get_signal_param(self, p_param):
+        return self._read_manager.get_param(p_param)
+
+    def get_smart_tags_number(self):
+        return len(self._smart_tags)
+
     def _init_smart_tags(self, p_tag_def):
         """Init smart tags depending on given smart tag definition."""
+        LOGGER.info("Start initialising smart tags.")
         if p_tag_def.is_type("duration"):
             self._init_duration_smart_tags(p_tag_def)
             LOGGER.info("Finished initialising smart tags.")
@@ -106,7 +128,13 @@ class SmartTagsManager(object):
             if i_tag['name'] == p_tag_def.start_tag_name:
                 # Create new smart tag, append it to queue
                 st = smart_tag.SmartTagEndTag(p_tag_def, i_tag)
-                l_st_queue.put(st)
+                if 'self' in p_tag_def.end_tags_names:
+                    # end_tags_names contains 'self' literal which means
+                    # that st`s end tag is its start tag
+                    st.set_end_tag(i_tag)
+                    self._smart_tags.append(st)
+                else:
+                    l_st_queue.put(st)
 
     def _init_duration_smart_tags(self, p_tag_def):
         """Read all tags from file - create smart tags objects while doing it.
@@ -129,43 +157,44 @@ class SmartTagsManager(object):
         and you will get samples for all channels for that smart tag in format:
         [[list of all samples from ch 0], [list of all samples from ch 1] ...]
         """
+        LOGGER.debug("FIRST SAMPLE TIMESTMP: "+str(self._first_sample_timestamp))
         for i_st in self._smart_tags:
             try:
                 # First needed sample timestamp
-                l_start = i_st.get_start_timestamp() 
+                l_start_ts = i_st.get_start_timestamp() 
+                l_samples_to_start =  int(
+                    (l_start_ts - self._first_sample_timestamp) \
+                        * self.sampling_freq)
 
                 # Last needed sample timestamp
-                l_end = i_st.get_end_timestamp() 
+                l_end_ts = i_st.get_end_timestamp() 
+                l_samples_to_end = int(
+                    (l_end_ts - self._first_sample_timestamp) \
+                        * self.sampling_freq)
 
-                LOGGER.debug("Tag start timestamp: "+str(l_start))
-                LOGGER.debug("Tag end timestamp: "+str(l_end))
+                LOGGER.debug("Tag start timestamp: "+str(l_start_ts))
+                LOGGER.debug("To start tag samples:: "+str(l_samples_to_start))
+                LOGGER.debug("Tag end timestamp: "+str(l_end_ts))
+                LOGGER.debug("Tag end tag samples: "+str(l_samples_to_end))
+
                 if not i_st.data_empty():
                     yield i_st
                     continue
                 # To-be-returned data
-                l_data = [[] for i in range(self._num_of_channels)] 
+                l_data = [[] for i in range(self.num_of_channels)] 
 
-                l_curr_sample_timestamp = self._get_new_curr_sample_timestamp()
-                LOGGER.debug("Starting sample timestamp: "+ \
-                                 str(l_curr_sample_timestamp))
-
+                # Set read manager pointer to start sample 
+                self._read_manager.goto_value(
+                    self.num_of_channels*l_samples_to_start)
+                l_samples_no = l_samples_to_start
+                
+                LOGGER.debug("SAMPLES NO START: "+str(l_samples_no))
                 # Read samples until find first interesting sample
-                while l_curr_sample_timestamp < l_start:
-                    for i in range(self._num_of_channels):
-                        self._read_manager.get_next_value()
-                    self._samples_no = self._samples_no + 1
-                    l_curr_sample_timestamp = self._get_new_curr_sample_timestamp()
-                    LOGGER.debug("CURR sample timestamp: "+str(l_curr_sample_timestamp))
-    
-                # Now l_curr_sample_timestamp ~~ l_first
-                # Store all samples until last interesting sample is met
-                while l_curr_sample_timestamp < l_end:
-                    for i in range(self._num_of_channels):
+                while l_samples_no < l_samples_to_end:
+                    for i in range(self.num_of_channels):
                         l_data[i].append(self._read_manager.get_next_value())
-                    self._samples_no = self._samples_no + 1
-                    l_curr_sample_timestamp = self._get_new_curr_sample_timestamp()
-                    LOGGER.debug("CURR sample timestamp: "+ \
-                                     str(l_curr_sample_timestamp))
+                    l_samples_no = l_samples_no + 1
+                LOGGER.debug("SAMPLES NO END: "+str(l_samples_no))
 
                 #Now l_data contains samples from all channels between
                 #l_start and l_end timestamp
@@ -174,6 +203,7 @@ class SmartTagsManager(object):
             except data_storage_exceptions.NoNextValue:
                 LOGGER.info("No samples left. Some smart tags could have been ignored.")
                 break # Exit the loop, end iterator
+        LOGGER.info("Finished smart tags iteration")
         self._samples_no = 0 
         #Reset samples count so that next 
         #iter_smart_tags call will work

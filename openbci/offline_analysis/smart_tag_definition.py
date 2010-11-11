@@ -29,6 +29,11 @@ By now we have a general, abstract class SmartTagDefinition.
 
 Concrete classes are:
 SmartTagEndTagDefinition
+
+
+
+
+
 SmartTagDurationDefinition
 
 see concrete classes definitions to learn how to use them."""
@@ -38,8 +43,17 @@ class SmartTagDefinition(object):
     def __init__(self, **p_params):
         """Se subclasses defs."""
         self.start_tag_name = p_params['start_tag_name']
-        self.start_offset = p_params.get('start_offset', 0)
-        self.end_offset = p_params.get('end_offset', 0)
+        self.start_offset = p_params.get('start_offset', 0.0)
+        self.end_offset = p_params.get('end_offset', 0.0)
+        self.start_param_func = p_params.get(
+            'start_param_func', 
+            lambda tag: tag['start_timestamp']
+            )
+        self.end_param_func = p_params.get(
+            'end_param_func', 
+            lambda tag: tag['start_timestamp']
+            )
+
 
 
 class SmartTagEndTagDefinition(SmartTagDefinition):
@@ -111,3 +125,4 @@ class SmartTagDurationDefinition(SmartTagDefinition):
         """Type check - return true if p_type is end_tag."""
         return p_type == "duration"
     pass
+
