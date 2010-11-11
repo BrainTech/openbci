@@ -32,7 +32,7 @@ tasks = {}
 def task(cmd, task_id, **kwargs):
     tasks[task_id] = pb2_construct(k2launcher_pb2.Task,
             cmd=cmd, task_id=task_id, working_dir=obci_path, **kwargs)
-task("./svarog/pinger.py", "svarog_pinger")
+task("../svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
 task("./signal_catcher.py", "signal_catcher")
 task("./filters/filter.py", "filter")
@@ -55,7 +55,7 @@ task("sleep 1; ./diode_catcher.py", "diode_catcher")
 task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB", "python_bt_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer", "c++_usb_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer -b -d 00:A0:96:1B:48:DB", "c++_bt_amplifier")
-task("./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
+task("python ./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
 
 task("sleep 4; ./filters/svarog_filter.py", "svarog_filter")
 task("sleep 1; ./logics/logic_speller.py", "logics")
@@ -64,6 +64,7 @@ task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
 task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
 task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 200 -s 1.0 -b 2.0 -t yes -f yes", "auto_trigger")
+
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
