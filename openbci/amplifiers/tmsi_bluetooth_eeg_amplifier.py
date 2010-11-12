@@ -167,20 +167,16 @@ class TMSiBluetoothEEGAmplifier:
                     sample_vector = variables_pb2.SampleVector()
                     for j in self.channel_numbers:
                         samp = sample_vector.samples.add()
-                        try:
+                        if j == "trig":
+                            samp.value = trigger_value
+                        elif j == "bat":
+                            samp.value = battery_value
+                        elif j == "onoff":
+                            samp.value = onoff_value
+                        elif j == "sample":
+                            samp.value = sample_no
+                        else:
                             samp.value = float(channel_data[j][i])
-                        except TypeError:
-                            if j == "trig":
-                                samp.value = trigger_value
-                            elif j == "bat":
-                                samp.value = battery_value
-                            elif j == "onoff":
-                                samp.value = onoff_value
-                            elif j == "sample":
-                                samp.value = sample_no
-                            else:
-                                raise Exception("This should never happen, as j is checked as being in SPECIAL_CHANNELS in init method...")
-                            
                         samp.timestamp = timestamp
                     self.connection.send_message( \
                         message=sample_vector.SerializeToString(), \
