@@ -25,9 +25,19 @@ BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
     std::stringstream ss_chan(s_channels);
     std::string tmp;
     vector<std::string> channels;
-    while (ss_chan >> tmp)
-        channels.push_back(tmp);
+
+
+    std::string sp = "sample";
+    ext_number_of_channels = 0;
+    while (ss_chan >> tmp) {
+      if (tmp != sp)
+	channels.push_back(tmp);
+      else
+	ext_number_of_channels = 1;
+    };
+
     number_of_channels = channels.size();
+    ext_number_of_channels += number_of_channels;
     driver = driv;
     driver->set_active_channels(channels);
     debug("Sending query");
@@ -60,12 +70,13 @@ AmplifierServer::~AmplifierServer() {
 void AmplifierServer::do_sampling(void * ptr = NULL) {
     debug("Sampling started\n");
     variables::SampleVector s_vector;
-    for (int i = 0; i < number_of_channels; i++)
+    for (int i = 0; i < ext_number_of_channels; i++)
         s_vector.add_samples();
     std::vector<int> isamples(number_of_channels, 0);
     MultiplexerMessage msg;
     msg.set_from(conn->instance_id());
     msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
+    double samples_no = 0.0;
     while (driver->is_sampling()) {
         boost::posix_time::ptime t=boost::posix_time::microsec_clock::local_time();
         double ti=time(NULL);
@@ -81,6 +92,14 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
             debug("%2d: %d %x\n",i,isamples[i],isamples[i]);
             samp->set_timestamp(ti);
         }
+
+	if (ext_number_of_channels == number_of_channels + 1) {
+	  samples_no += 1.0;
+	  variables::Sample *samp = s_vector.mutable_samples(number_of_channels);	
+	  samp->set_value(samples_no);
+	  samp->set_timestamp(ti);
+	}
+	
         std::string msgstr;
         s_vector.SerializeToString(&msgstr);
         msg.set_id(conn->random64());
