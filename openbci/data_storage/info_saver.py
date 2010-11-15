@@ -109,25 +109,16 @@ class InfoSaver(BaseMultiplexerServer):
         
         if l_append_ts > -1:
             l_signal_params['number_of_channels'] += 1
-
-            ch_r = l_signal_params['channels_numbers'].split(" ")
-            ch_r.insert(l_append_ts, "1000")
-            l_signal_params["channels_numbers"] = ' '.join(ch_r)
+            l_signal_params["channels_numbers"].insert(l_append_ts, "1000")
             
             # Add name to special channel
-            ch_names =  l_signal_params["channels_names"].split(";")
-            ch_names.insert(l_append_ts, "TIMESTAMPS")
-            l_signal_params["channels_names"] = ';'.join(ch_names)
+            l_signal_params["channels_names"].insert(l_append_ts, "TIMESTAMPS")
 
             # Add gain to special channel
-            gains = l_signal_params["channels_gains"].split(" ")
-            gains.insert(l_append_ts, "1.0")
-            l_signal_params["channels_gains"] = ' '.join(gains)
+            l_signal_params["channels_gains"].insert(l_append_ts, "1.0")
 
             # Add offset to special channel
-            offsets = l_signal_params["channels_offsets"].split(" ")
-            offsets.insert(l_append_ts, "0.0")
-            l_signal_params["channels_offsets"] = ' '.join(offsets)
+            l_signal_params["channels_offsets"].insert(l_append_ts, "0.0")
 
 
         l_log = "Finished saving info with values:\n"
