@@ -88,9 +88,26 @@ class InfoFileWriteProxy(object):
     Public interface:
     - finish_saving()
     """
-    def __init__(self, p_file_name, p_dir_path, 
-                 p_signal_params, p_file_extension):
-        """
+    def __init__(self):
+        """Init xml structure. """
+
+        #TODO works in windows and linux on path with spaces?
+        self._xml_factory = self._create_xml_factory()
+        #an object useful in the future to easily create xml elements
+        self._create_xml_root()
+        self._create_tags_controls()
+    
+    def _create_xml_factory(self):
+        return OpenBciDocument()
+
+    def set_attributes(self, p_attrs_dict):
+        """For every pair key-> value in p_attrs_dict create tag.
+        The type of tag depends on self._tags_control."""
+        for i_key, i_value in p_attrs_dict.iteritems():
+            self._set_tag(i_key, i_value)
+
+    def finish_saving(self, p_file_path, p_signal_params):
+        """Write xml_doc to the file, return the file`s path.
         Arguments:
         - p_file_name - a name of to-be-created info file
         - p_dir_path - a dir-path where p_file_name is to be created
@@ -108,34 +125,15 @@ class InfoFileWriteProxy(object):
         2. Add pair 'color' -> self._set_color to self._tags_control in self._create_tags_control()
         3. Implement the function so that it creates xml element for color parameter and appends it to self._xml_root.
         For simple params (with one value) you can fire self._set_simple_tag('color', 'color_value').
-        """
-        self._short_file_name = ''.join([p_file_name, p_file_extension])
-        self._dir_path = p_dir_path
-        #TODO works in windows and linux on path with spaces?
-        self._xml_factory = self._create_xml_factory()
-        #an object useful in the future to easily create xml elements
-        self._create_xml_root()
-        self._create_tags_controls()
-        self.set_attributes(p_signal_params)
-    
-    def _create_xml_factory(self):
-        return OpenBciDocument()
-    def set_attributes(self, p_attrs_dict):
-        """For every pair key-> value in p_attrs_dict create tag.
-        The type of tag depends on self._tags_control."""
-        for i_key, i_value in p_attrs_dict.iteritems():
-            self._set_tag(i_key, i_value)
 
-    def finish_saving(self):
-        """Write xml_doc to the file, return the file`s path."""
+        """
         #TODO - lapac bledy
+        self.set_attributes(p_signal_params)
         self._set_remaining_tags()
-        l_file_name = os.path.normpath(
-            os.path.join(self._dir_path, self._short_file_name)) 
-        f = open(l_file_name, 'w')
+        f = open(p_file_path, 'w')
         f.write(self._xml_factory.toxml('utf-8'))
         f.close()
-        return l_file_name
+        return p_file_path
 
     def _set_remaining_tags(self):
         """Set all default (hardcoded) tags and other tags as now we

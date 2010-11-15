@@ -26,8 +26,8 @@
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 
-import signalml_save_manager
-import sys, time
+import data_file_proxy
+import sys, time, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
@@ -35,123 +35,140 @@ from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')
 TAGGER = tagger.get_tagger()
-
-TIMESTAMPS_AS_SEPARATE_CHANNEL = False
-
+DATA_FILE_EXTENSION = ".obci.dat"
 class SignalSaver(BaseMultiplexerServer):
+
+    def _all_but_first_data_received(self, p_data):
+        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
+        _all_but_first_data_received is set to self.data_received in 
+        self._first_sample_data_received, so in fact _all_but_first_data_received
+        is fired externally by calling self.data_received."""
+        try:
+            self._data_proxy.data_received(p_data)
+        except data_storage_exceptions.BadSampleFormat, e:
+            LOGGER.error("Received sample is not of a good size. Writing aborted!")
+            sys.exit(1)
+
+
+    def _first_sample_data_received(self, p_data):
+        """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
+        first_sample_data_received is set to self.data_received in self.__init__, so in fact
+        first_sample_data_received is fired externally by calling self.data_received"""
+
+        # Set some additional first_sample-like data
+        import variables_pb2
+        msg = p_data
+        l_vec = variables_pb2.SampleVector()
+        l_vec.ParseFromString(msg)
+        for i_sample in l_vec.samples:
+            self._first_sample_timestamp = i_sample.timestamp
+            break
+
+        self._data_proxy.set_data_len(len(p_data))
+        
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!! below operation changes self._data_received method 
+        # from _first_sample_timestamp to _all_but_first_data_received
+        self._data_received = self._all_but_first_data_received
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self._data_received(p_data)
+
+
     def __init__(self, addresses):
         super(SignalSaver, self).__init__(addresses=addresses, 
                                           type=peers.SIGNAL_SAVER)
-        self._session_is_active = False
-        self._save_manager = None
         if __debug__:
             from openbci.core import streaming_debug
             self.debug = streaming_debug.Debug(128, LOGGER)
 
-        self.start_saving_session()
+
+        self._session_is_active = False
+
+        # A method fired ever time we get new samples
+        # We need to do something when got first sample
+        # so for efficency reasons we do that kind of python hack...
+        # self._data_received is again changed im method
+        # self._first_sample_data_received
+        self._data_received = self._first_sample_data_received
+
+        # Needed slots
+        self._number_of_samples = 0
+        self._first_sample_timestamp = -1.0
+
+        self._start_saving_session()
 
     def handle_message(self, mxmsg):
         """Handle messages:
         * amplifier_signal_message - raw data from mx.
         If session is active convey data to save_manager.
-        * signal_saver_control_message - start or finish saving session
-        depending on data received."""
+        * signal_saver_finish_message - finish saving session"""
+
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and \
                 self._session_is_active:
-            l_vec = variables_pb2.SampleVector()
-            l_vec.ParseFromString(mxmsg.message)
-	    for i_sample in l_vec.samples:
-                ts = i_sample.timestamp
-                self._save_manager.data_received(i_sample.value, ts)
-                
-            if TIMESTAMPS_AS_SEPARATE_CHANNEL:
-                self._save_manager.data_received(ts, ts)
+
+            self._number_of_samples += 1
+            self._data_received(mxmsg.message)
+
             if __debug__:
                 #Log module real sampling rate
                 self.debug.next_sample()
 
-        elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
-            LOGGER.info("Signal saver got signal_saver_control_message: "+\
-                            mxmsg.message)
-            if mxmsg.message == 'finish_saving':
-                self.finish_saving_session()
-            elif mxmsg.message == 'start_saving':
-                self.start_saving_session()
-        elif mxmsg.type == types.TAG and \
-                self._session_is_active:
-            #TODO - decide which type of tag is to be saved
-            l_tag = TAGGER.unpack_tag(mxmsg.message)
-            LOGGER.info(''.join(['Signal saver got tag: ',
-                                'start_timestamp:',
-                                str(l_tag['start_timestamp']),
-                                ', end_timestamp: ', 
-                                str(l_tag['end_timestamp']),
-                                ', name: ',
-                                l_tag['name'],
-                                '. <Change debug level to see desc.>']))
-                                  
-            LOGGER.debug("Signal saver got tag: "+str(l_tag))
-            self._save_manager.tag_received(l_tag)
-  
+        elif mxmsg.type == types.SIGNAL_SAVER_FINISH_SAVING:
+            LOGGER.info("Signal saver got finish saving _message")
+            self._finish_saving_session()
                 
-    def start_saving_session(self):
+    def _start_saving_session(self):
+        """Start storing data..."""
         if self._session_is_active:
             LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
             return 
-        self._session_is_active = True
-        l_signal_params = {}
-        l_freq = int(self.conn.query(message = "SamplingRate", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message)
-        l_ch_nums = self.conn.query(message = "AmplifierChannelsToRecord", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message.strip().split(' ')
-        l_ch_names = self.conn.query(message = "ChannelsNames", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message.strip().split(';')
-        l_ch_gains = self.conn.query(message = "Gain", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message.strip().split(' ')
-        l_ch_offsets = self.conn.query(message = "Offset", 
-                                       type = types.DICT_GET_REQUEST_MESSAGE, 
-                                       timeout = 1).message.strip().split(' ')
+
         l_f_name =  self.conn.query(message = "SaveFileName", 
                                     type = types.DICT_GET_REQUEST_MESSAGE, 
                                     timeout = 1).message
-        l_f_path = self.conn.query(message = "SaveFilePath", 
+        l_f_dir = self.conn.query(message = "SaveFilePath", 
                                    type = types.DICT_GET_REQUEST_MESSAGE, 
                                    timeout = 1).message
 
-        l_signal_params['number_of_channels'] = len(l_ch_nums)
-        l_signal_params['sampling_frequency'] = l_freq
-        l_signal_params['channels_numbers'] = l_ch_nums
-        l_signal_params['channels_names'] = l_ch_names
-        l_signal_params['channels_gains'] = l_ch_gains
-        l_signal_params['channels_offsets'] = l_ch_offsets
-        if TIMESTAMPS_AS_SEPARATE_CHANNEL:
-            l_signal_params['number_of_channels'] += 1
-            l_signal_params['channels_gains'].append(1.0)
-            l_signal_params['channels_offsets'].append(0.0)
-            l_signal_params['channels_names'].append('TIMESTAMPS')
-            l_signal_params['channels_numbers'].append(1000)
+        self._file_path = os.path.normpath(os.path.join(
+               l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
-        l_log = "Start saving to file "+l_f_path+l_f_name+" with values:\n"
-        for i_key, i_value in l_signal_params.iteritems():
-            l_log = ''.join([l_log, i_key, " : ", str(i_value), "\n"])
-        LOGGER.info(l_log)
+        self._data_proxy = data_file_proxy.MxDataFileWriteProxy(self._file_path)
+        self._session_is_active = True
 
-        self._save_manager = signalml_save_manager.SignalmlSaveManager(
-           l_f_name, l_f_path, l_signal_params)
-
-    def finish_saving_session(self):
+    def _finish_saving_session(self):
+        """Send signal_saver_control_message to MX with
+        number of samples and first sample timestamp (for tag_saver and info_saver).
+        Also perform .finish_saving on data_proxy - it might be a long operation..."""
         if not self._session_is_active:
             LOGGER.error("Attempting to stop saving signal to file while no file being opened!")
             return
         self._session_is_active = False
-        l_files = self._save_manager.finish_saving()
 
-        LOGGER.info("Saved files: \n"+str(l_files))
+        l_vec = variables_pb2.VariableVector()
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'first_sample_timestamp'
+        l_var.value = repr(self._first_sample_timestamp)
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'number_of_samples'
+        l_var.value = str(self._number_of_samples)
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'file_path'
+        l_var.value = self._file_path
+
+        self.conn.send_message(
+            message=l_vec.SerializeToString(), 
+            type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
+        
+        l_files = self._data_proxy.finish_saving()
+        LOGGER.info("Saved file "+str(l_files))
         return l_files
+
+
+
 
 if __name__ == "__main__":
     SignalSaver(settings.MULTIPLEXER_ADDRESSES).loop()

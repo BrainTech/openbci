@@ -32,6 +32,11 @@ tasks = {}
 def task(cmd, task_id, **kwargs):
     tasks[task_id] = pb2_construct(k2launcher_pb2.Task,
             cmd=cmd, task_id=task_id, working_dir=obci_path, **kwargs)
+
+multitasks = {}
+def multitask(task_ids, task_id):
+    multitasks[task_id] = task_ids
+
 task("../svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
 task("./signal_catcher.py", "signal_catcher")
@@ -45,8 +50,9 @@ task("./ugm/run_ugm.py p300", "p300_ugm")
 task("./analysis/p300.py", "p300_analysis")
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
-task("./data_storage/signal_saver.py", "signal_saver")
 task("./data_storage/tests/test_manually_signal_saver_control.py finish_saving", "finish_saver")
+task("./data_storage/tests/test_manually_signal_saver_control.py", "manual_saver_control")
+
 task("./experiment_builder/experiment_manager.py mx-on config", "experiment_manager")
 task("sleep 20; ./experiment_builder/experiment_manager_ania.py mx-on config", "experiment_manager_ania")
 task("sleep 1; ./super_diode_control.py", "diode_control")
@@ -56,6 +62,8 @@ task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB",
 task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer", "c++_usb_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer -b -d 00:A0:96:1B:48:DB", "c++_bt_amplifier")
 task("python ./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
+task("python ./amplifiers/virtual_amplifier.py function", "virtual_f_amplifier")
+task("python ./amplifiers/virtual_amplifier.py fast", "fast_virtual_amplifier")
 
 task("sleep 4; ./filters/svarog_filter.py", "svarog_filter")
 task("sleep 1; ./logics/logic_speller.py", "logics")
@@ -63,7 +71,15 @@ task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
 task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
-task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 200 -s 1.0 -b 2.0 -t yes -f yes", "auto_trigger")
+task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 50 -s 1.0 -b 2.0 -t yes -f yes", "auto_trigger")
+
+
+task("./data_storage/info_saver.py","info_saver")
+task("./data_storage/signal_saver.py", "data_saver")
+task("./tags/tag_saver.py","tag_saver")
+multitask(["info_saver", "data_saver", "tag_saver"], "signal_saver")
+
+
 
 
 for task in tasks:
@@ -74,8 +90,21 @@ aliases = {}
 def start(alias, task_id, **kwargs):
     if not alias in aliases:
         aliases[alias] = []
-    aliases[alias].append(pb2_construct(k2launcher_pb2.Command,
-        type=k2launcher_pb2.Command.START, task=tasks[task_id], **kwargs))
+
+    task_ids = multitasks.get(task_id, [task_id])
+    for i_task_id in task_ids:
+        aliases[alias].append(pb2_construct(k2launcher_pb2.Command,
+                                            type=k2launcher_pb2.Command.START, 
+                                            task=tasks[i_task_id], **kwargs))
+
+
+start("save_test", "hashtable")
+start("save_test", "info_saver")
+start("save_test", "data_saver")
+start("save_test", "tag_saver")
+start("save_test", "manual_tags_sending")
+start("save_test", "manual_saver_control")
+start("save_test", "fast_virtual_amplifier")
 
 
 start("add_saver", "signal_saver")
@@ -246,6 +275,22 @@ start("svarog_v_test", "svarog_pinger")
 start("svarog_v_test", "virtual_amplifier")
 start("svarog_v_test", "manual_tags_sending")
 
+start("svarog_f_test", "hashtable")
+start("svarog_f_test", "svarog_pinger")
+start("svarog_f_test", "virtual_f_amplifier")
+start("svarog_f_test", "manual_tags_sending")
+
+
+start("auto_trigger_f", "hashtable")
+start("auto_trigger_f", "virtual_f_amplifier")
+start("auto_trigger_f", "signal_saver")
+start("auto_trigger_f", "auto_trigger")
+
+
+start("auto_trigger_v", "hashtable")
+start("auto_trigger_v", "virtual_amplifier")
+start("auto_trigger_v", "signal_saver")
+start("auto_trigger_v", "auto_trigger")
 
 start("auto_trigger_py_bt", "hashtable")
 start("auto_trigger_py_bt", "python_bt_amplifier")

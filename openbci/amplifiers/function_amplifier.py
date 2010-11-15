@@ -53,10 +53,6 @@ class FunctionEEGAmplifier(virtual_eeg_amplifier.VirtualEEGAmplifier):
         self.sampling_rate = int(self.connection.query(
                 message="SamplingRate", 
                 type=types.DICT_GET_REQUEST_MESSAGE).message)
-        self.channel_numbers = [int(x) for x in \
-                                    self.connection.query(
-                message="AmplifierChannelsToRecord", 
-                type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")]
         l_function = self.connection.query(
             message="VirtualAmplifierFunction", 
             type=types.DICT_GET_REQUEST_MESSAGE).message

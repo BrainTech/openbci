@@ -172,6 +172,17 @@ peer {
      name: "AUTOSCALE_GENERATOR"
 }
 
+peer {
+     type: 133
+     name: "TAG_SAVER"
+}
+
+peer {
+     type: 134
+     name: "INFO_SAVER"
+}
+
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -481,15 +492,6 @@ type {
     }
 }
 
-type {
-     type: 148
-     name: "SIGNAL_SAVER_CONTROL_MESSAGE"
-     to {
-     	peer: "SIGNAL_SAVER"
-	whom: ALL
-	}
-}
-
 
 type {
     type: 149
@@ -504,8 +506,8 @@ type {
      type: 150
      name: "TAG"
      to {
-     	peer: "SIGNAL_SAVER"
-	whom: ANY
+     	peer: "TAG_SAVER"
+	whom: ALL
 	}
      to {
      	peer: "TAGS_RECEIVER"
@@ -549,6 +551,30 @@ type {
 	}
      	
 }
+
+type {
+     type: 155
+     name: "SIGNAL_SAVER_CONTROL_MESSAGE"
+     to {
+     	peer: "INFO_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TAG_SAVER"
+	whom: ALL
+	}	
+}
+
+type {
+     type: 156
+     name: "SIGNAL_SAVER_FINISH_SAVING"
+     to {
+     	peer: "SIGNAL_SAVER"
+	whom: ALL
+	}
+}
+
+
 
 peer {
     type: 201

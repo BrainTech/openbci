@@ -45,7 +45,7 @@ if __name__ == "__main__":
         l_mode = sys.argv[1]
     except IndexError:
         pass
-    if not (l_mode in ['function', 'file']):
+    if not (l_mode in ['function', 'file', 'fast']):
         LOGGER.error("Unrecognised mode in first argument, \
 default 'function' mode assumed.")
     
@@ -71,5 +71,8 @@ Using data_storage/sample_data/juhu_speller_full.obci.tags")
              'tags_file':l_tags_file
              }
             ).do_sampling()
+    elif l_mode == 'fast':
+        import fast_eeg_amplifier
+        fast_eeg_amplifier.FastEEGAmplifier().do_sampling()
 
 

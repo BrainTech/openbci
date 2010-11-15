@@ -58,15 +58,35 @@ class SignalSaverControl(object):
                                          flush=True)
             LOGGER.info("Set hashtable.SaveFilePath to: "+p_file_path)
 
-        self._send_message("start_saving")
+        #self._send_message("start_saving")
 
     def finish_saving(self):
         """Send finish_saving message to signal saver."""
         self._send_message("finish_saving")
 
+    def fake_finish_saving(self):
+
+        l_vec = variables_pb2.VariableVector()
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'first_sample_timestamp'
+        l_var.value = repr(1000.0)
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'number_of_samples'
+        l_var.value = str(9999)
+
+        l_var = l_vec.variables.add()
+        l_var.key = 'file_path'
+        l_var.value = 'path'
+
+        self._connection.send_message(
+            message=l_vec.SerializeToString(), 
+            type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
+        
     def _send_message(self, p_msg):
-        """Send p_msg message to mx with SIGNAL_SAVER_CONTROL_MESSAGE type."""
-        LOGGER.info("Send "+p_msg+" message, type:SIGNAL_SAVER_CONTROL_MESSAGE")
-        l_msg_type = types.SIGNAL_SAVER_CONTROL_MESSAGE
+        """Send p_msg message to mx with SIGNAL_SAVER_FINISH_SAVING type."""
+        LOGGER.info("Send "+p_msg)
+        l_msg_type = types.SIGNAL_SAVER_FINISH_SAVING
         self._connection.send_message(message=p_msg,
                                       type=l_msg_type, flush=True)

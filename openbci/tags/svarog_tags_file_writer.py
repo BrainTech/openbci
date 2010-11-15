@@ -66,15 +66,12 @@ class SvarogTagsFileWriter(object):
     - tag_received(tag_dict)
     - finish_saving()
     """
-    def __init__(self, p_file_name, p_dir_path, p_tags_file_extension,
-                 p_defs=None
+    def __init__(self, p_defs=None
                  #p_defs = [{'name':'default', 
                  #           'description':'default description'}]
                  ):
         """Prepare data structure for storing in-memory xml file."""
 
-        self._file_name = os.path.normpath(os.path.join(
-                p_dir_path, p_file_name + p_tags_file_extension)) 
         #TODO works in windows and linux on path with spaces?
         self._xml_factory = xml.dom.minidom.Document() 
         #an object useful in the future to easily create xml elements
@@ -92,6 +89,9 @@ class SvarogTagsFileWriter(object):
         self._xml_root.appendChild(l_td)
         self._tags_root = self._xml_factory.createElement('tags')
         l_td.appendChild(self._tags_root)
+
+
+        self._tags = []
 
     def _init_default_tags(self):
         l_pg = self._xml_factory.createElement('paging')
@@ -131,34 +131,35 @@ class SvarogTagsFileWriter(object):
                 l_item.setAttribute(i_key, i_value)                
             l_tgr.appendChild(l_item)
 
-    def set_first_sample_timestamp(self, p_ts):
-        self._first_sample_timestamp = p_ts
-
     def tag_received(self, p_tag_dict):
         """For give dictionary with pirs key -> value create an xml element.
         An exception is with key 'desc' where xml elements are created for
         every element of p_tag_dict['desc'] value which is a dictionary."""
+        self._tags.append(p_tag_dict)
 
-        l_tag_params = {}
-        l_tag_params['name'] = self._get_tag_def_for(p_tag_dict['name'])
-        l_tag_params['length'] = float(p_tag_dict['end_timestamp']) - \
-            float(p_tag_dict['start_timestamp'])
-        l_tag_params['position'] = float(p_tag_dict['start_timestamp']) - \
-            self._first_sample_timestamp
+    def _serialize_tags(self, p_first_sample_ts):
+        """Write all self._tags to xml file."""
 
-        l_tag = self._xml_factory.createElement('tag')
-        l_tag.setAttribute('channelNumber', str(-1))
-        for i_key, i_value in l_tag_params.iteritems():
-            l_tag.setAttribute(i_key, types_utils.to_string(i_value))
+        for i_tag_dict in self._tags:
+            l_tag_params = {}
+            l_tag_params['name'] = self._get_tag_def_for(i_tag_dict['name'])
+            l_tag_params['length'] = float(i_tag_dict['end_timestamp']) - \
+            float(i_tag_dict['start_timestamp'])
+            l_tag_params['position'] = float(i_tag_dict['start_timestamp']) - p_first_sample_ts
 
-        for i_key, i_value in p_tag_dict['desc'].iteritems():
-            elem = self._xml_factory.createElement(i_key)
-            val = self._xml_factory.createTextNode(types_utils.to_string(i_value))
-            elem.appendChild(val)
-            l_tag.appendChild(elem)
+            l_tag = self._xml_factory.createElement('tag')
+            l_tag.setAttribute('channelNumber', str(-1))
 
-        
-        self._tags_root.appendChild(l_tag)
+            for i_key, i_value in l_tag_params.iteritems():
+                l_tag.setAttribute(i_key, types_utils.to_string(i_value))
+
+            for i_key, i_value in i_tag_dict['desc'].iteritems():
+                elem = self._xml_factory.createElement(i_key)
+                val = self._xml_factory.createTextNode(types_utils.to_string(i_value))
+                elem.appendChild(val)
+                l_tag.appendChild(elem)
+
+            self._tags_root.appendChild(l_tag)
         
 
     def _get_tag_def_for(self, p_tag_name):
@@ -167,10 +168,12 @@ class SvarogTagsFileWriter(object):
         else:
             return p_tag_name
 
-    def finish_saving(self):
+    def finish_saving(self, p_file_path, p_first_sample_ts):
         """Write xml tags to the file, return the file`s path."""
         #TODO - lapac bledy
-        f = open(self._file_name, 'w')
+        self._serialize_tags(p_first_sample_ts)
+
+        f = open(p_file_path, 'w')
         f.write(self._xml_factory.toxml('utf-8')) #TODO ustawic kodowanie
         f.close()
-        return self._file_name
+        return p_file_path

@@ -35,11 +35,9 @@ import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import amplifiers_logging as logger
-from openbci.data_storage import signalml_read_manager
-from openbci.data_storage import data_storage_exceptions
-LOGGER = logger.get_logger("virtual_eeg_amplifier", "info")
+LOGGER = logger.get_logger("fast_eeg_amplifier", "info")
 
-class VirtualEEGAmplifier(object):
+class FastEEGAmplifier(object):
     """An abstract class for virtual amplifiers that performs standar actions.
     It should be subclassed by concrete virtual amplifiers (eg. file, function).
     __int__ method should be subclass, where .sampling_rate and .channel_numbers
@@ -54,13 +52,18 @@ class VirtualEEGAmplifier(object):
                 message="SamplingRate", 
                 type=types.DICT_GET_REQUEST_MESSAGE).message)
 
-        # determine number of channels
-        # channel_numbers_string will be sth like: "0 1 2 3"
-        channel_numbers_string = self.connection.query(
-                message="AmplifierChannelsToRecord", 
-                type=types.DICT_GET_REQUEST_MESSAGE).message
+        self.num_of_channels = int(self.connection.query(
+                message="NumOfChannels", 
+                type=types.DICT_GET_REQUEST_MESSAGE).message)
 
-        self.num_of_channels = len(channel_numbers_string.split(" "))
+
+        sampleVector = variables_pb2.SampleVector()
+        for x in range(self.num_of_channels):
+                samp = sampleVector.samples.add()
+                samp.value = float(x)
+                samp.timestamp = time.time()
+
+        self.msg = sampleVector.SerializeToString()
 
     def do_sampling(self):
         """Start flooding multiplexer with data..."""
@@ -68,47 +71,23 @@ class VirtualEEGAmplifier(object):
             from openbci.core import streaming_debug
             self.debug = streaming_debug.Debug(self.sampling_rate, LOGGER)
 
-        offset = 0.0
         brek = 1/float(self.sampling_rate)
         real_start_time = time.time()
-        data_start_time = real_start_time #self._get_sampling_start_time()
-        channels_data = [0]*self.num_of_channels
-        channels_data_len = len(channels_data)
-
+        data_start_time = real_start_time
 
         LOGGER.info("Start samples sampling.")
         while True:
-            try:
-                for i in range(channels_data_len):
-                    channels_data[i] = self._get_next_value(offset)
-                                   
-            except data_storage_exceptions.NoNextValue:
-                LOGGER.info("All samples has been red. Sampling finished.")
-                break
-            offset += 1.0
-            sampleVector = variables_pb2.SampleVector()
-            # For real-time data: t = time.time() = real_start_time + (time.time() - real_start_time)
-            # For historical-time data: t = data_start_time + (time.time() - real_start_time)
-            # But for real-time data: real_start_time == data_start_time, so:
             t = data_start_time + (time.time() - real_start_time)
-            for x in channels_data:
-                samp = sampleVector.samples.add()
-                samp.value = float(x)
-                samp.timestamp = t
-
             self.connection.send_message(
-                message=sampleVector.SerializeToString(), 
+                message=self.msg,
                 type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
-
             if __debug__:
                 #Log module real sampling rate
                 self.debug.next_sample()
-            time_to_sleep = brek - (time.time() - t)
+
+            time_to_sleep = brek - (time.time() - t) - 0.14/self.sampling_rate
             if time_to_sleep > 0:
                 time.sleep(time_to_sleep)
-    def _get_sampling_start_time(self):
-        raise Exception("VirtualEEGAmplifier is an abstract class.\
-Method get_sampling_start_time should be reimplemented in subclass.")
 
 
 

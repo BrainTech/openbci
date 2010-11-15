@@ -44,24 +44,34 @@ if __name__ == "__main__":
         l_action = sys.argv[1]
     except IndexError:
         pass
-    if l_action == "finish_saving":
-        l_saver_control.finish_saving()
-        print("Saving to file finished. File path and nama are defined in hashtable now")
-    elif l_action == "start_saving":
-        l_str = "Saving to file has started. "
-        if l_path == "":
-            l_str = l_str + "Path is taken from Hashtable."
-        else:
-            l_str = l_str + "With path: " + l_path
-        if l_session_name == "":
-            l_str = l_str + "File name is taken from Hashtable."
-        else:
-            l_str = l_str + "File name: " + l_session_name
-        l_saver_control.start_saving(l_session_name, l_path)
-        print(l_str)
-    else:
+
+
+
+    while True:
+        if l_action == "finish_saving":
+            l_saver_control.finish_saving()
+            print("Saving to file finished. File path and nama are defined in hashtable now")
+        elif l_action == "start_saving":
+            l_str = "Saving to file has started. "
+            if l_path == "":
+                l_str = l_str + "Path is taken from Hashtable."
+            else:
+                l_str = l_str + "With path: " + l_path
+            if l_session_name == "":
+                l_str = l_str + "File name is taken from Hashtable."
+            else:
+                l_str = l_str + "File name: " + l_session_name
+            l_saver_control.start_saving(l_session_name, l_path)
+            print(l_str)
+        elif l_action == "fake_finish_saving":
+            l_saver_control.fake_finish_saving()
+
+
         print("Run this program with multiplexer alredy running and signal_saver.py connected.")
         print("Type:")
         print("python test_manually_signal_saver_control.py finish_saving - to finis saving to file")
         print("python test_manually_signal_saver_control.py start_saving - to start saving to file with name and path defined in Hashtable")
         print("python test_manually_signal_saver_control.py start_saving file_name file_path- to start saving to file with give name and path")
+
+        l_action = raw_input()
+

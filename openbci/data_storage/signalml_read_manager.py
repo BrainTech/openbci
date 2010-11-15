@@ -125,6 +125,9 @@ class DataFileManager(object):
             except data_storage_exceptions.NoNextValue:
                 break
         LOGGER.debug('end getting all channeled values in time: '+str(time.time()-t))
+        m = min([len(i) for i in data])
+        data = [i[:m] for i in data]
+        
         self._all_channeled_values = numpy.array(data)
         return self._all_channeled_values
 

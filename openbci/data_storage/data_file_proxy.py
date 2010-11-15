@@ -89,6 +89,102 @@ class DataFileWriteProxy(object):
 
 
 
+
+class MxDataFileWriteProxy(object):
+    """
+    A class representing data file. 
+    It should be an abstraction for saving raw data into a file. 
+    Decision whether save signal to one or few separate files should be made here 
+    and should be transparent regarding below interface - the interface should remain untouched.
+    Public interface:
+    - finish_saving() - closes data file and return its path,
+    - data_received(p_data_sample) - gets and saves next sample of signal
+    """
+    def __init__(self, p_file_path):
+        """Open p_file_name file in p_dir_path directory."""
+
+        # A buffer for storing received data
+        self.buffer = [0.0]*BUF_SIZE
+
+        self._number_of_samples = 0
+
+        self._file_path = p_file_path
+
+        try:
+            # Create a temporary file with .tmp extension
+            # In finish_saving we read from that file and create another 
+            # for efficency reasons
+            self._file = open(self._file_path+'.tmp', 'wr') #open file in a binary mode
+        except IOError:
+            LOGGER.error("Error! Can`t create a file!!!.")
+            sys.exit(1)
+
+    def finish_saving(self):
+        """Save to temporary file all samples that are left in the buffer.
+        As self._file contains protobuf values, now we need to once more read them,
+        convert to number and save to another file in a standard format."""
+
+        # Save to temp file remaining values
+        self._file.write(''.join(self.buffer[:(self._number_of_samples % BUF_SIZE)]))
+        self._file.flush()
+        self._file.close()
+        
+        final_file = open(self._file_path, 'w')
+        
+        import variables_pb2
+
+        # Open once more temporary file with protobuf data
+        temp_file = open(self._file_path+'.tmp', 'r')
+        msg = ' '
+        while len(msg) > 0:
+            msg = temp_file.read(self._data_len)
+            l_vec = variables_pb2.SampleVector()
+            l_vec.ParseFromString(msg)
+            for i_sample in l_vec.samples:
+                ts = i_sample.timestamp
+                try:
+                    final_file.write(struct.pack("d", i_sample.value))
+                except struct.error:
+                    LOGGER.error("Error while writhing to file. Bad sample format.")
+                    raise(data_storage_exceptions.BadSampleFormat())
+
+
+        final_file.flush()
+        final_file.close()
+        
+        # Close and remove temporary file
+        temp_file.close()
+        os.remove(self._file_path+'.tmp')
+
+
+        return self._file_path, self._number_of_samples
+    def set_data_len(self, ln):
+        """Set length of one unit of protobuf data
+        stored in temporary file. It`ll be useful
+        in finish_saving() while extracting data from the file."""
+
+        self._data_len = ln
+
+    def data_received(self, p_data):
+        """ p_data must be protobuf SampleVector message, but serialized to string.
+        Data is stored in temp buffer, once a while the buffer is flushed to a file."""
+
+        ind = self._number_of_samples % BUF_SIZE
+        self.buffer[ind] = p_data
+        self._number_of_samples = self._number_of_samples + 1
+
+        if (ind + 1) == BUF_SIZE:
+            # The buffer is full
+            try:
+                self._file.write(''.join(self.buffer))
+            except ValueError:
+                LOGGER.error("Warning! Trying to write data to closed data file!")
+                return
+
+
+
+
+
 class AsciFileWriteProxy(object):
     def __init__(self, p_file_name, p_dir_path, p_file_extension):
         """Open p_file_name file in p_dir_path directory."""
@@ -117,6 +213,11 @@ class AsciFileWriteProxy(object):
             return
         
         self._file.flush()
+
+
+
+
+
 
 
 class DataFileReadProxy(object):
