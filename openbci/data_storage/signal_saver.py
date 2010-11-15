@@ -129,6 +129,9 @@ class SignalSaver(BaseMultiplexerServer):
         l_f_dir = self.conn.query(message = "SaveFilePath", 
                                    type = types.DICT_GET_REQUEST_MESSAGE, 
                                    timeout = 1).message
+        self._append_ts = int(self.conn.query(message = "SaverTimestampsIndex", 
+                                          type = types.DICT_GET_REQUEST_MESSAGE, 
+                                          timeout = 1).message)
 
         self._file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
@@ -163,7 +166,7 @@ class SignalSaver(BaseMultiplexerServer):
             message=l_vec.SerializeToString(), 
             type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
         
-        l_files = self._data_proxy.finish_saving()
+        l_files = self._data_proxy.finish_saving(self._append_ts)
         LOGGER.info("Saved file "+str(l_files))
         return l_files
 

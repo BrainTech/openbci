@@ -119,7 +119,7 @@ class MxDataFileWriteProxy(object):
             LOGGER.error("Error! Can`t create a file!!!.")
             sys.exit(1)
 
-    def finish_saving(self):
+    def finish_saving(self, p_append_ts_index):
         """Save to temporary file all samples that are left in the buffer.
         As self._file contains protobuf values, now we need to once more read them,
         convert to number and save to another file in a standard format."""
@@ -140,13 +140,29 @@ class MxDataFileWriteProxy(object):
             msg = temp_file.read(self._data_len)
             l_vec = variables_pb2.SampleVector()
             l_vec.ParseFromString(msg)
-            for i_sample in l_vec.samples:
+            for i, i_sample in enumerate(l_vec.samples):
                 ts = i_sample.timestamp
+
+                if i == p_append_ts_index:
+                    try:
+                        final_file.write(struct.pack("d", ts))
+                    except struct.error:
+                        LOGGER.error("Error while writhing to file. Bad sample format.")
+                        raise(data_storage_exceptions.BadSampleFormat())
+                    
                 try:
                     final_file.write(struct.pack("d", i_sample.value))
                 except struct.error:
                     LOGGER.error("Error while writhing to file. Bad sample format.")
                     raise(data_storage_exceptions.BadSampleFormat())
+            # p_append_ts_index might be the last channel
+            if p_append_ts_index == l_vec.samples.size():
+                    try:
+                        final_file.write(struct.pack("d", ts))
+                    except struct.error:
+                        LOGGER.error("Error while writhing to file. Bad sample format.")
+                        raise(data_storage_exceptions.BadSampleFormat())
+                
 
 
         final_file.flush()

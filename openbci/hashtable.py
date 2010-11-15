@@ -40,6 +40,7 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
         "ChannelsNames": "gen1;gen2;gen3;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz", #22
+        #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
         #"ChannelsNames": "a;b;c;",
 
@@ -49,8 +50,8 @@ class Hashtable(BaseMultiplexerServer):
         "Offset": offsets_gen(CHANNELS),
         "NumOfChannels": CHANNELS,
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "512",
-        "VirtualAmplifierFunction": "math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
+        "SamplingRate": "128",
+        "VirtualAmplifierFunction": "offset", #"math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "1024",
         "NumOfFreq": "8",
         "Border": "0.4",
@@ -95,8 +96,8 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "nic",
-        "SaveFilePath" : "./",
+        "SaveFileName" : "test_save_c++_usb_1024HZ+trig+samples_15_11_2010",
+        "SaveFilePath" : "./temp/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",
         "FilterBand": "bandpass",
@@ -105,7 +106,8 @@ class Hashtable(BaseMultiplexerServer):
         "DriverTriggerIndex":str(CHANNELS), #,Append trigger at the end
         "DriverOnoffIndex": "-1",
         "DriverBatteryIndex": "-1",
-        "DriverSampleNoIndex":"-1",
+        "DriverSampleNoIndex": str(CHANNELS+1),
+        "SaverTimestampsIndex": str(CHANNELS+2),
         "AmplifierNull":"8388608.0",
         "P300Rows":"5",
         "P300Cols":"5",

@@ -267,7 +267,7 @@ start("svarog_test_c++_bt", "manual_tags_sending")
 
 start("svarog_test_c++_usb", "hashtable")
 start("svarog_test_c++_usb", "svarog_pinger")
-start("svarog_test_c++_usb", "c++_bt_amplifier")
+start("svarog_test_c++_usb", "c++_usb_amplifier")
 start("svarog_test_c++_usb", "manual_tags_sending")
 
 start("svarog_v_test", "hashtable")

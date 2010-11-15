@@ -84,6 +84,10 @@ class InfoSaver(BaseMultiplexerServer):
         l_ch_offsets = self.conn.query(message = "Offset", 
                                        type = types.DICT_GET_REQUEST_MESSAGE, 
                                        timeout = 1).message.strip().split(' ')
+        l_append_ts = int(self.conn.query(message = "SaverTimestampsIndex", 
+                                          type = types.DICT_GET_REQUEST_MESSAGE, 
+                                          timeout = 1).message)
+
         l_f_name =  self.conn.query(message = "SaveFileName", 
                                     type = types.DICT_GET_REQUEST_MESSAGE, 
                                     timeout = 1).message
@@ -102,6 +106,29 @@ class InfoSaver(BaseMultiplexerServer):
         l_signal_params['channels_offsets'] = l_ch_offsets
         l_signal_params['number_of_samples'] = p_number_of_samples
         l_signal_params['file'] = p_data_file_path
+        
+        if l_append_ts > -1:
+            l_signal_params['number_of_channels'] += 1
+
+            ch_r = l_signal_params['channel_numbers'].split(" ")
+            ch_r.insert(l_append_ts, "1000")
+            l_signal_params["number_of_channels"] = ' '.join(ch_r)
+            
+            # Add name to special channel
+            ch_names =  l_signal_params["channels_names"].split(";")
+            ch_names.insert(l_append_ts, "TIMESTAMPS")
+            l_signal_params["channels_names"] = ';'.join(ch_names)
+
+            # Add gain to special channel
+            gains = l_signal_params["channels_gains"].split(" ")
+            gains.insert(l_append_ts, "1.0")
+            l_signal_params["channels_gains"] = ' '.join(gains)
+
+            # Add offset to special channel
+            offsets = l_signal_params["channels_offsets"].split(" ")
+            offsets.insert(l_append_ts, "0.0")
+            l_signal_params["channels_offsets"] = ' '.join(offsets)
+
 
         l_log = "Finished saving info with values:\n"
         for i_key, i_value in l_signal_params.iteritems():
