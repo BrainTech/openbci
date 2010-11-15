@@ -110,9 +110,9 @@ class InfoSaver(BaseMultiplexerServer):
         if l_append_ts > -1:
             l_signal_params['number_of_channels'] += 1
 
-            ch_r = l_signal_params['channel_numbers'].split(" ")
+            ch_r = l_signal_params['channels_numbers'].split(" ")
             ch_r.insert(l_append_ts, "1000")
-            l_signal_params["number_of_channels"] = ' '.join(ch_r)
+            l_signal_params["channels_numbers"] = ' '.join(ch_r)
             
             # Add name to special channel
             ch_names =  l_signal_params["channels_names"].split(";")

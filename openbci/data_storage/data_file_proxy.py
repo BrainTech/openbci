@@ -156,7 +156,7 @@ class MxDataFileWriteProxy(object):
                     LOGGER.error("Error while writhing to file. Bad sample format.")
                     raise(data_storage_exceptions.BadSampleFormat())
             # p_append_ts_index might be the last channel
-            if p_append_ts_index == l_vec.samples.size():
+            if p_append_ts_index == i + 1:
                     try:
                         final_file.write(struct.pack("d", ts))
                     except struct.error:
