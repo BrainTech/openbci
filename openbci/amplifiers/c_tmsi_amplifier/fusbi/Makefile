@@ -5,9 +5,15 @@ FWDIR	:= /lib/firmware
 obj-m	+= fusbi.o
 
 default:
+	touch .tmp_versions/tmp
 	$(MAKE) -C $(KDIR) SUBDIRS=`pwd` modules
 
 install: default
+	if dpkg -s "fxload" 2>/dev/null 1>/dev/null;  then \
+	echo "Package fxload is installed.";\
+	else	echo "Package fxload isn't installed.\n Run sudo apt-get install fxload";\
+	exit 1;\
+	fi
 	$(MAKE) -C $(KDIR) SUBDIRS=`pwd` modules_install
 	/sbin/depmod -a
 

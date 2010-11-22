@@ -27,8 +27,8 @@ void print_help()
      printf("Usage: \n"\
                             "[-a multiplexer_addres] default=\"127.0.0.1\"\n"\
                             "[-p port] defaut=\"31889\"\n"\
-                            "[-d device_path or bluetooth address] default=\"/dev/fusbi0\"\n"\
-                            "[-b] if set device path is bluetooth address\n"\
+                            "[-d device_path ] amplifier address default=\"/dev/fusbi0\"\n"\
+                            "[-b bluetooth address] amplifier bluetooth address\n"\
                             "[-r file] file with stored amplifier responses\n"\
                             "[-l nr_of_samples] print log message after number_of_samples\n" \
                             "[-D file] whole amplifier output will be dumped to file\n"\
@@ -51,7 +51,9 @@ int main(int argc, char**argv)
                 case 'd':
                     device=argv[i+1];break;
                 case 'b':
-                    type=BLUETOOTH_AMPLIFIER; break;
+                    type=BLUETOOTH_AMPLIFIER; 
+                    device=argv[i+1];break;
+                    break;
                 case 'r':
                     read_db=argv[i+1]; break;
                 case 'p':

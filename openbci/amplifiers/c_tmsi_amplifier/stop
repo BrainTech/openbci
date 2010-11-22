@@ -4,6 +4,6 @@ sudo rfcomm release 0
 echo 'S' > /dev/ttyUSB0
 killall python
 killall mxcontrol
-killall tmsiAmpServer
-killall testServer
-killall dummyReceiver
+killall tmsi_server
+killall test_server
+killall dummy_receiver
