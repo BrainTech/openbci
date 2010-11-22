@@ -104,19 +104,20 @@ class OfflineSignalPrep(SignalPrep):
             
         self._base_file_name = params['base_file_name']
         self._dir_path = params['dir_path']
-        print self._dir_path, "  ", self._base_file_name
-        self._files = {'info': self._dir_path + '/' +self._base_file_name + '.obci.info',
+        self._files = {'info': self._dir_path + '/' +self._base_file_name \
+                       +'.obci.svarog.info',
              'data': self._dir_path + '/' +self._base_file_name + '.obci.dat',
-             'tags': self._dir_path + '/' +self._base_file_name + '.obci.tags'
+             'tags': self._dir_path + '/' +self._base_file_name +'.obci.svarog.tags'
                 }
 
         tags_def = tag_df.SmartTagEndTagDefinition(
                 start_tag_name='experiment_update',
                 start_offset=0, end_offset=0,
-                end_tags_names=['experiment_update', 'experiment_end'])
+                end_tags_names=['experiment__screen_break', 'experiment_end'])
 
         
         self._tag_manager = tag_mgr.SmartTagsManager(tags_def, self._files)
+        print self._tag_manager
     
     def iter_nonbreak_slices(self, chan_no):
         """
@@ -126,10 +127,7 @@ class OfflineSignalPrep(SignalPrep):
         for t in self._tag_manager.iter_smart_tags():
             start = t.get_start_tag()
             if start['name'] == 'experiment_update':
-                if start['desc'].has_key('break'):
-                    continue
-                else:
-                    yield t.get_data()[chan_no], exp_utils.unpack_upd_exp_tag(start)
+                yield t.get_data()[chan_no], exp_utils.unpack_upd_exp_tag(start)
             
     def iter_all_exp_slices(self, chan_no):
         """

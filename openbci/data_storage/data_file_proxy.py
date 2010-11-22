@@ -53,7 +53,8 @@ class DataFileWriteProxy(object):
             #TODO - co jesli plik istnieje?
             self._file = open(self._file_name, 'wr') #open file in a binary mode
         except IOError:
-            LOGGER.error("Error! Can`t create a file!!!.")
+            LOGGER.error("Error! Can`t create a file!!!. parameters: " + str(p_file_name)+\
+                        ", " + str(p_dir_path) + ", " + str(p_file_extension))
             sys.exit(1)
         self.t_wr = 0.0
         self.t_fl = 0.0
@@ -116,7 +117,8 @@ class MxDataFileWriteProxy(object):
             # for efficency reasons
             self._file = open(self._file_path+'.tmp', 'wr') #open file in a binary mode
         except IOError:
-            LOGGER.error("Error! Can`t create a file!!!.")
+            LOGGER.error("Error! Can`t create a file!!!. path: " +
+                         str(self._file_path))
             sys.exit(1)
 
     def finish_saving(self, p_append_ts_index):

@@ -31,24 +31,25 @@ import numpy
 
 import matplotlib.pyplot as plt
 
-import calibration_logging
-LOGGER = calibration_logging.get_logger('calibrator')
+from calibration.calibration_logging import get_logger
 
-import signal_prep
-import calibration_analysis
-import plotting
+LOGGER = get_logger('calibrator')
+
+import calibration.signal_prep as signal_prep
+import calibration.calibration_analysis as calibration_analysis
+import calibration.plotting as plotting
 
 
 class OfflineCalibrator(object):
     def __init__(self):
 
-    	if (len(sys.argv) < 2):
-    	    print "usage: ./calibrator.py <mode:1|2> \
-    	        <base_signal_file_name> <dir> <channel_number>"
+        if (len(sys.argv) < 2):
+            print "usage: ./calibrator.py <mode:1|2> \
+                    <base_signal_file_name> <dir> <channel_number>"
             return
         # TODO get params
         self.mode = int(sys.argv[1]) 
-    	self.sig_file_name = sys.argv[2]
+        self.sig_file_name = sys.argv[2]
         self.dir = sys.argv[3]
         self.chan_no = int(sys.argv[4])
 
@@ -56,21 +57,21 @@ class OfflineCalibrator(object):
     def run(self):
         
         prep = signal_prep.OfflineSignalPrep(
-                    base_file_name=self.sig_file_name, dir_path=self.dir)
+                base_file_name=self.sig_file_name, dir_path=self.dir)
         LOGGER.info("Offline signal preparation finished: " + \
-                    "file_name: " + self.sig_file_name + " dir: " + self.dir)
-        
+                "file_name: " + self.sig_file_name + " dir: " + self.dir)
+
         props = {}
         LOGGER.info("Calibration Mode: " + str(self.mode))
         if self.mode == 1:
             tags, freqs, amplitudes =  calibration_analysis.single_freq_test(prep, self.chan_no)
             LOGGER.info("Analysed chunks of data for single freqs (one field blinking): " + \
-                        " \nFREQS: " + str(freqs) + " \nAmplitudes: " + str(amplitudes))
-            
+                    " \nFREQS: " + str(freqs) + " \nAmplitudes: " + str(amplitudes))
+
             props['fig_title'] = "Test of a sequence of single frequencies"
             props['ax_title'] = "channel: " + str(self.chan_no) + " /// display time: " + str(tags[0]['desc']['desc']['delay']) + \
-                                "s"
-                                    
+                    "s"
+
             fig = plt.figure()
             fig.subplots_adjust(bottom=0.2)
             ax = fig.add_subplot(111)                        
@@ -79,19 +80,20 @@ class OfflineCalibrator(object):
         elif self.mode == 2:
             tags, diff_chunks = calibration_analysis.multi_freq_stat_test(prep, self.chan_no)
             LOGGER.info("Analysed chunks of data for multi freq test, number of tested frequencies: " + \
-                        str(len(diff_chunks)) + " fr set: " + str(diff_chunks[0][1]))
-            
+                    str(len(diff_chunks)) + " fr set: " + str(diff_chunks[0][1]))
+
             props['fig_title'] = "Differences per frequency, channel: " + '%d'%self.chan_no
             plotting.draw_bars_multi_freq_sequence(diff_chunks, tags, 0.2, squares=True, props=props)
             plotting.draw_multi_freq(diff_chunks, tags, props=props)
-        
+
             plt.show()
         else:
             print "Unknown calibration mode!"
-       
+
 
 if __name__ == "__main__":
     cal = OfflineCalibrator() #settings.MULTIPLEXER_ADDRESSES
 
     cal.run()
     
+

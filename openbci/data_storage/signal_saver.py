@@ -133,6 +133,9 @@ class SignalSaver(BaseMultiplexerServer):
                                           type = types.DICT_GET_REQUEST_MESSAGE, 
                                           timeout = 1).message)
 
+        l_f_dir = os.path.normpath(l_f_dir)
+        if not os.access(l_f_dir, os.F_OK):
+             os.mkdir(l_f_dir)
         self._file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 

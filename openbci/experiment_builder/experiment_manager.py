@@ -110,7 +110,13 @@ class Experiment_manager(object):
         self.config_manager = UgmConfigManager()
         self._connection = None
         self._screen_sounds = self.config_file.get('sounds', None)
-        self._screen_look_num = 0
+        self._field_look_nums = self.config_file.get('field_look_nums',None)
+
+        if self._field_look_nums != None:
+            self._sc_look_index = 0
+        else:
+            self._screen_look_num = 0
+
         if self._screen_sounds:
             import pygame
             import settings
@@ -166,10 +172,11 @@ class Experiment_manager(object):
             self._pre_screen_package(i_screens_pack)
             LOGGER.debug("PACK: \n" + str(i_screens_pack))
             for i_screen_conf in i_screens_pack:
-
+                l_delay = self._get_delay()
                 self._pre_screen(i_screen_conf)
 		# perform some action, like executing other stimuli than visual
-		os.system("python " + self.programme)
+                if self.programme != '':
+		    os.system("python " + self.programme)
                 # let ugm read config for new screen...
                 self.config_manager.update_from_file(i_screen_conf[0], True)
                 # ...then update itself
@@ -177,7 +184,7 @@ class Experiment_manager(object):
                 # change diode frequencies 
                 self.update_diode_freqs(i_screen_conf[1])
 
-                time.sleep(self._get_delay())
+                time.sleep(l_delay)
                 self._post_screen(i_screen_conf)
 
             self._post_screen_package(i_screens_pack)
@@ -260,7 +267,10 @@ class Experiment_manager(object):
 
     def _pre_screen_package(self, p_screen_package):
         print('New screen package: ' + str(p_screen_package))
-        self._screen_look_num = 0
+        if self._field_look_nums != None:
+            self._sc_look_index = 0
+        else:
+            self._screen_look_num = 0
         
     def _post_screen_package(self, p_screen_package):
         if self.config_file['make_package_breaks']:
@@ -274,8 +284,13 @@ class Experiment_manager(object):
         print('New screen: ' + str(p_screen_config[0]))
         # TODO: wybieranie pola do koncentracji, dzwiek oznajmiajacy o tym, zapis do tagu
         self._play_sound()
-    
-    def _post_screen(self, p_screen_config):
+        if self._screen_sounds != None:
+            self._screen_look_num = (self._screen_look_num + 1) % \
+                    len(self._screen_sounds)
+        elif self._field_look_nums != None:
+            self._screen_look_num = self._field_look_nums[self._sc_look_index]
+            
+
         l_screen_config_name = p_screen_config[0]
 
         if l_screen_config_name in self.readable_names:
@@ -294,6 +309,8 @@ class Experiment_manager(object):
         LOGGER.info('screen ' + str(p_screen_config[0]) + '  freqs: ' +\
                         str(p_screen_config[1]) + ' delay: '+ str(self._last_delay))
 
+    
+    def _post_screen(self, p_screen_config):
         # Make after-screen beak if defined in config
         if self.config_file['make_screen_breaks']:
             self.update_diode_freqs(self.config_file['break_screen_freqs'])
@@ -301,6 +318,11 @@ class Experiment_manager(object):
             self._send_simple_screen(self.config_file['break_screen_screen'],
                                      'experiment__screen_break', l_delay)
             time.sleep(l_delay)
+        if self._field_look_nums != None:
+            self._sc_look_index = (self._sc_look_index + 1) % \
+                    len(self._field_look_nums)
+            LOGGER.info("look:  " + str(self._sc_look_index))
+
 
 
     def _play_sound(self):
@@ -309,15 +331,17 @@ class Experiment_manager(object):
         import pygame
         p_wave_file = self._screen_sounds[self._screen_look_num]
         pygame.mixer.Sound(p_wave_file).play()
-        self._screen_look_num = (self._screen_look_num + 1) % len(self._screen_sounds)
 
 
     def read_experiment_config(self, p_config_name):
-        module_prefix = 'experiment_builder.config'
-        config_module = None
         CONFIG = {}
         Config = ConfigParser.ConfigParser()
-        Config.read("/home/mrygacz/openbci/openbci/openbci/experiment_builder/config/config_file.ini")
+        if p_config_name == None:
+            import inspect
+            path = inspect.getsourcefile(self.__class__)
+            p_config_name = os.path.dirname(path) + "/config/config_file.ini"
+        print "------CONFIG NAME: ", p_config_name
+        Config.readfp(open(p_config_name))
         for section in Config.sections():
                 print section
                 for option in Config.options(section):
@@ -326,16 +350,6 @@ class Experiment_manager(object):
 	#CONFIG['screens'] = eval(CONFIG['screens'])
 	#CONFIG['freqs'] = eval(CONFIG['freq_sets'])
 	
-        #if p_config_name == None:
-        #    config_module = __import__(module_prefix + '.config', \
-        #            fromlist=['CONFIG'])
-        #else:
-        #    try:
-        #        config_module = __import__(module_prefix +'.'+ p_config_name, \
-        #                fromlist=['CONFIG'])
-        #    except: 
-        #        print "INVALID EXPERIMENT CONFIG NAME! ", p_config_name
-        #        raise
         return CONFIG 
 
 
