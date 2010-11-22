@@ -1,10 +1,11 @@
+You need libbluetooth-dev package installed to compile this project
 if you run "make" the following programs will be made:
 tmsi_server
 test_server
 test_driver
 dummy_receiver
 
-additionally you can run make fusbi_install to install fusbi device driver.
+Additionally you can run make fusbi_install to install fusbi device driver.
 (fxload package is required for it to work properly, you will be noticed if this
 package is not installed)
 
