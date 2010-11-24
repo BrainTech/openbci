@@ -20,6 +20,7 @@ INCLUDEDIRS =			-I . \
 			-I $(AZOUKDIR)/build/azlib \
 			-I $(ROOTDIR)/openbci \
 			-fPIC \
+			-I build
 			#
 
 LDFLAGS		+= $(GENERALFLAGS) \
@@ -39,13 +40,12 @@ all: $(TARGETS)
 
 clean:
 	rm -rf $(BUILD)
-	rm $(TARGETS) src/variables.pb.h
+	rm $(TARGETS)
 
 fusbi_install:
 	cd fusbi; \
 	sudo make install
-
-tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o variables.pb.o tmsiAmpServer.o TmsiAmplifier.o tmsi.o AmplifierDriver.o)
+tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o tmsiAmpServer.o variables.pb.o TmsiAmplifier.o tmsi.o AmplifierDriver.o)
 	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
 
 test_server: $(addprefix $(BUILD)/, AmplifierServer.o testAmplifierServer.o variables.pb.o AmplifierDriver.o)
@@ -60,29 +60,24 @@ dummy_receiver: $(BUILD)/DummyReceiver.o
 test_logger: $(BUILD)/test_logger.o
 	$(CXX) -o $@ $<
 
-$(BUILD)/%.o : src/%.cpp src/%.h build/ src/Logger.h
+$(BUILD)/%: $(BUILD)
+
+$(BUILD)/%.o : src/%.cpp src/%.h src/Logger.h
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
 
 $(BUILD)/%.o :  src/tests/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
 
-build/:
-	mkdir $(BUILD)
+src/AmplifierServer.h: $(BUILD)/variables.pb.h
 
 $(BUILD)/tmsi.o: src/nexus/tmsi.c src/nexus/tmsi.h
 	$(CXX) -o $@ -c $<
-	
 
-SOURCES := AmplifierServer.cpp tests/testAmplifierServer.cpp tmsiAmpServer.cpp
+$(BUILD):
+	mkdir -p $(BUILD)
 
-
-src/variables.pb.h: $(BUILD)/variables.pb.cc
-	ln $(BUILD)/variables.pb.h src/variables.pb.h
-$(BUILD)/variables.pb.cc: $(ROOTDIR)/openbci/variables.proto
+$(BUILD)/variables.pb.h: $(ROOTDIR)/openbci/variables.proto
 	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/openbci/ $<
 
 $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
 	g++ -c $(CXXFLAGS) -o $@ $<
-
-
-
