@@ -158,7 +158,9 @@ class SignalmlReadManager(object):
         if p_info_file[-len(info_file_extension):].rfind(info_file_extension) > -1:
                 #obci info file
             self._info_reader = info_file_proxy.InfoFileReadProxy(p_info_file)
+            LOGGER.info("Obci info file recognised!")
         else:
+            LOGGER.info("Svarog info file recognised!")
             self._info_reader = svarog_file_proxy.SvarogFileReadProxy(p_info_file)
 
 

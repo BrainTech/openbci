@@ -62,9 +62,11 @@ class InfoSaver(BaseMultiplexerServer):
                     l_num_of_samples = i_var.value
                 elif i_var.key == 'file_path':
                     l_file_path = i_var.value
-            self._finish_saving(l_num_of_samples, l_file_path)
+                elif i_var.key == 'first_sample_timestamp':
+                    l_first_sample_ts = i_var.value
+            self._finish_saving(l_num_of_samples, l_file_path, l_first_sample_ts)
 
-    def _finish_saving(self, p_number_of_samples, p_data_file_path):
+    def _finish_saving(self, p_number_of_samples, p_data_file_path, p_first_sample_ts):
         """Create xml manifest file with data received from hashtable
         and from signal saver (parameters in the function)."""
 
@@ -106,6 +108,7 @@ class InfoSaver(BaseMultiplexerServer):
         l_signal_params['channels_offsets'] = l_ch_offsets
         l_signal_params['number_of_samples'] = p_number_of_samples
         l_signal_params['file'] = p_data_file_path
+        l_signal_params['first_sample_timestamp'] = p_first_sample_ts
         
         if l_append_ts > -1:
             l_signal_params['number_of_channels'] += 1

@@ -72,11 +72,11 @@ class Reader(object):
     http://docs.python.org/library/csv.html
     """
 
-    def __init__(self, p_file_path):
+    def __init__(self, p_file_path, d=DELIMITER, q=csv.QUOTE_NONNUMERIC):
         self._file = UTF8Recoder(p_file_path, 'utf-8')
         self._reader = csv.reader(self._file,
-                                  delimiter=DELIMITER,
-                                  quoting=csv.QUOTE_NONNUMERIC)
+                                  delimiter=d,
+                                  quoting=q)
 
     def __iter__(self):
         return self

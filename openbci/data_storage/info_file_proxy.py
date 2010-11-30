@@ -42,9 +42,9 @@ TAGS_DEFINITIONS = {
             'channels_numbers':
                 ('list', ['channelNumbers', 'number']),
             'channels_gains':
-                ('list', ['channelGains', 'gain']),
+                ('list', ['calibrationGain', 'calibrationParam']),
             'channels_offsets':
-                ('list', ['channelOffsets', 'offset']),
+                ('list', ['calibrationOffset', 'calibrationParam']),
             'number_of_samples':
                 ('simple', ['sampleCount']),
             'number_of_channels':
@@ -278,9 +278,16 @@ Reading aborted!")
         </p_param_name>
         """
         l_xml_root_element = self._xml_doc.getElementsByTagName(p_param_name)[0]
+        LOGGER.debug("Will look for subtags: "+p_subparam_name+" in node: "+str(l_xml_root_element))
         l_elements = []
         for i_node in l_xml_root_element.getElementsByTagName(p_subparam_name):
-            l_elements.append(i_node.firstChild.nodeValue)
+            try:
+                elem = i_node.firstChild.nodeValue
+            except:
+                LOGGER.warning("An empty node occured in tag: "+p_subparam_name)
+                elem = ''
+            LOGGER.debug("Found subtag node: "+str(i_node)+" with node value: "+str(elem))
+            l_elements.append(elem)
         return l_elements
 
     def _create_tags_control(self):

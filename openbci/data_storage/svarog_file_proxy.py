@@ -57,7 +57,9 @@ class SvarogFileWriteProxy(info_file_proxy.InfoFileWriteProxy):
         'rs:pageSize',
         'rs:blocksPerPage',
         'rs:channelLabels',
-        'rs:exportDate'
+        'rs:calibrationGain',
+        'rs:calibrationOffset',
+        'rs:firstSampleTimestamp',
         ]
     def _create_xml_factory(self):
         """Redefine the method - return Svarog document."""
@@ -74,7 +76,7 @@ class SvarogFileWriteProxy(info_file_proxy.InfoFileWriteProxy):
                 'byte_order':'LITTLE_ENDIAN',
                 'page_size':20.0,
                 'blocks_per_page':5,
-                'export_date':'2010-04-26T11:02:51'
+                #'export_date':'2010-04-26T11:02:51'
                 })
         self._reorder_elements()
     def _reorder_elements(self):
