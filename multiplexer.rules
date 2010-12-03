@@ -405,6 +405,11 @@ type {
         peer: "DIODE_CATCHER"
         whom: ALL
     }
+    to {
+        peer: "ANALYSIS"
+        whom: ALL
+    }
+
 }
 
 type {

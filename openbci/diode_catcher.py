@@ -52,7 +52,7 @@ class DiodeCatcher(BaseMultiplexerServer):
             else:
                 self.send_message(message = '', type = types.DIODE_RESPONSE)
         elif mxmsg.type == types.DIODE_MESSAGE:
-            
+	    print "DIODE CATCHER received DIODE MESSAGE"            
             self.buffer.append(mxmsg.message)
             self.no_response()
 

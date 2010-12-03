@@ -26,7 +26,8 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import settings, cPickle, collections, variables_pb2, blinker, time, random
+import settings, cPickle, collections, variables_pb2, time, random
+import blinker_test as blinker
 
 from openbci.core import openbci_logging
 LOGGER = openbci_logging.get_logger('super_diode_control')
@@ -111,7 +112,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
 
             msg.timestamp = tstamp
             self.conn.send_message(message = msg.SerializeToString(), type = types.DIODE_MESSAGE, flush=True)
-
+	    print "SENT DIODE MESSAGE"
 
 
     def handle_message(self, mxmsg):

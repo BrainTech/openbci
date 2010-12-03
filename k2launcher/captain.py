@@ -81,6 +81,9 @@ multitask(["info_saver", "data_saver", "tag_saver"], "signal_saver")
 
 
 
+task("python ./p300dawida/rysowanie.py", "rysowanie")
+task("python ./p300dawida/rysowanie_debug.py", "rysowanie_debug")
+
 
 for task in tasks:
     tasks[task] = set_env(tasks[task], env)
@@ -95,7 +98,19 @@ def start(alias, task_id, **kwargs):
     for i_task_id in task_ids:
         aliases[alias].append(pb2_construct(k2launcher_pb2.Command,
                                             type=k2launcher_pb2.Command.START, 
-                                            task=tasks[i_task_id], **kwargs))
+
+
+                                           task=tasks[i_task_id], **kwargs))
+
+
+
+start("virtual_p300", "hashtable")
+start("virtual_p300", "signal_catcher")
+start("virtual_p300", "diode_control")
+start("virtual_p300", "diode_catcher")
+start("virtual_p300", "virtual_amplifier" )
+#start("virtual_p300", "rysowanie" )
+start("virtual_p300", "rysowanie_debug" )
 
 
 start("save_test", "hashtable")
