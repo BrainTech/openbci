@@ -23,29 +23,18 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 
-"""
->>> from openbci.data_storage import svarog_file_proxy as p
+import info_file_proxy
+import data_storage_logging as logger
+LOGGER = logger.get_logger("read_info_source", "info")
 
->>> px = p.SvarogFileWriteProxy('./tescik.obci.svarog.info')
+class InfoSource(object):
+    def get_param(self, p_key):
+        LOGGER.error("The method must be subclassed")
 
->>> px.set_attributes({'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2'], 'file':'soufce.obci.dat', 'number_of_samples':3})
 
->>> px.finish_saving()
-'./tescik.obci.svarog.info'
 
->>> py = p.SvarogFileReadProxy('./tescik.obci.svarog.info')
-
->>> print(py.get_param('number_of_channels'))
-2
-
->>> print(py.get_param('channels_names')[0])
-1
-
-"""
-
-if __name__ == '__main__':
-    import doctest, sys
-    res = doctest.testmod(sys.modules[__name__])
-    if res.failed == 0:
-        print("All tests succeeded!")
-
+class FileInfoSource(InfoSource):
+    def __init__(self, p_file_path):
+        self._info_proxy = info_file_proxy.InfoFileReadProxy(p_file_path)
+    def get_param(self, p_key):
+        return self._info_proxy.get_param(p_key)

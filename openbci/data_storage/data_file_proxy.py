@@ -43,19 +43,16 @@ class DataFileWriteProxy(object):
     - finish_saving() - closes data file and return its path,
     - data_received(p_data_sample) - gets and saves next sample of signal
     """
-    def __init__(self, p_file_name, p_dir_path, p_file_extension):
+    def __init__(self, p_file_path):
         """Open p_file_name file in p_dir_path directory."""
         self.buffer = [0.0]*BUF_SIZE
         self._number_of_samples = 0
-        self._file_name = os.path.normpath(os.path.join(
-                p_dir_path, p_file_name + p_file_extension))
-        #TODO works in windows and linux on path with spaces?
+        self._file_name = p_file_path
         try:
             #TODO - co jesli plik istnieje?
             self._file = open(self._file_name, 'wr') #open file in a binary mode
         except IOError:
-            LOGGER.error("Error! Can`t create a file!!!. parameters: " + str(p_file_name)+\
-                        ", " + str(p_dir_path) + ", " + str(p_file_extension))
+            LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
             sys.exit(1)
         self.t_wr = 0.0
         self.t_fl = 0.0
@@ -122,7 +119,7 @@ class MxDataFileWriteProxy(object):
                          str(self._file_path))
             sys.exit(1)
 
-    def finish_saving(self, p_append_ts_index):
+    def finish_saving(self, p_append_ts_index=None):
         """Save to temporary file all samples that are left in the buffer.
         As self._file contains protobuf values, now we need to once more read them,
         convert to number and save to another file in a standard format."""

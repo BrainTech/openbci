@@ -23,29 +23,20 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 
-"""
->>> from openbci.data_storage import info_file_proxy as p
+from tags import svarog_tags_file_reader
+import data_storage_logging as logger
+LOGGER = logger.get_logger("smart_tags_source", "info")
 
->>> px = p.InfoFileWriteProxy('./tescik.obci.svarog.info')
 
->>> px.set_attributes({'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2'], 'file':'soufce.obci.dat', 'number_of_samples':3})
+class TagsSource(object):
+    def get_tags(self):
+        LOGGER.error("The method must be subclassed")
 
->>> px.finish_saving()
-'./tescik.obci.svarog.info'
 
->>> py = p.InfoFileReadProxy('./tescik.obci.svarog.info')
+class FileTagsSource(TagsSource):
+    def __init__(self, p_file_path):
+        self._tags_proxy = svarog_tags_file_reader.SvarogTagsFileReader(p_file_path)
 
->>> print(py.get_param('number_of_channels'))
-2
-
->>> print(py.get_param('channels_names')[0])
-1
-
-"""
-
-if __name__ == '__main__':
-    import doctest, sys
-    res = doctest.testmod(sys.modules[__name__])
-    if res.failed == 0:
-        print("All tests succeeded!")
-
+    def get_tags(self):
+        self._tags_proxy.get_tags()
+        

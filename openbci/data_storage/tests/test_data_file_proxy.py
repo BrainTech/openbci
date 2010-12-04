@@ -28,7 +28,7 @@
 
 >>> import settings, os.path
 
->>> px = p.DataFileWriteProxy('tescik', settings.module_abs_path(), '.obci.dat')
+>>> px = p.DataFileWriteProxy('./tescik.obci.dat')
 
 >>> px.data_received(1.2)
 
@@ -42,7 +42,7 @@
 
 >>> nic = px.finish_saving()
 
->>> f = os.path.join(settings.module_abs_path(),'tescik.obci.dat')
+>>> f = './tescik.obci.dat'
 
 >>> py = p.DataFileReadProxy(f)
 
@@ -83,12 +83,85 @@ array([  1.20000000e+00,   2.30000000e-03,  -1.23456000e+02])
 Traceback (most recent call last):
 ...
 NoNextValue
+>>> #warning here
 
 >>> os.remove(f)
 
+>>> #***************** THE SAME BUT WITH MXDATAFILEWRITEPROXY ************
+
+
+
+>>> px = p.MxDataFileWriteProxy('./tescik.obci.dat')
+
+>>> gen_mx_data([[1.2, 0.0023], [-123.456, 3.3], [1.0, 2.0]], px)
+
+>>> nic = px.finish_saving()
+
+>>> f = './tescik.obci.dat'
+
+>>> py = p.DataFileReadProxy(f)
+
+>>> py.get_next_value()
+1.2
+
+>>> py.get_next_value()
+0.0023
+
+>>> py.get_next_value()
+-123.456
+
+>>> py.goto_value(1)
+
+>>> py.get_next_value()
+0.0023
+
+>>> py.goto_value(4)
+
+>>> py.get_next_value()
+1.0
+
+>>> py.goto_value(6)
+
+>>> py.get_next_value()
+Traceback (most recent call last):
+...
+NoNextValue
+
+>>> py.finish_reading()
+
+>>> py.start_reading()
+
+>>> py.get_next_values(3)
+array([  1.20000000e+00,   2.30000000e-03,  -1.23456000e+02])
+
+>>> py.get_next_values(2)
+array([ 3.3,  1. ])
+
+>>> py.get_next_values(2)
+Traceback (most recent call last):
+...
+NoNextValue
+>>> #warning here
+
+>>> os.remove(f)
 
 """
 
+
+def gen_mx_data(data, px):
+    import variables_pb2
+    for d in data:
+        v = variables_pb2.SampleVector()
+        for value in d:
+            s = v.samples.add()
+            s.value = value
+            s.timestamp = 1.0
+        r = v.SerializeToString()
+        ln = len(r)
+        px.data_received(r)
+    px.set_data_len(ln)
+
+    
 if __name__ == '__main__':
     import doctest, sys
     res = doctest.testmod(sys.modules[__name__])
