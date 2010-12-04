@@ -45,7 +45,15 @@ class InfoSaver(BaseMultiplexerServer):
         super(InfoSaver, self).__init__(addresses=addresses, 
                                           type=peers.INFO_SAVER)
 
-        self._info_proxy = svarog_file_proxy.SvarogFileWriteProxy()
+        l_f_name =  self.conn.query(message = "SaveFileName", 
+                                    type = types.DICT_GET_REQUEST_MESSAGE, 
+                                    timeout = 1).message
+        l_f_dir = self.conn.query(message = "SaveFilePath", 
+                                   type = types.DICT_GET_REQUEST_MESSAGE, 
+                                   timeout = 1).message
+        l_file_path = os.path.normpath(os.path.join(
+               l_f_dir, l_f_name + SVAROG_INFO_FILE_EXTENSION))
+        self._info_proxy = svarog_file_proxy.SvarogFileWriteProxy(l_file_path)
 
     def handle_message(self, mxmsg):
         """Handle messages:
@@ -90,15 +98,6 @@ class InfoSaver(BaseMultiplexerServer):
                                           type = types.DICT_GET_REQUEST_MESSAGE, 
                                           timeout = 1).message)
 
-        l_f_name =  self.conn.query(message = "SaveFileName", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message
-        l_f_dir = self.conn.query(message = "SaveFilePath", 
-                                   type = types.DICT_GET_REQUEST_MESSAGE, 
-                                   timeout = 1).message
-        l_file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + SVAROG_INFO_FILE_EXTENSION))
-
 
         l_signal_params['number_of_channels'] = len(l_ch_nums)
         l_signal_params['sampling_frequency'] = l_freq
@@ -130,7 +129,7 @@ class InfoSaver(BaseMultiplexerServer):
         LOGGER.info(l_log)
 
         
-        self._info_proxy.finish_saving(l_file_path, l_signal_params)
+        self._info_proxy.finish_saving(l_signal_params)
         
 
 

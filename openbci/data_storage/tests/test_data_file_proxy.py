@@ -36,13 +36,15 @@
 
 >>> px.data_received(-123.456)
 
+>>> px.data_received(3.3)
+
+>>> px.data_received(5.0)
+
 >>> nic = px.finish_saving()
 
 >>> f = os.path.join(settings.module_abs_path(),'tescik.obci.dat')
 
 >>> py = p.DataFileReadProxy(f)
-
->>> py.start_reading()
 
 >>> py.get_next_value()
 1.2
@@ -57,6 +59,32 @@
 
 >>> py.get_next_value()
 0.0023
+
+>>> py.goto_value(4)
+
+>>> py.get_next_value()
+5.0
+
+>>> py.goto_value(6)
+
+>>> py.get_next_value()
+Traceback (most recent call last):
+...
+NoNextValue
+
+>>> py.finish_reading()
+
+>>> py.start_reading()
+
+>>> py.get_next_values(3)
+array([  1.20000000e+00,   2.30000000e-03,  -1.23456000e+02])
+
+>>> py.get_next_values(3)
+Traceback (most recent call last):
+...
+NoNextValue
+
+>>> os.remove(f)
 
 
 """

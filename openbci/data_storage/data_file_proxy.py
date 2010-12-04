@@ -24,6 +24,7 @@
 #
 
 import struct
+import scipy
 import sys
 import os.path
 from openbci.data_storage import data_storage_exceptions
@@ -241,6 +242,7 @@ class AsciFileWriteProxy(object):
 class DataFileReadProxy(object):
     def __init__(self, p_file_path):
         self._file_path = p_file_path
+        self.start_reading()
         
     def start_reading(self):
         try:
@@ -248,6 +250,10 @@ class DataFileReadProxy(object):
         except IOError, e:
             LOGGER.error("An error occured while opening the data file!")
             raise(e)
+
+    def finish_reading(self):
+        self._data_file.close()
+
     def get_next_value(self):
         """Return next value from data file (as python float). 
         Close data file and raise NoNextValue exception if eof."""
@@ -258,8 +264,33 @@ class DataFileReadProxy(object):
             #string from the end of a broken file?
             return struct.unpack('d', l_raw_data)[0]
         except struct.error:
-            self._data_file.close()
             raise(data_storage_exceptions.NoNextValue())
+
+    def get_next_values(self, p_num):
+        """Return next p_num values from data file (as scipy.array). 
+        Close data file and raise NoNextValue exception if eof."""
+
+        # Read data from file
+        l_raw_data = self._data_file.read(SAMPLE_SIZE*p_num)
+
+        # Initialize return array
+        l_ret = scipy.zeros(p_num)
+        if (len(l_raw_data) == SAMPLE_SIZE*p_num):
+            # If all data required for return array is present
+            for i in range(p_num):
+                l_ret[i] = struct.unpack('d', l_raw_data[SAMPLE_SIZE*i:SAMPLE_SIZE*(i+1)])[0]
+            return l_ret
+        else:
+            # Either len(l_raw_data) is 0 and its ok -> EOF
+            # or len(l_raw_data) > 0 and its last len(l_raw_data) data from the file.
+
+            LOGGER.info(''.join(["Remained sample of ",
+                                 str(len(l_raw_data)),
+                                 " length (should be zero) as required length was ",
+                                 str(SAMPLE_SIZE*p_num),
+                                 ". No next value."]))
+            raise(data_storage_exceptions.NoNextValue())
+
 
     def goto_value(self, p_value_no):
         """Set the engine, so that nex 'get_next_value' call will return

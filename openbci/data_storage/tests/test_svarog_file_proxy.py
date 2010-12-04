@@ -26,14 +26,14 @@
 """
 >>> from openbci.data_storage import svarog_file_proxy as p
 
->>> px = p.SvarogFileWriteProxy('tescik', './', {'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2'], 'file':'soufce.obci.dat', 'number_of_samples':3}, '.obci.info')
+>>> px = p.SvarogFileWriteProxy('./tescik.obci.svarog.info')
+
+>>> px.set_attributes({'number_of_channels':2, 'sampling_frequency':128, 'channels_names': ['1','2'], 'file':'soufce.obci.dat', 'number_of_samples':3})
 
 >>> px.finish_saving()
-'tescik.obci.info'
+'./tescik.obci.svarog.info'
 
->>> py = p.SvarogFileReadProxy('tescik.obci.info')
-
->>> py.start_reading()
+>>> py = p.SvarogFileReadProxy('./tescik.obci.svarog.info')
 
 >>> print(py.get_param('number_of_channels'))
 2

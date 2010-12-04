@@ -88,9 +88,10 @@ class InfoFileWriteProxy(object):
     Public interface:
     - finish_saving()
     """
-    def __init__(self):
+    def __init__(self, p_file_path):
         """Init xml structure. """
 
+        self._file_path = p_file_path
         #TODO works in windows and linux on path with spaces?
         self._xml_factory = self._create_xml_factory()
         #an object useful in the future to easily create xml elements
@@ -106,7 +107,7 @@ class InfoFileWriteProxy(object):
         for i_key, i_value in p_attrs_dict.iteritems():
             self._set_tag(i_key, i_value)
 
-    def finish_saving(self, p_file_path, p_signal_params):
+    def finish_saving(self, p_signal_params={}):
         """Write xml_doc to the file, return the file`s path.
         Arguments:
         - p_file_name - a name of to-be-created info file
@@ -130,10 +131,10 @@ class InfoFileWriteProxy(object):
         #TODO - lapac bledy
         self.set_attributes(p_signal_params)
         self._set_remaining_tags()
-        f = open(p_file_path, 'w')
+        f = open(self._file_path, 'w')
         f.write(self._xml_factory.toxml('utf-8'))
         f.close()
-        return p_file_path
+        return self._file_path
 
     def _set_remaining_tags(self):
         """Set all default (hardcoded) tags and other tags as now we
@@ -223,6 +224,7 @@ class InfoFileReadProxy(object):
         "..."
         self._file_path = p_file_path
         self._create_tags_control()
+        self.start_reading()
     def start_reading(self):
         """Load xml to memory."""
         try:

@@ -32,6 +32,9 @@ What is different from info_file_proxy:
 """
 
 import info_file_proxy
+from openbci.data_storage import data_storage_logging as logger
+LOGGER = logger.get_logger("svarog_file_proxy")
+
 class SvarogDocument(info_file_proxy.OpenBciDocument):
     """Subclass xml_document, so that we can add rs: prefix before every
     tag name."""
@@ -91,9 +94,12 @@ class SvarogFileWriteProxy(info_file_proxy.InfoFileWriteProxy):
 
         elems = []
         for order_key in SvarogFileWriteProxy.ORDER:
+            try:
                 elem = self._xml_factory.getElementsByTagName(order_key)[0]
                 elems.append(elem)
                 l_xml_root.appendChild(elem)
+            except IndexError:
+                LOGGER.warning("Couldn`t find '"+str(order_key)+"' attribute. Created info file will not be totally correct!!!!")
 
         self._xml_factory = new_factory
 
