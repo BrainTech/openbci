@@ -52,27 +52,39 @@
 
 >>> # TEST MEMORY DATA SOURCE **************************************************
 
->>> py = s.MemoryDataSource(2,3)
+>>> import numpy
 
->>> py.add_sample(0, [1.0, 2.0])
+>>> py = s.MemoryDataSource(numpy.zeros((2,3)))
+
+>>> py.set_sample(0, [1.0, 2.0])
+
+>>> py.set_sample(1, [3.0, 4.0])
+
+>>> py.set_sample(2, [5.0, 6.0])
+
+>>> [i for i in py.iter_samples()]
+[array([ 1.,  2.]), array([ 3.,  4.]), array([ 5.,  6.])]
+
+>>> [i for i in py.iter_samples()]
+[array([ 1.,  2.]), array([ 3.,  4.]), array([ 5.,  6.])]
 
 >>> py.get_samples(0, 1)
 array([[ 1.],
        [ 2.]])
 
->>> py.add_sample(3, [3.0, 4.0])
+>>> py.set_sample(3, [3.0, 4.0])
 Traceback (most recent call last):
 ...
 IndexError: invalid index
 
->>> py.add_sample(2, [1.0, 2.0, 3.0])
+>>> py.set_sample(2, [1.0, 2.0, 3.0])
 Traceback (most recent call last):
 ...
 ValueError: shape mismatch: objects cannot be broadcast to a single shape
 
 >>> # TEST FILE DATA SOURCE ****************************************************
 
->>> py = s.FileDataSource(f, 2, 3)
+>>> py = s.FileDataSource(f, 2)
 
 >>> py.get_samples(0, 0)
 array([], shape=(2, 0), dtype=float64)
@@ -101,24 +113,33 @@ array([[  1.20000000e+00,  -1.23456000e+02,   5.00000000e+00],
        [  2.30000000e-03,   3.30000000e+00,   0.00000000e+00]])
 
 
->>> py = s.FileDataSource(f, 2, 4)
+>>> py = s.FileDataSource(f, 2)
 
 >>> py.get_samples()
-array([[  1.20000000e+00,  -1.23456000e+02,   5.00000000e+00,
-          0.00000000e+00],
-       [  2.30000000e-03,   3.30000000e+00,   0.00000000e+00,
-          0.00000000e+00]])
+array([[  1.20000000e+00,  -1.23456000e+02,   5.00000000e+00],
+       [  2.30000000e-03,   3.30000000e+00,   0.00000000e+00]])
 
-
->>> py = s.FileDataSource(f, 2, 2)
+>>> py = s.FileDataSource(f, 2)
 
 >>> py.get_samples()
-array([[  1.20000000e+00,  -1.23456000e+02],
-       [  2.30000000e-03,   3.30000000e+00]])
+array([[  1.20000000e+00,  -1.23456000e+02,   5.00000000e+00],
+       [  2.30000000e-03,   3.30000000e+00,   0.00000000e+00]])
 
 >>> py.get_samples()
-array([[  1.20000000e+00,  -1.23456000e+02],
-       [  2.30000000e-03,   3.30000000e+00]])
+array([[  1.20000000e+00,  -1.23456000e+02,   5.00000000e+00],
+       [  2.30000000e-03,   3.30000000e+00,   0.00000000e+00]])
+
+>>> [i for i in py.iter_samples()]
+[array([ 1.2   ,  0.0023]), array([-123.456,    3.3  ]), array([ 5.,  0.])]
+
+>>> py = s.FileDataSource(f, 2)
+
+>>> [i for i in py.iter_samples()]
+[array([ 1.2   ,  0.0023]), array([-123.456,    3.3  ]), array([ 5.,  0.])]
+
+>>> [i for i in py.iter_samples()]
+[array([ 1.2   ,  0.0023]), array([-123.456,    3.3  ]), array([ 5.,  0.])]
+
 
 
 

@@ -34,33 +34,6 @@ from openbci.data_storage import read_tags_source
 import data_storage_logging as logger
 LOGGER = logger.get_logger("read_manager", "info")
 
-class ReadManagerIterator(object):
-    def __init__(self, p_mgr):
-        self._mgr = p_mgr
-        self.restart()
-
-    def restart(self):
-        self._tag_index = 0
-        self._data_index = 0
-
-    def get_next_tag(self):
-        try:
-            return self._mgr.get_tags()[self._tag_index]
-        except IndexError:
-            LOGGER.info("All tags has been red, returned None.")
-            return None
-        self._tag_index += 1
-
-    def get_next_sample(self):
-        try:
-            return self._mgr.get_samples(self._data_index, 
-                                          self._data_index + 1)
-        except IndexError:
-            LOGGER.info("All data has been red, returned None.")
-            return None
-        self._data_index += 1
-            
-    
 class ReadManager(object):
     """A class responsible for reding openbci file format.
     Public interface:
@@ -89,8 +62,7 @@ class ReadManager(object):
             LOGGER.info("Got info source file path.")
             self._data_source = read_data_source.FileDataSource(
                 p_data_source,
-                int(self._info_source.get_param('number_of_channels')),
-                int(self._info_source.get_param('number_of_samples'))/int(self._info_source.get_param('number_of_channels'))
+                int(self._info_source.get_param('number_of_channels'))
                 )
         except TypeError:
             LOGGER.info("Got info source object.")
@@ -139,3 +111,11 @@ class ReadManager(object):
         Raise NoParameter exception if p_param_name 
         parameters was not found."""
         return self._info_source.get_param(p_param_name)
+
+    def iter_tags(self):
+        for tag in self._tags_source.get_tags():
+            yield tag
+        
+    def iter_samples(self):
+        for s in self._data_source.iter_samples():
+            yield s

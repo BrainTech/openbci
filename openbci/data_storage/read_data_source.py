@@ -32,18 +32,22 @@ class DataSource(object):
     def get_samples(self, p_from=None, p_len=None):
         LOGGER.error("The method must be subclassed")
 
+    def iter_samples(self):
+        LOGGER.error("The method must be subclassed")        
+
 
 
 class MemoryDataSource(DataSource):
-    def __init__(self, p_num_of_channels, p_num_of_samples):
-        self._data = numpy.zeros(
-            (p_num_of_channels, 
-             p_num_of_samples))
+    def __init__(self, p_data=None):
+        self._data = None
+
+        if not (p_data is None):
+            self.set_samples(p_data)
 
     def set_samples(self, p_data):
         self._data = numpy.array(p_data)
 
-    def add_sample(self, p_sample_index, p_sample):
+    def set_sample(self, p_sample_index, p_sample):
         """
         Throws:
         - IndexError if p_sample_index is out of range
@@ -60,12 +64,15 @@ class MemoryDataSource(DataSource):
             return self._data
         else:
             return self._data[:, p_from:(p_from+p_len)]
+
+    def iter_samples(self):
+        for i in range(len(self._data[0])):
+            yield self._data[:, i]
     
 
 class FileDataSource(DataSource):
-    def __init__ (self, p_file_path, p_num_of_channels, p_num_of_samples):
+    def __init__ (self, p_file_path, p_num_of_channels):
         self._num_of_channels = p_num_of_channels
-        self._num_of_samples = p_num_of_samples
 
         self._data_proxy = data_file_proxy.DataFileReadProxy(p_file_path)
         self._mem_source = None 
@@ -79,34 +86,30 @@ class FileDataSource(DataSource):
             # and whole data set is reqested
             # so let`s use the ocasion and cache data
             LOGGER.info("All data set requested for the first time. Start reading all data from the file...")
-            self._mem_source = MemoryDataSource(
-                self._num_of_channels, self._num_of_samples)
             
             self._data_proxy.finish_reading()
             self._data_proxy.start_reading()
 
-            i = 0
+            samples_count = 0
+            samples = [[] for i in range(self._num_of_channels)]
             while True:
                 try:
-                    self._mem_source.add_sample(
-                        i, 
-                        self._data_proxy.get_next_values(self._num_of_channels)
-                        )
+                    vals = self._data_proxy.get_next_values(self._num_of_channels)
+                    for i in range(self._num_of_channels):
+                        samples[i].append(vals[i])
+
+                    samples_count += 1
                 except data_storage_exceptions.NoNextValue:
-                    LOGGER.info("All data read and cached in memory.")
-                    if i != self._num_of_samples:
-                        LOGGER.warning(''.join([
-                                    "Too few data in a file. Should be ",
-                                    str(self._num_of_samples),
-                                    " samples, found ",
-                                    str(i),
-                                    " samples. Returned samples have zeros at the end!!!"]))
+                    self._mem_source = MemoryDataSource(samples)
+
+                    LOGGER.info(''.join([
+                                "All data read and cached in memory."
+                                "Number of samples red = ",
+                                str(samples_count),
+                                " so number of samples if file was (number of samples * number of channels): ",
+                                str(self._num_of_channels*samples_count)]))
                     break
 
-                except IndexError:
-                    LOGGER.warning("Too many values in a data file. Should be "+str(self._num_of_samples))
-                    break
-                i += 1
             return self._mem_source.get_samples()
 
         else:
@@ -119,3 +122,17 @@ class FileDataSource(DataSource):
             return ret
             
     
+    def iter_samples(self):
+        if self._mem_source:
+            for samp in self._mem_source.iter_samples():
+                yield samp
+        else:
+            self._data_proxy.finish_reading()
+            self._data_proxy.start_reading()
+            while True:
+                try:
+                    samp = numpy.zeros(self._num_of_channels)
+                    samp[:] = self._data_proxy.get_next_values(self._num_of_channels)
+                    yield samp
+                except data_storage_exceptions.NoNextValue:
+                    break
