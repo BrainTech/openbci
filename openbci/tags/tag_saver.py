@@ -45,7 +45,19 @@ class TagSaver(BaseMultiplexerServer):
         super(TagSaver, self).__init__(addresses=addresses, 
                                           type=peers.TAG_SAVER)
 
-        self._tags_proxy = tags_writer.SvarogTagsFileWriter()
+        # Get file path data from hashtable...
+        l_f_name =  self.conn.query(message = "SaveFileName", 
+                                    type = types.DICT_GET_REQUEST_MESSAGE, 
+                                    timeout = 1).message
+        l_f_dir = self.conn.query(message = "SaveFilePath", 
+                                   type = types.DICT_GET_REQUEST_MESSAGE, 
+                                   timeout = 1).message
+
+        l_file_path = os.path.normpath(os.path.join(
+               l_f_dir, l_f_name + SVAROG_TAG_FILE_EXTENSION))
+
+
+        self._tags_proxy = tags_writer.SvarogTagsFileWriter(l_file_path)
         self._session_is_active = True
 
     def handle_message(self, mxmsg):
@@ -90,19 +102,8 @@ class TagSaver(BaseMultiplexerServer):
             return 
         self._session_is_active = False
 
-        # Get file path data from hashtable...
-        l_f_name =  self.conn.query(message = "SaveFileName", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message
-        l_f_dir = self.conn.query(message = "SaveFilePath", 
-                                   type = types.DICT_GET_REQUEST_MESSAGE, 
-                                   timeout = 1).message
-
-        l_file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + SVAROG_TAG_FILE_EXTENSION))
-
         # Save tags
-        self._tags_proxy.finish_saving(l_file_path, p_first_sample_ts)
+        l_file_path = self._tags_proxy.finish_saving(p_first_sample_ts)
         LOGGER.info("Tags file saved to: "+l_file_path)
         return l_file_path
 

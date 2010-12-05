@@ -28,32 +28,49 @@
 
 >>> from openbci.tags import svarog_tags_file_reader as t
 
->>> px = p.SvarogTagsFileWriter('tescik', './', '.obci.svarog.tags')
+>>> px = p.SvarogTagsFileWriter('./tescik.obci.svarog.tags')
 
->>> px.set_first_sample_timestamp(1000.0)
+>>> px.tag_received({'start_timestamp':1001.0, 'end_timestamp':1002.0, 'name': 'nic', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
 
->>> px.tag_received({'start_timestamp':1000.2, 'end_timestamp':1000.3, 'name': 'nic', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+>>> px.tag_received({'start_timestamp':1003.0, 'end_timestamp':1004.0, 'name': 'nic2', 'channels':'A B C', 'desc': {'x':1234, 'y':4567, 'z': 789}})
 
->>> px.finish_saving()
-'tescik.obci.svarog.tags'
+>>> px.tag_received({'start_timestamp':1005.0, 'end_timestamp':1006.0, 'name': 'nic3', 'channels':'A B C', 'desc': {'x':12345, 'y':45678, 'z': 789}})
+
+>>> px.finish_saving(1000.0)
+'./tescik.obci.svarog.tags'
 
 >>> py = t.SvarogTagsFileReader('tescik.obci.svarog.tags')
 
->>> py.start_tags_reading()
-
->>> g = py.get_next_tag()
+>>> g = py.get_tags()[0]
 
 >>> print(g['start_timestamp'])
-0.2
+1.0
 
 >>> print(g['end_timestamp'])
-0.3
+2.0
 
 >>> print(g['name'])
 nic
 
 >>> print(g['desc']['y'])
 456
+
+>>> print([int(t['start_timestamp']) for t in py.get_tags()])
+[1, 3, 5]
+
+
+>>> #REORDER AND TEST ORDERING AGAIN ....
+
+>>> px = p.SvarogTagsFileWriter('./tescik.obci.svarog.tags')
+
+>>> px.tag_received({'start_timestamp':1003.0, 'end_timestamp':1004.0, 'name': 'nic2', 'channels':'A B C', 'desc': {'x':1234, 'y':4567, 'z': 789}})
+
+>>> px.tag_received({'start_timestamp':1005.0, 'end_timestamp':1006.0, 'name': 'nic3', 'channels':'A B C', 'desc': {'x':12345, 'y':45678, 'z': 789}})
+
+>>> px.tag_received({'start_timestamp':1001.0, 'end_timestamp':1002.0, 'name': 'nic', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+
+>>> print([int(t['start_timestamp']) for t in py.get_tags()])
+[1, 3, 5]
 
 >>> import os
 

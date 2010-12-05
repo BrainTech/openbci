@@ -28,25 +28,6 @@ def unpack_tag_from_dict(p_dict):
     where numeric values are numbers, not strings.
     The method is fired by file tags reader, while parsing xml tags file."""
     l_tag_dict = {}
-    l_tag_dict['start_timestamp'] = float(p_dict['start_timestamp'])
-    l_tag_dict['end_timestamp'] = float(p_dict['end_timestamp'])
-    l_tag_dict['name'] = p_dict['name']
-    l_tag_dict['channels'] = p_dict.get('channels', '')
-    l_tag_desc = {}
-    for i_key, i_value in p_dict.iteritems():
-        if i_key not in ['start_timestamp', 'end_timestamp', 
-                         'name', 'channels']:
-            # TODO - use tag definition in case i_value is not a string
-            # but some more complex structure
-            l_tag_desc[i_key] = i_value
-    l_tag_dict['desc'] = l_tag_desc
-    return l_tag_dict
-
-def unpack_svarog_tag_from_dict(p_dict):
-    """For given dictinary describing tag in strings, return dictionary
-    where numeric values are numbers, not strings.
-    The method is fired by file tags reader, while parsing xml tags file."""
-    l_tag_dict = {}
     l_tag_dict['start_timestamp'] = float(p_dict['position'])
     l_tag_dict['end_timestamp'] = l_tag_dict['start_timestamp'] + float(p_dict['length'])
     l_tag_dict['name'] = p_dict['name']

@@ -66,12 +66,13 @@ class SvarogTagsFileWriter(object):
     - tag_received(tag_dict)
     - finish_saving()
     """
-    def __init__(self, p_defs=None
+    def __init__(self, p_file_path, p_defs=None
                  #p_defs = [{'name':'default', 
                  #           'description':'default description'}]
                  ):
         """Prepare data structure for storing in-memory xml file."""
 
+        self._file_path = p_file_path
         #TODO works in windows and linux on path with spaces?
         self._xml_factory = xml.dom.minidom.Document() 
         #an object useful in the future to easily create xml elements
@@ -168,12 +169,12 @@ class SvarogTagsFileWriter(object):
         else:
             return p_tag_name
 
-    def finish_saving(self, p_file_path, p_first_sample_ts):
+    def finish_saving(self, p_first_sample_ts):
         """Write xml tags to the file, return the file`s path."""
         #TODO - lapac bledy
         self._serialize_tags(p_first_sample_ts)
 
-        f = open(p_file_path, 'w')
+        f = open(self._file_path, 'w')
         f.write(self._xml_factory.toxml('utf-8')) #TODO ustawic kodowanie
         f.close()
-        return p_file_path
+        return self._file_path

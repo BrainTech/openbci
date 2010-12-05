@@ -39,6 +39,8 @@ class SvarogTagsFileReader(object):
     def __init__(self, p_tags_file_name):
         """Init tags file path."""
         self._tags_file_name = p_tags_file_name
+        self._tags = []
+        self.start_tags_reading()
 
     def start_tags_reading(self):
         """Read tags file, store data in memory."""
@@ -55,19 +57,16 @@ class SvarogTagsFileReader(object):
             finally:
                 l_tags_file.close()
 
-    def get_next_tag(self):
+    def get_tags(self):
         """Return next tag or None if all tags were alredy returned by
         this method."""
-        try:
-            return self._tags.get_nowait()
-        except:
-            return None
+        return self._tags
 
     def _parse_tags_file(self, p_tags_file):
         """Parse p_tags_file xml tags file and store it in memory."""
         l_tags_doc = xml.dom.minidom.parse(p_tags_file)
         l_xml_root_element = l_tags_doc.getElementsByTagName("tags")[0]
-        self._tags = Queue()
+
         for i_tag_node in l_xml_root_element.getElementsByTagName("tag"):
              #Iterate over <tag> tags
             l_raw_tag = {}
@@ -81,4 +80,18 @@ class SvarogTagsFileReader(object):
                     pass
             # TODO - in case tags aren`t sorted by start_timestamp, 
             # sort them at the end of current method
-            self._tags.put(tag_utils.unpack_svarog_tag_from_dict(l_raw_tag))
+            self._tags.append(tag_utils.unpack_tag_from_dict(l_raw_tag))
+            
+
+        def cmp_tags(t1, t2):
+            ts1 = t1['start_timestamp']
+            ts2 = t2['start_timestamp']
+            if ts1 == ts2:
+                return 0
+            elif ts1 > ts2:
+                return 1
+            else:
+                return -1
+
+
+        self._tags.sort(cmp_tags)
