@@ -31,14 +31,12 @@ import sys, time, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
-from tags import tagger
-import svarog_file_proxy
+import info_file_proxy
 
 LOGGER = logger.get_logger("info_saver", 'info')
-TAGGER = tagger.get_tagger()
 
 #TIMESTAMPS_AS_SEPARATE_CHANNEL = False
-SVAROG_INFO_FILE_EXTENSION = ".obci.svarog.info"
+INFO_FILE_EXTENSION = ".obci.info"
 class InfoSaver(BaseMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
@@ -52,8 +50,8 @@ class InfoSaver(BaseMultiplexerServer):
                                    type = types.DICT_GET_REQUEST_MESSAGE, 
                                    timeout = 1).message
         l_file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + SVAROG_INFO_FILE_EXTENSION))
-        self._info_proxy = svarog_file_proxy.SvarogFileWriteProxy(l_file_path)
+               l_f_dir, l_f_name + INFO_FILE_EXTENSION))
+        self._info_proxy = info_file_proxy.InfoFileWriteProxy(l_file_path)
 
     def handle_message(self, mxmsg):
         """Handle messages:

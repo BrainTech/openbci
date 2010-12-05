@@ -59,21 +59,21 @@ class ReadManager(object):
 
         try:
             ''+p_data_source
-            LOGGER.info("Got info source file path.")
+            LOGGER.info("Got data source file path.")
             self._data_source = read_data_source.FileDataSource(
                 p_data_source,
                 int(self._info_source.get_param('number_of_channels'))
                 )
         except TypeError:
-            LOGGER.info("Got info source object.")
+            LOGGER.info("Got data source object.")
             self._data_source = p_data_source
 
         try:
             ''+p_tags_source
-            LOGGER.info("Got info source file path.")
+            LOGGER.info("Got tags source file path.")
             self._tags_source = read_tags_source.FileTagsSource(p_tags_source)
         except TypeError:
-            LOGGER.info("Got info source object.")
+            LOGGER.info("Got tags source object.")
             self._tags_source = p_tags_source 
 
         #TODO - wszystko start reading
@@ -96,6 +96,9 @@ class ReadManager(object):
     def get_tags(self, p_tag_type=None):
         """Return all tags of type tag_type, or all types if tag_type is None."""
 
+        if self._tags_source is None:
+            return []
+
         l_tags = self._tags_source.get_tags()
         if not p_tag_type:
             return l_tags
@@ -113,6 +116,9 @@ class ReadManager(object):
         return self._info_source.get_param(p_param_name)
 
     def iter_tags(self):
+        if self._tags_source is None:
+            return 
+
         for tag in self._tags_source.get_tags():
             yield tag
         

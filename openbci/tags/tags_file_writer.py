@@ -27,54 +27,154 @@ import os.path
 import xml.dom.minidom
 from openbci.core import types_utils
 
+
+TAG_STYLES = {
+    'gray': {'fill_color':'808080',
+             'outline_color':'808080',
+             'outline_width':'1.0',
+             'outline_dash':'',
+             'key_shortcut':'Shift b',
+             'marker':'0'
+             },
+    'red': {'fill_color':'ff0000',
+             'outline_color':'808080',
+             'outline_width':'1.0',
+             'outline_dash':'',
+             'key_shortcut':'Shift b',
+             'marker':'0'
+             },
+    'blue': {'fill_color':'0017ff',
+             'outline_color':'808080',
+             'outline_width':'1.0',
+             'outline_dash':'',
+             'key_shortcut':'Shift b',
+             'marker':'0'
+             },
+
+
+
+    }
+
+TAG_DEFS = {
+    #'default': 'gray',
+    #'word': 'red',
+    #'mask2': 'blue'
+    }
 class TagsFileWriter(object):
     """A proxy for openbci tags file, that writes every next tag to file.
     public interface:
     - tag_received(tag_dict)
     - finish_saving()
     """
-    def __init__(self, p_file_name, p_dir_path, p_tags_file_extension):
+    def __init__(self, p_file_path, p_defs=None
+                 #p_defs = [{'name':'default', 
+                 #           'description':'default description'}]
+                 ):
         """Prepare data structure for storing in-memory xml file."""
-        self._file_name = os.path.normpath(os.path.join(
-                p_dir_path, p_file_name + p_tags_file_extension)) 
+
+        self._file_path = p_file_path
         #TODO works in windows and linux on path with spaces?
         self._xml_factory = xml.dom.minidom.Document() 
         #an object useful in the future to easily create xml elements
         self._xml_root = self._xml_factory.createElement(
-            'openbci_tags_data_format') 
+            'tagFile') 
+        self._xml_root.setAttribute('formatVersion', '1.0')
         #this is going to be an in-memory representation of xml info file
         self._xml_factory.appendChild(self._xml_root)
+
+        self._init_default_tags()
+        self._init_tags_defs(p_defs)
+
+        #create 'tags' tag structure
+        l_td = self._xml_factory.createElement('tagData')
+        self._xml_root.appendChild(l_td)
         self._tags_root = self._xml_factory.createElement('tags')
-        self._xml_root.appendChild(self._tags_root)
+        l_td.appendChild(self._tags_root)
+
+
+        self._tags = []
+
+    def _init_default_tags(self):
+        l_pg = self._xml_factory.createElement('paging')
+        l_pg.setAttribute('page_size', '20.0')
+        l_pg.setAttribute('blocks_per_page', '5')
+        self._xml_root.appendChild(l_pg)
+
+    def _init_tags_defs(self, p_defs):
+        """Create structure:
+        <tag_definitions>
+           <def_group "name"="channelTags">
+              <tag_item .... />
+           </def_group>
+        </tag_definitions>
+        
+        tag_item paramteres are taken from TAG_DEFS.
+        """
+
+        if not p_defs:
+            return 
+        l_td = self._xml_factory.createElement('tag_definitions')
+        self._xml_root.appendChild(l_td)
+
+        l_tgr = self._xml_factory.createElement('def_group')
+        l_tgr.setAttribute('name', 'channelTags')
+        l_td.appendChild(l_tgr)
+
+        for i_def in p_defs:
+            l_item = self._xml_factory.createElement('tag_item')
+            # Set name and description
+            for i_key, i_value in i_def.iteritems():
+                l_item.setAttribute(i_key, i_value)
+                
+            # Set styles
+            l_styles = TAG_STYLES[TAG_DEFS[i_def['name']]]
+            for i_key, i_value in l_styles.iteritems():
+                l_item.setAttribute(i_key, i_value)                
+            l_tgr.appendChild(l_item)
 
     def tag_received(self, p_tag_dict):
         """For give dictionary with pirs key -> value create an xml element.
         An exception is with key 'desc' where xml elements are created for
         every element of p_tag_dict['desc'] value which is a dictionary."""
-        l_tag = self._xml_factory.createElement('tag')
-        for i_key, i_value in p_tag_dict.iteritems():
-            if i_key == 'desc':
-                for i_k, i_v in i_value.iteritems():
-                    l_tag.appendChild(self._create_xml_param_element(
-                            i_k, types_utils.to_string(i_v)))
-            else:
-                l_tag.appendChild(self._create_xml_param_element(
-                        i_key, types_utils.to_string(i_value)))
+        self._tags.append(p_tag_dict)
 
-        self._tags_root.appendChild(l_tag)
-                                                 
-    def _create_xml_param_element(self, p_key, p_value):
-        """Create and return xml element like:
-        <param id=p_key value=p_value/>"""
-        l_elem = self._xml_factory.createElement('param')
-        l_elem.setAttribute('key', p_key)
-        l_elem.setAttribute('value', p_value)
-        return l_elem
+    def _serialize_tags(self, p_first_sample_ts):
+        """Write all self._tags to xml file."""
 
-    def finish_saving(self):
+        for i_tag_dict in self._tags:
+            l_tag_params = {}
+            l_tag_params['name'] = self._get_tag_def_for(i_tag_dict['name'])
+            l_tag_params['length'] = float(i_tag_dict['end_timestamp']) - \
+            float(i_tag_dict['start_timestamp'])
+            l_tag_params['position'] = float(i_tag_dict['start_timestamp']) - p_first_sample_ts
+
+            l_tag = self._xml_factory.createElement('tag')
+            l_tag.setAttribute('channelNumber', str(-1))
+
+            for i_key, i_value in l_tag_params.iteritems():
+                l_tag.setAttribute(i_key, types_utils.to_string(i_value))
+
+            for i_key, i_value in i_tag_dict['desc'].iteritems():
+                elem = self._xml_factory.createElement(i_key)
+                val = self._xml_factory.createTextNode(types_utils.to_string(i_value))
+                elem.appendChild(val)
+                l_tag.appendChild(elem)
+
+            self._tags_root.appendChild(l_tag)
+        
+
+    def _get_tag_def_for(self, p_tag_name):
+        if p_tag_name in TAG_DEFS.keys():
+            return p_tag_name
+        else:
+            return p_tag_name
+
+    def finish_saving(self, p_first_sample_ts):
         """Write xml tags to the file, return the file`s path."""
         #TODO - lapac bledy
-        f = open(self._file_name, 'w')
+        self._serialize_tags(p_first_sample_ts)
+
+        f = open(self._file_path, 'w')
         f.write(self._xml_factory.toxml('utf-8')) #TODO ustawic kodowanie
         f.close()
-        return self._file_name
+        return self._file_path

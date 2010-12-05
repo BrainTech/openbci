@@ -32,12 +32,12 @@ import settings, variables_pb2
 
 import tags_logging as logger
 import tagger
-import svarog_tags_file_writer as tags_writer
+import tags_file_writer as tags_writer
 
 LOGGER = logger.get_logger("tags_saver", 'info')
 TAGGER = tagger.get_tagger()
 
-SVAROG_TAG_FILE_EXTENSION = ".obci.svarog.tags"
+TAG_FILE_EXTENSION = ".obci.tags"
 
 class TagSaver(BaseMultiplexerServer):
     def __init__(self, addresses):
@@ -54,10 +54,10 @@ class TagSaver(BaseMultiplexerServer):
                                    timeout = 1).message
 
         l_file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + SVAROG_TAG_FILE_EXTENSION))
+               l_f_dir, l_f_name + TAG_FILE_EXTENSION))
 
 
-        self._tags_proxy = tags_writer.SvarogTagsFileWriter(l_file_path)
+        self._tags_proxy = tags_writer.TagsFileWriter(l_file_path)
         self._session_is_active = True
 
     def handle_message(self, mxmsg):

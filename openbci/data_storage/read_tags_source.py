@@ -23,7 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 
-from tags import svarog_tags_file_reader
+from tags import tags_file_reader
 import data_storage_logging as logger
 LOGGER = logger.get_logger("smart_tags_source", "info")
 
@@ -35,8 +35,8 @@ class TagsSource(object):
 
 class FileTagsSource(TagsSource):
     def __init__(self, p_file_path):
-        self._tags_proxy = svarog_tags_file_reader.SvarogTagsFileReader(p_file_path)
+        self._tags_proxy = tags_file_reader.TagsFileReader(p_file_path)
 
     def get_tags(self):
-        self._tags_proxy.get_tags()
+        return self._tags_proxy.get_tags()
         
