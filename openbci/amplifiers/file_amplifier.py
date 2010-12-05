@@ -35,7 +35,7 @@ from multiplexer.clients import connect_client
 import virtual_eeg_amplifier
 import amplifiers_logging as logger
 from openbci.tags import tagger
-from openbci.data_storage import signalml_read_manager
+from openbci.data_storage import read_manager
 from openbci.data_storage import data_storage_exceptions
 
 
@@ -59,38 +59,39 @@ class FileEEGAmplifier(virtual_eeg_amplifier.VirtualEEGAmplifier):
         super(FileEEGAmplifier, self).__init__()
         LOGGER.info("Run virtualamplifier from file: "+
                     str(p_source_params))
-        self.signal_reader = signalml_read_manager.SignalmlReadManager(
+        self.signal_reader = read_manager.ReadManager(
             p_source_params['info_file'], 
             p_source_params['data_file'],
             p_source_params['tags_file'])
-        self.signal_reader.start_reading()
-        self.channel_numbers = self._get_channels_numbers()
+        self.tags_iter = self.signal_reader.iter_tags()
+        self.signal_iter = self.signal_reader.iter_samples()
+
         self.sampling_rate = self._get_sampling_rate()
+        self.num_of_channels = int(self.signal_reader.get_param('number_of_channels'))
+
         
+        self._set_hashtable_value("SamplingRate", str(self.sampling_rate))
+        self._set_hashtable_value("AmplifierChannelsToRecord",
+                                  ' '.join([str(num) for num in range(self.num_of_channels)]))
+        self._set_hashtable_value("Gain", ' '.join(self.signal_reader.get_param('channels_gains')))
+        self._set_hashtable_value("Offset", ' '.join(self.signal_reader.get_param('channels_offsets')))
+        self._set_hashtable_value("ChannelsNames", ';'.join(self.signal_reader.get_param('channels_names')))
+        self._set_hashtable_value("NumOfChannels", self.signal_reader.get_param('number_of_channels'))
+
+        #let other modules synchro with data
+        time.sleep(10)
+
+
+    def _set_hashtable_value(self, key, value):
         l_var = variables_pb2.Variable()
-        l_var.key = "SamplingRate"
-        l_var.value = str(self.sampling_rate)
+        l_var.key = key
+        l_var.value = value
         self.connection.send_message(message = l_var.SerializeToString(), 
                                      type = types.DICT_SET_MESSAGE, flush=True)
-
-        l_var = variables_pb2.Variable()
-        l_var.key = "AmplifierChannelsToRecord"
-        l_var.value = ' '.join([str(num) for num in self.channel_numbers])
-        self.connection.send_message(message = l_var.SerializeToString(), 
-                                     type = types.DICT_SET_MESSAGE, flush=True)
-
-    def _get_channels_numbers(self):
-        """Return a collection of channel numbers (as ints) that are stored 
-        in the file."""
-        return [int(num) for num in self.signal_reader.get_param('channels_numbers')]
 
     def _get_sampling_rate(self):
         """Return sampling rate from info file."""
         return int(self.signal_reader.get_param('sampling_frequency'))
-
-    def _get_sampling_start_time(self):
-        """Return timestamp of first sample in file."""
-        return float(self.signal_reader.get_param("first_sample_timestamp"))
 
     def do_sampling(self):
         """Fire super.sampling and tags sampling in separate thread."""
@@ -99,43 +100,40 @@ class FileEEGAmplifier(virtual_eeg_amplifier.VirtualEEGAmplifier):
 
     def _do_tags_sampling(self):
         """Get tags from file and send `em to multiplexer in time."""
-        l_old_start_time = self._get_sampling_start_time()
-            
+
         l_real_start_time = time.time()
         while True:
-            try:
-                l_tag = self._get_next_tag()
-            except data_storage_exceptions.NoNextTag:
+            l_tag = self._get_next_tag()
+            if not l_tag:
                 LOGGER.info("End of tags file. Reding stopped.")
                 break
-            # Hmmm... lets look at the timeline
-            # ---------------------|----------------------------|------
-            #             l_real_start_time                 time.time()
-            # l_real_passed_time = {                            }
-            #
-            #
-            # ------------------|--------------------------------|----------
-            #         l_old_start_time                 l_tag_start_timestamp
-            # l_tag_wait_time = {                                }
-            #
-            # Let`s wait until l_tag_wait_time == l_real_passed_time
-            l_real_passed_time = time.time() - l_real_start_time
-            l_tag_wait_time = l_tag['start_timestamp'] - l_old_start_time
-            l_to_sleep = l_tag_wait_time - l_real_passed_time
+
+            l_real_tag_time = l_real_start_time + l_tag['start_timestamp']
+            l_tag['start_timestamp'] = l_real_tag_time
+            l_tag['end_timestamp'] = l_real_start_time + l_tag['end_timestamp']
+
+            l_to_sleep = l_real_tag_time - time.time()
             if l_to_sleep > 0:
                 time.sleep(l_to_sleep)
             TAGGER.send_unpacked_tag(l_tag)
         LOGGER.info("Finished sampling tags.")
 
-    def _get_next_value(self, offset):
+    def _get_next_sample(self, offset):
         """Return next value from the file. 
         Raise signalml_read_manager.NoNextValue exception if no tag is left."""
-        return self.signal_reader.get_next_value()
+        try:
+            return self.signal_iter.next()
+        except StopIteration:
+            return None
 
     def _get_next_tag(self):
         """Return next tag from file. Raise signalml_read_manager.NoNextTag
         exception if no tag is left."""
-        return self.signal_reader.get_next_tag()
+        try:
+            return self.tags_iter.next()
+        except StopIteration:
+            return None
+
 
         
         

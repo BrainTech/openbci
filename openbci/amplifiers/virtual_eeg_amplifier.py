@@ -35,7 +35,6 @@ import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import amplifiers_logging as logger
-from openbci.data_storage import signalml_read_manager
 from openbci.data_storage import data_storage_exceptions
 LOGGER = logger.get_logger("virtual_eeg_amplifier", "info")
 
@@ -46,21 +45,7 @@ class VirtualEEGAmplifier(object):
     should be defined and set."""
     def __init__(self):
         self.connection = connect_client(type = peers.AMPLIFIER)
-        # We need to get basic configuration from hashtable as
-        # other modules will expect the same configuration..
 
-        # sampling rate
-        self.sampling_rate = int(self.connection.query(
-                message="SamplingRate", 
-                type=types.DICT_GET_REQUEST_MESSAGE).message)
-
-        # determine number of channels
-        # channel_numbers_string will be sth like: "0 1 2 3"
-        channel_numbers_string = self.connection.query(
-                message="AmplifierChannelsToRecord", 
-                type=types.DICT_GET_REQUEST_MESSAGE).message
-
-        self.num_of_channels = len(channel_numbers_string.split(" "))
 
     def do_sampling(self):
         """Start flooding multiplexer with data..."""
@@ -71,18 +56,15 @@ class VirtualEEGAmplifier(object):
         offset = 0.0
         brek = 1/float(self.sampling_rate)
         real_start_time = time.time()
-        data_start_time = real_start_time #self._get_sampling_start_time()
+        data_start_time = real_start_time 
         channels_data = [0]*self.num_of_channels
         channels_data_len = len(channels_data)
 
 
         LOGGER.info("Start samples sampling.")
         while True:
-            try:
-                for i in range(channels_data_len):
-                    channels_data[i] = self._get_next_value(offset)
-                                   
-            except data_storage_exceptions.NoNextValue:
+            channels_data = self._get_next_sample(offset)
+            if channels_data is None:
                 LOGGER.info("All samples has been red. Sampling finished.")
                 break
             offset += 1.0

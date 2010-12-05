@@ -34,13 +34,18 @@ from file
 from openbci.amplifiers import amplifiers_logging as logger
 LOGGER = logger.get_logger("virtual_amplifier")
 
-import sys
+import sys, os.path
+import settings
 if __name__ == "__main__":
     l_mode = 'function' # default mode
     # Below, default files in case sys.argv[1] == file
-    l_info_file = 'openbci/data_storage/sample_data/juhu_speller_full.obci.info'
-    l_data_file = 'openbci/data_storage/sample_data/juhu_speller_full.obci.dat'
-    l_tags_file = "openbci/data_storage/sample_data/juhu_speller_full.obci.tags"
+    l_info_file = os.path.join(settings.MAIN_DIR,
+                               'openbci/data_storage/tests/data/data.obci.info')
+    l_data_file = os.path.join(settings.MAIN_DIR,
+        'openbci/data_storage/tests/data/data.obci.dat')
+
+    l_tags_file = os.path.join(settings.MAIN_DIR,
+                               "openbci/data_storage/tests/data/data.obci.tags")
     try:
         l_mode = sys.argv[1]
     except IndexError:
