@@ -59,9 +59,11 @@ task("sleep 1; ./super_diode_control.py", "diode_control")
 task("sleep 1; ./diode_catcher.py", "diode_catcher")
 
 task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB", "python_bt_amplifier")
-task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer", "c++_usb_amplifier")
-task("./amplifiers/c_tmsi_amplifier/tmsiAmpServer -b -d 00:A0:96:1B:48:DB", "c++_bt_amplifier")
-task("python ./amplifiers/virtual_amplifier.py file ../openbci/data_storage/tests/data/sample_data.obci.info ../openbci/data_storage/tests/data/sample_data.obci.dat ", "virtual_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server", "c++_usb_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:48:DB", "c++_bt_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "c++_bt_mobimini_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "py_bt_mobimini_amplifier")
+task("python ./amplifiers/virtual_amplifier.py file", "virtual_amplifier")
 task("python ./amplifiers/virtual_amplifier.py function", "virtual_f_amplifier")
 task("python ./amplifiers/virtual_amplifier.py fast", "fast_virtual_amplifier")
 
@@ -71,7 +73,7 @@ task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
 task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
-task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 50 -s 1.0 -b 2.0 -t yes -f yes", "auto_trigger")
+task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 50 -s 1.0 -b 3.0 -t yes -f yes", "auto_trigger")
 
 
 task("./data_storage/info_saver.py","info_saver")
@@ -98,9 +100,7 @@ def start(alias, task_id, **kwargs):
     for i_task_id in task_ids:
         aliases[alias].append(pb2_construct(k2launcher_pb2.Command,
                                             type=k2launcher_pb2.Command.START, 
-
-
-                                           task=tasks[i_task_id], **kwargs))
+                                            task=tasks[i_task_id], **kwargs))
 
 
 
@@ -279,6 +279,16 @@ start("svarog_test_c++_bt", "hashtable")
 start("svarog_test_c++_bt", "svarog_pinger")
 start("svarog_test_c++_bt", "c++_bt_amplifier")
 start("svarog_test_c++_bt", "manual_tags_sending")
+
+start("svarog_test_c++_bt_mobi", "hashtable")
+start("svarog_test_c++_bt_mobi", "svarog_pinger")
+start("svarog_test_c++_bt_mobi", "c++_bt_mobimini_amplifier")
+start("svarog_test_c++_bt_mobi", "manual_tags_sending")
+
+start("svarog_test_py_bt_mobi", "hashtable")
+start("svarog_test_py_bt_mobi", "svarog_pinger")
+start("svarog_test_py_bt_mobi", "py_bt_mobimini_amplifier")
+start("svarog_test_py_bt_mobi", "manual_tags_sending")
 
 start("svarog_test_c++_usb", "hashtable")
 start("svarog_test_c++_usb", "svarog_pinger")
