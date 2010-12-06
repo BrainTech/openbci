@@ -16,8 +16,8 @@ python openbci/data_storage/tests/test_read_manager.py
 
 #offline_analysis
 python openbci/offline_analysis/tests/test_smart_tags_manager.py
-python openbci/offline_analysis/trigger.py
-python openbci/offline_analysis/trigger_experiment.py
+#python openbci/offline_analysis/trigger.py
+#python openbci/offline_analysis/trigger_experiment.py
 
 
 
