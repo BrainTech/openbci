@@ -25,16 +25,37 @@
 
 import info_file_proxy
 import data_storage_logging as logger
+import data_storage_exceptions
 LOGGER = logger.get_logger("read_info_source", "info")
 
 class InfoSource(object):
     def get_param(self, p_key):
         LOGGER.error("The method must be subclassed")
+    def get_params(self):
+        LOGGER.error("The method must be subclassed")
 
 
+class MemoryInfoSource(InfoSource):
+    def __init__(self, p_params=None):
+        self._params = None
+        if not (p_params is None):
+            self.set_params(p_params)
+    def set_params(self, p_params):
+        self._params = dict(p_params)
+
+    def get_param(self, p_key):
+        try:
+            return self._params[p_key]
+        except KeyError:
+            raise data_storage_exceptions.NoParameter(p_key)
+
+    def get_params(self):
+        return self._params
 
 class FileInfoSource(InfoSource):
     def __init__(self, p_file_path):
         self._info_proxy = info_file_proxy.InfoFileReadProxy(p_file_path)
     def get_param(self, p_key):
         return self._info_proxy.get_param(p_key)
+    def get_params(self):
+        return self._info_proxy.get_params()

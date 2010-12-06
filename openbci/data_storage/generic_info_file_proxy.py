@@ -247,6 +247,16 @@ Reading aborted!")
         #TODO - validate xml regarding dtd
         self._xml_doc = xml.dom.minidom.parse(p_info_file)
 
+    def get_params(self):
+        params = {}
+        for key in TAGS_DEFINITIONS:
+            try:
+                value = self.get_param(key)
+                params[key] = value
+            except data_storage_exceptions.NoParameter:
+                pass
+        return params
+            
     def get_param(self, p_param_name):
         """Return parameter value for p_param_name.
         Raise NoParameter exception if p_param_name 
@@ -255,18 +265,19 @@ Reading aborted!")
         # first get a tupe (function, list_of_function_params)
         try:
             l_ctr = self._tags_controls[p_param_name] 
+            l_std_params = list(l_ctr['params'])
+            # fire the function with all params from l_std_params
+            return l_ctr['function'](*l_std_params)
         except KeyError:
             raise(data_storage_exceptions.NoParameter(p_param_name))
 
-        l_std_params = list(l_ctr['params'])
-
-        # fire the function with all params from l_std_params
-        return l_ctr['function'](*l_std_params)
+        except IndexError:
+            raise(data_storage_exceptions.NoParameter(p_param_name))
 
     def _get_simple_param(self, p_param_name):
         """Return text value from tag in format:
         <param id=p_param_name>text_value</param>."""
-        LOGGER.info("Read "+p_param_name+" tag from in-memory info xml.")
+        LOGGER.debug("Read "+p_param_name+" tag from in-memory info xml.")
         l_name = p_param_name
         l_param = self._xml_doc.getElementsByTagName(l_name)[0]
         return l_param.firstChild.nodeValue

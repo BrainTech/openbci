@@ -31,7 +31,7 @@ TEST = False
 
 if not TEST:
     try:
-        from data_storage import signalml_read_manager
+        from data_storage import read_manager
         from core import core_logging as logger
         LOGGER = logger.get_logger("trigger_change", "debug")
     except ImportError, e:
@@ -54,11 +54,9 @@ def get_trigger_sent_timestamps(p_read_mgr, p_asci_file_path=None):
 
     TESTS:
 
-    >>> from data_storage import signalml_read_manager
+    >>> from data_storage import read_manager
 
-    >>> mgr = signalml_read_manager.SignalmlReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
-
-    >>> mgr.start_reading()
+    >>> mgr = read_manager.ReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
 
     >>> get_trigger_sent_timestamps(mgr)
     ([1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0], [1289219036.7517459, 1289219046.7608111, 1289219048.3307059, 1289219050.0087421, 1289219051.671896, 1289219053.2007921, 1289219054.699033, 1289219056.3630681, 1289219058.287384, 1289219060.1364889])
@@ -73,7 +71,7 @@ def get_trigger_sent_timestamps(p_read_mgr, p_asci_file_path=None):
     ret_trig_change_tss = []
 
     if p_read_mgr:
-        tags = p_read_mgr.get_all_tags('trigger')
+        tags = p_read_mgr.get_tags('trigger')
         for tag in tags:
             start = tag['start_timestamp']
             v = float(tag['desc']['value'])
@@ -112,11 +110,9 @@ def get_trigger_received_timestamps(p_read_mgr, trig=None, tss=None):
     >>> get_trigger_received_timestamps(None, [1,1,1,1], [1,2,3,4])
     ([1], [1], [4])
 
-    >>> from data_storage import signalml_read_manager
+    >>> from data_storage import read_manager
 
-    >>> mgr = signalml_read_manager.SignalmlReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
-
-    >>> mgr.start_reading()
+    >>> mgr = read_manager.ReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
 
     >>> get_trigger_received_timestamps(mgr)
     ([0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0], [1289219036.6731031, 1289219038.7224219, 1289219040.72524, 1289219042.731863, 1289219044.8221769, 1289219046.843883, 1289219049.156811, 1289219051.20767, 1289219053.24529, 1289219055.395386, 1289219057.4999781, 1289219059.658108, 1289219061.853564], [274, 253, 258, 291, 256, 304, 276, 279, 271, 287, 297, 289, 59])
@@ -124,8 +120,10 @@ def get_trigger_received_timestamps(p_read_mgr, trig=None, tss=None):
     """
 
     if p_read_mgr:
-        tss = p_read_mgr.get_channel_values("TIMESTAMPS")
-        trig = p_read_mgr.get_channel_values("TRIGGER")
+        tss = p_read_mgr.get_channel_samples("TIMESTAMPS")
+        first = float(p_read_mgr.get_param('first_sample_timestamp'))
+        tss = [(i-first) for i in tss]
+        trig = p_read_mgr.get_channel_samples("TRIGGER")
     
     ret_trig_change_tss = [tss[0]]
     ret_trig_values = [trig[0]]
@@ -172,11 +170,10 @@ if __name__ == "__main__":
         'tags':os.path.join(dr, f_name+'.obci.tags')
        }
     LOGGER.info("START")
-    read_manager = signalml_read_manager.SignalmlReadManager(
+    read_manager = read_manager.ReadManager(
         f['info'],
         f['data'],
         f['tags'])
-    read_manager.start_reading()
     vals, tss, lens = get_trigger_received_timestamps(read_manager)
     print(vals)
     print(tss)

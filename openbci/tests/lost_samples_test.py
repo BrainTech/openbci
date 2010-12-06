@@ -29,12 +29,12 @@ sys.path.insert(1, '../../openbci/')
 
 import os.path
 import math
-from data_storage import signalml_read_manager
+from data_storage import read_manager
 from core import core_logging as logger
 LOGGER = logger.get_logger("lost_samples_test", "debug")
 
 
-TEST = True
+TEST = False
 
 def test():
     import doctest
@@ -52,7 +52,8 @@ def find_lost_samples(p_read_mgr, numbers=None):
 
     """
     if p_read_mgr:
-        samples_no = p_read_mgr.get_channel_values("SAMPLE_NUMBER")
+        samples_no = p_read_mgr.get_channel_samples("SAMPLE_NUMBER")
+        print "NUMBER OF SAMPLES RED: "+str(len(samples_no))
     else:
         samples_no = numbers
 
@@ -65,6 +66,33 @@ def find_lost_samples(p_read_mgr, numbers=None):
         last = no
     return lost
         
+def print_result(l):
+    """
+    >>> print_result([])
+    All samples were written.
+
+    >>> print_result([1,2,3,4,5])
+    All but first 5 samples were written.
+
+    >>> print_result([1,2,10,11,15])
+    Samples numbers that were NOT written:
+    [1, 2, 10, 11, 15]
+
+    """
+
+    if len(l) == 0:
+        print("All samples were written.")
+    else:
+        for i, v in enumerate(l):
+            if i+1 == v:
+                continue
+            else:
+                break
+        if len(l[i+1:]) == 0:
+            print ("All but first "+str(i+1)+" samples were written.")
+        else:
+            print ("Samples numbers that were NOT written:")
+            print l
     
 
 
@@ -74,16 +102,26 @@ if __name__ == "__main__":
         test()
         sys.exit(0)
 
-    dr = '/home/mati/bci_dev/google_openbci/openbci/temp/'
-    f_name = 'test_trigger10_09_11_2010_c++usb_svarog_22channels_512Hz'
-    f = {
-        'info': os.path.join(dr, f_name+'.obci.info'),
-        'data': os.path.join(dr, f_name+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci.tags')
-       }
-    read_manager = signalml_read_manager.SignalmlReadManager(
+    if len(sys.argv) == 3:
+        f = {}
+        f['info'] = sys.argv[1]
+        f['dat'] = sys.argv[2]
+    else:
+        dr = '/home/mati/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/'
+        f_name = 'kamil_002'
+        f = {
+            'info': os.path.join(dr, f_name+'.obci.svarog.info'),
+            'data': os.path.join(dr, f_name+'.obci.dat'),
+            #'tags':os.path.join(dr, f_name+'.obci.tags')
+            }
+    read_manager = read_manager.ReadManager(
         f['info'],
         f['data'],
-        f['tags'])
-    read_manager.start_reading()
-    find_lost_samples(read_manager)
+        #f['tags']
+        )
+
+    l = find_lost_samples(read_manager)
+    print_result(l)
+            
+            
+        

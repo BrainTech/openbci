@@ -52,40 +52,35 @@ class ReadManager(object):
         try:
             ''+p_info_source
             LOGGER.info("Got info source file path.")
-            self._info_source = read_info_source.FileInfoSource(p_info_source)
+            self.info_source = read_info_source.FileInfoSource(p_info_source)
         except TypeError:
             LOGGER.info("Got info source object.")
-            self._info_source = p_info_source
+            self.info_source = p_info_source
 
         try:
             ''+p_data_source
             LOGGER.info("Got data source file path.")
-            self._data_source = read_data_source.FileDataSource(
+            self.data_source = read_data_source.FileDataSource(
                 p_data_source,
-                int(self._info_source.get_param('number_of_channels'))
+                int(self.info_source.get_param('number_of_channels'))
                 )
         except TypeError:
             LOGGER.info("Got data source object.")
-            self._data_source = p_data_source
+            self.data_source = p_data_source
 
         try:
             ''+p_tags_source
             LOGGER.info("Got tags source file path.")
-            self._tags_source = read_tags_source.FileTagsSource(p_tags_source)
+            self.tags_source = read_tags_source.FileTagsSource(p_tags_source)
         except TypeError:
             LOGGER.info("Got tags source object.")
-            self._tags_source = p_tags_source 
-
-        #TODO - wszystko start reading
-
-    def get_iterator(self):
-        return ReadManagerIterator(self)
+            self.tags_source = p_tags_source 
 
     def get_samples(self, p_from=None, p_len=None):
         """Return a two dimensional array of signal values.
         if p_reload then refresh the file, otherwise use cached values."""
         
-        return self._data_source.get_samples(p_from, p_len)
+        return self.data_source.get_samples(p_from, p_len)
 
     def get_channel_samples(self, p_ch_name, p_from=None, p_len=None):
         """Return an array of values for channel p_ch_name, or
@@ -93,35 +88,30 @@ class ReadManager(object):
         ch_ind = self.get_param('channels_names').index(p_ch_name) #TODO error
         return self.get_samples(p_from, p_len)[ch_ind]
 
-    def get_tags(self, p_tag_type=None):
+    def get_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
         """Return all tags of type tag_type, or all types if tag_type is None."""
 
-        if self._tags_source is None:
+        if self.tags_source is None:
             return []
-
-        l_tags = self._tags_source.get_tags()
-        if not p_tag_type:
-            return l_tags
-
-        l_ret_tags = []
-        for i_tag in l_tags:
-            if p_tag_type == i_tag['name']:
-                l_ret_tags.append(i_tag)
-        return l_ret_tags
+        else:
+            return self.tags_source.get_tags(p_tag_type, p_from, p_len, p_func)
 
     def get_param(self, p_param_name):
         """Return parameter value for p_param_name.
         Raise NoParameter exception if p_param_name 
         parameters was not found."""
-        return self._info_source.get_param(p_param_name)
+        return self.info_source.get_param(p_param_name)
 
-    def iter_tags(self):
-        if self._tags_source is None:
+    def get_params(self):
+        return self.info_source.get_params()
+
+    def iter_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
+        if self.tags_source is None:
             return 
 
-        for tag in self._tags_source.get_tags():
+        for tag in self.tags_source.get_tags(p_tag_type, p_from, p_len, p_func):
             yield tag
         
     def iter_samples(self):
-        for s in self._data_source.iter_samples():
+        for s in self.data_source.iter_samples():
             yield s

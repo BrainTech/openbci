@@ -25,11 +25,20 @@
 """Implement Smart tags classes: SmartTagEndTag, SmartTagDuration."""
 
 import numpy
-class SmartTag(object):
+from openbci.data_storage import read_manager
+from openbci.data_storage import read_info_source
+from openbci.data_storage import read_data_source
+from openbci.data_storage import read_tags_source
+
+class SmartTag(read_manager.ReadManager):
     def __init__(self, p_tag_def, p_start_tag):
-        self._data = []
+
+        super(SmartTag, self).__init__(read_info_source.MemoryInfoSource(),
+                                       read_data_source.MemoryDataSource(),
+                                       read_tags_source.MemoryTagsSource())
         self._start_tag = p_start_tag
         self._tag_def = p_tag_def
+        self._is_initialised = False
         
     def get_start_timestamp(self):
         return self._tag_def.start_param_func(self._start_tag) + \
@@ -42,20 +51,11 @@ class SmartTag(object):
     def get_start_tag(self):
         return self._start_tag
 
-    def get_data(self):
-        """Return stored data. It is a list in format: 
-        [[list of all samples from ch 0], [list of all samples from ch 1] ...]
-        """
-        return self._data
+    def set_initialised(self):
+        self._is_initialised = True
 
-    def get_data_for(self, p_ch_num):
-        return self._data[p_ch_num]
-
-    def set_data(self, p_data):
-        self._data = numpy.array(p_data)
-        
-    def data_empty(self):
-        return self._data == []
+    def is_initialised(self):
+        return self._is_initialised
     
     
 class SmartTagEndTag(SmartTag):
@@ -76,6 +76,7 @@ class SmartTagEndTag(SmartTag):
         - p_tag_def - must be an instance of SmartTagEndTagDefinition.
         - p_start_tag - must be a dictionary representaion of existing tag.
         """
+
         super(SmartTagEndTag, self).__init__(p_tag_def, p_start_tag)
         self._end_tag = None
 
@@ -103,13 +104,6 @@ class SmartTagDuration(SmartTag):
     - set_data()
     - set_end_tag()
     """
-    def __init__(self, p_tag_def, p_start_tag):
-        """
-        - p_tag_def - must be an instance of SmartTagDurationDefinition.
-        - p_start_tag - must be a dictionary representaion of existing tag.
-        """
-        super(SmartTagDuration, self).__init__(p_tag_def, p_start_tag)
-
     def get_end_timestamp(self):
         return self._tag_def.start_param_func(self._start_tag) + \
             self._tag_def.duration + self._tag_def.end_offset

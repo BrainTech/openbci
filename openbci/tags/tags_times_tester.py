@@ -3,7 +3,6 @@ from openbci.tags import tags_file_reader as reader
 class Tester(object):
     def __init__(self, file_name, tag_type=""):
         self.reader = reader.TagsFileReader(file_name)
-        self.reader.start_tags_reading()
         self.type = tag_type
     def show_times_diffs(self):
         tags = self.get_tags()
@@ -17,10 +16,7 @@ class Tester(object):
             
     def get_tags(self):
         tags = []
-        while True:
-            tag = self.reader.get_next_tag()
-            if not tag:
-                break
+        for tag in self.reader.get_tags():
             if self.type == "" or self.type == tag['name']:
                 tags.append(tag)
         return tags

@@ -71,7 +71,7 @@ u'25'
 >>> mgr.get_param('im_not_there')
 Traceback (most recent call last):
 ...
-NoParameter: No parameter 'im_not_there' was found in info xml file!
+NoParameter: No parameter 'im_not_there' was found in info source!
 
 
 >>> [t['start_timestamp'] for t in mgr.iter_tags()]

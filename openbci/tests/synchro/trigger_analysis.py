@@ -29,13 +29,13 @@ sys.path.insert(1, '../../../openbci/')
 
 import os.path
 import math
-from data_storage import signalml_read_manager
+from data_storage import read_manager
 import trigger_change
 from core import core_logging as logger
 LOGGER = logger.get_logger("trigger_analysis", "debug")
 
 from pylab import *
-def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss):
+def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss, f_name):
     sent_vals = sent_vals[1:]
     sent_tss = sent_tss[1:]
     rcv_vals = rcv_vals[1:]
@@ -61,6 +61,17 @@ def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss):
     LOGGER.info("Rcv - sent avg: "+str(avg_diff))
     LOGGER.info("Rcv - sent std dev: "+str(std_dev))
     LOGGER.info("***************************************************************")
+
+    ff = open(f_name+'.txt', 'w')
+    ff.write("STATISTICS REPORT:\n")
+    ff.write("Minimum Rcv - sent diff: "+str(min_diff))
+    ff.write('\n')
+    ff.write("Maximum Rcv - sent diff: "+str(max_diff))
+    ff.write('\n')
+    ff.write("Rcv - sent avg: "+str(avg_diff))
+    ff.write('\n')
+    ff.write("Rcv - sent std dev: "+str(std_dev))
+    ff.close()
     figure(0)
     plot(sent_tss)
     plot(rcv_tss)
@@ -77,18 +88,17 @@ def compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss):
 
 if __name__ == "__main__":
     
-    dr = '/home/mati/bci_dev/google_openbci/openbci/temp/'
-    f_name = 'test_trigger10_09_11_2010_c++usb_svarog_22channels_512Hz'
+    dr = '/home/mati/bci_dev/openbci_repo/trunk/temp/'
+    f_name = 'synchro_test_02_12_2010_22ch_1024hz_c++_usb'
     f = {
-        'info': os.path.join(dr, f_name+'.obci.info'),
+        'info': os.path.join(dr, f_name+'.obci.svarog.info'),
         'data': os.path.join(dr, f_name+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci.tags')
+        'tags':os.path.join(dr, f_name+'.obci.svarog.tags')
        }
-    read_manager = signalml_read_manager.SignalmlReadManager(
+    read_manager = read_manager.ReadManager(
         f['info'],
         f['data'],
         f['tags'])
-    read_manager.start_reading()
 
     asci_trig = ''#os.path.join(dr, f_name+'.asci_trigger')
     if os.path.isfile(asci_trig):
@@ -113,8 +123,18 @@ if __name__ == "__main__":
     LOGGER.info("Red rcv lens: ")
     LOGGER.info(rcv_len)
 
+    ff = open(f_name+'.data.txt', 'w')
+    ff.write(','.join([repr(i) for i in sent_vals]))
+    ff.write('\n')
+    ff.write(','.join([repr(i) for i in sent_tss]))
+    ff.write('\n')
+    ff.write(','.join([repr(i) for i in rcv_vals]))
+    ff.write('\n')
+    ff.write(','.join([repr(i) for i in rcv_tss]))
+    ff.write('\n')
+    ff.close()
 
-    compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss)
+    compare_send_and_received(sent_vals, sent_tss, rcv_vals, rcv_tss, f_name)
 
     #print([x - tss[0] for x in tss])
     #print([x - tss[i] for i, x in enumerate(tss[1:])])

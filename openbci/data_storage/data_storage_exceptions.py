@@ -37,7 +37,7 @@ class NoParameter(Exception):
     def __init__(self, p_param):
         self._param = p_param
     def __str__(self):
-        return "No parameter '"+self._param+"' was found in info xml file!"
+        return "No parameter '"+self._param+"' was found in info source!"
 
 class BadSampleFormat(Exception):
     """An exception that should be raised when data sample has arrived and it is not float (struct is unable to pack it)."""

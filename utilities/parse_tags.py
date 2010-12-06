@@ -61,21 +61,16 @@ def draw_spectrum(d):
 
 tags_f = open(sys.argv[1] + ".obci.tags")
 t_reader = tags_file_reader.TagsFileReader(sys.argv[1] +".obci.tags")
-t_reader.start_tags_reading()
-tag = t_reader.get_next_tag()
+all_tags = t_reader.get_tags()
+tag = all_tags[0]
 tags = []
 ok = True
 f = open(sys.argv[1] + ".tagi", 'w')
-while ok:
-    tag = t_reader.get_next_tag()
-    if tag == None:
-        ok = False
-    #print tag['name']
-    else:
-        if tag['name'] in ['experiment_update', 'sound', 'start_experiment']:
+for tag in all_tags[1:]:
+    if tag['name'] in ['experiment_update', 'sound', 'start_experiment']:
             #print tag['desc']['screen'], " ", tag['start_timestamp']
-            tags.append(tag)
-	    f.write(tag['name'] + " " + str(tag['start_timestamp']) +  " " + str(tag['end_timestamp']) + '\n') 
+        tags.append(tag)
+        f.write(tag['name'] + " " + str(tag['start_timestamp']) +  " " + str(tag['end_timestamp']) + '\n') 
 		#+ " " + tag['desc']['screen'] + '\n')
 
 

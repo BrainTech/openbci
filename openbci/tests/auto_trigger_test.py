@@ -36,7 +36,8 @@ def start_trigger_sending(port_name,num_of_trigs, min_time, max_time, send_tags,
     print("port_name / num_of_trigs / min_time / max_time / send_tags")
     print(port_name,' / ', num_of_trigs,' / ', min_time,' / ', max_time, ' / ', send_tags)
     print("")
-    print("First, send 1 trigger for 10 secs. Then start generating other.")
+    secs = 20
+    print("First, send 1 trigger for "+str(secs)+" secs. Then start generating other.")
     
     if file_path:
         f = open(file_path, 'w')
@@ -52,7 +53,7 @@ def start_trigger_sending(port_name,num_of_trigs, min_time, max_time, send_tags,
     last_v = 1
     s.send(last_v)
     last_t = time.time()
-    time.sleep(10)
+    time.sleep(secs)
 
     for i in range(num_of_trigs):
         v = (last_v + 1) % 2
