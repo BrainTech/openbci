@@ -8,8 +8,9 @@ import sys
 from utils import pb2_construct, set_env
 import k2launcher_pb2
 
-home = ''.join([os.path.split(
-    os.path.realpath(os.path.dirname(__file__)))[0], '/'])
+home = "/home/mrygacz/openbci-testing/openbci/" 
+#''.join([os.path.split(
+#    os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
 mx_path = '%sazouk-libraries/build/' % home
 obci_path = '%sopenbci/' % home
@@ -85,6 +86,8 @@ multitask(["info_saver", "data_saver", "tag_saver"], "signal_saver")
 
 task("python ./p300dawida/rysowanie.py", "rysowanie")
 task("python ./p300dawida/rysowanie_debug.py", "rysowanie_debug")
+task("python ./p300dawida/p300.py", "p300dawid")
+task("python ./p300dawida/plotting.py", "plottingdawid")
 
 
 for task in tasks:
@@ -108,9 +111,9 @@ start("virtual_p300", "hashtable")
 start("virtual_p300", "signal_catcher")
 start("virtual_p300", "diode_control")
 start("virtual_p300", "diode_catcher")
-start("virtual_p300", "virtual_amplifier" )
-#start("virtual_p300", "rysowanie" )
-start("virtual_p300", "rysowanie_debug" )
+start("virtual_p300", "virtual_f_amplifier" )
+start("virtual_p300", "p300dawid" )
+#start("virtual_p300", "plottingdawid" )
 
 
 start("save_test", "hashtable")
