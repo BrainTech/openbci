@@ -37,6 +37,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
         super(SuperDiodeControl, self).__init__(addresses=addresses, type=peers.SUPER_DIODE)
         # an update request can be handled for config elements listed below:
         self.updatable_params = ["Freqs"]
+	self.breakt = 3
         # save needed configuration.
         self._cache_diode_params()
 	self.check_mode_and_start_blinking()
@@ -88,6 +89,7 @@ class SuperDiodeControl(BaseMultiplexerServer):
         """
         #  [jt: moved from handle_message() to avoid repetition]
         self.diodes_off()
+	time.sleep(self.breakt)
         self.blinks = int(self.conn.query(message = "Blinks", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
         self.blinkPeriod = float(self.conn.query(message = "BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
         self.squares = int(self.conn.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
@@ -105,14 +107,14 @@ class SuperDiodeControl(BaseMultiplexerServer):
         print "dc ds ", self.seq
         for x in self.seq:
             blinker.blink_p300(x, self.blinkPeriod)
-            time.sleep(.75)
+            time.sleep(self.blinkPeriod)
             tstamp = time.time()
             msg = variables_pb2.Blink()
             msg.index = x
 
             msg.timestamp = tstamp
             self.conn.send_message(message = msg.SerializeToString(), type = types.DIODE_MESSAGE, flush=True)
-	    print "SENT DIODE MESSAGE"
+	    #print "SENT DIODE MESSAGE"
 
 
     def handle_message(self, mxmsg):
