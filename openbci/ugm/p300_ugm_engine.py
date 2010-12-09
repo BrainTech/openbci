@@ -79,8 +79,8 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         # num of blinks per square
         self.rows = int(self.connection.query(message = "P300Rows", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
         self.cols = int(self.connection.query(message = "P300Cols", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
-        self.blinkPeriod = float(self.connection.query(message = "P300BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
-        self.blinkBreak = 1000.0*float(self.connection.query(message = "P300BlinkBreak", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)         
+        self.blinkPeriod = 1000*float(self.connection.query(message = "P300BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
+        self.blinkBreak = 1000*float(self.connection.query(message = "P300BlinkBreak", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)         
         blink_mode = self.connection.query(message = "P300BlinkMode", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
         blink_color = self.connection.query(message = "P300BlinkColor", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
         sq_size = float(self.connection.query(message = "P300SquareSize", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
@@ -101,7 +101,7 @@ class P300UgmEngine(ugm_engine.UgmEngine):
     @QtCore.pyqtSlot()
     def _blink(self):
         LOGGER.debug("BLINK")
-
+        t0 = time.time()
         if self.next_blink_rows:
             ind = random.randint(0, self.rows-1)
             blinked, non_blinked = self._p300_config_manager.get_blink_row(ind)
@@ -118,23 +118,31 @@ class P300UgmEngine(ugm_engine.UgmEngine):
             self._config_manager.set_config(stim)
         self.update()
 
-
-        t = time.time()
-        msg = variables_pb2.Blink()
-        msg.index = msg_ind
-        msg.timestamp = t
-        self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
-        TAGGER.send_tag(t, t, "blink", 
+        t = time.time()        
+        #msg = variables_pb2.Blink()
+        #msg.index = msg_ind
+        #msg.timestamp = t
+        #self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
+        TAGGER.send_tag(t0, t, "blink", 
                         {"index":str(msg_ind)})
 
 
-        QtCore.QTimer.singleShot(self.blinkPeriod, self, QtCore.SLOT("_unblink()"))
+        #QtCore.QTimer.singleShot(self.blinkPeriod - 1000*(time.time() - t), self, QtCore.SLOT("_unblink()"))
+        QtCore.QTimer.singleShot(25, self, QtCore.SLOT("_unblink()"))
 
     @QtCore.pyqtSlot()
     def _unblink(self):
         LOGGER.debug("UNBLINK")
-        
+        t0 = time.time()
         for stim in self.to_unblink:
             self._config_manager.set_config(stim)
         self.update()
-        QtCore.QTimer.singleShot(self.blinkBreak, self, QtCore.SLOT("_blink()"))  
+
+        t = time.time()        
+        #msg = variables_pb2.Blink()
+        #msg.timestamp = t
+        #self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
+        TAGGER.send_tag(t0, t, "non-blink")
+
+        #QtCore.QTimer.singleShot(self.blinkBreak - 1000*(time.time() - t), self, QtCore.SLOT("_blink()"))  
+        QtCore.QTimer.singleShot(0, self, QtCore.SLOT("_blink()"))  
