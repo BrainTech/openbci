@@ -67,7 +67,8 @@ class TagSaver(BaseMultiplexerServer):
         * signal_saver_control_message - a message from signal saver
         is a signal to finishing saving tags.
         depending on data received."""
-        if mxmsg.type == types.TAG:
+        if mxmsg.type == types.TAG and \
+                self._session_is_active:
             l_tag = TAGGER.unpack_tag(mxmsg.message) #TOOD - dont use tagger, use tag_utils
             LOGGER.info(''.join(['Signal saver got tag: ',
                                 'start_timestamp:',
