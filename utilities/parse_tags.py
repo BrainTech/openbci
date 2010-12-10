@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import tags_file_reader
+import svarog_tags_file_reader
 import struct
 import numpy as np
 import pylab
@@ -59,15 +59,20 @@ def draw_spectrum(d):
     pylab.plot(d2)
     pylab.show()
 
-tags_f = open(sys.argv[1] + ".obci.tags")
-t_reader = tags_file_reader.TagsFileReader(sys.argv[1] +".obci.tags")
+tags_f = open(sys.argv[1] + ".obci.svarog.tags")
+t_reader = svarog_tags_file_reader.SvarogTagsFileReader(sys.argv[1] +".obci.svarog.tags")
 all_tags = t_reader.get_tags()
 tag = all_tags[0]
 tags = []
 ok = True
 f = open(sys.argv[1] + ".tagi", 'w')
-for tag in all_tags[1:]:
-    if tag['name'] in ['experiment_update', 'sound', 'start_experiment']:
+while ok:
+    tag = t_reader.get_next_tag()
+    if tag == None:
+        ok = False
+    #print tag['name']
+    else:
+        if tag['name'] in [ 'sound']:
             #print tag['desc']['screen'], " ", tag['start_timestamp']
         tags.append(tag)
         f.write(tag['name'] + " " + str(tag['start_timestamp']) +  " " + str(tag['end_timestamp']) + '\n') 
