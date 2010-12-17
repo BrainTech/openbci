@@ -116,7 +116,7 @@ class OfflineSignalPrep(SignalPrep):
                 end_tags_names=['experiment__screen_break', 'experiment_end'])
 
         
-        self._tag_manager = tag_mgr.SmartTagsManager(tags_def, self._files)
+        self._tag_manager = tag_mgr.SmartTagsManager(tags_def, self._files['info'], self._files['data'], self._files['tags'])
         print self._tag_manager
     
     def iter_nonbreak_slices(self, chan_no):

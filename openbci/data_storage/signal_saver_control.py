@@ -52,14 +52,14 @@ class SignalSaverControl(object):
             LOGGER.info("Set hashtable.SaveFileName to: "+p_file_name)
         if p_file_path != "":
             l_var.key = "SaveFilePath"
-            l_var.value = p_file_name
-            self.connection.send_message(message = l_var.SerializeToString(), 
+            l_var.value = p_file_path
+            self._connection.send_message(message = l_var.SerializeToString(), 
                                          type = types.DICT_SET_MESSAGE, 
                                          flush=True)
             LOGGER.info("Set hashtable.SaveFilePath to: "+p_file_path)
 
         #self._send_message("start_saving")
-
+            
     def finish_saving(self):
         """Send finish_saving message to signal saver."""
         self._send_message("finish_saving")
@@ -90,3 +90,45 @@ class SignalSaverControl(object):
         l_msg_type = types.SIGNAL_SAVER_FINISH_SAVING
         self._connection.send_message(message=p_msg,
                                       type=l_msg_type, flush=True)
+
+if __name__ == '__main__':
+    l_saver_control = SignalSaverControl()
+    l_path = ""
+    l_session_name = ""
+    l_action = ""
+    try:
+        l_path = sys.argv[3]
+    except IndexError:
+        pass
+    try: 
+        l_session_name = sys.argv[2]
+    except IndexError:
+        pass
+    try:
+        l_action = sys.argv[1]
+    except IndexError:
+        pass
+
+
+    if l_action == "finish_saving":
+        l_saver_control.finish_saving()
+        print("Saving to file finished. File path and nama are defined in hashtable now")
+
+    elif l_action == "start_saving":
+        l_str = "Saving to file has started. "
+        if l_path == "":
+            l_str = l_str + "Path is taken from Hashtable."
+        else:
+            l_str = l_str + "With path: " + l_path
+        if l_session_name == "":
+            l_str = l_str + "File name is taken from Hashtable."
+        else:
+            l_str = l_str + "File name: " + l_session_name
+        l_saver_control.start_saving(l_session_name, l_path)
+        print(l_str)
+
+    elif l_action == "fake_finish_saving":
+        l_saver_control.fake_finish_saving()
+
+    else:
+        print ("No action pefromed.")

@@ -10,7 +10,7 @@
 
 >>> fabricate_data_file(f['data'])
 
->>> m = mgr.SmartTagsManager(d, f)
+>>> m = mgr.SmartTagsManager(d, f['info'], f['data'], f['tags'])
 
 >>> print(len(m._smart_tags))
 51
@@ -34,7 +34,7 @@ True
 
 >>> dd = df.SmartTagEndTagDefinition(start_tag_name='trigger', start_offset=0, end_offset=0, end_tags_names=['trigger'])
 
->>> mm = mgr.SmartTagsManager(dd, f)
+>>> mm = mgr.SmartTagsManager(dd, f['info'], f['data'], f['tags'])
 
 >>> tags, num = iter_all_tags(mm)
 
@@ -83,12 +83,20 @@ True
 
 >>> dd = df.SmartTagEndTagDefinition(start_tag_name='A', start_offset=0, end_offset=0, end_tags_names=['A'])
 
->>> mm = mgr.SmartTagsManager(dd, {'info':'./tescik.obci.info', 'data':'./tescik.obci.dat', 'tags':'./tescik.obci.tags'})
+>>> mm = mgr.SmartTagsManager(dd, './tescik.obci.info', './tescik.obci.dat', './tescik.obci.tags')
 
 >>> tags = [i for i in mm.iter_smart_tags()]
 
 >>> len(tags)
 3
+
+>>> tags2 = [i for i in mm]
+
+>>> len(tags2)
+3
+
+>>> tags == tags2
+True
 
 >>> print(tags[1].get_samples()[0][0])
 768.0
@@ -96,7 +104,7 @@ True
 
 >>> dd = df.SmartTagDurationDefinition(start_tag_name='B', start_offset=0, end_offset=0, duration=1.0)
 
->>> mm = mgr.SmartTagsManager(dd, None, tags[1])
+>>> mm = mgr.SmartTagsManager(dd, None, None, None, tags[1])
 
 >>> tss = [i for i in mm.iter_smart_tags()]
 
@@ -115,7 +123,7 @@ True
 
 >>> dd = df.SmartTagDurationDefinition(start_tag_name='B', start_offset=0, end_offset=0, duration=1.0)
 
->>> mm = mgr.SmartTagsManager(dd, None, tags[2])
+>>> mm = mgr.SmartTagsManager(dd, None, None, None, tags[2])
 
 >>> tss = [i for i in mm.iter_smart_tags()]
 

@@ -56,7 +56,7 @@ class SignalSaver(BaseMultiplexerServer):
         first_sample_data_received is fired externally by calling self.data_received"""
 
         # Set some additional first_sample-like data
-        import variables_pb2
+
         msg = p_data
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(msg)

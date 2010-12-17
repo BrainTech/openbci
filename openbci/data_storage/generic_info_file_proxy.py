@@ -297,7 +297,7 @@ Reading aborted!")
             try:
                 elem = i_node.firstChild.nodeValue
             except:
-                LOGGER.warning("An empty node occured in tag: "+p_subparam_name)
+                LOGGER.debug("An empty node occured in tag: "+p_subparam_name)
                 elem = ''
             LOGGER.debug("Found subtag node: "+str(i_node)+" with node value: "+str(elem))
             l_elements.append(elem)

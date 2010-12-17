@@ -12,10 +12,12 @@ def libsvm ():
 
 	from shogun.Features import RealFeatures, Labels
 	from shogun.Kernel import GaussianKernel
+	from shogun.Evaluation import PerformanceMeasures
 	from shogun.Classifier import LibSVM
 
 	feats_train=RealFeatures(fm_train_real)
 	feats_test=RealFeatures(fm_test_real)
+
 	width=2.1
 	kernel=GaussianKernel(feats_train, feats_train, width)
 
@@ -27,10 +29,21 @@ def libsvm ():
 	svm.set_epsilon(epsilon)
 	svm.train()
 
-	kernel.init(feats_train, feats_test)
-	svm.classify().get_labels()
-	sv_idx=svm.get_support_vectors()
-	alphas=svm.get_alphas()
+	#kernel.init(feats_train, feats_test)
+	output = svm.classify(feats_test)#.get_labels()
+        #output_vector = output.get_labels()
+        out=svm.classify().get_labels()
+        testerr=mean(sign(out)!=testlab)
+        print testerr
+
+
+	#sv_idx=svm.get_support_vectors()
+	#alphas=svm.get_alphas()
+        #pm = PerformanceMeasures(output_vector, output)
+        #acc = pm.get_accuracy()
+        #roc = pm.get_auROC()
+        #fms = pm.get_fmeasure()
+
 
 if __name__=='__main__':
 	from tools.load import LoadMatrix

@@ -35,7 +35,7 @@ TAGGER = tagger.get_tagger()
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import variables_pb2
-
+import sys
 
 from PyQt4 import QtCore, QtGui, Qt
 
@@ -86,6 +86,11 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         sq_size = float(self.connection.query(message = "P300SquareSize", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
         font_size = int(self.connection.query(message = "P300FontSize", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
         letters = self.connection.query(message = "P300Letters", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message.split(' ')
+        self.trainingBlinksPerChar = int(self.connection.query(message = "P300TrainingBlinksPerChar", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
+        self.trainingCharBreak = 1000*float(self.connection.query(message = "P300TrainingCharBreak", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message) 
+        self.trainingChars = self.connection.query(message = "P300TrainingChars", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message.split(' ')
+        self.trainingChars.reverse()
+
         LOGGER.info("Got data from hashtable in start_blinking.")        
 
         self._p300_config_manager = p300_config_manager.P300ConfigManager()
@@ -94,24 +99,65 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         self.rebuild()
         LOGGER.info("Finish rebuilding engine.")
 
-        self.next_blink_rows = True
         self.to_unblink = None
-        self.start_blinking_timer.start(self.blinkBreak)
-                       
+        self._blink_inds = [i for i in range(self.rows + self.cols)]
+        random.shuffle(self._blink_inds)
+        self._blink_ind = -1
+        self._run_blinks = 0
+        time.sleep(1)
+
+        self._init_target_letters(letters)
+        self._training_next_char()
+        self.start_blinking_timer.start(self.trainingCharBreak)
+    def _init_target_letters(self, letters):
+        self._targets = {}
+        for char in self.trainingChars:
+            ind = letters.index(char)
+            row = ind/self.cols
+            col = self.rows + (ind % self.cols)
+            self._targets[char] = [row, col]
+
+    def _ind_is_target(self, ind, char):
+        return ind in self._targets[char]
+
+    def _training_next_char(self):
+        try:
+            char = self.trainingChars.pop()
+        except IndexError:
+            LOGGER.info("END OF TRAINING")
+            sys.exit(0)
+        else:
+            stim = self._p300_config_manager.get_text(char)
+            self._config_manager.set_config(stim)
+            self.update()
+            self.targetChar = char
+            
+    def _next_blink_ind(self):
+        self._blink_ind += 1
+        self._run_blinks += 1
+        if self._blink_ind == self.rows + self.cols:
+            r_ind = 1
+            c_ind = 2
+            while abs(r_ind-c_ind) == 1:
+                random.shuffle(self._blink_inds)
+                r, c = self._targets[self.targetChar]
+                r_ind = self._blink_inds.index(r)
+                c_ind = self._blink_inds.index(c)
+            
+            self._blink_ind = 0
+
+        return self._blink_inds[self._blink_ind]
+
     @QtCore.pyqtSlot()
     def _blink(self):
         LOGGER.debug("BLINK")
         t0 = time.time()
-        if self.next_blink_rows:
-            ind = random.randint(0, self.rows-1)
-            blinked, non_blinked = self._p300_config_manager.get_blink_row(ind)
-            msg_ind = ind
+        ind = self._next_blink_ind()
+        if ind >= self.rows:
+            blinked, non_blinked = self._p300_config_manager.get_blink_col(ind-self.rows)
         else:
-            ind = random.randint(0, self.cols-1)
-            blinked, non_blinked = self._p300_config_manager.get_blink_col(ind)
-            msg_ind = self.rows + ind
-            
-        self.next_blink_rows = not self.next_blink_rows
+            blinked, non_blinked = self._p300_config_manager.get_blink_row(ind)
+
         self.to_unblink = non_blinked
 
         for stim in blinked:
@@ -123,8 +169,14 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         #msg.index = msg_ind
         #msg.timestamp = t
         #self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
-        TAGGER.send_tag(t0, t, "blink", 
-                        {"index":str(msg_ind)})
+        if self._ind_is_target(ind, self.targetChar):
+            TAGGER.send_tag(t, t, "target", {
+                    'letter_row_and_col': str(self._targets[self.targetChar]),
+                    'letter': self.targetChar,
+                    'blink_row_or_col': str(ind)
+                    })
+        else:
+            TAGGER.send_tag(t, t, "non-target")            
 
 
         #QtCore.QTimer.singleShot(self.blinkPeriod - 1000*(time.time() - t), self, QtCore.SLOT("_unblink()"))
@@ -142,7 +194,12 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         #msg = variables_pb2.Blink()
         #msg.timestamp = t
         #self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
-        TAGGER.send_tag(t0, t, "non-blink")
+#        TAGGER.send_tag(t0, t, "non-blink")
 
         #QtCore.QTimer.singleShot(self.blinkBreak - 1000*(time.time() - t), self, QtCore.SLOT("_blink()"))  
-        QtCore.QTimer.singleShot(0, self, QtCore.SLOT("_blink()"))  
+        if self._run_blinks < self.trainingBlinksPerChar:
+            QtCore.QTimer.singleShot(150, self, QtCore.SLOT("_blink()"))  
+        else:
+            self._run_blinks = 0
+            self._training_next_char()
+            QtCore.QTimer.singleShot(self.trainingCharBreak, self, QtCore.SLOT("_blink()"))  

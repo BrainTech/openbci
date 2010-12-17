@@ -42,7 +42,7 @@ class SmartTagsManager(object):
     - __init__()
     - iter_smart_tags()
     """
-    def __init__(self, p_tag_def, p_files, p_read_manager=None):
+    def __init__(self, p_tag_def, p_info_file, p_data_file, p_tags_file, p_read_manager=None):
         """Init all needed slots, read tags file, init smart tags.
         Parameters:
         - p_tag_def - an instance of tag definition object
@@ -56,9 +56,9 @@ class SmartTagsManager(object):
         if not p_read_manager:
         #Open files
             self._read_manager = read_manager.ReadManager(
-                p_files['info'],
-                p_files['data'],
-                p_files['tags'])
+                p_info_file,
+                p_data_file,
+                p_tags_file)
         else:
             self._read_manager = p_read_manager
 
@@ -141,6 +141,11 @@ class SmartTagsManager(object):
             LOGGER.debug("Want tag: "+str(p_tag_def.start_tag_name)+". Got tag: "+str(i_tag['name']))
             st = smart_tag.SmartTagDuration(p_tag_def, i_tag)
             self._smart_tags.append(st)
+ 
+    def get_smart_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
+        sts = [t for t in self.iter_smart_tags()]
+        return self.get_read_manager().tags_source._filter_tags(
+            sts, p_tag_type, p_from, p_len)
 
     def iter_smart_tags(self):
         """This is an iterator, so use id like:
@@ -200,3 +205,6 @@ class SmartTagsManager(object):
         #Reset samples count so that next 
         #iter_smart_tags call will work
 
+
+    def __iter__(self):
+        return self.iter_smart_tags()

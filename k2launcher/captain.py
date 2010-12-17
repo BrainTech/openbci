@@ -289,6 +289,13 @@ start("p300_test", "hashtable")
 start("p300_test", "p300_ugm")
 start("p300_test", "p300_analysis")
 
+start("p300_training", "hashtable")
+start("p300_training", "svarog_pinger")
+start("p300_training", "c++_usb_amplifier")
+start("p300_training", "p300_ugm")
+
+
+
 
 start("svarog_test_py_bt", "hashtable")
 start("svarog_test_py_bt", "svarog_pinger")

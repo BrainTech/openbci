@@ -23,22 +23,38 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 import ugm_config_manager
-import copy
+import copy, random
 
 class P300ConfigManager(object):
     def __init__(self):
         pass
     def get_blink_row(self, row):
+        #return self.blink_rows[row], self.non_blink_rows[row]
+        r = str(random.randint(1, 10))
+        for b in self.blink_rows[row]:
+            b['stimuluses'][0]['message'] = r
         return self.blink_rows[row], self.non_blink_rows[row]
     def get_blink_col(self, col):
-        return self.blink_cols[col], self.non_blink_cols[col]
+        #return self.blink_cols[col], self.non_blink_cols[col]
+        r = str(random.randint(1, 10))
+        for b in self.blink_cols[col]:
+            b['stimuluses'][0]['message'] = r
+        return self.blink_cols[col], self.non_blink_cols[col]            
+
+    def get_text(self, char):
+        ret = copy.deepcopy(self.text)
+        ret['message'] = char
+        return ret
 
     def generate_config(self, rows, cols, sq_size, font_size, letters, blink_mode, blink_color):
         mgr = ugm_config_manager.UgmConfigManager('p300_base')
         top = mgr.get_config_for(888)
+        self.text = mgr.get_config_for(909)
+#        print(self.text)
+#        sys.exit(0)
         bot = mgr.get_config_for(999)
         base = mgr.get_config_for(1)
-        stims = self._generate_speller_stims(base, rows, cols, sq_size, '#000000', font_size, letters)
+        stims = self._generate_speller_stims(base, rows, cols, sq_size, '#000000', font_size, letters, '#828282')
         bot['stimuluses'] = stims
         mgr.set_full_config([top, bot])
         #mgr.update_to_file('5_5_p300', True)
@@ -92,12 +108,12 @@ class P300ConfigManager(object):
 
     def _get_stim_id_for(self, row, col, rows, cols, stim_type):
         if stim_type == 'letter':
-            return rows*cols + 2*row*cols + col
+            return 2*rows*cols + row*cols + col
         elif stim_type == 'square':
             return rows*cols + row*cols + col
         else:
             raise Exception("An unknow stimulus type was requested!")
-    def _generate_speller_stims(self, base, p_rows, p_cols, p_sq_size, p_sq_color, p_let_size, letters):
+    def _generate_speller_stims(self, base, p_rows, p_cols, p_sq_size, p_sq_color, p_let_size, letters, p_letter_color):
         stims = []
         stims_no = p_rows*p_cols
         
@@ -130,6 +146,7 @@ class P300ConfigManager(object):
                 stim_letter['id'] = 2*stims_no + stim['id']
                 stim_letter['font_size'] = p_let_size
                 stim_letter['message'] = letters[stim['id']]
+                stim_letter['font_color'] = p_letter_color
                 stims.append(stim)
             
             pos_hor = 0.0

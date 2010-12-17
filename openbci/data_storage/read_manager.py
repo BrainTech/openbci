@@ -51,29 +51,29 @@ class ReadManager(object):
         """Just remember info file path and data file path."""
         try:
             ''+p_info_source
-            LOGGER.info("Got info source file path.")
+            LOGGER.debug("Got info source file path.")
             self.info_source = read_info_source.FileInfoSource(p_info_source)
         except TypeError:
-            LOGGER.info("Got info source object.")
+            LOGGER.debug("Got info source object.")
             self.info_source = p_info_source
 
         try:
             ''+p_data_source
-            LOGGER.info("Got data source file path.")
+            LOGGER.debug("Got data source file path.")
             self.data_source = read_data_source.FileDataSource(
                 p_data_source,
                 int(self.info_source.get_param('number_of_channels'))
                 )
         except TypeError:
-            LOGGER.info("Got data source object.")
+            LOGGER.debug("Got data source object.")
             self.data_source = p_data_source
 
         try:
             ''+p_tags_source
-            LOGGER.info("Got tags source file path.")
+            LOGGER.debug("Got tags source file path.")
             self.tags_source = read_tags_source.FileTagsSource(p_tags_source)
         except TypeError:
-            LOGGER.info("Got tags source object.")
+            LOGGER.debug("Got tags source object.")
             self.tags_source = p_tags_source 
 
     def get_samples(self, p_from=None, p_len=None):

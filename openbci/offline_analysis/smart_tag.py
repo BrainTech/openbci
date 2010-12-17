@@ -57,6 +57,13 @@ class SmartTag(read_manager.ReadManager):
     def is_initialised(self):
         return self._is_initialised
     
+    def __getitem__(self, p_key):
+        if p_key == 'start_timestamp':
+            return self.get_start_timestamp()
+        elif p_key == 'end_timestamp':
+            return self.get_end_timestamp()
+        else:
+            return self.get_start_tag()[p_key]
     
 class SmartTagEndTag(SmartTag):
     """Public interface:
