@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+
 from scipy import *
+from scipy import linalg
 import copy
 from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
 
@@ -59,6 +61,16 @@ def leave_channels(mgr, channels):
         chans.remove(leave)
     return exclude_channels(mgr, chans)
     
+
+def normalize(mgr, norm):
+    if norm == 0:
+        return mgr
+    new_mgr = copy.deepcopy(mgr)
+    for i in range(len(new_mgr.get_samples())):
+        
+        n = linalg.norm(new_mgr.get_samples()[i, :], norm)
+        new_mgr.get_samples()[i, :] /= n
+    return new_mgr
     
 
 def montage(mgr, montage_type, **montage_params):
@@ -68,6 +80,8 @@ def montage(mgr, montage_type, **montage_params):
         return montage_ears(mgr, **montage_params)
     elif montage_type == 'custom':
         return montage_custom(mgr, **montage_params)
+    elif montage_type == 'no_montage':
+        return mgr
     else:
         raise Exception("Montage - unknown montaget type: "+str(montage_type))
 
@@ -82,8 +96,6 @@ def montage_csa(mgr):
 def montage_ears(mgr, l_ear_channel, r_ear_channel):
     left_index = mgr.get_param('channels_names').index(l_ear_channel)
     right_index = mgr.get_param('channels_names').index(r_ear_channel)
-    print("AAAAAAAAAAAAAAAAAAAAAA ")
-    print(left_index, ' / ', right_index)
     if left_index < 0 or right_index < 0:
         raise Exception("Montage - couldn`t find ears channels: "+str(l_ear_channel)+", "+str(r_ear_channel))
 
@@ -176,3 +188,4 @@ def get_montage_matrix_ears(n, l_ear_index, r_ear_index):
 				mx[i, j] = factor
 	return mx
 	
+

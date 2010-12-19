@@ -22,6 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 from PyML import *
+from data_storage import read_manager
 from offline_analysis.p300 import p300_train_prepare_train_set as prepare
 import scipy
 import os, os.path, sys
@@ -43,7 +44,8 @@ def run():
         'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
        }"""
 
-    train_data_ch, train_labels = prepare.get_train_set(f2, num_per_avg=15, start_samples_to_norm=0, downsample_level=5) 
+    mgr = read_manager.ReadManager(f2['info'], f2['data'], f2['tags'])
+    train_data_ch, train_labels = prepare.get_train_set_from_mgr(mgr, num_per_avg=10, start_samples_to_norm=0, downsample_level=5) 
     class MY_SVM(object):
         def __init__(self, C):
             self.s = svm.SVM(C=C)

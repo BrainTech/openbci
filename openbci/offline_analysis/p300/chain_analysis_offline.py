@@ -61,7 +61,17 @@ class Montage(object):
 
         
 
-
+class Normalize(object):
+    def __init__(self, norm=2):
+        self.norm = norm
+    def process(self, mgrs):
+        new_mgrs = []
+        for i_mgr in mgrs:
+            new_mgrs.append(analysis_offline.normalize(i_mgr, self.norm))
+        return new_mgrs
+    def __repr__(self):
+        return str({"CLASS": self.__class__.__name__,
+                    "norm": self.norm})
 
 
 
@@ -127,13 +137,6 @@ class ToMvTransform(object):
         #dla każdego mgr-a:
         # pobierz jego gain i offset i zrób jego dane danymi w mikrowoltach
 
-class Normalise(object):
-    def __init__(self, norm=2):
-        pass
-    def process(self, p_mgrs):
-        pass
-        #dla każdego mgr-a:
-        # po każdym kanale: podziel (chyba) kanał przez jego normę
 
 
 

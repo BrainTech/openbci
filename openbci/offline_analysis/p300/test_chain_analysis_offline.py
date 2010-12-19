@@ -52,6 +52,7 @@ class ModTest(unittest.TestCase):
         self.TEST_EXCLUDE_CHANNELS = True
         self.TEST_LEAVE_CHANNELS = True
         self.TEST_MONTAGE = True
+        self.TEST_NORMALIZE = True
         
     def test_read_signal(self):
         if not self.TEST_READ_SIGNAL:
@@ -155,6 +156,24 @@ class ModTest(unittest.TestCase):
                 (mgr.get_samples()[1, 0] + mgr.get_samples()[2,0])/2)
             
         LOGGER.info("Montage tested!")
+
+    def test_normalize(self):
+        if not self.TEST_NORMALIZE:
+            return
+        mgr = get_fake_manager(3, 10)
+        e = ch.Normalize(norm=2)
+        new_mgr = e.process([mgr])[0]
+
+        import PyML
+        data = PyML.VectorDataSet(mgr.get_samples())
+        data.normalize(2)
+        for i in range(3):
+            for j in range(10):
+                self.assertAlmostEqual(new_mgr.get_samples()[i, j],
+                                 data.getMatrix()[i, j])
+
+        LOGGER.info("Normalize tested!")
+
 
 
 if __name__ == '__main__':

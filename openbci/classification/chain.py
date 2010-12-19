@@ -113,4 +113,28 @@ class Chain(object):
                 ret_results += results
 
         return ret_candidates, ret_results
+
+    def print_errors(self):
+        print("****************************************************")
+        print("*************** Start printing errors **************")
+        for er in self.errors:
+            print("*********** NEXT ERROR *****************")
+            for l in er.splitlines():
+                print(l)
+        print("*************** End printing errors ****************")
+        print("****************************************************")
+
+    def print_candidate(self, candidate):
+        print("****************************************************")
+        print("*************** Start printing candidate ***********")
+        for cnd in candidate:
+            c = eval(str(cnd))
+            print("****** next candidate **********")
+            print("CLASS: "+c['CLASS'])
+            for k, v in c.iteritems():
+                print(k, ": ", v)
+        print("*************** End printing candidate**************")
+        print("****************************************************")
+        
+        
             

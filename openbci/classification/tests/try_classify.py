@@ -44,21 +44,35 @@ def run():
         'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
        }"""
 
-    train_data_ch, train_labels = prepare.get_train_set(f2, num_per_avg=15, start_samples_to_norm=0, downsample_level=5) 
+    #train_data_ch, train_labels = prepare.get_train_set(f2, num_per_avg=15, start_samples_to_norm=0, downsample_level=5) 
     class MY_SVM(object):
         def __init__(self, C):
             self.s = svm.SVM(C=C)
         def process(self, data):
-            return self.s.stratifiedCV(data, 5).getBalancedSuccessRate()
+            return self.s.stratifiedCV(data[0], 5).getBalancedSuccessRate()
         def __repr__(self):
-            return "SVM: C - "+str(self.s.C)
+            return str({"CLASS": self.__class__.__name__,
+                        "s.C":str(self.s.C)})
 
-    class MY_STD(object):
-        def process(self, data):
-            #p = prepare.Standardizer()
-            #p.train(data)
+    class MY_PREPARE(object):
+        def __init__(self, num_per_avg, start_samples_to_norm, downsample_level):
+            self.num_per_avg = num_per_avg
+            self.start_samples_to_norm = start_samples_to_norm
+            self.downsample_level = downsample_level
+        def process(self, mgrs):
+            train_data_ch, train_labels = prepare.get_train_set_from_mgr(mgrs[0], self.num_per_avg, self.start_samples_to_norm, self.downsample_level)
+            l = Labels([str(i) for i in train_labels])
+            data = VectorDataSet(train_data_ch[0], L=l)
             data.normalize(2)
-            return data
+            return [data]
+        def __repr__(self):
+            return str({"CLASS": self.__class__.__name__,
+                        "num_per_avg":self.num_per_avg,
+                        "start_samples_to_norm":self.start_samples_to_norm,
+                        "downsample_level":self.downsample_level})
+            
+
+
 
     ch = my_chain.Chain(
         my_chain.ChainElement(my_tools.ReadSignal,
@@ -70,6 +84,7 @@ def run():
                                }),
         my_chain.ChainElement(my_tools.Montage,
                               [
+                {'montage_type': 'no_montage'},
                 {'montage_type': 'common_spatial_average'},
                 {'montage_type': 'ears',
                  'l_ear_channel': 'M1',
@@ -82,28 +97,24 @@ def run():
                                            ['Pz'],
                                            ]
                                }),
-                                            
-        #my_chain.ChainElement(MY_STD, {}),
-        #my_chain.ChainElement(MY_SVM,
-        #                      {'C':[0.01, 0.1, 0.5, 1, 10]})
+        my_chain.ChainElement(MY_PREPARE,
+                              {'num_per_avg':[10],
+                               'start_samples_to_norm':[0, 50, 100],
+                               'downsample_level':[1, 3, 5, 8]}),
+        #my_chain.ChainElement(my_tools.Normalize,
+        #                      {'norm': [2]}),
+        my_chain.ChainElement(MY_SVM,
+                              {'C':[0.01, 0.1, 0.5, 1, 5, 10]})                              
         )
-
-    l = Labels([str(i) for i in train_labels])
-    for i, train_data in enumerate(train_data_ch):
-        train_data = train_data_ch[11]
-        data = VectorDataSet(train_data, L=l)
-        cs, res = ch.process(data, False)
-        print("CSS: "+str(cs))
-        print("RES: "+str(res))
-        print("#############################################")
-        for cand in ch.candidates:
-            print str(cand)
-        print("CANDIDATES LEN: "+str(len(ch.candidates)))
-        print("#############################################")
-        for er in ch.errors:
-            print("*********** NEXT ERROR *****************")
-            for l in er.splitlines():
-                print(l)
-        break
+    cs, res = ch.process(None, True)
+    print("#############################################")
+    print("CANDIDATES LEN: "+str(len(ch.candidates)))
+    print("#############################################")
+    ch.print_errors()
+    ch.print_candidate(cs)
+    print("#############################################")
+    print("RESULT: "+str(res))
+        
+    
 if __name__ == '__main__':
     run()

@@ -79,7 +79,7 @@ class ReadManager(object):
     def __deepcopy__(self, memo):
         info_source = copy.deepcopy(self.info_source)
         tags_source = copy.deepcopy(self.tags_source)
-        samples_source = copy.deepcopy(self.samples_source)
+        samples_source = copy.deepcopy(self.data_source)
         return ReadManager(info_source, samples_source, tags_source)
         
     def get_samples(self, p_from=None, p_len=None):

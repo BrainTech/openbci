@@ -114,7 +114,7 @@ class RandomAverager(object):
         
 
     
-def extract_trials_from_file(p_files):
+def extract_trials_from_file(p_files, p_mgr = None):
     """
     Extract data from p_files and return it in format:
     - a list of dictionaries, where every subsequent dictionary corresponds to one target-letter 
@@ -145,8 +145,10 @@ def extract_trials_from_file(p_files):
     [51, 64, 28, 78, 50, 56, 57, 62, 57, 57, 75, 59, 61, 66, 62, 51, 73, 73, 74]
 
     """
-
-    mgr_target = smart_tags_manager.SmartTagsManager(TARGET_DEF, p_files['info'], p_files['data'], p_files['tags'])
+    if p_mgr is None:
+        mgr_target = smart_tags_manager.SmartTagsManager(TARGET_DEF, p_files['info'], p_files['data'], p_files['tags'])
+    else:
+        mgr_target = smart_tags_manager.SmartTagsManager(TARGET_DEF, None, None, None, p_mgr)
     mgr_non_target = smart_tags_manager.SmartTagsManager(NON_TARGET_DEF, None, None, None, mgr_target.get_read_manager()) 
 
     letter_tag_sets = []
@@ -250,6 +252,14 @@ def downsample_train_set(p_train_set, leave_every=1):
 
 def get_train_set(files, num_per_avg=5, start_samples_to_norm=0, downsample_level=1):
     t = extract_trials_from_file(files)
+    avg = RandomAverager()
+    s, c = avg.get_averaged_samples(t, num_per_avg, start_samples_to_norm)
+    if downsample_level > 1:
+        s = downsample_train_set(s, downsample_level)
+    return s, c
+
+def get_train_set_from_mgr(mgr, num_per_avg=5, start_samples_to_norm=0, downsample_level=1):
+    t = extract_trials_from_file(None, mgr)
     avg = RandomAverager()
     s, c = avg.get_averaged_samples(t, num_per_avg, start_samples_to_norm)
     if downsample_level > 1:
