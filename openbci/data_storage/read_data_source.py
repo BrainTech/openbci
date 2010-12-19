@@ -22,7 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-import numpy
+import numpy, copy
 import data_file_proxy
 import data_storage_logging as logger
 import data_storage_exceptions
@@ -33,7 +33,9 @@ class DataSource(object):
         LOGGER.error("The method must be subclassed")
 
     def iter_samples(self):
-        LOGGER.error("The method must be subclassed")        
+        LOGGER.error("The method must be subclassed") 
+    def __deepcopy(self, memo):
+        return MemoryDataSource(copy.deepcopy(self.get_samples()))
 
 
 

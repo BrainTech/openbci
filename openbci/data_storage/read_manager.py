@@ -22,7 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-import sys, struct, time, numpy
+import sys, struct, time, numpy, copy
 
 from openbci.data_storage import data_storage_exceptions
 
@@ -76,6 +76,12 @@ class ReadManager(object):
             LOGGER.debug("Got tags source object.")
             self.tags_source = p_tags_source 
 
+    def __deepcopy__(self, memo):
+        info_source = copy.deepcopy(self.info_source)
+        tags_source = copy.deepcopy(self.tags_source)
+        samples_source = copy.deepcopy(self.samples_source)
+        return ReadManager(info_source, samples_source, tags_source)
+        
     def get_samples(self, p_from=None, p_len=None):
         """Return a two dimensional array of signal values.
         if p_reload then refresh the file, otherwise use cached values."""

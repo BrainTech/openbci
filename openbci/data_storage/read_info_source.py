@@ -22,7 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-
+import copy
 import info_file_proxy
 import data_storage_logging as logger
 import data_storage_exceptions
@@ -33,6 +33,8 @@ class InfoSource(object):
         LOGGER.error("The method must be subclassed")
     def get_params(self):
         LOGGER.error("The method must be subclassed")
+    def __deepcopy__(self, memo):
+        return MemoryInfoSource(copy.deepcopy(self.get_params()))
 
 
 class MemoryInfoSource(InfoSource):

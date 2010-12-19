@@ -21,9 +21,9 @@
 #
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-
+import traceback
 import classification_logging as logger
-LOGGER = logger.get_logger("chain", "info")
+LOGGER = logger.get_logger("chain", "debug")
 
 class ChainElement(object):
     """Represents an element for Chain object."""
@@ -45,8 +45,15 @@ class ChainElement(object):
           A(1,'a'), A(1,'b'), A(2,'a'), A(2,'b'), A(3,'a'), A(3,'b')
           """
         self.class_template = class_template
-        self.params = []
-        self._init_params(params_sets, {}, params_sets.keys())
+        try:
+            keys = params_sets.keys()
+        except AttributeError:
+            self.params = params_sets
+        else:
+            self.params = []
+            self._init_params(params_sets, {}, keys)
+
+
 
     def _init_params(self, params_sets, init_set, keys):
         """Initialize self.params list.
@@ -67,10 +74,14 @@ class Chain(object):
         self.elements = chain_elements
         self.candidates = None
         self.results = None
+        self.errors = []
 
-    def process(self, data_set, elements=None):
+    def process(self, data_set=None, select_winner=True):
         self.candidates, self.results = self._process(data_set, 0)
-        return self._select_winner(self.candidates, self.results)
+        if select_winner:
+            return self._select_winner(self.candidates, self.results)
+        else:
+            return None, None
 
     def _select_winner(self, candidates, results):
         best_result = max(results)
@@ -89,12 +100,17 @@ class Chain(object):
         for i_params_set in current_element.params:
             obj = current_element.class_template(**i_params_set)
             LOGGER.debug("Start processing with: "+str(obj.__class__)+"("+str(i_params_set))
-            new_data_set = obj.process(data_set)
-            candidates, results = self._process(new_data_set, element_index + 1)
-            for i_cand in candidates:
-                # prepend to every list of candidate a current object
-                i_cand.insert(0, obj)
-            ret_candidates += candidates
-            ret_results += results
+            try:
+                new_data_set = obj.process(data_set)
+            except Exception, e:
+                self.errors.append(traceback.format_exc())
+            else:
+                candidates, results = self._process(new_data_set, element_index + 1)
+                for i_cand in candidates:
+                    # prepend to every list of candidate a current object
+                    i_cand.insert(0, obj)
+                ret_candidates += candidates
+                ret_results += results
+
         return ret_candidates, ret_results
             

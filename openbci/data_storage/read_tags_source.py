@@ -22,7 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-
+import copy
 from tags import tags_file_reader
 import data_storage_logging as logger
 LOGGER = logger.get_logger("smart_tags_source", "info")
@@ -47,6 +47,8 @@ class TagsSource(object):
             l_tags = [i_tag for i_tag in l_tags if p_func(i_tag)]
 
         return l_tags
+    def __deepcopy__(self, memo):
+        return MemoryTagsSource(copy.deepcopy(self.get_tags()))
 
 class MemoryTagsSource(TagsSource):
     def __init__(self, p_tags = None):
