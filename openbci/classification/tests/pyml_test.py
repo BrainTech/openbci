@@ -37,7 +37,7 @@ def run():
     data2 = data.__class__(data, classes = ['Iris-versicolor', 'Iris-virginica'])
     s = SVM()
     r = s.cv(data2)
-    #r.plotROC()
+    r.plotROC()
 
 
     param = modelSelection.Param(svm.SVM(), 'C', [0.1, 1, 10, 100, 1000])

@@ -81,13 +81,15 @@ class PrepareTrainSet(object):
         pass
     
 class SVM(object):
-    def __init__(self, C):
-        self.s = svm.SVM(C=C)
+    def __init__(self, C, Cmode):
+        self.s = svm.SVM(C=C, Cmode=Cmode)
     def process(self, data):
         return self.s.stratifiedCV(data, 5).getBalancedSuccessRate()
     def __repr__(self):
         return str({"CLASS": self.__class__.__name__,
-                    "C": str(self.s.C)})
+                    "C": str(self.s.C),
+                    "Cmode":self.s.Cmode
+                    })
 
 
 
@@ -95,24 +97,26 @@ class SVM(object):
 
 
 
+class Segment(object):
+    def __init__(self, classes, start_offset, duration):
+        self.classes = classes
+        self.start_offset = start_offset
+        self.duration = duration
 
+    def process(self, mgrs):
+        return mgrs
 
-
-
-
-
-
-
-
-
-            
-class Filter(object):
-    def __init__(**p_args):
+class Average(object):
+    def __init__(self, classes, size, baseline, strategy):
         pass
-    def process(p_mgrs):
-        return p_mgrs
+    def process(self, mgrs):
+        pass
 
-
+class Filter(object):
+    def __init__(self, **args):
+        pass
+    def process(self, mgrs):
+        return mgrs
 
 class Donwnsample(object):
     def __init__(self, new_sampling=None, leave_every=None):
@@ -120,14 +124,6 @@ class Donwnsample(object):
         pass
     def process(self, p_mgrs):
         return p_mgrs
-
-
-class LinearTransform(object):
-    def __init__(self, **p_args):
-        pass
-    def process(self, p_mgrs):
-        return p_mgrs
-
 
 class ToMvTransform(object):
     def __init__(self):
@@ -138,11 +134,4 @@ class ToMvTransform(object):
         # pobierz jego gain i offset i zrób jego dane danymi w mikrowoltach
 
 
-
-
-class Average(object):
-    def __init__(self, **args):
-        pass
-    def process(self, p_mgrs):
-        pass
                 

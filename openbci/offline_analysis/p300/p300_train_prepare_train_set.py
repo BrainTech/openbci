@@ -114,7 +114,7 @@ class RandomAverager(object):
         
 
     
-def extract_trials_from_file(p_files, p_mgr = None):
+def extract_trials_from_file(p_files, p_mgr = None, target_def=None, non_target_def=None):
     """
     Extract data from p_files and return it in format:
     - a list of dictionaries, where every subsequent dictionary corresponds to one target-letter 
@@ -145,11 +145,15 @@ def extract_trials_from_file(p_files, p_mgr = None):
     [51, 64, 28, 78, 50, 56, 57, 62, 57, 57, 75, 59, 61, 66, 62, 51, 73, 73, 74]
 
     """
+    if target_def is None:
+        target_def = TARGET_DEF
+    if non_target_def is None:
+        non_target_def = NON_TARGET_DEF
     if p_mgr is None:
-        mgr_target = smart_tags_manager.SmartTagsManager(TARGET_DEF, p_files['info'], p_files['data'], p_files['tags'])
+        mgr_target = smart_tags_manager.SmartTagsManager(target_def, p_files['info'], p_files['data'], p_files['tags'])
     else:
-        mgr_target = smart_tags_manager.SmartTagsManager(TARGET_DEF, None, None, None, p_mgr)
-    mgr_non_target = smart_tags_manager.SmartTagsManager(NON_TARGET_DEF, None, None, None, mgr_target.get_read_manager()) 
+        mgr_target = smart_tags_manager.SmartTagsManager(target_def, None, None, None, p_mgr)
+    mgr_non_target = smart_tags_manager.SmartTagsManager(non_target_def, None, None, None, mgr_target.get_read_manager()) 
 
     letter_tag_sets = []
     target_tags = mgr_target.get_smart_tags()
@@ -258,8 +262,13 @@ def get_train_set(files, num_per_avg=5, start_samples_to_norm=0, downsample_leve
         s = downsample_train_set(s, downsample_level)
     return s, c
 
-def get_train_set_from_mgr(mgr, num_per_avg=5, start_samples_to_norm=0, downsample_level=1):
-    t = extract_trials_from_file(None, mgr)
+def get_train_set_from_mgr(mgr, num_per_avg=5, start_samples_to_norm=0, downsample_level=1, start_sec_offset=-0.1, duration=0.6):
+    target_def = smart_tag_definition.SmartTagDurationDefinition(start_tag_name=u'target', 
+                                                                 start_offset=start_sec_offset, end_offset=0, duration=duration)
+    non_target_def = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='non-target', 
+                                                                     start_offset=start_sec_offset, end_offset=0, duration=duration)
+
+    t = extract_trials_from_file(None, mgr, target_def, non_target_def)
     avg = RandomAverager()
     s, c = avg.get_averaged_samples(t, num_per_avg, start_samples_to_norm)
     if downsample_level > 1:
