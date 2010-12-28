@@ -3,6 +3,7 @@
 #
 import os, os.path, sys
 from scipy import *
+from scipy import signal
 import unittest
 
 from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
@@ -53,6 +54,10 @@ class ModTest(unittest.TestCase):
         self.TEST_LEAVE_CHANNELS = True
         self.TEST_MONTAGE = True
         self.TEST_NORMALIZE = True
+        self.TEST_FILTER = True
+        self.TEST_DOWNSAMPLE = True
+        self.TEST_SEGMENT = True
+        self.TEST_AVERAGE = True
         
     def test_read_signal(self):
         if not self.TEST_READ_SIGNAL:
@@ -173,6 +178,198 @@ class ModTest(unittest.TestCase):
                                  data.getMatrix()[i, j])
 
         LOGGER.info("Normalize tested!")
+    def test_filter(self):
+        if not self.TEST_FILTER:
+            return
+
+
+        def getSin(hz, sampling, data):
+            return sin(hz*2*pi*data/sampling)
+        mgr = get_fake_manager(3, 1000)
+        x=r_[0:1000]
+        y1 = getSin(2, 128.0, x)
+        y2 = getSin(15, 128.0, x)
+        y3 = getSin(30, 128.0, x)
+        mgr.get_samples()[0,:] = y1
+        mgr.get_samples()[1,:] = y2
+        mgr.get_samples()[2,:] = y3
+
+        b,a = signal.iirdesign([9/128.0, 16/128.0], [4/128.0, 25/128.0],0.2, 70.0, ftype='cheby2')
+        y = signal.lfilter(b, a, mgr.get_samples())
+
+
+        e = ch.Filter([9/128.0, 16/128.0], [4/128.0, 25/128.0], 0.2, 70.0, ftype='cheby2')
+        new_mgr = e.process([mgr])[0]
+
+        self.assertAlmostEqual(y[2,5], new_mgr.get_samples()[2,5])
+        self.assertAlmostEqual(y[0,100], new_mgr.get_samples()[0,100])
+        self.assertNotAlmostEqual(mgr.get_samples()[0,100], new_mgr.get_samples()[0,100])
+        LOGGER.info("FILTER tested!")
+
+
+    def test_downsample(self):
+        if not self.TEST_DOWNSAMPLE:
+            return
+
+        set1 = [[1,2,3,4,5], [10, 20, 30, 40, 50]]
+    
+        mgr = get_fake_manager(2, 5)
+        mgr.data_source = read_data_source.MemoryDataSource(array(set1))
+        
+        e = ch.Downsample(1)
+        new_mgr = e.process([mgr])[0]
+        self.assertEqual(list(new_mgr.get_samples()[0]),
+                         [1., 2., 3., 4., 5.])
+        
+        self.assertEqual(list(new_mgr.get_samples()[1]),
+                         [10., 20., 30., 40., 50.])
+
+        e = ch.Downsample(2)
+        new_mgr = e.process([mgr])[0]
+        self.assertEqual(list(new_mgr.get_samples()[0]),
+                         [1., 3., 5.])
+
+
+        e = ch.Downsample(3)
+        new_mgr = e.process([mgr])[0]
+        self.assertEqual(list(new_mgr.get_samples()[1]),
+                         [10., 40.])
+
+        e = ch.Downsample(4)
+        new_mgr = e.process([mgr])[0]
+        self.assertEqual(list(new_mgr.get_samples()[1]),
+                         [10., 50.])
+        
+        LOGGER.info("Downsample tested!")
+    def test_segment(self):
+        if not self.TEST_SEGMENT:
+            return
+
+        mgr = get_fake_manager(3, 1000)
+        tags = [
+            {'start_timestamp':0.5,
+             'end_timestamp':1.0,
+             'name':'target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':1.2,
+             'end_timestamp':1.5,
+             'name':'non-target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':2.0,
+             'end_timestamp':2.3,
+             'name':'non-target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':2.5,
+             'end_timestamp':3.0,
+             'name':'target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':4.0,
+             'end_timestamp':4.5,
+             'name':'target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':5.0,
+             'end_timestamp':5.5,
+             'name':'target',
+             'desc':{},
+             'channels':''},
+            {'start_timestamp':7.0,
+             'end_timestamp':7.3,
+             'name':'non-target',
+             'desc':{},
+             'channels':''},
+            ]
+        mgr.tags_source.set_tags(tags)
+        cl = ['target', 'non-target']
+        e = ch.Segment(cl, 0.0, 1.0)
+        segments = e.process([mgr])
+
+        self.assertEqual(len(segments), 7)
+        self.assertEqual([i['name'] for i in segments],
+                         ['target', 'non-target', 'non-target',
+                          'target', 'target', 'target', 'non-target'])
+
+        self.assertEqual(list(segments[3].get_samples()[1]),
+                         list(mgr.get_samples(int(128*2.5), int(128*1.0))[1]))
+
+        self.assertEqual(list(segments[3].get_samples()[1]),
+                         [i*10 for i in range(1000)][int(128*2.5)+1:int(128*3.5)+1])
+        
+        LOGGER.info("Segment tested!")
+
+    def test_average(self):
+        if not self.TEST_AVERAGE:
+            return
+        mgrs = []
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*33.0
+        mgr.name = 'target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*66.0
+        mgr.name = 'target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*99.0
+        mgr.name = 'target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*22.0
+        mgr.name = 'non-target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*44.0
+        mgr.name = 'non-target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*66.0
+        mgr.name = 'non-target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(2, 100)
+        mgr.get_samples()[:,:] = mgr.get_samples()*88.0
+        mgr.name = 'non-target'
+        mgrs.append(mgr)
+
+        ss = [lambda mgr: mgr.name=='target',
+              lambda mgr: mgr.name=='non-target']
+        e = ch.Average(ss, 3, 0.0, 'random')
+        new_mgrs = e.process(mgrs)
+        self.assertEqual(len(new_mgrs), 2)
+        
+        self.assertEqual(list((array(range(1, 101))*33.0+\
+                             array(range(1, 101))*66.0+\
+                             array(range(1, 101))*99.0)/3.0),
+                         list(new_mgrs[0].get_samples()[0]))
+
+        self.assertEqual(list((array(range(1, 101))*330.0+\
+                             array(range(1, 101))*660.0+\
+                             array(range(1, 101))*990.0)/3.0),
+                         list(new_mgrs[0].get_samples()[1]))
+
+        self.assertTrue(new_mgrs[1].get_samples()[0][0] in \
+                            [51.333333333333336,
+                             44.0,
+                             66.0,
+                             58.666666666666664])
+
+
+
+        e = ch.Average(ss, 2, 0.0, 'random')
+        new_mgrs = e.process(mgrs)
+        self.assertEqual(len(new_mgrs), 3)
+        LOGGER.info("Average tested!")
+
+
 
 
 

@@ -93,10 +93,6 @@ class SVM(object):
 
 
 
-
-
-
-
 class Segment(object):
     def __init__(self, classes, start_offset, duration):
         self.classes = classes
@@ -104,26 +100,45 @@ class Segment(object):
         self.duration = duration
 
     def process(self, mgrs):
-        return mgrs
+        assert(len(mgrs) == 1)
+        return analysis_offline.segment(mgrs[0], self.classes, self.start_offset, self.duration)
 
 class Average(object):
-    def __init__(self, classes, size, baseline, strategy):
-        pass
+    def __init__(self, bin_selectors, size, baseline, strategy):
+        self.bin_selectors = bin_selectors
+        self.size = size
+        self.baseline = baseline
+        self.strategy = strategy
     def process(self, mgrs):
-        pass
+        return analysis_offline.average(mgrs, self.bin_selectors, self.size,
+                                        self.baseline, self.strategy)
 
 class Filter(object):
-    def __init__(self, **args):
-        pass
+    def __init__(self, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians'):
+        self.wp = wp
+        self.ws = ws
+        self.gpass = gpass
+        self.gstop = gstop
+        self.analog = analog
+        self.ftype = ftype
+        self.output = output
+        self.unit = unit
     def process(self, mgrs):
-        return mgrs
+        new_mgrs = []
+        for mgr in mgrs:
+            new_mgrs.append(analysis_offline.filter(mgr, self.wp, self.ws, self.gpass, self.gstop, 
+                                                    self.analog, self.ftype, self.output, self.unit))
+        return new_mgrs
 
-class Donwnsample(object):
-    def __init__(self, new_sampling=None, leave_every=None):
-        #albo new_sampling albo leave_every 
-        pass
-    def process(self, p_mgrs):
-        return p_mgrs
+class Downsample(object):
+    def __init__(self, factor):
+        self.factor = factor
+    def process(self, mgrs):
+        new_mgrs = []
+        for mgr in mgrs:
+            new_mgrs.append(analysis_offline.downsample(mgr, self.factor))
+        return new_mgrs
+
 
 class ToMvTransform(object):
     def __init__(self):

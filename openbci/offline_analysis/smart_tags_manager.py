@@ -94,15 +94,35 @@ class SmartTagsManager(object):
     def _init_smart_tags(self, p_tag_def):
         """Init smart tags depending on given smart tag definition."""
         LOGGER.info("Start initialising smart tags.")
-        if p_tag_def.is_type("duration"):
-            self._init_duration_smart_tags(p_tag_def)
-            LOGGER.info("Finished initialising smart tags.")
-        elif p_tag_def.is_type("end_tag"):
-            self._init_end_tag_smart_tags(p_tag_def)
-            LOGGER.info("Finished initialising smart tags.")
-        else:
-            LOGGER.error("Unrecognised tag definition type.")
-            raise(Exception("Unrecognised tag definition type."))
+
+        try:
+            l_defs = list(p_tag_def)
+        except TypeError:
+            l_defs = [p_tag_def]
+
+        for i_def in l_defs:
+            if i_def.is_type("duration"):
+                self._init_duration_smart_tags(i_def)
+                LOGGER.info("Finished initialising smart tags.")
+            elif i_def.is_type("end_tag"):
+                self._init_end_tag_smart_tags(i_def)
+                LOGGER.info("Finished initialising smart tags.")
+            else:
+                LOGGER.error("Unrecognised tag definition type.")
+                raise(Exception("Unrecognised tag definition type."))
+
+        def cmp_tags(t1, t2):
+            ts1 = t1['start_timestamp']
+            ts2 = t2['start_timestamp']
+            if ts1 == ts2:
+                return 0
+            elif ts1 > ts2:
+                return 1
+            else:
+                return -1
+
+        self._smart_tags.sort(cmp_tags)
+        
 
     def _init_end_tag_smart_tags(self, p_tag_def):
         """Read all tags from file - create smart tags objects while doing it.
@@ -201,7 +221,7 @@ class SmartTagsManager(object):
             except data_storage_exceptions.NoNextValue:
                 LOGGER.info("No samples left. Some smart tags could have been ignored.")
                 break # Exit the loop, end iterator
-        LOGGER.info("Finished smart tags iteration")
+        LOGGER.debug("Finished smart tags iteration")
         #Reset samples count so that next 
         #iter_smart_tags call will work
 

@@ -4,8 +4,12 @@
 
 from scipy import *
 from scipy import linalg
+from scipy import signal
 import copy
 from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
+from offline_analysis import smart_tag_definition, smart_tags_manager
+from offline_analysis.erp import erp_avg
+
 
 def exclude_channels(mgr, channels):
     new_params = copy.deepcopy(mgr.get_params())
@@ -62,6 +66,26 @@ def leave_channels(mgr, channels):
     return exclude_channels(mgr, chans)
     
 
+def filter(mgr, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians'):
+    if unit == 'radians':
+        b,a = signal.iirdesign(wp, ws, gpass, gstop, analog, ftype, output)
+    elif unit == 'hz':
+        sampling = float(mgr.get_param('sampling'))
+        try:
+            wp = wp/sampling
+            ws = ws/sampling
+        except TypeError:
+            wp = [i/sampling for i in wp]
+            ws = [i/sampling for i in ws]
+
+        b,a = signal.iirdesign(wp, ws, gpass, gstop, analog, ftype, output)
+            
+    filtered = signal.lfilter(b, a, mgr.get_samples())
+    info_source = copy.deepcopy(mgr.info_source)
+    tags_source = copy.deepcopy(mgr.tags_source)
+    samples_source = read_data_source.MemoryDataSource(filtered)
+    return read_manager.ReadManager(info_source, samples_source, tags_source)
+
 def normalize(mgr, norm):
     if norm == 0:
         return mgr
@@ -72,6 +96,88 @@ def normalize(mgr, norm):
         new_mgr.get_samples()[i, :] /= n
     return new_mgr
     
+
+def downsample(mgr, factor):
+    assert(factor >= 1)
+
+
+    ch_num = len(mgr.get_samples())
+    ch_len = len(mgr.get_samples()[0])
+
+    # To be determined ...
+    ret_ch_len = 0
+    i = 0
+    left_inds = []
+    
+    # Determine ret_ch_len - a size of returned channel
+    while i < ch_len:
+        left_inds.append(i)
+        ret_ch_len += 1
+        i += factor
+
+    new_samples = array([zeros(ret_ch_len) for i in range(ch_num)])
+    for i in range(ch_num):
+        for j, ind in enumerate(left_inds):
+            new_samples[i, j] = mgr.get_samples()[i, ind]
+
+
+    info_source = copy.deepcopy(mgr.info_source)
+    info_source.get_params()['number_of_samples'] = str(ret_ch_len*ch_num)
+    info_source.get_params()['sampling_frequency'] = str(float(mgr.get_param('sampling_frequency'))/factor)
+
+    tags_source = copy.deepcopy(mgr.tags_source)
+    samples_source = read_data_source.MemoryDataSource(new_samples)
+    return read_manager.ReadManager(info_source, samples_source, tags_source)
+
+def segment(mgr, classes, start_offset, duration):
+    defs = []
+    for i_start_tag in classes:
+        defs.append(smart_tag_definition.SmartTagDurationDefinition(
+                start_tag_name=i_start_tag, start_offset=start_offset, 
+                end_offset=0, duration=duration))
+    smart_mgr = smart_tags_manager.SmartTagsManager(defs, None, None, None, mgr)
+    return smart_mgr.get_smart_tags()
+
+
+
+def average(mgrs, bin_selectors, size, baseline=0.0, strategy='random'):
+    if strategy == 'random':
+        return random_average(mgrs, bin_selectors, size, baseline)
+
+
+def random_average(mgrs, bin_selectors, size, baseline=0.0):
+    # Bins correspond to every 'class' of mgrs to be averaged
+    # inside classes.
+    bins = [[] for i in range(len(bin_selectors))]
+    sampling = float(mgrs[0].get_param('sampling_frequency'))
+    samples_to_norm = int(sampling*baseline)
+    # Place every manager in some bin, selector is a function
+    # that returnes true if given manager should be in the bin
+    for mgr in mgrs:
+        for i, selector in enumerate(bin_selectors):
+            if selector(mgr):
+                bins[i].append(mgr)
+
+    avg_mgrs = []
+    # Shuffle and avg bins
+    for bin in bins:
+        random.shuffle(bin)
+        i = 0
+        while i+size <= len(bin):
+            avg_samples = erp_avg.get_normalised_avgs(
+                bin[i:(i+size)], samples_to_norm)
+            info_source = copy.deepcopy(bin[0].info_source)
+            tags_source = read_tags_source.MemoryTagsSource([])
+            samples_source = read_data_source.MemoryDataSource(avg_samples)
+            avg_mgrs.append(read_manager.ReadManager(
+                    info_source, samples_source, tags_source))
+
+            i += size
+    return avg_mgrs
+
+                
+
+
 
 def montage(mgr, montage_type, **montage_params):
     if montage_type == 'common_spatial_average':
