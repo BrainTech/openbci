@@ -12,15 +12,15 @@ def channels_gen(num):
     return ' '.join([str(i) for i in range(num)])
 
 def gains_gen(num):
-    return ' '.join(['1']*num)
+    return ' '.join(['0.0715']*num)
 
 def offsets_gen(num):
-    return ' '.join(['0.0715']*num)    
+    return ' '.join(['0']*num)    
 
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 22
+CHANNELS = 1
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -39,10 +39,12 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
-        "ChannelsNames": "gen1;gen2;gen3;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz", #22
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
+        "ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
-        #"ChannelsNames": "a;b;c;",
+        #"ChannelsNames": "gsr",
+        #"ChannelsNames": "O1;Oz;O2",
 
         #"ChannelsNames":"REKA",
         #"ChannelsNames":"A;B",
@@ -52,7 +54,7 @@ class Hashtable(BaseMultiplexerServer):
         "BraintronicsDeviceName": "/dev/ttyUSB0",
         "SamplingRate": "128",
         "VirtualAmplifierFunction": "offset", #"math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
-        "SignalCatcherBufferSize": "1024",
+        "SignalCatcherBufferSize": "4096",
         "NumOfFreq": "8",
         "Border": "0.4",
         "Panel":  " | K :: | L :: | M ::  | del ::  | N ::  | O ::  | say ::  | <- " ,
@@ -96,28 +98,32 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : "test_p300",
-        "SaveFilePath" : "/home/mrygacz/openbci-testing/openbci/",
+        "SaveFileName" : "p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
+        "SaveFilePath" : "./temp/p300/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",
         "FilterBand": "bandpass",
         "FilterUp": "32",
         "FilterDown": "2",
-        "DriverTriggerIndex":str(CHANNELS), #,Append trigger at the end
-        "DriverOnoffIndex": "-1",
+        "DriverTriggerIndex":"-1", #str(CHANNELS), #,Append trigger at the end
+        "DriverOnoffIndex": "-1", #str(CHANNELS),
         "DriverBatteryIndex": "-1",
-        "DriverSampleNoIndex": str(CHANNELS+1),
-        "SaverTimestampsIndex": str(CHANNELS+2),
+        "DriverSampleNoIndex": "-1", #str(CHANNELS),
+        "SaverTimestampsIndex": "-1", #str(CHANNELS+1),
         "AmplifierNull":"8388608.0",
-        "P300Rows":"5",
-        "P300Cols":"5",
+        "P300Rows":"6",
+        "P300Cols":"6",
         "P300BlinkMode":"square",
         "P300BlinkColor":"#ffffff",
         "P300BlinkPeriod":"0.1",
-        "P300BlinkBreak":"0.4",
+        "P300BlinkBreak":"0.075",
         "P300SquareSize":"50.0",
         "P300FontSize":"30",
-        "P300Letters": "A B C D E F G H I J K L M N O P R S T U W Y Z _ <",
+        "P300Letters": "A B C D E F G H I J K L M N O P R S T U W Y Z 0 1 2 3 4 5 6 7 8 9 _ > #",
+        "P300TrainingBlinksPerChar": "96",
+        "P300TrainingCharBreak": "5.0",
+        "P300TrainingChars": "C A T D O G F I S H W A T E R B O W L",
+        "BlinkCatcherBufSize":"12"
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
