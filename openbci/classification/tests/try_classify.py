@@ -28,21 +28,21 @@ import os, os.path, sys
 from classification import chain as my_chain
 from offline_analysis.p300 import chain_analysis_offline as my_tools
 def run():
-    """dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/squares/'
+    dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/squares/'
     f2_name = 'p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_longer_8trials2'
     f2 = {
         'info': os.path.join(dr2, f2_name+'_10HZ.obci.xml'),
         'data': os.path.join(dr2, f2_name+'_10HZ.obci.bin'),
         'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
-       }"""
+       }
     
-    dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/numbered_squares/'
+    """dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/numbered_squares/'
     f2_name = 'p300_128hz_laptop_training_6x6_squareNUMBERS_CATDOGFISHWATERBOWL_longer_8trials'
     f2 = {
         'info': os.path.join(dr2, f2_name+'.obci.filtered.xml'),
         'data': os.path.join(dr2, f2_name+'_10HZ.obci.bin'),
         'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
-       }
+       }"""
 
     #train_data_ch, train_labels = prepare.get_train_set(f2, num_per_avg=15, start_samples_to_norm=0, downsample_level=5) 
     class MY_SVM(object):
@@ -84,30 +84,30 @@ def run():
         my_chain.ChainElement(my_tools.ReadSignal,
                               {'files':[f2]}),
         my_chain.ChainElement(my_tools.ExcludeChannels,
-                              {'channels':[#['SAMPLE_NUMBER', 'F8'],
+                              {'channels':[['SAMPLE_NUMBER', 'F8'],
                                            ['SAMPLE_NUMBER', 'F8', 'M1', 'M2']
                                            ]
                                }),
         my_chain.ChainElement(my_tools.Montage,
                               [
-                #{'montage_type': 'no_montage'},
+                {'montage_type': 'no_montage'},
                 {'montage_type': 'common_spatial_average'},
-                #{'montage_type': 'ears',
-                # 'l_ear_channel': 'M1',
-                # 'r_ear_channel': 'M2'}
+                {'montage_type': 'ears',
+                 'l_ear_channel': 'M1',
+                 'r_ear_channel': 'M2'}
                 ]),
         my_chain.ChainElement(my_tools.LeaveChannels,
                               {'channels':[['Cz'],
                                            #['C3'],
-                                           #['C4'],
+                                           ['Fz'],
                                            ['Pz'],
                                            ]
                                }),
         my_chain.ChainElement(MY_PREPARE,
                               {'num_per_avg':[10],
-                               'start_samples_to_norm':[0, 200],
-                               'downsample_level':[3, 5, 7],
-                               'start_sec_offset':[-0.2, 0.0],
+                               'start_samples_to_norm':[0, 25, 50],
+                               'downsample_level':[3, 5, 7, 10],
+                               'start_sec_offset':[-0.2, 0.0, 0.1],
                                'duration':[0.4, 0.6]}),
         #my_chain.ChainElement(my_tools.Normalize,
         #                      {'norm': [2]}),

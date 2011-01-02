@@ -22,14 +22,17 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
-import sys, struct, time, numpy, copy
+import sys, struct, time, numpy, copy, os.path
 
 from openbci.data_storage import data_storage_exceptions
-
 
 from openbci.data_storage import read_data_source
 from openbci.data_storage import read_info_source
 from openbci.data_storage import read_tags_source
+
+from openbci.data_storage import data_file_proxy
+from openbci.data_storage import info_file_proxy
+from openbci.tags import tags_file_writer
 
 import data_storage_logging as logger
 LOGGER = logger.get_logger("read_manager", "info")
@@ -81,7 +84,33 @@ class ReadManager(object):
         tags_source = copy.deepcopy(self.tags_source)
         samples_source = copy.deepcopy(self.data_source)
         return ReadManager(info_source, samples_source, tags_source)
-        
+
+    def save_to_file(self, p_dir, p_name):
+        tags = self.get_tags()
+        params = self.get_params()
+        first_ts = float(params.get('first_sample_timestamp', '0.0'))
+
+        path = os.path.join(p_dir, p_name)
+        #store tags
+        tags_writer = tags_file_writer.TagsFileWriter(path+'.tags')
+        for tag in tags:
+            tags_writer.tag_received(tag)
+
+        #store info
+        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.info')
+        info_writer.set_attributes(params)
+
+        #store data
+        data_writer = data_file_proxy.DataFileWriteProxy(path+'.dat')
+        for sample in self.iter_samples():
+            for d in sample:
+                data_writer.data_received(d)
+
+        tags_writer.finish_saving(first_ts)        
+        info_writer.finish_saving()
+        data_writer.finish_saving()
+
+
     def get_samples(self, p_from=None, p_len=None):
         """Return a two dimensional array of signal values.
         if p_reload then refresh the file, otherwise use cached values."""

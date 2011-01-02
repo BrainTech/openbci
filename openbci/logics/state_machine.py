@@ -72,3 +72,6 @@ class StateMachine(object):
     def set_state_param(self, p_state_id, p_param_id, p_param_value):
         """For state p_state_id set its p_param_id to p_param_value."""
         self._states[p_state_id][p_param_id] = p_param_value
+
+    def get_number_of_states(self):
+        return len(self._states)

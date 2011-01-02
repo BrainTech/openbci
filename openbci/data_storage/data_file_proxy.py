@@ -54,9 +54,6 @@ class DataFileWriteProxy(object):
         except IOError:
             LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
             sys.exit(1)
-        self.t_wr = 0.0
-        self.t_fl = 0.0
-        self.t_full = 0.0
 
     def finish_saving(self):
         """Close the file, return a tuple - 

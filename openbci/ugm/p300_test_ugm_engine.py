@@ -40,13 +40,13 @@ import sys
 from PyQt4 import QtCore, QtGui, Qt
 
 
-class P300UgmEngine(ugm_engine.UgmEngine):
+class P300TestUgmEngine(ugm_engine.UgmEngine):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
     ugm pyqt structure so that it can refresh."""
     def __init__(self):
         """Store config manager."""
-        super(P300UgmEngine, self).__init__(ugm_config_manager.UgmConfigManager('black'))
+        super(P300TestUgmEngine, self).__init__(ugm_config_manager.UgmConfigManager('black'))
 
     def run(self):
         """Fire pyqt application with UgmMainWindow. 
@@ -72,7 +72,7 @@ class P300UgmEngine(ugm_engine.UgmEngine):
 
         Thread(self).start()
 
-        super(P300UgmEngine, self).run()
+        super(P300TestUgmEngine, self).run()
 
     def _start_blinking(self):
         LOGGER.info("_start_blinking fired...")
@@ -106,7 +106,7 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         self._run_blinks = 0
         time.sleep(1)
 
-        self._init_target_letters(letters)
+#        self._init_target_letters(letters)
         self._training_next_char()
         self.start_blinking_timer.start(self.trainingCharBreak)
     def _init_target_letters(self, letters):
@@ -121,28 +121,30 @@ class P300UgmEngine(ugm_engine.UgmEngine):
         return ind in self._targets[char]
 
     def _training_next_char(self):
-        try:
-            char = self.trainingChars.pop()
-        except IndexError:
-            LOGGER.info("END OF TRAINING")
-            sys.exit(0)
-        else:
-            stim = self._p300_config_manager.get_text(char)
-            self._config_manager.set_config(stim)
-            self.update()
-            self.targetChar = char
+        #try:
+        #    char = self.trainingChars.pop()
+        #except IndexError:
+        #    LOGGER.info("END OF TRAINING")
+        #    sys.exit(0)
+        #else:
+        #    stim = self._p300_config_manager.get_text(char)
+        #    self._config_manager.set_config(stim)
+        #    self.update()
+        #    self.targetChar = char
+        pass
             
     def _next_blink_ind(self):
         self._blink_ind += 1
         self._run_blinks += 1
         if self._blink_ind == self.rows + self.cols:
-            r_ind = 1
-            c_ind = 2
-            while abs(r_ind-c_ind) == 1:
-                random.shuffle(self._blink_inds)
-                r, c = self._targets[self.targetChar]
-                r_ind = self._blink_inds.index(r)
-                c_ind = self._blink_inds.index(c)
+            random.shuffle(self._blink_inds)
+            #r_ind = 1
+            #c_ind = 2
+            #while abs(r_ind-c_ind) == 1:
+            #    random.shuffle(self._blink_inds)
+            #    r, c = self._targets[self.targetChar]
+            #    r_ind = self._blink_inds.index(r)
+            #    c_ind = self._blink_inds.index(c)
             
             self._blink_ind = 0
 
@@ -164,20 +166,13 @@ class P300UgmEngine(ugm_engine.UgmEngine):
             self._config_manager.set_config(stim)
         self.update()
 
-        t = time.time()        
-        #msg = variables_pb2.Blink()
-        #msg.index = msg_ind
-        #msg.timestamp = t
-        #self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
-        if self._ind_is_target(ind, self.targetChar):
-            TAGGER.send_tag(t, t, "target", {
-                    'letter_row_and_col': str(self._targets[self.targetChar]),
-                    'letter': self.targetChar,
-                    'blink_row_or_col': str(ind)
-                    })
-        else:
-            TAGGER.send_tag(t, t, "non-target")            
+        t = time.time()   
 
+     
+        msg = variables_pb2.Blink()
+        msg.index = ind
+        msg.timestamp = t
+        self.connection.send_message(message = msg.SerializeToString(), type = types.BLINK_MESSAGE, flush=True)
 
         #QtCore.QTimer.singleShot(self.blinkPeriod - 1000*(time.time() - t), self, QtCore.SLOT("_unblink()"))
         QtCore.QTimer.singleShot(25, self, QtCore.SLOT("_unblink()"))

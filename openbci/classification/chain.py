@@ -75,8 +75,11 @@ class Chain(object):
         self.candidates = None
         self.results = None
         self.errors = []
+        self.gather_errors = True
 
-    def process(self, data_set=None, select_winner=True):
+    def process(self, data_set=None, 
+                select_winner=True, gather_errors=True):
+        self.gather_errors = gather_errors
         self.candidates, self.results = self._process(data_set, 0)
         if select_winner:
             return self._select_winner(self.candidates, self.results)
@@ -99,18 +102,29 @@ class Chain(object):
         ret_results = []
         for i_params_set in current_element.params:
             obj = current_element.class_template(**i_params_set)
-            LOGGER.debug("Start processing with: "+str(obj.__class__)+"("+str(i_params_set))
-            try:
+            LOGGER.debug("Start processing with: "+str(obj.__class__)+"("+str(i_params_set)+")")
+            if self.gather_errors:
+                try:
+                    new_data_set = obj.process(data_set)
+                except Exception, e:
+                    self.errors.append(traceback.format_exc())
+                else:
+                    candidates, results = self._process(new_data_set, element_index + 1)
+                    for i_cand in candidates:
+                    # prepend to every list of candidate a current object
+                        i_cand.insert(0, obj)
+                    ret_candidates += candidates
+                    ret_results += results
+            else: #dont gather errors
                 new_data_set = obj.process(data_set)
-            except Exception, e:
-                self.errors.append(traceback.format_exc())
-            else:
                 candidates, results = self._process(new_data_set, element_index + 1)
                 for i_cand in candidates:
                     # prepend to every list of candidate a current object
                     i_cand.insert(0, obj)
                 ret_candidates += candidates
                 ret_results += results
+
+                
 
         return ret_candidates, ret_results
 

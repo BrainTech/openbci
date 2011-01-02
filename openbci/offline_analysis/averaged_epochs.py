@@ -21,40 +21,25 @@
 #
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-"""
-This script show how to use PyML module.
-"""
-from PyML import *
 
-def run():
-    data = VectorDataSet('iris.data', labelsColumn = -1)
-    #labels = data.labels.L
-    #some_pattern = data.getPattern(2)
-    #all_features_as_array = data.getMatrix()
-    #data.normalize()
-    #number_of_features = data.numFeatures
-    #number_of_trials = len(data)
-    #number_of_every_class = labels.classSize
-    data2 = data.__class__(data, classes = ['Iris-versicolor', 'Iris-virginica'])
-    s = SVM()
-    #r = s.cv(data2)
-    print(data2)
-    
-    #r.plotROC()
+"""Implement averaged epochs class."""
+
+from openbci.data_storage import read_manager
+from openbci.data_storage import read_info_source
+from openbci.data_storage import read_data_source
+from openbci.data_storage import read_tags_source
+from offline_analysis.erp import erp_avg
 
 
-    #param = modelSelection.Param(svm.SVM(), 'C', [0.1, 1, 10, 100, 1000])
-    #m = modelSelection.ModelSelector(param, measure='balancedSuccessRate')
-    #m.train(data2)
 
-    #best_svm = m.classifier
-    #for i in range(len(data2)):
-    #    print(best_svm.decisionFunc(data2, i), best_svm.classify(data2, i))
-    #best_svm_result = best_svm.cv(data2)
-    
-
-    
-
-
-if __name__ == '__main__':
-    run()
+class AveragedEpochs(read_manager.ReadManager):
+    def __init__(self, p_mgrs, p_info_source, p_avg_name,
+                 p_samples_to_norm=0, p_avg_len=None):
+        avg_samples = erp_avg.get_normalised_avgs(p_mgrs, p_samples_to_norm, p_avg_len)
+        tags_source = read_tags_source.MemoryTagsSource([])
+        p_info_source.get_params()['epoch_name'] = p_avg_name
+        samples_source = read_data_source.MemoryDataSource(avg_samples)
+        super(AveragedEpochs, self).__init__(p_info_source,
+                                      samples_source,
+                                      tags_source)
+        

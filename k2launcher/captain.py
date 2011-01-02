@@ -8,9 +8,8 @@ import sys
 from utils import pb2_construct, set_env
 import k2launcher_pb2
 
-home = "/home/mrygacz/openbci-testing/openbci/" 
-#''.join([os.path.split(
-#    os.path.realpath(os.path.dirname(__file__)))[0], '/'])
+home = ''.join([os.path.split(
+    os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
 mx_path = '%sazouk-libraries/build/' % home
 obci_path = '%sopenbci/' % home
@@ -41,14 +40,19 @@ def multitask(task_ids, task_id):
 task("../svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
 task("./signal_catcher.py", "signal_catcher")
+task("./fast_signal_catcher.py", "fast_signal_catcher")
 task("./filters/filter.py", "filter")
 task("./monitors/monitor.py 0", "monitor")
 task("./monitors/spectrum.py 0", "spectrum")
 
 task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
-task("./ugm/run_ugm.py p300", "p300_ugm")
+task("./ugm/run_ugm.py p300_train", "p300_ugm_train")
+task("./ugm/run_ugm.py p300_test", "p300_ugm_test")
 task("./analysis/p300.py", "p300_analysis")
+task("./blink_catcher.py", "blink_catcher")
+task("./logics/logic_speller.py p300_speller_config", "p300_logics")
+
 task("./main_gui.py","gui" )
 task("./tag_catcher.py", "tag_catcher")
 task("./data_storage/tests/test_manually_signal_saver_control.py finish_saving", "finish_saver")
@@ -285,14 +289,31 @@ start("gui", "hashtable")
 start("gui","ugm")
 start("gui", "gui")
 
-start("p300_test", "hashtable")
-start("p300_test", "p300_ugm")
-start("p300_test", "p300_analysis")
+start("p300_train_test", "hashtable")
+start("p300_train_test", "p300_ugm_train")
+start("p300_train_test", "p300_analysis")
+
+
+start("p300_test_test", "hashtable")
+start("p300_test_test", "virtual_f_amplifier")
+start("p300_test_test", "fast_signal_catcher")
+start("p300_test_test", "p300_ugm_test")
+start("p300_test_test", "blink_catcher")
+start("p300_test_test", "p300_analysis")
+start("p300_test_test", "p300_logics")
+
+
 
 start("p300_training", "hashtable")
 start("p300_training", "svarog_pinger")
 start("p300_training", "c++_usb_amplifier")
-start("p300_training", "p300_ugm")
+start("p300_training", "p300_ugm_train")
+
+
+start("p300_testing", "hashtable")
+start("p300_testing", "svarog_pinger")
+start("p300_testing", "c++_usb_amplifier")
+start("p300_testing", "p300_ugm_test")
 
 
 

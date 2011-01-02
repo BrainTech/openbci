@@ -93,9 +93,12 @@ if __name__ == "__main__":
         l_eng_type = sys.argv[1]
     except IndexError:
         l_eng_type = 'simple'
-    if l_eng_type == 'p300':
-        from ugm import p300_ugm_engine
-        ENG = p300_ugm_engine.P300UgmEngine()        
+    if l_eng_type == 'p300_train':
+        from ugm import p300_train_ugm_engine
+        ENG = p300_train_ugm_engine.P300TrainUgmEngine()        
+    elif l_eng_type == 'p300_test':
+        from ugm import p300_test_ugm_engine
+        ENG = p300_test_ugm_engine.P300TestUgmEngine()        
     else:
         from ugm import ugm_engine
         ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())

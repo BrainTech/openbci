@@ -27,114 +27,125 @@ import scipy
 import os, os.path, sys
 from classification import chain as my_chain
 from offline_analysis.p300 import chain_analysis_offline as my_tools
-def run():
-    """dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/squares/'
-    f2_name = 'p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_longer_8trials2'
-    f2 = {
-        'info': os.path.join(dr2, f2_name+'_10HZ.obci.xml'),
-        'data': os.path.join(dr2, f2_name+'_10HZ.obci.bin'),
-        'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
-       }"""
-    
-    dr2 = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/numbered_squares/'
-    f2_name = 'p300_128hz_laptop_training_6x6_squareNUMBERS_CATDOGFISHWATERBOWL_longer_8trials'
-    f2 = {
-        'info': os.path.join(dr2, f2_name+'.obci.filtered.xml'),
-        'data': os.path.join(dr2, f2_name+'_10HZ.obci.bin'),
-        'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
-       }
-
-    #train_data_ch, train_labels = prepare.get_train_set(f2, num_per_avg=15, start_samples_to_norm=0, downsample_level=5) 
-    class MY_SVM(object):
-        def __init__(self, C, Cmode , kernel):
-            self.s = svm.SVM(C=C, Cmode=Cmode, arg=kernel)
-        def process(self, data):
-            return self.s.stratifiedCV(data[0], 5).getBalancedSuccessRate()
-        def __repr__(self):
-            return str({"CLASS": self.__class__.__name__,
-                        "Cmode":self.s.Cmode,
-                        "kernel": self.s.kernel.__class__.__name__,
-                        "s.C":str(self.s.C)})
-
-    class MY_PREPARE(object):
-        def __init__(self, num_per_avg, start_samples_to_norm, downsample_level, start_sec_offset, duration):
-            self.num_per_avg = num_per_avg
-            self.start_samples_to_norm = start_samples_to_norm
-            self.downsample_level = downsample_level
-            self.start_sec_offset = start_sec_offset
-            self.duration = duration
-        def process(self, mgrs):
-            train_data_ch, train_labels = prepare.get_train_set_from_mgr(mgrs[0], self.num_per_avg, self.start_samples_to_norm, self.downsample_level, self.start_sec_offset, self.duration)
-            l = Labels([str(i) for i in train_labels])
-            data = VectorDataSet(train_data_ch[0], L=l)
-            data.normalize(2)
-            return [data]
-        def __repr__(self):
-            return str({"CLASS": self.__class__.__name__,
-                        "num_per_avg":self.num_per_avg,
-                        "start_samples_to_norm":self.start_samples_to_norm,
-                        "duration":self.duration,
-                        "start_sec_offset":self.start_sec_offset,
-                        "downsample_level":self.downsample_level})
-            
-
-
-
+def run(files, folds=3, avg_size=10):
     ch = my_chain.Chain(
         my_chain.ChainElement(my_tools.ReadSignal,
-                              {'files':[f2]}),
-        my_chain.ChainElement(my_tools.ExcludeChannels,
-                              {'channels':[['SAMPLE_NUMBER', 'F8'],
-                                           ['SAMPLE_NUMBER', 'F8', 'M1', 'M2']
-                                           ]
-                               }),
+                              {'files':[files]}),
+        #my_chain.ChainElement(my_tools.ExcludeChannels,
+        #                      {'channels':[#['SAMPLE_NUMBER', 'F8'],
+        #                                   ['SAMPLE_NUMBER', 'F8', 'M1', 'M2']
+        #                                   ]
+        #                       }),
+
+        #my_chain.ChainElement(my_tools.Plot,
+        #                      [{'channel':'Pz'}]),
+
         my_chain.ChainElement(my_tools.Montage,
                               [
                 {'montage_type': 'no_montage'},
-                {'montage_type': 'common_spatial_average'},
+                #{'montage_type': 'common_spatial_average'},
                 {'montage_type': 'ears',
-                 'l_ear_channel': 'M1',
-                 'r_ear_channel': 'M2'}
+                'l_ear_channel': 'M1',
+                'r_ear_channel': 'M2'}
                 ]),
         my_chain.ChainElement(my_tools.LeaveChannels,
                               {'channels':[['Cz'],
                                            ['C3'],
                                            ['C4'],
+                                           ['Fz'],
                                            ['Pz'],
                                            ]
                                }),
+        my_chain.ChainElement(my_tools.Filter,
+                [{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                  'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}]),
+        my_chain.ChainElement(my_tools.Filter,
+                [{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                  'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}]),
+
         my_chain.ChainElement(my_tools.Segment,
                               {'classes':[('target','non-target')],
-                               'start_offset':[-0.2, 0.0],
-                               'duration':[0.4, 0.6]}),
-        my_chain.ChainElement(Average,
+                               'start_offset':[-0.2, -0.1, 0.0, 0.1, 0.15],
+                               'duration':[0.4, 0.5, 0.6]}),
+        my_chain.ChainElement(my_tools.Average,
                               {'bin_selectors':[
                     [lambda mgr: mgr['name'] == 'target',
                      lambda mgr: mgr['name'] == 'non-target']],
-                               'size':[10],
-                               'baseline':[0, 0.2],
+                               'bin_names':[['target', 'non-target']],
+                               'size':[avg_size],
+                               'baseline':[0.0, 0.1, 0.2],
                                'strategy':['random']}),
-
         my_chain.ChainElement(my_tools.Downsample, # odwrotnie?
-                              {'factor':[3, 5, 7]}),
+                              {'factor':[2, 3, 4, 5,7,9]}),
         my_chain.ChainElement(my_tools.Normalize,
                               {'norm': [2]}),
+        my_chain.ChainElement(my_tools.PrepareTrainSet,
+                              {}),
         my_chain.ChainElement(my_tools.SVM,
-                              {'C':[0.5, 1,3, 5,7, 10],
+                              {'C': [1.0, 3.0, 5.0, 10.0],
                                'Cmode':['classProb'],
-                               'kernel':[ker.Linear(), ker.Polynomial()]
+                               'folds':[folds],
+                               'kernel':[ker.Linear()]
                                })                              
         )
-    cs, res = ch.process(None, True)
+    cs, res = ch.process(None, True, True)
+    
+    #now make svm better
+    ret = files
+    for elem in cs[:-1]:
+        ret = elem.process(ret)
+    new_ch = my_chain.Chain(
+        my_chain.ChainElement(my_tools.SVM,
+                              {'C':[0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 12.0, 15.0, 20.0],
+                               'Cmode':['classProb'],
+                               'folds':[folds],
+                               'kernel':[ker.Gaussian(1.0), ker.Gaussian(3.0), ker.Gaussian(5.0), ker.Gaussian(7.0), ker.Gaussian(10.0), 
+                                         ker.Gaussian(2.0), ker.Gaussian(4.0), ker.Gaussian(5.0), ker.Gaussian(8.0), ker.Gaussian(11.0), 
+                                         ker.Gaussian(12.0), ker.Gaussian(15.0), ker.Gaussian(18.0), ker.Gaussian(20.0), ker.Gaussian(25.0), 
+                                         ker.Polynomial(3), ker.Polynomial(2), ker.Linear()]
+                               })                              
+        )
+
+    new_cs, new_res = new_ch.process(ret, True, True)    
+    cs[-1] = new_cs[-1]
+
     print("#############################################")
     print("CANDIDATES LEN: "+str(len(ch.candidates)))
     print("#############################################")
     ch.print_errors()
     ch.print_candidate(cs)
     print("#############################################")
-    print("RESULT: "+str(res))
+    print("RESULT1: "+str(res))
+    print("RESULT2: "+str(new_res))
+    return cs, new_res
         
-    
-if __name__ == '__main__':
-    run()
+      
 
+import sys
+import p300_sample_data
+if __name__ == '__main__':
+    
+    person = sys.argv[1]
+    mode = sys.argv[2]
+    folds = int(sys.argv[3])
+    avg_size = int(sys.argv[4])
+
+    files = p300_sample_data.get_files(person, mode)
+    cs, res = run(files, folds, avg_size)
+
+    cs[-1].ret = 'result'
+    
+    r = files
+    for elem in cs:
+        r = elem.process(r)
+        
+
+    ch = my_chain.Chain()
+    ch.print_candidate(cs)
+    print("Training/Testing result: "+str(res)+"/"+(str(r.getBalancedSuccessRate())))
+    for i in range(cs[-1].folds):
+        print("##########")
+        print(r[i])
+    print("*******")
+    print(r)
+    r.plotROC()

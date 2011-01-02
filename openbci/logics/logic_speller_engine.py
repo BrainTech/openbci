@@ -25,10 +25,13 @@
 import logic_engine
 import speller_graphics_manager as sgm
 class LogicSpellerEngine(logic_engine.LogicEngine):
-    def __init__(self, p_server):
-        self._menu_state = [0, 0, 0]
+    def __init__(self, p_server, p_st_config='speller_config'):
         self._message = ''
-        super(LogicSpellerEngine, self).__init__(p_server)
+        self._menu_state = [0, 0, 0]
+
+        super(LogicSpellerEngine, self).__init__(p_server, p_st_config)
+
+
 
     # --------------------------------------------------------------------------
     # ------------------ actions available in config ---------------------------
@@ -74,7 +77,8 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         self._server.send_message({
                 'value':l_graphics_string,
                 'type':'ugm_update_message'})
-        super(LogicSpellerEngine, self)._update_global_gui()
+        if self._state_machine.get_number_of_states() > 1:
+            super(LogicSpellerEngine, self)._update_global_gui()
     def _update_main_menu(self, p_decision):
         """Update locally stored menu_state. The method is fired
         when we are in 0 state and p_decision has been made by the user.

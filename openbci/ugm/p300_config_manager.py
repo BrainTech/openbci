@@ -30,15 +30,15 @@ class P300ConfigManager(object):
         pass
     def get_blink_row(self, row):
         #return self.blink_rows[row], self.non_blink_rows[row]
-        r = str(random.randint(1, 10))
-        for b in self.blink_rows[row]:
-            b['stimuluses'][0]['message'] = r
+        #r = str(random.randint(1, 5))
+        #for b in self.blink_rows[row]:
+        #    b['stimuluses'][0]['message'] = r
         return self.blink_rows[row], self.non_blink_rows[row]
     def get_blink_col(self, col):
         #return self.blink_cols[col], self.non_blink_cols[col]
-        r = str(random.randint(1, 10))
-        for b in self.blink_cols[col]:
-            b['stimuluses'][0]['message'] = r
+        #r = str(random.randint(1, 5))
+        #for b in self.blink_cols[col]:
+        #    b['stimuluses'][0]['message'] = r
         return self.blink_cols[col], self.non_blink_cols[col]            
 
     def get_text(self, char):

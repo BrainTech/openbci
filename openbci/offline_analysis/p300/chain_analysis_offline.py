@@ -6,11 +6,15 @@ import analysis_offline
 class ReadSignal(object):
     def __init__(self, files):
         self.files = files
-    def process(self, *whatever):
-        mgr = read_manager.ReadManager(self.files['info'],
-                                       self.files['data'],
-                                       self.files['tags'])
-        return [mgr]
+    def process(self, files=None):
+        if not self.files is None:
+            files = self.files
+        mgrs = []
+        for f in files:
+            mgrs.append(read_manager.ReadManager(f['info'],
+                                                 f['data'],
+                                                 f['tags']))
+        return mgrs
     def __repr__(self):
         return str({"CLASS": self.__class__.__name__,
                    "FILES":str(self.files)})
@@ -57,7 +61,8 @@ class Montage(object):
         return new_mgrs
     def __repr__(self):
         return str({"CLASS": self.__class__.__name__,
-                    "montage_type": self.montage_type})
+                    "montage_type": self.montage_type,
+                    "montage_params": self.montage_params})
 
         
 
@@ -77,21 +82,49 @@ class Normalize(object):
 
 
 class PrepareTrainSet(object):
-    def process(self, data):
+    def __init__(self, **whatever):
         pass
+    def process(self, mgrs):
+        return analysis_offline.prepare_train_set(mgrs)
+    def __repr__(self):
+        return str({"CLASS": self.__class__.__name__})
     
 class SVM(object):
-    def __init__(self, C, Cmode):
-        self.s = svm.SVM(C=C, Cmode=Cmode)
-    def process(self, data):
-        return self.s.stratifiedCV(data, 5).getBalancedSuccessRate()
+    def __init__(self, C, Cmode , kernel, folds=5, ret='balancedSuccessRate'):
+        self.C = C
+        self.Cmode = Cmode
+        self.kernel = kernel
+        self.folds = folds
+        self.ret = ret
+    def process(self, train_data):
+        return analysis_offline.svm(train_data, 
+                                    self.C, self.Cmode, self.kernel, self.folds, self.ret)
+    def __repr__(self):
+        d = {"CLASS": self.__class__.__name__,
+             "Cmode":self.Cmode,
+             "folds":str(self.folds),
+             "s.C":str(self.C)}
+        k_class = self.kernel.__class__.__name__
+        if k_class == 'Polynomial':
+            k_class = k_class+"("+str(self.kernel.degree)+")"
+        elif k_class == 'Gaussian':
+            k_class = k_class+"("+str(self.kernel.gamma)+")"
+        d['kernel'] = k_class
+        return str(d)
+
+class P300SVM(object):
+    def __init__(self, C, Cmode, kernel):
+        self.C = C
+        self.Cmode = Cmode
+        self.kernel = kernel
+    def process(self, mgrs):
+        return analysis_offline.p300_svm(mgrs,
+                                    self.C, self.Cmode, self.kernel)
     def __repr__(self):
         return str({"CLASS": self.__class__.__name__,
-                    "C": str(self.s.C),
-                    "Cmode":self.s.Cmode
-                    })
-
-
+                    "Cmode":self.Cmode,
+                    "kernel": self.kernel.__class__.__name__,
+                    "s.C":str(self.C)})
 
 class Segment(object):
     def __init__(self, classes, start_offset, duration):
@@ -100,18 +133,37 @@ class Segment(object):
         self.duration = duration
 
     def process(self, mgrs):
-        assert(len(mgrs) == 1)
-        return analysis_offline.segment(mgrs[0], self.classes, self.start_offset, self.duration)
+        new_mgrs = []
+        for mgr in mgrs:
+            new_mgrs = new_mgrs + analysis_offline.segment(mgr, self.classes, self.start_offset, self.duration)
+        return new_mgrs
+
+    def __repr__(self):
+        return str({"CLASS": self.__class__.__name__,
+                    "classes": self.classes,
+                    "start_offset": self.start_offset,
+                    "duration": self.duration})
+
 
 class Average(object):
-    def __init__(self, bin_selectors, size, baseline, strategy):
+    def __init__(self, bin_selectors, bin_names, size, baseline, strategy):
         self.bin_selectors = bin_selectors
+        self.bin_names = bin_names
         self.size = size
         self.baseline = baseline
         self.strategy = strategy
     def process(self, mgrs):
-        return analysis_offline.average(mgrs, self.bin_selectors, self.size,
-                                        self.baseline, self.strategy)
+        return analysis_offline.average(mgrs, self.bin_selectors, self.bin_names,
+                                        self.size, self.baseline, self.strategy)
+    def __repr__(self):
+        return str({"CLASS": self.__class__.__name__,
+                    "bin_selectors": str(self.bin_selectors),
+                    "bin_names": self.bin_names,
+                    "size": self.size,
+                    "baseline": self.baseline,
+                    "strategy": self.strategy
+                    })
+
 
 class Filter(object):
     def __init__(self, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians'):
@@ -129,6 +181,12 @@ class Filter(object):
             new_mgrs.append(analysis_offline.filter(mgr, self.wp, self.ws, self.gpass, self.gstop, 
                                                     self.analog, self.ftype, self.output, self.unit))
         return new_mgrs
+    def __repr__(self):
+        ret = self.__dict__.copy()
+        ret["CLASS"] = self.__class__.__name__
+        return str(ret)
+
+
 
 class Downsample(object):
     def __init__(self, factor):
@@ -138,6 +196,11 @@ class Downsample(object):
         for mgr in mgrs:
             new_mgrs.append(analysis_offline.downsample(mgr, self.factor))
         return new_mgrs
+    def __repr__(self):
+        ret = self.__dict__.copy()
+        ret["CLASS"] = self.__class__.__name__
+        return str(ret)
+
 
 
 class ToMvTransform(object):
@@ -150,3 +213,14 @@ class ToMvTransform(object):
 
 
                 
+class Plot(object):
+    def __init__(self, channel):
+        self.channel = channel
+    def process(self, mgrs):
+        for mgr in mgrs:
+            analysis_offline.plot(mgr, self.channel)
+        return mgrs
+    def __repr__(self):
+        ret = {}
+        ret["CLASS"] = self.__class__.__name__
+        return str(ret)

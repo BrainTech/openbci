@@ -13,6 +13,7 @@ LOGGER = logger.get_logger("test_chain_analysis_offline", "info")
  
 
 import chain_analysis_offline as ch
+import analysis_offline as an
 
 def get_fake_manager(number_of_channels, channel_len):
     """
@@ -54,10 +55,15 @@ class ModTest(unittest.TestCase):
         self.TEST_LEAVE_CHANNELS = True
         self.TEST_MONTAGE = True
         self.TEST_NORMALIZE = True
-        self.TEST_FILTER = True
+        self.TEST_FILTER = False
         self.TEST_DOWNSAMPLE = True
         self.TEST_SEGMENT = True
         self.TEST_AVERAGE = True
+        self.TEST_PREPARE_TRAIN_SET = True
+        self.TEST_SVM = True
+        self.P300_PREPARE_FOLDED_MGRS = True
+
+
         
     def test_read_signal(self):
         if not self.TEST_READ_SIGNAL:
@@ -70,10 +76,10 @@ class ModTest(unittest.TestCase):
             'tags':os.path.join(dr2, f2_name+'.obci.arts_free.svarog.tags')
             }
         
-        r = ch.ReadSignal(f2)
+        r = ch.ReadSignal([f2])
         mgrs = r.process()
         self.assertEqual(len(mgrs), 1)
-        self.assertEqual(len(mgrs[0].get_tags()), 1574)
+        self.assertEqual(len(mgrs[0].get_tags()), 1444)
         self.assertEqual(int(mgrs[0].get_param('number_of_channels')), 24)
         sample = None
         for s in mgrs[0].iter_samples():
@@ -200,6 +206,7 @@ class ModTest(unittest.TestCase):
 
         e = ch.Filter([9/128.0, 16/128.0], [4/128.0, 25/128.0], 0.2, 70.0, ftype='cheby2')
         new_mgr = e.process([mgr])[0]
+        ch.Plot('CH1').process([new_mgr])
 
         self.assertAlmostEqual(y[2,5], new_mgr.get_samples()[2,5])
         self.assertAlmostEqual(y[0,100], new_mgr.get_samples()[0,100])
@@ -342,7 +349,8 @@ class ModTest(unittest.TestCase):
 
         ss = [lambda mgr: mgr.name=='target',
               lambda mgr: mgr.name=='non-target']
-        e = ch.Average(ss, 3, 0.0, 'random')
+        ss_n = ['target', 'non-target']
+        e = ch.Average(ss, ss_n, 3, 0.0, 'random')
         new_mgrs = e.process(mgrs)
         self.assertEqual(len(new_mgrs), 2)
         
@@ -364,12 +372,109 @@ class ModTest(unittest.TestCase):
 
 
 
-        e = ch.Average(ss, 2, 0.0, 'random')
+        e = ch.Average(ss, ss_n, 2, 0.0, 'random')
         new_mgrs = e.process(mgrs)
+        
         self.assertEqual(len(new_mgrs), 3)
+        self.assertEqual([i.get_param('epoch_name') for i in new_mgrs],
+                         ['target', 'non-target', 'non-target'])
+        self.assertTrue(new_mgrs[2].get_samples()[1, 1] in \
+                            [1100.0,
+                             1540.0,
+                             1320.0,
+                             1100.0,
+                             880.0,
+                             660.0])
         LOGGER.info("Average tested!")
 
+    def test_prepare_train_set(self):
+        if not self.TEST_PREPARE_TRAIN_SET:
+            return
+        
+        mgrs = []
 
+        mgr = get_fake_manager(1, 10)
+        mgr.get_samples()[:,:] = mgr.get_samples()*0.22
+        mgr.get_params()['epoch_name'] = 'target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(1, 10)
+        mgr.get_samples()[:,:] = mgr.get_samples()*0.44
+        mgr.get_params()['epoch_name'] = 'non-target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(1, 10)
+        mgr.get_samples()[:,:] = mgr.get_samples()*0.66
+        mgr.get_params()['epoch_name'] = 'target'
+        mgrs.append(mgr)
+
+        mgr = get_fake_manager(1, 10)
+        mgr.get_samples()[:,:] = mgr.get_samples()*0.88
+        mgr.get_params()['epoch_name'] = 'target'
+        mgrs.append(mgr)
+
+        e = ch.PrepareTrainSet()
+        data = e.process(mgrs)
+        self.assertAlmostEqual(0.22, data.getMatrix()[0,0])
+        self.assertAlmostEqual(0.44, data.getMatrix()[1,0])
+        self.assertAlmostEqual(0.66, data.getMatrix()[2,0])
+        self.assertAlmostEqual(0.88, data.getMatrix()[3,0])
+        self.assertEqual(data.labels.L,
+                         ['target', 'non-target', 'target', 'target'])
+                                 
+
+        LOGGER.info("Prepare data tested!")
+
+    def test_svm(self):
+        if not self.TEST_SVM:
+            return
+        LOGGER.info("SVM tested!")
+    def test_p300_prepare_folded_mgrs(self):
+        if not self.P300_PREPARE_FOLDED_MGRS:
+            return
+
+        target = range(10)
+        non_target = [100*i  for i in range(88)]
+        data = an._p300_prepare_folded_mgrs(target, non_target, folds=5, non_target_per_target=4)
+        self.assertEqual(len(data), 5)
+        self.assertEqual([(len(d[1][0]), len(d[1][1])) for d in data],
+                         [(2, 2*4)]*5)
+        
+        s = []
+        for d in data:
+            s += d[1][0]
+        s.sort()
+        self.assertEqual(s, range(10))
+
+        for d in data:
+            s = d[0][1] + d[1][1]
+            s.sort()
+            self.assertEqual(s,
+                             non_target)
+
+
+        target = range(9)
+        non_target = [100*i  for i in range(50)]
+        data = an._p300_prepare_folded_mgrs(target, non_target, folds=2, non_target_per_target=11)
+        self.assertEqual(len(data), 2)
+        self.assertEqual([(len(d[1][0]), len(d[1][1])) for d in data],
+                         [(4, 4*11), (5, 5*11)])
+
+        s = []
+        for d in data:
+            s += d[1][0]
+        s.sort()
+        self.assertEqual(s, range(9))
+
+        #for d in data:
+        #    s = d[0][1] + d[1][1]
+        #    self.assertEqual(len(s), 9*11-50)
+
+
+
+
+
+        LOGGER.info("prepare_folded_mgrs tested!")
 
 
 

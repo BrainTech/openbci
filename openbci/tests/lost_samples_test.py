@@ -59,7 +59,7 @@ def find_lost_samples(p_read_mgr, numbers=None):
 
     last = samples_no[0]
     lost = []
-    lost += [i for i in range(1,last)]
+    lost += [i for i in range(1,int(last))]
     for no in samples_no[1:]:
         if (no - 1) != last:
             lost += [i for i in range(last+1, no)]
@@ -107,17 +107,17 @@ if __name__ == "__main__":
         f['info'] = sys.argv[1]
         f['dat'] = sys.argv[2]
     else:
-        dr = '/home/mati/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/'
-        f_name = 'kamil_002'
+        dr = '/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/201/'
+        f_name = 'test2-Tue_Dec__7_14_03_55_2010'
         f = {
-            'info': os.path.join(dr, f_name+'.obci.svarog.info'),
+            'info': os.path.join(dr, f_name+'.obci.info'),
             'data': os.path.join(dr, f_name+'.obci.dat'),
             #'tags':os.path.join(dr, f_name+'.obci.tags')
             }
     read_manager = read_manager.ReadManager(
         f['info'],
         f['data'],
-        #f['tags']
+        None#f['tags']
         )
 
     l = find_lost_samples(read_manager)

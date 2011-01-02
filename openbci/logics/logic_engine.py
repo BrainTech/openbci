@@ -27,7 +27,7 @@ import os
 import time
 import state_machine
 import speller_graphics_manager as sgm
-MAGIC = 8
+MAGIC = 100
 
 
 
@@ -38,12 +38,12 @@ class LogicEngine(object):
     operations and storing/updating config data from config file.
     - _server - an object that transfers data to and from other obci modules.
     """
-    def __init__(self, p_server):
+    def __init__(self, p_server, p_st_config):
         """Set instance variables, send to ugm current gui.
         p_server is an object to communicate with ugm and other modules.
         """
         self._server = p_server
-        self._state_machine = state_machine.StateMachine() 
+        self._state_machine = state_machine.StateMachine(p_st_config) 
         #TODO - here above we could pass config_file_name
 
         #self.num_of_freq = int(self._server.get_message(
