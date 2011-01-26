@@ -32,16 +32,18 @@ win = visual.Window(size=[1280, 800], fullscr=True, screen=0, allowGUI=False,
 #Initialise components for routine:int1
 int1Clock=core.Clock()
 dsf=visual.TextStim(win=win, ori=0,
+    wrapWidth=2.0, bold=True, font='Courier',
     text=u'Zapraszamy do udzia\u0142u w badaniu.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:int2
 int2Clock=core.Clock()
 uiuiyhiu=visual.TextStim(win=win, ori=0,
-    text=u'Twoje zadanie b\u0119dzie polega\u0142o na\nczytaniu i ocenianiu s\u0142\xf3w\npojawiaj\u0105cych si\u0119 kolejno na ekranie.\nWci\u015bnij klawisz SPACE zawsze wtedy,\nkiedy prezentowane s\u0142owo b\u0119dzie\nzwi\u0105zane z emocjami.\nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i\nocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na\n                 ekranie.                 \n Wci\u015bnij klawisz SPACE zawsze wtedy, kiedy \n   prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z   \n                 emocjami.                 \n     Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.     ',
+    pos=[0,0], height=0.08,
+    color='black', colorSpace='rgb')
 #create our own class to store info from keyboard
 class KeyResponse:
     def __init__(self):
@@ -53,27 +55,30 @@ class KeyResponse:
 #Initialise components for routine:int3
 int3Clock=core.Clock()
 apoidf=visual.TextStim(win=win, ori=0,
-    text=u'Postaraj si\u0119 odpowiada\u0107 jak najszybciej\npotrafisz.\nWa\u017cne jest, \u017ceby usi\u0105\u015b\u0107 w wygodnej\npozycji z lekko przymru\u017conymi\noczyma.\nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'Postaraj si\u0119 odpowiada\u0107 jak najszybciej potrafisz.\n   Wa\u017cne jest, \u017ceby usi\u0105\u015b\u0107 w wygodnej pozycji z   \n           lekko przymru\u017conymi oczyma.           \n        Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.        ',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:int4
 int4Clock=core.Clock()
 uivgtdv=visual.TextStim(win=win, ori=0,
-    text=u'Skupiaj swoj\u0105 uwag\u0119 na znaku + na\n\u015brodku ekranu\n\n+\n\nstaraj si\u0119 mruga\u0107 tylko wtedy, gdy\npojawi si\u0119 taka instrukcja\nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'                Skupiaj swoj\u0105 uwag\u0119 na znaku +                \n                      na \u015brodku ekranu.                      \n                                                              \n                              +                              \n                                                              \nStaraj si\u0119 mruga\u0107 tylko wtedy, gdy pojawi si\u0119 taka instrukcja.\n              Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.              ',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:int5
 int5Clock=core.Clock()
 sodfsdlkj=visual.TextStim(win=win, ori=0,
-    text=u'Wci\u015bnij klawisz SPACE zawsze wtedy,\nkiedy prezentowane s\u0142owo b\u0119dzie\nzwi\u0105zane z emocjami.\nAby przej\u015b\u0107 do sesji treningowej\nnaci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'   Wci\u015bnij klawisz SPACE zawsze wtedy, kiedy   \n prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z emocjami. \nAby przej\u015b\u0107 do sesji treningowej naci\u015bnij SPACE.',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #set up handler to look after randomisation of trials etc
-trialskjhk=data.TrialHandler(nReps=1, method=u'sequential', extraInfo=expInfo, 
-    trialList=data.importTrialList(u'samples.csv'))
+trialskjhk=data.TrialHandler(nReps=1, method='sequential', extraInfo=expInfo, 
+    trialList=data.importTrialList('samples.csv'))
 thisTrialskjh=trialskjhk.trialList[0]#so we can initialise stimuli with some values
 #abbrieviate parameter names if possible (e.g. rgb=thisTrialskjh.rgb)
 if thisTrialskjh!=None:
@@ -83,27 +88,29 @@ if thisTrialskjh!=None:
 #Initialise components for routine:test
 testClock=core.Clock()
 fxxxxx=visual.TextStim(win=win, ori=0,
-    text=u'+',
+    text='+',
     pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 lkhkkki=visual.TextStim(win=win, ori=0,
     text=word,
     pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:test_b
 test_bClock=core.Clock()
 lkhhguyu=visual.TextStim(win=win, ori=0,
-    text=u'Mrugaj teraz.\nJe\u015bli jeste\u015b gotowy naci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'           Mrugaj teraz.           \nJe\u015bli jeste\u015b gotowy naci\u015bnij SPACE.',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:int6
 int6Clock=core.Clock()
 lkhoh=visual.TextStim(win=win, ori=0,
-    text=u'Aby przej\u015b\u0107 do w\u0142a\u015bciwego badania\nnaci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'Aby przej\u015b\u0107 do w\u0142a\u015bciwego badania naci\u015bnij SPACE.',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #set up handler to look after randomisation of trials etc
 trials=data.TrialHandler(nReps=1, method='sequential', extraInfo=expInfo, 
@@ -135,17 +142,20 @@ trials=data.TrialHandler(nReps=1, method='sequential', extraInfo=expInfo,
 #Initialise components for routine:blink
 blinkClock=core.Clock()
 xxx=visual.TextStim(win=win, ori=0,
-    text=u'Mrugaj teraz.\n\nJe\u015bli jeste\u015b gotowy naci\u015bnij SPACE.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
-trials_count = 1
+    wrapWidth=2.0, bold=True, font='Courier',
+    text=u'           Mrugaj teraz.           \n                                  \nJe\u015bli jeste\u015b gotowy naci\u015bnij SPACE.',
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
+trials_count = 0
+trials_to_blink = kamil_consts.BLINK_MAX
 
 #Initialise components for routine:bye
 byeClock=core.Clock()
 lksjwpepowkf=visual.TextStim(win=win, ori=0,
+    wrapWidth=2.0, bold=True, font='Courier',
     text=u'Dzi\u0119kuj\u0119 za udzia\u0142 w badaniu.',
-    pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    pos=[0, 0], height=0.08,
+    color='black', colorSpace='rgb')
 
 #update component parameters for each repeat
 
@@ -182,7 +192,7 @@ while continueInt2 and (t<1000000.0000):
     if (0.0 <= t):
         uiuiyhiu.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             resplkhlkljlk.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -210,7 +220,7 @@ while continueInt3 and (t<1000000.0000):
     if (0.0 <= t):
         apoidf.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             khklhjpj.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -238,7 +248,7 @@ while continueInt4 and (t<1000000.0000):
     if (0.0 <= t):
         uivgtdv.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             respiojoi.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -266,7 +276,7 @@ while continueInt5 and (t<1000000.0000):
     if (0.0 <= t):
         sodfsdlkj.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             resplkdsjwo.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -303,7 +313,7 @@ for thisTrialskjh in trialskjhk:
         if (1.0<= t < (1.0+1.0)):
             lkhkkki.draw()
         if (1.0<= t < (1.0+3.0)):
-            theseKeys = event.getKeys(keyList=u"['space']")
+            theseKeys = event.getKeys(keyList="['space']")
             if len(theseKeys)>0:#at least one key was pressed
                 respkljlkj.keys=theseKeys[-1]#just the last key pressed
         
@@ -339,7 +349,7 @@ while continueTest_b and (t<1000000.0000):
     if (0.0 <= t):
         lkhhguyu.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             resposoewoewoiew.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -367,7 +377,7 @@ while continueInt6 and (t<1000000.0000):
     if (0.0 <= t):
         lkhoh.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             resplkgikh.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -430,7 +440,7 @@ for thisTrial in trials:
                 #send trigger ...
                 kamil_helper.send()
                 curr_time = time.time()
-                trials.addData('onset_time', repr(curr_time))
+                trials.addData('onset_time', str("%.5f"%curr_time))
                 diff_time = curr_time - before_time
                 for i in range(1, kamil_consts.NUM_OF_VALS):
                     s_st[i] = s_st[i] + diff_time
@@ -453,8 +463,11 @@ for thisTrial in trials:
     #update component parameters for each repeat
     respkl = KeyResponse()#create an object of type KeyResponse
     trials_count += 1
-    if not (trials_count % kamil_consts.BLINK == 0):
+    if not (trials_count % trials_to_blink == 0):
        continue
+    else:
+        trials_count = 0
+        trials_to_blink = randint(kamil_consts.BLINK_MIN, kamil_consts.BLINK_MAX)
     
     #run the trial
     continueBlink=True
@@ -507,7 +520,7 @@ while continueBye and (t<1000000.0000):
     if (0.0 <= t):
         lksjwpepowkf.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             respkjftess.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response

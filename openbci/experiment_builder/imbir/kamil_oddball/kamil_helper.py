@@ -17,6 +17,18 @@ def _multip_groups(groups):
         random.shuffle(curr_g)
         g += curr_g
     return g
+
+def _shuffle_dummy_word(group):
+    random.shuffle(group)
+    new_group = []
+    for word in group:
+        new_group.append(word)
+        r = random.randint(1, DUMMY_WORD_MULT)
+        for dummy in range(r):
+            new_group.append(DUMMY_WORD)
+    return new_group
+
+
 def create_words_file():
     if USE_EXISTING_WORDS_FILE:
         return
@@ -34,10 +46,7 @@ def create_words_file():
     groups = _multip_groups(groups)
     #add dummy word to every groups
     for g in groups:
-        dummy_len = len(g['words'])*DUMMY_WORD_MULT
-        g['words'] += [DUMMY_WORD]*dummy_len
-        random.shuffle(g['words'])
-    
+        g['words'] = _shuffle_dummy_word(g['words'])    
     #create final words file
     wtr = csv_manager.Writer(WORDS_FILE, d=',', q=csv.QUOTE_NONE)
     wtr.write_row(['','',''])
@@ -58,5 +67,5 @@ def send():
     if USE_SERIAL:
         global S
         S.send_next()
-#if __name__ == '__main__':
-#    create_words_file()
+if __name__ == '__main__':
+    create_words_file()
