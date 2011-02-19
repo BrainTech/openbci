@@ -45,6 +45,55 @@ class DataFileWriteProxy(object):
     """
     def __init__(self, p_file_path):
         """Open p_file_name file in p_dir_path directory."""
+        self._number_of_samples = 0
+        self._file_name = p_file_path
+        try:
+            #TODO - co jesli plik istnieje?
+            self._file = open(self._file_name, 'wr') #open file in a binary mode
+        except IOError:
+            LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
+            sys.exit(1)
+
+    def finish_saving(self):
+        """Close the file, return a tuple - 
+        file`s name and number of samples."""
+        self._file.flush()
+        self._file.close()
+        return self._file_name, self._number_of_samples
+
+    def set_data_len(self, p_len):
+        pass
+
+    def data_received(self, p_data):
+        """ Write p_data t self._file as raw float(C++ double). Here we assume, that
+        p_data is of float type. 
+        Type verification should be conducted earlier."""
+        self._number_of_samples = self._number_of_samples + 1
+        l_vec = variables_pb2.SampleVector()
+        l_vec.ParseFromString(p_data)
+        for i_sample in l_vec.samples:
+            try:
+                self._file.write(struct.pack("d", i_sample.value))
+            except ValueError:
+                LOGGER.error("Warning! Trying to write data to closed data file!")
+                return
+            except struct.error:
+                LOGGER.error("Error while writhing to file. Bad sample format.")
+                raise(data_storage_exceptions.BadSampleFormat())
+
+
+class BufferDataFileWriteProxy(object):
+    """
+    A class representing data file. 
+    It should be an abstraction for saving raw data into a file. 
+    Decision whether save signal to one or few separate files should be made here 
+    and should be transparent regarding below interface - the interface should remain untouched.
+    Public interface:
+    - finish_saving() - closes data file and return its path,
+    - data_received(p_data_sample) - gets and saves next sample of signal
+    """
+    def __init__(self, p_file_path):
+        """Open p_file_name file in p_dir_path directory."""
         self.buffer = [0.0]*BUF_SIZE
         self._number_of_samples = 0
         self._file_name = p_file_path
@@ -62,6 +111,9 @@ class DataFileWriteProxy(object):
         self._file.flush()
         self._file.close()
         return self._file_name, self._number_of_samples
+
+    def set_data_len(self, p_len):
+        pass
 
     def data_received(self, p_data):
         """ Write p_data t self._file as raw float(C++ double). Here we assume, that

@@ -85,23 +85,23 @@ class ReadManager(object):
         samples_source = copy.deepcopy(self.data_source)
         return ReadManager(info_source, samples_source, tags_source)
 
-    def save_to_file(self, p_dir, p_name):
+    def save_to_file(self, p_dir, p_name, first_ts_for_tags=0.0):
         tags = self.get_tags()
         params = self.get_params()
-        first_ts = float(params.get('first_sample_timestamp', '0.0'))
+        first_ts = first_ts_for_tags #float(params.get('first_sample_timestamp', '0.0'))
 
         path = os.path.join(p_dir, p_name)
         #store tags
-        tags_writer = tags_file_writer.TagsFileWriter(path+'.tags')
+        tags_writer = tags_file_writer.TagsFileWriter(path+'.obci.tags')
         for tag in tags:
             tags_writer.tag_received(tag)
 
         #store info
-        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.info')
+        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.obci.info')
         info_writer.set_attributes(params)
 
         #store data
-        data_writer = data_file_proxy.DataFileWriteProxy(path+'.dat')
+        data_writer = data_file_proxy.DataFileWriteProxy(path+'.obci.dat')
         for sample in self.iter_samples():
             for d in sample:
                 data_writer.data_received(d)

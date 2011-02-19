@@ -6,11 +6,11 @@ class Plotter(object):
         self.num_of_x = x
         self.num_of_y = y
         self.labels = {}
-    def add_plot(self, data, label, x, plot_id):
+    def add_plot(self, data, label, x, plot_id, args={}):
         print("len(x): "+str(len(x))+", len(data):"+str(len(data)))
         assert(len(x) == len(data))
         pylab.subplot(self.num_of_x, self.num_of_y, plot_id)
-        pylab.plot(x, data)
+        pylab.plot(x, data, **args)
 
 
         self.labels[plot_id] = self.labels.get(plot_id,[])
@@ -22,7 +22,10 @@ class Plotter(object):
         for k, v in self.labels.iteritems():
             pylab.subplot(self.num_of_x, self.num_of_y, k)
             l = pylab.legend(v, loc=4)
-            l.fontsize = 3
+            l.fontsize = 2
+            pylab.xlabel('time (ms)')
+            pylab.ylabel('EEG (uV)')
+
 
 def show():
     pylab.show()

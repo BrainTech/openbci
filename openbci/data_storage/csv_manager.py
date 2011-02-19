@@ -33,12 +33,12 @@ class Writer(object):
     """Utf8 writer, code taken from:
     http://docs.python.org/library/csv.html
     """
-    def __init__(self, p_file_path):
+    def __init__(self, p_file_path, d=DELIMITER, q=csv.QUOTE_NONNUMERIC):
         self._file = open(p_file_path, "wb")
         self._queue = cStringIO.StringIO()
         self._writer = csv.writer(self._queue,
-                                  quoting=csv.QUOTE_NONNUMERIC,
-                                  delimiter=DELIMITER)
+                                  quoting=q,
+                                  delimiter=d)
 
         self._encoder = codecs.getincrementalencoder("utf-8")()
 

@@ -120,10 +120,21 @@ def get_trigger_received_timestamps(p_read_mgr, trig=None, tss=None):
     """
 
     if p_read_mgr:
-        tss = p_read_mgr.get_channel_samples("TIMESTAMPS")
-        first = float(p_read_mgr.get_param('first_sample_timestamp'))
-        tss = [(i-first) for i in tss]
         trig = p_read_mgr.get_channel_samples("TRIGGER")
+        try:
+            tss = p_read_mgr.get_channel_samples("TIMESTAMPS")
+        except:
+            print("Warning! No 'timestamps' channel found. Assumed ideal timing ...")
+            sampling = float(p_read_mgr.get_param('sampling_frequency'))
+            tss = [i/sampling for i in range(len(trig))]
+        try:
+            first = float(p_read_mgr.get_param('first_sample_timestamp'))
+        except:
+            print("Warning! No 'first_sample_timestamp' field found. Assumed 0...")
+            first = 0.0
+
+        tss = [(i-first) for i in tss]
+
     
     ret_trig_change_tss = [tss[0]]
     ret_trig_values = [trig[0]]
@@ -167,13 +178,18 @@ if __name__ == "__main__":
     f = {
         'info': os.path.join(dr, f_name+'.obci.info'),
         'data': os.path.join(dr, f_name+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci.tags')
+        #'tags':os.path.join(dr, f_name+'.obci.tags')
        }
+    if len(sys.argv) == 3:
+        f = {}
+        f['info'] = sys.argv[1]
+        f['data'] = sys.argv[2]
+
     LOGGER.info("START")
     read_manager = read_manager.ReadManager(
         f['info'],
         f['data'],
-        f['tags'])
+        None )#f['tags'])
     vals, tss, lens = get_trigger_received_timestamps(read_manager)
     print(vals)
     print(tss)

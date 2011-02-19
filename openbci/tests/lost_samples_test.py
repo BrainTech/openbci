@@ -41,7 +41,7 @@ def test():
     doctest.testmod(sys.modules[__name__])
     print("Tests succeeded!")
 
-def find_lost_samples(p_read_mgr, numbers=None):
+def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False):
     """
     p_read_mgr['SAMPLE_NUMBER'] channels (or a collection numbers) 
     should contain a sequence of naturals (starting from 1)
@@ -52,7 +52,13 @@ def find_lost_samples(p_read_mgr, numbers=None):
 
     """
     if p_read_mgr:
-        samples_no = p_read_mgr.get_channel_samples("SAMPLE_NUMBER")
+        if spare_memory:
+            ch_ind = p_read_mgr.get_param('channels_names').index("SAMPLE_NUMBER")
+            samples_no = []
+            for samples in p_read_mgr.iter_samples():
+                samples_no.append(samples[ch_ind])
+        else:
+            samples_no = p_read_mgr.get_channel_samples("SAMPLE_NUMBER")
         print "NUMBER OF SAMPLES RED: "+str(len(samples_no))
     else:
         samples_no = numbers
@@ -64,6 +70,28 @@ def find_lost_samples(p_read_mgr, numbers=None):
         if (no - 1) != last:
             lost += [i for i in range(last+1, no)]
         last = no
+    return lost
+
+def find_lost_samples_big(p_read_mgr, numbers=None):
+    """
+    p_read_mgr['SAMPLE_NUMBER'] channels (or a collection numbers) 
+    should contain a sequence of naturals (starting from 1)
+    Check it and return all missing values.
+
+    >>> find_lost_samples(None, [2,3,4,10,15,16,17,18,20])
+    [1, 5, 6, 7, 8, 9, 11, 12, 13, 14, 19]
+
+    """
+    ch_ind = p_read_mgr.get_param('channels_names').index("SAMPLE_NUMBER")
+
+    last = 0
+    lost = []
+    #lost += [i for i in range(1,int(last))]
+    for samples in p_read_mgr.iter_samples():
+        if (samples[ch_ind] - 1) != last:
+            lost.append((last+1, samples[ch_ind]))
+            print("APPEND: ", str((last+1, samples[ch_ind])))
+        last = samples[ch_ind]
     return lost
         
 def print_result(l):
@@ -105,7 +133,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3:
         f = {}
         f['info'] = sys.argv[1]
-        f['dat'] = sys.argv[2]
+        f['data'] = sys.argv[2]
     else:
         dr = '/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/201/'
         f_name = 'test2-Tue_Dec__7_14_03_55_2010'
@@ -120,7 +148,7 @@ if __name__ == "__main__":
         None#f['tags']
         )
 
-    l = find_lost_samples(read_manager)
+    l = find_lost_samples(read_manager, spare_memory=True)
     print_result(l)
             
             

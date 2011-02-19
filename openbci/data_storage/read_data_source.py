@@ -73,11 +73,17 @@ class MemoryDataSource(DataSource):
     
 
 class FileDataSource(DataSource):
-    def __init__ (self, p_file_path, p_num_of_channels):
+    def __init__ (self, p_file, p_num_of_channels):
         self._num_of_channels = p_num_of_channels
-
-        self._data_proxy = data_file_proxy.DataFileReadProxy(p_file_path)
         self._mem_source = None 
+        try:
+            ''+p_file
+            LOGGER.debug("Got file path.")
+            self._data_proxy = data_file_proxy.DataFileReadProxy(p_file)
+        except TypeError:
+            LOGGER.debug("Got file proxy.")
+            self._data_proxy = p_file
+
 
     def get_samples(self, p_from=None, p_len=None):
         if self._mem_source:

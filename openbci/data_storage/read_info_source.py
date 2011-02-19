@@ -45,6 +45,9 @@ class MemoryInfoSource(InfoSource):
     def set_params(self, p_params):
         self._params = dict(p_params)
 
+    def set_param(self, p_key, p_value):
+        self._params[p_key] = p_value
+
     def get_param(self, p_key):
         try:
             return self._params[p_key]
@@ -55,8 +58,16 @@ class MemoryInfoSource(InfoSource):
         return self._params
 
 class FileInfoSource(InfoSource):
-    def __init__(self, p_file_path):
-        self._info_proxy = info_file_proxy.InfoFileReadProxy(p_file_path)
+    def __init__(self, p_file):
+        try:
+            ''+p_file
+            LOGGER.debug("Got file path.")
+            self._info_proxy = info_file_proxy.InfoFileReadProxy(p_file)
+        except TypeError:
+            LOGGER.debug("Got file proxy.")
+            self._info_proxy = p_file
+
+
     def get_param(self, p_key):
         return self._info_proxy.get_param(p_key)
     def get_params(self):

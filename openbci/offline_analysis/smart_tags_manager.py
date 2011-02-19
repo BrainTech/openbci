@@ -53,7 +53,7 @@ class SmartTagsManager(object):
         'tags' - tags file
         """
 
-        if not p_read_manager:
+        if p_read_manager is None:
         #Open files
             self._read_manager = read_manager.ReadManager(
                 p_info_file,

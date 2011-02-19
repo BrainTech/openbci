@@ -31,6 +31,7 @@ import sys, time, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
+import data_storage_exceptions
 from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')

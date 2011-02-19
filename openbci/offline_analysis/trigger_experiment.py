@@ -82,11 +82,16 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
     """
     tag_samples_len = tag_len*float(p_mgr.get_param('sampling_frequency'))
 
-    trig_vals, trig_tss, trig_lens = trigger.get_trigger(p_mgr, min_trig_len)
-
-    trig_vals = trig_vals[ignore_first:-ignore_last]
-    trig_tss = trig_tss[ignore_first:-ignore_last]
-    trig_lens = trig_lens[ignore_first:-ignore_last]
+    trig_vals, trig_tss, trig_lens = trigger.get_trigger(p_mgr, min_trig_len, spare_memory=True)
+    if ignore_last > 0:
+        trig_vals = trig_vals[ignore_first:-ignore_last]
+        trig_tss = trig_tss[ignore_first:-ignore_last]
+        trig_lens = trig_lens[ignore_first:-ignore_last]
+    else:
+        trig_vals = trig_vals[ignore_first:]
+        trig_tss = trig_tss[ignore_first:]
+        trig_lens = trig_lens[ignore_first:]
+        
     LOGGER.info("Trigger lengths " +str(trig_lens))
 
     LOGGER.info("Tags in experiment file: "+str(len(p_exp_tags)))
