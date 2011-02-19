@@ -110,8 +110,8 @@ def aga_files(t):
         return [f2]
 
 def bci_competition_files(t):
-    dr = '/media/windows/wiedza/bci/mgr/bci_competition_data/'
-    if t == 'A':
+    if t == 'B':
+        dr = '/media/windows/wiedza/bci/mgr/bci_competition_data_B/'
         files = []
         f_name = 'AAS010R0'
         for i in range(1, 6):
@@ -121,11 +121,9 @@ def bci_competition_files(t):
                 'tags':os.path.join(dr, f_name+str(i)+'.mat.csv.obci.tags')
                 }
             files.append(f)
-        return files
-    elif t == 'B':
-        files = []
+
         f_name = 'AAS011R0'
-        for i in range(1, 6):
+        for i in range(1, 7):
             f = {
                 'info': os.path.join(dr, f_name+str(i)+'.mat.csv.obci.info'),
                 'data': os.path.join(dr, f_name+str(i)+'.mat.csv.obci.dat'),
@@ -149,13 +147,38 @@ def get_files(person, mode):
 
 
 
-
-def aga_chain(mode, avg_size):
+def mati_chain(mode, avg_size):
     if mode =='numbered_squares':
         if avg_size == 5:
             ch = [
-                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
-                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.ReadSignal(files=get_files('mati', 'numbered_squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Pz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=-0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.0,
+                                 strategy='random'),
+                my_tools.Downsample(factor=2),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=15.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+        if avg_size == 10:
+            ch = [
+                my_tools.ReadSignal(files=get_files('mati', 'numbered_squares')),
+                my_tools.Montage(montage_type='no_montage'),
                 my_tools.LeaveChannels(channels=['Pz']),
                 my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
                                    'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
@@ -170,25 +193,144 @@ def aga_chain(mode, avg_size):
                                  size=avg_size,
                                  baseline=0.0,
                                  strategy='random'),
-                my_tools.Downsample(factor=3),
+                my_tools.Downsample(factor=5),
                 my_tools.Normalize(norm=2),
                 my_tools.PrepareTrainSet(),
-                my_tools.SVM(C=10.0,
+                my_tools.SVM(C=20.0,
                              Cmode='classProb',
                              kernel=ker.Linear())
                 ]
             return ch
-        elif avg_size == 10:
+
+        elif avg_size == 15:
             ch = [
-                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
+                my_tools.ReadSignal(files=get_files('mati', 'numbered_squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Pz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
+                my_tools.Downsample(factor=7),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=20.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+
+    elif mode =='squares':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('mati', 'squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Pz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.15,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
+                my_tools.Downsample(factor=5),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=5.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+        if avg_size == 10:
+            ch = [
+                my_tools.ReadSignal(files=get_files('mati', 'squares')),
+                my_tools.LeaveChannels(channels=['Pz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.0,
+                                 strategy='random'),
+                my_tools.Downsample(factor=2),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=20.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('mati', 'squares')),
+                my_tools.LeaveChannels(channels=['Pz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.0,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
+                my_tools.Downsample(factor=5),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=3.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+
+
+
+
+
+
+
+
+
+
+def maciek_chain(mode, avg_size):
+    if mode =='squares':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('maciek', 'squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
                 my_tools.LeaveChannels(channels=['Cz']),
                 my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
                                    'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
                 my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
                                    'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
                 my_tools.Segment(classes=('target','non-target'),
-                                 start_offset=-0.1,
-                                 duration=0.5),
+                                 start_offset=0.0,
+                                 duration=0.6),
                 my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
                                                 lambda mgr: mgr['name'] == 'non-target'],
                                  bin_names=['target', 'non-target'],
@@ -198,22 +340,15 @@ def aga_chain(mode, avg_size):
                 my_tools.Downsample(factor=3),
                 my_tools.Normalize(norm=2),
                 my_tools.PrepareTrainSet(),
-                my_tools.SVM(C=3.0,
+                my_tools.SVM(C=15.0,
                              Cmode='classProb',
-                             kernel=ker.Polynomial(2))
+                             kernel=ker.Linear())
                 ]
             return ch
-
-        
-
-
-
-def bci_competition_chain(mode, avg_size):
-    if mode == 'A':
-        if avg_size == 5:
+        elif avg_size == 10:
             ch = [
-                my_tools.ReadSignal(files=get_files('bci_competition', 'A')),
-                my_tools.LeaveChannels(channels=['C3']),
+                my_tools.ReadSignal(files=get_files('maciek', 'squares')),
+                my_tools.LeaveChannels(channels=['Fz']),
                 my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
                                    'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
                 my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
@@ -227,7 +362,315 @@ def bci_competition_chain(mode, avg_size):
                                  size=avg_size,
                                  baseline=0.2,
                                  strategy='random'),
+                my_tools.Downsample(factor=2),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=2.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('maciek', 'squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.0,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
                 my_tools.Downsample(factor=9),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=5.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+
+        
+    elif mode =='numbered_squares':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('maciek', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['C4']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.0,
+                                 duration=0.4),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=7),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=7.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+
+        if avg_size == 10:
+            ch = [
+                my_tools.ReadSignal(files=get_files('maciek', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['C3']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.0,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=4),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=1.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(3))
+                ]
+            return ch
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('maciek', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['Fz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
+                my_tools.Downsample(factor=7),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=3.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(3))
+                ]
+            return ch
+
+
+
+def aga_chain(mode, avg_size):
+    if mode =='squares':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.0,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=4),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=20.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+        elif avg_size == 10:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=-0.2,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=3),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=0.5,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=-0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.1,
+                                 strategy='random'),
+                my_tools.Downsample(factor=7),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=15.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(3))
+                ]
+            return ch
+
+
+
+    if mode =='numbered_squares':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['C4']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=-0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=4),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=3.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+
+        elif avg_size == 10:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.1,
+                                 duration=0.5),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=4),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=20.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
+                ]
+            return ch
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('aga', 'numbered_squares')),
+                my_tools.Montage(montage_type='ears',l_ear_channel='M1', r_ear_channel='M2'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=-0.2,
+                                 duration=0.4),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.0,
+                                 strategy='random'),
+                my_tools.Downsample(factor=2),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=2.0,
+                             Cmode='classProb',
+                             kernel=ker.Polynomial(2))
+                ]
+            return ch
+
+        
+
+
+
+def bci_competition_chain(mode, avg_size):
+    if mode == 'B':
+        if avg_size == 5:
+            ch = [
+                my_tools.ReadSignal(files=get_files('bci_competition', 'B')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['C3']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.15,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.2,
+                                 strategy='random'),
+                my_tools.Downsample(factor=7),
                 my_tools.Normalize(norm=2),
                 my_tools.PrepareTrainSet(),
                 my_tools.SVM(C=2.0,
@@ -237,27 +680,54 @@ def bci_competition_chain(mode, avg_size):
             return ch
         elif avg_size == 10:
             ch = [
-                my_tools.ReadSignal(files=get_files('bci_competition', 'A')),
-                my_tools.LeaveChannels(channels=['C3']),
+                my_tools.ReadSignal(files=get_files('bci_competition', 'B')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Cz']),
                 my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
                                    'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
                 my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
                                    'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
                 my_tools.Segment(classes=('target','non-target'),
-                                 start_offset=0.0,
-                                 duration=0.5),
+                                 start_offset=-0.2,
+                                 duration=0.6),
                 my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
                                                 lambda mgr: mgr['name'] == 'non-target'],
                                  bin_names=['target', 'non-target'],
                                  size=avg_size,
                                  baseline=0.0,
                                  strategy='random'),
-                my_tools.Downsample(factor=5),
+                my_tools.Downsample(factor=9),
                 my_tools.Normalize(norm=2),
                 my_tools.PrepareTrainSet(),
                 my_tools.SVM(C=0.1,
                              Cmode='classProb',
-                             kernel=ker.Gaussian(15))
+                             kernel=ker.Polynomial(3))
+                ]
+            return ch
+        elif avg_size == 15:
+            ch = [
+                my_tools.ReadSignal(files=get_files('bci_competition', 'B')),
+                my_tools.Montage(montage_type='no_montage'),
+                my_tools.LeaveChannels(channels=['Cz']),
+                my_tools.Filter(**{'wp':0.3, 'ws':0.1, 'gpass': 3.0,
+                                   'gstop': 30.0, 'ftype':'cheby2', 'unit':'hz'}),
+                my_tools.Filter(**{'wp':15.0, 'ws':25.0, 'gpass': 1.0,
+                                   'gstop': 60.0, 'ftype':'ellip', 'unit':'hz'}),
+                my_tools.Segment(classes=('target','non-target'),
+                                 start_offset=0.1,
+                                 duration=0.6),
+                my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                                lambda mgr: mgr['name'] == 'non-target'],
+                                 bin_names=['target', 'non-target'],
+                                 size=avg_size,
+                                 baseline=0.0,
+                                 strategy='random'),
+                my_tools.Downsample(factor=9),
+                my_tools.Normalize(norm=2),
+                my_tools.PrepareTrainSet(),
+                my_tools.SVM(C=12.0,
+                             Cmode='classProb',
+                             kernel=ker.Linear())
                 ]
             return ch
 

@@ -84,7 +84,6 @@ def filter(mgr, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit
     tags_source = copy.deepcopy(mgr.tags_source)
     samples_source = read_data_source.MemoryDataSource(filtered)
     new_mgr = read_manager.ReadManager(info_source, samples_source, tags_source)
-    new_mgr.save_to_file('./', 'dupa')
     return new_mgr
 
 def normalize(mgr, norm):

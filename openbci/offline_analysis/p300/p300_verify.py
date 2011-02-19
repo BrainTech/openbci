@@ -24,10 +24,11 @@
 from PyML import *
 from offline_analysis.p300 import p300_train_prepare_train_set as prepare
 import scipy
-import os, os.path, sys
+import os, os.path, sys, math, random
 from classification import chain as my_chain
 from offline_analysis.p300 import chain_analysis_offline as my_tools
 from offline_analysis.p300 import analysis_offline
+from offline_analysis.erp import erp_plot
 
 def run_verification(chain, folds, non_target_per_target):
     ret = None
@@ -38,16 +39,17 @@ def run_verification(chain, folds, non_target_per_target):
     succ, stats = analysis_offline.p300_verify_svm(
         ret, c.C, c.Cmode, c.kernel,
         folds, non_target_per_target)
-    print
+
     print("#############################################")
     print("RESULT SUCCESS RATE: "+str(succ))
     print("#############################################")
     print("For every fold:")
-    for st in stats:
-        print("SUCC NUM: "+str(st[0])+" | FAIL NUM: "+str(st[1]))
+    for i in range(len(stats[0])):
+        print("SUCC NUM: "+str(stats[0][i])+" | FAIL NUM: "+str(stats[1][i]))
     print("#############################################")
     print("RESULT SUCCESS RATE: "+str(succ))
     print("#############################################")
+    return succ
 
 
 def run_test(chain, folds):
@@ -65,7 +67,81 @@ def run_test(chain, folds):
     print(ret)
     ret.plotROC()
 
-        
+
+def run_plot(person1, mode1, person2, mode2, avg_sizes, channels):
+    chain1 = p300_sample_data.get_chain(person1, mode1, 5)
+    chain2 = p300_sample_data.get_chain(person2, mode2, 5)
+    x = 1 # for now
+    y = 1 # for now
+    assert(len(channels) == 1) # for now
+
+
+    mgrs1 = None
+    mgrs2 = None
+    # Filter
+    for ch in [chain1[0], chain1[3], chain1[4]]:
+        mgrs1 = ch.process(mgrs1)
+    for ch in [chain2[0], chain2[3], chain2[4]]:
+        mgrs2 = ch.process(mgrs2)
+
+    # Segment
+    segmenter = my_tools.Segment(classes=('target','non-target'), start_offset=-0.1, duration=0.6)
+    mgrs1 = segmenter.process(mgrs1)
+    mgrs2 = segmenter.process(mgrs2)
+
+
+    averager = my_tools.Average(bin_selectors=[lambda mgr: mgr['name'] == 'target',
+                                        lambda mgr: mgr['name'] == 'non-target'],
+                                bin_names=['target', 'non-target'], size=5,
+                                baseline=0.1, strategy='random')
+
+    samp = float(mgrs1[0].get_param('sampling_frequency'))
+    for i, avg_size in enumerate(avg_sizes):
+        # Ommit reading-in : normalize, prepare, classify
+        averager.size = avg_size
+        avgs1 = averager.process(mgrs1)
+        avgs2 = averager.process(mgrs2)
+
+        plotter = erp_plot.Plotter(x, y, avg_size)
+        plt_id = 0
+        for i_ch_name in channels:
+            plt_id += 1
+            
+            avgs = [] 
+            for avg in avgs1:
+                if avg.get_param('epoch_name') == 'target':
+                    avg.name = '1 - target'
+                    avgs.append(avg)
+                    break
+            for avg in avgs1:
+                if avg.get_param('epoch_name') == 'non-target':
+                    avg.name = '1 - non-target'
+                    avgs.append(avg)
+                    break
+            for avg in avgs2:
+                if avg.get_param('epoch_name') == 'target':
+                    avg.name = '2 - target'
+                    avgs.append(avg)
+                    break
+            for avg in avgs2:
+                if avg.get_param('epoch_name') == 'non-target':
+                    avg.name = '2 - non-target'
+                    avgs.append(avg)
+                    break
+
+
+            for j, avg in enumerate(avgs):
+                ch = avg.get_channel_samples(i_ch_name)*0.0715
+                plotter.add_plot(ch, 
+                                 avg.name+" - "+i_ch_name, 
+                                 [i*(1/samp)*1000 for i in range(-0.1*samp-1, len(ch)-(0.1*samp))],
+                                 plt_id, {'linewidth':2.0})
+            
+        plotter.prepare_to_show()
+    erp_plot.show()
+
+
+    
     
 import p300_sample_data
 import sys
@@ -73,12 +149,28 @@ if __name__ == '__main__':
     
     person = sys.argv[1]
     mode = sys.argv[2]
-    folds = int(sys.argv[3])
-    avg_size = int(sys.argv[4])
     action = sys.argv[5]
     if action == 'verify':
-        run_verification(p300_sample_data.get_chain('bci_competition', 'A', avg_size), folds, 6)
+        folds = int(sys.argv[3])
+        avg_size = int(sys.argv[4])
+        try:
+            reps = int(sys.argv[6])
+        except:
+            reps = 1
+        res = 0.0
+        for i in range(reps):
+            res += run_verification(p300_sample_data.get_chain(person, mode, avg_size), folds, 6)
+
+        print("**************************************")
+        print("Aggregted SUCCESS RATE: "+str(res/reps))
     elif action == 'test':
+        folds = int(sys.argv[3])
+        avg_size = int(sys.argv[4])
         run_test(p300_sample_data.get_chain(person, mode, avg_size), folds)
+    elif action == 'plot':
+        #python openbci/offline_analysis/p300/p300_verify.py mati squares mati numbered_squares plot
+        person2 = sys.argv[3]
+        mode2 = sys.argv[4]
+        run_plot(person, mode, person2, mode2, [5, 10, 15, 100], ['Cz'])
              
              
