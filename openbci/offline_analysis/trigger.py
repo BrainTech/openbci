@@ -114,7 +114,7 @@ def fix_trigger(trig_values, trig_change_tss, trig_change_lens, min_trig_samples
         return ret_trig_values, ret_trig_change_tss, ret_trig_change_lens
 
 
-def get_trigger(p_read_mgr, min_trig_len=0.0, trig=None, sampling=None):
+def get_trigger(p_read_mgr, min_trig_len=0.0, trig=None, sampling=None, spare_memory=False):
     """
     >>> get_trigger(None, 0.0, [1,0,0,0,1,1,1,0,1,1,1], 128.0)
     ([1, 0, 1, 0, 1], [0.0, 0.0078125, 0.03125, 0.0546875, 0.0625], [1, 3, 3, 1, 3])
@@ -132,7 +132,13 @@ def get_trigger(p_read_mgr, min_trig_len=0.0, trig=None, sampling=None):
     #tss = p_read_mgr.get_channel_values("TIMESTAMPS")
 
     if p_read_mgr:
-        trig = p_read_mgr.get_channel_samples("TRIGGER")
+        if spare_memory:
+            trig = []
+            ch_ind = p_read_mgr.get_param('channels_names').index("TRIGGER") #TODO error
+            for samples in p_read_mgr.iter_samples():
+                trig.append(samples[ch_ind])
+        else:
+            trig = p_read_mgr.get_channel_samples("TRIGGER")            
         sampling = float(p_read_mgr.get_param('sampling_frequency'))
     else:
         # Assumint trig and sampling != None

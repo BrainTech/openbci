@@ -140,7 +140,7 @@ class SignalSaver(BaseMultiplexerServer):
         self._file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
-        self._data_proxy = data_file_proxy.MxDataFileWriteProxy(self._file_path)
+        self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
         self._session_is_active = True
 
     def _finish_saving_session(self):

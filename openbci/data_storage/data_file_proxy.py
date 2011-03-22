@@ -27,12 +27,14 @@ import struct
 import scipy
 import sys
 import os.path
+import variables_pb2
 from openbci.data_storage import data_storage_exceptions
 from openbci.data_storage import data_storage_logging as logger
 LOGGER = logger.get_logger("data_file_proxy", 'info')
 import time
 SAMPLE_SIZE = 8 #float
 BUF_SIZE = 4098*2
+
 class DataFileWriteProxy(object):
     """
     A class representing data file. 
@@ -54,7 +56,7 @@ class DataFileWriteProxy(object):
             LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
             sys.exit(1)
 
-    def finish_saving(self):
+    def finish_saving(self, p_append_ts_index=None):
         """Close the file, return a tuple - 
         file`s name and number of samples."""
         self._file.flush()
@@ -68,10 +70,60 @@ class DataFileWriteProxy(object):
         """ Write p_data t self._file as raw float(C++ double). Here we assume, that
         p_data is of float type. 
         Type verification should be conducted earlier."""
+        try:
+            self._file.write(struct.pack("d", p_data)) 
+        except ValueError:
+            LOGGER.error("Warning! Trying to write data to closed data file!")
+            return
+        except struct.error:
+            LOGGER.error("Error while writhing to file. Bad sample format.")
+            raise(data_storage_exceptions.BadSampleFormat())
+
+        #store number of samples
         self._number_of_samples = self._number_of_samples + 1
+
+
+
+
+class MxDataFileWriteProxy(object):
+    """
+    A class representing data file. 
+    It should be an abstraction for saving raw data into a file. 
+    Decision whether save signal to one or few separate files should be made here 
+    and should be transparent regarding below interface - the interface should remain untouched.
+    Public interface:
+    - finish_saving() - closes data file and return its path,
+    - data_received(p_data_sample) - gets and saves next sample of signal
+    """
+    def __init__(self, p_file_path):
+        """Open p_file_name file in p_dir_path directory."""
+        self._number_of_samples = 0
+        self._file_name = p_file_path
+        try:
+            #TODO - co jesli plik istnieje?
+            self._file = open(self._file_name, 'wr') #open file in a binary mode
+        except IOError:
+            LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
+            sys.exit(1)
+
+    def finish_saving(self, p_append_ts_index=None):
+        """Close the file, return a tuple - 
+        file`s name and number of samples."""
+        self._file.flush()
+        self._file.close()
+        return self._file_name, self._number_of_samples
+
+    def set_data_len(self, p_len):
+        pass
+
+    def data_received(self, p_data):
+        """ Write p_data t self._file as raw float(C++ double). Here we assume, that
+        p_data is of float type. 
+        Type verification should be conducted earlier."""
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(p_data)
         for i_sample in l_vec.samples:
+            self._number_of_samples = self._number_of_samples + 1
             try:
                 self._file.write(struct.pack("d", i_sample.value))
             except ValueError:
@@ -80,6 +132,8 @@ class DataFileWriteProxy(object):
             except struct.error:
                 LOGGER.error("Error while writhing to file. Bad sample format.")
                 raise(data_storage_exceptions.BadSampleFormat())
+
+
 
 
 class BufferDataFileWriteProxy(object):
@@ -104,7 +158,7 @@ class BufferDataFileWriteProxy(object):
             LOGGER.error("Error! Can`t create a file!!!. path: " + self._file_name)
             sys.exit(1)
 
-    def finish_saving(self):
+    def finish_saving(self, p_append_ts_index=None):
         """Close the file, return a tuple - 
         file`s name and number of samples."""
         self._file.write(''.join(self.buffer[:(self._number_of_samples % BUF_SIZE)]))
@@ -138,7 +192,7 @@ class BufferDataFileWriteProxy(object):
 
 
 
-class MxDataFileWriteProxy(object):
+class MxBufferDataFileWriteProxy(object):
     """
     A class representing data file. 
     It should be an abstraction for saving raw data into a file. 
@@ -299,6 +353,31 @@ class DataFileReadProxy(object):
 
     def finish_reading(self):
         self._data_file.close()
+
+
+    def get_all_values(self, p_channels_num=1):
+        assert(p_channels_num > 0)
+        self.finish_reading()
+        self.start_reading()
+        f_len = float(os.path.getsize(self._file_path))
+        ch_len = int((f_len/SAMPLE_SIZE)/p_channels_num)
+        if ch_len*SAMPLE_SIZE*p_channels_num != f_len:
+            LOGGER.info(''.join(["Remained samples ", str(f_len - ch_len*SAMPLE_SIZE*p_channels_num), " .Should be 0."]))
+
+        vals = scipy.zeros((p_channels_num, ch_len))
+        dtype = scipy.dtype('<f8')
+        k = 0
+        while True:
+            try:
+                r = scipy.fromfile(self._data_file, dtype, p_channels_num)
+            except MemoryError:
+                break
+            if len(r) < p_channels_num:
+                break
+            for i in range(p_channels_num):
+                vals[i, k] = r[i]
+            k += 1
+        return vals
 
     def get_next_value(self):
         """Return next value from data file (as python float). 

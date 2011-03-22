@@ -166,7 +166,7 @@ class Average(object):
 
 
 class Filter(object):
-    def __init__(self, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians'):
+    def __init__(self, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians', use_filtfilt=False):
         self.wp = wp
         self.ws = ws
         self.gpass = gpass
@@ -175,18 +175,27 @@ class Filter(object):
         self.ftype = ftype
         self.output = output
         self.unit = unit
+        self.use_filtfilt = use_filtfilt
     def process(self, mgrs):
         new_mgrs = []
         for mgr in mgrs:
             new_mgrs.append(analysis_offline.filter(mgr, self.wp, self.ws, self.gpass, self.gstop, 
-                                                    self.analog, self.ftype, self.output, self.unit))
+                                                    self.analog, self.ftype, self.output, self.unit, self.use_filtfilt))
         return new_mgrs
     def __repr__(self):
         ret = self.__dict__.copy()
         ret["CLASS"] = self.__class__.__name__
         return str(ret)
 
-
+class SaveToFile(object):
+    def __init__(self, dir_path, file_name):
+        self.dir_path = dir_path
+        self.file_name = file_name
+    def process(self, mgrs):
+        if len(mgrs) != 1:
+            raise("Too many or too few managers, storing to file aborted!")
+        else:
+            mgrs[0].save_to_file(self.dir_path, self.file_name)
 
 class Downsample(object):
     def __init__(self, factor):

@@ -40,14 +40,17 @@ class DataSource(object):
 
 
 class MemoryDataSource(DataSource):
-    def __init__(self, p_data=None):
+    def __init__(self, p_data=None, p_copy=True):
         self._data = None
 
         if not (p_data is None):
-            self.set_samples(p_data)
+            self.set_samples(p_data, p_copy)
 
-    def set_samples(self, p_data):
-        self._data = numpy.array(p_data)
+    def set_samples(self, p_data, p_copy=True):
+        if p_copy:
+            self._data = numpy.array(p_data)
+        else:
+            self._data = p_data
 
     def set_sample(self, p_sample_index, p_sample):
         """
@@ -94,30 +97,8 @@ class FileDataSource(DataSource):
             # and whole data set is reqested
             # so let`s use the ocasion and cache data
             LOGGER.info("All data set requested for the first time. Start reading all data from the file...")
-            
-            self._data_proxy.finish_reading()
-            self._data_proxy.start_reading()
-
-            samples_count = 0
-            samples = [[] for i in range(self._num_of_channels)]
-            while True:
-                try:
-                    vals = self._data_proxy.get_next_values(self._num_of_channels)
-                    for i in range(self._num_of_channels):
-                        samples[i].append(vals[i])
-
-                    samples_count += 1
-                except data_storage_exceptions.NoNextValue:
-                    self._mem_source = MemoryDataSource(samples)
-
-                    LOGGER.info(''.join([
-                                "All data read and cached in memory."
-                                "Number of samples red = ",
-                                str(samples_count),
-                                " so number of samples if file was (number of samples * number of channels): ",
-                                str(self._num_of_channels*samples_count)]))
-                    break
-
+            vals = self._data_proxy.get_all_values(self._num_of_channels)
+            self._mem_source = MemoryDataSource(vals, False)
             return self._mem_source.get_samples()
 
         else:

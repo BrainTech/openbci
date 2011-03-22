@@ -243,68 +243,6 @@ def run(p_files, plot_type='all', p_show=True):
 
 
 if __name__ == "__main__":
-    """dr = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_15_01_2011/'
-    f_name = 'kamil_eksp01'
-    try:
-        f_name = sys.argv[3]
-    except Exception:
-        pass
-    f = {
-        'info': os.path.join(dr, f_name+'.xml'),
-        'data': os.path.join(dr, f_name+'_0.5-30Hz.raw'),
-        'tags':os.path.join(dr, f_name+'.arts_free.full.tags')
-       }"""
-
-    """dr = '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/p300_10_12_2010/squares/'#/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola/'
-    f_name = 'p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_longer_8trials.obci'#'ola2'
-    try:
-        f_name = sys.argv[3]
-    except Exception:
-        pass
-    f = {
-        'info': os.path.join(dr, f_name+'.info'),
-        'data': os.path.join(dr, f_name+'.dat'),
-        'tags':os.path.join(dr, f_name+'.tags')
-       }"""
-
-    """dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola/'
-    f_name = 'kamil_eksp_ola'
-    try:
-        f_name = sys.argv[3]
-    except Exception:
-        pass
-    f = {
-        'info': os.path.join(dr, f_name+'.obci.info'),
-        'data': os.path.join(dr, f_name+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci.tags.tags')
-       }"""
-
-    """dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola/'
-    f_name = 'kamil_eksp_ola'
-    try:
-        f_name = sys.argv[3]
-    except Exception:
-        pass
-    f = {
-        'info': os.path.join(dr, f_name+'.obci.info'),
-        'data': os.path.join(dr, f_name+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci.tags.tags')
-       }"""
-
-
-
-    """dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola/'
-    f_name = 'kamil_eksp_ola'
-    try:
-        f_name = sys.argv[3]
-    except Exception:
-        pass
-    f = {
-        'info': os.path.join(dr, 'ola_filtered1'+'.obci.info'),
-        'data': os.path.join(dr, 'ola_filtered1'+'.obci.dat'),
-        'tags':os.path.join(dr, f_name+'.obci_arts_free_strict.tags.tags')
-       }"""
-
     dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-03-2011-5osob/'
 
     #f_name = 'Agata'
@@ -319,33 +257,13 @@ if __name__ == "__main__":
     #f_csv_name = 'Linda_Feb_25_1501.csv'
     f_names = ['Linda']#, 'Agata', 'Justyna', 'Kamila1', 'Kasia']
     for f_name in f_names:
-        try:
-            f_name = sys.argv[3]
-        except Exception:
-            pass
         f = {
-            'info': os.path.join(dr, f_name+'.filtered.dat.obci.info'),
-            'data': os.path.join(dr, f_name+'.filtered.dat.obci.dat'),
-            'tags':os.path.join(dr, f_name+'.filtered.dat.obci.arts_free.tags')
+            'info': os.path.join(dr, f_name+'.obci.info'),
+            'data': os.path.join(dr, f_name+'.obci.dat'),
+            'tags':os.path.join(dr, f_name+'.obci.tags')
             }
-        p = 'all'
-        run(f, p, False)
-        p = 'system'
-        run(f, p, False)
-        p = 'sign'
-        run(f, p)
-        #filter_and_store(f, dr, f_name+'.filtered.dat')
-        
+        filter_and_store(f, dr, f_name+'.filtered.dat')
 
-
-
-    #trigger_experiment.trigger_to_tag(f['tags'], '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_15_01_2011/kamil_eksp01.csv', f['info'], f['data'], KamilOddballFullExpTag, 2, 0, 1.0, 0.5)
-    #trigger_experiment.trigger_to_tag(f['tags'], '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola/Ola_Feb_18_1551-2.csv', f['info'], f['data'], KamilOddballFullExpTag, 2, 0, 1.0, 0.5)
-
-
-    #trigger_experiment.trigger_to_tag(f['tags'], dr+'psychopy/'+f_csv_name, f['info'], f['data'], KamilOddballFullExpTag, 2, 0, 1.0, 0.5)
-
-    #filter_and_store(f, '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-02-2011/ola', 'ola_filtered1')
 
 
 

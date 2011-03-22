@@ -65,7 +65,7 @@ def leave_channels(mgr, channels):
     return exclude_channels(mgr, chans)
     
 
-def filter(mgr, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians'):
+def filter(mgr, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit='radians', use_filtfilt=False):
     if unit == 'radians':
         b,a = signal.iirdesign(wp, ws, gpass, gstop, analog, ftype, output)
     elif unit == 'hz':
@@ -78,11 +78,21 @@ def filter(mgr, wp, ws, gpass, gstop, analog=0, ftype='ellip', output='ba', unit
             ws = [i/sampling for i in ws]
 
         b,a = signal.iirdesign(wp, ws, gpass, gstop, analog, ftype, output)
-            
-    filtered = signal.lfilter(b, a, mgr.get_samples())
+    if use_filtfilt:    
+        import filtfilt
+        #samples_source = read_data_source.MemoryDataSource(mgr.get_samples(), False)
+        for i in range(int(mgr.get_param('number_of_channels'))):
+            print("FILT FILT CHANNEL "+str(i))
+            mgr.get_samples()[i,:] = filtfilt.filtfilt(b, a, mgr.get_samples()[i])
+        samples_source = read_data_source.MemoryDataSource(mgr.get_samples(), False)
+    else:
+        print("FILTER CHANNELs")
+        filtered = signal.lfilter(b, a, mgr.get_samples())
+        print("FILTER CHANNELs finished")
+        samples_source = read_data_source.MemoryDataSource(filtered, True)
+
     info_source = copy.deepcopy(mgr.info_source)
     tags_source = copy.deepcopy(mgr.tags_source)
-    samples_source = read_data_source.MemoryDataSource(filtered)
     new_mgr = read_manager.ReadManager(info_source, samples_source, tags_source)
     return new_mgr
 
