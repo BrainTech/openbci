@@ -9,7 +9,7 @@ USE_EXISTING_WORDS_FILE = False
 
 #how many repetitions of the experiment in a one session?
 #used to generate WORDS_FILE file
-REPS = 2
+REPS = 3
 #dummy word for the experiment
 #used to generate WORDS_FILE file
 DUMMY_WORD='Drewno'
@@ -27,10 +27,24 @@ BLINK_MIN = 10
 BLINK_MAX = 15
 
 
+# which buttons are interpreted as emotional?
+EMOTIONS =  {
+    'color':'Czerwony',
+    'button':'c',
+    'color_rep':'COLOR_FOR_EMOTION',
+    'button_rep':'BUTTON_FOR_EMOTION',
+    }
+
+NON_EMOTIONS = {
+    'color':'Zielony',
+    'button':'n',
+    'color_rep':'COLOR_FOR_NON_EMOTION',
+    'button_rep':'BUTTON_FOR_NON_EMOTION',
+    }
 
 
 #true if send trigger
-USE_SERIAL = False
+USE_SERIAL = True
 #a value to be send to trigger on init
 SERIAL_INIT_VALUE = 1
 #serial port name

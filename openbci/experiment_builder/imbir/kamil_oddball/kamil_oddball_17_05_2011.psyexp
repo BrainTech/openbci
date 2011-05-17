@@ -73,7 +73,7 @@
         <Param name="correctAns" val="" valType="str" updates="constant"/>
         <Param name="storeResponseTime" val="True" valType="bool" updates="constant"/>
         <Param name="startTime" val="102.0" valType="code" updates="constant"/>
-        <Param name="allowedKeys" val="['space']" valType="str" updates="constant"/>
+        <Param name="allowedKeys" val="['BUTTON_FOR_EMOTION', 'BUTTON_FOR_NON_EMOTION']" valType="str" updates="constant"/>
         <Param name="duration" val="1002.0" valType="code" updates="constant"/>
         <Param name="store" val="first key" valType="str" updates="constant"/>
       </KeyboardComponent>
@@ -104,7 +104,7 @@
         <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
         <Param name="name" val="codekjljlk" valType="code" updates="None"/>
         <Param name="Each Frame" val="" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="ff = open(filename+'.baseline.ts', 'w')&#10;ff_d = {'start_timestamp':repr(time.time()), 'length': str(60.0)}&#10;ff.write(str(ff_d))&#10;ff.close()" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="my_metadata['baseline_start_timestamp'] = repr(time.time())&#10;my_metadata['baseline_length'] = str(60.0)" valType="code" updates="constant"/>
         <Param name="End Routine" val="" valType="code" updates="constant"/>
         <Param name="End Experiment" val="" valType="code" updates="constant"/>
       </CodeComponent>
@@ -170,7 +170,7 @@
       <TextComponent name="sodfsdlkj">
         <Param name="name" val="sodfsdlkj" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Wciśnij klawisz SPACE zawsze wtedy,kiedy&#10;prezentowane słowo będzie związane z emocjami.&#10;Aby przejść do sesji treningowej naciśnij SPACE." valType="str" updates="constant"/>
+        <Param name="text" val="Wciśnij klawisz COLOR_FOR_EMOTION zawsze wtedy, &#10;kiedy prezentowane słowo będzie związane z&#10;emocjamia, &#10;a klawisz COLOR_FOR_NON_EMOTION jeśli będzie to słowo neutralne. &#10;Nie naciskaj żadnego z klawiszy,&#10;jeśli będzie to słowo Drewno.&#10;Aby przejść do sesji treningowej naciśnij SPACE." valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
@@ -191,6 +191,14 @@
         <Param name="duration" val="" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
+      <CodeComponent name="codesdfdsfsg">
+        <Param name="Begin Experiment" val="" valType="code" updates="constant"/>
+        <Param name="name" val="codesdfdsfsg" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="my_metadata = {'emotional_button':'BUTTON_FOR_EMOTION','non-emotional_button':'BUTTON_FOR_NON_EMOTION'}" valType="code" updates="constant"/>
+        <Param name="End Routine" val="" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="ff = open(filename+'.metadata.pytxt', 'w')&#10;ff.write(str(my_metadata))&#10;ff.close()" valType="code" updates="constant"/>
+      </CodeComponent>
     </Routine>
     <Routine name="int4">
       <TextComponent name="uivgtdv">
@@ -289,7 +297,7 @@
       <TextComponent name="uiuiyhiu">
         <Param name="name" val="uiuiyhiu" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Twoje zadanie będzie polegało na czytaniu i&#10;ocenianiu słów pojawiających się kolejno na&#10;ekranie.&#10;Wciśnij klawisz SPACE zawsze wtedy, kiedy&#10;prezentowane słowo będzie związane z&#10;emocjami.&#10;Aby przejść dalej naciśnij SPACE." valType="str" updates="constant"/>
+        <Param name="text" val="Twoje zadanie będzie polegało na czytaniu i&#10;ocenianiu słów pojawiających się kolejno na&#10;ekranie.&#10;Wciśnij klawisz COLOR_FOR_EMOTION zawsze wtedy, &#10;kiedy prezentowane słowo będzie związane z&#10;emocjamia, &#10;a klawisz COLOR_FOR_NON_EMOTION jeśli będzie to słowo neutralne. &#10;Nie naciskaj żadnego z klawiszy,&#10;jeśli będzie to słowo Drewno.&#10;Aby przejść dalej naciśnij SPACE." valType="str" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="pos" val="[0,0]" valType="code" updates="constant"/>
         <Param name="duration" val="" valType="code" updates="constant"/>
@@ -346,7 +354,7 @@
         <Param name="storeResponseTime" val="False" valType="bool" updates="constant"/>
         <Param name="startTime" val="1.0" valType="code" updates="constant"/>
         <Param name="allowedKeys" val="['space']" valType="str" updates="constant"/>
-        <Param name="duration" val="3.0" valType="code" updates="constant"/>
+        <Param name="duration" val="2.0" valType="code" updates="constant"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
       </KeyboardComponent>
     </Routine>

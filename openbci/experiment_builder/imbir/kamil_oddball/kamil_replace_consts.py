@@ -3,7 +3,7 @@
 from kamil_consts import *
 
 
-old_f_name = 'kamil_oddball_10_01_2010.py'
+old_f_name = 'kamil_oddball_17_05_2011.py'
 dir = './'
 
 new_f_name = old_f_name +'.fixed.py'
@@ -14,6 +14,10 @@ new_f = open(dir+new_f_name, 'w')
 
 for old_line in old_f:
     line = old_line
+    #replace button emotions string
+    for d in [EMOTIONS, NON_EMOTIONS]:
+        line = line.replace(d['color_rep'], d['color'])
+        line = line.replace(d['button_rep'], d['button'])
 
     #center strings - ugly hack
     string_indicator = 'text=u'

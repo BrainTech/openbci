@@ -12,7 +12,7 @@ from psychopy import core, data, event, visual, gui
 import psychopy.log #import like this so it doesn't interfere with numpy.log
 
 #store info about the experiment
-expName='kamil_oddball_10_01_2010'#from the Builder filename that created this script
+expName='None'#from the Builder filename that created this script
 expInfo={'participant':'ID01', 'session':001}
 dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)
 if dlg.OK==False: core.quit() #user pressed cancel
@@ -41,9 +41,9 @@ dsf=visual.TextStim(win=win, ori=0,
 int2Clock=core.Clock()
 uiuiyhiu=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
-    text=u'Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i\nocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na\n                 ekranie.                 \n Wci\u015bnij klawisz SPACE zawsze wtedy, kiedy \n   prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z   \n                 emocjami.                 \n     Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.     ',
+    text=u'    Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i    \n    ocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na    \n                     ekranie.                     \n      Wci\u015bnij klawisz Czerwony zawsze wtedy,       \n    kiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z    \n                    emocjamia,                     \na klawisz Zielony je\u015bli b\u0119dzie to s\u0142owo neutralne. \n         Nie naciskaj \u017cadnego z klawiszy,         \n           je\u015bli b\u0119dzie to s\u0142owo Drewno.           \n         Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.         ',
     pos=[0,0], height=0.08,
-    color='black', colorSpace='rgb')
+    color=u'black', colorSpace=u'rgb')
 #create our own class to store info from keyboard
 class KeyResponse:
     def __init__(self):
@@ -66,18 +66,19 @@ uivgtdv=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
     text=u' Skupiaj swoj\u0105 uwag\u0119 na znaku + \n        na \u015brodku ekranu.        \n                                \n                +                \n                                \n Staraj si\u0119 mruga\u0107 tylko wtedy,  \n gdy pojawi si\u0119 taka instrukcja. \nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
     pos=[0, 0], height=0.08,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:int5
 int5Clock=core.Clock()
 sodfsdlkj=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
-    text=u'    Wci\u015bnij klawisz SPACE zawsze wtedy,kiedy    \n prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z emocjami. \nAby przej\u015b\u0107 do sesji treningowej naci\u015bnij SPACE.',
+    text=u'      Wci\u015bnij klawisz Czerwony zawsze wtedy,       \n    kiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z    \n                    emocjamia,                     \na klawisz Zielony je\u015bli b\u0119dzie to s\u0142owo neutralne. \n         Nie naciskaj \u017cadnego z klawiszy,         \n           je\u015bli b\u0119dzie to s\u0142owo Drewno.           \n Aby przej\u015b\u0107 do sesji treningowej naci\u015bnij SPACE. ',
     pos=[0, 0], height=0.08,
     color=u'black', colorSpace=u'rgb')
 
+
 #set up handler to look after randomisation of trials etc
-trialskjhk=data.TrialHandler(nReps=1, method=u'sequential', extraInfo=expInfo, 
+trialskjhk=data.TrialHandler(nReps=1, method='sequential', extraInfo=expInfo, 
     trialList=data.importTrialList('samples.csv'))
 thisTrialskjh=trialskjhk.trialList[0]#so we can initialise stimuli with some values
 #abbrieviate parameter names if possible (e.g. rgb=thisTrialskjh.rgb)
@@ -102,15 +103,14 @@ lkslkdlkdkdkdk=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
     text=u'Za chwil\u0119 na minut\u0119 na ekranie pojawi si\u0119 znak +. \nW tym czasie rozlu\u017anij si\u0119 i po prostu patrz na +. \n    Po tym rozpocznie si\u0119 w\u0142a\u015bciwy eksperyment.    \n        Je\u015bli jeste\u015b got\xf3w, naci\u015bnij SPACE.        ',
     pos=[0, 0], height=0.08,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 #Initialise components for routine:baseline
 baselineClock=core.Clock()
 aaassssss=visual.TextStim(win=win, ori=0,
-    wrapWidth=2.0, bold=True, font='Courier',
-    text=u'+',
+    text='+',
     pos=[0, 0], height=0.1,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 
 #Initialise components for routine:test_b
@@ -170,10 +170,9 @@ after_blink_break = 1
 #Initialise components for routine:blink_sth
 blink_sthClock=core.Clock()
 slsdfdkeifjfk=visual.TextStim(win=win, ori=0,
-    wrapWidth=2.0, bold=True, font='Courier',
-    text=u'',
+    text='',
     pos=[0, 0], height=0.1,
-    color=u'white', colorSpace=u'rgb')
+    color='white', colorSpace='rgb')
 
 
 #Initialise components for routine:bye
@@ -291,6 +290,7 @@ while continueInt4 and (t<1000000.0000):
 
 #update component parameters for each repeat
 resplkdsjwo = KeyResponse()#create an object of type KeyResponse
+my_metadata = {'emotional_button':'c','non-emotional_button':'n'}
 
 #run the trial
 continueInt5=True
@@ -309,6 +309,7 @@ while continueInt5 and (t<1000000.0000):
             #abort routine on response
             continueInt5=False
     
+    
     #check for quit (the [Esc] key)
     if event.getKeys(["escape"]): core.quit()
     event.clearEvents()#so that it doesn't get clogged with other events
@@ -316,6 +317,7 @@ while continueInt5 and (t<1000000.0000):
     win.flip()
 
 #end of this routine (e.g. trial)
+
 
 for thisTrialskjh in trialskjhk:
     #abbrieviate parameter names if possible (e.g. rgb=thisTrialskjh.rgb)
@@ -330,7 +332,7 @@ for thisTrialskjh in trialskjhk:
     #run the trial
     continueTest=True
     t=0; testClock.reset()
-    while continueTest and (t<4.0000):
+    while continueTest and (t<3.0000):
         #get current time
         t=testClock.getTime()
         
@@ -339,8 +341,8 @@ for thisTrialskjh in trialskjhk:
             fxxxxx.draw()
         if (1.0<= t < (1.0+1.0)):
             lkhkkki.draw()
-        if (1.0<= t < (1.0+3.0)):
-            theseKeys = event.getKeys(keyList="['space']")
+        if (1.0<= t < (1.0+2.0)):
+            theseKeys = event.getKeys(keyList=u"['space']")
             if len(theseKeys)>0:#at least one key was pressed
                 respkljlkj.keys=theseKeys[-1]#just the last key pressed
         
@@ -376,7 +378,7 @@ while continueBaseline_inst and (t<1000000.0000):
     if (0.0 <= t):
         lkslkdlkdkdkdk.draw()
     if (0.0 <= t):
-        theseKeys = event.getKeys(keyList=u"['space']")
+        theseKeys = event.getKeys(keyList="['space']")
         if len(theseKeys)>0:#at least one key was pressed
             respkdlfjsdlkf.keys=theseKeys[-1]#just the last key pressed
             #abort routine on response
@@ -391,10 +393,8 @@ while continueBaseline_inst and (t<1000000.0000):
 #end of this routine (e.g. trial)
 
 #update component parameters for each repeat
-ff = open(filename+'.baseline.ts', 'w')
-ff_d = {'start_timestamp':repr(time.time()), 'length': str(60.0)}
-ff.write(str(ff_d))
-ff.close()
+my_metadata['baseline_start_timestamp'] = repr(time.time())
+my_metadata['baseline_length'] = str(60.0)
 
 #run the trial
 continueBaseline=True
@@ -506,7 +506,7 @@ for thisTrial in trials:
         if (s_st[2]<= t < (s_st[2]+s_dur[2])):
             if t_resp.clock==None: #if we don't have one we've just started
                 t_resp.clock=core.Clock()#create one (now t=0)
-            theseKeys = event.getKeys(keyList="['space']")
+            theseKeys = event.getKeys(keyList=u"['c', 'n']")
             if len(theseKeys)>0:#at least one key was pressed
                 if t_resp.keys==[]:#then this was the first keypress
                     t_resp.keys=theseKeys[0]#just the first key pressed
@@ -642,6 +642,9 @@ while continueBye and (t<1000000.0000):
     win.flip()
 
 #end of this routine (e.g. trial)
+ff = open(filename+'.metadata.pytxt', 'w')
+ff.write(str(my_metadata))
+ff.close()
 
 os.remove(filename+'.xlsx')
 trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
