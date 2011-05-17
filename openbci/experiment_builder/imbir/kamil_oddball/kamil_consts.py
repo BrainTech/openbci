@@ -27,7 +27,11 @@ BLINK_MIN = 10
 BLINK_MAX = 15
 
 
-# which buttons are interpreted as emotional?
+# Which buttons are interpreted as emotional? 'color' property is to be used
+# in user`s instruction, eg. 'Hit Czerwony button for emotional words, hit Zielony button for non emotional words.
+# 'button' property is a button the user is to push. REMEMBER, place 'color' indicator on 'button' button on keyboard.
+# Eg. place Czerwony color on 'c' button.
+
 EMOTIONS =  {
     'color':'Czerwony',
     'button':'c',
