@@ -32,6 +32,7 @@ BLINK_MAX = 15
 # 'button' property is a button the user is to push. REMEMBER, place 'color' indicator on 'button' button on keyboard.
 # Eg. place Czerwony color on 'c' button.
 
+# WARNING - this property works only after running 'kamil_replace_consts.py' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 EMOTIONS =  {
     'color':'Czerwony',
     'button':'c',
