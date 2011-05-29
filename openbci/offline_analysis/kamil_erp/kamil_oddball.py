@@ -27,11 +27,14 @@ sys.path.insert(1, '../../../')
 sys.path.insert(1, '../../../openbci/')
 
 from offline_analysis import trigger_experiment
+from openbci.tests import lost_samples_test
 from offline_analysis.erp import erp_avg
 from offline_analysis.erp import erp_plot
 from offline_analysis import smart_tag_definition
 from offline_analysis import smart_tags_manager
 from openbci.offline_analysis import offline_analysis_logging as logger
+from openbci.data_storage import read_manager
+from openbci.data_storage import data_file_proxy
 LOGGER = logger.get_logger("kamil_erp", "debug")
 
 
@@ -225,9 +228,9 @@ def filter_and_store(files, dr, f_name):
         #my_chain.ChainElement(my_tools.Filter,
         #                      [{'wp':[0.5, 30], 'ws':[0.1, 45.0], 'gpass': 5.0,
         #                        'gstop': 40.0, 'ftype':'cheby2', 'unit':'hz', 'use_filtfilt':False}]),
-        my_chain.ChainElement(my_tools.Filter,
-                              [{'wp':0.8, 'ws':0.2, 'gpass': 2.0,
-                                'gstop': 60.0, 'ftype':'ellip', 'unit':'hz', 'use_filtfilt':True}]),
+        #my_chain.ChainElement(my_tools.Filter,
+        #                      [{'wp':0.8, 'ws':0.2, 'gpass': 2.0,
+        #                        'gstop': 60.0, 'ftype':'ellip', 'unit':'hz', 'use_filtfilt':True}]),
         my_chain.ChainElement(my_tools.Filter,
                               [{'wp':20.0, 'ws':30.0, 'gpass': 5.0,
                                 'gstop': 60.0, 'ftype':'cheby2', 'unit':'hz', 'use_filtfilt':True}]),
@@ -241,9 +244,38 @@ def filter_and_store(files, dr, f_name):
 def run(p_files, plot_type='all', p_show=True):
     plot_avgs_for(p_files, plot_type, p_show, 2, 3, [['Fp1', 'Fpz', 'Fp2', 'F3', 'Fz', 'F4'], ['P3', 'Pz', 'P4', 'C3', 'Cz', 'C4']])
 
+def fix_file(f, from_sample, num_of_samples, sample_value):
+    mgr = read_manager.ReadManager(f['info'], f['data'], None)
+    wr = data_file_proxy.DataFileWriteProxy(f['data']+'.fixed.raw')
+    for i, s in enumerate(mgr.iter_samples()):
+        for v in s:
+            wr.data_received(v)
+        if i > from_sample:
+            print("BREAK")
+            break
+
+
+    ch_no = int(mgr.get_param('number_of_channels'))
+    for i in range(num_of_samples):
+        for j in range(ch_no):
+            wr.data_received(sample_value)
+    print("FILLED")
+    
+
+    for i, s in enumerate(mgr.iter_samples()):
+        if i > from_sample:
+            for v in s:
+                wr.data_received(v)
+
+    wr.finish_saving()
+
+
+    
+
+    
 
 if __name__ == "__main__":
-    dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/EEG-eksperyment-03-2011-5osob/'
+    dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/eeg-eksperyment-20-05-2011marysia/'
 
     #f_name = 'Agata'
     #f_csv_name = 'Agata_Feb_25_1229.csv'
@@ -255,14 +287,18 @@ if __name__ == "__main__":
     #f_csv_name = 'Kasia_Feb_25_0925.csv'
     #f_name = 'Linda'
     #f_csv_name = 'Linda_Feb_25_1501.csv'
-    f_names = ['Linda']#, 'Agata', 'Justyna', 'Kamila1', 'Kasia']
+    f_names = ['marysia_18_05_2011']#, 'Agata', 'Justyna', 'Kamila1', 'Kasia']
     for f_name in f_names:
         f = {
-            'info': os.path.join(dr, f_name+'.obci.info'),
-            'data': os.path.join(dr, f_name+'.obci.dat'),
-            'tags':os.path.join(dr, f_name+'.obci.tags')
+            'info': os.path.join(dr, f_name+'.xml'),
+            'data': os.path.join(dr, f_name+'.filtered2.raw.obci.dat'),
+            'tags':os.path.join(dr, f_name+'.obci.fixed.arts_free.tags')
             }
-        filter_and_store(f, dr, f_name+'.filtered.dat')
+        #lost_samples_test.find_and_print(f['info'], f['data'])
+        #fix_file(f, from_sample=2701686-870572, num_of_samples=28877, sample_value=0.0)
+        #trigger_experiment.trigger_to_tag(f['tags'], dr+f_name+'.csv', f['info'], f['data']+'.fixed.raw', KamilOddballFullExpTag, 2, 1, 1.0, 0.3)
+        #filter_and_store(f, dr, f_name+'.filtered2.raw')
+        run(f)
 
 
 
