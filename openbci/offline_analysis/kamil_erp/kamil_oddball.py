@@ -30,11 +30,11 @@ from offline_analysis import trigger_experiment
 from openbci.tests import lost_samples_test
 from offline_analysis.erp import erp_avg
 from offline_analysis.erp import erp_plot
-from offline_analysis import smart_tag_definition
-from offline_analysis import smart_tags_manager
+from openbci.offline_analysis.obci_signal_processing.tags import smart_tag_definition
+from openbci.offline_analysis.obci_signal_processing import smart_tags_manager
 from openbci.offline_analysis import offline_analysis_logging as logger
-from openbci.data_storage import read_manager
-from openbci.data_storage import data_file_proxy
+from openbci.offline_analysis.obci_signal_processing import read_manager
+from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
 LOGGER = logger.get_logger("kamil_erp", "debug")
 
 
@@ -298,7 +298,7 @@ if __name__ == "__main__":
         #fix_file(f, from_sample=2701686-870572, num_of_samples=28877, sample_value=0.0)
         #trigger_experiment.trigger_to_tag(f['tags'], dr+f_name+'.csv', f['info'], f['data']+'.fixed.raw', KamilOddballFullExpTag, 2, 1, 1.0, 0.3)
         #filter_and_store(f, dr, f_name+'.filtered2.raw')
-        run(f)
+        run(f, plot_type='system')
 
 
 

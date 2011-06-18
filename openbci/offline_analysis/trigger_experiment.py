@@ -25,7 +25,7 @@
 import sys, os.path, settings
 
 from data_storage import csv_manager
-from data_storage import read_manager
+from openbci.offline_analysis.obci_signal_processing import read_manager
 from tags import tag_utils
 from tags import tags_file_writer
 
@@ -67,7 +67,7 @@ def get_experiment_tags_from(p_path, TagClass, quoting=0, delimiter=','):
 def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_len=1.0, min_trig_len=0.0):
     """Create an svarog.tags file with tags determined by
     trigger channel and experiment data values
-    >>> from data_storage import read_manager
+    >>> from openbci.offline_analysis.obci_signal_processing import read_manager
 
     >>> mgr = read_manager.ReadManager('/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/kamil_001.obci.svarog.info', '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/kamil_001.obci.dat', None)
 

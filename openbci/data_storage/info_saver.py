@@ -31,7 +31,7 @@ import sys, time, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
-import info_file_proxy
+from openbci.offline_analysis.obci_signal_processing.signal import info_file_proxy
 
 LOGGER = logger.get_logger("info_saver", 'info')
 

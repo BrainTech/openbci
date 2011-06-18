@@ -32,7 +32,7 @@ import settings, variables_pb2
 
 import tags_logging as logger
 import tagger
-import tags_file_writer as tags_writer
+from openbci.offline_analysis.obci_signal_processing.tags import tags_file_writer as tags_writer
 
 LOGGER = logger.get_logger("tags_saver", 'info')
 TAGGER = tagger.get_tagger()

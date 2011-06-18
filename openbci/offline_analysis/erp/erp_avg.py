@@ -27,7 +27,7 @@ import sys
 
 def store_avgs_for_svarog(avgs, f_dir='./', f_name='svarog'):
     """Saver data file with len(avgs) channels and with data from avgs."""
-    from openbci.data_storage import data_file_proxy as fp
+    from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy as fp
     w = fp.DataFileWriteProxy(f_name, f_dir, 'p300')
     max_len = len(max(avgs))
     for i in range(max_len):
@@ -97,7 +97,7 @@ def get_normalised_avgs(p_samples_source, p_start_samples_to_norm=0, p_avg_len=N
       returned array size by p_avg_len.
 
 
-    >>> from data_storage import read_data_source as s
+    >>> from openbci.offline_analysis.obci_signal_processing.signal import read_data_source as s
 
     >>> ss = [s.MemoryDataSource([[1., 2., 3.],[4., 5., 6.]]), s.MemoryDataSource([[10., 20., 30.], [40., 50., 60.]]), s.MemoryDataSource([[100., 200., 300.], [400., 500., 600.]])]
 

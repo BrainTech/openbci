@@ -23,7 +23,8 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 from openbci.core import  core_logging as logger
-from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
+from openbci.offline_analysis.obci_signal_processing.signal import read_manager, read_info_source, read_data_source
+from openbci.offline_analysis.obci_signal_processing.tags import read_tags_source
 LOGGER = logger.get_logger("P300_engine", "debug")
 import random, scipy
 from offline_analysis.p300 import chain_analysis_offline as my_tools

@@ -1,4 +1,4 @@
-from openbci.tags import tags_file_reader as reader
+from openbci.offline_analysis.obci_signal_processing.tags import tags_file_reader as reader
 
 class Tester(object):
     def __init__(self, file_name, tag_type=""):

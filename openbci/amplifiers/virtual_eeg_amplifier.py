@@ -35,7 +35,7 @@ import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 import amplifiers_logging as logger
-from openbci.data_storage import data_storage_exceptions
+from openbci.offline_analysis.obci_signal_processing.signal import signal_exceptions as data_storage_exceptions
 LOGGER = logger.get_logger("virtual_eeg_amplifier", "info")
 
 class VirtualEEGAmplifier(object):

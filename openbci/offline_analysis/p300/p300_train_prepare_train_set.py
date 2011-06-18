@@ -1,5 +1,5 @@
-from offline_analysis import smart_tag_definition
-from offline_analysis import smart_tags_manager
+from openbci.offline_analysis.obci_signal_processing.tags import smart_tag_definition
+from openbci.offline_analysis.obci_signal_processing import smart_tags_manager
 from offline_analysis.erp import erp_avg
 import sys, os, os.path, random
 import scipy

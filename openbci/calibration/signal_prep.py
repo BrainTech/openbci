@@ -27,8 +27,8 @@
 #"""
 
 import experiment_builder.experiment_tag_utils as exp_utils
-from openbci.offline_analysis import smart_tags_manager as tag_mgr
-from openbci.offline_analysis import smart_tag_definition as tag_df  
+from openbci.offline_analysis.obci_signal_processing import smart_tags_manager as tag_mgr
+from openbci.offline_analysis.obci_signal_processing.tags import smart_tag_definition as tag_df  
 
 class SignalPrep(object):
     """

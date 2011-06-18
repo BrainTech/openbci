@@ -25,7 +25,7 @@
 import csv
 import codecs
 import cStringIO
-from openbci.core import types_utils
+from openbci.offline_analysis.obci_signal_processing import types_utils
 DELIMITER = ';'
 STRING = '"'
 

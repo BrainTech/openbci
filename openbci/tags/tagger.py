@@ -26,7 +26,7 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
 import variables_pb2
 
-from openbci.core import types_utils
+from openbci.offline_analysis.obci_signal_processing import types_utils
 
 import tags_logging as logger
 LOGGER = logger.get_logger('tagger', 'info')

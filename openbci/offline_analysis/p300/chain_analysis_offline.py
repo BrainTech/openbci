@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from data_storage import read_manager
+from openbci.offline_analysis.obci_signal_processing import read_manager
 import analysis_offline
 class ReadSignal(object):
     def __init__(self, files):

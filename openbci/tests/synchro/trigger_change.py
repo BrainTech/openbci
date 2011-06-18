@@ -31,7 +31,7 @@ TEST = False
 
 if not TEST:
     try:
-        from data_storage import read_manager
+        from openbci.offline_analysis.obci_signal_processing import read_manager
         from core import core_logging as logger
         LOGGER = logger.get_logger("trigger_change", "debug")
     except ImportError, e:
@@ -54,7 +54,7 @@ def get_trigger_sent_timestamps(p_read_mgr, p_asci_file_path=None):
 
     TESTS:
 
-    >>> from data_storage import read_manager
+    >>> from openbci.offline_analysis.obci_signal_processing import read_manager
 
     >>> mgr = read_manager.ReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
 
@@ -110,7 +110,7 @@ def get_trigger_received_timestamps(p_read_mgr, trig=None, tss=None):
     >>> get_trigger_received_timestamps(None, [1,1,1,1], [1,2,3,4])
     ([1], [1], [4])
 
-    >>> from data_storage import read_manager
+    >>> from openbci.offline_analysis.obci_signal_processing import read_manager
 
     >>> mgr = read_manager.ReadManager('test_save_timestamp.obci.info', 'test_save_timestamp.obci.dat', 'test_save_timestamp.obci.tags')
 

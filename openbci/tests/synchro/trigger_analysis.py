@@ -29,7 +29,7 @@ sys.path.insert(1, '../../../openbci/')
 
 import os.path
 import math
-from data_storage import read_manager
+from openbci.offline_analysis.obci_signal_processing import read_manager
 import trigger_change
 from core import core_logging as logger
 LOGGER = logger.get_logger("trigger_analysis", "debug")

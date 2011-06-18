@@ -35,8 +35,8 @@ from multiplexer.clients import connect_client
 import virtual_eeg_amplifier
 import amplifiers_logging as logger
 from openbci.tags import tagger
-from openbci.data_storage import read_manager
-from openbci.data_storage import data_storage_exceptions
+from openbci.offline_analysis.obci_signal_processing import read_manager
+from openbci.offline_analysis.obci_signal_processing.signal import signal_exceptions as data_storage_exceptions
 
 
 LOGGER = logger.get_logger("file_amplifier")

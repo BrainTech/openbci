@@ -24,10 +24,10 @@
 
 """Implement averaged epochs class."""
 
-from openbci.data_storage import read_manager
-from openbci.data_storage import read_info_source
-from openbci.data_storage import read_data_source
-from openbci.data_storage import read_tags_source
+from openbci.offline_analysis.obci_signal_processing import read_manager
+from openbci.offline_analysis.obci_signal_processing.signal import read_info_source
+from openbci.offline_analysis.obci_signal_processing.signal import read_data_source
+from openbci.offline_analysis.obci_signal_processing.tags import read_tags_source
 from offline_analysis.erp import erp_avg
 
 

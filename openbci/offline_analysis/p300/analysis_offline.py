@@ -7,8 +7,12 @@ from scipy import signal
 import pylab
 import PyML
 import copy
-from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
-from offline_analysis import smart_tag_definition, smart_tags_manager, averaged_epochs
+from openbci.offline_analysis.obci_signal_processing import read_manager
+from openbci.offline_analysis.obci_signal_processing.signal import read_info_source, read_data_source
+from openbci.offline_analysis.obci_signal_processing.tags import read_tags_source
+from openbci.offline_analysis.obci_signal_processing.tags import smart_tag_definition
+from openbci.offline_analysis.obci_signal_processing import smart_tags_manager
+from openbci.offline_analysis import averaged_epochs
 
 def exclude_channels(mgr, channels):
     new_params = copy.deepcopy(mgr.get_params())

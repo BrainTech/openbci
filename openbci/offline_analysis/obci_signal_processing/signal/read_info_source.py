@@ -52,7 +52,7 @@ class MemoryInfoSource(InfoSource):
         try:
             return self._params[p_key]
         except KeyError:
-            raise data_storage_exceptions.NoParameter(p_key)
+            raise signal_exceptions.NoParameter(p_key)
 
     def get_params(self):
         return self._params

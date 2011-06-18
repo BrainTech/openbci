@@ -29,12 +29,12 @@ sys.path.insert(1, '../../openbci/')
 
 import os.path
 import math
-from data_storage import read_manager
+from openbci.offline_analysis.obci_signal_processing import read_manager
 from core import core_logging as logger
 LOGGER = logger.get_logger("lost_samples_test", "debug")
 
 
-TEST = False
+TEST = True
 
 def test():
     import doctest
@@ -102,9 +102,12 @@ def print_result(l):
     >>> print_result([1,2,3,4,5])
     All but first 5 samples were written.
 
-    >>> print_result([1,2,10,11,15])
+    >>> print_result([3,4,5,10,11,12,15,16])
     Samples numbers that were NOT written:
-    [1, 2, 10, 11, 15]
+    2 - 5
+    10 - 12
+    15 - 16
+
 
     """
 
@@ -120,9 +123,28 @@ def print_result(l):
             print ("All but first "+str(i+1)+" samples were written.")
         else:
             print ("Samples numbers that were NOT written:")
-            print l
-    
+            print ('0 - '+str(i+1))
+            start = l[0] - 1
+            prev = l[0] - 1
+            for v in l:
+                if v-1 == prev:
+                    prev = v
+                else:
+                    print(str(start)+' - '+str(prev))
+                    prev = v
+                    start = v
+            print(str(start)+' - '+str(prev))            
 
+    
+def find_and_print(info_file, data_file, spare_memory=True):
+    manager = read_manager.ReadManager(
+        info_file,
+        data_file,
+        None
+        )
+    l = find_lost_samples(manager, spare_memory=spare_memory)
+    print_result(l)
+    
 
 if __name__ == "__main__":
     
@@ -142,13 +164,13 @@ if __name__ == "__main__":
             'data': os.path.join(dr, f_name+'.obci.dat'),
             #'tags':os.path.join(dr, f_name+'.obci.tags')
             }
-    read_manager = read_manager.ReadManager(
+    manager = read_manager.ReadManager(
         f['info'],
         f['data'],
         None#f['tags']
         )
 
-    l = find_lost_samples(read_manager, spare_memory=True)
+    l = find_lost_samples(manager, spare_memory=True)
     print_result(l)
             
             

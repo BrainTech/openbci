@@ -31,6 +31,11 @@ function (eg. python virtual_amplifier.py function)
 from file 
 (eg. python virtual_amplifier.py file test.obci.info test.obci.dat test.obci.tags)"""
 
+import sys
+for i in ['/usr/local/lib/python2.6/site-packages/', '/home/mati/bci_dev/openbci_repo/trunk/openbci/','/home/mati/bci_dev/openbci_repo/trunk/','/home/mati/bci_dev/azouk_repo/build/']:
+    sys.path.append(i)
+
+
 from openbci.amplifiers import amplifiers_logging as logger
 LOGGER = logger.get_logger("virtual_amplifier")
 
@@ -40,12 +45,12 @@ if __name__ == "__main__":
     l_mode = 'function' # default mode
     # Below, default files in case sys.argv[1] == file
     l_info_file = os.path.join(settings.MAIN_DIR,
-                               'openbci/data_storage/tests/data/data.obci.info')
+                               'openbci/offline_analysis/obci_signal_processing/tests/data/data.obci.info')
     l_data_file = os.path.join(settings.MAIN_DIR,
-        'openbci/data_storage/tests/data/data.obci.dat')
+        'openbci/offline_analysis/obci_signal_processing/tests/data/data.obci.dat')
 
     l_tags_file = os.path.join(settings.MAIN_DIR,
-                               "openbci/data_storage/tests/data/data.obci.tags")
+                               "openbci/offline_analysis/obci_signal_processing/tests/data/data.obci.tags")
     try:
         l_mode = sys.argv[1]
     except IndexError:

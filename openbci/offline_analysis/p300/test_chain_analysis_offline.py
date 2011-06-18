@@ -6,7 +6,9 @@ from scipy import *
 from scipy import signal
 import unittest
 
-from data_storage import read_manager, read_info_source, read_data_source, read_tags_source
+from openbci.offline_analysis.obci_signal_processing import read_manager
+from openbci.offline_analysis.obci_signal_processing.signal import read_info_source, read_data_source
+from openbci.offline_analysis.obci_signal_processing.tags import read_tags_source
 from openbci.offline_analysis import offline_analysis_logging as logger
 LOGGER = logger.get_logger("test_chain_analysis_offline", "info")
 

@@ -26,12 +26,12 @@
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 
-import data_file_proxy
+from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
 import sys, time, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
-import data_storage_exceptions
+from openbci.offline_analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
 from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')
