@@ -26,8 +26,8 @@ import sys, os.path, settings
 
 from data_storage import csv_manager
 from openbci.offline_analysis.obci_signal_processing import read_manager
-from tags import tag_utils
-from tags import tags_file_writer
+from openbci.offline_analysis.obci_signal_processing.tags import tag_utils
+from openbci.offline_analysis.obci_signal_processing.tags import tags_file_writer
 
 import trigger
 from offline_analysis import offline_analysis_logging as logger
