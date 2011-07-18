@@ -63,10 +63,11 @@ task("sleep 20; ./experiment_builder/experiment_manager_ania.py mx-on config", "
 task("sleep 1; ./super_diode_control.py", "diode_control")
 task("sleep 1; ./diode_catcher.py", "diode_catcher")
 
-task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:48:DB", "python_bt_amplifier")
+task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:42:DC	", "python_bt_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server", "c++_usb_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:48:DB", "c++_bt_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "c++_bt_mobimini_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:48:4B", "c++_bt_mobi5_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "py_bt_mobimini_amplifier")
 task("python ./amplifiers/virtual_amplifier.py file", "virtual_amplifier")
 task("python ./amplifiers/virtual_amplifier.py function", "virtual_f_amplifier")
@@ -91,6 +92,7 @@ multitask(["info_saver", "data_saver", "tag_saver"], "signal_saver")
 task("python ./p300dawida/rysowanie.py", "rysowanie")
 task("python ./p300dawida/rysowanie_debug.py", "rysowanie_debug")
 task("python ./p300dawida/p300.py", "p300dawid")
+task("python ./p300dawida/bloczki.py", "bloczki")
 task("python ./p300dawida/plotting.py", "plottingdawid")
 
 
@@ -333,23 +335,33 @@ start("svarog_test_c++_bt_mobi", "svarog_pinger")
 start("svarog_test_c++_bt_mobi", "c++_bt_mobimini_amplifier")
 start("svarog_test_c++_bt_mobi", "manual_tags_sending")
 
+
+start("svarog_test_c++_bt_mobi5", "hashtable")
+start("svarog_test_c++_bt_mobi5", "c++_bt_mobi5_amplifier")
+start("svarog_test_c++_bt_mobi5", "manual_tags_sending")
+
+
 start("svarog_test_py_bt_mobi", "hashtable")
-start("svarog_test_py_bt_mobi", "svarog_pinger")
 start("svarog_test_py_bt_mobi", "py_bt_mobimini_amplifier")
 start("svarog_test_py_bt_mobi", "manual_tags_sending")
 
+
+
+
 start("svarog_test_c++_usb", "hashtable")
-start("svarog_test_c++_usb", "svarog_pinger")
 start("svarog_test_c++_usb", "c++_usb_amplifier")
 start("svarog_test_c++_usb", "manual_tags_sending")
 
 start("svarog_v_test", "hashtable")
-start("svarog_v_test", "svarog_pinger")
 start("svarog_v_test", "virtual_amplifier")
 start("svarog_v_test", "manual_tags_sending")
 
+start("svarog_v_fast_test", "hashtable")
+start("svarog_v_fast_test", "fast_virtual_amplifier")
+start("svarog_v_fast_test", "manual_tags_sending")
+
+
 start("svarog_f_test", "hashtable")
-start("svarog_f_test", "svarog_pinger")
 start("svarog_f_test", "virtual_f_amplifier")
 start("svarog_f_test", "manual_tags_sending")
 
