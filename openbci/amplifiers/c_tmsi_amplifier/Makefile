@@ -34,6 +34,7 @@ LDFLAGS		+= $(GENERALFLAGS) \
 			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python
     			#
 BUILD = build
+
 LIBRARIES	:= $(shell find $(SOURCEDIRS) -name '*.o' | grep -v '\.svn')
 TARGETS = tmsi_server test_server test_driver dummy_receiver
 all: $(TARGETS)
@@ -63,14 +64,17 @@ test_logger: $(BUILD)/test_logger.o
 $(BUILD)/%: $(BUILD)
 
 $(BUILD)/%.o : src/%.cpp src/%.h src/Logger.h
+	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
 
 $(BUILD)/%.o :  src/tests/%.cpp
+	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
 
 src/AmplifierServer.h: $(BUILD)/variables.pb.h
 
 $(BUILD)/tmsi.o: src/nexus/tmsi.c src/nexus/tmsi.h
+	mkdir -p $(BUILD)
 	$(CXX) -o $@ -c $<
 
 $(BUILD):

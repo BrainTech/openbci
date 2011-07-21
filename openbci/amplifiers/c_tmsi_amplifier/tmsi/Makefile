@@ -1,14 +1,16 @@
 KDIR	:= /lib/modules/$(shell uname -r)/build
 UDEVDIR	:= /etc/udev/rules.d
+LIBUDEV	:= /lib/udev
 FWDIR	:= /lib/firmware
 
-obj-m	+= fusbi.o
+obj-m	+= tmsi.o
 
 default:
+	mkdir -p .tmp_versions
 	touch .tmp_versions/tmp
 	$(MAKE) -C $(KDIR) SUBDIRS=`pwd` modules
 
-install: default
+install: default synfi_init
 	if dpkg -s "fxload" 2>/dev/null 1>/dev/null;  then \
 	echo "Package fxload is installed.";\
 	else	echo "Package fxload isn't installed.\n Run sudo apt-get install fxload";\
@@ -16,17 +18,19 @@ install: default
 	fi
 	$(MAKE) -C $(KDIR) SUBDIRS=`pwd` modules_install
 	/sbin/depmod -a
-
+	cp -f tmsi.rules $(UDEVDIR)
+	cp -f synfi_init $(LIBUDEV)
 	cp -f fusbi.hex $(FWDIR)
-	cp -f fusbi.rules $(UDEVDIR)
-
 uninstall:
-	rm -f $(FWDIR)/fusbi.hex $(UDEVDIR)/fusbi.rules
+	rm -f $(LIBUDEV)/synfi_init $(UDEVDIR)/tmsi.rules $(FWDIR)/fusbi.hex
 
 clean:
-	rm -Rf .fusbi.ko.cmd fusbi.mod.c fusbi.mod.o .fusbi.mod.o.cmd fusbi.o .fusbi.o.cmd Module.symvers .tmp_versions
+	rm -Rf .tmsi.ko.cmd tmsi.mod.c tmsi.mod.o .tmsi.mod.o.cmd tmsi.o .tmsi.o.cmd Module.symvers .tmp_versions
 
 distclean: clean
-	rm -f fusbi.ko
+	rm -f tmsi.ko
 test: test.c
 	gcc -o test test.c
+
+synfi_init: synfi_init.c
+	gcc -o synfi_init synfi_init.c

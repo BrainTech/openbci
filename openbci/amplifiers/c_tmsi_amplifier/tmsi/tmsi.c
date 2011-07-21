@@ -76,7 +76,8 @@
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_TMSI_MINOR_BASE		192
 #define info(...) printk(KERN_INFO __VA_ARGS__)
-#define debug(...) printk(KERN_INFO __VA_ARGS__)
+#define debug(...) ;
+//#define debug(...) printk(KERN_INFO __VA_ARGS__)
 /* Structure to hold all of our device specific stuff */
 struct tmsi_data {
 	struct usb_device* udev;
