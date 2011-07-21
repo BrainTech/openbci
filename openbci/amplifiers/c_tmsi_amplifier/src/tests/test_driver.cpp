@@ -21,7 +21,7 @@ using namespace boost::posix_time;
 int main(int argc, char ** argv) {
     tms_frontendinfo_t fei;
     
-    char *dev="/dev/fusbi0", *read_dev=NULL,*dump_file=NULL,*chann_names="1 2 trig onoff bat";
+    char *dev="/dev/tmsi0", *read_dev=NULL,*dump_file=NULL,*chann_names="1 2 trig onoff bat";
     int sample_rate=128,length=5;
     int mode=USB_AMPLIFIER;
     for (int i=1;i<argc;i++)
@@ -48,13 +48,12 @@ int main(int argc, char ** argv) {
             }
     TmsiAmplifier amp(dev, mode,read_dev,dump_file);
     sample_rate=amp.set_sampling_rate(sample_rate);
-    printf("Sampling rate: %d Hz\n",sample_rate);
+    printf("Sampling rate: %d Hz;Number of channels: %d;Channel Names:%s\n",sample_rate,amp.number_of_channels(),chann_names);
     vector<string> channels;
     stringstream str(chann_names);
     string tmp;
     while (str>>tmp)
-        channels.push_back(tmp);
-    
+       channels.push_back(tmp);
     amp.set_active_channels(channels);
     amp.start_sampling();
     ptime start=microsec_clock::local_time();

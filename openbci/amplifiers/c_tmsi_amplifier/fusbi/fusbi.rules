@@ -1,2 +1,0 @@
-ACTION=="add", BUS=="usb", ENV{PRODUCT}=="c7c/3/*", RUN+="/sbin/fxload -t fx2 -I /lib/firmware/fusbi.hex"
-KERNEL=="fusbi*", MODE="0666"

@@ -25,56 +25,31 @@
 int main(void)
 
 {
-
-  int m_fd = open("/dev/fusbi0", O_RDWR | O_SYNC);
-
+int m_fd;
 int i=0;
-
-   long bytes = 0;
-
+long bytes = 0;
 char* data=NULL;
-
 size_t maxSize=0;
+unsigned short answer[128];
 
-short answer[128];
+unsigned short fireq[] = { 0xaaaa,0x0300,0x5256 };
+//unsigned short fireq[] = { 0xaaaa,0x2700,0x2e56 };
+//unsigned short fireq[] = { 0xaaaa,0x2202,0x0000,0x0010,0x3344 };
 
-short fireq[] = { 0xaaaa,0x300,0x5256 };
 
- 
-
+m_fd = open("/dev/tmsi0", O_RDWR | O_SYNC);
 //  ioctl(m_fd, IOCTL_FUSBI_BUFFERSIZE, &bytes);
-
- 
-
-  maxSize = sizeof(fireq);
-
-printf("Send\n");
-
-  write(m_fd, fireq, maxSize);
-
- 
-
   maxSize = sizeof(answer);
-
- 
-
   answer[0] = answer[01] =answer[02] =0;
-
-printf("Read\n");
-
- 
-
-while( answer[0] == 0 )
+while( answer[0] == 0 || i<10)
 
 {
-
-sleep(1);
-int size;
-  size = read(m_fd, answer, maxSize);
-
- 
-
-printf( "%4d answer 0x%x 0x%x 0x%x size %d\n", i++, answer[0], answer[1], answer[2], size );
+	printf("Send\n");
+	write(m_fd, fireq, sizeof(fireq));
+	int size;
+	printf("Read\n");
+	size = read(m_fd, answer, maxSize);
+	printf( "%4d answer 0x%x 0x%x 0x%x 0x%x size %d\n", i++, answer[0], answer[1], answer[2], answer[3],size );
 
 }
 

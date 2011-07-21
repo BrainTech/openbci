@@ -44,6 +44,7 @@ TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_addr
     vli.SampDiv = NULL;
     channel_data = NULL;
     channel_data_index=0;
+    digi_channels=0;
     read_errors=0;
     mode=type;
     if (type == USB_AMPLIFIER)
@@ -108,12 +109,13 @@ int TmsiAmplifier::refreshInfo() {
     }
     refreshFrontEndInfo();
     refreshIDData();
-    refreshVLDeltaInfo();
+    refreshVLDeltaInfo();    
     return 0;
 }
 
 int TmsiAmplifier::send_request(int type) {
     printf("Sending request for %s\n", get_type_name(type));
+    debug("Sending request for %s\n", get_type_name(type));
     switch (type) {
         case TMSFRONTENDINFO:
             tms_snd_FrontendInfoReq(fd);
@@ -167,13 +169,12 @@ bool TmsiAmplifier::update_info(int type) {
 
 bool TmsiAmplifier::_refreshInfo(int type) {
     int counter = 0;
-    send_request(type);
     while (counter++ < 20) {
+	send_request(type);
         if (br < 0 || tms_chk_msg(msg, br) != 0)
             fprintf(stderr, "Error while receiving message (%d)", br);
         else
             if (update_info(type)) return true;
-        receive();
     }
     fprintf(stderr, "Could not receive proper %s!!\n",get_type_name(type));
     return false;
@@ -196,8 +197,8 @@ void TmsiAmplifier::load_channel_desc() {
         chan.is_signed = t_chan.Type.Format & 0x100;
         chan.bit_length = t_chan.Type.Format & 0x11;
         channels_desc.push_back(chan);
-        if (chan.name=="Digi")
-            digi_channel=i;
+	if (chan.type==CHAN_TYPE_DIG)
+		digi_channel[digi_channels++]=i;
     }
     channel_desc ch;
     ch.name="Empty";
@@ -295,7 +296,6 @@ bool TmsiAmplifier::get_samples() {
         if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
             tms_get_data(msg, br, &dev, channel_data);
             channel_data_index = 0;
-            digi=-1;
             debug("Channel data received...\n");
             if (--keep_alive==0)
             {
@@ -347,12 +347,11 @@ bool TmsiAmplifier::get_samples() {
 //    return -1;
 //}
 
- int TmsiAmplifier::get_digi() {
+ int TmsiAmplifier::get_digi(int num) {
     if (channel_data == NULL) return 0;
-    if (digi!=-1) return digi;
-    digi = channel_data[fei.nrofswchannels - 2].data[0].isample;
-    for (int i = 1; i < channel_data[fei.nrofswchannels - 1].ns; i++)
-        digi |= channel_data[fei.nrofswchannels - 2].data[i].isample;
+    int digi = channel_data[digi_channel[num]].data[0].isample;
+    for (int i = 1; i < channel_data[digi_channel[num]].ns; i++)
+        digi |= channel_data[digi_channel[num]].data[i].isample;
     return digi;
 }
 void TmsiAmplifier::receive() {
@@ -575,6 +574,7 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
 
   int32_t i=0;         /**< byte index */
   int32_t br=0;        /**< bytes read */
+  int32_t all_br=0;        /**< all bytes read */
   int32_t size=0;      /**< payload size [uint16_t] */
   int32_t no_error=NUMBER_OF_ERRORS;
   int32_t meta_data=MINIMUM_MESSAGE_LENGTH;
@@ -586,14 +586,20 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
   while (no_error &&i<meta_data)
   {
       br=read(fd,&msg[i],meta_data-i);
-      if (br==0 && ++rtc>TIMEOUT) no_error=0;
+      if (br==0 && ++rtc>TIMEOUT) 
+		{
+			fprintf(stderr,"Warning: Read 0 bytes\n");	
+			no_error=0;
+		}
       if (br<0)
       {
           perror("# Receive message: file read error");
         --no_error;
         continue;
       }
-      else if (br){ if (dump_fd!=-1) write(dump_fd,&msg[i],br);
+      else if (br){ 
+          all_br+=br;
+	  if (dump_fd!=-1) write(dump_fd,&msg[i],br);
           if (msg[0] == msg[1] && msg[0] == 0xAA)
                 i += br;
             else { int j=i;
@@ -638,8 +644,8 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
     if (dump_fd!=-1&&br) write(dump_fd,&msg[i],br);
     i+=br;
   }
-  if (!no_error) {
-    fprintf(stderr,"# Error: timeout on rest of message\n");
+  if (no_error==0) {
+    fprintf(stderr,"# Error: timeout on rest of message. Bytes read: %d\n",all_br);
     read_errors++;
     if (read_errors>MAX_ERRORS)
     {
@@ -656,10 +662,11 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
 tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
     int32_t i; /**< general index */
     int32_t ns_max = 1; /**< maximum number of samples of all channels */
-
+    int channel_count=fei.nrofswchannels;
     /* allocate storage space for all channels */
-    tms_channel_data_t *channel_data = (tms_channel_data_t *) calloc(dev.NrOfChannels, sizeof (tms_channel_data_t));
-    for (i = 0; i < dev.NrOfChannels; i++) {
+   
+    tms_channel_data_t *channel_data = (tms_channel_data_t *) calloc(channel_count, sizeof (tms_channel_data_t));
+    for (i = 0; i < channel_count; i++) {
         if (i<dev.NrOfChannels)
         if (!vldelta) {
             channel_data[i].ns = 1;
@@ -675,7 +682,7 @@ tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
         }
         channel_data[i].data = (tms_data_t *) calloc(channel_data[i].ns, sizeof (tms_data_t));
     }
-    for (i = 0; i < dev.NrOfChannels; i++) {
+    for (i = 0; i < channel_count; i++) {
         channel_data[i].td = ns_max / (channel_data[i].ns * tms_get_sample_freq());
     }
     return channel_data;
@@ -684,11 +691,15 @@ using namespace std;
 void TmsiAmplifier::set_active_channels(vector<string>& channels)
 {
     int tmp;
+    uint described_channels=dev.NrOfChannels;
+    int all_channels=fei.nrofswchannels;
     act_channels.clear();
     spec_channels.clear();
     for (int i=0;i<=ADDITIONAL_CHANNELS;i++)
         spec_channels.push_back(-1);
     printf("Sending channels: ");
+    debug("Sending channels: ");
+	
     for (unsigned int i=0;i<channels.size();i++)
     {
         stringstream stream(channels[i]);
@@ -696,17 +707,19 @@ void TmsiAmplifier::set_active_channels(vector<string>& channels)
         {
             bool ok=false;
             for(unsigned int j=0;j<channels_desc.size();j++)
-                if (channels_desc[j].name==channels[i]){
-                    if (j<fei.nrofswchannels){
+		if (channels_desc[j].name==channels[i]){
+                    if (j<described_channels){
                         act_channels.push_back(j);
                         printf("%s(%d), ",channels_desc[j].name.c_str(),j);
+			debug("%s(%d), ",channels_desc[j].name.c_str(),j);
                         ok=true;
                     }
                     else
                     {
                         act_channels.push_back(0);
-                        spec_channels[j-fei.nrofswchannels]=i;
-                        printf("%s(%d), ",channels_desc[j].name.c_str(),fei.nrofswchannels-j);
+                        spec_channels[j-described_channels]=i;
+                        printf("%s(%d), ",channels_desc[j].name.c_str(),described_channels-j);
+			debug("%s(%d), ",channels_desc[j].name.c_str(),described_channels-j);
                         ok=true;
                     }
                 }
@@ -718,15 +731,16 @@ void TmsiAmplifier::set_active_channels(vector<string>& channels)
         }
         else {
             if (tmp>=0)
-                if (tmp>=fei.nrofswchannels)
+                if (tmp>=all_channels)
                 {
-                    fprintf(stderr,"Channel index to big:%d (max:%d)!\n",tmp,fei.nrofswchannels);
+                    fprintf(stderr,"Channel index to big:%d (max:%d)!\n",tmp,all_channels);
                     exit(-1);
                 }
                 else
                 {
                     act_channels.push_back(tmp);
                     printf("%s(%d), ",channels_desc[tmp].name.c_str(),tmp);
+		    debug("%s(%d), ",channels_desc[tmp].name.c_str(),tmp);
                 }
             else
                 if (-tmp>ADDITIONAL_CHANNELS)
@@ -736,7 +750,8 @@ void TmsiAmplifier::set_active_channels(vector<string>& channels)
                 }
                 else{
                     spec_channels[-tmp]=i;
-                    printf("%s(%d), ",channels_desc[fei.nrofuserchannels-tmp].name.c_str(),tmp);
+                    printf("%s(%d), ",channels_desc[described_channels-tmp].name.c_str(),tmp);
+                    debug("%s(%d), ",channels_desc[described_channels-tmp].name.c_str(),tmp);
                 }
         }
     }
