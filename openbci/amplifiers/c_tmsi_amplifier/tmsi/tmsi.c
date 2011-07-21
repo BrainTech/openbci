@@ -95,7 +95,8 @@ struct tmsi_data {
 
 	// FIFO buffer
 	spinlock_t buffer_lock;
-	struct kfifo* packet_buffer;
+	struct kfifo inner_packet_buffer;
+	struct kfifo * packet_buffer;
         struct semaphore * fifo_sem;
 	// Endpoints
 	struct usb_endpoint_descriptor* bulk_recv_endpoint;
@@ -164,7 +165,13 @@ static int tmsi_open(struct inode *inode, struct file *file)
 
 	// Setup incoming databuffer
 	dev->buffer_lock = SPIN_LOCK_UNLOCKED;
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+	dev->packet_buffer = &dev->inner_packet_buffer;
+	kfifo_alloc(dev->packet_buffer, PACKET_BUFFER_SIZE, GFP_KERNEL);
+	#else
 	dev->packet_buffer = kfifo_alloc(PACKET_BUFFER_SIZE, GFP_KERNEL, &dev->buffer_lock);
+	#endif
+
 	debug("Allocatng bulk urbs\n");
 	// Setup initial bulk receive URB and submit
 	for(i = 0; i < BULK_RECV_URBS; ++i) {
@@ -265,9 +272,15 @@ static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *
 	}
 
 
-	
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
+	true_count = kfifo_out_spinlocked(dev->packet_buffer, temp_buffer, count, &dev->buffer_lock);
+	#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+	true_count = kfifo_out_locked(dev->packet_buffer, temp_buffer, count, &dev->buffer_lock);		       	   
+	#else
 	true_count = kfifo_get(dev->packet_buffer, temp_buffer, count);
-
+	#endif
+			       
+			       
 	/* if the read was successful, copy the data to userspace */
 	if(copy_to_user(buffer, temp_buffer, true_count))
 		retval = -EFAULT;
@@ -404,7 +417,14 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 				// Enqueue packet in user buffer
 				if (urb->actual_length==0)
 					break;
+				#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
+				kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);
+                                #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+				kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);				
+                                #else 
 				kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->actual_length);
+                                #endif
+
                                 up(dev->fifo_sem);
 				debug("Read_callback: sem_up: %d\n",urb->actual_length);
 				break;
@@ -451,8 +471,15 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs)
 				// Enqueue packet in user buffer
 				if (urb->iso_frame_desc[0].actual_length==0)
 					break;				
-				debug("Isoc Read_callback: sem_up:%d\n",urb->iso_frame_desc[0].actual_length);				
+				debug("Isoc Read_callback: sem_up:%d\n",urb->iso_frame_desc[0].actual_length);
+                                #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
+				kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer,  urb->iso_frame_desc[0].actual_length, &dev->buffer_lock);
+                                #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+				kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length , &dev->buffer_lock);				
+                                #else 
 				kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length);
+                                #endif
+
                                 up(dev->fifo_sem);
 				break;
 			}
@@ -512,7 +539,9 @@ static struct file_operations tmsi_fops = {
 	.release =	tmsi_release,
 	.read =		tmsi_read,
 	.write =	tmsi_write,
+        #if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,35)
 	.ioctl = 	tmsi_ioctl,
+	#endif
 };
 
 /*******************************************************************
