@@ -30,14 +30,14 @@ public:
     virtual int fill_samples(std::vector<int> &samples)
     {   if (!sampling) return -1;
         for (unsigned int i=0;i<active_channels.size();i++)
-            samples[i]=rand();
+	  samples[i]=rand() % 100;
     synchronize();
     return active_channels.size();
     }
     virtual int fill_samples(std::vector<float> &samples)
     {   if (!sampling) return -1;
         for (unsigned int i=0;i<active_channels.size();i++)
-            samples[i]=((float)rand())/RAND_MAX;
+	  samples[i]=(float) (rand() % 100);///RAND_MAX;
     synchronize();
     return active_channels.size();
     }

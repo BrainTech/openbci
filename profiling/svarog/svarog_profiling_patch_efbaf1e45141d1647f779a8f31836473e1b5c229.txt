@@ -1,0 +1,305 @@
+diff --git a/pom.xml b/pom.xml
+index eba0e9a..8aa88f7 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -424,7 +424,7 @@
+ 		<dependency>
+ 				<groupId>com.google.protobuf</groupId>
+ 				<artifactId>protobuf-java</artifactId>
+-				<version>2.3.0</version>
++				<version>2.4.1</version>
+ 		</dependency>
+ 		<dependency>
+ 			<groupId>org.slf4j</groupId>
+diff --git a/src/main/java/org/signalml/app/worker/MonitorWorker.java b/src/main/java/org/signalml/app/worker/MonitorWorker.java
+index 5cb5162..2fe2d72 100644
+--- a/src/main/java/org/signalml/app/worker/MonitorWorker.java
++++ b/src/main/java/org/signalml/app/worker/MonitorWorker.java
+@@ -17,6 +17,7 @@
+ import org.jboss.netty.channel.ChannelFuture;
+ import org.signalml.app.model.OpenMonitorDescriptor;
+ import org.signalml.app.model.PagingParameterDescriptor;
++import org.signalml.app.util.Stopwatch;
+ import org.signalml.domain.signal.RoundBufferSampleSource;
+ import org.signalml.domain.signal.RoundBufferMultichannelSampleSource;
+ import org.signalml.domain.tag.MonitorTag;
+@@ -43,6 +44,8 @@
+ 	private final RoundBufferSampleSource timestampsSource;
+ 	private final StyledMonitorTagSet tagSet;
+ 	private volatile boolean finished;
++	private Stopwatch tProcessSignal;
++	private Stopwatch tProcessTag;
+ 
+ 	/**
+ 	 * This object is responsible for recording tags received by this {@link MonitorWorker}.
+@@ -116,20 +119,36 @@ protected Void doInBackground() {
+ 						 PagingParameterDescriptor.DEFAULT_BLOCKS_PER_PAGE);
+ 
+ 		logger.info("Start receiving ...");
++		
++		Stopwatch tAll = new Stopwatch(), tRcv = new Stopwatch(), tInit = new Stopwatch(), tActive = new Stopwatch(); 
++		Stopwatch tSignalProc = new Stopwatch(), tSignalUnpack = new Stopwatch(), tSignalPub = new Stopwatch(), tSignalOffer = new Stopwatch();
++		Stopwatch tTagOffer = new Stopwatch(), tTagUnpack = new Stopwatch(), tTagProc = new Stopwatch(), tTagPub = new Stopwatch();
++		Stopwatch tUnknownProc = new Stopwatch();
++		double prevLastChunk = 0.0;
++		
++		this.tProcessSignal = new Stopwatch();
++		this.tProcessTag = new Stopwatch();
++		tAll.start();
+ 		while (!isCancelled()) {
+ 			logger.debug("Worker: receiving!");
+ 
+ 			// Receive message
+ 			final IncomingMessageData msgData;
+ 			try {
++				tRcv.start();
+ 				msgData = client.receive(TIMEOUT_MILIS);
++				tRcv.stop();
+ 				if (msgData == null) /* timeout */
++				{
++					//logger.info("Got timeout in client.receive("+TIMEOUT_MILIS+")");
+ 					continue;
++				}
+ 			} catch (InterruptedException e) {
+ 				logger.error("receive failed", e);
+ 				return null;
+ 			}
+-
++			tActive.start();
++			tInit.start();
+ 			final MultiplexerMessage sampleMsg;
+ 			final ByteString sampleMsgString;
+ 
+@@ -139,18 +158,22 @@ protected Void doInBackground() {
+ 
+ 			final int sampleType = sampleMsg.getType();
+ 			logger.debug("Worker: received message type: " + sampleType);
+-
++			tInit.stop();
+ 			switch (sampleType){
+ 			case MessageTypes.AMPLIFIER_SIGNAL_MESSAGE:
+ 				logger.debug("Worker: reading chunk!");
+-
++				tSignalUnpack.start();
+ 				final SampleVector sampleVector;
+ 				try {
+ 					sampleVector = SampleVector.parseFrom(sampleMsgString);
+ 				} catch (Exception e) {
+ 					e.printStackTrace();
++					tSignalUnpack.stop();
++					tActive.stop();
+ 					continue;
+ 				}
++				tSignalUnpack.stop();
++				tSignalProc.start();
+ 				final List<Sample> samples = sampleVector.getSamplesList();
+ 
+ 				//DEBUG
+@@ -170,7 +193,29 @@ protected Void doInBackground() {
+ 					condChunk[i] = gain[n] * chunk[n] + offset[n];
+ 					selectedChunk[i] = chunk[n];
+ 				}
+-
++				// PROFILING - prepare some dat for future profiling
++				// asssumed the last channel is sample_number
++				
++				// make ch[plotCount-2][x] = ch[plotCount-1][x]-ch[plotCount-1][x-1]+1 //normally it should be zero
++				condChunk[channelCount-2] = condChunk[channelCount-1]-prevLastChunk-1;
++				prevLastChunk = condChunk[channelCount-1];
++				
++				condChunk[channelCount-3] = samples.get(channelCount-3).getTimestamp();
++				condChunk[channelCount-4] = (tSignalProc.getLastTime() + tSignalProc.getStartTime())/1000.0;
++				condChunk[channelCount-5] = condChunk[channelCount-4] - condChunk[channelCount-3];
++				condChunk[channelCount-6] = tRcv.getLastTime();
++				
++				condChunk[channelCount-7] = client.getMessageQueueSize();
++				condChunk[channelCount-8] = client.getMessageQueueRemaningCapacity();
++				
++				
++				if (condChunk[channelCount-2] > 0)
++					System.out.println("-------------------------------- WARNING! lost samples in number: "+condChunk[channelCount-2]+" after sample number: "+condChunk[channelCount-1]);
++				selectedChunk = condChunk;
++				//PROFILING - end
++				
++				
++				tSignalProc.stop();
+ 				// set first sample timestamp for the tag recorder
+ 				if (tagRecorderWorker != null && !tagRecorderWorker.isStartRecordingTimestampSet()) {
+ 					tagRecorderWorker.setStartRecordingTimestamp(samples.get(0).getTimestamp());
+@@ -178,29 +223,34 @@ protected Void doInBackground() {
+ 
+ 				// sends chunks to the signal recorder
+ 				if (signalRecorderWorker != null) {
++					tSignalOffer.start();
+ 					signalRecorderWorker.offer(selectedChunk.clone());
+ 					if (!signalRecorderWorker.isFirstSampleTimestampSet())
+ 						signalRecorderWorker.setFirstSampleTimestamp(samples.get(0).getTimestamp());
++					tSignalOffer.stop();
+ 				}
+-
++				tSignalPub.start();
+ 				publish(condChunk);
++				tSignalPub.stop();
+ 				break;
+ 			case MessageTypes.TAG:
+-				logger.info("Tag recorder: got a tag!");
+-
++				//logger.info("Tag recorder: got a tag!");
++				tTagUnpack.start();
+ 				final SvarogProtocol.Tag tagMsg;
+ 				try {
+ 					tagMsg = SvarogProtocol.Tag.parseFrom(sampleMsgString);
+ 				} catch (Exception e) {
+ 					e.printStackTrace();
++					tTagUnpack.stop();
++					tActive.stop();
+ 					continue;
+ 				}
+-
++				tTagUnpack.stop();
+ 				// Create MonitorTag Object, define its style and attributes
+ 
+ 				// String channels = tagMsg.getChannels();
+ 				// By now we ignore field channels and assume that tag if for all channels
+-
++				tTagProc.start();
+ 				final double tagLen = tagMsg.getEndTimestamp() - tagMsg.getStartTimestamp();
+ 				final MonitorTag tag
+ 					= new MonitorTag(stylesGenerator.getSmartStyleFor(tagMsg.getName(), tagLen, -1),
+@@ -210,21 +260,60 @@ protected Void doInBackground() {
+ 
+ 				for (SvarogProtocol.Variable v : tagMsg.getDesc().getVariablesList())
+ 					tag.setAttribute(v.getKey(), v.getValue());
+-
++				tTagProc.stop();
+ 				if(isChannelSelected(tag.getChannel(), selectedChannels)) {
+ 					if (tagRecorderWorker != null) {
++						tTagOffer.start();
+ 						tagRecorderWorker.offer(tag);
++						tTagOffer.stop();
+ 					}
+-
++					tTagPub.start();
+ 					publish(tag);
++					tTagPub.stop();
+ 				}
+ 			default:
++				tUnknownProc.start();
+ 				final int type = sampleMsg.getType();
+ 				final String name = MessageTypes.instance.getConstantsNames().get(type);
+ 				logger.error("received unknown reply: " +  type + "/" + name);
++				tUnknownProc.stop();
+ 			}
++			tActive.stop();
+ 		}
+-
++		tAll.stop();
++		
++		System.out.println("*************************************************************");
++		System.out.println("MonitorWorker profiling results:");
++		System.out.println("1. Whole loop time (including waiting on receive()):   "+tAll.getElapsedTimeDesc());
++		System.out.println("2. Active loop time (apart from waiting on receive()): "+tActive.getElapsedTimeDesc());
++		System.out.println("3. Receive() function time (is 1. == 2. + 3. ?):       "+tRcv.getElapsedTimeDesc());
++		System.out.println("");
++		System.out.println("4. Total success receive() count:                      "+tInit.getElapsedCount());
++		System.out.println("5. Total samples count:                                "+tSignalProc.getElapsedCount());
++		System.out.println("6. Total tags count:                                   "+tTagProc.getElapsedCount());
++		System.out.println("7. Total unknown count (is 4. == 5.+6.+7. ?):          "+tUnknownProc.getElapsedCount());
++		System.out.println("");
++		
++		System.out.println("8. Init time after success receive():                  "+tInit.getElapsedTimeDesc());
++		System.out.println("9. SignalUnpack time:                                  "+tSignalUnpack.getElapsedTimeDesc());
++		System.out.println("10. SignalProcess time:                                "+tSignalProc.getElapsedTimeDesc());
++		System.out.println("11. SignalPub time:                                    "+tSignalPub.getElapsedTimeDesc());
++		System.out.println("12. SignalOffer time:                                  "+tSignalOffer.getElapsedTimeDesc());
++		System.out.println("13. 8.+9.+10.+11.+12.:                                 "+tAll.getElapsedTimeDesc(tInit.getElapsedTime()+tSignalUnpack.getElapsedTime()+tSignalProc.getElapsedTime()+tSignalPub.getElapsedTime()+tSignalOffer.getElapsedTime()));
++		System.out.println("14. Sampling in SVAROG:                                "+(tSignalProc.getElapsedCount()/(tAll.getElapsedTime()/1000)));
++		System.out.println("");
++
++		System.out.println("15. TagUnpack time:                                    "+tTagUnpack.getElapsedTimeDesc());
++		System.out.println("16. TagProcess time:                                   "+tTagProc.getElapsedTimeDesc());
++		System.out.println("17. TagPub time:                                       "+tTagPub.getElapsedTimeDesc());
++		System.out.println("18. TagOffer time:                                     "+tTagOffer.getElapsedTimeDesc());
++		System.out.println("19. 15.+16.+17.+18.:                                   "+tAll.getElapsedTimeDesc(tTagUnpack.getElapsedTime()+tTagProc.getElapsedTime()+tTagPub.getElapsedTime()+tTagOffer.getElapsedTime()));
++		System.out.println("");
++
++		System.out.println("20. Process() signal time:                                 "+this.tProcessSignal.getElapsedTimeDesc());
++		System.out.println("21. Process() tag time:                                    "+this.tProcessTag.getElapsedTimeDesc());		
++		
++		System.out.println("*************************************************************");
+ 		logger.debug("stopping server...");
+ 		sendRequest(MessageTypes.SIGNAL_STREAMER_STOP);
+ 		// ignore return value
+@@ -252,15 +341,19 @@ private double convertTs(double ts) {
+ 	protected void process(List<Object> objs) {
+ 		for (Object o : objs) {
+ 			if (o instanceof double[]) {
++				this.tProcessSignal.start();
+ 				sampleSource.lock();
+ 				sampleSource.addSamples((double[]) o);
+ 				sampleSource.unlock();
++				this.tProcessSignal.stop();
+ 			} else {
+-				logger.info("got TAG ");
++				//logger.info("got TAG ");
++				this.tProcessTag.start();
+ 				tagSet.lock();
+ 				tagSet.addTag((MonitorTag) o);
+ 				tagSet.unlock();
+ 				firePropertyChange("newTag", null, (MonitorTag) o);
++				this.tProcessTag.stop();
+ 			}
+ 		}
+ 	}
+diff --git a/src/main/java/org/signalml/app/worker/SignalRecorderWorker.java b/src/main/java/org/signalml/app/worker/SignalRecorderWorker.java
+index de025d9..2c80750 100644
+--- a/src/main/java/org/signalml/app/worker/SignalRecorderWorker.java
++++ b/src/main/java/org/signalml/app/worker/SignalRecorderWorker.java
+@@ -17,6 +17,7 @@
+ import org.apache.log4j.Level;
+ 
+ import org.signalml.app.model.OpenMonitorDescriptor;
++import org.signalml.app.util.Stopwatch;
+ 
+ /** 
+  * SignalRecorderWorker
+@@ -63,24 +64,37 @@ public void offer(double[] samples) {
+ 
+ 	@Override
+ 	protected Integer doInBackground() throws Exception {
+-
++		Stopwatch t1 = new Stopwatch(), t2 = new Stopwatch(), t3 = new Stopwatch();
++		t3.start();
+ 		while (!pendingAbort) {
+ 			double[] chunk  = null;
+ 			try {
++				t1.start();
+ 				chunk = sampleQueue.poll( pollingInterval, TimeUnit.MILLISECONDS);
++				t1.stop();
+ 			}
+ 			catch ( InterruptedException e) {
++				t3.stop();
++				System.out.println("Signal recorder timing! TotalTime:    "+t3.getElapsedTimeDesc()+" pool time: "+t1.getElapsedTimeDesc()+" chunktime: "+t2.getElapsedTimeDesc());
++				System.out.println("Signal recorder counting! TotalCount: "+t3.getElapsedCount()+" pool count: "+t1.getElapsedCount()+" chunkcount: "+t2.getElapsedCount());
+ 				return new Integer( getSavedSampleCount());
+ 			}
+ 			if (chunk != null) {
++				t2.start();
+ 				logger.debug( "saving chunk...");
+ 				saveChunk( chunk);
++				t2.stop();
+ 			}
+ 			if( pendingAbort() ) {
++				t3.stop();
++				System.out.println("Signal recorder timing! TotalTime:    "+t3.getElapsedTimeDesc()+" pool time: "+t1.getElapsedTimeDesc()+" chunktime: "+t2.getElapsedTimeDesc());
++				System.out.println("Signal recorder counting! TotalCount: "+t3.getElapsedCount()+" pool count: "+t1.getElapsedCount()+" chunkcount: "+t2.getElapsedCount());
+ 				return new Integer( getSavedSampleCount());
+ 			}
+ 		}
+-
++		t3.stop();
++		System.out.println("Signal recorder timing! TotalTime:    "+t3.getElapsedTimeDesc()+" pool time: "+t1.getElapsedTimeDesc()+" chunktime: "+t2.getElapsedTimeDesc());
++		System.out.println("Signal recorder counting! TotalCount: "+t3.getElapsedCount()+" pool count: "+t1.getElapsedCount()+" chunkcount: "+t2.getElapsedCount());
+ 		return null;
+ 	}
+ 

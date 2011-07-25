@@ -1,0 +1,20 @@
+#!/bin/bash
+
+SAMP_NUM=10000
+LOG_INTERVAL=100
+CHAN_NUM=25
+USE_PROTOBUF=1
+
+DATE=`date +%s`
+STATS_FILE1=protobuf/genstats/241protobuf__$DATE
+STATS_FILE2=protobuf/genstats/241cProfile__$DATE
+
+
+
+export PYTHONPATH=../../openbci/:../../
+
+
+python protobuf/protobuf_test.py $SAMP_NUM $CHAN_NUM $LOG_INTERVAL #> $STATS_FILE1
+#python -m cProfile -o $STATS_FILE2 protobuf/protobuf_test.py $SAMP_NUM $CHAN_NUM $LOG_INTERVAL && python protobuf/handle_cprofile_stats.py $STATS_FILE2 > $STATS_FILE2`echo _printed_stats` 
+
+

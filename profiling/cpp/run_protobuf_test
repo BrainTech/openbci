@@ -1,0 +1,17 @@
+#!/bin/sh
+msgpack=/usr/local
+protobuf=/usr/local
+yajl=/usr/local
+
+SAMP_NUM=10000
+LOG_INTERVAL=100
+CHAN_NUM=25
+
+#protoc speedtest_protobuf.proto --cpp_out=.
+#protoc -I ../../openbci/ --cpp_out=. ../../openbci/variables.proto
+
+g++ -Wall -O4 protobuf/protobuf_test.cc -o protobuf/protobuf_test -lpthread \
+	-I$protobuf/include -L$protobuf/lib -lprotobuf -lboost_date_time 
+
+./protobuf/protobuf_test $SAMP_NUM $CHAN_NUM $LOG_INTERVAL
+

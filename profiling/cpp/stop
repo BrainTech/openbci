@@ -1,0 +1,4 @@
+#!/bin/bash
+sudo killall mxcontrol
+sudo killall python
+sudo killall test_server

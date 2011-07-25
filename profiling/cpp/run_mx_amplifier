@@ -1,0 +1,4 @@
+#!/bin/bash
+./run_mx &
+sleep 3
+./run_amplifier $1 $2 $3 $4

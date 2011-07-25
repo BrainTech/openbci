@@ -20,7 +20,7 @@ private:
     Logger logger;
 public:
     DummyReceiver(const std::string& host, boost::uint16_t port,int log):
-    BaseMultiplexerServer(new Client(peers::SIGNAL_CATCHER), peers::SIGNAL_CATCHER),logger(log,"DummyReceiver")
+    BaseMultiplexerServer(new Client(peers::SIGNAL_STREAMER), peers::SIGNAL_STREAMER),logger(log,"DummyReceiver")
     {
         conn->connect(host, port);
         logger.restart();
@@ -29,6 +29,7 @@ public:
     virtual void handle_message(MultiplexerMessage & msg)
     {
         logger.next_sample();
+	
     }
     virtual ~DummyReceiver(){};
 };

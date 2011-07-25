@@ -1,0 +1,4 @@
+#!/bin/bash
+../../azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+sleep 1
+python ../../openbci/hashtable.py
