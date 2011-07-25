@@ -16,7 +16,7 @@ int main(int argc,char ** argv)
         if (argv[i][0]=='-')
             switch (argv[i][1])
             {
-                case 's': sampling_rage=atoi(argv[i+1]); break;
+                case 's': sampling_rate=atoi(argv[i+1]); break;
                 case 'p': port=atoi(argv[i+1]); break;
                 case 'h': host=argv[i+1];
             }
