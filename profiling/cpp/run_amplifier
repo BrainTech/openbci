@@ -1,4 +1,5 @@
 #!/bin/bash
+export PYTHONPATH=../../:../../openbci/:../../azouk-libraries/build/:PYTHONPATH
 python configure_amplifier.py $1 $2 $4
 sleep 2
 ../../openbci/amplifiers/c_tmsi_amplifier/test_server -s $2 -d $3

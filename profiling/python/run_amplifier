@@ -1,3 +1,4 @@
 #!/bin/bash
+export PYTHONPATH=../../:../../openbci/:../../azouk-libraries/build/:PYTHONPATH
 python virtual_amplifier.py $1 $2 $3 $4
 
