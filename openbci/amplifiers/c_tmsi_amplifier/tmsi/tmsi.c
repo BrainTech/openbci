@@ -165,7 +165,7 @@ static int tmsi_open(struct inode *inode, struct file *file)
 
 	// Setup incoming databuffer
 	dev->buffer_lock = SPIN_LOCK_UNLOCKED;
-	#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+	#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
 	dev->packet_buffer = &dev->inner_packet_buffer;
 	kfifo_alloc(dev->packet_buffer, PACKET_BUFFER_SIZE, GFP_KERNEL);
 	#else
@@ -274,7 +274,7 @@ static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *
 
 	#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
 	true_count = kfifo_out_spinlocked(dev->packet_buffer, temp_buffer, count, &dev->buffer_lock);
-	#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+	#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
 	true_count = kfifo_out_locked(dev->packet_buffer, temp_buffer, count, &dev->buffer_lock);		       	   
 	#else
 	true_count = kfifo_get(dev->packet_buffer, temp_buffer, count);
@@ -419,7 +419,7 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 					break;
 				#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
 				kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);
-                                #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+                                #elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
 				kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);				
                                 #else 
 				kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->actual_length);
@@ -474,7 +474,7 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs)
 				debug("Isoc Read_callback: sem_up:%d\n",urb->iso_frame_desc[0].actual_length);
                                 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
 				kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer,  urb->iso_frame_desc[0].actual_length, &dev->buffer_lock);
-                                #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,32)
+                                #elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
 				kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length , &dev->buffer_lock);				
                                 #else 
 				kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length);

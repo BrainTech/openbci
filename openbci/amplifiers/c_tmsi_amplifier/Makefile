@@ -81,6 +81,7 @@ $(BUILD):
 	mkdir -p $(BUILD)
 
 $(BUILD)/variables.pb.h: $(ROOTDIR)/openbci/variables.proto
+	mkdir -p $(BUILD)
 	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/openbci/ $<
 
 $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
