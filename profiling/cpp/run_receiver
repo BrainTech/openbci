@@ -1,0 +1,4 @@
+#!/bin/bash
+echo 'Run like ./run_receiver 128 10.0.0.1 where 128 is assumed sampling, 127.0.0.1 is host ip'
+
+../../openbci/amplifiers/c_tmsi_amplifier/dummy_receiver -s $1 -h $2
