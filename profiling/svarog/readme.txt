@@ -2,6 +2,7 @@ To prepare system:
 1. download svarog master revision efbaf1e45141d1647f779a8f31836473e1b5c229
 2. apply patch by: git apply svarog_profiling_patch_efbaf1e45141d1647f779a8f31836473e1b5c229.txt
 2.5 add file to src/main/java/org/signalml/app/util/Stopwatch.java
+2.6 add file jmx...jar to your ~/.m2/repository/multiplexer ...
 3. run mvn clean && mvn compile && mvn exec:java
 4. Open 'montage' dialog 
 5. Import predefined montage profiling_50
