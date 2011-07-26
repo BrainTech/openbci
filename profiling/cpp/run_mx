@@ -1,5 +1,5 @@
 #!/bin/bash
-../../azouk-libraries/build/mxcontrol run_multiplexer 127.0.0.1:31889 &
+../../azouk-libraries/build/mxcontrol run_multiplexer 0.0.0.0:31889 &
 sleep 1
 export PYTHONPATH=../../:../../openbci/:../../azouk-libraries/build/:PYTHONPATH
 python ../../openbci/hashtable.py
