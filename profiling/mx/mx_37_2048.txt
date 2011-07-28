@@ -1,0 +1,127 @@
+Index: azouk/multiplexer/io/Connection.h
+===================================================================
+--- azouk/multiplexer/io/Connection.h	(wersja 43)
++++ azouk/multiplexer/io/Connection.h	(kopia robocza)
+@@ -47,7 +47,7 @@
+ #include "multiplexer/multiplexer.constants.h" /* generated */
+ #include "multiplexer/io/RawMessage.h"
+ #include "multiplexer/configuration.h"
+-
++#include "Logger.h"
+ namespace multiplexer {
+ 
+     //class ConnectionsManager;
+@@ -69,6 +69,7 @@
+ 
+ 	/* instance members */
+ 	private:
++	    Logger *log;
+ 	    Connection(boost::asio::io_service& io_service, boost::shared_ptr<ConnectionsManagerImplementation> manager)
+ 		: socket_(io_service)
+ 	        , peer_type_(0)
+@@ -93,6 +94,7 @@
+ 		mxmsg.set_type(types::HEARTBIT);
+ 		mxmsg.set_from(manager->instance_id());
+ 		heartbit_message_.reset(RawMessage::FromMessage(mxmsg));
++		log=new Logger(2048,"Sending");
+ 	    }
+ 
+ 	public:
+@@ -200,12 +202,15 @@
+ 
+ 		using azlib::repr;
+ 
+-		if (!is_living_)
++		if (!is_living_) {
++			printf("Peer is not living!!!: %d", peer_type());
+ 		    scheduling_result_type_default_functor_(); // drop
++		}
+ 
+ 		Assert(msg->usability() == RawMessage::WRITING);
+ 		Assert(!shuts_down_);
+-
++		if (outgoing_queue_.size() > 0)
++		  printf("peerID: %llu, peerTYPE: %d, queue size: %d, queue capacity: %d\n", peer_id(), peer_type(), outgoing_queue_.size(), outgoing_queue_max_size_);
+ 		if (!force && outgoing_queue_full()) {
+                     AZOUK_LOG(WARNING, HIGHVERBOSITY,
+                             TEXT("outgoing queue full, dropping message"));
+@@ -480,16 +485,19 @@
+ 			    );
+ 		}
+ 	    }
++
+ 	    void _handle_write(const boost::system::error_code& error, size_t bytes_transferred) {
++
+                 if (error) {
+-                    AZOUK_LOG(DEBUG, HIGHVERBOSITY,
++                    AZOUK_LOG(DEBUG, ZEROVERBOSITY,
+                             TEXT("write error on " + repr((void*)this)
+                                 + " error=" + repr(error)
+                                 + " bytes_transferred=" +
+                                 repr(bytes_transferred)
+                         ));
+                 }
+-
++		printf("Log for: peerID: %llu, peerTYPE: %d...\n", peer_id(), peer_type());
++                log->next_sample();
+ 		if (outgoing_channel_state_ == ChannelState::BROKEN)
+ 		    return;
+ 		if (bytes_transferred == 0) {
+Index: azouk/multiplexer/io/Logger.h
+===================================================================
+--- azouk/multiplexer/io/Logger.h	(wersja 0)
++++ azouk/multiplexer/io/Logger.h	(wersja 0)
+@@ -0,0 +1,53 @@
++/* 
++ * File:   Logger.h
++ * Author: Macias
++ *
++ * Created on 19 październik 2010, 18:36
++ */
++
++#ifndef LOGGER_H
++#define	LOGGER_H
++#include <ctime>
++#include <stdio.h>
++#include <cmath>
++#include <boost/date_time/posix_time/posix_time.hpp>
++using namespace boost::posix_time;
++class Logger{
++public:
++    int sampling;
++    int number_of_samples;
++    ptime start_time,last_pack_time;
++    const char * name;
++    Logger(int p_sampling, const char * p_name)
++    {
++        sampling=p_sampling;
++        name = p_name;
++        restart();
++    }
++    void restart()
++    {
++        start_time=microsec_clock::local_time();
++        last_pack_time=start_time;
++        number_of_samples=0;
++    }
++    void next_sample()
++    {
++        if (++number_of_samples%sampling==0)
++        {
++            char buffer[100];
++            ptime now=boost::posix_time::microsec_clock::local_time();
++            struct tm  timeinfo=to_tm(now);
++            strftime(buffer,100,"%Y-%m-%d %H:%M:%S",&timeinfo);
++            fprintf(stderr,"%s,%.3lld - ",buffer,now.time_of_day().total_microseconds()%1000000/1000);
++            fprintf(stderr,"%s - INFO - Time of last %d samples / all avg:"\
++                    "%f / %f \n",name,sampling,
++                    ((double)(now-last_pack_time).total_microseconds())/1000000,
++                    ((double)sampling*(now-start_time).total_microseconds())/1000000/number_of_samples);
++            last_pack_time=now;
++        }
++    }
++};
++
++
++#endif	/* LOGGER_H */
++

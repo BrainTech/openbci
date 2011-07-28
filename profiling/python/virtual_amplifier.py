@@ -60,11 +60,15 @@ class VirtualAmplifier(object):
             #send current message
             print("Send: "+str(self._samples_vector.samples[0].value))
             last_sent_time = time.time()
+            print("Waiting....")
+            time.sleep(10)
+            print("Sending ...")
             self.connection.send_message(
                 message=self._samples_vector.SerializeToString(), 
                 type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             self._samples_count += 1.0
-
+            print("Sleeping...")
+            time.sleep(1000)
 
             if (last_sent_time - self._last_log_ts) > 1:
                 print("Number of samples of previous 1 sec: "+str(self._samples_count - self._last_log_count))

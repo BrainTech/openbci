@@ -13,7 +13,7 @@ class Receiver(BaseMultiplexerServer):
                 message="NumOfChannels", 
                 type=types.DICT_GET_REQUEST_MESSAGE).message)
 
-        if duration == 0:
+        if duration == 0: patch -p0 -i mx_37_2048.txt
             self.duration = sys.float_info.max
         else:
             self.duration = duration
@@ -78,13 +78,17 @@ if __name__ == "__main__":
     duration = 0
     cache_size = 1024
     dump_file = None
+    host = "127.0.0.1"
     if len(sys.argv) >= 2:
         duration = int(sys.argv[1])
     if len(sys.argv) >= 3:
         cache_size = int(sys.argv[2])
     if len(sys.argv) >= 4:
         dump_file = sys.argv[3]
+    if len(sys.argv) >= 5:
+        dump_file = sys.argv[4]
 
-    f = Receiver(settings.MULTIPLEXER_ADDRESSES, duration, cache_size, dump_file)
+
+    f = Receiver([(host, 31889)], duration, cache_size, dump_file)
     f.loop()
 
