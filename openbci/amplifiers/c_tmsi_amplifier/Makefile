@@ -36,7 +36,7 @@ LDFLAGS		+= $(GENERALFLAGS) \
 BUILD = build
 
 LIBRARIES	:= $(shell find $(SOURCEDIRS) -name '*.o' | grep -v '\.svn')
-TARGETS = tmsi_server test_server test_driver dummy_receiver
+TARGETS = tmsi_server test_server test_driver dummy_receiver signal_receiver
 all: $(TARGETS)
 
 clean:
@@ -57,6 +57,10 @@ test_driver: $(addprefix $(BUILD)/, TmsiAmplifier.o tmsi.o test_driver.o Amplifi
 
 dummy_receiver: $(BUILD)/DummyReceiver.o
 	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+
+signal_receiver: $(BUILD)/SignalReceiver.o  $(BUILD)/variables.pb.o
+	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+
 
 test_logger: $(BUILD)/test_logger.o
 	$(CXX) -o $@ $<

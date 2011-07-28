@@ -4,7 +4,11 @@
  * 
  * Created on 14 październik 2010, 15:31
  */
-
+#include "multiplexer/Multiplexer.pb.h"
+#include "multiplexer/multiplexer.constants.h"
+#include "multiplexer/Client.h"
+#include "multiplexer/backend/BaseMultiplexerServer.h"
+#include "variables.pb.h"
 #include "AmplifierServer.h"
 #include "Logger.h"
 #include <boost/shared_ptr.hpp>
