@@ -31,6 +31,12 @@ classdef ReadManager < handle
             %GET_PARAM get one param. see help InfoSource.get_param
             param=self.info_source.get_param(p_param_name);
         end
+
+        function set_param(self,p_param_name, p_param_value)
+            %SET_PARAM set one param. see help InfoSource.set_param
+	self.info_source.set_param(p_param_name, p_param_value);
+        end
+
         function start_ts=get_start_timestamp(self)
             %GET_START_TIMESTAMP gets start timestamp of this stream
             start_ts=0;
