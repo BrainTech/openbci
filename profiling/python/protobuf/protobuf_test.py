@@ -32,12 +32,11 @@ class ProtobufTest(object):
         print "Start packing test: "
         self.logger.mark_start()
         for i in xrange(self.num_of_samples):
-            t = time.time()
-            #for samp in self.sample_vec.samples:
-            #    samp.value = float(i)
-            #    samp.timestamp = t
-
-            self.msg = self.sample_vec.SerializeToString()
+            for x in range(self.num_of_channels):
+                samp = self.sample_vec.samples[x]
+                samp.value = float(x)
+                samp.timestamp = time.time()
+            msg = self.sample_vec.SerializeToString()
             #self.logger.log_sample()
         self.logger.mark_end()
         end_time = time.time()
@@ -70,17 +69,16 @@ class ProtobufTest(object):
 
 if __name__ == "__main__":
     import sys
-    
-    samp_num = 100
-    chan_num = 25
-    log_interval = 10
+    #samp_num = 100
+    #chan_num = 25
+    #log_interval = 10
+    if len(sys.argv) != 4:
+        print("Usage: ./protobuf_test <num samples> <num channels> <log_interval>");
+        sys.exit(0);
 
-    if len(sys.argv) >= 2:
-        samp_num = int(sys.argv[1])
-    if len(sys.argv) >= 3:
-        chan_num = int(sys.argv[2])
-    if len(sys.argv) >= 4:
-        log_interval = int(sys.argv[3])
+    samp_num = int(sys.argv[1])
+    chan_num = int(sys.argv[2])
+    log_interval = int(sys.argv[3])
     
     pt = ProtobufTest(samp_num=samp_num, 
             channels_num=chan_num, 

@@ -1,4 +1,4 @@
 #!/bin/bash
-echo 'Run like ./run_receiver 10.0.0.1 1024 where 127.0.0.1 is host ip, 1024 is cache size (in samples)'
+echo 'Run like ./run_receiver 10.0.0.1 1024 1 where 127.0.0.1 is host ip, 1024 is cache size (in samples), 1 - monitor last channel (0 means don`t monitor..)'
 
-../../openbci/amplifiers/c_tmsi_amplifier/signal_receiver -h $1 -c $2
+../../openbci/amplifiers/c_tmsi_amplifier/signal_receiver -h $1 -c $2 -m $3

@@ -1,4 +1,4 @@
 #!/bin/bash
-echo 'Run receiver like: /run_receiver duration(secs) cache_size(samples) dump_file(string) host_address(ip), eg: ./run_receiver 10 1024 nic.txt 127.0.0.1'
+echo 'Run receiver like: /run_receiver duration(secs) cache_size(samples) dump_file(string) host_address(ip) monitor_last_channel(int), eg: ./run_receiver 10 1024 nic.txt 127.0.0.1 1'
 export PYTHONPATH=../../:../../openbci/:../../azouk-libraries/build/:PYTHONPATH
-python signal_receiver.py $1 $2 $3 $4
+python signal_receiver.py $1 $2 $3 $4 $5

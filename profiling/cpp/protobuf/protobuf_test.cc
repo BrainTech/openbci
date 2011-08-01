@@ -53,7 +53,8 @@ void test_protobuf(unsigned int num, unsigned int chan_num, unsigned int log_int
 
 	std::string msg;
         size_t encoded_b = 0;
-        size_t encoded_n = 0;
+        size_t encoded_n = 0; 
+	variables::Sample *samp;
 	{
 		for(unsigned int i = 0; i < num; ++i) {
 
@@ -62,8 +63,8 @@ void test_protobuf(unsigned int num, unsigned int chan_num, unsigned int log_int
 
                     ti += (t.time_of_day().total_nanoseconds() % 1000000000) / 1000000000.0;
                     for (int i = 0; i < s_vector.samples_size(); i++) {
-                        variables::Sample *samp = s_vector.mutable_samples(i);
-                        samp->set_value(((float)rand())/RAND_MAX);
+                        samp = s_vector.mutable_samples(i);
+                        samp->set_value((double) i);
                         samp->set_timestamp(ti);
                     }
                     s_vector.SerializeToString(&msg);
