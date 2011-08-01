@@ -12,7 +12,7 @@
 #include <vector>
 using namespace multiplexer;
 
-SignalReceiver::SignalReceiver(const std::string& host, boost::uint16_t port, int cache_size):
+SignalReceiver::SignalReceiver(const std::string& host, boost::uint16_t port, int cache_size, int monitor_last_channel):
     BaseMultiplexerServer(new Client(peers::SIGNAL_STREAMER), peers::SIGNAL_STREAMER)
     {
       this->cached_index = -1;
@@ -27,7 +27,7 @@ SignalReceiver::SignalReceiver(const std::string& host, boost::uint16_t port, in
 	logger = new Logger(samp_rate,"SignalReceiver");
         logger->restart();
 	this->prev_last_channel = 0.0;
-	this->monitor_last_channel = 1;
+	this->monitor_last_channel = monitor_last_channel;
 	this->sample_count = 0;
 	this->cache_size = cache_size;
 	this->cached_samples = new double*[num_of_channels];
@@ -71,14 +71,16 @@ int main(int argc,char ** argv)
 {
     char *host = "127.0.0.1";
     int cache = 1024;
+    int monitor = 1;
     for (int i=1;i<argc;i++)
         if (argv[i][0]=='-')
             switch (argv[i][1])
             {
 	    case 'h': host=argv[i+1]; break;
-	    case 'c': cache = atoi(argv[i+1]);
+	    case 'c': cache = atoi(argv[i+1]); break;
+	    case 'm': monitor = atoi(argv[i+1]);
             }
     
-	      SignalReceiver dr(host,31889, cache);
+    SignalReceiver dr(host,31889, cache, monitor);
     dr.loop();
 }

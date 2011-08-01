@@ -35,7 +35,7 @@ private:
 public:
 
     virtual void handle_message(MultiplexerMessage & msg);
-    SignalReceiver(const std::string& host, boost::uint16_t port, int cache_size);
+    SignalReceiver(const std::string& host, boost::uint16_t port, int cache_size, int monitor_last_channel);
     virtual ~SignalReceiver(){};
 };
 
