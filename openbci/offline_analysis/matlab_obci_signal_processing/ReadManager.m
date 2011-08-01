@@ -25,6 +25,8 @@ classdef ReadManager < handle
                     p_tags_source=TagsSource(p_tags_source);
                 end
                 self.tags_source = p_tags_source;
+            else
+                self.tags_source=TagsSource();
             end
         end
         function param=get_param(self,p_param_name)
@@ -34,7 +36,7 @@ classdef ReadManager < handle
 
         function set_param(self,p_param_name, p_param_value)
             %SET_PARAM set one param. see help InfoSource.set_param
-	self.info_source.set_param(p_param_name, p_param_value);
+            self.info_source.set_param(p_param_name, p_param_value);
         end
 
         function start_ts=get_start_timestamp(self)
@@ -44,6 +46,12 @@ classdef ReadManager < handle
         function params=get_params(self)
             %GET_PARAMS get all params. see help InfoSource.get_params
             params=self.info_source.get_params();
+        end         
+        function set_params(self,p_params)
+            %SET_PARAMS(p_params) 
+            %   p_params= struct
+            %   Set params. see help InfoSource.set_params
+            self.info_source.set_params(p_params)
         end
         function samples=get_samples(self,p_from,p_len)
             %GET_SAMPLES(p_from,p_len) get samples. 
@@ -149,7 +157,7 @@ classdef ReadManager < handle
             path=[p_dir '/' p_name];
             self.data_source.save_to_file([path '.obci.dat']);
             self.info_source.save_to_file([path '.obci.info']);
-            self.tags_source.save_to_file([path '.obci.tags']);
+            self.tags_source.save_to_file([path '.obci.tags']);            
         end
     end
 end

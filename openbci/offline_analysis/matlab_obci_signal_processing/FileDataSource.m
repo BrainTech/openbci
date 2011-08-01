@@ -14,7 +14,10 @@ classdef FileDataSource < DataSource
          function self=FileDataSource(p_file_name,p_nr_channels)
             self.file_name=p_file_name;
             self.channel_count=p_nr_channels;
-            self.fileID=fopen(p_file_name,'r');
+            [self.fileID,msg]=fopen(p_file_name,'r');
+            if self.fileID<0
+                throw(MException('SignalExceptions:FileOpenError',[msg ,':',p_file_name]));
+            end                
          end        
         function seek_samples(self,p_from)
             fseek(self.fileID,p_from*self.channel_count*self.sample_size,-1);

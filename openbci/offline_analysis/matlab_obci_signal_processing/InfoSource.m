@@ -30,7 +30,7 @@ classdef InfoSource < handle
         function self=InfoSource(p_file_name)
             %InfoSource(p_filename=[]) Reads params from xml p_filename
             self.params=struct();
-            try
+            if nargin==1
                 self.file_name=p_file_name;
                 self.dom=xmlread(p_file_name);
                 self.params=self.get_dom_params();

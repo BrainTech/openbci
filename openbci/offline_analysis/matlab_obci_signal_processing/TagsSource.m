@@ -15,7 +15,7 @@ classdef TagsSource < handle
     methods    
         function self=TagsSource(p_file_name)
             self.tags=[];
-            try
+            if nargin==1
                 self.file_name=p_file_name;
                 self.dom=xmlread(p_file_name);
                 self.read_tags();          

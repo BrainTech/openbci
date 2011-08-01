@@ -20,7 +20,7 @@ classdef MemoryDataSource < DataSource
         end
         function samples=read_samples(self,p_len)
             if p_len==inf
-                p_len=length(self.samples)-self.samp_posp;
+                p_len=length(self.samples)-self.samp_pos;
             end
             to=self.samp_pos+p_len;
             if to>length(self.samples)
