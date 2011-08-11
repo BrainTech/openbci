@@ -12,6 +12,8 @@ PORT = 20320
 
 BUFFER_SIZE = 1024
 VIRTUAL = True
+VIRTUAL_MANUAL = False
+VIRTUAL_CONSTANT = None #0.1
 
 import random, time
 
@@ -65,11 +67,21 @@ class EtrAmplifier(object):
                 l_data, addr = self.socket.recvfrom(1024)
                 l_msg = self._get_mx_message_from_etr(l_data)
             else:
-                time.sleep(0.02)
                 l_msg = variables_pb2.Sample2D()
-                l_msg.x = random.random()
-                l_msg.y = random.random()
-                l_msg.timestamp = time.time()
+                if VIRTUAL_MANUAL:
+                    i = raw_input().split(' ')
+                    l_msg.x = float(i[0])
+                    l_msg.y = float(i[1])
+                    l_msg.timestamp = time.time()
+                else:
+                    time.sleep(0.02)
+                    if VIRTUAL_CONSTANT is not None:
+                        l_msg.x = VIRTUAL_CONSTANT
+                        l_msg.y = VIRTUAL_CONSTANT
+                    else:
+                        l_msg.x = random.random()
+                        l_msg.y = random.random()
+                    l_msg.timestamp = time.time()
                 
                 # d should represent UgmUpdate type...
             LOGGER.info("ETR sending message ... x = "+str(l_msg.x) + ", y = "+str(l_msg.y))
