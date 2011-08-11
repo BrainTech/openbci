@@ -29,7 +29,7 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import socket
 TCP_IP = '127.0.0.1'
-TCP_PORT = 5013
+TCP_PORT = 5019
 BUFFER_SIZE = 1024
 
 import ugm_logging as logger
@@ -43,20 +43,27 @@ class UgmServer(BaseMultiplexerServer):
         """Init server."""
         super(UgmServer, self).__init__(addresses=p_addresses, 
                                         type=peers.UGM)
+
+
+
     def handle_message(self, mxmsg):
         """Method fired by multiplexer. It conveys update message to 
         ugm_engine using udp sockets."""
-        LOGGER.info('UgmServer.handle_message type: '+str(mxmsg.type))
+        #LOGGER.info('UgmServer.handle_message type: '+str(mxmsg.type))
         if (mxmsg.type == types.UGM_UPDATE_MESSAGE):
             try:
-                l_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                l_socket.connect((TCP_IP, TCP_PORT))
-                l_socket.send(mxmsg.message)
+                #self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                self.socket.sendto(mxmsg.message, (TCP_IP, TCP_PORT))
+
+                #self.socket.connect((TCP_IP, TCP_PORT))
+                #self.socket.send(mxmsg.message)
             except Exception, l_exc:
                 LOGGER.error("An error occured while sending data to ugm_engine")
                 raise(l_exc)
             finally:
-                l_socket.close()
+                pass
+                #self.socket.close()
         self.no_response() 
 
 if __name__ == "__main__":

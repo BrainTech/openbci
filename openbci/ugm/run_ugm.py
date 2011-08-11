@@ -38,6 +38,74 @@ import settings
 
 LOGGER = logger.get_logger('run_ugm')
 TAGGER = tagger.get_tagger()
+import SocketServer
+ugm_engine = None
+ugm_engine_in_use = False
+class MyUDPHandler(SocketServer.BaseRequestHandler):
+    """
+    This class works similar to the TCP handler class, except that
+    self.request consists of a pair of data and client socket, and since
+    there is no connection the client address must be given explicitly
+    when sending data back via sendto().
+    """
+
+    def handle(self):
+        global ugm_engine_in_use
+        l_full_data = self.request[0].strip()
+        l_msg = variables_pb2.UgmUpdate()
+        try:
+            l_msg.ParseFromString(l_full_data)
+        except:
+            LOGGER.info("PARSER ERROR")
+            return
+                #LOGGER.debug(''.join(['TcpServer got: ',
+                #                      str(l_msg.type),
+                #                      ' / ',
+                #                      l_msg.value]))
+                # Not working properly while multithreading ...
+        l_time = time.time()
+        if ugm_engine_in_use:
+            LOGGER.info("ENGINE IN USE!!!!!!!!!!!!!!")
+        else:
+            ugm_engine_in_use = True
+            ugm_engine.update_from_message(
+                l_msg.type, l_msg.value)
+            ugm_engine_in_use = False
+        #TAGGER.send_tag(l_time, l_time, "ugm_update", 
+        #                {"ugm_config":str(l_msg.value)})
+
+
+class MyTCPHandler(SocketServer.BaseRequestHandler):
+    """
+    The RequestHandler class for our server.
+
+    It is instantiated once per connection to the server, and must
+    override the handle() method to implement communication to the
+    client.
+    """
+
+    def handle(self):
+        # self.request is the TCP socket connected to the client
+        l_full_data = self.request.recv(1024).strip()
+        #print "%s wrote:" % self.client_address[0]
+        #print self.data
+        # just send back the same data, but upper-cased
+        l_msg = variables_pb2.UgmUpdate()
+        l_msg.ParseFromString(l_full_data)
+                #LOGGER.debug(''.join(['TcpServer got: ',
+                #                      str(l_msg.type),
+                #                      ' / ',
+                #                      l_msg.value]))
+                # Not working properly while multithreading ...
+        l_time = time.time()
+        ugm_engine.update_from_message(
+            l_msg.type, l_msg.value)
+        TAGGER.send_tag(l_time, l_time, "ugm_update", 
+                        {"ugm_config":str(l_msg.value)})
+
+        #self.request.send(self.data.upper())
+
+
 class TcpServer(object):
     """The class solves a problem with PyQt - it`s main window MUST be 
     created in the main thread. As a result I just can`t fire multiplexer
@@ -86,6 +154,55 @@ class TcpServer(object):
                                 {"ugm_config":str(l_msg.value)})
                 l_conn.close()
             l_soc.close()
+
+
+
+
+class UdpServer(object):
+    """The class solves a problem with PyQt - it`s main window MUST be 
+    created in the main thread. As a result I just can`t fire multiplexer
+    and fire ugm_engine in a separate thread because it won`t work. I can`t
+    fire ugm_engine and then fire multiplexer in a separate thread as 
+    then multiplexer won`t work ... To solve this i fire ugm_engine in the 
+    main thread, fire multiplexer in separate PROCESS and create TcpServer
+    to convey data from multiplexer to ugm_engine."""
+    def __init__(self, p_ugm_engine):
+        """Init server and store ugm engine."""
+        self._ugm_engine = p_ugm_engine
+        self.socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        self.socket.bind((ugm_server.TCP_IP, ugm_server.TCP_PORT))
+
+    def run(self):
+        """Do forever:
+        wait for data from ugm_server (it should be UgmUpdate() message
+        type by now), parse data and send it to self._ugm_engine."""
+        if 1 == 1:
+            while True:
+                # Wait for data from ugm_server
+                l_full_data = self.socket.recvfrom(1024)[0].strip()
+
+                # d should represent UgmUpdate type...
+                l_msg = variables_pb2.UgmUpdate()
+                try:
+                    l_msg.ParseFromString(l_full_data)
+                except:
+                    LOGGER.info("PARSER ERROR")
+                    continue
+                #LOGGER.debug(''.join(['TcpServer got: ',
+                #                      str(l_msg.type),
+                #                      ' / ',
+                #                      l_msg.value]))
+                # Not working properly while multithreading ...
+                l_time = time.time()
+                self._ugm_engine.update_from_message(
+                    l_msg.type, l_msg.value)
+                #TAGGER.send_tag(l_time, l_time, "ugm_update", 
+                #                {"ugm_config":str(l_msg.value)})
+            self.socket.close()
+
+
+
+
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
     # default config file
@@ -101,9 +218,15 @@ if __name__ == "__main__":
         ENG = p300_test_ugm_engine.P300TestUgmEngine()        
     else:
         from ugm import ugm_engine
-        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager())
+        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager('feedback_speller_config3'))
     # Start TcpServer in a separate thread with ugm engine on slot
-    thread.start_new_thread(TcpServer(ENG).run, ())
+    #thread.start_new_thread(TcpServer(ENG).run, ())
+        thread.start_new_thread(UdpServer(ENG).run, ())
+    ugm_engine = ENG
+    #server = SocketServer.TCPServer((ugm_server.TCP_IP, ugm_server.TCP_PORT), MyTCPHandler)
+    #server = SocketServer.UDPServer((ugm_server.TCP_IP, ugm_server.TCP_PORT), MyUDPHandler)
+    #thread.start_new_thread(server.serve_forever, ())
+
     # Start multiplexer in a separate process
     path = os.path.join(settings.module_abs_path(), "ugm_server.py")
     os.system("python " + path + " &")

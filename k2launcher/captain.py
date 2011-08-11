@@ -37,6 +37,10 @@ multitasks = {}
 def multitask(task_ids, task_id):
     multitasks[task_id] = task_ids
 
+task("./etr/etr_amplifier.py", "etr_amplifier")
+task("./etr/etr_server.py", "etr_server")
+
+
 task("../svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
 task("./signal_catcher.py", "signal_catcher")
@@ -111,6 +115,12 @@ def start(alias, task_id, **kwargs):
                                             type=k2launcher_pb2.Command.START, 
                                             task=tasks[i_task_id], **kwargs))
 
+
+
+start("etr_test", "hashtable")
+start("etr_test", "etr_amplifier")
+start("etr_test", "etr_server")
+start("etr_test", "ugm")
 
 
 start("virtual_p300", "hashtable")
