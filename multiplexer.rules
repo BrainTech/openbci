@@ -189,6 +189,11 @@ peer {
     name: "BLINK_CATCHER"
 }
 
+peer {
+    type: 136
+    name: "CONFIGURER"
+}
+
 
 # packages and routing rules definitions
 #
@@ -690,5 +695,16 @@ type {
     type: 208
     name: "K2_LAUNCHER_GET_TASK_STATE_RESPONSE"
     comment: "Payload is k2launcher.LaunchedTask"
+}
+
+type {
+    type: 209
+    name: "SYSTEM_CONFIGURATION"
+    to {
+        peer: "CONFIGURER"
+        whom: ALL
+        report_delivery_error: true
+    }
+
 }
 
