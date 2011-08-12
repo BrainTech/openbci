@@ -94,7 +94,7 @@ class Tagger(object):
              ", end:", repr(p_end_timestamp),
              ", name:", p_tag_name,
              ", channels:", p_tag_channels])
-        LOGGER.info(l_info_desc)
+        LOGGER.debug(l_info_desc)
         LOGGER.debug(l_info_desc + "DESC: "+str(p_tag_desc))
         l_tag_msg = self.pack_tag(p_start_timestamp, p_end_timestamp,
                              p_tag_name, p_tag_desc, p_tag_channels)

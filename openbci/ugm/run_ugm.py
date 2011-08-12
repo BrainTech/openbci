@@ -52,12 +52,13 @@ class MyUDPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         global ugm_engine_in_use
         l_full_data = self.request[0].strip()
+        LOGGER.info(l_full_data)
         l_msg = variables_pb2.UgmUpdate()
-        try:
-            l_msg.ParseFromString(l_full_data)
-        except:
-            LOGGER.info("PARSER ERROR")
-            return
+        #try:
+        l_msg.ParseFromString(l_full_data)
+        #except:
+        #    LOGGER.info("PARSER ERROR")
+        #    return
                 #LOGGER.debug(''.join(['TcpServer got: ',
                 #                      str(l_msg.type),
                 #                      ' / ',
@@ -179,7 +180,7 @@ class UdpServer(object):
         if 1 == 1:
             while True:
                 # Wait for data from ugm_server
-                l_full_data = self.socket.recvfrom(1024)[0].strip()
+                l_full_data = self.socket.recvfrom(100000)[0]
 
                 # d should represent UgmUpdate type...
                 l_msg = variables_pb2.UgmUpdate()
@@ -218,7 +219,7 @@ if __name__ == "__main__":
         ENG = p300_test_ugm_engine.P300TestUgmEngine()        
     else:
         from ugm import ugm_engine
-        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager('feedback_speller_config3'))
+        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager('feedback_speller_config5'))
     # Start TcpServer in a separate thread with ugm engine on slot
     #thread.start_new_thread(TcpServer(ENG).run, ())
         thread.start_new_thread(UdpServer(ENG).run, ())

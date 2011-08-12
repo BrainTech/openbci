@@ -3,15 +3,23 @@
 from google.protobuf import descriptor
 from google.protobuf import message
 from google.protobuf import reflection
-from google.protobuf import service
-from google.protobuf import service_reflection
 from google.protobuf import descriptor_pb2
+# @@protoc_insertion_point(imports)
+
+
+
+DESCRIPTOR = descriptor.FileDescriptor(
+  name='k2launcher.proto',
+  package='k2launcher',
+  serialized_pb='\n\x10k2launcher.proto\x12\nk2launcher\"&\n\x08KeyValue\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"\x91\x03\n\x04Task\x12\x0b\n\x03\x63md\x18\x01 \x01(\t\x12\x0f\n\x07task_id\x18\x02 \x02(\t\x12\x15\n\x04node\x18\x03 \x01(\t:\x07__ANY__\x12!\n\x03\x65nv\x18\x04 \x03(\x0b\x32\x14.k2launcher.KeyValue\x12\x13\n\x0bscreen_name\x18\x05 \x01(\t\x12\x1e\n\x0f\x62\x61\x62ysit_pidfile\x18\x06 \x01(\x08:\x05\x66\x61lse\x12\x1d\n\x0e\x62\x61\x62ysit_screen\x18\x07 \x01(\x08:\x05\x66\x61lse\x12\x0f\n\x07pidfile\x18\x08 \x01(\t\x12\x13\n\x0bworking_dir\x18\t \x01(\t\x12\x18\n\nbash_debug\x18\n \x01(\x08:\x04true\x12\x18\n\nbash_after\x18\x0b \x01(\x08:\x04true\x12#\n\x15\x64\x61te_at_the_beginning\x18\x0c \x01(\x08:\x04true\x12\x18\n\rbabysit_delay\x18\r \x01(\x01:\x01\x35\x12#\n\x15\x65xpose_pidfile_in_env\x18\x0e \x01(\x08:\x04true\x12\x1f\n\x10generate_pidfile\x18\x0f \x01(\x08:\x05\x66\x61lse\"\xad\x01\n\x0cLaunchedTask\x12\x1e\n\x04task\x18\x01 \x02(\x0b\x32\x10.k2launcher.Task\x12\x15\n\rlaunched_node\x18\x02 \x02(\t\x12-\n\x05state\x18\x03 \x02(\x0e\x32\x1e.k2launcher.LaunchedTask.State\x12\x17\n\x0frestart_counter\x18\x04 \x01(\x05\"\x1e\n\x05State\x12\x08\n\x04\x42ORN\x10\x00\x12\x0b\n\x07RUNNING\x10\x01\"\xb1\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x02(\x04\x12&\n\x04type\x18\x02 \x02(\x0e\x32\x18.k2launcher.Command.Type\x12\x1e\n\x04task\x18\x03 \x01(\x0b\x32\x10.k2launcher.Task\x12\x0c\n\x04when\x18\x04 \x01(\x01\x12\x10\n\x08priority\x18\x05 \x01(\x01\"2\n\x04Type\x12\t\n\x05START\x10\x00\x12\x08\n\x04KILL\x10\x01\x12\x0b\n\x07RESTART\x10\x02\x12\x08\n\x04STOP\x10\x03\"\xbc\x01\n\x10ScheduleResponse\x12/\n\x04type\x18\x01 \x02(\x0e\x32!.k2launcher.ScheduleResponse.Type\x12\x0f\n\x07message\x18\x02 \x01(\t\"f\n\x04Type\x12\x06\n\x02OK\x10\x00\x12\x1c\n\x18\x45RROR_TASK_NOT_SPECIFIED\x10\x01\x12\x1e\n\x1a\x45RROR_NOT_ENOUGH_ARGUMENTS\x10\x02\x12\x18\n\x14\x45RROR_BAD_BABYSITTER\x10\x03\"\x17\n\x07GetNext\x12\x0c\n\x04node\x18\x01 \x02(\t\"\x1f\n\x0cGetTaskState\x12\x0f\n\x07task_id\x18\x01 \x02(\t')
+
 
 
 _LAUNCHEDTASK_STATE = descriptor.EnumDescriptor(
   name='State',
   full_name='k2launcher.LaunchedTask.State',
-  filename='State',
+  filename=None,
+  file=DESCRIPTOR,
   values=[
     descriptor.EnumValueDescriptor(
       name='BORN', index=0, number=0,
@@ -22,13 +30,17 @@ _LAUNCHEDTASK_STATE = descriptor.EnumDescriptor(
       options=None,
       type=None),
   ],
+  containing_type=None,
   options=None,
+  serialized_start=620,
+  serialized_end=650,
 )
 
 _COMMAND_TYPE = descriptor.EnumDescriptor(
   name='Type',
   full_name='k2launcher.Command.Type',
-  filename='Type',
+  filename=None,
+  file=DESCRIPTOR,
   values=[
     descriptor.EnumValueDescriptor(
       name='START', index=0, number=0,
@@ -47,13 +59,17 @@ _COMMAND_TYPE = descriptor.EnumDescriptor(
       options=None,
       type=None),
   ],
+  containing_type=None,
   options=None,
+  serialized_start=780,
+  serialized_end=830,
 )
 
 _SCHEDULERESPONSE_TYPE = descriptor.EnumDescriptor(
   name='Type',
   full_name='k2launcher.ScheduleResponse.Type',
-  filename='Type',
+  filename=None,
+  file=DESCRIPTOR,
   values=[
     descriptor.EnumValueDescriptor(
       name='OK', index=0, number=0,
@@ -72,360 +88,429 @@ _SCHEDULERESPONSE_TYPE = descriptor.EnumDescriptor(
       options=None,
       type=None),
   ],
+  containing_type=None,
   options=None,
+  serialized_start=919,
+  serialized_end=1021,
 )
 
 
 _KEYVALUE = descriptor.Descriptor(
   name='KeyValue',
   full_name='k2launcher.KeyValue',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='key', full_name='k2launcher.KeyValue.key', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='value', full_name='k2launcher.KeyValue.value', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=32,
+  serialized_end=70,
+)
 
 
 _TASK = descriptor.Descriptor(
   name='Task',
   full_name='k2launcher.Task',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='cmd', full_name='k2launcher.Task.cmd', index=0,
       number=1, type=9, cpp_type=9, label=1,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='task_id', full_name='k2launcher.Task.task_id', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='node', full_name='k2launcher.Task.node', index=2,
       number=3, type=9, cpp_type=9, label=1,
-      default_value=unicode("__ANY__", "utf-8"),
+      has_default_value=True, default_value=unicode("__ANY__", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='env', full_name='k2launcher.Task.env', index=3,
       number=4, type=11, cpp_type=10, label=3,
-      default_value=[],
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='screen_name', full_name='k2launcher.Task.screen_name', index=4,
       number=5, type=9, cpp_type=9, label=1,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='babysit_pidfile', full_name='k2launcher.Task.babysit_pidfile', index=5,
       number=6, type=8, cpp_type=7, label=1,
-      default_value=False,
+      has_default_value=True, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='babysit_screen', full_name='k2launcher.Task.babysit_screen', index=6,
       number=7, type=8, cpp_type=7, label=1,
-      default_value=False,
+      has_default_value=True, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='pidfile', full_name='k2launcher.Task.pidfile', index=7,
       number=8, type=9, cpp_type=9, label=1,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='working_dir', full_name='k2launcher.Task.working_dir', index=8,
       number=9, type=9, cpp_type=9, label=1,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='bash_debug', full_name='k2launcher.Task.bash_debug', index=9,
       number=10, type=8, cpp_type=7, label=1,
-      default_value=True,
+      has_default_value=True, default_value=True,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='bash_after', full_name='k2launcher.Task.bash_after', index=10,
       number=11, type=8, cpp_type=7, label=1,
-      default_value=True,
+      has_default_value=True, default_value=True,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='date_at_the_beginning', full_name='k2launcher.Task.date_at_the_beginning', index=11,
       number=12, type=8, cpp_type=7, label=1,
-      default_value=True,
+      has_default_value=True, default_value=True,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='babysit_delay', full_name='k2launcher.Task.babysit_delay', index=12,
       number=13, type=1, cpp_type=5, label=1,
-      default_value=5,
+      has_default_value=True, default_value=5,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='expose_pidfile_in_env', full_name='k2launcher.Task.expose_pidfile_in_env', index=13,
       number=14, type=8, cpp_type=7, label=1,
-      default_value=True,
+      has_default_value=True, default_value=True,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='generate_pidfile', full_name='k2launcher.Task.generate_pidfile', index=14,
       number=15, type=8, cpp_type=7, label=1,
-      default_value=False,
+      has_default_value=True, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=73,
+  serialized_end=474,
+)
 
 
 _LAUNCHEDTASK = descriptor.Descriptor(
   name='LaunchedTask',
   full_name='k2launcher.LaunchedTask',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='task', full_name='k2launcher.LaunchedTask.task', index=0,
       number=1, type=11, cpp_type=10, label=2,
-      default_value=None,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='launched_node', full_name='k2launcher.LaunchedTask.launched_node', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='state', full_name='k2launcher.LaunchedTask.state', index=2,
       number=3, type=14, cpp_type=8, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='restart_counter', full_name='k2launcher.LaunchedTask.restart_counter', index=3,
       number=4, type=5, cpp_type=1, label=1,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
     _LAUNCHEDTASK_STATE,
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=477,
+  serialized_end=650,
+)
 
 
 _COMMAND = descriptor.Descriptor(
   name='Command',
   full_name='k2launcher.Command',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='id', full_name='k2launcher.Command.id', index=0,
       number=1, type=4, cpp_type=4, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='type', full_name='k2launcher.Command.type', index=1,
       number=2, type=14, cpp_type=8, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='task', full_name='k2launcher.Command.task', index=2,
       number=3, type=11, cpp_type=10, label=1,
-      default_value=None,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='when', full_name='k2launcher.Command.when', index=3,
       number=4, type=1, cpp_type=5, label=1,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='priority', full_name='k2launcher.Command.priority', index=4,
       number=5, type=1, cpp_type=5, label=1,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
     _COMMAND_TYPE,
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=653,
+  serialized_end=830,
+)
 
 
 _SCHEDULERESPONSE = descriptor.Descriptor(
   name='ScheduleResponse',
   full_name='k2launcher.ScheduleResponse',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='type', full_name='k2launcher.ScheduleResponse.type', index=0,
       number=1, type=14, cpp_type=8, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='message', full_name='k2launcher.ScheduleResponse.message', index=1,
       number=2, type=9, cpp_type=9, label=1,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
     _SCHEDULERESPONSE_TYPE,
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=833,
+  serialized_end=1021,
+)
 
 
 _GETNEXT = descriptor.Descriptor(
   name='GetNext',
   full_name='k2launcher.GetNext',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='node', full_name='k2launcher.GetNext.node', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=1023,
+  serialized_end=1046,
+)
 
 
 _GETTASKSTATE = descriptor.Descriptor(
   name='GetTaskState',
   full_name='k2launcher.GetTaskState',
-  filename='k2launcher.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='task_id', full_name='k2launcher.GetTaskState.task_id', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
-
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=1048,
+  serialized_end=1079,
+)
 
 _TASK.fields_by_name['env'].message_type = _KEYVALUE
 _LAUNCHEDTASK.fields_by_name['task'].message_type = _TASK
 _LAUNCHEDTASK.fields_by_name['state'].enum_type = _LAUNCHEDTASK_STATE
+_LAUNCHEDTASK_STATE.containing_type = _LAUNCHEDTASK;
 _COMMAND.fields_by_name['type'].enum_type = _COMMAND_TYPE
 _COMMAND.fields_by_name['task'].message_type = _TASK
+_COMMAND_TYPE.containing_type = _COMMAND;
 _SCHEDULERESPONSE.fields_by_name['type'].enum_type = _SCHEDULERESPONSE_TYPE
+_SCHEDULERESPONSE_TYPE.containing_type = _SCHEDULERESPONSE;
+DESCRIPTOR.message_types_by_name['KeyValue'] = _KEYVALUE
+DESCRIPTOR.message_types_by_name['Task'] = _TASK
+DESCRIPTOR.message_types_by_name['LaunchedTask'] = _LAUNCHEDTASK
+DESCRIPTOR.message_types_by_name['Command'] = _COMMAND
+DESCRIPTOR.message_types_by_name['ScheduleResponse'] = _SCHEDULERESPONSE
+DESCRIPTOR.message_types_by_name['GetNext'] = _GETNEXT
+DESCRIPTOR.message_types_by_name['GetTaskState'] = _GETTASKSTATE
 
 class KeyValue(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _KEYVALUE
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.KeyValue)
 
 class Task(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _TASK
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.Task)
 
 class LaunchedTask(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _LAUNCHEDTASK
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.LaunchedTask)
 
 class Command(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _COMMAND
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.Command)
 
 class ScheduleResponse(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _SCHEDULERESPONSE
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.ScheduleResponse)
 
 class GetNext(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _GETNEXT
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.GetNext)
 
 class GetTaskState(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _GETTASKSTATE
+  
+  # @@protoc_insertion_point(class_scope:k2launcher.GetTaskState)
 
+# @@protoc_insertion_point(module_scope)

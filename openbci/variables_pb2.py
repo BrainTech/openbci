@@ -3,338 +3,484 @@
 from google.protobuf import descriptor
 from google.protobuf import message
 from google.protobuf import reflection
-from google.protobuf import service
-from google.protobuf import service_reflection
 from google.protobuf import descriptor_pb2
+# @@protoc_insertion_point(imports)
+
+
+
+DESCRIPTOR = descriptor.FileDescriptor(
+  name='variables.proto',
+  package='variables',
+  serialized_pb='\n\x0fvariables.proto\x12\tvariables\"&\n\x08Variable\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"8\n\x0eVariableVector\x12&\n\tvariables\x18\x01 \x03(\x0b\x32\x13.variables.Variable\")\n\x05\x42link\x12\r\n\x05index\x18\x01 \x02(\x05\x12\x11\n\ttimestamp\x18\x02 \x02(\x01\"/\n\x0b\x42linkVector\x12 \n\x06\x62links\x18\x01 \x03(\x0b\x32\x10.variables.Blink\"*\n\x06Sample\x12\r\n\x05value\x18\x01 \x02(\x01\x12\x11\n\ttimestamp\x18\x02 \x02(\x01\"3\n\x08Sample2D\x12\t\n\x01x\x18\x01 \x02(\x01\x12\t\n\x01y\x18\x02 \x02(\x01\x12\x11\n\ttimestamp\x18\x03 \x02(\x01\"2\n\x0cSampleVector\x12\"\n\x07samples\x18\x01 \x03(\x0b\x32\x11.variables.Sample\"*\n\x08\x44\x65\x63ision\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x02(\x05\x12\x0c\n\x04type\x18\x02 \x01(\x05\"(\n\tUgmUpdate\x12\x0c\n\x04type\x18\x01 \x02(\x05\x12\r\n\x05value\x18\x02 \x02(\t\"~\n\x03Tag\x12\x17\n\x0fstart_timestamp\x18\x01 \x02(\x01\x12\x15\n\rend_timestamp\x18\x02 \x02(\x01\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x10\n\x08\x63hannels\x18\x04 \x02(\t\x12\'\n\x04\x64\x65sc\x18\x05 \x01(\x0b\x32\x19.variables.VariableVector\")\n\tTagVector\x12\x1c\n\x04tags\x18\x01 \x03(\x0b\x32\x0e.variables.Tag')
+
 
 
 
 _VARIABLE = descriptor.Descriptor(
   name='Variable',
   full_name='variables.Variable',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='key', full_name='variables.Variable.key', index=0,
       number=1, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='value', full_name='variables.Variable.value', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=30,
+  serialized_end=68,
+)
 
 
 _VARIABLEVECTOR = descriptor.Descriptor(
   name='VariableVector',
   full_name='variables.VariableVector',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='variables', full_name='variables.VariableVector.variables', index=0,
       number=1, type=11, cpp_type=10, label=3,
-      default_value=[],
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=70,
+  serialized_end=126,
+)
 
 
 _BLINK = descriptor.Descriptor(
   name='Blink',
   full_name='variables.Blink',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='index', full_name='variables.Blink.index', index=0,
       number=1, type=5, cpp_type=1, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='timestamp', full_name='variables.Blink.timestamp', index=1,
       number=2, type=1, cpp_type=5, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=128,
+  serialized_end=169,
+)
 
 
 _BLINKVECTOR = descriptor.Descriptor(
   name='BlinkVector',
   full_name='variables.BlinkVector',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='blinks', full_name='variables.BlinkVector.blinks', index=0,
       number=1, type=11, cpp_type=10, label=3,
-      default_value=[],
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=171,
+  serialized_end=218,
+)
 
 
 _SAMPLE = descriptor.Descriptor(
   name='Sample',
   full_name='variables.Sample',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='value', full_name='variables.Sample.value', index=0,
       number=1, type=1, cpp_type=5, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='timestamp', full_name='variables.Sample.timestamp', index=1,
       number=2, type=1, cpp_type=5, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=220,
+  serialized_end=262,
+)
+
+
+_SAMPLE2D = descriptor.Descriptor(
+  name='Sample2D',
+  full_name='variables.Sample2D',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='x', full_name='variables.Sample2D.x', index=0,
+      number=1, type=1, cpp_type=5, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='y', full_name='variables.Sample2D.y', index=1,
+      number=2, type=1, cpp_type=5, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='timestamp', full_name='variables.Sample2D.timestamp', index=2,
+      number=3, type=1, cpp_type=5, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=264,
+  serialized_end=315,
+)
 
 
 _SAMPLEVECTOR = descriptor.Descriptor(
   name='SampleVector',
   full_name='variables.SampleVector',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='samples', full_name='variables.SampleVector.samples', index=0,
       number=1, type=11, cpp_type=10, label=3,
-      default_value=[],
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=317,
+  serialized_end=367,
+)
 
 
 _DECISION = descriptor.Descriptor(
   name='Decision',
   full_name='variables.Decision',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='decision', full_name='variables.Decision.decision', index=0,
       number=1, type=5, cpp_type=1, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='type', full_name='variables.Decision.type', index=1,
       number=2, type=5, cpp_type=1, label=1,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=369,
+  serialized_end=411,
+)
 
 
 _UGMUPDATE = descriptor.Descriptor(
   name='UgmUpdate',
   full_name='variables.UgmUpdate',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='type', full_name='variables.UgmUpdate.type', index=0,
       number=1, type=5, cpp_type=1, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='value', full_name='variables.UgmUpdate.value', index=1,
       number=2, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=413,
+  serialized_end=453,
+)
 
 
 _TAG = descriptor.Descriptor(
   name='Tag',
   full_name='variables.Tag',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='start_timestamp', full_name='variables.Tag.start_timestamp', index=0,
       number=1, type=1, cpp_type=5, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='end_timestamp', full_name='variables.Tag.end_timestamp', index=1,
       number=2, type=1, cpp_type=5, label=2,
-      default_value=0,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='name', full_name='variables.Tag.name', index=2,
       number=3, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='channels', full_name='variables.Tag.channels', index=3,
       number=4, type=9, cpp_type=9, label=2,
-      default_value=unicode("", "utf-8"),
+      has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='desc', full_name='variables.Tag.desc', index=4,
       number=5, type=11, cpp_type=10, label=1,
-      default_value=None,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=455,
+  serialized_end=581,
+)
 
 
 _TAGVECTOR = descriptor.Descriptor(
   name='TagVector',
   full_name='variables.TagVector',
-  filename='variables.proto',
+  filename=None,
+  file=DESCRIPTOR,
   containing_type=None,
   fields=[
     descriptor.FieldDescriptor(
       name='tags', full_name='variables.TagVector.tags', index=0,
       number=1, type=11, cpp_type=10, label=3,
-      default_value=[],
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
   ],
   extensions=[
   ],
-  nested_types=[],  # TODO(robinson): Implement.
+  nested_types=[],
   enum_types=[
   ],
-  options=None)
-
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=583,
+  serialized_end=624,
+)
 
 _VARIABLEVECTOR.fields_by_name['variables'].message_type = _VARIABLE
 _BLINKVECTOR.fields_by_name['blinks'].message_type = _BLINK
 _SAMPLEVECTOR.fields_by_name['samples'].message_type = _SAMPLE
 _TAG.fields_by_name['desc'].message_type = _VARIABLEVECTOR
 _TAGVECTOR.fields_by_name['tags'].message_type = _TAG
+DESCRIPTOR.message_types_by_name['Variable'] = _VARIABLE
+DESCRIPTOR.message_types_by_name['VariableVector'] = _VARIABLEVECTOR
+DESCRIPTOR.message_types_by_name['Blink'] = _BLINK
+DESCRIPTOR.message_types_by_name['BlinkVector'] = _BLINKVECTOR
+DESCRIPTOR.message_types_by_name['Sample'] = _SAMPLE
+DESCRIPTOR.message_types_by_name['Sample2D'] = _SAMPLE2D
+DESCRIPTOR.message_types_by_name['SampleVector'] = _SAMPLEVECTOR
+DESCRIPTOR.message_types_by_name['Decision'] = _DECISION
+DESCRIPTOR.message_types_by_name['UgmUpdate'] = _UGMUPDATE
+DESCRIPTOR.message_types_by_name['Tag'] = _TAG
+DESCRIPTOR.message_types_by_name['TagVector'] = _TAGVECTOR
 
 class Variable(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _VARIABLE
+  
+  # @@protoc_insertion_point(class_scope:variables.Variable)
 
 class VariableVector(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _VARIABLEVECTOR
+  
+  # @@protoc_insertion_point(class_scope:variables.VariableVector)
 
 class Blink(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _BLINK
+  
+  # @@protoc_insertion_point(class_scope:variables.Blink)
 
 class BlinkVector(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _BLINKVECTOR
+  
+  # @@protoc_insertion_point(class_scope:variables.BlinkVector)
 
 class Sample(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _SAMPLE
+  
+  # @@protoc_insertion_point(class_scope:variables.Sample)
+
+class Sample2D(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _SAMPLE2D
+  
+  # @@protoc_insertion_point(class_scope:variables.Sample2D)
 
 class SampleVector(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _SAMPLEVECTOR
+  
+  # @@protoc_insertion_point(class_scope:variables.SampleVector)
 
 class Decision(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _DECISION
+  
+  # @@protoc_insertion_point(class_scope:variables.Decision)
 
 class UgmUpdate(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _UGMUPDATE
+  
+  # @@protoc_insertion_point(class_scope:variables.UgmUpdate)
 
 class Tag(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _TAG
+  
+  # @@protoc_insertion_point(class_scope:variables.Tag)
 
 class TagVector(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _TAGVECTOR
+  
+  # @@protoc_insertion_point(class_scope:variables.TagVector)
 
+# @@protoc_insertion_point(module_scope)

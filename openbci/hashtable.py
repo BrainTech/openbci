@@ -123,7 +123,20 @@ class Hashtable(BaseMultiplexerServer):
         "P300TrainingBlinksPerChar": "96",
         "P300TrainingCharBreak": "5.0",
         "P300TrainingChars": "C A T D O G F I S H W A T E R B O W L",
-        "BlinkCatcherBufSize":"12"
+        "BlinkCatcherBufSize":"12",
+
+        'ETR_DEC_TYPE':'COUNT',
+        'ETR_PUSH_DEC_COUNT':'10', 
+        'ETR_PUSH_FEED_COUNT':'2',
+        'ETR_BUFFER_SIZE':'3.0',
+        'ETR_IGNORE_MISSED':'1',
+        'ETR_AREA_COUNT': '6',
+
+        'UGM_CONFIG': 'feedback_speller_config5',
+        'ETR_START_AREA_ID': '101',
+        'ETR_FIX_ID': '12345'
+
+        
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

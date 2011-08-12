@@ -194,6 +194,16 @@ peer {
     name: "CONFIGURER"
 }
 
+peer {
+     type: 137
+     name: "ETR_SERVER"
+     queue_size: 32768
+}
+
+peer {
+     type: 138
+     name: "ETR_AMPLIFIER"
+}
 
 # packages and routing rules definitions
 #
@@ -699,6 +709,16 @@ type {
 
 type {
     type: 209
+    name: "ETR_SIGNAL_MESSAGE"
+    to {
+       peer: "ETR_SERVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+}
+
+type {
+    type: 210
     name: "SYSTEM_CONFIGURATION"
     to {
         peer: "CONFIGURER"
