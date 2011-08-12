@@ -40,10 +40,10 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
-        "ChannelsNames":"gen1",
+        #"ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
-        #"ChannelsNames": "gsr",
+        "ChannelsNames": "gsr",
         #"ChannelsNames": "O1;Oz;O2",
 
         #"ChannelsNames":"REKA",
@@ -51,9 +51,10 @@ class Hashtable(BaseMultiplexerServer):
         "Gain":gains_gen(CHANNELS),
         "Offset": offsets_gen(CHANNELS),
         "NumOfChannels": CHANNELS,
+        "SamplesPerVector":"4",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "128",
-        "VirtualAmplifierFunction": "offset", #"math.sin(2 * math.pi * offset / 128. * 12)", #"100. * math.sin((channel_number + 1) * offset / 100.)",
+        "SamplingRate": "256",
+        "VirtualAmplifierFunction": "100*math.sin(2 * math.pi * offset / 256. * 3)", #"offset", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "4096",
         "NumOfFreq": "8",
         "Border": "0.4",
@@ -178,19 +179,45 @@ class Hashtable(BaseMultiplexerServer):
                 offsets.insert(ch_ind, "0.0")
                 self.data["Offset"] = ' '.join(offsets)
         
+    def _set_peer_ready(self, peer_type, peer_id):
+        r = self.data.get('PEER_READY', {})
+        for_key = r.get(peer_type, [])
+        for_key.append(peer_id)
+        r[peer_type] = for_key
+        self.data['PEER_READY'] = r
+        
+    def _get_peer_ready(self, peer_type):
+        if len(peer_type) == 0:
+            return self.data.get('PEER_READY', "")
+        else:
+            value = self.data.get('PEER_READY', {}).get(peer_type, [])
+            print("VALUE: ")
+            print(value)
+            value = ' '.join([str(i) for i in value])
+            return value
+
+
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DICT_SET_MESSAGE:
             pair = variables_pb2.Variable()
             pair.ParseFromString(mxmsg.message)
             key = pair.key
             value = pair.value
-            self.data[key] = value
+            if key == 'PEER_READY':
+                self._set_peer_ready(value, mxmsg.from_)
+            else:
+                self.data[key] = value
             self.no_response()
             LOGGER.info("Got DICT_SET_MESSAGE with: key="+key+", value="+value)
+            #self.conn.send_message(message=pair.SerializeToString(), type=types.SYSTEM_CONFIGURATION)
+
         elif mxmsg.type == types.DICT_GET_REQUEST_MESSAGE:
-            #pair = variables_pb2.Variable()
             key = mxmsg.message
-            value = self.data[key] if key in self.data else ""
+            if key.startswith('PEER_READY'):
+                value = self._get_peer_ready(key[len('PEER_READY'):])
+            else:
+                value = self.data.get(key, "")
+                
             LOGGER.info("Got DICT_GET_RESPONSE_MESSAGE with key="+key+
                         ". Send response value="+str(value))
 
