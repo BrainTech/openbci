@@ -137,12 +137,13 @@ class Hashtable(BaseMultiplexerServer):
         'ETR_DEC_TYPE':'COUNT',
         'ETR_PUSH_DEC_COUNT':'2', 
         'ETR_PUSH_FEED_COUNT':'1',
-        #'ETR_PUSH_DEC_COUNT':'5', 
-        #'ETR_PUSH_FEED_COUNT':'1',
         'ETR_BUFFER_SIZE':'10.0',
         'ETR_IGNORE_MISSED':'1',
         'ETR_START_AREA_ID': '101',
-        'ETR_FIX_ID': '12345'
+        'ETR_FIX_ID': '12345',
+
+        'ETR_AMPLIFIER_IP':'127.0.0.1',
+        'ETR_AMPLIFIER_PORT':'20320',
 
         
 

@@ -20,8 +20,10 @@ class EtrServer(BaseMultiplexerServer):
 
         self.mgr = etr_manager.EtrManager()
         requested_configs = self.mgr.get_requested_configs()
-        #requested_configs.add('PEER_READY'+str(peers.UGM)) - todo
-        #requested_configs.add('PEER_READY'+str(peers.LOGIC)) - todo
+        requested_configs.add('PEER_READY'+str(peers.UGM))
+        requested_configs.add('PEER_READY'+str(peers.LOGIC))
+        requested_configs.add('PEER_READY'+str(peers.ETR_AMPLIFIER))
+
         LOGGER.info("Request system settings ...")
         configs = configurer_.get_configs(requested_configs)
         self.mgr.set_configs(configs)
