@@ -24,7 +24,8 @@
 """A heart of ugm. This module implements core classes for ugm to work.
 It should be ran as a script in MAIN thread or using UgmEngine.run()."""
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, Qt
+import Queue
 import ugm_config_manager
 import ugm_stimuluses
 
@@ -124,6 +125,7 @@ class UgmMainWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.view)
         
 
+
 class UgmEngine(QtCore.QObject):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
@@ -136,6 +138,38 @@ class UgmEngine(QtCore.QObject):
         self.connect(self, QtCore.SIGNAL("ugm_rebuild"), 
                      self.ugm_rebuild_signal)
 
+        self.queue = Queue.Queue()
+        self.mutex = Qt.QMutex()
+
+    def queue_message(self, l_msg):
+        """Insert message to queue waiting to be displayed."""
+        self.mutex.lock()
+        self.queue.put(l_msg)
+        self.mutex.unlock()
+
+    def timer_on_run(self):
+        """Fired on run once time."""
+        self.update_gui_timer = QtCore.QTimer()
+        self.update_gui_timer.connect(self.update_gui_timer,QtCore.SIGNAL("timeout()"),self.timer_update_gui)
+        self.update_gui_timer.start(10)
+
+
+    def timer_update_gui(self):
+        """Fired very often - clear self.queue and update gui with those messages."""
+        if (self.queue.qsize() > 5):
+            LOGGER.info("Warning! Queue size is: "+str(self.queue.qsize()))
+
+        self.mutex.lock()
+        while True:
+            try:
+                msg = self.queue.get_nowait()
+            except Queue.Empty:
+                break
+            else:
+                self.update_from_message(
+                    msg.type, msg.value)
+        self.mutex.unlock()
+
     def run(self):
         """Fire pyqt application with UgmMainWindow. 
         Refire when app is being closed. (This is justified as if 
@@ -145,6 +179,12 @@ class UgmEngine(QtCore.QObject):
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
         self._window.showFullScreen()
+
+        self.on_run_timer = QtCore.QTimer()
+        self.on_run_timer.connect(self.on_run_timer,QtCore.SIGNAL("timeout()"),self.timer_on_run)
+        self.on_run_timer.setSingleShot(True)
+        self.on_run_timer.start(2000) #Todo - need to wait 2 secs?
+
         l_app.exec_()
         LOGGER.info('ugm_engine main window has closed')
 

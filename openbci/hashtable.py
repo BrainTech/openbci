@@ -129,15 +129,19 @@ class Hashtable(BaseMultiplexerServer):
 
         'SPELLER_CONFIG':'speller_config_6',
         'UGM_CONFIG': 'feedback_speller_config5',
+        'UGM_USE_TAGGER':'1',
 
         'SPELLER_AREA_COUNT':'6',
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',
 
+        #'ETR_DEC_TYPE':'FRACTION',
+        #'ETR_PUSH_DEC_COUNT':'0.7', 
+        #'ETR_PUSH_FEED_COUNT':'0.1',
         'ETR_DEC_TYPE':'COUNT',
-        'ETR_PUSH_DEC_COUNT':'2', 
-        'ETR_PUSH_FEED_COUNT':'1',
-        'ETR_BUFFER_SIZE':'10.0',
+        'ETR_PUSH_DEC_COUNT':'10', 
+        'ETR_PUSH_FEED_COUNT':'3',
+        'ETR_BUFFER_SIZE':'5.0',
         'ETR_IGNORE_MISSED':'1',
         'ETR_START_AREA_ID': '101',
         'ETR_FIX_ID': '12345',

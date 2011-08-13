@@ -118,11 +118,11 @@ def start(alias, task_id, **kwargs):
 
 
 
-start("etr_test", "hashtable")
-start("etr_test", "etr_amplifier")
-start("etr_test", "etr_server")
-start("etr_test", "ugm")
-start("etr_test", "logics")
+start("etr", "hashtable")
+start("etr", "etr_amplifier")
+start("etr", "etr_server")
+start("etr", "ugm")
+start("etr", "logics")
 
 
 start("logics_test", "hashtable")

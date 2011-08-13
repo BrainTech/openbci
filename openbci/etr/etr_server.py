@@ -44,12 +44,12 @@ class EtrServer(BaseMultiplexerServer):
                 LOGGER.info("Sending dec message...")
                 l_dec_msg = variables_pb2.Decision()
                 l_dec_msg.decision = dec
-                l_dec_msg.type = 0 #TODO ?
+                l_dec_msg.type = 0
                 self.conn.send_message(message = l_dec_msg.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
             elif ugm is not None:
                 LOGGER.info("Sending ugm message...")
                 l_ugm_msg = variables_pb2.UgmUpdate()
-                l_ugm_msg.type = 1 #TODO ?
+                l_ugm_msg.type = 1
                 l_ugm_msg.value = ugm
                 self.conn.send_message(
                     message = l_ugm_msg.SerializeToString(), 

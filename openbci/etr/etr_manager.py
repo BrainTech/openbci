@@ -17,9 +17,7 @@ class EtrManager(object):
     def handle_message(self, msg):
         area_id = self.ugm_mgr.get_pushed_area_id(msg)
         self.dec_mgr.area_pushed(area_id, msg)
-        print("Area pushed: "+str(area_id))
         dec, feeds = self.dec_mgr.get_feedbacks()
-        print("DEC AND FEED: "+str(dec)+ " / " + str(feeds))
         ugms = self.ugm_mgr.get_ugm_updates(feeds, msg)
         return dec, ugms
 
