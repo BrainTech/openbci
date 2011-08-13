@@ -29,8 +29,9 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import socket
 TCP_IP = '127.0.0.1'
-TCP_PORT = 5020
+TCP_PORT = 5022
 BUFFER_SIZE = 1024
+import configurer
 
 import ugm_logging as logger
 LOGGER = logger.get_logger("ugm_server")
@@ -43,6 +44,7 @@ class UgmServer(BaseMultiplexerServer):
         """Init server."""
         super(UgmServer, self).__init__(addresses=p_addresses, 
                                         type=peers.UGM)
+        configurer.Configurer().set_configs({'PEER_READY':str(peers.UGM)}, self.conn)
 
 
 

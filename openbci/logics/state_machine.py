@@ -27,10 +27,11 @@ class StateMachine(object):
     """A facade between config file and logic_engine class.
     Provides usefull methods to get and set (by now in-memory) configuration.
     """
-    def __init__(self, p_logic_config_name='speller_config'): 
+    def set_config(self, p_logic_config_name):
         """import p_logic_config_name, store state configs for every state."""
         self._config_file = p_logic_config_name
         self.update_from_file()
+
     def update_from_file(self, p_config_file=None):
         if not  p_config_file:
             p_config_file = self._config_file

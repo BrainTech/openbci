@@ -9,7 +9,9 @@ class AreaConfig(object):
         self.x2 = self.x1 + float(ugm_config['width'])
         self.y2 = self.y1 + float(ugm_config['height'])
 
-        self.config = ugm_config
+        self.config = {'id': ugm_config['id'],
+                       'color': ugm_config['color']
+                       }
 
     def get_ugm_update(self, feedback):
         self.config['color'] = '#%02x%02x%02x' % (255, 255 - int(255*feedback), 255)
@@ -29,7 +31,7 @@ class EtrUgmManager(object):
     def __init__(self):
         self.configs = {
             'UGM_CONFIG': None,
-            'ETR_AREA_COUNT': None,
+            'SPELLER_AREA_COUNT': None,
             'ETR_START_AREA_ID': None,
             'ETR_FIX_ID': None
             }
@@ -44,17 +46,17 @@ class EtrUgmManager(object):
         self._init_configs()
 
     def _assert_configs(self):
-        self.configs['ETR_AREA_COUNT'] = int(self.configs['ETR_AREA_COUNT'])
+        self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
         self.configs['ETR_START_AREA_ID'] = int(self.configs['ETR_START_AREA_ID'])
         self.configs['ETR_FIX_ID'] = int(self.configs['ETR_FIX_ID'])
-        assert(self.configs['ETR_AREA_COUNT'] > 0)
+        assert(self.configs['SPELLER_AREA_COUNT'] > 0)
 
     def _init_configs(self):
         mgr = ugm_config_manager.UgmConfigManager(self.configs['UGM_CONFIG'])
 
         self.area_configs = []
         count = self.configs['ETR_START_AREA_ID']
-        for i in range(self.configs['ETR_AREA_COUNT']):
+        for i in range(self.configs['SPELLER_AREA_COUNT']):
             self.area_configs.append(AreaConfig(mgr.get_config_for(count+i)))
 
         self.fix_config = FixConfig(mgr.get_config_for(self.configs['ETR_FIX_ID']))

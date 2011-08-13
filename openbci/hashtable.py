@@ -126,14 +126,21 @@ class Hashtable(BaseMultiplexerServer):
         "P300TrainingChars": "C A T D O G F I S H W A T E R B O W L",
         "BlinkCatcherBufSize":"12",
 
-        'ETR_DEC_TYPE':'COUNT',
-        'ETR_PUSH_DEC_COUNT':'10', 
-        'ETR_PUSH_FEED_COUNT':'2',
-        'ETR_BUFFER_SIZE':'3.0',
-        'ETR_IGNORE_MISSED':'1',
-        'ETR_AREA_COUNT': '6',
 
+        'SPELLER_CONFIG':'speller_config_6',
         'UGM_CONFIG': 'feedback_speller_config5',
+
+        'SPELLER_AREA_COUNT':'6',
+        'SPELLER_START_TEXT_ID':'1001',
+        'SPELLER_TEXT_ID':'54321',
+
+        'ETR_DEC_TYPE':'COUNT',
+        'ETR_PUSH_DEC_COUNT':'2', 
+        'ETR_PUSH_FEED_COUNT':'1',
+        #'ETR_PUSH_DEC_COUNT':'5', 
+        #'ETR_PUSH_FEED_COUNT':'1',
+        'ETR_BUFFER_SIZE':'10.0',
+        'ETR_IGNORE_MISSED':'1',
         'ETR_START_AREA_ID': '101',
         'ETR_FIX_ID': '12345'
 

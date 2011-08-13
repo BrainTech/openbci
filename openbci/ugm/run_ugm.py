@@ -28,7 +28,6 @@ import socket, thread
 import os, os.path, time, sys
 import variables_pb2
 
-
 from ugm import ugm_config_manager
 from ugm import ugm_server
 
@@ -38,9 +37,11 @@ import settings
 
 LOGGER = logger.get_logger('run_ugm')
 TAGGER = tagger.get_tagger()
+
 import SocketServer
 ugm_engine = None
 ugm_engine_in_use = False
+
 class MyUDPHandler(SocketServer.BaseRequestHandler):
     """
     This class works similar to the TCP handler class, except that
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     # Start TcpServer in a separate thread with ugm engine on slot
     #thread.start_new_thread(TcpServer(ENG).run, ())
         thread.start_new_thread(UdpServer(ENG).run, ())
-    ugm_engine = ENG
+
     #server = SocketServer.TCPServer((ugm_server.TCP_IP, ugm_server.TCP_PORT), MyTCPHandler)
     #server = SocketServer.UDPServer((ugm_server.TCP_IP, ugm_server.TCP_PORT), MyUDPHandler)
     #thread.start_new_thread(server.serve_forever, ())

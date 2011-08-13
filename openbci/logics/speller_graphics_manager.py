@@ -33,13 +33,16 @@ class SpellerGraphicsManager(object):
     DIVIDER = ' :: | '
     HEAD = ' | '
     TAIL = ' '
+    def set_config(self, config):
+        self.speller_start_text_id = int(config)
+
     def pack(self, p_graphics_elements):
         """For given collection of strings to be displayed in ugm
         return a string representing this collection. 
         The method is fired in logic, just before sendin data to ugm.
         See self.unpack method te learn how to receive data in ugm.
         """
-        l_id = 900
+        l_id = self.speller_start_text_id
         l_packed = []
         for i_letters in p_graphics_elements:
             l_conf = {'id':l_id,

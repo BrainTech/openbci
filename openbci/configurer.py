@@ -33,7 +33,7 @@ import time
 
 
 class Configurer(object):
-    def __init__(self, addresses):
+    def __init__(self, addresses=None):
         self.addresses = addresses
 
     def get_configs(self, config_keys):

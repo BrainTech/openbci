@@ -21,6 +21,7 @@ class EtrServer(BaseMultiplexerServer):
         self.mgr = etr_manager.EtrManager()
         requested_configs = self.mgr.get_requested_configs()
         #requested_configs.add('PEER_READY'+str(peers.UGM)) - todo
+        #requested_configs.add('PEER_READY'+str(peers.LOGIC)) - todo
         LOGGER.info("Request system settings ...")
         configs = configurer_.get_configs(requested_configs)
         self.mgr.set_configs(configs)
@@ -42,7 +43,7 @@ class EtrServer(BaseMultiplexerServer):
                 l_dec_msg = variables_pb2.Decision()
                 l_dec_msg.decision = dec
                 l_dec_msg.type = 0 #TODO ?
-                self.send_message(message = l_dec_msg.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
+                self.conn.send_message(message = l_dec_msg.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
             elif ugm is not None:
                 LOGGER.info("Sending ugm message...")
                 l_ugm_msg = variables_pb2.UgmUpdate()

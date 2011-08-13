@@ -22,14 +22,16 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
+
 import logic_engine
 import speller_graphics_manager as sgm
+
 class LogicSpellerEngine(logic_engine.LogicEngine):
-    def __init__(self, p_server, p_st_config='speller_config'):
-        self._message = ''
+    def __init__(self, p_server):
+        self._message = u''
         self._menu_state = [0, 0, 0]
 
-        super(LogicSpellerEngine, self).__init__(p_server, p_st_config)
+        super(LogicSpellerEngine, self).__init__(p_server)
 
 
 
@@ -48,13 +50,17 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         A place where this action is defined to be fired
         is speller config file.
         """
-        run_ext('milena_say '+self._message)
-        pass
+        self.run_ext(u''.join([u'milena_say ', self._message]))
 
     def msg(self, p_message):
         """Update stored message considering:
         """
-        self._message = ''.join([self._message, p_message])
+        self._message = u''.join([self._message, p_message])
+
+    def clear(self):
+        """Update stored message as empty
+        """
+        self._message = u''
 
 
     
@@ -73,7 +79,7 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         """Sent to self._server current logic data:
         - current message,
         """
-        l_graphics_string = sgm.SpellerGraphicsManager().pack_one(self._message, 909)
+        l_graphics_string = sgm.SpellerGraphicsManager().pack_one(self._message, int(self.configs['SPELLER_TEXT_ID']))
         self._server.send_message({
                 'value':l_graphics_string,
                 'type':'ugm_update_message'})

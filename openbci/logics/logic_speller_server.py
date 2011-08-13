@@ -23,6 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 import settings, variables_pb2
+import configurer
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import socket
@@ -34,9 +35,13 @@ class LogicSpellerServer(BaseMultiplexerServer):
     """A facade between multiplexer and logic_speller_engine."""
     def __init__(self, p_addresses):
         """Init server."""
+        self.configurer = configurer.Configurer(p_addresses)
+        self.configs = self.configurer.get_configs(['SPELLER_CONFIG', 'SPELLER_START_TEXT_ID', 'SPELLER_TEXT_ID', 'PEER_READY'+str(peers.UGM)])
+        self._init_types()
+
         super(LogicSpellerServer, self).__init__(addresses=p_addresses, 
                                                  type=peers.LOGIC)
-        self._init_types()
+
         
     def _init_types(self):
         """Create a map of protobuf types."""
@@ -51,11 +56,14 @@ class LogicSpellerServer(BaseMultiplexerServer):
     def set_engine(self, p_engine):
         """Setter for logic_engine slot."""
         self._logic_engine = p_engine
-	self._logic_engine._update_global_gui()
+        self._logic_engine.set_configs(self.configs)
+        self.configurer.set_configs({'PEER_READY':str(peers.LOGIC)}, self.conn)
+
+
     def send_message(self, p_params):
         """Method fired by logic_engine. It sends p_params data."""
         LOGGER.info("Speller server will send message type: "+p_params['type'])
-        LOGGER.debug("Speller server will send message type: "+str(p_params))
+        LOGGER.info("Speller server will send message type: "+str(p_params))
         l_message = ''
         if p_params.get('key','') != '': #dictionary message
             l_msg_var = variables_pb2.Variable()

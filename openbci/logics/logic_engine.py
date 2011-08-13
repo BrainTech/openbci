@@ -38,12 +38,12 @@ class LogicEngine(object):
     operations and storing/updating config data from config file.
     - _server - an object that transfers data to and from other obci modules.
     """
-    def __init__(self, p_server, p_st_config):
+    def __init__(self, p_server):
         """Set instance variables, send to ugm current gui.
         p_server is an object to communicate with ugm and other modules.
         """
         self._server = p_server
-        self._state_machine = state_machine.StateMachine(p_st_config) 
+        self._state_machine = state_machine.StateMachine()
         #TODO - here above we could pass config_file_name
 
         #self.num_of_freq = int(self._server.get_message(
@@ -54,14 +54,16 @@ class LogicEngine(object):
         #TODO - send ugm`s initial config (path to that configu should be defined in logics_config_manager
         self._paradigm = 0
         # for now: 0: ssvep, 1: p300
-        self._pause = 0
-        self._pause_point = time.time()
-        self._server.send_message({'value':' ', 'type':'switch_mode'})
-        self._update_global_gui()
 
     # --------------------------------------------------------------------------
     # ---------------- public interface for self._server -----------------------
 
+    def set_configs(self, configs):
+        self.configs = configs
+        self._state_machine.set_config(configs['SPELLER_CONFIG'])
+        self._server.send_message({'value':' ', 'type':'switch_mode'})
+        self._update_global_gui()
+        
         
     def handle_decision(self, p_decision_object):
         """A public method for self._server, so the only way 'the world' sends
@@ -70,13 +72,11 @@ class LogicEngine(object):
         """
         l_decision = p_decision_object.decision 
         if (p_decision_object.type == self._paradigm): 
-            if self._pause != 1:
-                self._pause_point = time.time()
-                    
-                # Fire an action for current state and current decision
+            if 1 == 1:
+            # Fire an action for current state and current decision
                 l_action = self._compute_current_actions()[l_decision]
-                if l_action: #if l_action is not an empty string
-                    eval("".join(["self.", l_action]))
+                if len(l_action) > 0: #if l_action is not an empty string
+                    eval(u"".join([u"self.", l_action]))
                 self._run_additional_actions(p_decision_object)
                     
                 # Go to next state...
@@ -90,8 +90,7 @@ class LogicEngine(object):
                 #self._server.send_message({'value':' ', 
                 #                           'type': 'switch_mode'}) 
                 #TODO - why do we need this above?
-            elif (time.time() - self._pause_point > 4):
-                self._pause = 0
+
     def _run_additional_actions(self, p_decision_object):
         pass
 
@@ -113,7 +112,9 @@ class LogicEngine(object):
         # Get a collection of strings representing current state`s graphics.
         l_graphics = self._compute_current_graphics()
         # Pack it to string ...
-        l_graphics_string = sgm.SpellerGraphicsManager().pack(l_graphics)
+        mgr = sgm.SpellerGraphicsManager()
+        mgr.set_config(self.configs['SPELLER_START_TEXT_ID'])
+        l_graphics_string = mgr.pack(l_graphics)
         self._server.send_message({
                 'value':l_graphics_string,
                 'type':'ugm_update_message'})
@@ -169,7 +170,7 @@ class LogicEngine(object):
         is now CURRENT.
         """
         l_config_param = self._state_machine.get_current_state_param(p_param)
-        l_current_param = [""]*len(l_config_param)
+        l_current_param = [u""]*len(l_config_param)
         #Above a collection to be filled from l_config_param and returned.
         l_curr_state = self._state_machine.get_current_state()
         for i_index, i_elem in enumerate(l_config_param):
@@ -183,7 +184,7 @@ class LogicEngine(object):
                 # that resolve current state`s param
                 l_solvers = self._state_machine.get_state_param(l_curr_state, p_param_solver)
                 # Set current param to a chosen element from config
-                l_str_method = "".join(["self.", l_solvers[i_index]])
+                l_str_method = u"".join([u"self.", l_solvers[i_index]])
                 l_current_param[i_index] = l_config_param[i_index][eval(l_str_method)]
             else: # We have string in config so just copy it ...
                 l_current_param[i_index] = l_config_param[i_index]

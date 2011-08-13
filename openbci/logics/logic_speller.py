@@ -29,13 +29,13 @@ import settings
 import sys, os.path
 import settings
 if __name__ == "__main__":
-    l_config = 'speller_config' # default mode
-    try:
-        l_config = sys.argv[1]
-    except IndexError:
-        pass
+    #l_config = 'speller_config' # default mode
+    #try:
+    #    l_config = sys.argv[1]
+    #except IndexError:
+    #    pass
     l_server = logic_speller_server.LogicSpellerServer(settings.MULTIPLEXER_ADDRESSES)
-    l_engine = logic_speller_engine.LogicSpellerEngine(l_server, l_config)
+    l_engine = logic_speller_engine.LogicSpellerEngine(l_server)#, l_config)
     l_server.set_engine(l_engine)
     l_server.loop()
 

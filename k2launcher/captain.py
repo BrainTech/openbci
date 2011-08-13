@@ -79,6 +79,7 @@ task("python ./amplifiers/virtual_amplifier.py fast", "fast_virtual_amplifier")
 
 task("sleep 4; ./filters/svarog_filter.py", "svarog_filter")
 task("sleep 1; ./logics/logic_speller.py", "logics")
+task("sleep 1; ./logics/test_manually_logic_speller.py", "logics_control")
 task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
@@ -121,6 +122,13 @@ start("etr_test", "hashtable")
 start("etr_test", "etr_amplifier")
 start("etr_test", "etr_server")
 start("etr_test", "ugm")
+start("etr_test", "logics")
+
+
+start("logics_test", "hashtable")
+start("logics_test", "ugm")
+start("logics_test", "logics")
+start("logics_test", "logics_control")
 
 
 start("virtual_p300", "hashtable")

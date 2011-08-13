@@ -14,6 +14,7 @@ BUFFER_SIZE = 1024
 VIRTUAL = True
 VIRTUAL_MANUAL = False
 VIRTUAL_CONSTANT = None #0.1
+VIRTUAL_SAMPLING_SLEEP = 0.5
 
 import random, time
 
@@ -74,7 +75,7 @@ class EtrAmplifier(object):
                     l_msg.y = float(i[1])
                     l_msg.timestamp = time.time()
                 else:
-                    time.sleep(0.02)
+                    time.sleep(VIRTUAL_SAMPLING_SLEEP)
                     if VIRTUAL_CONSTANT is not None:
                         l_msg.x = VIRTUAL_CONSTANT
                         l_msg.y = VIRTUAL_CONSTANT

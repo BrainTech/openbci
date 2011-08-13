@@ -41,7 +41,7 @@ class EtrDecManager(object):
             # if ETR_IGNORE_MISSED == False then fraction(area1) == 3/(3+2) and fraction(area2) == 2/(3+2)
             'ETR_IGNORE_MISSED':None,
 
-            'ETR_AREA_COUNT': None,
+            'SPELLER_AREA_COUNT': None,
 
             }
     def get_requested_configs(self):
@@ -70,26 +70,26 @@ class EtrDecManager(object):
         assert(self.configs['ETR_PUSH_FEED_COUNT'] > 0)
         assert(self.configs['ETR_PUSH_FEED_COUNT'] < self.configs['ETR_PUSH_DEC_COUNT'])
 
-        self.configs['ETR_AREA_COUNT'] = int(self.configs['ETR_AREA_COUNT'])
-        assert(self.configs['ETR_AREA_COUNT'] > 0)
+        self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
+        assert(self.configs['SPELLER_AREA_COUNT'] > 0)
 
     def _init_configs(self):
         """Fired after set_configs,
         init all needed data structures."""
         self.last_tss = []
-        for i in range(self.configs['ETR_AREA_COUNT']+1):
+        for i in range(self.configs['SPELLER_AREA_COUNT']+1):
             self.last_tss.append(deque())
 
     def area_pushed(self, area_id, msg):
         """Fired every 'tick'.
         area_id is either -1 (no are is being pushed)
-        or 0 < area_id < self.configs['ETR_AREA_COUNT'].
+        or 0 < area_id < self.configs['SPELLER_AREA_COUNT'].
         Update internal data structures with area_id and current time.
         """
         if area_id >= 0:
             self.last_tss[area_id].appendleft(msg.timestamp)
         else:
-            self.last_tss[self.configs['ETR_AREA_COUNT']].appendleft(msg.timestamp)
+            self.last_tss[self.configs['SPELLER_AREA_COUNT']].appendleft(msg.timestamp)
 
         self._update_tick()
 
@@ -120,7 +120,7 @@ class EtrDecManager(object):
         
     def get_feedbacks(self):
         dec = -1
-        feeds = [0]*self.configs['ETR_AREA_COUNT']
+        feeds = [0]*self.configs['SPELLER_AREA_COUNT']
         feed_scale = float(self.configs['ETR_PUSH_DEC_COUNT'] - self.configs['ETR_PUSH_FEED_COUNT'])
         print('feed_scale: '+str(feed_scale))
 
