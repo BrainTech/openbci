@@ -14,7 +14,7 @@ class AreaConfig(object):
                        }
 
     def get_ugm_update(self, feedback):
-        self.config['color'] = '#%02x%02x%02x' % (255, 255 - int(255*feedback), 255)
+        self.config['color'] = '#%02x%02x%02x' % (255 - int(255*feedback), 255, 255 - int(255*feedback))
         return self.config
 
 

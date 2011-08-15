@@ -19,14 +19,14 @@ other_configs = []
 
 # States transition matrix
 screen = number_of_states * [number_of_decisions * [0]]
-screen[0] = [0, 0, 0, 1, 0, 0]
+screen[0] = [1, 0, 7, 0, 0, 0]
 screen[1] = [2, 3, 4, 7, 6, 5]
 screen[2] = [8, 9, 2, 1, 2, 2]
 screen[3] = [3, 3, 3, 1, 3, 3]
 screen[4] = [4, 4, 4, 1, 4, 4]
 screen[5] = [5, 5, 5, 1, 5, 5]
 screen[6] = [6, 6, 6, 1, 6, 6]
-screen[7] = [7, 7, 7, 1, 7, 7]
+screen[7] = [7, 7, 0, 1, 7, 7]
 screen[8] = [8, 8, 8, 2, 8, 8]
 screen[9] = [9, 9, 9, 2, 9, 9]
 
@@ -34,23 +34,25 @@ screen[9] = [9, 9, 9, 2, 9, 9]
 # Hovewever, sometimes we have a collection of strings, not a single string. It happens when we have a 'dynamic' state.
 # In that case there should be a corresponding graphics_solver variable with method that resolves graphics definition at runtime.
 graphics = number_of_states * [number_of_decisions * [""]]
-graphics[0] = [["light on", "light off"], 
-               ["power on", "power off"], 
-               ["power on", "power off"],
-               "speller","",""]
-graphics[1] = [u"ą-ń ś-ż a b c","d e f g h","i j k l m", "Actions", "t u w y z", "n o p r s"]
-graphics[2] = [u"a-ń",u"ś-ż","a","Back","c","b"]
-graphics[3] = ["d","e","f","Back","h","g"]
-graphics[4] = ["i","j","k","Back","m","l"]
-graphics[5] = ["n", "o", "p", "Back","s","r"]
-graphics[6] = ["t", "u","w","Back","z","y"]
-graphics[7] = ["<"," ", ", ","Back", "Clear", "Say"]
-graphics[8] = [u"ą", u"ć", u"ę", "Back", u"ń", u"ł"]
-graphics[9] = [u"ś", u"ó", u"ź", "Back", "", u"ż"]
+graphics[0] = [
+               "Speller","Dasher","Akcje",
+#["light on", "light off"], 
+               #["power on", "power off"], 
+               #["power on", "power off"],
+               "","",""]
+graphics[1] = [u"ą-ń ś-ż a b c","d e f g h","i j k l m", "Akcje", "t u w y z", "n o p r s"]
+graphics[2] = [u"a-ń",u"ś-ż","a",u"Wróć","c","b"]
+graphics[3] = ["d","e","f",u"Wróć","h","g"]
+graphics[4] = ["i","j","k",u"Wróć","m","l"]
+graphics[5] = ["n", "o", "p", u"Wróć","s","r"]
+graphics[6] = ["t", "u","w",u"Wróć","z","y"]
+graphics[7] = ["<","_", u"Menu Główne",u"Wróć", u"Wyczyść", u"Mów!"]
+graphics[8] = [u"ą", u"ć", u"ę", u"Wróć", u"ń", u"ł"]
+graphics[9] = [u"ś", u"ó", u"ź", u"Wróć", "", u"ż"]
 
 # See descripton above.
 graphics_solver = number_of_states * [number_of_decisions * [""]]
-graphics_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""]
+#graphics_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""]
 
 
 
@@ -60,10 +62,10 @@ graphics_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""
 # thanks to corresponding values from actions_solver obci will decide which program to use.
 actions = number_of_states * [number_of_decisions * [""]]
         #action[0] = ['', '', '', 'python programDawida', '', '', 'python programDawida', '']
-actions[0] = [['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "power off 1\\n\\r"\')'], 
-              ['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
-              ['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
-              "", "", ""]
+actions[0] = [#['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "power off 1\\n\\r"\')'], 
+              #['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
+              #['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
+              "", "run_ext('dasher')", "", "", "", ""]
 actions[1] = ["", "", "", "", "", "", "", ""] 
 actions[2] = ["", "", "msg('a')", "","msg('c')", "msg('b')"] 
 actions[3] = ["msg('d')", "msg('e')", "msg('f')", "","msg('h')", "msg('g')"] 
@@ -76,4 +78,4 @@ actions[9] = [u"msg(u'ś')", u"msg(u'ó')", u"msg(u'ź')", "", "", u"msg(u'ż')"
 
 # See description above.
 actions_solver = number_of_states * [number_of_decisions * [""]]
-actions_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""]
+#actions_solver[0] = ["solve_menu(0)", "solve_menu(1)", "solve_menu(2)","","",""]

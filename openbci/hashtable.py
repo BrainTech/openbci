@@ -143,6 +143,8 @@ class Hashtable(BaseMultiplexerServer):
         'ETR_PUSH_FEED_COUNT':'3',
         'ETR_BUFFER_SIZE':'5.0',
         'ETR_IGNORE_MISSED':'1',
+        'ETR_DEC_BREAK':'0.3',
+        
         'ETR_START_AREA_ID': '101',
         'ETR_FIX_ID': '12345',
 

@@ -43,6 +43,8 @@ class EtrDecManager(object):
 
             'SPELLER_AREA_COUNT': None,
 
+            'ETR_DEC_BREAK':None,
+
             }
     def get_requested_configs(self):
         return self.configs.keys()
@@ -73,10 +75,13 @@ class EtrDecManager(object):
         self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
         assert(self.configs['SPELLER_AREA_COUNT'] > 0)
 
+        self.configs['ETR_DEC_BREAK'] = float(self.configs['ETR_DEC_BREAK'])
+
     def _init_configs(self):
         """Fired after set_configs,
         init all needed data structures."""
         self.last_tss = []
+        self.last_dec = 0
         for i in range(self.configs['SPELLER_AREA_COUNT']+1):
             self.last_tss.append(deque())
 
@@ -86,6 +91,8 @@ class EtrDecManager(object):
         or 0 < area_id < self.configs['SPELLER_AREA_COUNT'].
         Update internal data structures with area_id and current time.
         """
+        if time.time() - self.last_dec < self.configs['ETR_DEC_BREAK']:
+            return
         if area_id >= 0:
             self.last_tss[area_id].appendleft(msg.timestamp)
         else:
@@ -115,12 +122,16 @@ class EtrDecManager(object):
                     break
 
     def _reset_tss(self):
+        self.last_dec = time.time()
         for q in self.last_tss:
             q.clear()
         
     def get_feedbacks(self):
         dec = -1
         feeds = [0]*self.configs['SPELLER_AREA_COUNT']
+        if time.time() - self.last_dec < self.configs['ETR_DEC_BREAK']:
+            return dec, [0.01]*self.configs['SPELLER_AREA_COUNT']
+
         feed_scale = float(self.configs['ETR_PUSH_DEC_COUNT'] - self.configs['ETR_PUSH_FEED_COUNT'])
         print('feed_scale: '+str(feed_scale))
 
