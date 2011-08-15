@@ -84,6 +84,9 @@ class EtrAmplifier(object):
                 if not VIRTUAL:
                     l_data, addr = self.socket.recvfrom(1024)
                     l_msg = self._get_mx_message_from_etr(l_data)
+                    LOGGER.info("Send to dasher...")
+                    self.etr_socket.sendto(l_data, (self.configs['ETR_AMPLIFIER_IP'],int(self.configs['ETR_DASHER_PORT'])))
+
                     
                 else:
                     l_msg = variables_pb2.Sample2D()
@@ -106,8 +109,6 @@ class EtrAmplifier(object):
                 if l_msg != None:
                     LOGGER.info("ETR sending message ... x = "+str(l_msg.x) + ", y = "+str(l_msg.y))
                     self.connection.send_message(message = l_msg.SerializeToString(), type = types.ETR_SIGNAL_MESSAGE, flush=True)            
-                LOGGER.info("Send to dasher...")
-                self.etr_socket.sendto('dup', (self.configs['ETR_AMPLIFIER_IP'],int(self.configs['ETR_DASHER_PORT'])))
 
         finally:
             if not VIRTUAL:
