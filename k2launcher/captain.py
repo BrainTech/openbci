@@ -124,7 +124,7 @@ start("etr", "etr_amplifier")
 start("etr", "etr_server")
 start("etr", "ugm")
 start("etr", "logics")
-start("etr", "etr_dasher_server")
+#start("etr", "etr_dasher_server")
 start("etr", "logics_control")
 
 start("logics_test", "hashtable")

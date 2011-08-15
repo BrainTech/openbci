@@ -77,7 +77,7 @@ actions[6] = ["msg('t')", "msg('u')",  "msg('w')", "", "msg('z')", "msg('y')"]
 actions[7] = ["backspace()", "msg(' ')", "", "", "clear()", "say()"]
 actions[8] = [u"msg(u'ą')", u"msg(u'ć')", u"msg(u'ę')", "", u"msg(u'ń')", u"msg(u'ł')"]
 actions[9] = [u"msg(u'ś')", u"msg(u'ó')", u"msg(u'ź')", "", "", u"msg(u'ż')"]
-actions[10] = [u"run_ext('killall dasher')", "", "", "", "", "", "", ""]
+actions[10] = ["close_dasher()", "", "", "", "", "", "", ""]
 
 # See description above.
 actions_solver = number_of_states * [number_of_decisions * [""]]

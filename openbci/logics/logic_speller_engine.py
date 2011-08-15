@@ -26,6 +26,8 @@
 import logic_engine
 import speller_graphics_manager as sgm
 
+import os
+
 class LogicSpellerEngine(logic_engine.LogicEngine):
     def __init__(self, p_server):
         self._message = u''
@@ -62,7 +64,9 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         """
         self._message = u''
 
-
+    def close_dasher(self):
+        self._message = os.popen('xsel -b').read().decode('utf-8')
+        os.system('killall dasher')
     
     def solve_menu(self, p_menu_id):
         """For given main menu id p_menu_id (this is the menu in state 0)
@@ -79,6 +83,7 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         """Sent to self._server current logic data:
         - current message,
         """
+        print("UPDATE GLOBAL: "+self._message)
         l_graphics_string = sgm.SpellerGraphicsManager().pack_one(self._message, int(self.configs['SPELLER_TEXT_ID']))
         self._server.send_message({
                 'value':l_graphics_string,
