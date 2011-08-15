@@ -68,7 +68,7 @@ actions[0] = [#['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "pow
               #['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
               #['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
               "", "run_ext('dasher &')", "", "", "", ""]
-actions[1] = ["", "", "", "", "", "", "", ""] 
+actions[1] = ["", "", "", "", "", ""] 
 actions[2] = ["", "", "msg('a')", "","msg('c')", "msg('b')"] 
 actions[3] = ["msg('d')", "msg('e')", "msg('f')", "","msg('h')", "msg('g')"] 
 actions[4] = ["msg('i')", "msg('j')", "msg('k')", "", "msg('m')", "msg('l')"] 
@@ -77,7 +77,7 @@ actions[6] = ["msg('t')", "msg('u')",  "msg('w')", "", "msg('z')", "msg('y')"]
 actions[7] = ["backspace()", "msg(' ')", "", "", "clear()", "say()"]
 actions[8] = [u"msg(u'ą')", u"msg(u'ć')", u"msg(u'ę')", "", u"msg(u'ń')", u"msg(u'ł')"]
 actions[9] = [u"msg(u'ś')", u"msg(u'ó')", u"msg(u'ź')", "", "", u"msg(u'ż')"]
-actions[10] = ["close_dasher()", "", "", "", "", "", "", ""]
+actions[10] = ["close_dasher()", "", "", "", "", ""]
 
 # See description above.
 actions_solver = number_of_states * [number_of_decisions * [""]]

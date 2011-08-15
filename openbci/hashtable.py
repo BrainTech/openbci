@@ -127,11 +127,15 @@ class Hashtable(BaseMultiplexerServer):
         "BlinkCatcherBufSize":"12",
 
 
-        'SPELLER_CONFIG':'speller_config_6',
-        'UGM_CONFIG': 'feedback_speller_config5',
+        #'SPELLER_CONFIG':'speller_config_6',
+        #'UGM_CONFIG': 'speller_config_6',
+        #'SPELLER_AREA_COUNT':'6',
+        'SPELLER_CONFIG':'speller_config_8',
+        'UGM_CONFIG': 'speller_config_8',
+        'SPELLER_AREA_COUNT':'8',
+
         'UGM_USE_TAGGER':'1',
 
-        'SPELLER_AREA_COUNT':'6',
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',
 
