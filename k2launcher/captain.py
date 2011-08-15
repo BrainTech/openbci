@@ -39,6 +39,7 @@ def multitask(task_ids, task_id):
 
 task("./etr/etr_amplifier.py", "etr_amplifier")
 task("./etr/etr_server.py", "etr_server")
+task("./etr/etr_dasher_server.py", "etr_dasher_server")
 
 
 task("../svarog/pinger.py", "svarog_pinger")
@@ -123,7 +124,8 @@ start("etr", "etr_amplifier")
 start("etr", "etr_server")
 start("etr", "ugm")
 start("etr", "logics")
-
+start("etr", "etr_dasher_server")
+start("etr", "logics_control")
 
 start("logics_test", "hashtable")
 start("logics_test", "ugm")

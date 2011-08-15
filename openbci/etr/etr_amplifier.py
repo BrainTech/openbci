@@ -7,8 +7,8 @@ from multiplexer.clients import connect_client
 import socket
 
 BUFFER_SIZE = 1024
-VIRTUAL = False
-VIRTUAL_MANUAL = False
+VIRTUAL = True
+VIRTUAL_MANUAL = True
 VIRTUAL_CONSTANT = None #0.1
 VIRTUAL_SAMPLING_SLEEP = 1/30.0
 
