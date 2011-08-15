@@ -27,7 +27,7 @@
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import settings, cPickle, collections, variables_pb2, time, random
-import blinker_test as blinker
+import blinker
 
 from openbci.core import openbci_logging
 LOGGER = openbci_logging.get_logger('super_diode_control')

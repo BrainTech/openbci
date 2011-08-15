@@ -117,7 +117,9 @@ def start(alias, task_id, **kwargs):
                                             type=k2launcher_pb2.Command.START, 
                                             task=tasks[i_task_id], **kwargs))
 
-
+start("diode", "hashtable")
+start("diode", "ugm")
+start("diode", "diode_control")
 
 start("etr", "hashtable")
 start("etr", "etr_amplifier")
