@@ -150,6 +150,7 @@ class Hashtable(BaseMultiplexerServer):
 
         'ETR_AMPLIFIER_IP':'127.0.0.1',
         'ETR_AMPLIFIER_PORT':'20320',
+        'ETR_DASHER_PORT':'20321'
 
         
 

@@ -8,7 +8,7 @@ import socket
 
 BUFFER_SIZE = 1024
 VIRTUAL = False
-VIRTUAL_MANUAL = True
+VIRTUAL_MANUAL = False
 VIRTUAL_CONSTANT = None #0.1
 VIRTUAL_SAMPLING_SLEEP = 1/30.0
 
@@ -30,12 +30,17 @@ class EtrAmplifier(object):
         # Get from hash: ETR_IP, ETR_PORT
         LOGGER.info("Start initializin etr amplifier...")
         configurer_ = configurer.Configurer(p_addresses)
-        configs = configurer_.get_configs(['ETR_AMPLIFIER_IP', 'ETR_AMPLIFIER_PORT'])
+        configs = configurer_.get_configs(['ETR_AMPLIFIER_IP', 'ETR_AMPLIFIER_PORT','ETR_DASHER_PORT'])
+        self.configs = configs
         self.connection = connect_client(type = peers.ETR_AMPLIFIER, addresses=p_addresses)
         LOGGER.info("Etr connected!")
         if not VIRTUAL:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.socket.bind((configs['ETR_AMPLIFIER_IP'],int(configs['ETR_AMPLIFIER_PORT'])))
+
+        self.etr_socket = socket.socket( socket.AF_INET, socket.SOCK_DGRAM)
+        #self.etr_socket.bind((configs['ETR_AMPLIFIER_IP'],int(configs['ETR_DASHER_PORT'])))
+
         LOGGER.info("Socket binded!")
         configurer_.set_configs({'PEER_READY':str(peers.ETR_AMPLIFIER)}, self.connection)
 
@@ -79,6 +84,7 @@ class EtrAmplifier(object):
                 if not VIRTUAL:
                     l_data, addr = self.socket.recvfrom(1024)
                     l_msg = self._get_mx_message_from_etr(l_data)
+                    
                 else:
                     l_msg = variables_pb2.Sample2D()
                     if VIRTUAL_MANUAL:
@@ -100,9 +106,13 @@ class EtrAmplifier(object):
                 if l_msg != None:
                     LOGGER.info("ETR sending message ... x = "+str(l_msg.x) + ", y = "+str(l_msg.y))
                     self.connection.send_message(message = l_msg.SerializeToString(), type = types.ETR_SIGNAL_MESSAGE, flush=True)            
+                LOGGER.info("Send to dasher...")
+                self.etr_socket.sendto('dup', (self.configs['ETR_AMPLIFIER_IP'],int(self.configs['ETR_DASHER_PORT'])))
+
         finally:
             if not VIRTUAL:
                 self.socket.close()
+            self.etr_socket.close()
 
 if __name__ == "__main__":
     EtrAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
