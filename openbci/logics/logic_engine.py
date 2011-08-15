@@ -98,7 +98,12 @@ class LogicEngine(object):
     # ------------------ actions available in config ---------------------------
     def run_ext(self, p_program_string):
         """Run external program p_program_string."""
-        os.system(p_program_string)
+        try:
+            os.system(p_program_string)
+        except Exception, e:
+            print("Couldnt run external "+p_program_string+" with error:")
+            print(str(e))
+            
     # ------------------ actions available in config ---------------------------
     # --------------------------------------------------------------------------
 
