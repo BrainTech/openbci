@@ -2,9 +2,7 @@ classdef Tag
     %TAG Value class represents one Tag    
     
     properties
-        length='0'
         name=''
-        position
         channelNumber
         start_timestamp
         end_timestamp
@@ -19,21 +17,21 @@ classdef Tag
             if nargin<1                
                 return
             end
-            self.name=char(xmltag.getAttribute('name'));
-            self.length=char(xmltag.getAttribute('length'));
-            self.position=char(xmltag.getAttribute('position'));
+            self.name=char(xmltag.getAttribute('name'));        
             try
                 self.channelNumber=str2double(xmltag.getAttribute('channelNumber'));
             catch
                 self.channelNumber=xmltag.getAttribute('channelNumber');
             end
-            self.start_timestamp=str2double(self.position);
-            self.end_timestamp=self.start_timestamp+str2double(self.length);            
+            self.start_timestamp=str2double(xmltag.getAttribute('position'));
+            self.end_timestamp=self.start_timestamp+str2double(xmltag.getAttribute('length'));            
             child=xmltag.getFirstChild;
             self.children=struct();
-            while ~isempty(child) && child.getNodeType==child.ELEMENT_NODE
+            while ~isempty(child)                
                try
+                   if child.getNodeType==child.ELEMENT_NODE
                     self.children.(char(child.getTagName))=char(child.getFirstChild.getData);
+                   end                
                end
                child=child.getNextSibling;
             end
@@ -41,9 +39,9 @@ classdef Tag
         function tag=get_xml_element(self,docNode)            
             tag=docNode.createElement('tag');
             tag.setAttribute('name',num2str(self.name));
-            tag.setAttribute('length',num2str(self.length));
             tag.setAttribute('channelNumber',num2str(self.channelNumber));
-            tag.setAttribute('position',num2str(self.position));
+            tag.setAttribute('position',num2str(self.start_timestamp,'%.13f'));
+            tag.setAttribute('length',num2str(self.end_timestamp-self.start_timestamp,'%.13f'));       
             fn=fieldnames(self.children);
             for i=1:length(fn)
                 field=fn{i};
@@ -54,8 +52,7 @@ classdef Tag
         end
         function obj=change_position(self,p_offset)
             self.start_timestamp=self.start_timestamp-p_offset;
-            self.end_timestamp=self.start_timestamp+str2double(self.length);
-            self.position=num2str(self.start_timestamp);
+            self.end_timestamp=self.end_timestamp-p_offset;        
             obj=self;
         end
         function res=eq(self,tag)

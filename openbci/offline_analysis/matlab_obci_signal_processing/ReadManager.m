@@ -57,16 +57,17 @@ classdef ReadManager < handle
             %GET_SAMPLES(p_from,p_len) get samples. 
             %   see help DataSource.get_samples
             %   when invoked without arguments, all samples are cached in
-            %   memory, so it is faster in the future.
-            if nargin==1
+            %   memory, so it is faster in the future.            
+            if nargin<3; p_len=inf; end
+            if nargin<2; p_from=0; end                 
+            if p_from==0 && p_len==inf
                 samples=self.data_source.get_samples();
                 if ~isa(self.data_source,'MemoryDataSource')
                     self.data_source=MemoryDataSource(samples);
                 end
-            end
-            if nargin<3; p_len=inf; end
-            if nargin<2; p_from=0; end                 
-            samples=self.data_source.get_samples(p_from,p_len);
+            else
+                samples=self.data_source.get_samples(p_from,p_len);
+            end            
         end
         
         function iter_samples(self,p_from,p_len)
