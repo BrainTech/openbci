@@ -137,6 +137,10 @@ class UgmEngine(QtCore.QObject):
         self.ugm_rebuild = QtCore.pyqtSignal()
         self.connect(self, QtCore.SIGNAL("ugm_rebuild"), 
                      self.ugm_rebuild_signal)
+        self.ugm_update = QtCore.pyqtSignal()
+        self.connect(self, QtCore.SIGNAL("ugm_update"), 
+                     self.ugm_update_signal)
+
 
         self.queue = Queue.Queue()
         self.mutex = Qt.QMutex()
@@ -147,7 +151,7 @@ class UgmEngine(QtCore.QObject):
         self.queue.put(l_msg)
         self.mutex.unlock()
 
-    def timer_on_run(self):
+    def _timer_on_run(self):
         """Fired on run once time."""
         self.update_gui_timer = QtCore.QTimer()
         self.update_gui_timer.connect(self.update_gui_timer,QtCore.SIGNAL("timeout()"),self.timer_update_gui)
@@ -156,9 +160,10 @@ class UgmEngine(QtCore.QObject):
 
     def timer_update_gui(self):
         """Fired very often - clear self.queue and update gui with those messages."""
-        if (self.queue.qsize() > 5):
+        if self.queue.qsize() == 0:
+            return
+        elif (self.queue.qsize() > 5):
             LOGGER.info("Warning! Queue size is: "+str(self.queue.qsize()))
-
         self.mutex.lock()
         while True:
             try:
@@ -179,12 +184,7 @@ class UgmEngine(QtCore.QObject):
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
         self._window.showFullScreen()
-
-        self.on_run_timer = QtCore.QTimer()
-        self.on_run_timer.connect(self.on_run_timer,QtCore.SIGNAL("timeout()"),self.timer_on_run)
-        self.on_run_timer.setSingleShot(True)
-        self.on_run_timer.start(2000) #Todo - need to wait 2 secs?
-
+        self._timer_on_run()
         l_app.exec_()
         LOGGER.info('ugm_engine main window has closed')
 
@@ -218,7 +218,8 @@ class UgmEngine(QtCore.QObject):
         """Fired when self._config_manager has changed its state, but only 
         stimuluses`es attributes, not their number or ids."""
         LOGGER.debug("ugm_engine update")
-        self._window.update()
+        self.emit(QtCore.SIGNAL("ugm_update"))
+
     def rebuild(self):
         """Fired when self._config_manager has changed its state 
         considerably - eg number of stimuluses or its ids changed.
@@ -230,6 +231,11 @@ class UgmEngine(QtCore.QObject):
     def ugm_rebuild_signal(self):
         """See __init__ and rebuild."""
         self._window.rebuild()
+
+    def ugm_update_signal(self):
+        """See __init__ and update."""
+        self._window.update()
+
 
 if __name__ == '__main__':
     try:

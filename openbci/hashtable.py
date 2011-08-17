@@ -135,6 +135,8 @@ class Hashtable(BaseMultiplexerServer):
         'SPELLER_AREA_COUNT':'8',
 
         'UGM_USE_TAGGER':'1',
+        'UGM_TYPE':'SIMPLE',
+        #'UGM_TYPE':'BLINKING',
 
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',

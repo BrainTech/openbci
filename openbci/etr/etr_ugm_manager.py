@@ -9,9 +9,7 @@ class AreaConfig(object):
         self.x2 = self.x1 + float(ugm_config['width'])
         self.y2 = self.y1 + float(ugm_config['height'])
 
-        self.config = {'id': ugm_config['id'],
-                       'color': ugm_config['color']
-                       }
+        self.config = {'id': ugm_config['id']}
 
     def get_ugm_update(self, feedback):
         self.config['color'] = '#%02x%02x%02x' % (255 - int(255*feedback), 255, 255 - int(255*feedback))
@@ -20,7 +18,10 @@ class AreaConfig(object):
 
 class FixConfig(object):
     def __init__(self, ugm_config):
-        self.config = ugm_config
+        self.config = {'id': ugm_config['id'],
+                       'width':ugm_config['width'],
+                       'height':ugm_config['height']
+                       }
 
     def get_ugm_update(self, msg):
         self.config['position_horizontal'] = (1-msg.x) - float(self.config['width'])/2

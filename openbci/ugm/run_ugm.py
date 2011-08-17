@@ -35,6 +35,9 @@ from tags import tagger
 import ugm_logging as logger
 import settings
 
+
+BUF = 2**19
+
 LOGGER = logger.get_logger('run_ugm')
 
 import variables_pb2, settings, random, time
@@ -65,7 +68,7 @@ class UdpServer(object):
         try:
             while True:
                 # Wait for data from ugm_server
-                l_full_data = self.socket.recvfrom(100000)[0]
+                l_full_data = self.socket.recv(BUF)
 
                 # d should represent UgmUpdate type...
                 l_msg = variables_pb2.UgmUpdate()
@@ -87,24 +90,23 @@ class UdpServer(object):
 
 
 import configurer
+from ugm import ugm_engine
+from ugm import ugm_blinking_engine
+from ugm import ugm_blinking_connection
+
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
     # default config file
-    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG', 'UGM_USE_TAGGER'])
-    
-    try:
-        l_eng_type = sys.argv[1]
-    except IndexError:
-        l_eng_type = 'simple'
-    if l_eng_type == 'p300_train':
-        from ugm import p300_train_ugm_engine
-        ENG = p300_train_ugm_engine.P300TrainUgmEngine()        
-    elif l_eng_type == 'p300_test':
-        from ugm import p300_test_ugm_engine
-        ENG = p300_test_ugm_engine.P300TestUgmEngine()        
-    else:
-        from ugm import ugm_engine
+    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG', 'UGM_USE_TAGGER', 'UGM_TYPE'])
+    if configs['UGM_TYPE'] == 'SIMPLE':
         ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']))
+    elif configs['UGM_TYPE'] == 'BLINKING':
+        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
+        ENG = ugm_engine.UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
+                                           connection
+                                           )
+    else:
+        raise Exception("Unrecognised ugm_type: "+str(configs['UGM_TYPE']))
 
     thread.start_new_thread(UdpServer(ENG, int(configs['UGM_USE_TAGGER'])).run, ())
 
