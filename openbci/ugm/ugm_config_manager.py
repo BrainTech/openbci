@@ -321,13 +321,16 @@ class UgmConfigManager(object):
         for i_key, i_value in p_elem_config.iteritems():
             l_elem[i_key] = i_value
 
+    def set_configs(self, p_elem_configs):
+        for i_config in p_elem_configs:
+            self.set_config(i_config)
+
     def set_config_from_message(self, p_msg):
         """Update config for stimuluses with data extracted 
         from p_msg string representing it."""
 
         l_configs = self.config_from_message(p_msg)
-        for i_config in l_configs:
-            self.set_config(i_config)
+        self.set_configs(l_configs)
 
     # PUBLIC SETTERS -------------------------------------------------------
     # ----------------------------------------------------------------------

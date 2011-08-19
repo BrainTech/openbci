@@ -144,6 +144,7 @@ class UgmEngine(QtCore.QObject):
 
         self.queue = Queue.Queue()
         self.mutex = Qt.QMutex()
+        self.mgr_mutex = Qt.QMutex()
 
     def queue_message(self, l_msg):
         """Insert message to queue waiting to be displayed."""
@@ -160,11 +161,13 @@ class UgmEngine(QtCore.QObject):
 
     def timer_update_gui(self):
         """Fired very often - clear self.queue and update gui with those messages."""
+        self.mutex.lock()
         if self.queue.qsize() == 0:
+            self.mutex.unlock()
             return
         elif (self.queue.qsize() > 5):
             LOGGER.info("Warning! Queue size is: "+str(self.queue.qsize()))
-        self.mutex.lock()
+
         while True:
             try:
                 msg = self.queue.get_nowait()
@@ -194,18 +197,27 @@ class UgmEngine(QtCore.QObject):
         2 means that config hasn`t changed its structure, only attributes, 
         so that ugm`s widget might remain the same, 
         they should only redraw."""
+        self.mgr_mutex.lock()
         if self._config_manager.update_message_is_full(p_msg_type):
             LOGGER.info('ugm_engine got full message to update.')
             self._config_manager.set_full_config_from_message(p_msg_value)
             self.update_or_rebuild()
-            
+            self.mgr_mutex.unlock()
         elif self._config_manager.update_message_is_simple(p_msg_type):
             LOGGER.info('ugm_engine got simple message to update.')
             self._config_manager.set_config_from_message(p_msg_value)
             self.update()
+            self.mgr_mutex.unlock()
         else:
+            self.mgr_mutex.unlock()
             LOGGER.error("Wrong UgmUpdate message type!")
             raise Exception("Wrong UgmUpdate message type!")
+
+    def update_from(self, p_ugm_configs):
+        self.mgr_mutex.lock()
+        self._config_manager.set_configs(p_ugm_configs)
+        self.update()
+        self.mgr_mutex.unlock()
 
     def update_or_rebuild(self):
         """Update or rebuild ugm depending on config manager`s decison..."""

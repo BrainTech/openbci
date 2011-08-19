@@ -52,6 +52,7 @@ task("./monitors/spectrum.py 0", "spectrum")
 
 task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
+task("./ugm/blinking/ugm_blinking_engine.py", "blink_ugm")
 task("./ugm/run_ugm.py p300_train", "p300_ugm_train")
 task("./ugm/run_ugm.py p300_test", "p300_ugm_test")
 task("./analysis/p300.py", "p300_analysis")
@@ -128,6 +129,10 @@ start("etr", "ugm")
 start("etr", "logics")
 #start("etr", "etr_dasher_server")
 start("etr", "logics_control")
+
+start("blink_test", "hashtable")
+start("blink_test", "blink_ugm")
+start("blink_test", "blink_catcher")
 
 start("logics_test", "hashtable")
 start("logics_test", "ugm")

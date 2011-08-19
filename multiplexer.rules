@@ -205,6 +205,11 @@ peer {
      name: "ETR_AMPLIFIER"
 }
 
+peer {
+     type: 139
+     name: "UGM_ENGINE"
+}
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -726,5 +731,10 @@ type {
         report_delivery_error: true
     }
 
+}
+
+type {
+     type: 211
+     name: "UGM_ENGINE_MESSAGE"
 }
 

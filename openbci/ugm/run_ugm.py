@@ -70,12 +70,12 @@ class UdpServer(object):
                 # Wait for data from ugm_server
                 l_full_data = self.socket.recv(BUF)
 
-                # d should represent UgmUpdate type...
+                # should represent UgmUpdate type...
                 l_msg = variables_pb2.UgmUpdate()
                 try:
                     l_msg.ParseFromString(l_full_data)
                 except:
-                    LOGGER.info("PARSER ERROR")
+                    LOGGER.info("PARSER ERROR, possibly too big ugm update message...")
                     continue
 
                 l_time = time.time()
@@ -91,8 +91,8 @@ class UdpServer(object):
 
 import configurer
 from ugm import ugm_engine
-from ugm import ugm_blinking_engine
-from ugm import ugm_blinking_connection
+from blinking import ugm_blinking_engine
+from blinking import ugm_blinking_connection
 
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
@@ -102,9 +102,11 @@ if __name__ == "__main__":
         ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']))
     elif configs['UGM_TYPE'] == 'BLINKING':
         connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
-        ENG = ugm_engine.UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
+        ENG = ugm_blinking_engine.UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
                                            connection
                                            )
+        c = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(ENG.get_requested_configs())
+        ENG.set_configs(c)
     else:
         raise Exception("Unrecognised ugm_type: "+str(configs['UGM_TYPE']))
 

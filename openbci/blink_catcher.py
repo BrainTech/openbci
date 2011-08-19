@@ -13,9 +13,14 @@ class BlinkCatcher(BaseMultiplexerServer):
         self.buf_size =int(self.conn.query(message = "BlinkCatcherBufSize", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)         
 
         self.buffer = collections.deque()
+        self.prev = 0
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.BLINK_MESSAGE:
+            b = variables_pb2.Blink()
+            b.ParseFromString(mxmsg.message)
+            print("GOT BLINK: time - "+str(b.timestamp)+" / time diff - "+str(b.timestamp - self.prev)+" / value - "+str(b.index))
+            self.prev = b.timestamp
             self.buffer.append(mxmsg.message)
             LOGGER.info("GOT BLINK, buf len: "+str(len(self.buffer)))
             if (len(self.buffer) == self.buf_size):

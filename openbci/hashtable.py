@@ -127,16 +127,16 @@ class Hashtable(BaseMultiplexerServer):
         "BlinkCatcherBufSize":"12",
 
 
-        #'SPELLER_CONFIG':'speller_config_6',
-        #'UGM_CONFIG': 'speller_config_6',
-        #'SPELLER_AREA_COUNT':'6',
-        'SPELLER_CONFIG':'speller_config_8',
-        'UGM_CONFIG': 'speller_config_8',
-        'SPELLER_AREA_COUNT':'8',
+        'SPELLER_CONFIG':'speller_config_6',
+        'UGM_CONFIG': 'speller_config_6',
+        'SPELLER_AREA_COUNT':'6',
+        #'SPELLER_CONFIG':'speller_config_8',
+        #'UGM_CONFIG': 'speller_config_8',
+        #'SPELLER_AREA_COUNT':'8',
 
         'UGM_USE_TAGGER':'1',
-        'UGM_TYPE':'SIMPLE',
-        #'UGM_TYPE':'BLINKING',
+        #'UGM_TYPE':'SIMPLE',
+        'UGM_TYPE':'BLINKING',
 
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',
@@ -156,9 +156,36 @@ class Hashtable(BaseMultiplexerServer):
 
         'ETR_AMPLIFIER_IP':'127.0.0.1',
         'ETR_AMPLIFIER_PORT':'20320',
-        'ETR_DASHER_PORT':'20321'
+        'ETR_DASHER_PORT':'20321',
 
-        
+
+        #'BLINK_ID_TYPE': 'RANDOM',
+        'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
+        #'BLINK_ID_TYPE': 'SEQUENTIAL',
+        'BLINK_ID_COUNT':'1',
+
+        'BLINK_MIN_BREAK':'0.1',
+        'BLINK_MAX_BREAK':'0.1',
+        'BLINK_DURATION':'0.1',
+
+        'BLINK_COUNT_TYPE': 'INF',
+        #'BLINK_COUNT_TYPE': 'RANDOM',
+        #'BLINK_COUNT_TYPE': 'RANDOM_SEQUENTIAL',
+        #'BLINK_COUNT_TYPE': 'SEQUENTIAL',
+        'BLINK_COUNT_MIN':'10',
+        'BLINK_COUNT_MAX':'15', 
+
+
+        'BLINK_UGM_ROW_COUNT':'2',
+        'BLINK_UGM_COL_COUNT':'3',
+        #'BLINK_UGM_TYPE':'CLASSIC',
+
+        'BLINK_UGM_TYPE':'SINGLE',
+        'BLINK_UGM_ID_START':'101',
+        'BLINK_UGM_ID_COUNT':'1',
+        'BLINK_UGM_KEY':'color',
+        'BLINK_UGM_VALUE':'#ff0000',
+
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
