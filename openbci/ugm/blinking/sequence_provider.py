@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+
 import random
 class RandomMgr(object):
     def __init__(self, start, count):

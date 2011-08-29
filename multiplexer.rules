@@ -738,3 +738,13 @@ type {
      name: "UGM_ENGINE_MESSAGE"
 }
 
+type {
+    type: 212
+    name: "UGM_CONTROL_MESSAGE"
+    to {
+        peer: "UGM"
+        whom: ALL
+    }
+}
+
+

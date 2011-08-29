@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+
 
 import time
 from ugm import ugm_engine
@@ -8,7 +11,7 @@ import ugm_blinking_id_manager
 import ugm_blinking_count_manager
 import ugm_blinking_ugm_manager
 
-from PyQt4 import QtGui, QtCore, Qt
+from PyQt4 import QtCore
 class UgmBlinkingEngine(ugm_engine.UgmEngine):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
@@ -37,6 +40,14 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._blink_duration = float(configs['BLINK_DURATION'])
         assert(self._blink_duration > 0)
 
+    def control(self, msg):
+        msg_type = msg.key
+        if msg_type == 'start_blinking':
+            self.start_blinking()
+        elif msg_type == 'stop_blinking':
+            self.stop_blinking()
+        else:
+            raise Exception("Got ugm_control nrecognised msg_type:"+msg_type)
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()

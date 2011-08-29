@@ -24,98 +24,27 @@
 
 """Current script is supposed to be fired if you want to run 
 ugm as a part of openbci (with multiplexer and all that stuff)."""
-import socket, thread
-import os, os.path, sys
-
-
-from ugm import ugm_config_manager
-from ugm import ugm_server
-
-from tags import tagger
-import ugm_logging as logger
-import settings
-
-
-BUF = 2**19
-
-LOGGER = logger.get_logger('run_ugm')
-
-import variables_pb2, settings, random, time
-
-
-class UdpServer(object):
-    """The class solves a problem with PyQt - it`s main window MUST be 
-    created in the main thread. As a result I just can`t fire multiplexer
-    and fire ugm_engine in a separate thread because it won`t work. I can`t
-    fire ugm_engine and then fire multiplexer in a separate thread as 
-    then multiplexer won`t work ... To solve this i fire ugm_engine in the 
-    main thread, fire multiplexer in separate PROCESS and create TcpServer
-    to convey data from multiplexer to ugm_engine."""
-    def __init__(self, p_ugm_engine, p_use_tagger):
-        """Init server and store ugm engine."""
-        self._ugm_engine = p_ugm_engine
-        self._use_tagger = p_use_tagger
-        if self._use_tagger:
-            self._tagger = tagger.get_tagger()
-
-        self.socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.socket.bind((ugm_server.TCP_IP, ugm_server.TCP_PORT))
-
-    def run(self):
-        """Do forever:
-        wait for data from ugm_server (it should be UgmUpdate() message
-        type by now), parse data and send it to self._ugm_engine."""
-        try:
-            while True:
-                # Wait for data from ugm_server
-                l_full_data = self.socket.recv(BUF)
-
-                # should represent UgmUpdate type...
-                l_msg = variables_pb2.UgmUpdate()
-                try:
-                    l_msg.ParseFromString(l_full_data)
-                except:
-                    LOGGER.info("PARSER ERROR, possibly too big ugm update message...")
-                    continue
-
-                l_time = time.time()
-                self._ugm_engine.queue_message(l_msg)
-
-                if self._use_tagger:
-                    self._tagger.send_tag(l_time, l_time, "ugm_update", 
-                                    {"ugm_config":str(l_msg.value)})
-        finally:
-            self.socket.close()
-
-
 
 import configurer
 from ugm import ugm_engine
-from blinking import ugm_blinking_engine
-from blinking import ugm_blinking_connection
+from ugm import ugm_internal_server
+from ugm import ugm_config_manager
+import settings
+import thread, os
 
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
     # default config file
-    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG', 'UGM_USE_TAGGER', 'UGM_TYPE'])
-    if configs['UGM_TYPE'] == 'SIMPLE':
-        ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']))
-    elif configs['UGM_TYPE'] == 'BLINKING':
-        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
-        ENG = ugm_blinking_engine.UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
-                                           connection
-                                           )
-        c = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(ENG.get_requested_configs())
-        ENG.set_configs(c)
-    else:
-        raise Exception("Unrecognised ugm_type: "+str(configs['UGM_TYPE']))
-
-    thread.start_new_thread(UdpServer(ENG, int(configs['UGM_USE_TAGGER'])).run, ())
+    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG', 'UGM_USE_TAGGER', 'UGM_INTERNAL_IP', 'UGM_INTERNAL_PORT'])
+    ENG = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']))
+    thread.start_new_thread(ugm_internal_server.UdpServer(ENG, 
+                                                          configs['UGM_INTERNAL_IP'],
+                                                          int(configs['UGM_INTERNAL_PORT']),
+                                                          int(configs['UGM_USE_TAGGER'])).run, ())
 
     # Start multiplexer in a separate process
     path = os.path.join(settings.module_abs_path(), "ugm_server.py")
     os.system("python " + path + " &")
-
 
     #TODO - works only when running from openbci directiory...
     # fire ugm engine in MAIN thread (current thread)

@@ -127,20 +127,35 @@ class Hashtable(BaseMultiplexerServer):
         "BlinkCatcherBufSize":"12",
 
 
-        'SPELLER_CONFIG':'speller_config_6',
-        'UGM_CONFIG': 'speller_config_6',
-        'SPELLER_AREA_COUNT':'6',
-        #'SPELLER_CONFIG':'speller_config_8',
-        #'UGM_CONFIG': 'speller_config_8',
-        #'SPELLER_AREA_COUNT':'8',
 
+        # ------------ UGM ------------------------------------------------------------------------------
+        # ------------ START -----------------------------------------------------------------------------------
+        'UGM_CONFIG': 'speller_config_6',
+        #'UGM_CONFIG': 'speller_config_8',
         'UGM_USE_TAGGER':'1',
-        #'UGM_TYPE':'SIMPLE',
-        'UGM_TYPE':'BLINKING',
+        'UGM_INTERNAL_IP':'127.0.0.1',
+        'UGM_INTERNAL_PORT':'5028',
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ UGM ------------------------------------------------------------------------------
+
+
+        # ------------ SPELLER --------------------------------------------------------------------------------
+        # ------------ START -----------------------------------------------------------------------------------
+        'SPELLER_CONFIG':'speller_config_6',
+        #'SPELLER_CONFIG':'speller_config_8',
+        'SPELLER_AREA_COUNT':'6',
+        #'SPELLER_AREA_COUNT':'8',
 
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ SPELLER --------------------------------------------------------------------------------
 
+
+        # ------------ EYETRACKER ------------------------------------------------------------------------------
+        # ------------ START -----------------------------------------------------------------------------------
+        'ETR_TYPE':'NESW',
+        #'ETR_TYPE':'CLASSIC',
         #'ETR_DEC_TYPE':'FRACTION',
         #'ETR_PUSH_DEC_COUNT':'0.7', 
         #'ETR_PUSH_FEED_COUNT':'0.1',
@@ -157,34 +172,74 @@ class Hashtable(BaseMultiplexerServer):
         'ETR_AMPLIFIER_IP':'127.0.0.1',
         'ETR_AMPLIFIER_PORT':'20320',
         'ETR_DASHER_PORT':'20321',
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ EYETRACKER ------------------------------------------------------------------------------
 
 
+        # ------------ BLINKING UGM ------------------------------------------------------------------------------
+        # ------------ BEGIN -------------------------------------------------------------------------------------
+        # An algorithm generating ids. Possible values:
+        # RANDOM - random values from range [0;BLINK_ID_COUNT]
+        # SEQUENTIAL - sequental values from range [0;BLINK_ID_COUNT]
+        # RANDOM_SEQUENTIAL - random, but not repeated values from range [0;BLINK_ID_COUNT]. Eg. for [0,1,2,3] we`ll get
+        # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
         #'BLINK_ID_TYPE': 'RANDOM',
         'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
         #'BLINK_ID_TYPE': 'SEQUENTIAL',
+
+        # blink ids will be genereated from range [0;BLINK_ID_COUNT]
         'BLINK_ID_COUNT':'1',
 
+        # Time (in secs) between two blinks will be generated as float from range[BLINK_MIN_BREAK;BLINK_MAX_BREAK]
         'BLINK_MIN_BREAK':'0.1',
         'BLINK_MAX_BREAK':'0.1',
+        
+        # Duration of a single blink (in secs)
         'BLINK_DURATION':'0.1',
 
+        # An algorithm generating counts. Possible values:
+        # INF - always returns -1 (should indicate infinity - blink forever)
+        # RANDOM - random values from range [0;BLINK_ID_COUNT]
+        # SEQUENTIAL - sequental values from range [0;BLINK_ID_COUNT]
+        # RANDOM_SEQUENTIAL - random, but not repeated values from range [0;BLINK_ID_COUNT]. Eg. for [0,1,2,3] we`ll get
+        # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
         'BLINK_COUNT_TYPE': 'INF',
         #'BLINK_COUNT_TYPE': 'RANDOM',
         #'BLINK_COUNT_TYPE': 'RANDOM_SEQUENTIAL',
         #'BLINK_COUNT_TYPE': 'SEQUENTIAL',
+
+        # blink counts will be genereated from range [BLINK_COUNT_MIN;BLINK_COUNT_MAX]
         'BLINK_COUNT_MIN':'10',
         'BLINK_COUNT_MAX':'15', 
 
 
-        'BLINK_UGM_ROW_COUNT':'2',
-        'BLINK_UGM_COL_COUNT':'3',
-        #'BLINK_UGM_TYPE':'CLASSIC',
-
+        # Blinker type, possible values:
+        # SINGLE - every time one choosen field performs blink
+        # CLASSIC - matrix-like blinker - blinks the whole row or whole column
         'BLINK_UGM_TYPE':'SINGLE',
+        'BLINK_UGM_ROW_COUNT':'2', # A number of rows in CLASSIC blinker
+        'BLINK_UGM_COL_COUNT':'3', # A number of cols in CLASSIC blinker
+        #'BLINK_UGM_TYPE':'CLASSIC',
+        # We should have always: BLINK_ID_COUNT == BLINK_UGM_ROW_COUNT + BLINK_UGM_COL_COUNT
+        # We should have always: BLINK_UGM_ID_COUNT == BLINK_UGM_ROW_COUNT * BLINK_UGM_COL_COUNT
+        # IN SINGLE blinker we whould have always: BLINK_UGM_ID_COUNT == BLINK_ID_COUNT
+
+
+
+        # Start id and count of ugm components that are considered 'blinking' elements
+        # It is assumed that to-be-blinked components are enumerated sequentially, eg. from 101 to 106 -
+        # - then BLINK_UGM_ID_START would be 101, BLINK_UGM_COL_COUNT would be 5
         'BLINK_UGM_ID_START':'101',
         'BLINK_UGM_ID_COUNT':'1',
+
+        # What property (KEY) and how (VALUE) should be changed on blink.
+        # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
         'BLINK_UGM_KEY':'color',
         'BLINK_UGM_VALUE':'#ff0000',
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ BLINKING UGM ------------------------------------------------------------------------------
+
+
 
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably

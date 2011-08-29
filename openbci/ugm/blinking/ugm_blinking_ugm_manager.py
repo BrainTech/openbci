@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 from ugm import ugm_config_manager
-class SingleUgmManager(object):
+class _SingleUgmManager(object):
     def __init__(self, configs):
         mgr = ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG'])
         start_id = int(configs['BLINK_UGM_ID_START'])
@@ -21,7 +23,7 @@ class SingleUgmManager(object):
                              configs['BLINK_UGM_KEY']:configs['BLINK_UGM_VALUE']
                              }
             new_unblink_cfg ={'id':cfg['id'],
-                              configs['BLINK_UGM_KEY']:cfg['color']
+                              configs['BLINK_UGM_KEY']:cfg[configs['BLINK_UGM_KEY']]
                              }
 
             self.blink_ugm.append([new_blink_cfg])
@@ -34,17 +36,18 @@ class SingleUgmManager(object):
         return self.unblink_ugm[area_id]
 
 
-class ClassicUgmManager(object):
+class _ClassicUgmManager(object):
     """Assumed that eg for:
-    - blink_id_start = 10
-    - blink_id_count = 8
+    - blink_ugm_id_start = 10
+    - blink_ugm_id_count = 8
     - row_count = 2
     - col_count = 4
     - we have matrix like:
     10 11 12 13
     14 15 16 17
-
-    and decision 0,1,2,3 regard cols, decision 4,5 regard rows
+    and decision 0,1,2,3 regard cols, decision 4,5 regard rows.
+    As a result returned ugm for eg. decision 4 contains a list of ugm configs
+    for every field in the second row.
     """
     def __init__(self, configs):
         mgr = ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG'])
@@ -75,7 +78,7 @@ class ClassicUgmManager(object):
                                      }
                     blink_cfgs.append(new_blink_cfg)
                     new_unblink_cfg ={'id':cfg['id'],
-                                      configs['BLINK_UGM_KEY']:cfg['color']
+                                      configs['BLINK_UGM_KEY']:cfg[configs['BLINK_UGM_KEY']]
                                       }
                     unblink_cfgs.append(new_unblink_cfg)
                 self.blink_ugm.append(blink_cfgs)
@@ -91,7 +94,7 @@ class ClassicUgmManager(object):
                                      }
                     blink_cfgs.append(new_blink_cfg)
                     new_unblink_cfg ={'id':cfg['id'],
-                                      configs['BLINK_UGM_KEY']:cfg['color']
+                                      configs['BLINK_UGM_KEY']:cfg[configs['BLINK_UGM_KEY']]
                                       }
                     unblink_cfgs.append(new_unblink_cfg)
                 self.blink_ugm.append(blink_cfgs)
@@ -107,13 +110,41 @@ class ClassicUgmManager(object):
 
 
 MGRS = {
-    'SINGLE':SingleUgmManager,
-    'CLASSIC':ClassicUgmManager
+    'SINGLE':_SingleUgmManager,
+    'CLASSIC':_ClassicUgmManager
 }
 
 class UgmBlinkingUgmManager(object):
+    """Provides effectively ugm configs for 'blinks' and 'unblinks'."""
     def get_requested_configs(self):
-        return ['UGM_CONFIG', 'BLINK_UGM_TYPE', 'BLINK_UGM_KEY', 'BLINK_UGM_VALUE', 'BLINK_UGM_ROW_COUNT', 'BLINK_UGM_COL_COUNT', 'BLINK_UGM_ID_START', 'BLINK_UGM_ID_COUNT', 'BLINK_ID_COUNT']
+        return ['UGM_CONFIG', #ugm config name
+
+                # Used by UgmBlinkingCountManager to generate blink ids. For given blink id, 
+                # UgmBlinkingUgmManager should be able to return suitable ugm configs.
+                # BLINK_ID_COUNT indicates that id will be in range [0;BLINK_ID_COUNT]
+                'BLINK_ID_COUNT',
+
+                # Blinker type, possible values:
+                # SINGLE - every time one choosen field performs blink
+                # CLASSIC - matrix-like blinker - blinks the whole row or whole column
+                'BLINK_UGM_TYPE', 
+                'BLINK_UGM_ROW_COUNT', # A number of rows in CLASSIC blinker
+                'BLINK_UGM_COL_COUNT', # A number of cols in CLASSIC blinker
+                # We should have always: BLINK_ID_COUNT == BLINK_UGM_ROW_COUNT + BLINK_UGM_COL_COUNT
+                # We should have always: BLINK_UGM_ID_COUNT == BLINK_UGM_ROW_COUNT * BLINK_UGM_COL_COUNT
+                # IN SINGLE blinker we whould have always: BLINK_UGM_ID_COUNT == BLINK_ID_COUNT
+
+                # Start id and count of ugm components that are considered 'blinking' elements
+                # It is assumed that to-be-blinked components are enumerated sequentially, eg. from 101 to 106 -
+                # - then BLINK_UGM_ID_START would be 101, BLINK_UGM_COL_COUNT would be 5
+                'BLINK_UGM_ID_START', 
+                'BLINK_UGM_ID_COUNT', 
+
+                # What property (KEY) and how (VALUE) should be changed on blink.
+                # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
+                'BLINK_UGM_KEY', 
+                'BLINK_UGM_VALUE'
+                ]
 
     def set_configs(self, configs):
         self._type = configs['BLINK_UGM_TYPE']

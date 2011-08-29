@@ -28,11 +28,8 @@ import settings
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import socket
-TCP_IP = '127.0.0.1'
-TCP_PORT = 5026
 
 import configurer
-
 import ugm_logging as logger
 LOGGER = logger.get_logger("ugm_server")
 
@@ -42,20 +39,23 @@ class UgmServer(BaseMultiplexerServer):
     pyqt won`t work with multithreading..."""
     def __init__(self, p_addresses):
         """Init server."""
+        cfg = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES)
+        configs = cfg.get_configs(['UGM_INTERNAL_IP', 'UGM_INTERNAL_PORT'])
+        self.ip = configs['UGM_INTERNAL_IP']
+        self.port = int(configs['UGM_INTERNAL_PORT'])
         super(UgmServer, self).__init__(addresses=p_addresses, 
                                         type=peers.UGM)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        configurer.Configurer().set_configs({'PEER_READY':str(peers.UGM)}, self.conn)
-
+        cfg.set_configs({'PEER_READY':str(peers.UGM)}, self.conn)
 
 
     def handle_message(self, mxmsg):
         """Method fired by multiplexer. It conveys update message to 
         ugm_engine using udp sockets."""
 
-        if (mxmsg.type == types.UGM_UPDATE_MESSAGE):
+        if (mxmsg.type == types.UGM_UPDATE_MESSAGE or mxmsg.type == types.UGM_CONTROL_MESSAGE):
             try:
-                self.socket.sendto(mxmsg.message, (TCP_IP, TCP_PORT))
+                self.socket.sendto(mxmsg.message, (self.ip, self.port))
             except Exception, l_exc:
                 LOGGER.error("An error occured while sending data to ugm_engine")
                 self.socket.close()

@@ -6,6 +6,7 @@ from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2, configurer
 
 import etr_manager
+from nesw import etr_nesw_manager
 
 import random, time
 import etr_logging as logger
@@ -17,8 +18,12 @@ LOGGER = logger.get_logger("etr_amplifier")
 class EtrServer(BaseMultiplexerServer):
     def __init__(self, addresses):
         configurer_ = configurer.Configurer(addresses)
+        configs = configurer_.get_configs(['ETR_TYPE'])
+        if configs['ETR_TYPE'] == 'CLASSIC':
+            self.mgr = etr_manager.EtrManager()
+        elif configs['ETR_TYPE'] == 'NESW':
+            self.mgr = etr_nesw_manager.EtrNeswManager()            
 
-        self.mgr = etr_manager.EtrManager()
         requested_configs = self.mgr.get_requested_configs()
         requested_configs.add('PEER_READY'+str(peers.UGM))
         requested_configs.add('PEER_READY'+str(peers.LOGIC))
