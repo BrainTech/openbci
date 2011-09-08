@@ -7,6 +7,5 @@ rm multiplexer.rules
 ln -s ../../../multiplexer.rules .
 cd ..
 make
-echo "Multiplexer installation completed!"
 
 
