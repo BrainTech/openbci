@@ -96,6 +96,10 @@ class LogicEngine(object):
 
     # --------------------------------------------------------------------------
     # ------------------ actions available in config ---------------------------
+    def mult_action(self, actions):
+        for a in actions:
+            eval(u"".join([u"self.", a]))
+
     def run_ext(self, p_program_string):
         """Run external program p_program_string."""
         try:
