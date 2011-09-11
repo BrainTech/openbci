@@ -130,7 +130,9 @@ class Hashtable(BaseMultiplexerServer):
 
         # ------------ UGM ------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
-        'UGM_CONFIG': 'speller_config_6',
+        
+        'UGM_CONFIG': 'speller_config_nesw',
+        #~ 'UGM_CONFIG': 'speller_config_6',
         #'UGM_CONFIG': 'speller_config_8',
         'UGM_USE_TAGGER':'1',
         'UGM_INTERNAL_IP':'127.0.0.1',
@@ -141,7 +143,8 @@ class Hashtable(BaseMultiplexerServer):
 
         # ------------ SPELLER --------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
-        'SPELLER_CONFIG':'speller_config_6',
+        'SPELLER_CONFIG':'speller_config_nesw',
+        #~ 'SPELLER_CONFIG':'speller_config_6',
         #'SPELLER_CONFIG':'speller_config_8',
         'SPELLER_AREA_COUNT':'6',
         #'SPELLER_AREA_COUNT':'8',
@@ -165,6 +168,12 @@ class Hashtable(BaseMultiplexerServer):
         'ETR_BUFFER_SIZE':'5.0',
         'ETR_IGNORE_MISSED':'1',
         'ETR_DEC_BREAK':'0.3',
+        
+        'ETR_NESW_RATIO':'0.6',
+        'ETR_NESW_STACK':'200',
+        'ETR_NESW_DEC_COUNT':'5',
+        'ETR_NESW_DELAY':'20',
+        'ETR_NESW_FEED_FADE':'15',
         
         'ETR_START_AREA_ID': '101',
         'ETR_FIX_ID': '12345',
