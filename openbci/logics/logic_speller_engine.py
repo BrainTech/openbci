@@ -46,13 +46,16 @@ class LogicSpellerEngine(logic_engine.LogicEngine):
         """
         self._message = self._message[:len(self._message) - 1]
 
-    def say(self):
+    def say(self, msg=None):
         """Run say action -> run external program with self._message
         as a paramtere.
         A place where this action is defined to be fired
         is speller config file.
         """
-        self.run_ext(u''.join([u'milena_say ', self._message]))
+        if not msg:
+            msg = self._message
+        print "TRYING TO SAY: ", msg
+        self.run_ext(u''.join([u'milena_say ', msg, u" &"]))
 
     def msg(self, p_message):
         """Update stored message considering:
