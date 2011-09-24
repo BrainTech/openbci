@@ -20,12 +20,41 @@ class FixConfig(object):
     def __init__(self, ugm_config):
         self.config = {'id': ugm_config['id'],
                        'width':ugm_config['width'],
-                       'height':ugm_config['height']
+                       'height':ugm_config['height'],
+                       'color':ugm_config['color']
                        }
+        self.normal_color = self.config['color']
+        c = str(self.normal_color[1:])
+        r, g, b = c[:2], c[2:4], c[4:]
+        rgb = tuple([int(n, 16) for n in (r, g, b)])
+        self.out_color = '#%02x%02x%02x' % (255-rgb[0], 255-rgb[1], 255-rgb[2])
+        self.width = float(self.config['width'])
+        self.height = float(self.config['height'])
 
     def get_ugm_update(self, msg):
-        self.config['position_horizontal'] = (1-msg.x) - float(self.config['width'])/2
-        self.config['position_vertical'] = msg.y - float(self.config['height'])/2
+        x = (1-msg.x)-self.width/2
+        y = msg.y-self.height/2
+        out = False
+        if x < 0:
+            out = True
+            x = 0.0
+        elif x > 1:
+            out = True
+            x = 1.0-self.width
+        if y < 0:
+            out = True
+            y = 0.0
+        elif y > 1:
+            out = True
+            y = 1.0-self.height
+        if out:
+            self.config['color'] = self.out_color
+        else:
+            self.config['color'] = self.normal_color
+
+
+        self.config['position_horizontal'] = x
+        self.config['position_vertical'] = y
         return self.config
 
 class EtrUgmManager(object):
