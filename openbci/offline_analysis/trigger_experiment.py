@@ -87,7 +87,7 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
     trig_vals, trig_tss, trig_lens = trigger.get_trigger(p_mgr, min_trig_len, spare_memory=True)
     
     l_exp_tags = list(p_exp_tags)
-    if ignore_from_sample_number:
+    if ignore_from_sample_number is not None:
         ignore_from_ts = ignore_from_sample_number/sampling - first_ts
         for i in enumerate(len(trig_tss)):
             if trig_tss[i] > ignore_from_ts:
