@@ -86,7 +86,7 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
 
     trig_vals, trig_tss, trig_lens = trigger.get_trigger(p_mgr, min_trig_len, spare_memory=True)
     
-
+    l_exp_tags = list(p_exp_tags)
     if ignore_from_sample_number:
         ignore_from_ts = ignore_from_sample_number/sampling - first_ts
         for i in enumerate(len(trig_tss)):
@@ -94,6 +94,7 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
                 trig_vals = trig_vals[:i]
                 trig_tss = trig_tss[:i]
                 trig_lens = trig_lens[:i]
+                l_exp_tags = l_exp_tags[:i]
                 break
         
     if ignore_last > 0:
@@ -107,18 +108,18 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
         
     LOGGER.info("Trigger lengths " +str(trig_lens))
 
-    LOGGER.info("Tags in experiment file: "+str(len(p_exp_tags)))
+    LOGGER.info("Tags in experiment file: "+str(len(l_exp_tags)))
     LOGGER.info("Trigger changes: "+str(len(trig_vals)))
     LOGGER.info("Above values should be even!!!!")
 
-    if len(p_exp_tags) > len(trig_vals):
+    if len(l_exp_tags) > len(trig_vals):
         LOGGER.error(''.join(["Number of tags in experiment is bigger than",
                               " number of trigger changes.",
                               " Processing aborted!"]))
         sys.exit(1)
 
     tags = []
-    for i, i_tag in enumerate(p_exp_tags):
+    for i, i_tag in enumerate(l_exp_tags):
         tag_name = i_tag.get_name()
         if not tag_name:
             tag_name = 'trigger'
