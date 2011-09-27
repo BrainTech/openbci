@@ -165,7 +165,7 @@ def create_tags_file(p_tags, p_path, p_first_sample_ts=0.0):
 
 
 def trigger_to_tag(p_new_tag_file_path, p_exp_file_path, p_info_file_path, p_data_file_path, p_ExpTagClass, 
-                   p_ignore_first=0, p_ignore_last=0, p_tag_len=1.0, p_min_trig_len=0.0):
+                   p_ignore_first=0, p_ignore_last=0, p_tag_len=1.0, p_min_trig_len=0.0, p_ignore_from_sample_number=None):
     """
     >>> trigger_to_tag('test.tags', '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/kamil_001.txt', '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/kamil_001.obci.svarog.info', '/media/windows/wiedza/bci/EKSPERYMENTY_DANE/kamil_pilot_25_11_2010/kamil_001.obci.dat', KamilExpTag, 2, 1, 1.0, 0.5)
 
@@ -176,7 +176,7 @@ def trigger_to_tag(p_new_tag_file_path, p_exp_file_path, p_info_file_path, p_dat
     l_mgr = read_manager.ReadManager(p_info_file_path, p_data_file_path, None)
 
     l_exp_tags = get_experiment_tags_from(p_exp_file_path, p_ExpTagClass)
-    l_tags = get_tags_from_trigger(l_mgr, l_exp_tags, p_ignore_first, p_ignore_last, p_tag_len, p_min_trig_len)
+    l_tags = get_tags_from_trigger(l_mgr, l_exp_tags, p_ignore_first, p_ignore_last, p_tag_len, p_min_trig_len, p_ignore_from_sample_number)
     create_tags_file(l_tags, p_new_tag_file_path)
 
 
