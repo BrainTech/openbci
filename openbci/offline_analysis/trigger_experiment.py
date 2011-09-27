@@ -89,12 +89,17 @@ def get_tags_from_trigger(p_mgr, p_exp_tags, ignore_first=0, ignore_last=0, tag_
     l_exp_tags = list(p_exp_tags)
     if ignore_from_sample_number is not None:
         ignore_from_ts = ignore_from_sample_number/sampling - first_ts
-        for i in enumerate(range(len(trig_tss)):
+        for i in enumerate(range(len(trig_tss))):
             if trig_tss[i] > ignore_from_ts:
                 trig_vals = trig_vals[:i]
                 trig_tss = trig_tss[:i]
                 trig_lens = trig_lens[:i]
-                l_exp_tags = l_exp_tags[:i]
+                if i - ignore_first <= 0:
+                    LOGGER.warning("Trying to truncate experiment (CSV) tags so that none tag is left...")
+                    l_exp_tags = []
+                else:
+                    l_exp_tags = l_exp_tags[:i-ignore_first]
+
                 break
         
     if ignore_last > 0:
