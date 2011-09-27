@@ -68,7 +68,7 @@ def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False):
     lost += [i for i in range(1,int(last))]
     for no in samples_no[1:]:
         if (no - 1) != last:
-            lost += [i for i in range(last+1, no)]
+            lost += [i for i in range(int(last)+1, no)]
         last = no
     return lost
 
