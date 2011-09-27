@@ -27,7 +27,7 @@ import struct
 import scipy
 import sys
 import os.path
-import variables_pb2
+
 import signal_exceptions
 import signal_logging as logger
 LOGGER = logger.get_logger("data_file_proxy", 'info')
@@ -120,6 +120,7 @@ class MxDataFileWriteProxy(object):
         """ Write p_data t self._file as raw float(C++ double). Here we assume, that
         p_data is of float type. 
         Type verification should be conducted earlier."""
+        import variables_pb2
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(p_data)
         for i_sample in l_vec.samples:
