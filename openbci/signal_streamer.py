@@ -29,7 +29,8 @@ import settings, variables_pb2
 from openbci.core import  core_logging as logger
 LOGGER = logger.get_logger("streamer", 'info')
 import time
-
+import configurer
+import thread
 
 
 class SignalStreamer(BaseMultiplexerServer):
@@ -41,6 +42,10 @@ class SignalStreamer(BaseMultiplexerServer):
         if __debug__:
             from openbci.core import streaming_debug
             self.debug = streaming_debug.Debug(128, LOGGER)
+        LOGGER.info("Create configurer ...")
+        self.configurer = configurer.Configurer(addresses, "AmplifierChannelsToRecord")
+        thread.start_new_thread(self.configurer.run, ())
+        LOGGER.info("Configurer created ...")
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:

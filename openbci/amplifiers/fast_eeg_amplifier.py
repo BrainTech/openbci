@@ -63,7 +63,17 @@ class FastEEGAmplifier(object):
                 samp.value = float(x)
                 samp.timestamp = time.time()
 
-        self.msg = sampleVector.SerializeToString()
+        self.msg1 = sampleVector.SerializeToString()
+
+        sampleVector = variables_pb2.SampleVector()
+        for x in range(self.num_of_channels):
+                samp = sampleVector.samples.add()
+                samp.value = float(x*-1)
+                samp.timestamp = time.time()
+        self.msg2 = sampleVector.SerializeToString()
+
+        self.num_of_samples = 0
+        self.msg_type = 0
 
     def do_sampling(self):
         """Start flooding multiplexer with data..."""
@@ -77,9 +87,17 @@ class FastEEGAmplifier(object):
 
         LOGGER.info("Start samples sampling.")
         while True:
+            self.num_of_samples += 1
+            if self.num_of_samples % int(self.sampling_rate) == 0:
+                self.msg_type = (self.msg_type + 1) % 2
+
             t = data_start_time + (time.time() - real_start_time)
+            if self.msg_type == 0:
+                msg = self.msg1
+            else:
+                msg = self.msg2
             self.connection.send_message(
-                message=self.msg,
+                message=msg,
                 type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             if __debug__:
                 #Log module real sampling rate

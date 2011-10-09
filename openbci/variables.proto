@@ -17,15 +17,21 @@ message Blink {
 message BlinkVector {
     repeated Blink blinks = 1;  
 }
+
+
 message Sample {
-    required double value = 1;
-    required double timestamp = 2;
+    required double timestamp = 1;
+    repeated double channels = 2;
 }
 message Sample2D {
     required double x = 1;
     required double y = 2;
     required double timestamp = 3;
 }
+
+
+
+
 message SampleVector {
     repeated Sample samples = 1;
 }

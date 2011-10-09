@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
@@ -83,10 +84,9 @@ class ReadManager(object):
         samples_source = copy.deepcopy(self.data_source)
         return ReadManager(info_source, samples_source, tags_source)
 
-    def save_to_file(self, p_dir, p_name, first_ts_for_tags=0.0):
+    def save_to_file(self, p_dir, p_name):
         tags = self.get_tags()
         params = self.get_params()
-        first_ts = first_ts_for_tags #float(params.get('first_sample_timestamp', '0.0'))
 
         path = os.path.join(p_dir, p_name)
         #store tags
@@ -104,7 +104,7 @@ class ReadManager(object):
             for d in sample:
                 data_writer.data_received(d)
 
-        tags_writer.finish_saving(first_ts)        
+        tags_writer.finish_saving(0)        
         info_writer.finish_saving()
         data_writer.finish_saving()
 
@@ -121,6 +121,25 @@ class ReadManager(object):
         ch_ind = self.get_param('channels_names').index(p_ch_name) #TODO error
         return self.get_samples(p_from, p_len)[ch_ind]
 
+    def set_samples(self, p_samples, p_channel_names, p_copy=False):
+        try:
+            dim = p_samples.ndim
+        except AttributeError:
+            raise Exception("Samples not a numpy array!")
+        if (dim != 2):
+            raise Exception("Samples must be a 2-dim numpy array!")
+        num_of_channels = p_samples.shape[0]
+        num_of_samples = p_samples.shape[1]
+        
+        if (len(p_channel_names) != num_of_channels):
+            raise Exception("Number of channels names is different from number of channels in samples!")
+        
+        self.set_param('channels_names', p_channel_names)
+        self.set_param('number_of_channels', num_of_channels)
+        self.set_param('number_of_samples', num_of_samples)
+        self.data_source.set_samples(p_samples, p_copy)
+
+
     def get_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
         """Return all tags of type tag_type, or all types if tag_type is None."""
 
@@ -128,6 +147,11 @@ class ReadManager(object):
             return []
         else:
             return self.tags_source.get_tags(p_tag_type, p_from, p_len, p_func)
+    def set_tags(self, p_tags):
+        if self.tags_source is not None:
+            self.tags_source.set_tags(p_tags)
+        else:
+            self.tags_source = read_tags_source.MemoryTagsSource(p_tags)
 
     def get_param(self, p_param_name):
         """Return parameter value for p_param_name.
@@ -137,6 +161,15 @@ class ReadManager(object):
 
     def get_params(self):
         return self.info_source.get_params()
+
+    def set_param(self, p_key, p_value):
+        self.info_source.set_param(p_key, p_value)
+
+    def set_params(self, p_params):
+        self.info_source.update_params(p_params)
+
+    def reset_params(self):
+        self.info_source.reset_params()
 
     def iter_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
         if self.tags_source is None:

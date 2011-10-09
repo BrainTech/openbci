@@ -6,6 +6,7 @@
 
 import csv_manager, random
 import csv, copy
+import psychopy_serial
 from kamil_consts import *
 def _multip_groups(groups):
     #get a list of grups, copy every group REPS times

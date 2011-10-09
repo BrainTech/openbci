@@ -67,10 +67,20 @@ class MemoryTagsSource(TagsSource):
 
 class FileTagsSource(TagsSource):
     def __init__(self, p_file_path):
+        self._memory_source = None
         self._tags_proxy = tags_file_reader.TagsFileReader(p_file_path)
 
     def get_tags(self, p_tag_type=None, p_from=None, p_len=None, p_func=None):
-        return self._filter_tags(
-            self._tags_proxy.get_tags(),
-            p_tag_type, p_from, p_len, p_func)
+        if self._memory_source is None:
+            return self._filter_tags(
+                self._tags_proxy.get_tags(),
+                p_tag_type, p_from, p_len, p_func)
+        else:
+            self._memory_source.get_tags(p_tag_type, p_from, p_len, p_func)
+
+    def set_tags(self, p_tags):
+        if self._memory_source is None:
+            self._memory_source = MemoryTagsSource(p_tags)
+        else:
+            self._memory_source.set_tags(p_tags)
         

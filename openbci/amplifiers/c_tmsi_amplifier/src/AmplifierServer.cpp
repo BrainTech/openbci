@@ -48,6 +48,35 @@ BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
     msg = conn->query("SamplingRate", types::DICT_GET_REQUEST_MESSAGE).second;
     int samp_rate = atoi(msg->message().c_str());
     set_sampling_rate(samp_rate);
+
+    debug("Sending query");
+    msg = conn->query("SamplesPerVector", types::DICT_GET_REQUEST_MESSAGE).second;
+    samples_per_vector = atoi(msg->message().c_str());
+
+    // send peer_ready
+    variables::Variable v;
+    std::string str_msg;
+    v.set_key("PEER_READY");
+    ostringstream ss;
+    ss << peers::AMPLIFIER;
+    v.set_value(ss.str());
+    v.SerializeToString(&str_msg);
+
+
+    MultiplexerMessage mx_msg;
+    mx_msg.set_from(conn->instance_id());
+    mx_msg.set_type(types::DICT_SET_MESSAGE);
+    mx_msg.set_id(conn->random64());
+    mx_msg.set_message(str_msg);
+    Client::ScheduledMessageTracker tracker = conn->schedule_one(mx_msg);
+    if (!tracker) {
+      fprintf(stderr,"Error: sending failed.\n");
+      return;
+    }
+    conn->flush(tracker, -1);
+    // after send peer_ready
+
+
     logger = NULL;
 }
 void AmplifierServer::set_sampling_rate(int samp_rate)
@@ -74,13 +103,17 @@ AmplifierServer::~AmplifierServer() {
 void AmplifierServer::do_sampling(void * ptr = NULL) {
     debug("Sampling started\n");
     variables::SampleVector s_vector;
-    for (int i = 0; i < ext_number_of_channels; i++)
-        s_vector.add_samples();
+    variables::Sample * sample;
+    for (int i = 0; i < samples_per_vector; i++)
+        sample = s_vector.add_samples();
+    std::cout<<"Test1"<<std::endl;
     std::vector<int> isamples(number_of_channels, 0);
     MultiplexerMessage msg;
     msg.set_from(conn->instance_id());
     msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
     double samples_no = 0.0;
+
+    int gathered_samples = 0;
     while (driver->is_sampling()) {
         boost::posix_time::ptime t=boost::posix_time::microsec_clock::local_time();
         double ti=time(NULL);
@@ -90,33 +123,36 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
             return;
         }
         debug("Received samples:\n");
+	sample = s_vector.mutable_samples(gathered_samples);
+	gathered_samples++;
+	sample->Clear();
         for (int i = 0; i < number_of_channels; i++) {
-            variables::Sample *samp = s_vector.mutable_samples(i);
-            samp->set_value(isamples[i]);
-            debug("%2d: %d %x\n",i,isamples[i],isamples[i]);
-            samp->set_timestamp(ti);
+	  sample->add_channels(isamples[i]);
+          //debug("%2d: %d %x\n",i,isamples[i],isamples[i]);
         }
+	sample->set_timestamp(ti);
 
 	if (ext_number_of_channels == number_of_channels + 1) {
 	  samples_no += 1.0;
-	  variables::Sample *samp = s_vector.mutable_samples(number_of_channels);	
-	  samp->set_value(samples_no);
-	  samp->set_timestamp(ti);
+	  sample->add_channels(samples_no);
 	}
-	
-        std::string msgstr;
-        s_vector.SerializeToString(&msgstr);
-        msg.set_id(conn->random64());
-        msg.set_message(msgstr);
-        Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
-        if (!tracker) {
-                fprintf(stderr,"Error: sending failed.\n");
-                return;
-        }
-        conn->flush(tracker, -1);
-        check_status(isamples);
+
+	if (gathered_samples == samples_per_vector) {
+	  gathered_samples = 0;
+	  std::string msgstr;
+	  s_vector.SerializeToString(&msgstr);
+	  msg.set_id(conn->random64());
+	  msg.set_message(msgstr);
+	  Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
+	  if (!tracker) {
+	    fprintf(stderr,"Error: sending failed.\n");
+	    return;
+	  }
+	  conn->flush(tracker, -1);
+	} // (gathered_samples == samples_per_vector)
+	check_status(isamples);
         if (logger != NULL) logger->next_sample();
-    }
+    } //while (driver->is_sampling())
 }
 
 void * _do_sampling(void * amp) {

@@ -22,7 +22,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 from PyML import *
-from data_storage import read_manager
+from openbci.offline_analysis.obci_signal_processing import read_manager
 from offline_analysis.p300 import p300_train_prepare_train_set as prepare
 import scipy
 import os, os.path, sys

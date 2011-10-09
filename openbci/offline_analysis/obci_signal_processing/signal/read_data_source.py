@@ -68,7 +68,11 @@ class MemoryDataSource(DataSource):
         if p_from is None:
             return self._data
         else:
-            return self._data[:, p_from:(p_from+p_len)]
+            ret = self._data[:, p_from:(p_from+p_len)]
+            if ret.shape[1] != p_len:
+                raise(signal_exceptions.NoNextValue())
+            else:
+                return ret
 
     def iter_samples(self):
         for i in range(len(self._data[0])):
@@ -104,13 +108,17 @@ class FileDataSource(DataSource):
         else:
             # we dont have data in-memory
             # only a piece of data is requested
-            ret = numpy.zeros((self._num_of_channels, p_len))
+
             self._data_proxy.goto_value(p_from*self._num_of_channels)
-            for i in range(p_len):
-                ret[:, i] =  self._data_proxy.get_next_values(self._num_of_channels)
-            return ret
+            d = self._data_proxy.get_next_values(self._num_of_channels*p_len)
+            return numpy.reshape(d, (self._num_of_channels, -1), 'f') 
             
-    
+    def set_samples(self, samples, copy):
+        if self._mem_source is None:
+            self._mem_source =  MemoryDataSource(samples, copy)
+        else:
+            self._mem_source.set_samples(samples, copy)
+
     def iter_samples(self):
         if self._mem_source:
             for samp in self._mem_source.iter_samples():

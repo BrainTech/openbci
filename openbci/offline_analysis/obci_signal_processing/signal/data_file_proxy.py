@@ -397,7 +397,9 @@ class DataFileReadProxy(object):
         Close data file and raise NoNextValue exception if eof."""
 
         # Read data from file
+        # LOGGER.debug("Before reading "+str(SAMPLE_SIZE*p_num)+" samples. CURRENT POSITION/8 = "+str(self._data_file.tell()/8))        
         l_raw_data = self._data_file.read(SAMPLE_SIZE*p_num)
+        # LOGGER.debug("After read. CURRENT POSITION/8 = "+str(self._data_file.tell()/8))        
 
         # Initialize return array
         l_ret = scipy.zeros(p_num)
@@ -423,7 +425,7 @@ class DataFileReadProxy(object):
         value number p_value_no+1. 
         Eg. if p_value_no == 0, calling get_next_value will return first value.
         if p_value_no == 11, calling get_next_value will return 12-th value."""
-        LOGGER.debug("DOING SEEK TO: "+str(p_value_no))
+        # LOGGER.debug("DOING SEEK TO: "+str(p_value_no))
         self._data_file.seek(p_value_no * SAMPLE_SIZE)
-        LOGGER.debug("DATA FILE SEEK DONE. CURRENT POSITION/8 = "+str(self._data_file.tell()/8))
+        # LOGGER.debug("DATA FILE SEEK DONE. CURRENT POSITION/8 = "+str(self._data_file.tell()/8))
 

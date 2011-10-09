@@ -175,8 +175,8 @@ class SmartTagsManager(object):
         and you will get samples for all channels for that smart tag in format:
         [[list of all samples from ch 0], [list of all samples from ch 1] ...]
         """
-        #LOGGER.debug("FIRST SAMPLE TIMESTMP: "+str(self._first_sample_timestamp))
-        for i_st in self._smart_tags:
+        LOGGER.debug("FIRST SAMPLE TIMESTMP: "+str(self._first_sample_ts))
+        for i, i_st in enumerate(self._smart_tags):
             try:
 
                 if i_st.is_initialised():
@@ -219,7 +219,7 @@ class SmartTagsManager(object):
                 i_st.set_initialised()
                 yield i_st # Return smart tag filled with data
             except signal_exceptions.NoNextValue:
-                LOGGER.info("No samples left. Some smart tags could have been ignored.")
+                LOGGER.info("No samples left. Some smart tags could have been ignored, probably "+str(len(self._smart_tags)-i)+" of "+str(len(self._smart_tags))+" tags.")
                 break # Exit the loop, end iterator
         LOGGER.debug("Finished smart tags iteration")
         #Reset samples count so that next 

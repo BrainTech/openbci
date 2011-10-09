@@ -49,7 +49,7 @@ NON_EMOTIONS = {
 
 
 #true if send trigger
-USE_SERIAL = True
+USE_SERIAL = False
 #a value to be send to trigger on init
 SERIAL_INIT_VALUE = 1
 #serial port name

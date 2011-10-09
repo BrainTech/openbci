@@ -41,7 +41,7 @@ dsf=visual.TextStim(win=win, ori=0,
 int2Clock=core.Clock()
 uiuiyhiu=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
-    text=u'    Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i    \n    ocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na    \n                     ekranie.                     \n      Wci\u015bnij klawisz Czerwony zawsze wtedy,       \n    kiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z    \n                    emocjamia,                     \na klawisz Zielony je\u015bli b\u0119dzie to s\u0142owo neutralne. \n         Nie naciskaj \u017cadnego z klawiszy,         \n           je\u015bli b\u0119dzie to s\u0142owo Drewno.           \n         Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.         ',
+    text=u'    Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i    \n    ocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na    \n                     ekranie.                     \n      Wci\u015bnij klawisz Czerwony zawsze wtedy,       \n    kiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z    \n                    emocjami,                     \na klawisz Zielony je\u015bli b\u0119dzie to s\u0142owo neutralne. \n         Nie naciskaj \u017cadnego z klawiszy,         \n           je\u015bli b\u0119dzie to s\u0142owo Drewno.           \n         Aby przej\u015b\u0107 dalej naci\u015bnij SPACE.         ',
     pos=[0,0], height=0.08,
     color=u'black', colorSpace=u'rgb')
 #create our own class to store info from keyboard
@@ -74,7 +74,7 @@ sodfsdlkj=visual.TextStim(win=win, ori=0,
     wrapWidth=2.0, bold=True, font='Courier',
     text=u'      Wci\u015bnij klawisz Czerwony zawsze wtedy,       \n    kiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z    \n                    emocjamia,                     \na klawisz Zielony je\u015bli b\u0119dzie to s\u0142owo neutralne. \n         Nie naciskaj \u017cadnego z klawiszy,         \n           je\u015bli b\u0119dzie to s\u0142owo Drewno.           \n Aby przej\u015b\u0107 do sesji treningowej naci\u015bnij SPACE. ',
     pos=[0, 0], height=0.08,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 
 #set up handler to look after randomisation of trials etc
@@ -342,7 +342,7 @@ for thisTrialskjh in trialskjhk:
         if (1.0<= t < (1.0+1.0)):
             lkhkkki.draw()
         if (1.0<= t < (1.0+2.0)):
-            theseKeys = event.getKeys(keyList=u"['space']")
+            theseKeys = event.getKeys(keyList="['space']")
             if len(theseKeys)>0:#at least one key was pressed
                 respkljlkj.keys=theseKeys[-1]#just the last key pressed
         
@@ -360,7 +360,7 @@ for thisTrialskjh in trialskjhk:
 
 trialskjhk.saveAsPickle(filename+'trialskjhk')
 trialskjhk.saveAsExcel(filename+'.xlsx', sheetName='trialskjhk',
-    stimOut=['group', 'word', 'fix_time', ],
+    stimOut=['word', 'group', 'fix_time', ],
     dataOut=['n','all_mean','all_std', 'all_raw'])
 psychopy.log.info('saved data to '+filename+'.dlm')
 
@@ -506,7 +506,7 @@ for thisTrial in trials:
         if (s_st[2]<= t < (s_st[2]+s_dur[2])):
             if t_resp.clock==None: #if we don't have one we've just started
                 t_resp.clock=core.Clock()#create one (now t=0)
-            theseKeys = event.getKeys(keyList=u"['c', 'n']")
+            theseKeys = event.getKeys(keyList="['c', 'n']")
             if len(theseKeys)>0:#at least one key was pressed
                 if t_resp.keys==[]:#then this was the first keypress
                     t_resp.keys=theseKeys[0]#just the first key pressed
@@ -611,7 +611,7 @@ for thisTrial in trials:
 
 trials.saveAsPickle(filename+'trials')
 trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
-    stimOut=['word', 'group', 'fix_time', ],
+    stimOut=['group', 'word', 'fix_time', ],
     dataOut=['n','all_mean','all_std', 'all_raw'])
 psychopy.log.info('saved data to '+filename+'.dlm')
 

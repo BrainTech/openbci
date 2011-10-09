@@ -37,6 +37,7 @@ import gflags
 import sys
 import re
 import amplifiers_logging as logger
+import settings, configurer
 LOGGER = logger.get_logger("tmsi_bluetooth_eeg_amplifier", "info")
 
 
@@ -46,12 +47,12 @@ class TMSiBluetoothEEGAmplifier:
     Main class implementing TMSi Bluetooth EEG Amplifier support.
     """
     def __init__(self, device):
-        self.connection = connect_client(type = peers.AMPLIFIER)
-        self.sampling_rate = int(self.connection.query(message="SamplingRate", \
-            type=types.DICT_GET_REQUEST_MESSAGE).message)
-        channels_to_record = self.connection.query(message="AmplifierChannelsToRecord",
-                                                   type=types.DICT_GET_REQUEST_MESSAGE).message.split(" ")
-        
+        self.configurer = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES)
+        configs = self.configurer.get_configs(["SamplesPerVector", "SamplingRate", "AmplifierChannelsToRecord"])
+        self.samples_per_vector = int(configs['SamplesPerVector'])
+        self.sampling_rate = int(configs['SamplingRate'])
+        channels_to_record = configs['AmplifierChannelsToRecord'].split(" ")
+
 
         self.channel_numbers = []
         # Gather channels ids to slot - notice, ch_id might be integer or string.
@@ -71,6 +72,7 @@ class TMSiBluetoothEEGAmplifier:
         self.vldelta = False
         self.hardware_number_of_channels = -1
         self.vldelta_info = None
+        self.connection = connect_client(type = peers.AMPLIFIER)
 
     def start_amplifier(self):
         """
@@ -122,6 +124,7 @@ class TMSiBluetoothEEGAmplifier:
         """
         Start sending samples forever.
         """
+        self.configurer.set_configs({"PEER_READY":str(peers.AMPLIFIER)}, self.connection)
         if __debug__:
             from openbci.core import streaming_debug
             self.debug = streaming_debug.Debug(128, LOGGER)
@@ -132,6 +135,14 @@ class TMSiBluetoothEEGAmplifier:
         battery_value = 0.0
         onoff_value = 0.0
         sample_no = 0.0
+
+        sample_vector = variables_pb2.SampleVector()
+        for x in range(self.samples_per_vector):
+            samp = sample_vector.samples.add()
+            for j in range(len(self.channel_numbers)):
+                samp.channels.append(0.0)
+            samp.timestamp = 0.0
+        p_size = 0
         while True:
             try:
                 timestamp = time.time()
@@ -141,46 +152,50 @@ class TMSiBluetoothEEGAmplifier:
                     data.set_vldelta_info(self.vldelta_info)
                 else:
                     self.device.prepare(tmsi.PacketType.TMS_CHANNEL_DATA)
-                    data = tmsi.ChannelData.read_one(self.device, search=True)
+                data = tmsi.ChannelData.read_one(self.device, search=True)
                 data.set_number_of_channels(self.hardware_number_of_channels)
                 channel_data = data.decode()
-            
-                # Gather special channels values
+                    # Gather special channels values
                 if data.on_off_pressed():
                     onoff_value = 1.0
                 else:
                     onoff_value = 0.0
-
+                    
                 if data.trigger_active():
                     trigger_value = 1.0
                 else:
                     trigger_value = 0.0
-
+                    
                 if data.battery_low():
                     battery_value = 0.0
                 else:
                     battery_value = 1.0
-                                
+                    
                 sample_no += 1.0;
                 # send samples
                 for i in range(len(channel_data[0])):
-                    sample_vector = variables_pb2.SampleVector()
+                    samp = sample_vector.samples[p_size]
+                    samp.Clear()
+                    p_size += 1
+                    samp.timestamp = timestamp
+
                     for j in self.channel_numbers:
-                        samp = sample_vector.samples.add()
                         if j == "trig":
-                            samp.value = trigger_value
+                            v = trigger_value
                         elif j == "bat":
-                            samp.value = battery_value
+                            v = battery_value
                         elif j == "onoff":
-                            samp.value = onoff_value
+                            v = onoff_value
                         elif j == "sample":
-                            samp.value = sample_no
+                            v = sample_no
                         else:
-                            samp.value = float(channel_data[j][i])
-                        samp.timestamp = timestamp
-                    self.connection.send_message( \
-                        message=sample_vector.SerializeToString(), \
-                        type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
+                            v = float(channel_data[j][i])
+                        samp.channels.append(v)
+                    if p_size == sel.samples_per_vector:
+                        p_size = 0
+                        self.connection.send_message( \
+                            message=sample_vector.SerializeToString(), \
+                                type=types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
                     if __debug__:
                 		#Log module real sampling rate
                 		self.debug.next_sample_timestamp(timestamp)

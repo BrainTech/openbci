@@ -47,23 +47,25 @@ void SignalReceiver::handle_message(MultiplexerMessage & mxmsg)
 	variables::SampleVector s_vector;
 	s_vector.ParseFromString(mxmsg.message());
 	for (int i = 0; i < s_vector.samples_size(); i++) {
-	    this->cached_samples[i][this->cached_index] = s_vector.mutable_samples(i)->value();
-	  //samp->set_timestamp(ti);
-	}
-	if (this->monitor_last_channel) {
-	  double last_channel = this->cached_samples[this->num_of_channels-1][this->cached_index];
-	  if (this->prev_last_channel+1 != last_channel)
-	    printf("Lost samples in number:%i\n", (int) (last_channel - this->prev_last_channel + 1));
-	  this->prev_last_channel = last_channel;
-	}
-
-	this->cached_index ++;
-	if (this->cached_index == this->cache_size) {
-	  this->cached_index = 0;
-	  //dump cache to file in the future
+	  for (int j = 0; j < s_vector.samples(i).channels_size(); j++) {
+	    this->cached_samples[j][this->cached_index] = s_vector.samples(i).channels(j);//->value();
+	    //samp->set_timestamp(ti);
+	  }
+	  
+	  if (this->monitor_last_channel) {
+	    double last_channel = this->cached_samples[this->num_of_channels-1][this->cached_index];
+	    if (this->prev_last_channel+1 != last_channel)
+	      printf("Lost samples in number:%i\n", (int) (last_channel - this->prev_last_channel + 1));
+	    this->prev_last_channel = last_channel;
+	  }
+	  
+	  this->cached_index ++;
+	  if (this->cached_index == this->cache_size) {
+	    this->cached_index = 0;
+	    //dump cache to file in the future
+	  }
 	}
       }
-
       this->no_response();
     }
 

@@ -39,7 +39,7 @@ dsf=visual.TextStim(win=win, ori=0,
 #Initialise components for routine:int2
 int2Clock=core.Clock()
 uiuiyhiu=visual.TextStim(win=win, ori=0,
-    text=u'Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i\nocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na\nekranie.\nWci\u015bnij klawisz COLOR_FOR_EMOTION zawsze wtedy, \nkiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z\nemocjamia, \na klawisz COLOR_FOR_NON_EMOTION je\u015bli b\u0119dzie to s\u0142owo neutralne. \nNie naciskaj \u017cadnego z klawiszy,\nje\u015bli b\u0119dzie to s\u0142owo Drewno.\nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
+    text=u'Twoje zadanie b\u0119dzie polega\u0142o na czytaniu i\nocenianiu s\u0142\xf3w pojawiaj\u0105cych si\u0119 kolejno na\nekranie.\nWci\u015bnij klawisz COLOR_FOR_EMOTION zawsze wtedy, \nkiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z\nemocjami, \na klawisz COLOR_FOR_NON_EMOTION je\u015bli b\u0119dzie to s\u0142owo neutralne. \nNie naciskaj \u017cadnego z klawiszy,\nje\u015bli b\u0119dzie to s\u0142owo Drewno.\nAby przej\u015b\u0107 dalej naci\u015bnij SPACE.',
     pos=[0,0], height=0.08,
     color=u'black', colorSpace=u'rgb')
 #create our own class to store info from keyboard
@@ -69,7 +69,7 @@ int5Clock=core.Clock()
 sodfsdlkj=visual.TextStim(win=win, ori=0,
     text=u'Wci\u015bnij klawisz COLOR_FOR_EMOTION zawsze wtedy, \nkiedy prezentowane s\u0142owo b\u0119dzie zwi\u0105zane z\nemocjamia, \na klawisz COLOR_FOR_NON_EMOTION je\u015bli b\u0119dzie to s\u0142owo neutralne. \nNie naciskaj \u017cadnego z klawiszy,\nje\u015bli b\u0119dzie to s\u0142owo Drewno.\nAby przej\u015b\u0107 do sesji treningowej naci\u015bnij SPACE.',
     pos=[0, 0], height=0.08,
-    color=u'black', colorSpace=u'rgb')
+    color='black', colorSpace='rgb')
 
 
 #set up handler to look after randomisation of trials etc
@@ -332,7 +332,7 @@ for thisTrialskjh in trialskjhk:
         if (1.0<= t < (1.0+1.0)):
             lkhkkki.draw()
         if (1.0<= t < (1.0+2.0)):
-            theseKeys = event.getKeys(keyList=u"['space']")
+            theseKeys = event.getKeys(keyList="['space']")
             if len(theseKeys)>0:#at least one key was pressed
                 respkljlkj.keys=theseKeys[-1]#just the last key pressed
         
@@ -350,7 +350,7 @@ for thisTrialskjh in trialskjhk:
 
 trialskjhk.saveAsPickle(filename+'trialskjhk')
 trialskjhk.saveAsExcel(filename+'.xlsx', sheetName='trialskjhk',
-    stimOut=['group', 'word', 'fix_time', ],
+    stimOut=['word', 'group', 'fix_time', ],
     dataOut=['n','all_mean','all_std', 'all_raw'])
 psychopy.log.info('saved data to '+filename+'.dlm')
 
@@ -496,7 +496,7 @@ for thisTrial in trials:
         if (102.0<= t < (102.0+1002.0)):
             if t_resp.clock==None: #if we don't have one we've just started
                 t_resp.clock=core.Clock()#create one (now t=0)
-            theseKeys = event.getKeys(keyList=u"['BUTTON_FOR_EMOTION', 'BUTTON_FOR_NON_EMOTION']")
+            theseKeys = event.getKeys(keyList="['BUTTON_FOR_EMOTION', 'BUTTON_FOR_NON_EMOTION']")
             if len(theseKeys)>0:#at least one key was pressed
                 if t_resp.keys==[]:#then this was the first keypress
                     t_resp.keys=theseKeys[0]#just the first key pressed
@@ -601,7 +601,7 @@ for thisTrial in trials:
 
 trials.saveAsPickle(filename+'trials')
 trials.saveAsExcel(filename+'.xlsx', sheetName='trials',
-    stimOut=['word', 'group', 'fix_time', ],
+    stimOut=['group', 'word', 'fix_time', ],
     dataOut=['n','all_mean','all_std', 'all_raw'])
 psychopy.log.info('saved data to '+filename+'.dlm')
 

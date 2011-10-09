@@ -45,6 +45,7 @@ public:
     }
 protected:
     int number_of_channels;
+    int samples_per_vector;
     int ext_number_of_channels;
     std::vector<int> channels;
     pthread_t sampling_thread,receiving_thread;
