@@ -44,6 +44,7 @@ task("./etr/etr_dasher_server.py", "etr_dasher_server")
 
 task("../svarog/pinger.py", "svarog_pinger")
 task("./signal_streamer.py", "signal_streamer")
+task("../profiling/python/signal_receiver.py 1000 1024 x 127.0.0.1", 'signal_receiver', generate_pidfile=True, babysit_pidfile=True)
 task("./signal_catcher.py", "signal_catcher")
 task("./fast_signal_catcher.py", "fast_signal_catcher")
 task("./filters/filter.py", "filter")
@@ -86,6 +87,7 @@ task("sleep 1; ./logics/test_manually_logic_speller.py", "logics_control")
 task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
 task("./tags/tests/test_manual_tags_sending.py", "manual_tags_sending")
+task("./tags/tests/test_auto_tags_sending.py", "auto_tags_sending")
 task("./ugm/tests/test_ugm_sender.py", "manual_ugm_updating")
 task("./tests/auto_trigger_test.py -p /dev/ttyUSB0 -n 50 -s 1.0 -b 3.0 -t yes -f yes", "auto_trigger")
 
@@ -354,9 +356,9 @@ start("svarog_test_py_bt", "python_bt_amplifier")
 start("svarog_test_py_bt", "manual_tags_sending")
 
 start("svarog_test_c++_bt", "hashtable")
-start("svarog_test_c++_bt", "svarog_pinger")
 start("svarog_test_c++_bt", "c++_bt_amplifier")
 start("svarog_test_c++_bt", "manual_tags_sending")
+start("svarog_test_c++_bt", "auto_tags_sending")
 
 start("svarog_test_c++_bt_mobi", "hashtable")
 start("svarog_test_c++_bt_mobi", "svarog_pinger")
@@ -379,10 +381,16 @@ start("svarog_test_py_bt_mobi", "manual_tags_sending")
 start("svarog_test_c++_usb", "hashtable")
 start("svarog_test_c++_usb", "c++_usb_amplifier")
 start("svarog_test_c++_usb", "manual_tags_sending")
+start("svarog_test_c++_usb", "auto_tags_sending")
+
 
 start("svarog_v_test", "hashtable")
 start("svarog_v_test", "virtual_amplifier")
 start("svarog_v_test", "manual_tags_sending")
+
+start("svarog_f_tags_test", "hashtable")
+start("svarog_f_tags_test", "virtual_f_amplifier")
+start("svarog_f_tags_test", "auto_tags_sending")
 
 start("svarog_v_fast_test", "hashtable")
 start("svarog_v_fast_test", "fast_virtual_amplifier")
