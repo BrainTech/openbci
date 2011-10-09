@@ -3,16 +3,15 @@ from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 import sys, time, numpy
+import configurer
 
 
 class Receiver(BaseMultiplexerServer):
     def __init__(self, addresses, duration, cache_size, dump_file, monitor_last_channel):
-        self._cache_index = -1
-        super(Receiver, self).__init__(addresses=addresses, type=peers.SIGNAL_STREAMER)
-        self.number_of_channels = int(self.conn.query(
-                message="NumOfChannels", 
-                type=types.DICT_GET_REQUEST_MESSAGE).message)
-
+        self._configurer = configurer.Configurer(addresses)
+        configs = self._configurer.get_configs(["NumOfChannels", "SamplesPerVector", "PEER_READY"+str(peers.AMPLIFIER)])
+        self.number_of_channels = int(configs['NumOfChannels'])
+        self.samples_per_vector = int(configs['SamplesPerVector'])
         if duration == 0: 
             self.duration = sys.float_info.max
         else:
@@ -25,7 +24,6 @@ class Receiver(BaseMultiplexerServer):
             self.dump_file = None
         self.monitor_last_channel = monitor_last_channel
 
-
         self._prev_last_channel = 0
         self._samples_vector = variables_pb2.SampleVector()
         self._samples_count = 0
@@ -34,7 +32,10 @@ class Receiver(BaseMultiplexerServer):
         self._last_log_count = 0
         self._cached_samples = numpy.zeros((self.number_of_channels, self.cache_size))
         self._cache_index = 0
-        print("Receiver initialsed!")
+        super(Receiver, self).__init__(addresses=addresses, type=peers.SIGNAL_STREAMER)
+        self._configurer.set_configs({'PEER_READY':str(peers.SIGNAL_STREAMER)}, self.conn)
+
+        print("Receiver initialsed! with num of channels: "+str(self.number_of_channels))
 
     def _dump_cache(self):
         pass
@@ -43,12 +44,7 @@ class Receiver(BaseMultiplexerServer):
         #self.dump_file.flush()
 
     def handle_message(self, mxmsg):
-        if self._cache_index == -1:
-            pass
-        elif mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
-
-            self._samples_count += 1
-
+        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
             t = time.time()
             # write log
             if (t - self._last_log_ts) > 1:
@@ -62,24 +58,25 @@ class Receiver(BaseMultiplexerServer):
                 sys.exit(0)
 
             self._samples_vector.ParseFromString(mxmsg.message)
-            #if self._samples_count == 1:
-            #    time.sleep(10)
-            #cache data
-            for i, i_sample in enumerate(self._samples_vector.samples):
-                self._cached_samples[i, self._cache_index] = i_sample.value
+
+            for i in range(self.samples_per_vector):
+                self._samples_count += 1
+                sample = self._samples_vector.samples[i]
+                for j, ch in enumerate(sample.channels):
+                    self._cached_samples[j, self._cache_index] = ch
             #print("GOT: "+str(self._cached_samples[0, self._cache_index]))
 
-            if self.monitor_last_channel:
-                last_channel = self._cached_samples[self.number_of_channels-1][self._cache_index]
-                if self._prev_last_channel+1 != last_channel:
-                    print("Lost samples in number: "+str(last_channel - self._prev_last_channel + 1));
-                self._prev_last_channel = last_channel;
+                if self.monitor_last_channel:
+                    last_channel = self._cached_samples[self.number_of_channels-1][self._cache_index]
+                    if self._prev_last_channel+1 != last_channel:
+                        print("Lost samples in number: "+str(last_channel - self._prev_last_channel + 1));
+                    self._prev_last_channel = last_channel;
 
-            self._cache_index += 1
-            if self._cache_index == self._cached_samples.shape[1]:
-                self._cache_index = 0
-                if self.dump_file is not None:
-                    self._dump_cache()
+                self._cache_index += 1
+                if self._cache_index == self._cached_samples.shape[1]:
+                    self._cache_index = 0
+                    if self.dump_file is not None:
+                        self._dump_cache()
 
         self.no_response()
 

@@ -45,7 +45,7 @@ void test_protobuf(unsigned int num, unsigned int chan_num, unsigned int log_int
 
 	simple_timer timer;
         variables::SampleVector s_vector;
-        for (unsigned int i = 0; i < chan_num; i++) {
+        for (unsigned int i = 0; i < 1; i++) {
             s_vector.add_samples();
         }
 	std::cout << "-- Cpp Protocol Buffers serialize" << std::endl;
@@ -62,11 +62,13 @@ void test_protobuf(unsigned int num, unsigned int chan_num, unsigned int log_int
                     double ti = time(NULL);
 
                     ti += (t.time_of_day().total_nanoseconds() % 1000000000) / 1000000000.0;
-                    for (int i = 0; i < s_vector.samples_size(); i++) {
-                        samp = s_vector.mutable_samples(i);
-                        samp->set_value((double) i);
-                        samp->set_timestamp(ti);
+		    samp = s_vector.mutable_samples(0);
+		    samp->Clear();
+                    for (int i = 0; i < chan_num; i++) {
+		      samp->add_channels((double) i);
+
                     }
+		    samp->set_timestamp(ti);
                     s_vector.SerializeToString(&msg);
                     encoded_b += msg.size();
                     encoded_n ++;

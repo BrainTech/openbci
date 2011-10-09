@@ -461,31 +461,34 @@ class Sample : public ::google::protobuf::Message {
   
   // accessors -------------------------------------------------------
   
-  // required double value = 1;
-  inline bool has_value() const;
-  inline void clear_value();
-  static const int kValueFieldNumber = 1;
-  inline double value() const;
-  inline void set_value(double value);
-  
-  // required double timestamp = 2;
+  // required double timestamp = 1;
   inline bool has_timestamp() const;
   inline void clear_timestamp();
-  static const int kTimestampFieldNumber = 2;
+  static const int kTimestampFieldNumber = 1;
   inline double timestamp() const;
   inline void set_timestamp(double value);
   
+  // repeated double channels = 2;
+  inline int channels_size() const;
+  inline void clear_channels();
+  static const int kChannelsFieldNumber = 2;
+  inline double channels(int index) const;
+  inline void set_channels(int index, double value);
+  inline void add_channels(double value);
+  inline const ::google::protobuf::RepeatedField< double >&
+      channels() const;
+  inline ::google::protobuf::RepeatedField< double >*
+      mutable_channels();
+  
   // @@protoc_insertion_point(class_scope:variables.Sample)
  private:
-  inline void set_has_value();
-  inline void clear_has_value();
   inline void set_has_timestamp();
   inline void clear_has_timestamp();
   
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
   
-  double value_;
   double timestamp_;
+  ::google::protobuf::RepeatedField< double > channels_;
   
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
@@ -1219,37 +1222,15 @@ BlinkVector::mutable_blinks() {
 
 // Sample
 
-// required double value = 1;
-inline bool Sample::has_value() const {
+// required double timestamp = 1;
+inline bool Sample::has_timestamp() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void Sample::set_has_value() {
+inline void Sample::set_has_timestamp() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void Sample::clear_has_value() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void Sample::clear_value() {
-  value_ = 0;
-  clear_has_value();
-}
-inline double Sample::value() const {
-  return value_;
-}
-inline void Sample::set_value(double value) {
-  set_has_value();
-  value_ = value;
-}
-
-// required double timestamp = 2;
-inline bool Sample::has_timestamp() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void Sample::set_has_timestamp() {
-  _has_bits_[0] |= 0x00000002u;
-}
 inline void Sample::clear_has_timestamp() {
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline void Sample::clear_timestamp() {
   timestamp_ = 0;
@@ -1261,6 +1242,31 @@ inline double Sample::timestamp() const {
 inline void Sample::set_timestamp(double value) {
   set_has_timestamp();
   timestamp_ = value;
+}
+
+// repeated double channels = 2;
+inline int Sample::channels_size() const {
+  return channels_.size();
+}
+inline void Sample::clear_channels() {
+  channels_.Clear();
+}
+inline double Sample::channels(int index) const {
+  return channels_.Get(index);
+}
+inline void Sample::set_channels(int index, double value) {
+  channels_.Set(index, value);
+}
+inline void Sample::add_channels(double value) {
+  channels_.Add(value);
+}
+inline const ::google::protobuf::RepeatedField< double >&
+Sample::channels() const {
+  return channels_;
+}
+inline ::google::protobuf::RepeatedField< double >*
+Sample::mutable_channels() {
+  return &channels_;
 }
 
 // -------------------------------------------------------------------

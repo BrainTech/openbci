@@ -18,9 +18,10 @@ class ProtobufTest(object):
         self.logger = SampleLogger(self.log_interval)
 
         self.sample_vec = variables_pb2.SampleVector()
-        for x in range(self.num_of_channels):
+        for x in range(1):#self.num_of_channels):
             samp = self.sample_vec.samples.add()
-            samp.value = float(x)
+            for i in range(self.num_of_channels):
+                samp.channels.append(float(x))
             samp.timestamp = time.time()
 
         self.msg = self.sample_vec.SerializeToString()
@@ -32,10 +33,13 @@ class ProtobufTest(object):
         print "Start packing test: "
         self.logger.mark_start()
         for i in xrange(self.num_of_samples):
+            samp = self.sample_vec.samples[0]
+            # don`t do sth like: samp.channels[x] = float(x) without
+            # clearing samp. Somehow, not-clearing samp results in linear memory usage...
+            samp.Clear()
             for x in range(self.num_of_channels):
-                samp = self.sample_vec.samples[x]
-                samp.value = float(x)
-                samp.timestamp = time.time()
+                samp.channels.append(float(x))
+            samp.timestamp = time.time()
             msg = self.sample_vec.SerializeToString()
             #self.logger.log_sample()
         self.logger.mark_end()

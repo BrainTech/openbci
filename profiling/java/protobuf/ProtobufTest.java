@@ -20,10 +20,12 @@ public class ProtobufTest {
 	    SampleVector msg = null;
 	    Sample.Builder s = null;
 
-	    for (int i=0; i<num_of_channels; i++) {
+	    for (int j=0; j < 1; j++) {
 		s = Sample.newBuilder();
-		s.setValue((double) i);
-		s.setTimestamp(System.currentTimeMillis()/1000.0);
+		for (int i=0; i<num_of_channels; i++) {
+		    s.addChannels((double) i);
+		}
+		s.setTimestamp(System.currentTimeMillis()/1000.0);		
 		sample_vec.addSamples(s);
 	    }
 
@@ -38,14 +40,16 @@ public class ProtobufTest {
 	    System.out.println("Approx. serialized sample vector size: "+b_sample_vec.size());
 	    System.out.println("Start packing test ...");
 	    double start_time = System.currentTimeMillis()/1000.0, t, end_time;
-	    for (int i = 0; i < num_of_samples; i ++) {
+	    for (int k = 0; k < num_of_samples; k ++) {
 		sample_vec = SampleVector.newBuilder();
-		for (int j=0; j<num_of_channels; j++) {
+		for (int i = 0; i < 1; i ++) {
 		    s = Sample.newBuilder();
-		    s.setValue((double) j);
+		    for (int j=0; j<num_of_channels; j++) {
+			s.addChannels((double) j);
+		    }
 		    s.setTimestamp(System.currentTimeMillis()/1000.0);
 		    sample_vec.addSamples(s);
-		    }
+		}
 		/* alternative, should-be-but-isnt faster version
 		for (int j=0; j<num_of_channels; j++) {
 		    s = sample_vec.getSamplesBuilder(j);

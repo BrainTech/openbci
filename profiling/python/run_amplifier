@@ -1,4 +1,5 @@
 #!/bin/bash
+echo 'use like: ./run_amplifier number_of_channels sampling duration values_type'
 export PYTHONPATH=../../:../../openbci/:../../azouk-libraries/build/:PYTHONPATH
 python virtual_amplifier.py $1 $2 $3 $4
 

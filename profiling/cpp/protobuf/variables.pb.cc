@@ -121,8 +121,8 @@ void protobuf_AssignDesc_variables_2eproto() {
       sizeof(BlinkVector));
   Sample_descriptor_ = file->message_type(4);
   static const int Sample_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sample, value_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sample, timestamp_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Sample, channels_),
   };
   Sample_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -287,16 +287,16 @@ void protobuf_AddDesc_variables_2eproto() {
     "Vector\022&\n\tvariables\030\001 \003(\0132\023.variables.Va"
     "riable\")\n\005Blink\022\r\n\005index\030\001 \002(\005\022\021\n\ttimest"
     "amp\030\002 \002(\001\"/\n\013BlinkVector\022 \n\006blinks\030\001 \003(\013"
-    "2\020.variables.Blink\"*\n\006Sample\022\r\n\005value\030\001 "
-    "\002(\001\022\021\n\ttimestamp\030\002 \002(\001\"2\n\014SampleVector\022\""
-    "\n\007samples\030\001 \003(\0132\021.variables.Sample\"*\n\010De"
-    "cision\022\020\n\010decision\030\001 \002(\005\022\014\n\004type\030\002 \001(\005\"("
-    "\n\tUgmUpdate\022\014\n\004type\030\001 \002(\005\022\r\n\005value\030\002 \002(\t"
-    "\"~\n\003Tag\022\027\n\017start_timestamp\030\001 \002(\001\022\025\n\rend_"
-    "timestamp\030\002 \002(\001\022\014\n\004name\030\003 \002(\t\022\020\n\010channel"
-    "s\030\004 \002(\t\022\'\n\004desc\030\005 \001(\0132\031.variables.Variab"
-    "leVector\")\n\tTagVector\022\034\n\004tags\030\001 \003(\0132\016.va"
-    "riables.Tag", 571);
+    "2\020.variables.Blink\"-\n\006Sample\022\021\n\ttimestam"
+    "p\030\001 \002(\001\022\020\n\010channels\030\002 \003(\001\"2\n\014SampleVecto"
+    "r\022\"\n\007samples\030\001 \003(\0132\021.variables.Sample\"*\n"
+    "\010Decision\022\020\n\010decision\030\001 \002(\005\022\014\n\004type\030\002 \001("
+    "\005\"(\n\tUgmUpdate\022\014\n\004type\030\001 \002(\005\022\r\n\005value\030\002 "
+    "\002(\t\"~\n\003Tag\022\027\n\017start_timestamp\030\001 \002(\001\022\025\n\re"
+    "nd_timestamp\030\002 \002(\001\022\014\n\004name\030\003 \002(\t\022\020\n\010chan"
+    "nels\030\004 \002(\t\022\'\n\004desc\030\005 \001(\0132\031.variables.Var"
+    "iableVector\")\n\tTagVector\022\034\n\004tags\030\001 \003(\0132\016"
+    ".variables.Tag", 574);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "variables.proto", &protobuf_RegisterTypes);
   Variable::default_instance_ = new Variable();
@@ -1271,8 +1271,8 @@ void BlinkVector::Swap(BlinkVector* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int Sample::kValueFieldNumber;
 const int Sample::kTimestampFieldNumber;
+const int Sample::kChannelsFieldNumber;
 #endif  // !_MSC_VER
 
 Sample::Sample()
@@ -1291,7 +1291,6 @@ Sample::Sample(const Sample& from)
 
 void Sample::SharedCtor() {
   _cached_size_ = 0;
-  value_ = 0;
   timestamp_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
@@ -1327,9 +1326,9 @@ Sample* Sample::New() const {
 
 void Sample::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    value_ = 0;
     timestamp_ = 0;
   }
+  channels_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -1340,26 +1339,10 @@ bool Sample::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required double value = 1;
+      // required double timestamp = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED64) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
-                 input, &value_)));
-          set_has_value();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(17)) goto parse_timestamp;
-        break;
-      }
-      
-      // required double timestamp = 2;
-      case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED64) {
-         parse_timestamp:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
                  input, &timestamp_)));
@@ -1367,6 +1350,28 @@ bool Sample::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(17)) goto parse_channels;
+        break;
+      }
+      
+      // repeated double channels = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_FIXED64) {
+         parse_channels:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitive<
+                   double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
+                 1, 17, input, this->mutable_channels())));
+        } else if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag)
+                   == ::google::protobuf::internal::WireFormatLite::
+                      WIRETYPE_LENGTH_DELIMITED) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitiveNoInline<
+                   double, ::google::protobuf::internal::WireFormatLite::TYPE_DOUBLE>(
+                 input, this->mutable_channels())));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(17)) goto parse_channels;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -1389,14 +1394,15 @@ bool Sample::MergePartialFromCodedStream(
 
 void Sample::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required double value = 1;
-  if (has_value()) {
-    ::google::protobuf::internal::WireFormatLite::WriteDouble(1, this->value(), output);
+  // required double timestamp = 1;
+  if (has_timestamp()) {
+    ::google::protobuf::internal::WireFormatLite::WriteDouble(1, this->timestamp(), output);
   }
   
-  // required double timestamp = 2;
-  if (has_timestamp()) {
-    ::google::protobuf::internal::WireFormatLite::WriteDouble(2, this->timestamp(), output);
+  // repeated double channels = 2;
+  for (int i = 0; i < this->channels_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteDouble(
+      2, this->channels(i), output);
   }
   
   if (!unknown_fields().empty()) {
@@ -1407,14 +1413,15 @@ void Sample::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Sample::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required double value = 1;
-  if (has_value()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteDoubleToArray(1, this->value(), target);
+  // required double timestamp = 1;
+  if (has_timestamp()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteDoubleToArray(1, this->timestamp(), target);
   }
   
-  // required double timestamp = 2;
-  if (has_timestamp()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteDoubleToArray(2, this->timestamp(), target);
+  // repeated double channels = 2;
+  for (int i = 0; i < this->channels_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteDoubleToArray(2, this->channels(i), target);
   }
   
   if (!unknown_fields().empty()) {
@@ -1428,17 +1435,19 @@ int Sample::ByteSize() const {
   int total_size = 0;
   
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required double value = 1;
-    if (has_value()) {
-      total_size += 1 + 8;
-    }
-    
-    // required double timestamp = 2;
+    // required double timestamp = 1;
     if (has_timestamp()) {
       total_size += 1 + 8;
     }
     
   }
+  // repeated double channels = 2;
+  {
+    int data_size = 0;
+    data_size = 8 * this->channels_size();
+    total_size += 1 * this->channels_size() + data_size;
+  }
+  
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -1464,10 +1473,8 @@ void Sample::MergeFrom(const ::google::protobuf::Message& from) {
 
 void Sample::MergeFrom(const Sample& from) {
   GOOGLE_CHECK_NE(&from, this);
+  channels_.MergeFrom(from.channels_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_value()) {
-      set_value(from.value());
-    }
     if (from.has_timestamp()) {
       set_timestamp(from.timestamp());
     }
@@ -1488,15 +1495,15 @@ void Sample::CopyFrom(const Sample& from) {
 }
 
 bool Sample::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000003) != 0x00000003) return false;
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
   
   return true;
 }
 
 void Sample::Swap(Sample* other) {
   if (other != this) {
-    std::swap(value_, other->value_);
     std::swap(timestamp_, other->timestamp_);
+    channels_.Swap(&other->channels_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

@@ -8,7 +8,7 @@ LOG_INTERVAL=$3
 CHAN_NUM=$2
 
 #protoc speedtest_protobuf.proto --cpp_out=.
-#protoc -I ../../openbci/ --cpp_out=. ../../openbci/variables.proto
+protoc -I ../../../openbci/ --cpp_out=. ../../../openbci/variables.proto
 
 g++ -Wall -O4 protobuf_test.cc -o protobuf_test.bin -lpthread \
 	-I$protobuf/include -L$protobuf/lib -lprotobuf -lboost_date_time 
