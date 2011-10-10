@@ -77,9 +77,9 @@
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_TMSI_MINOR_BASE		192
 #define info(...) printk(KERN_INFO __VA_ARGS__)
-#define debug(...) ;
-//#define debug(...) printk(KERN_INFO __VA_ARGS__)
-short front_end_info[19]={0xAAAA,0x0210,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFDEC};
+//#define debug(...) ;
+#define debug(...) printk(KERN_INFO __VA_ARGS__)
+short front_end_info[19]={0xAAAA,0x0210,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFDE};
 
 /* Structure to hold all of our device specific stuff */
 
@@ -463,12 +463,14 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 				debug("Read_callback: sem_up: %d\n",urb->actual_length);
                 if (dev->releasing)
                 {
-                    short *buf=(short *)urb->transfer_buffer;
-                    debug("message received while releasing");
-                    if (buf[0]==0xAAAA && buf[1]==0x0002)
+                    unsigned short *buf=(unsigned short *)urb->transfer_buffer;
+                    debug("message received while releasing %d",urb->actual_length);
+                    if (urb->actual_length>=4)
+                    {if (buf[0]==0xAAAA && buf[1]==0x0002)
                         release_dev=1;
                     else
                         debug("buf[0]==%d, buf[1]=%d",buf[0],buf[1]);
+                        }
                 }
 				break;
 			}
