@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5"
+#define DRIVER_VERSION			"1.5.2"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -225,7 +225,7 @@ static int tmsi_release(struct inode *inode, struct file *file)
 	struct tmsi_data* dev;
 	int retval = 0;	
 	char *buf = NULL;
-    info("Tmsi Release");
+    info("Tmsi Release\n");
 	dev = (struct tmsi_data*)file->private_data;
     buf = kmalloc(sizeof(front_end_info), GFP_KERNEL);
 	if (!buf) {
@@ -233,7 +233,7 @@ static int tmsi_release(struct inode *inode, struct file *file)
 		goto error;
 	}
     memcpy(front_end_info,buf,sizeof(front_end_info));
-    info("Sending front end info");
+    info("Sending front end info\n");
     retval= tmsi_write_data(dev,buf,sizeof(front_end_info));
     dev->releasing=1;
     return retval;
@@ -268,10 +268,10 @@ static int tmsi_release_dev(struct tmsi_data* dev)
         kfree(dev->fifo_sem);
 
 	/* decrement the count on our device */
-	debug("Kref dec");
+	debug("Kref dec\n");
 	kref_put(&dev->kref, tmsi_delete);
 
-    info("Tmsi device realese() success");
+    info("Tmsi device realese() success\n");
     dev->releasing=0;
 	return 0;
 }
@@ -459,17 +459,17 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 				kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->actual_length);
                 #endif
 
-                                up(dev->fifo_sem);
+                up(dev->fifo_sem);
 				debug("Read_callback: sem_up: %d\n",urb->actual_length);
                 if (dev->releasing)
                 {
                     unsigned short *buf=(unsigned short *)urb->transfer_buffer;
-                    debug("message received while releasing %d",urb->actual_length);
+                    debug("message received while releasing\n");
                     if (urb->actual_length>=4)
                     {if (buf[0]==0xAAAA && buf[1]==0x0002)
                         release_dev=1;
                     else
-                        debug("buf[0]==%d, buf[1]=%d",buf[0],buf[1]);
+                        debug("buf[0]==%d, buf[1]=%d\n",buf[0],buf[1]);
                         }
                 }
 				break;
@@ -558,7 +558,7 @@ static void tmsi_delete(struct kref *kref)
 {
 	struct tmsi_data* dev = container_of(kref, struct tmsi_data, kref);
 	int i;
-	info("Deleting Tmsi device ...");
+	info("Deleting Tmsi device ...\n");
 	usb_put_dev(dev->udev);
 
 	// Free device instance
@@ -610,7 +610,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
 	struct usb_endpoint_descriptor* endpoint;
 	int i, j;
 	int retval = -ENOMEM;
-	debug("Tmsi probe");
+	debug("Tmsi probe\n");
 
 	// Allocate memory for our device state and initialize it
 	dev = kmalloc(sizeof(struct tmsi_data), GFP_KERNEL);
@@ -623,7 +623,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
 	// Initialize dev structure
 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
 	dev->interface = interface;
-	debug("Kref init");
+	debug("Kref init\n");
 	kref_init(&dev->kref);
 
 	dev->bulk_recv_buffer = kmalloc(BULK_RECV_URBS * sizeof(unsigned char*), GFP_KERNEL);
@@ -691,14 +691,14 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
 	}
 
 	/* let the user know what node this device is now attached to */
-	info("Tmsi device now attached (minor %d)", interface->minor);
+	info("Tmsi device (driver version %s) now attached (minor %d)\n", DRIVER_VERSION,interface->minor);
 
 	return 0;
 
 error:
 	if(dev)
 {
-		debug("Kref dec");
+		debug("Kref dec\n");
 		kref_put(&dev->kref, tmsi_delete);
 }
 	return retval;
@@ -709,7 +709,7 @@ static void tmsi_disconnect(struct usb_interface *interface)
 {
 	struct tmsi_data *dev;
 	int minor = interface->minor;
-	info("Disconnecting Tmsi device ...(minor %d)", minor);	
+	info("Disconnecting Tmsi device ...(minor %d)\n", minor);	
 
 	/* prevent tmsi_open() from racing tmsi_disconnect() */
 	lock_kernel();
@@ -722,10 +722,10 @@ static void tmsi_disconnect(struct usb_interface *interface)
 	unlock_kernel();
 
 	/* decrement our usage count */
-	debug("Kref dec");
+	debug("Kref dec\n");
 	kref_put(&dev->kref, tmsi_delete);
 
-	info("Tmsi device now disconnected (minor %d)", minor);
+	info("Tmsi device now disconnected (minor %d)\n", minor);
 }
 
 
