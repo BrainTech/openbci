@@ -67,6 +67,7 @@
 /* IOCTL commands */
 #define IOCTL_TMSI_BUFFERSIZE		0x40044601
 #define IOCTL_TMSI_BUFFERSIZE_64	0x40084601
+#define IOCTL_TMSI_SENDSTOP     	0x40084603
 
 /* Buffer structure */
 #define PACKET_BUFFER_SIZE		131072
@@ -78,7 +79,10 @@
 #define info(...) printk(KERN_INFO __VA_ARGS__)
 #define debug(...) ;
 //#define debug(...) printk(KERN_INFO __VA_ARGS__)
+short front_end_info[19]={0xAAAA,0x0210,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0xFDEC};
+
 /* Structure to hold all of our device specific stuff */
+
 struct tmsi_data {
 	struct usb_device* udev;
 	struct usb_interface* interface;
@@ -102,6 +106,9 @@ struct tmsi_data {
 	struct usb_endpoint_descriptor* bulk_recv_endpoint;
 	struct usb_endpoint_descriptor* bulk_send_endpoint;
 	struct usb_endpoint_descriptor* isoc_recv_endpoint;
+    
+    //StopRequest
+    char releasing;
 };
 
 static struct usb_driver tmsi_driver;
@@ -113,8 +120,10 @@ static struct usb_driver tmsi_driver;
 // File operations
 static int tmsi_open(struct inode *inode, struct file *file);
 static int tmsi_release(struct inode *inode, struct file *file);
+static int tmsi_release_dev(struct tmsi_data *dev);
 static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *ppos);
 static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t count, loff_t *ppos);
+static ssize_t tmsi_write_data(struct tmsi_data *dev, char *buf, size_t count);
 static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int command, unsigned long argument);
 
 // R/W callback functions
@@ -211,14 +220,31 @@ static int tmsi_open(struct inode *inode, struct file *file)
 exit:
 	return retval;
 }
-
-
 static int tmsi_release(struct inode *inode, struct file *file)
 {
 	struct tmsi_data* dev;
-	int i;
-
+	int retval = 0;	
+	char *buf = NULL;
+    info("Tmsi Release");
 	dev = (struct tmsi_data*)file->private_data;
+    buf = kmalloc(sizeof(front_end_info), GFP_KERNEL);
+	if (!buf) {
+		retval = -ENOMEM;
+		goto error;
+	}
+    memcpy(front_end_info,buf,sizeof(front_end_info));
+    info("Sending front end info");
+    retval= tmsi_write_data(dev,buf,sizeof(front_end_info));
+    dev->releasing=1;
+    return retval;
+error:
+    tmsi_release_dev(dev);
+    return retval;
+}
+static int tmsi_release_dev(struct tmsi_data* dev)
+{
+	
+	int i;	
 	if(!dev)
 		return -ENODEV;
 	debug("DeAllocatng bulk urbs\n");
@@ -245,7 +271,8 @@ static int tmsi_release(struct inode *inode, struct file *file)
 	debug("Kref dec");
 	kref_put(&dev->kref, tmsi_delete);
 
-        info("Tmsi device realese() success");
+    info("Tmsi device realese() success");
+    dev->releasing=0;
 	return 0;
 }
 
@@ -298,13 +325,39 @@ exit:
 	}
 	return retval;
 }
+static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count)
+{
+	struct urb *urb = NULL;
+    int retval = 0;
+    debug("Write:Allocating urb\n");
+	/* Create an URB */
+	urb = usb_alloc_urb(0, GFP_KERNEL);
+	if (!urb) {
+		retval = -ENOMEM;
+		goto error;
+	}
+    debug("Write: fill urb\n");
+	/* Initialize the urb properly */
+	usb_fill_bulk_urb(urb, dev->udev, usb_sndbulkpipe(dev->udev, dev->bulk_send_endpoint->bEndpointAddress), buf, count, (usb_complete_t)tmsi_write_bulk_callback, dev);
+	debug("Write: send urb\n");
+	/* Send the data out the bulk port */
+	retval = usb_submit_urb(urb, GFP_KERNEL);
+	if (retval) {
+		err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
+		goto error;
+	}
 
+	/* release our reference to this urb, the USB core will eventually free it entirely */
+error:
+	usb_free_urb(urb);
+	debug("Write: done\n");
+    return retval;
+}
 
 static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t count, loff_t *ppos)
 {
 	struct tmsi_data* dev;
-	int retval = 0;
-	struct urb *urb = NULL;
+	int retval = 0;	
 	char *buf = NULL;
 
 	dev = (struct tmsi_data*)file->private_data;
@@ -312,13 +365,6 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
 	/* Verify that we actually have some data to write */
 	if (count == 0)
 		goto exit;
-	debug("Write:Allocating urb\n");
-	/* Create an URB */
-	urb = usb_alloc_urb(0, GFP_KERNEL);
-	if (!urb) {
-		retval = -ENOMEM;
-		goto error;
-	}
 
 	/* Create a send buffer */
 	buf = kmalloc(count, GFP_KERNEL);
@@ -332,27 +378,15 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
 		retval = -EFAULT;
 		goto error;
 	}
-	debug("Write: fill urb\n");
-	/* Initialize the urb properly */
-	usb_fill_bulk_urb(urb, dev->udev, usb_sndbulkpipe(dev->udev, dev->bulk_send_endpoint->bEndpointAddress), buf, count, (usb_complete_t)tmsi_write_bulk_callback, dev);
-	debug("Write: send urb\n");
-	/* Send the data out the bulk port */
-	retval = usb_submit_urb(urb, GFP_KERNEL);
-	if (retval) {
-		err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
-		goto error;
-	}
-
-	/* release our reference to this urb, the USB core will eventually free it entirely */
-	usb_free_urb(urb);
-	debug("Write: done\n");
+	retval = tmsi_write_data(dev,buf,count);
+    if (retval<0)
+        goto error;
 
 exit:
 	return count;
 
 error:
-	usb_free_urb(urb);
-	kfree(buf);
+	if (buf) kfree(buf);
 	debug("Write: error\n");
 	return retval;
 }
@@ -371,10 +405,9 @@ static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int comma
 			put_user(kfifo_len(dev->packet_buffer), arg_address);
 			return 0;
 
-			break;
+			break;        
 		}
-
-		default:
+        default:
 			info("%s: IOCTL command 0x%X not implemented!", __FUNCTION__, command);
 			break;
 	}
@@ -406,6 +439,7 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 {
 	int retval = 0;
 	struct tmsi_data* dev;
+    int release_dev=0;
 	
 	if(!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
 		// Retrieve private data from URB's context
@@ -427,6 +461,15 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 
                                 up(dev->fifo_sem);
 				debug("Read_callback: sem_up: %d\n",urb->actual_length);
+                if (dev->releasing)
+                {
+                    short *buf=(short *)urb->transfer_buffer;
+                    debug("message received while releasing");
+                    if (buf[0]==0xAAAA && buf[1]==0x0002)
+                        release_dev=1;
+                    else
+                        debug("buf[0]==%d, buf[1]=%d",buf[0],buf[1]);
+                }
 				break;
 			}
 
@@ -453,6 +496,8 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
 		debug("Read_callback: urb_submit\n");
 		if (retval)
 			err("%s - failed submitting bulk_recv_urb, error %d", __FUNCTION__, retval);
+        if (release_dev)
+            tmsi_release_dev(dev);
 	}
 }
 
