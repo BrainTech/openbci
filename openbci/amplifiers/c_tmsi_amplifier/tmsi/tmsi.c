@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.2"
+#define DRIVER_VERSION			"1.5.5"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -224,7 +224,7 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     struct tmsi_data* dev;
     int retval = 0;
     char *buf = NULL;
-    info("Tmsi Release\n");
+    info("Tmsi Release fei size:%d\n",sizeof(front_end_info));
     dev = (struct tmsi_data*) file->private_data;
     buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
     if (!buf) {
@@ -233,8 +233,8 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     }
     memcpy(front_end_info, buf, sizeof (front_end_info));
     info("Sending front end info\n");
-    retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
     dev->releasing = 1;
+    retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
     return retval;
 error:
     tmsi_release_dev(dev);
@@ -244,6 +244,7 @@ error:
 static int tmsi_release_dev(struct tmsi_data* dev) {
 
     int i;
+    debug("Tmsi release dev\n");
     if (!dev)
         return -ENODEV;
     debug("DeAllocatng bulk urbs\n");
@@ -280,13 +281,13 @@ static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *
     char* temp_buffer = NULL;
     int retval = 0;
     size_t true_count;
-    debug("Read:Waiting for sem\n");
+    //debug("Read:Waiting for sem\n");
     // Get device context from private_data file* member.
     dev = (struct tmsi_data*) file->private_data;
     if (down_timeout(dev->fifo_sem, HZ / 2) != 0)
         return -ETIME;
     while (down_trylock(dev->fifo_sem) == 0);
-    debug("Read:Waiting for sem. Done\n");
+    //debug("Read:Waiting for sem. Done\n");
     // Allocate temporary buffer
     temp_buffer = kmalloc(count, GFP_KERNEL);
 
@@ -312,12 +313,12 @@ static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *
         retval = true_count;
 
     kfree(temp_buffer);
-    debug("Read:kfifo_len: %d. Read:%d\n", kfifo_len(dev->packet_buffer), true_count);
+    //debug("Read:kfifo_len: %d. Read:%d\n", kfifo_len(dev->packet_buffer), true_count);
 exit:
 
     if (kfifo_len(dev->packet_buffer) > 0) {
         up(dev->fifo_sem);
-        debug("Read:Releasing sem\n");
+      //  debug("Read:Releasing sem\n");
     }
     return retval;
 }
@@ -332,7 +333,7 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
         retval = -ENOMEM;
         goto error;
     }
-    debug("Write: fill urb\n");
+    debug("Write: fill urb:%d\n",count);
     /* Initialize the urb properly */
     usb_fill_bulk_urb(urb, dev->udev, usb_sndbulkpipe(dev->udev, dev->bulk_send_endpoint->bEndpointAddress), buf, count, (usb_complete_t) tmsi_write_bulk_callback, dev);
     debug("Write: send urb\n");
