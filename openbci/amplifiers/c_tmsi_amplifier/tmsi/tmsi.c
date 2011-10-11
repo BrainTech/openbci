@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.9"
+#define DRIVER_VERSION			"1.5.10"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -79,7 +79,7 @@
 #define info(...) printk(KERN_INFO __VA_ARGS__)
 //#define debug(...) ;
 #define debug(...) printk(KERN_INFO __VA_ARGS__)
-unsigned short front_end_info[19] = {0xAAAA, 0x0210, 0x26, 0x3, 0x11, 0x200, 0x1872, 0xc58, 0x18,0x8,0x720, 0x725, 0x8c, 0x8a, 0x26, 0x800, 0xFFFF, 0xFFFF, 0x14A3};
+unsigned short front_end_info[19] = {0xAAAA, 0x0210, 0x0026, 0x0003, 0x0011, 0x0200, 0x1872, 0x0c58, 0x0018,0x0008,0x0720, 0x0725, 0x008c, 0x008a, 0x0026, 0x0800, 0xFFFF, 0xFFFF, 0x14A3};
 
 /* Structure to hold all of our device specific stuff */
 
@@ -223,7 +223,7 @@ exit:
 static int tmsi_release(struct inode *inode, struct file *file) {
     struct tmsi_data* dev;
     int retval = 0;
-    char *buf = NULL;
+    unsigned short *buf = NULL;
     info("Tmsi Release fei size:%d\n",sizeof(front_end_info));
     dev = (struct tmsi_data*) file->private_data;
     buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
@@ -234,7 +234,17 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     memcpy(front_end_info, buf, sizeof (front_end_info));
     info("Sending front end info\n");
     dev->releasing = 1;
-    retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
+    retval = tmsi_write_data(dev, (char *)buf, sizeof (front_end_info));
+/*
+    if (count==38)
+*/
+    {
+        unsigned short * vals=(unsigned short *)buf;
+        int i=0;        
+        debug("Release:");
+        for (i=0;i<19;i++)
+            debug("%X, %X",vals[i],front_end_info[i]);
+    }
 /*
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
 */
@@ -353,7 +363,6 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
         debug("FEI:");
         for (i=0;i<19;i++)
             debug("%X,",vals[i]);
-        debug("\n");
     }
 
     /* release our reference to this urb, the USB core will eventually free it entirely */
