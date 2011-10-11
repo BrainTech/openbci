@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.10"
+#define DRIVER_VERSION			"1.5.11"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -80,7 +80,7 @@
 //#define debug(...) ;
 #define debug(...) printk(KERN_INFO __VA_ARGS__)
 unsigned short front_end_info[19] = {0xAAAA, 0x0210, 0x0026, 0x0003, 0x0011, 0x0200, 0x1872, 0x0c58, 0x0018,0x0008,0x0720, 0x0725, 0x008c, 0x008a, 0x0026, 0x0800, 0xFFFF, 0xFFFF, 0x14A3};
-
+char * fei=NULL;
 /* Structure to hold all of our device specific stuff */
 
 struct tmsi_data {
@@ -224,14 +224,14 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     struct tmsi_data* dev;
     int retval = 0;
     unsigned short *buf = NULL;
-    info("Tmsi Release fei size:%d\n",sizeof(front_end_info));
+    info("Tmsi Release fei: %X %X\n",front_end_info[0],front_end_info[1]);
     dev = (struct tmsi_data*) file->private_data;
     buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
     if (!buf) {
         retval = -ENOMEM;
         goto error;
     }
-    memcpy(front_end_info, buf, sizeof (front_end_info));
+    memcpy(buf,front_end_info, sizeof (front_end_info));
     info("Sending front end info\n");
     dev->releasing = 1;
     retval = tmsi_write_data(dev, (char *)buf, sizeof (front_end_info));
@@ -240,10 +240,11 @@ static int tmsi_release(struct inode *inode, struct file *file) {
 */
     {
         unsigned short * vals=(unsigned short *)buf;
+        unsigned short * vals2=(unsigned short *)fei;
         int i=0;        
         debug("Release:");
         for (i=0;i<19;i++)
-            debug("%X, %X",vals[i],front_end_info[i]);
+            debug("%X, %X, %X",vals[i],front_end_info[i],vals2[i]);
     }
 /*
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
@@ -395,6 +396,17 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
         goto error;
     }
     retval = tmsi_write_data(dev, buf, count);
+    if (fei==NULL && count==38)
+    {
+        fei = kmalloc(count, GFP_KERNEL);
+        if (fei)
+        {
+            unsigned short *vals=(unsigned short *)fei;
+            memcpy(fei,buf,count);
+            vals[18]-=11-vals[4];
+            vals[4]=11;
+        }
+    }
     if (retval < 0)
         goto error;
 exit:
