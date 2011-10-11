@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.6"
+#define DRIVER_VERSION			"1.5.7"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -226,6 +226,7 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     char *buf = NULL;
     info("Tmsi Release fei size:%d\n",sizeof(front_end_info));
     dev = (struct tmsi_data*) file->private_data;
+/*
     buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
     if (!buf) {
         retval = -ENOMEM;
@@ -237,6 +238,7 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
     return retval;
+*/
 error:
     tmsi_release_dev(dev);
     return retval;
@@ -373,6 +375,15 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
         goto error;
     }
     retval = tmsi_write_data(dev, buf, count);
+    if (count==38)
+    {
+        unsigned short * vals=(unsigned short *)buf;
+        int i=0;
+        debug("FEI:");
+        for (i=0;i<19;i++)
+            debug("%d,",buf[i]);
+        debug("\n");
+    }
     if (retval < 0)
         goto error;
 
@@ -380,8 +391,10 @@ exit:
     return count;
 
 error:
+    debug("Write: error:%d\n",retval);
     if (buf) kfree(buf);
-    debug("Write: error\n");
+
+    
     return retval;
 }
 
@@ -434,7 +447,9 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
     if (!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
         // Retrieve private data from URB's context
         dev = (struct tmsi_data*) urb->context;
+/*
         debug("Read_callback: begin\n");
+*/
         switch (urb->status) {
             case 0:
             {
@@ -491,7 +506,9 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 
         // Submit the URB
         retval = usb_submit_urb(urb, GFP_ATOMIC);
+/*
         debug("Read_callback: urb_submit\n");
+*/
         if (retval)
             err("%s - failed submitting bulk_recv_urb, error %d", __FUNCTION__, retval);
         if (release_dev)
