@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.7"
+#define DRIVER_VERSION			"1.5.8"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -379,9 +379,10 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
     {
         unsigned short * vals=(unsigned short *)buf;
         int i=0;
+        char str[1000];
         debug("FEI:");
         for (i=0;i<19;i++)
-            debug("%d,",buf[i]);
+            debug("%X,",vals[i]);
         debug("\n");
     }
     if (retval < 0)
