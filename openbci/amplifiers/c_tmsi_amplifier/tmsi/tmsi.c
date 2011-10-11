@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.8"
+#define DRIVER_VERSION			"1.5.9"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -79,7 +79,7 @@
 #define info(...) printk(KERN_INFO __VA_ARGS__)
 //#define debug(...) ;
 #define debug(...) printk(KERN_INFO __VA_ARGS__)
-short front_end_info[19] = {0xAAAA, 0x0210, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFDEC};
+unsigned short front_end_info[19] = {0xAAAA, 0x0210, 0x26, 0x3, 0x11, 0x200, 0x1872, 0xc58, 0x18,0x8,0x720, 0x725, 0x8c, 0x8a, 0x26, 0x800, 0xFFFF, 0xFFFF, 0x14A3};
 
 /* Structure to hold all of our device specific stuff */
 
@@ -226,7 +226,6 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     char *buf = NULL;
     info("Tmsi Release fei size:%d\n",sizeof(front_end_info));
     dev = (struct tmsi_data*) file->private_data;
-/*
     buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
     if (!buf) {
         retval = -ENOMEM;
@@ -236,9 +235,12 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     info("Sending front end info\n");
     dev->releasing = 1;
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
+/*
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
-    return retval;
 */
+    
+    return retval;
+    
 error:
     tmsi_release_dev(dev);
     return retval;
@@ -344,6 +346,15 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
         err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
         goto error;
     }
+    if (count==38)
+    {
+        unsigned short * vals=(unsigned short *)buf;
+        int i=0;        
+        debug("FEI:");
+        for (i=0;i<19;i++)
+            debug("%X,",vals[i]);
+        debug("\n");
+    }
 
     /* release our reference to this urb, the USB core will eventually free it entirely */
 error:
@@ -375,19 +386,8 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
         goto error;
     }
     retval = tmsi_write_data(dev, buf, count);
-    if (count==38)
-    {
-        unsigned short * vals=(unsigned short *)buf;
-        int i=0;
-        char str[1000];
-        debug("FEI:");
-        for (i=0;i<19;i++)
-            debug("%X,",vals[i]);
-        debug("\n");
-    }
     if (retval < 0)
         goto error;
-
 exit:
     return count;
 
@@ -469,9 +469,10 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
                 up(dev->fifo_sem);
                 debug("Read_callback: sem_up: %d\n", urb->actual_length);
                 if (dev->releasing) {
-                    release_dev = 1;
-/*
                     unsigned short *buf = (unsigned short *) urb->transfer_buffer;
+/*
+                    release_dev = 1;
+*/
                     debug("message received while releasing\n");
                     if (urb->actual_length >= 4) {
                         if (buf[0] == 0xAAAA && buf[1] == 0x0002)
@@ -480,7 +481,6 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
                             debug("buf[0]==%d, buf[1]=%d\n", buf[0], buf[1]);
 
                     }
-*/
                 }
                 break;
             }
