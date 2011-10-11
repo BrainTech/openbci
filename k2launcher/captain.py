@@ -376,7 +376,8 @@ start("svarog_test_py_bt_mobi", "py_bt_mobimini_amplifier")
 start("svarog_test_py_bt_mobi", "manual_tags_sending")
 
 
-
+start("test", "hashtable")
+start("test", "c++_usb_amplifier")
 
 start("svarog_test_c++_usb", "hashtable")
 start("svarog_test_c++_usb", "c++_usb_amplifier")

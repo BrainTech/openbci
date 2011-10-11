@@ -27,7 +27,7 @@ void print_help()
      printf("Usage: \n"\
                             "[-a multiplexer_addres] default=\"127.0.0.1\"\n"\
                             "[-p port] defaut=\"31889\"\n"\
-                            "[-d device_path ] amplifier address default=\"/dev/fusbi0\"\n"\
+                            "[-d device_path ] amplifier address default=\"/dev/tmsi0\"\n"\
                             "[-b bluetooth address] amplifier bluetooth address\n"\
                             "[-r file] file with stored amplifier responses\n"\
                             "[-l nr_of_samples] print log message after number_of_samples\n" \
@@ -37,7 +37,7 @@ void print_help()
 }
 int main(int argc, char**argv)
 {
-    const char * device="/dev/fusbi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
+    const char * device="/dev/tmsi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
     int port=31889,type=USB_AMPLIFIER,sampling_rate=-1;
     Logger *log=NULL;
 
