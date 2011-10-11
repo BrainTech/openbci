@@ -54,7 +54,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.5"
+#define DRIVER_VERSION			"1.5.6"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -235,6 +235,7 @@ static int tmsi_release(struct inode *inode, struct file *file) {
     info("Sending front end info\n");
     dev->releasing = 1;
     retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
+    retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
     return retval;
 error:
     tmsi_release_dev(dev);
@@ -326,7 +327,6 @@ exit:
 static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) {
     struct urb *urb = NULL;
     int retval = 0;
-    debug("Write:Allocating urb\n");
     /* Create an URB */
     urb = usb_alloc_urb(0, GFP_KERNEL);
     if (!urb) {
@@ -336,7 +336,6 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
     debug("Write: fill urb:%d\n",count);
     /* Initialize the urb properly */
     usb_fill_bulk_urb(urb, dev->udev, usb_sndbulkpipe(dev->udev, dev->bulk_send_endpoint->bEndpointAddress), buf, count, (usb_complete_t) tmsi_write_bulk_callback, dev);
-    debug("Write: send urb\n");
     /* Send the data out the bulk port */
     retval = usb_submit_urb(urb, GFP_KERNEL);
     if (retval) {
@@ -347,7 +346,6 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
     /* release our reference to this urb, the USB core will eventually free it entirely */
 error:
     usb_free_urb(urb);
-    debug("Write: done\n");
     return retval;
 }
 
@@ -507,7 +505,7 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
     if (!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
         // Retrieve private data from URB's context
         dev = (struct tmsi_data*) urb->context;
-
+        debug("");
         switch (urb->status) {
             case 0:
             {
