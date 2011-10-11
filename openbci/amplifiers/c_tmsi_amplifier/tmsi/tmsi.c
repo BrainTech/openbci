@@ -460,13 +460,14 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs)
                 #endif
 
                 up(dev->fifo_sem);
-				debug("Read_callback: sem_up: %d\n",urb->actual_length);
+		debug("Read_callback: sem_up: %d\n",urb->actual_length);
                 if (dev->releasing)
                 {
                     unsigned short *buf=(unsigned short *)urb->transfer_buffer;
                     debug("message received while releasing\n");
                     if (urb->actual_length>=4)
-                    {if (buf[0]==0xAAAA && buf[1]==0x0002)
+                    {
+                        if (buf[0]==0xAAAA && buf[1]==0x0002)
                         release_dev=1;
                     else
                         debug("buf[0]==%d, buf[1]=%d\n",buf[0],buf[1]);
@@ -518,7 +519,9 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs)
 				// Enqueue packet in user buffer
 				if (urb->iso_frame_desc[0].actual_length==0)
 					break;				
+/*
 				debug("Isoc Read_callback: sem_up:%d\n",urb->iso_frame_desc[0].actual_length);
+*/
                 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35)
 				kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer,  urb->iso_frame_desc[0].actual_length, &dev->buffer_lock);
                 #elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
