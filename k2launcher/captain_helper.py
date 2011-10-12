@@ -15,7 +15,7 @@ from nurse_helper import close_screen, start_screen
 
 
 class Captain(object):
-    def __init__(self,global_path, mx_addresses=None, mx_password=None, default_env={}, mx_path=""):
+    def __init__(self,global_path, mx_addresses=None, mx_password=None, mx_rules=None, default_env={}, mx_path=""):
         """
         mx_addresses = comma separated list of type
         """
@@ -32,6 +32,14 @@ class Captain(object):
         if self.mx_password == None:
             self.mx_password = os.environ.get('MULTIPLEXER_PASSWORD', None)
         assert self.mx_password != None, "No mx password given!"
+
+	self.mx_rules = mx_rules
+        if self.mx_password == None:
+            self.mx_password = default_env.get('MULTIPLEXER_RULES', None)
+        if self.mx_password == None:
+            self.mx_password = os.environ.get('MULTIPLEXER_RULES', None)
+        assert self.mx_rules != None, "No mx rules given!"
+
         self.connection = None
         self.default_env = default_env
         self.mx_path = mx_path
@@ -86,7 +94,7 @@ class Captain(object):
         l = self.mx_addresses_raw.split(",")
         for i, x in enumerate(l):
             x = x.strip(" ")
-            start_screen("mx_" + str(i), self.mx_path + 'mxcontrol run_multiplexer ' + x + ' --multiplexer-password "' + self.mx_password + '"')
+            start_screen("mx_" + str(i), self.mx_path + 'mxcontrol run_multiplexer ' + x + ' --rules ' + self.mx_rules + ' --multiplexer-password "' + self.mx_password + '"')
         time.sleep(0.5)
         start_screen("controller", "cd " + self.global_path + "; python controller.py", env=self.default_env)
         time.sleep(0.5)

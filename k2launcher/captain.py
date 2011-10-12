@@ -11,7 +11,7 @@ import k2launcher_pb2
 home = ''.join([os.path.split(
     os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
-mx_path = '%sazouk-libraries/build/' % home
+mx_path =  '/usr/local/lib/python2.6/dist-packages/'
 obci_path = '%sopenbci/' % home
 
 env = os.environ.copy()
@@ -19,7 +19,8 @@ env = os.environ.copy()
 _env = {
         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
         "MULTIPLEXER_PASSWORD": "",
-        "PYTHONPATH": obci_path + ":" + obci_path + "../:" + mx_path
+        "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
+        "PYTHONPATH": obci_path + ":" + obci_path + "../:" + mx_path+":"
 }
 
 env.update(_env)
@@ -446,6 +447,6 @@ start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 if __name__ == "__main__":
     from captain_helper import Captain
     global_path = os.path.dirname(os.path.normpath(sys.argv[0]))
-    captain = Captain(global_path = global_path, default_env=env, mx_path=mx_path)
+    captain = Captain(global_path = global_path, default_env=env, mx_path='./')
     captain.main(task_dict=tasks, alias_dict=aliases)
 
