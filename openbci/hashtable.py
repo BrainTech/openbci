@@ -131,11 +131,11 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
 
         # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':'0.5', 
+        'ANALYSIS_BUFFER_FROM':'1.0', 
         # Define how many samples we wish to analyse every tick (in seconds)
-        'ANALYSIS_BUFFER_COUNT':'0.4',
+        'ANALYSIS_BUFFER_COUNT':'1.0',
         # Define a tick duration (in seconds).
-        'ANALYSIS_BUFFER_EVERY':'0.25',
+        'ANALYSIS_BUFFER_EVERY':'1.0',
         # To SUMP UP - above default values (0.5, 0.4, 0.25) define that
         # every 0.25s we will get buffer of length 0.4s starting from a sample 
         # that we got 0.5s ago.

@@ -92,6 +92,7 @@ peer {
 peer {
     type: 117
     name: "ANALYSIS"
+    queue_size: 32768	       
 }
 
 peer {
@@ -360,6 +361,12 @@ type {
         whom: ALL
 	report_delivery_error: false
     }
+    to {
+       peer: "ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+
 
 }
 
