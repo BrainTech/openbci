@@ -127,13 +127,41 @@ class Hashtable(BaseMultiplexerServer):
         "BlinkCatcherBufSize":"12",
 
 
+        # ------------ ANALYSIS --------------------------------------------------------------------------------
+        # ------------ START -----------------------------------------------------------------------------------
+
+        # Define from which moment in time (ago) we want to get samples (in seconds)
+        'ANALYSIS_BUFFER_FROM':'0.5', 
+        # Define how many samples we wish to analyse every tick (in seconds)
+        'ANALYSIS_BUFFER_COUNT':'0.4',
+        # Define a tick duration (in seconds).
+        'ANALYSIS_BUFFER_EVERY':'0.25',
+        # To SUMP UP - above default values (0.5, 0.4, 0.25) define that
+        # every 0.25s we will get buffer of length 0.4s starting from a sample 
+        # that we got 0.5s ago.
+        # Some more typical example would be for values (0.5, 0.5 0.25). 
+        # In that case, every 0.25 we would get buffer of samples from 0.5s ago till now.
+
+        # possible values are: 'PROTOBUF_SAMPLES', 'NUMPY_CHANNELS'
+        # it indicates format of buffered data returned to analysis
+        # NUMPY_CHANNELS is a numpy 2D array with data divided by channels
+        # PROTOBUF_SAMPLES is a list of protobuf Sample() objects
+        'ANALYSIS_BUFFER_RET_FORMAT':'NUMPY_CHANNELS', 
+
+        #we will not modify data, so no need to copy it
+        'ANALYSIS_BUFFER_COPY_ON_RET':"0", 
+
+
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ ANALYSIS --------------------------------------------------------------------------------
+
 
         # ------------ UGM ------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
         
-        'UGM_CONFIG': 'speller_config_nesw',
+        #'UGM_CONFIG': 'speller_config_nesw',
         #~ 'UGM_CONFIG': 'speller_config_6',
-        #'UGM_CONFIG': 'speller_config_8',
+        'UGM_CONFIG': 'speller_config_8',
         'UGM_USE_TAGGER':'1',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',
@@ -143,11 +171,11 @@ class Hashtable(BaseMultiplexerServer):
 
         # ------------ SPELLER --------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
-        'SPELLER_CONFIG':'speller_config_nesw',
+        #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        #'SPELLER_CONFIG':'speller_config_8',
-        'SPELLER_AREA_COUNT':'6',
-        #'SPELLER_AREA_COUNT':'8',
+        'SPELLER_CONFIG':'speller_config_8',
+        #'SPELLER_AREA_COUNT':'6',
+        'SPELLER_AREA_COUNT':'8',
 
         'SPELLER_START_TEXT_ID':'1001',
         'SPELLER_TEXT_ID':'54321',

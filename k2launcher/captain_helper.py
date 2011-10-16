@@ -34,10 +34,10 @@ class Captain(object):
         assert self.mx_password != None, "No mx password given!"
 
 	self.mx_rules = mx_rules
-        if self.mx_password == None:
-            self.mx_password = default_env.get('MULTIPLEXER_RULES', None)
-        if self.mx_password == None:
-            self.mx_password = os.environ.get('MULTIPLEXER_RULES', None)
+        if self.mx_rules == None:
+            self.mx_rules = default_env.get('MULTIPLEXER_RULES', None)
+        if self.mx_rules == None:
+            self.mx_rules = os.environ.get('MULTIPLEXER_RULES', None)
         assert self.mx_rules != None, "No mx rules given!"
 
         self.connection = None

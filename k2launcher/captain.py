@@ -11,7 +11,8 @@ import k2launcher_pb2
 home = ''.join([os.path.split(
     os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
-mx_path =  '/usr/local/lib/python2.6/dist-packages/'
+mx_path = '~/usr/bin/'
+mx_python_path = os.path.join(os.path.expanduser('~'), 'usr/lib/python2.6/site-packages/')
 obci_path = '%sopenbci/' % home
 
 env = os.environ.copy()
@@ -20,7 +21,7 @@ _env = {
         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
         "MULTIPLEXER_PASSWORD": "",
         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-        "PYTHONPATH": obci_path + ":" + obci_path + "../:" + mx_path+":"
+        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":"
 }
 
 env.update(_env)
@@ -59,6 +60,7 @@ task("./ugm/run_blinking_ugm.py", "blinking_ugm")
 task("./ugm/run_ugm.py p300_train", "p300_ugm_train")
 task("./ugm/run_ugm.py p300_test", "p300_ugm_test")
 task("./analysis/p300.py", "p300_analysis")
+task("./analysis/sample_bci_analysis_server.py", "sample_analysis")
 task("./blink_catcher.py", "blink_catcher")
 task("./logics/logic_speller.py p300_speller_config", "p300_logics")
 
@@ -348,6 +350,11 @@ start("p300_testing", "svarog_pinger")
 start("p300_testing", "c++_usb_amplifier")
 start("p300_testing", "p300_ugm_test")
 
+start("analysis_test", "hashtable")
+start("analysis_test", "virtual_f_amplifier")
+start("analysis_test", "sample_analysis")
+start("analysis_test", "ugm")
+start("analysis_test", "logics")
 
 
 
@@ -447,6 +454,6 @@ start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 if __name__ == "__main__":
     from captain_helper import Captain
     global_path = os.path.dirname(os.path.normpath(sys.argv[0]))
-    captain = Captain(global_path = global_path, default_env=env, mx_path='./')
+    captain = Captain(global_path = global_path, default_env=env, mx_path=mx_path)
     captain.main(task_dict=tasks, alias_dict=aliases)
 
