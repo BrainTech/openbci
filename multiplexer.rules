@@ -210,6 +210,11 @@ peer {
      type: 139
      name: "UGM_ENGINE"
 }
+peer {
+     type: 140
+     name: "ETR_SAVER"
+}
+
 
 # packages and routing rules definitions
 #
@@ -727,6 +732,12 @@ type {
        whom: ALL
 	report_delivery_error: false
        }
+    to {
+       peer: "ETR_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
 }
 
 type {

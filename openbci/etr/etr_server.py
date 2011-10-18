@@ -10,7 +10,7 @@ from nesw import etr_nesw_manager
 
 import random, time
 import etr_logging as logger
-LOGGER = logger.get_logger("etr_amplifier")
+LOGGER = logger.get_logger("etr_amplifier", "info")
 
 
 
@@ -42,7 +42,7 @@ class EtrServer(BaseMultiplexerServer):
         if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
 	    l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
-            LOGGER.info("GOT MESSAGE: "+str(l_msg))
+            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
 
             dec, ugm = self.mgr.handle_message(l_msg)
             if dec >= 0:

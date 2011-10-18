@@ -41,6 +41,7 @@ def multitask(task_ids, task_id):
 
 task("./etr/etr_amplifier.py", "etr_amplifier")
 task("./etr/etr_server.py", "etr_server")
+task("./data_storage/etr_saver.py", "etr_saver")
 task("./etr/etr_dasher_server.py", "etr_dasher_server")
 
 
@@ -135,6 +136,15 @@ start("etr", "ugm")
 start("etr", "logics")
 #start("etr", "etr_dasher_server")
 start("etr", "logics_control")
+
+start("etr_save", "hashtable")
+start("etr_save", "etr_saver")
+start("etr_save", "etr_amplifier")
+start("etr_save", "etr_server")
+start("etr_save", "ugm")
+start("etr_save", "logics")
+start("etr_save", "logics_control")
+
 
 start("blink_test", "hashtable")
 start("blink_test", "blinking_ugm")
