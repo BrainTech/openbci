@@ -1,6 +1,17 @@
 #!/bin/bash
-ln -s $HOME/azouk-libraries azouk-libraries
-cd azouk-libraries/
-./configure RULES=../multiplexer.rules --prefix=$HOME/usr && make -j4 && make install 
-cd ..
+
+p=$1
+if [ -z $p ]
+then
+    p=$HOME
+fi
+
+curr=`pwd`
+az_path=$p/azouk-libraries
+
+
+cd $az_path
+./bootstrap.sh
+./configure RULES=$curr/multiplexer.rules --prefix=$HOME/usr && make -j4 && make install 
+cd $curr
 ln -s $HOME/usr/ azouk-install
