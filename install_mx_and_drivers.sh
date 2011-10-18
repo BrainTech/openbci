@@ -6,11 +6,14 @@ then
     p=$HOME
 fi
 
-ln -s $p/azouk-libraries azouk-libraries
-cd azouk-libraries/
+curr=`pwd`
+az_path=$p/azouk-libraries
+
+
+cd $az_path
 ./bootstrap.sh
-./configure RULES=../multiplexer.rules --prefix=$HOME/usr && make -j4 && make install 
-cd ..
+./configure RULES=$curr/multiplexer.rules --prefix=$HOME/usr && make -j4 && make install 
+cd $curr
 ln -s $HOME/usr/ azouk-install
 cd openbci/amplifiers/c_tmsi_amplifier/tmsi/
 sudo make install
