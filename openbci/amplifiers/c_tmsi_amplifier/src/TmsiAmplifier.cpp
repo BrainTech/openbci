@@ -56,7 +56,7 @@ TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_addr
     else
         read_fd = fd;
     if (dump_file!=NULL)
-        dump_fd = open(dump_file, O_WRONLY|O_CREAT|O_TRUNC);
+        dump_fd = open(dump_file, O_WRONLY|O_CREAT|O_TRUNC,(S_IRUSR|S_IWUSR));
     else
         dump_fd=-1;
     debug("Descriptors: %d %d", fd, read_fd);
@@ -218,7 +218,7 @@ void TmsiAmplifier::start_sampling() {
     br = 0;
     keep_alive=1;
     int counter = 0;
-    int type;
+    int type=0;
     signal(SIGINT,handler);
     signal(SIGTERM,handler);
     tms_write_frontendinfo(fd, &fei);
@@ -300,7 +300,12 @@ bool TmsiAmplifier::get_samples() {
             if (--keep_alive==0)
             {
                 keep_alive=sampling_rate*KEEP_ALIVE_RATE/channel_data[0].ns;
-                printf("Sending keep_alive\n");
+		struct tm *current;
+		time_t now;
+	
+		time(&now);
+		current = localtime(&now);
+		printf("%i:%i:%i Keep alive\n", current->tm_hour, current->tm_min, current->tm_sec);
                 tms_snd_keepalive(fd);
             }
 

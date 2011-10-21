@@ -25,9 +25,8 @@
 #define ADDITIONAL_CHANNELS 3
 #define TRIGGER_ACTIVE 0x04
 #define BATTERY_LOW 0x40
-#define KEEP_ALIVE_RATE 10 //seconds between every keep_alive message
-#define MAX_ERRORS 10
-#define MAX_ERRORS 10
+#define KEEP_ALIVE_RATE 1 //seconds between every keep_alive message
+#define MAX_ERRORS 120
 using namespace std;
 #undef debug
 #ifdef AMP_DEBUG
