@@ -1,8 +1,8 @@
 PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\([0-9]\+\).*/\1.\2/')
 ROOTDIR		= ../../..
-AZOUKDIR	= $(ROOTDIR)/multiplexer-install
+AZOUKDIR	= `cd $(ROOTDIR)/multiplexer-install;pwd`
 CXX		= g++
-O		?= #-O3
+O		= -O2
 GENERALFLAGS	+= $(O) -Wall \
 			-DBOOST_DISABLE_THREADS \
 			#-DAMP_DEBUG
@@ -27,7 +27,8 @@ LDFLAGS		+= $(GENERALFLAGS) \
 			-lboost_system \
 			-lpthread \
 			-lbluetooth \
-			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python
+			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python\
+			-Wl,--rpath,$(AZOUKDIR)/lib
     			#
 BUILD = build
 
