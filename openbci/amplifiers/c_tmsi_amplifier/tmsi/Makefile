@@ -23,6 +23,11 @@ install: default synfi_init
 	cp -f fusbi.hex $(FWDIR)
 uninstall:
 	rm -f $(LIBUDEV)/synfi_init $(UDEVDIR)/tmsi.rules $(FWDIR)/fusbi.hex
+	rmmod tmsi || echo 'doesnt matter'
+	modprobe -r tmsi || echo 'doesnt matter'
+	rm -f `find /lib/ -name 'tmsi*'` || echo 'doesnt matter'
+reinstall: uninstall install
+	
 
 clean:
 	rm -Rf .tmsi.ko.cmd tmsi.mod.c tmsi.mod.o .tmsi.mod.o.cmd tmsi.o .tmsi.o.cmd Module.symvers .tmp_versions

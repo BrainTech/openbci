@@ -11,6 +11,11 @@
  *
  * ChangeLog
  * ---------
+ * v1.6 - 21-10-2011 Maciej Pawlisz
+ *      + Support kernel 3.0
+ *      + Sending front_end_info with stop request on release
+ *      * Allocating/deallocation urbs moved to open/release
+ *       
  * v1.5 - 16-07-2011 Maciej Pawlisz
  *      * Name change to Tmsi driver
  *      * usb_kill_urb instead of usb_unlink_urb in release 
@@ -39,22 +44,23 @@
  */
 
 /* Kernel headers */
+#define DEBUG
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/slab.h>
 #include <linux/module.h>
 #include <linux/kref.h>
+#include <linux/mutex.h>
 #include <asm/uaccess.h>
 #include <linux/usb.h>
 #include <linux/usb/ch9.h>
 #include <linux/kfifo.h>
 #include <linux/version.h>
-#include <linux/smp_lock.h>
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION			"1.5.11"
+#define DRIVER_VERSION			"1.6.0"
 #define DRIVER_AUTHOR			"Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC			"TMS International USB <-> Fiber Interface Driver for Linux (c) 2005"
 
@@ -77,10 +83,8 @@
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_TMSI_MINOR_BASE		192
 #define info(...) printk(KERN_INFO __VA_ARGS__)
-//#define debug(...) ;
-#define debug(...) printk(KERN_INFO __VA_ARGS__)
-unsigned short front_end_info[19] = {0xAAAA, 0x0210, 0x0026, 0x0003, 0x0011, 0x0200, 0x1872, 0x0c58, 0x0018,0x0008,0x0720, 0x0725, 0x008c, 0x008a, 0x0026, 0x0800, 0xFFFF, 0xFFFF, 0x14A3};
-char * fei=NULL;
+#define debug(...) ;
+//#define debug(...) printk(KERN_INFO __VA_ARGS__)
 /* Structure to hold all of our device specific stuff */
 
 struct tmsi_data {
@@ -109,7 +113,12 @@ struct tmsi_data {
 
     //StopRequest
     char releasing;
+    struct semaphore *release_sem;
+    char * fei;
+    unsigned int fei_size;
 };
+
+DEFINE_MUTEX(driver_lock);
 
 static struct usb_driver tmsi_driver;
 
@@ -141,11 +150,11 @@ static void tmsi_delete(struct kref *kref);
 static int tmsi_open(struct inode *inode, struct file *file) {
     struct tmsi_data* dev;
     struct usb_interface* interface;
-    int i, subminor;
+    int i, subminor,pipe;
     int retval = 0;
     debug("tmsi open\n");
     subminor = iminor(inode);
-
+    mutex_lock(&driver_lock);
     interface = usb_find_interface(&tmsi_driver, subminor);
     if (!interface) {
         err("%s - error, can't find device for minor %d", __FUNCTION__, subminor);
@@ -154,49 +163,67 @@ static int tmsi_open(struct inode *inode, struct file *file) {
     }
 
     dev = usb_get_intfdata(interface);
+    mutex_unlock(&driver_lock);
     if (!dev) {
         retval = -ENODEV;
         goto exit;
     }
 
     if (dev->device_open > 0)
-        return -1;
+        {
+	  retval=-1;
+          goto exit;
+	}
     else
         dev->device_open = 1;
 
     /* increment our usage count for the device */
-    debug("Kref Inc\n");
+    //    debug("Kref Inc\n");
     kref_get(&dev->kref);
 
     /* save our object in the file's private structure */
     file->private_data = dev;
 
     // Setup incoming databuffer
+#if LINUX_VERSION_CODE > KERNEL_VERSION(3,0,0)
+    spin_lock_init(&dev->buffer_lock);
+#else
     dev->buffer_lock = SPIN_LOCK_UNLOCKED;
+#endif
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
     dev->packet_buffer = &dev->inner_packet_buffer;
     kfifo_alloc(dev->packet_buffer, PACKET_BUFFER_SIZE, GFP_KERNEL);
 #else
     dev->packet_buffer = kfifo_alloc(PACKET_BUFFER_SIZE, GFP_KERNEL, &dev->buffer_lock);
 #endif
-
+    
     debug("Allocatng bulk urbs\n");
+    dev->bulk_recv_urb = kmalloc(BULK_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);    
+    dev->bulk_recv_buffer = kmalloc(BULK_RECV_URBS * sizeof (char *),GFP_KERNEL);
+    dev->isoc_recv_urb = kmalloc(ISOC_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
+    dev->isoc_recv_buffer = kmalloc(ISOC_RECV_URBS * sizeof (char *),GFP_KERNEL);
     // Setup initial bulk receive URB and submit
+    pipe=usb_rcvbulkpipe(dev->udev, dev->bulk_recv_endpoint->bEndpointAddress);
     for (i = 0; i < BULK_RECV_URBS; ++i) {
-        usb_fill_bulk_urb(dev->bulk_recv_urb[i], dev->udev, usb_rcvbulkpipe(dev->udev, dev->bulk_recv_endpoint->bEndpointAddress), dev->bulk_recv_buffer[i], dev->bulk_recv_endpoint->wMaxPacketSize, (usb_complete_t) tmsi_read_bulk_callback, dev);
-
+        dev->bulk_recv_urb[i] = usb_alloc_urb(0, GFP_KERNEL);
+        dev->bulk_recv_buffer[i] = kmalloc(dev->bulk_recv_endpoint->wMaxPacketSize, GFP_KERNEL);
+        usb_fill_bulk_urb(dev->bulk_recv_urb[i], dev->udev, pipe, dev->bulk_recv_buffer[i], dev->bulk_recv_endpoint->wMaxPacketSize, (usb_complete_t) tmsi_read_bulk_callback, dev);
         retval = usb_submit_urb(dev->bulk_recv_urb[i], GFP_KERNEL);
         if (retval)
             err("%s - failed submitting bulk read urb[%d], error %d", __FUNCTION__, i, retval);
     }
     debug("Allocatng isoc urbs\n");
     // Setup initial isochronous receive URB's and submit
+	pipe=usb_rcvisocpipe(dev->udev, dev->isoc_recv_endpoint->bEndpointAddress);
     for (i = 0; i < ISOC_RECV_URBS; ++i) {
+        dev->isoc_recv_urb[i] = usb_alloc_urb(1, GFP_KERNEL);
+        dev->isoc_recv_buffer[i] = kmalloc(dev->isoc_recv_endpoint->wMaxPacketSize, GFP_KERNEL);
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,24)
         spin_lock_init(&dev->isoc_recv_urb[i]->lock);
 #endif
         dev->isoc_recv_urb[i]->dev = dev->udev;
-        dev->isoc_recv_urb[i]->pipe = usb_rcvisocpipe(dev->udev, dev->isoc_recv_endpoint->bEndpointAddress);
+        dev->isoc_recv_urb[i]->pipe = pipe;
         dev->isoc_recv_urb[i]->transfer_buffer = dev->isoc_recv_buffer[i];
         dev->isoc_recv_urb[i]->transfer_buffer_length = dev->isoc_recv_endpoint->wMaxPacketSize;
         dev->isoc_recv_urb[i]->complete = (usb_complete_t) tmsi_read_isoc_callback;
@@ -215,6 +242,8 @@ static int tmsi_open(struct inode *inode, struct file *file) {
     debug("Allocatng fifo_sem\n");
     dev->fifo_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
     sema_init(dev->fifo_sem, 0);
+    dev->release_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
+    sema_init(dev->release_sem, 0);
     info("Tmsi device open() success");
 exit:
     return retval;
@@ -223,36 +252,19 @@ exit:
 static int tmsi_release(struct inode *inode, struct file *file) {
     struct tmsi_data* dev;
     int retval = 0;
-    unsigned short *buf = NULL;
-    info("Tmsi Release fei: %X %X\n",front_end_info[0],front_end_info[1]);
+    //unsigned short *buf = NULL;
+    info("Tmsi Release\n");
     dev = (struct tmsi_data*) file->private_data;
-    buf = kmalloc(sizeof (front_end_info), GFP_KERNEL);
-    if (!buf) {
-        retval = -ENOMEM;
-        goto error;
-    }
-    memcpy(buf,front_end_info, sizeof (front_end_info));
-    info("Sending front end info\n");
+    if (!dev)
+        return -ENODEV;
     dev->releasing = 1;
-    retval = tmsi_write_data(dev, (char *)buf, sizeof (front_end_info));
-/*
-    if (count==38)
-*/
+    if (dev->fei)
     {
-        unsigned short * vals=(unsigned short *)buf;
-        unsigned short * vals2=(unsigned short *)fei;
-        int i=0;        
-        debug("Release:");
-        for (i=0;i<19;i++)
-            debug("%X, %X, %X",vals[i],front_end_info[i],vals2[i]);
+        info("Sending front end info\n");
+        retval = tmsi_write_data(dev, dev->fei, dev->fei_size);
+        down_timeout(dev->release_sem, HZ);
+        dev->fei=NULL;
     }
-/*
-    retval = tmsi_write_data(dev, buf, sizeof (front_end_info));
-*/
-    
-    return retval;
-    
-error:
     tmsi_release_dev(dev);
     return retval;
 }
@@ -263,18 +275,34 @@ static int tmsi_release_dev(struct tmsi_data* dev) {
     debug("Tmsi release dev\n");
     if (!dev)
         return -ENODEV;
+/*
     debug("DeAllocatng bulk urbs\n");
+*/
     // Unlink current receiving bulk URB
     for (i = 0; i < BULK_RECV_URBS; ++i)
-        usb_kill_urb(dev->bulk_recv_urb[i]);
+	{
+	        usb_unlink_urb(dev->bulk_recv_urb[i]);
+	        usb_free_urb(dev->bulk_recv_urb[i]);
+	        kfree(dev->bulk_recv_buffer[i]);
+	}
+/*
     debug("DeAllocatng isoc urbs\n");
+*/
     // Unlink current receiving isochronous URB's
-    for (i = 0; i < ISOC_RECV_URBS; ++i)
-        usb_kill_urb(dev->isoc_recv_urb[i]);
-
+    for (i = ISOC_RECV_URBS-1; i>=0; --i)
+{
+	debug("Kill urb: %x,%d\n",dev->isoc_recv_urb[i],i); 
+	       	usb_unlink_urb(dev->isoc_recv_urb[i]);
+	        usb_free_urb(dev->isoc_recv_urb[i]);
+	        kfree(dev->isoc_recv_buffer[i]);
+	debug("Done\n");
+}
     if (dev->device_open > 0)
         dev->device_open = 0;
-
+    kfree(dev->isoc_recv_urb);
+    kfree(dev->isoc_recv_buffer);
+    kfree(dev->bulk_recv_urb);
+    kfree(dev->bulk_recv_buffer);
     // Remove buffer
 
     kfifo_reset(dev->packet_buffer);
@@ -282,6 +310,7 @@ static int tmsi_release_dev(struct tmsi_data* dev) {
     debug("DeAllocatng fifo_sem\n");
     up(dev->fifo_sem);
     kfree(dev->fifo_sem);
+    kfree(dev->release_sem);
 
     /* decrement the count on our device */
     debug("Kref dec\n");
@@ -297,14 +326,11 @@ static ssize_t tmsi_read(struct file *file, char *buffer, size_t count, loff_t *
     char* temp_buffer = NULL;
     int retval = 0;
     size_t true_count;
-    //debug("Read:Waiting for sem\n");
-    // Get device context from private_data file* member.
     dev = (struct tmsi_data*) file->private_data;
     if (down_timeout(dev->fifo_sem, HZ / 2) != 0)
         return -ETIME;
     while (down_trylock(dev->fifo_sem) == 0);
-    //debug("Read:Waiting for sem. Done\n");
-    // Allocate temporary buffer
+
     temp_buffer = kmalloc(count, GFP_KERNEL);
 
     if (!temp_buffer) {
@@ -356,16 +382,7 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
     if (retval) {
         err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
         goto error;
-    }
-    if (count==38)
-    {
-        unsigned short * vals=(unsigned short *)buf;
-        int i=0;        
-        debug("FEI:");
-        for (i=0;i<19;i++)
-            debug("%X,",vals[i]);
-    }
-
+    }  
     /* release our reference to this urb, the USB core will eventually free it entirely */
 error:
     usb_free_urb(urb);
@@ -376,7 +393,7 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
     struct tmsi_data* dev;
     int retval = 0;
     char *buf = NULL;
-
+    unsigned short *packet;
     dev = (struct tmsi_data*) file->private_data;
 
     /* Verify that we actually have some data to write */
@@ -396,15 +413,19 @@ static ssize_t tmsi_write(struct file *file, const char *user_buffer, size_t cou
         goto error;
     }
     retval = tmsi_write_data(dev, buf, count);
-    if (fei==NULL && count==38)
+    packet = (unsigned short *)buf;
+    //Storing front end info (FEI) for later use
+    if (dev->fei==NULL && count>=38 &&  packet[0]==0xAAAA && packet[1]==0x0210)
     {
-        fei = kmalloc(count, GFP_KERNEL);
-        if (fei)
+        dev->fei = kmalloc(count, GFP_KERNEL);
+        if (dev->fei)
         {
-            unsigned short *vals=(unsigned short *)fei;
-            memcpy(fei,buf,count);
-            vals[18]-=11-vals[4];
-            vals[4]=11;
+            unsigned short *vals=(unsigned short *)dev->fei;
+            dev->fei_size=count;
+            memcpy(dev->fei,buf,count);
+	    //Modifying FEI: stopp request, and checksum
+            vals[18]-=0x11-vals[4];
+            vals[4]=0x11;
         }
     }
     if (retval < 0)
@@ -415,8 +436,6 @@ exit:
 error:
     debug("Write: error:%d\n",retval);
     if (buf) kfree(buf);
-
-    
     return retval;
 }
 
@@ -449,7 +468,7 @@ static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int comma
 
 static void tmsi_write_bulk_callback(struct urb *urb, struct pt_regs *regs) {
     struct tmsi_data* dev;
-    debug("Write_callback: begin\n");
+    debug("Write_callback\n");
     dev = (struct tmsi_data*) urb->context;
 
     /* sync/async unlink faults aren't errors */
@@ -458,49 +477,51 @@ static void tmsi_write_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 
     /* free up our allocated buffer */
     kfree(urb->transfer_buffer);
-    debug("Write_callback: done\n");
+}
+
+
+static void tmsi_enqueue_data(struct tmsi_data *dev, const char * buffer, size_t length)
+{
+//	debug("Write data: %d\n",length);
+        if (length == 0)
+            return;
+
+#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35)
+        kfifo_in_spinlocked(dev->packet_buffer, buffer, length, &dev->buffer_lock);
+#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
+        kfifo_in_locked(dev->packet_buffer, buffer, length, &dev->buffer_lock);
+#else 
+        kfifo_put(dev->packet_buffer, buffer, length);
+#endif
+        up(dev->fifo_sem);
 }
 
 static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
     int retval = 0;
     struct tmsi_data* dev;
-    int release_dev = 0;
-
+//    debug("Read bulk callback\n");
     if (!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
         // Retrieve private data from URB's context
         dev = (struct tmsi_data*) urb->context;
-/*
-        debug("Read_callback: begin\n");
-*/
+
+        debug("Read_callback: begin%d\n",urb->status);
+
         switch (urb->status) {
             case 0:
             {
                 // Packet received is OK and cleared the buffer completely
                 // Enqueue packet in user buffer
-                if (urb->actual_length == 0)
-                    break;
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35)
-                kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);
-#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
-                kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->actual_length, &dev->buffer_lock);
-#else 
-                kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->actual_length);
-#endif
+		tmsi_enqueue_data(dev,urb->transfer_buffer,urb->actual_length);
 
-                up(dev->fifo_sem);
-                debug("Read_callback: sem_up: %d\n", urb->actual_length);
                 if (dev->releasing) {
+		//We are waiting for ack from amplifier to confirm that sampling is stopped
                     unsigned short *buf = (unsigned short *) urb->transfer_buffer;
-/*
-                    release_dev = 1;
-*/
-                    debug("message received while releasing\n");
+		    debug("message received while releasing\n");
                     if (urb->actual_length >= 4) {
                         if (buf[0] == 0xAAAA && buf[1] == 0x0002)
-                            release_dev = 1;
+                            up(dev->release_sem);
                         else
                             debug("buf[0]==%d, buf[1]=%d\n", buf[0], buf[1]);
-
                     }
                 }
                 break;
@@ -518,7 +539,6 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
             {
                 // Unknown error. Log to syslog
                 info("%s: Unknown bulk error occurred (status %d)", __FUNCTION__, urb->status);
-
                 break;
             }
         }
@@ -528,49 +548,31 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 
         // Submit the URB
         retval = usb_submit_urb(urb, GFP_ATOMIC);
-/*
-        debug("Read_callback: urb_submit\n");
-*/
         if (retval)
             err("%s - failed submitting bulk_recv_urb, error %d", __FUNCTION__, retval);
-        if (release_dev)
-            tmsi_release_dev(dev);
     }
 }
 
 static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
-    int retval = 0;
+    int retval = 0,status;
     struct tmsi_data* dev;
-    if (!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
-        // Retrieve private data from URB's context
+    status=urb->status;
+    debug("Read isoc callback %x:%d,%d\n",(void *)urb,urb->status,urb->iso_frame_desc[0].status);
+    if (!(status == -ENOENT || status == -ECONNRESET || status == -ESHUTDOWN)) {
         dev = (struct tmsi_data*) urb->context;
-        debug("");
-        switch (urb->status) {
+        switch (status) {
             case 0:
             {
                 // Packet received is OK and cleared the buffer completely
                 // Enqueue packet in user buffer
-                if (urb->iso_frame_desc[0].actual_length == 0)
-                    break;
-                /*
-                                                debug("Isoc Read_callback: sem_up:%d\n",urb->iso_frame_desc[0].actual_length);
-                 */
-#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,35)
-                kfifo_in_spinlocked(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length, &dev->buffer_lock);
-#elif LINUX_VERSION_CODE > KERNEL_VERSION(2,6,32)
-                kfifo_in_locked(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length, &dev->buffer_lock);
-#else 
-                kfifo_put(dev->packet_buffer, urb->transfer_buffer, urb->iso_frame_desc[0].actual_length);
-#endif
-
-                up(dev->fifo_sem);
+		tmsi_enqueue_data(dev,urb->transfer_buffer,urb->iso_frame_desc[0].actual_length);
                 break;
             }
 
             default:
             {
                 // Unknown error. Log to syslog
-                err("%s: Unknown USB error occurred (status %d)", __FUNCTION__, urb->status);
+                err("%s: Unknown USB error occurred (status %d)", __FUNCTION__, status);
                 break;
             }
         }
@@ -579,9 +581,8 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
         urb->status = 0;
         urb->iso_frame_desc[0].status = 0;
         urb->iso_frame_desc[0].actual_length = 0;
-
         // Submit the URB
-        retval = usb_submit_urb(urb, GFP_ATOMIC);
+	retval = usb_submit_urb(urb, GFP_ATOMIC);
         if (retval)
             err("%s - failed submitting isoc_recv_urb, error %d", __FUNCTION__, retval);
     }
@@ -593,21 +594,10 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
 
 static void tmsi_delete(struct kref *kref) {
     struct tmsi_data* dev = container_of(kref, struct tmsi_data, kref);
-    int i;
     info("Deleting Tmsi device ...\n");
     usb_put_dev(dev->udev);
 
     // Free device instance
-    for (i = 0; i < BULK_RECV_URBS; ++i) {
-        usb_free_urb(dev->bulk_recv_urb[i]);
-        kfree(dev->bulk_recv_buffer[i]);
-    }
-
-    for (i = 0; i < ISOC_RECV_URBS; ++i) {
-        usb_free_urb(dev->isoc_recv_urb[i]);
-        kfree(dev->isoc_recv_buffer[i]);
-    }
-
     kfree(dev);
     info("Tmsi device deleted");
 }
@@ -642,7 +632,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
     struct tmsi_data* dev = NULL;
     struct usb_host_interface* iface_desc;
     struct usb_endpoint_descriptor* endpoint;
-    int i, j;
+    int i;
     int retval = -ENOMEM;
     debug("Tmsi probe\n");
 
@@ -660,10 +650,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
     debug("Kref init\n");
     kref_init(&dev->kref);
 
-    dev->bulk_recv_buffer = kmalloc(BULK_RECV_URBS * sizeof (unsigned char*), GFP_KERNEL);
-    dev->bulk_recv_urb = kmalloc(BULK_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
-    dev->isoc_recv_buffer = kmalloc(ISOC_RECV_URBS * sizeof (unsigned char*), GFP_KERNEL);
-    dev->isoc_recv_urb = kmalloc(ISOC_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
+    
 
     /* Use the alternate interface specified in the tmsi device */
     usb_set_interface(dev->udev, 0, 1);
@@ -675,14 +662,9 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
         endpoint = &iface_desc->endpoint[i].desc;
 
         /* we found a Bulk IN endpoint */
-        if (!dev->bulk_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK)) {
+        if (!dev->bulk_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK))
             dev->bulk_recv_endpoint = endpoint;
 
-            for (j = 0; j < BULK_RECV_URBS; ++j) {
-                dev->bulk_recv_urb[j] = usb_alloc_urb(0, GFP_KERNEL);
-                dev->bulk_recv_buffer[j] = kmalloc(endpoint->wMaxPacketSize, GFP_KERNEL);
-            }
-        }
 
         /* we found a Bulk OUT endpoint */
         if (!dev->bulk_send_endpoint && !(endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK)) {
@@ -690,14 +672,8 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
         }
 
         /* We found an Isochronous IN endpoint */
-        if (!dev->isoc_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_ISOC)) {
+        if (!dev->isoc_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_ISOC))
             dev->isoc_recv_endpoint = endpoint;
-
-            for (j = 0; j < ISOC_RECV_URBS; ++j) {
-                dev->isoc_recv_urb[j] = usb_alloc_urb(1, GFP_KERNEL);
-                dev->isoc_recv_buffer[j] = kmalloc(endpoint->wMaxPacketSize, GFP_KERNEL);
-            }
-        }
     }
 
     /* Check if all required endpoints are present */
@@ -725,7 +701,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
     }
 
     /* let the user know what node this device is now attached to */
-    info("Tmsi device (driver version %s) now attached (minor %d)\n", DRIVER_VERSION, interface->minor);
+	info("%s device (driver version %s) now attached (minor %d)\n", id->idProduct==USB_SYNFI_PRODUCT_ID?"SYNFI":"FUSBI",DRIVER_VERSION, interface->minor);
 
     return 0;
 
@@ -743,20 +719,20 @@ static void tmsi_disconnect(struct usb_interface *interface) {
     info("Disconnecting Tmsi device ...(minor %d)\n", minor);
 
     /* prevent tmsi_open() from racing tmsi_disconnect() */
-    lock_kernel();
+    mutex_lock(&driver_lock);
 
     dev = usb_get_intfdata(interface);
     usb_set_intfdata(interface, NULL);
 
     usb_deregister_dev(interface, &tmsi_class);
 
-    unlock_kernel();
+    mutex_unlock(&driver_lock);
 
     /* decrement our usage count */
     debug("Kref dec\n");
     kref_put(&dev->kref, tmsi_delete);
 
-    info("Tmsi device now disconnected (minor %d)\n", minor);
+    info("Tmsi device disconnected\n");
 }
 
 
