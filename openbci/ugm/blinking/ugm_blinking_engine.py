@@ -47,11 +47,12 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         elif msg_type == 'stop_blinking':
             self.stop_blinking()
         else:
-            raise Exception("Got ugm_control nrecognised msg_type:"+msg_type)
+            raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()
         self._schedule_blink(time.time())
+        self.connection.send_blinking_started()
 
     def _schedule_blink(self, start_time):
         self._curr_blink_id = self.id_mgr.get_id()

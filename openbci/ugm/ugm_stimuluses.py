@@ -375,7 +375,7 @@ class UgmTextStimulus(UgmStimulus, UgmRectConfig):
         try:
             self._font = QtGui.QFont()
             self._font.setFamily(p_config_dict['font_family'])
-            self._font.setPointSize(p_config_dict['font_size'])
+            self._font.setPointSize(int(p_config_dict['font_size']))
             self._color = p_config_dict['font_color']
             self._message = p_config_dict['message']
             
@@ -383,7 +383,7 @@ class UgmTextStimulus(UgmStimulus, UgmRectConfig):
             p_config_dict['width_type'] = 'absolute'
             p_config_dict['height_type'] = 'absolute'
             p_config_dict['width'] = l_font_metrics.width(self._message)
-            p_config_dict['height'] = p_config_dict['font_size'] 
+            p_config_dict['height'] = int(p_config_dict['font_size'])
             # Or l_font_metrics.height() ??
         except KeyError, l_exc:
             raise UgmMissingConfigKey(l_exc.args[0], p_config_dict)

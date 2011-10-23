@@ -22,14 +22,14 @@ class UgmBlinkingConnection(object):
 
     def send_blinking_started(self):
         msg = variables_pb2.Variable()
-        msg.key = "BLINKING_STARTED"
-        msg.value = time.time()
+        msg.key = "blinking_started"
+        msg.value = str(time.time())
         self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
 
     def send_blinking_stopped(self):
         msg = variables_pb2.Variable()
-        msg.key = "BLINKING_STOPPED"
-        msg.value = time.time()
+        msg.key = "blinking_stopped"
+        msg.value = str(time.time())
         self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
 
 

@@ -3,28 +3,36 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 from ugm import ugm_internal_server
+import variables_pb2
+import ugm_logging as logger
+LOGGER = logger.get_logger('run_blinking_ugm')
+
+
 class UdpBlinkingServer(ugm_internal_server.UdpServer):
     def process_message(self, message):
-        if not super(UdpBlinkingServer, self).process_message(message):
+        ok = True
+        l_msg = variables_pb2.Variable()
+        try:
+            l_msg.ParseFromString(message)
+            self._ugm_engine.control(l_msg)
+            LOGGER.info("Properly parsed UGM_CONTROL_MESSAGE...")
+        except:
+            LOGGER.info("PARSER ERROR, too big ugm control message  or not UGM_CONTROL_MESSAGE...")
+            ok = False
+
+        if not ok:
             # assumed that if not UGM_UPDATE_MESSAGE then it is UGM_CONTROL_MESSAGE
         # should represent UgmUpdate type...
-            l_msg = variables_pb2.Variable()
-            try:
-                l_msg.ParseFromString(message)
-                LOGGER.info("Properly parsed UGM_CONTROL_MESSAGE...")
-            except:
-                LOGGER.info("PARSER ERROR, too big ugm control message  or not UGM_CONTROL_MESSAGE...")
-                return False
-            self._ugm_engine.control(l_msg)
-
-        return True
-            
+            return super(UdpBlinkingServer, self).process_message(message)
+        else:
+            return True
 
 import configurer
 from blinking import ugm_blinking_engine
 from blinking import ugm_blinking_connection
 from ugm import ugm_config_manager
 import settings
+import thread, os
 
 if __name__ == "__main__":
     # Create instance of ugm_engine with config manager (created from
