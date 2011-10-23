@@ -19,9 +19,7 @@
 using namespace boost::posix_time;
 
 int main(int argc, char ** argv) {
-    tms_frontendinfo_t fei;
-    
-    char *dev="/dev/tmsi0", *read_dev=NULL,*dump_file=NULL,*chann_names="1 2 trig onoff bat";
+    const char *dev="/dev/tmsi0", *read_dev=NULL,*dump_file=NULL,*chann_names="1 2 trig onoff bat";
     int sample_rate=128,length=5;
     int mode=USB_AMPLIFIER;
     for (int i=1;i<argc;i++)
@@ -63,7 +61,7 @@ int main(int argc, char ** argv) {
         //vector<float> fsamples(amp.number_of_channels(), 0.0);
         amp.fill_samples(isamples);
         printf("Samples %d:\n",i);
-        for (int j = 0; j < channels.size(); j++)
+        for (unsigned int j = 0; j < channels.size(); j++)
             printf("%7s: %d %x\n", channels[j].c_str(), isamples[j], isamples[j]);
         //            amp.fill_samples(fsamples);
         //            printf("Float samples form channels:\n");

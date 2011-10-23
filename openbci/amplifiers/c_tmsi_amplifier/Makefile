@@ -1,10 +1,8 @@
 PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\([0-9]\+\).*/\1.\2/')
-ROOTDIR		:= ../../../
-AZOUKDIR	:= $(ROOTDIR)azouk-libraries
-SOURCEDIRS	:= azlib multiplexer mxcontrol-commands azouk
-SOURCEDIRS	:=$(addprefix $(AZOUKDIR)/build/,$(SOURCEDIRS))
-CXX		:= g++
-O		?= #-O3
+ROOTDIR		= ../../..
+AZOUKDIR	= `cd $(ROOTDIR)/multiplexer-install;pwd`
+CXX		= g++
+O		= -O2
 GENERALFLAGS	+= $(O) -Wall \
 			-DBOOST_DISABLE_THREADS \
 			#-DAMP_DEBUG
@@ -14,13 +12,11 @@ ifdef DEBUG
 GENERALFLAGS	+= -DAMP_DEBUG
 endif
 CXXFLAGS	+= $(GENERALFLAGS)
-INCLUDEDIRS =			-I . \
-			-I $(AZOUKDIR)/build \
-			-I $(AZOUKDIR)/src/azouk \
-			-I $(AZOUKDIR)/build/azlib \
-			-I $(ROOTDIR)/openbci \
+INCLUDEDIRS =			-I . -I/usr/share/multiplexer/src \
+			-I$(AZOUKDIR)/include \
+			-I$(ROOTDIR)/openbci \
 			-fPIC \
-			-I build
+			-Ibuild
 			#
 
 LDFLAGS		+= $(GENERALFLAGS) \
@@ -31,11 +27,12 @@ LDFLAGS		+= $(GENERALFLAGS) \
 			-lboost_system \
 			-lpthread \
 			-lbluetooth \
-			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python
+			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python\
+			-Wl,--rpath,$(AZOUKDIR)/lib
     			#
 BUILD = build
 
-LIBRARIES	:= $(shell find $(SOURCEDIRS) -name '*.o' | grep -v '\.svn')
+LIBRARIES = -L$(AZOUKDIR)/lib -lmultiplexer
 TARGETS = tmsi_server test_server test_driver dummy_receiver signal_receiver
 all: $(TARGETS)
 

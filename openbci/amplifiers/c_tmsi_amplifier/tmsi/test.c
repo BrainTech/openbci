@@ -39,7 +39,7 @@ unsigned short fireq[] = { 0xaaaa,0x0300,0x5256 };
 
 m_fd = open("/dev/tmsi0", O_RDWR | O_SYNC);
 //  ioctl(m_fd, IOCTL_FUSBI_BUFFERSIZE, &bytes);
-  maxSize = sizeof(answer);
+/*  maxSize = sizeof(answer);
   answer[0] = answer[01] =answer[02] =0;
 while( answer[0] == 0 || i<10)
 
@@ -52,7 +52,7 @@ while( answer[0] == 0 || i<10)
 	printf( "%4d answer 0x%x 0x%x 0x%x 0x%x size %d\n", i++, answer[0], answer[1], answer[2], answer[3],size );
 
 }
-
+*/
  
 
 close(m_fd);
