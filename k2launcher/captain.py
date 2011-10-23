@@ -11,9 +11,10 @@ import k2launcher_pb2
 home = ''.join([os.path.split(
     os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
-mx_path = '~/usr/bin/'
-mx_python_path = os.path.join(os.path.expanduser('~'), 'usr/lib/python2.6/site-packages/')
 obci_path = '%sopenbci/' % home
+mx_path = os.path.join(home, 'multiplexer-install')+'/bin/'
+mx_python_path = os.path.join(home, 'multiplexer-install/lib/python2.6/site-packages/')
+
 
 env = os.environ.copy()
 
