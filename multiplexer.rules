@@ -610,6 +610,11 @@ type {
         peer: "BLINK_CATCHER"
         whom: ALL
      }
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
+
 }
 
 type {

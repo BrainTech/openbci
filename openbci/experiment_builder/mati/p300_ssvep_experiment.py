@@ -24,7 +24,7 @@ BASELINE_TIME = 2
 SSVEP_FREQS = [10, 15]
 SOUND_FILE='sound.wav'
 
-FREQS = [0]*8
+FREQS = [60]*8
 FREQ_ID = 1
 
 SPACE_KEY_CODE = str(32)
@@ -34,21 +34,21 @@ INSTRUCTIONS_AFTER_BLOCK = ["TRZY"]
 TRIAL_SCREEN_FILE = 'p300_ssvep'
 TEXT_SCREEN_FILE = 'text_neg'
 STIM_TYPES = ['p300', 'ssvep', 'p300_ssvep']
-
+BLOCK_SIZE = 2
 # type of subsequent blocks
 BLOCKS = [
-          {'type':'mixed',
-           'size':3,
+          {'type':'ssvep',
+           'size':BLOCK_SIZE,
            'instructions_before_block':INSTRUCTIONS_BEFORE_BLOCK,
            'instructions_after_block':INSTRUCTIONS_AFTER_BLOCK,
            },
           {'type':'mixed',
-           'size':3,
+           'size':BLOCK_SIZE,
            'instructions_before_block':INSTRUCTIONS_BEFORE_BLOCK,
            'instructions_after_block':INSTRUCTIONS_AFTER_BLOCK,
            },
           {'type':'mixed',
-           'size':3,
+           'size':BLOCK_SIZE,
            'instructions_before_block':INSTRUCTIONS_BEFORE_BLOCK,
            'instructions_after_block':INSTRUCTIONS_AFTER_BLOCK,
            }
@@ -166,6 +166,8 @@ def perform_intro():
     send_text_screen(u"Przygotuj się do baseline. Odliczanie "+str(5-i))
     time.sleep(1)
   send_text_screen(u"Patrz się po prostu")
+  t = time.time()
+  TAGGER.send_tag(t, t, "baseline_opened_eyes", {})
   time.sleep(BASELINE_TIME)
 
   send_text_screen(u"Teraz drugi baseline")
@@ -176,6 +178,8 @@ def perform_intro():
     time.sleep(1)
 
   send_text_screen(u"Zamknij oczy")
+  t = time.time()
+  TAGGER.send_tag(t, t, "baseline_closed_eyes", {})
   time.sleep(BASELINE_TIME)
   play_sound(SOUND_FILE)
 
@@ -219,7 +223,7 @@ def run():
         freq = SSVEP_FREQS[random.randint(0, len(SSVEP_FREQS)-1)]
         update_diode_freq(freq)
         time.sleep(SSVEP_TRIAL_TIME)
-        update_diode_freq(0)
+        update_diode_freq(70)
       elif stim_type == 'p300':
         send_start_blinking()
         wait_for_blinking_stopped()
@@ -228,7 +232,7 @@ def run():
         update_diode_freq(freq)
         send_start_blinking()
         wait_for_blinking_stopped()
-        update_diode_freq(0)
+        update_diode_freq(70)
       else:
         raise Exception("Unrecognised stim type "+str(stim_type))
       t2 = time.time()
