@@ -2,7 +2,7 @@
 #
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import settings, cPickle, collections, variables_pb2
+import settings, cPickle, collections, variables_pb2, time
 
 from openbci.core import  core_logging as logger
 LOGGER = logger.get_logger("blink_and_diode_catcher", "info")
@@ -23,6 +23,7 @@ class BlinkAndDiodeCatcher(BaseMultiplexerServer):
         if mxmsg.type == types.UGM_ENGINE_MESSAGE:
             m = variables_pb2.Variable()
             m.ParseFromString(mxmsg.message)
+            print("GOT UGM ENGINE MESSAGE: "+m.key)
             if m.key == 'blinking_started':
                 self.p300_state = "P300"
             elif m.key == 'blinking_stopped':
@@ -34,10 +35,12 @@ class BlinkAndDiodeCatcher(BaseMultiplexerServer):
             print("GOT BLINK: "+b.timestamp+" / "+b.index)
             TAGGER.send_tag(b.timestamp, b.timestamp, "blink"+self.get_state(),
                             {"index" : b.index})
+
         elif mxmsg.type == types.DIODE_UPDATE_MESSAGE:
             m = variables_pb2.Variable()
             m.ParseFromString(mxmsg.message)
-            m_val = max([int(i) for i in m.split(' ')])
+            m_val = max([int(i) for i in m.value.split(' ')])
+            print("GOT DIODE UPDATE: "+str(m_val))
             if m_val == 0:
                 t = time.time()
                 TAGGER.send_tag(t, t, "diode_end"+self.get_state(),

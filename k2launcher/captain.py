@@ -156,7 +156,7 @@ start("blink_test", "blink_catcher")
 start("mati_exp", "hashtable")
 start("mati_exp", "blinking_ugm")
 start("mati_exp", "virtual_amplifier")
-#start("mati_exp", "mati_exp_catcher")
+start("mati_exp", "mati_exp_catcher")
 start("mati_exp", "mati_exp")
 
 start("logics_test", "hashtable")
