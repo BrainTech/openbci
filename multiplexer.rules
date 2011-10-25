@@ -215,6 +215,16 @@ peer {
      name: "ETR_SAVER"
 }
 
+peer {
+     type: 141
+     name: "EXPERIMENT_MANAGER"
+}
+
+peer {
+     type: 142
+     name: "BLINK_AND_DIODE_CATCHER"
+}
+
 
 # packages and routing rules definitions
 #
@@ -448,7 +458,10 @@ type {
         peer: "ANALYSIS"
         whom: ALL
     }
-
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
 }
 
 type {
@@ -570,6 +583,10 @@ type {
         peer: "SUPER_DIODE"
         whom: ALL
     }
+     to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+     }
 }
 
 type {
@@ -754,6 +771,14 @@ type {
 type {
      type: 211
      name: "UGM_ENGINE_MESSAGE"
+     to {   
+     	   peer: "EXPERIMENT_MANAGER"
+           whom: ALL
+     }	 
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
 }
 
 type {

@@ -160,8 +160,9 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         
         #'UGM_CONFIG': 'speller_config_nesw',
-        #~ 'UGM_CONFIG': 'speller_config_6',
-        'UGM_CONFIG': 'speller_config_8',
+        #'UGM_CONFIG': 'speller_config_6',
+        'UGM_CONFIG': 'p300_ssvep',
+        #'UGM_CONFIG': 'speller_config_8',
         'UGM_USE_TAGGER':'1',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',
@@ -220,16 +221,16 @@ class Hashtable(BaseMultiplexerServer):
         # SEQUENTIAL - sequental values from range [0;BLINK_ID_COUNT]
         # RANDOM_SEQUENTIAL - random, but not repeated values from range [0;BLINK_ID_COUNT]. Eg. for [0,1,2,3] we`ll get
         # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
-        #'BLINK_ID_TYPE': 'RANDOM',
-        'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
+        'BLINK_ID_TYPE': 'RANDOM',
+        #'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
         #'BLINK_ID_TYPE': 'SEQUENTIAL',
 
         # blink ids will be genereated from range [0;BLINK_ID_COUNT]
         'BLINK_ID_COUNT':'1',
 
         # Time (in secs) between two blinks will be generated as float from range[BLINK_MIN_BREAK;BLINK_MAX_BREAK]
-        'BLINK_MIN_BREAK':'0.1',
-        'BLINK_MAX_BREAK':'0.1',
+        'BLINK_MIN_BREAK':'1.5',
+        'BLINK_MAX_BREAK':'2.5',
         
         # Duration of a single blink (in secs)
         'BLINK_DURATION':'0.1',
@@ -240,22 +241,23 @@ class Hashtable(BaseMultiplexerServer):
         # SEQUENTIAL - sequental values from range [0;BLINK_ID_COUNT]
         # RANDOM_SEQUENTIAL - random, but not repeated values from range [0;BLINK_ID_COUNT]. Eg. for [0,1,2,3] we`ll get
         # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
-        'BLINK_COUNT_TYPE': 'INF',
-        #'BLINK_COUNT_TYPE': 'RANDOM',
+        #'BLINK_COUNT_TYPE': 'INF',
+        'BLINK_COUNT_TYPE': 'RANDOM',
         #'BLINK_COUNT_TYPE': 'RANDOM_SEQUENTIAL',
         #'BLINK_COUNT_TYPE': 'SEQUENTIAL',
 
         # blink counts will be genereated from range [BLINK_COUNT_MIN;BLINK_COUNT_MAX]
-        'BLINK_COUNT_MIN':'10',
-        'BLINK_COUNT_MAX':'15', 
+        'BLINK_COUNT_MIN':'4',
+        'BLINK_COUNT_MAX':'6', 
 
 
         # Blinker type, possible values:
         # SINGLE - every time one choosen field performs blink
         # CLASSIC - matrix-like blinker - blinks the whole row or whole column
         'BLINK_UGM_TYPE':'SINGLE',
-        'BLINK_UGM_ROW_COUNT':'2', # A number of rows in CLASSIC blinker
-        'BLINK_UGM_COL_COUNT':'3', # A number of cols in CLASSIC blinker
+        #'BLINK_UGM_TYPE':'CLASSIC',
+        'BLINK_UGM_ROW_COUNT':'1', # A number of rows in CLASSIC blinker
+        'BLINK_UGM_COL_COUNT':'1', # A number of cols in CLASSIC blinker
         #'BLINK_UGM_TYPE':'CLASSIC',
         # We should have always: BLINK_ID_COUNT == BLINK_UGM_ROW_COUNT + BLINK_UGM_COL_COUNT
         # We should have always: BLINK_UGM_ID_COUNT == BLINK_UGM_ROW_COUNT * BLINK_UGM_COL_COUNT
@@ -271,8 +273,8 @@ class Hashtable(BaseMultiplexerServer):
 
         # What property (KEY) and how (VALUE) should be changed on blink.
         # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
-        'BLINK_UGM_KEY':'color',
-        'BLINK_UGM_VALUE':'#ff0000',
+        'BLINK_UGM_KEY':'font_size',
+        'BLINK_UGM_VALUE':'50',
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ BLINKING UGM ------------------------------------------------------------------------------
 
