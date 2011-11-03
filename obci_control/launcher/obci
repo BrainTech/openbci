@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+python /host/dev/openbci/obci_control/launcher/obci_script.py $@
