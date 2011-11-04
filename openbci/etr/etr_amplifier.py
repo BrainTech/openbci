@@ -21,7 +21,7 @@ import random, time, configurer
 import etr_logging as logger
 LOGGER = logger.get_logger("etr_amplifier", "info")
 
-
+import peer_config_control
 
 
 class EtrAmplifier(object):
@@ -32,9 +32,16 @@ class EtrAmplifier(object):
 
         # Get from hash: ETR_IP, ETR_PORT
         LOGGER.info("Start initializin etr amplifier...")
+        self.config = peer_config_control.PeerConfigControl(self)
+
+        self.config.initialize_config()
+
+        for par in ['ETR_AMPLIFIER_IP', 'ETR_AMPLIFIER_PORT','ETR_DASHER_PORT']:
+            self.configs[par] = self.config.param(par)
+
         configurer_ = configurer.Configurer(p_addresses)
-        configs = configurer_.get_configs(['ETR_AMPLIFIER_IP', 'ETR_AMPLIFIER_PORT','ETR_DASHER_PORT'])
-        self.configs = configs
+        #configs = configurer_.get_configs(['ETR_AMPLIFIER_IP', 'ETR_AMPLIFIER_PORT','ETR_DASHER_PORT'])
+        #self.configs = configs
         self.connection = connect_client(type = peers.ETR_AMPLIFIER, addresses=p_addresses)
         LOGGER.info("Etr connected!")
         if not VIRTUAL:

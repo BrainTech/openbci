@@ -185,8 +185,8 @@ class Hashtable(BaseMultiplexerServer):
 
         # ------------ EYETRACKER ------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
-        'ETR_TYPE':'NESW',
-        #'ETR_TYPE':'CLASSIC',
+        #'ETR_TYPE':'NESW',
+        'ETR_TYPE':'CLASSIC',
         #'ETR_DEC_TYPE':'FRACTION',
         #'ETR_PUSH_DEC_COUNT':'0.7', 
         #'ETR_PUSH_FEED_COUNT':'0.1',
