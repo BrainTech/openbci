@@ -215,6 +215,17 @@ peer {
      name: "ETR_SAVER"
 }
 
+################# OBCI_CONTROL ############################
+
+peer {
+    type: 141
+    name: "OBCI_LAUNCHER"
+}
+
+peer {
+    type: 142
+    name: "PEER_CONFIG_CONTROL"
+}
 
 # packages and routing rules definitions
 #
@@ -766,3 +777,15 @@ type {
 }
 
 
+type {
+    type: 213
+    name: "CONFIG_MESSAGE"
+    to {
+        peer: "OBCI_LAUNCHER"
+        whom: ALL
+    }
+    to {
+        peer: "PEER_CONFIG_CONTROL"
+        whom: ALL
+    }
+}
