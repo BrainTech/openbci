@@ -13,7 +13,9 @@ home = ''.join([os.path.split(
 
 obci_path = '%sopenbci/' % home
 mx_path = os.path.join(home, 'multiplexer-install')+'/bin/'
-mx_python_path = os.path.join(home, 'multiplexer-install/lib/python2.6/site-packages/')
+
+lib_python_dir = 'python' + str(sys.version_info[0]) + '.' + str(sys.version_info[1])
+mx_python_path = os.path.join(home, 'multiplexer-install/lib/', lib_python_dir, 'site-packages/')
 
 
 env = os.environ.copy()
