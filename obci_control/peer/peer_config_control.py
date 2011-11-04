@@ -12,9 +12,9 @@ import peer_config_parser
 import peer_config_serializer
 from peer_cmd import PeerCmd
 
-from config_helpers import *
+from common.config_helpers import *
 
-import config_message
+import common.config_message
 import config_control_io
 
 import settings
@@ -63,15 +63,15 @@ class PeerControl(object):
 		dictparser = peer_config_parser.parser('python')
 		dictparser.parse(self.cmd_overrides, self.core, update=True)
 
-		for src_name in self.core.used_config_sources():
-			self._wait_peers.append(src_name) = False
+		#for src_name in self.core.used_config_sources():
+		#	self._wait_peers.append(src_name) = False
 
-		self.io = config_control_mx.PeerConfigMultiplexer(
+		self.io = config_control_io.PeerConfigMultiplexer(
 										settings.MULTIPLEXER_ADDRESSES, self)
 
 		self.request_ext_params()
 
-		msg = config_message.ConfigMessage()
+		msg = common.config_message.ConfigMessage()
 		msg.sender = self.peer_id
 		msg.receiver = ''
 		msg.type = 'CONFIG_READY'
@@ -114,7 +114,7 @@ class PeerControl(object):
 
 	def handle_config_message(self, p_msg):
 		print p_msg
-		if p_msg.type not in self.handlers:
+		if p_msg.type not in self._handlers:
 			return self._handle_unsupported_message(p_msg)
 
 		return self._handlers[p_msg.type](p_msg)
@@ -145,7 +145,7 @@ class PeerControl(object):
 		print "GET ", params
 		for param in params:
 			data[param] = self.core.get_param(param)
-		resp = config_message.ConfigMessage()
+		resp = common.config_message.ConfigMessage()
 		resp.type = 'PARAM_VALUES'
 		resp.sender = self.peer_id
 		resp.receiver = p_msg.sender
@@ -171,7 +171,7 @@ class PeerControl(object):
 
 
 	def request_ext_params(self):
-		msg = config_message.ConfigMessage()
+		msg = common.config_message.ConfigMessage()
 		msg.type = 'GET_PARAMS'
 		msg.sender = self.peer_id
 
@@ -183,7 +183,7 @@ class PeerControl(object):
 				print "REQ: "
 				print msg
 				print "-------------"
-				self.io.request_once()
+				self.io.request_once(msg.pack())
 
 		print self.core
 

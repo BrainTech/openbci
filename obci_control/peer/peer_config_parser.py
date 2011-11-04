@@ -6,8 +6,8 @@ import json
 import io
 
 
-import peer_config as pc
-import config_helpers as helpers
+import peer.peer_config as pc
+import common.config_helpers as helpers
 
 
 

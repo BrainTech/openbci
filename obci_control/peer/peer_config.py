@@ -3,7 +3,7 @@
 
 import warnings
 
-from config_helpers import *
+from common.config_helpers import *
 
 class PeerConfig(object):
 	"""
@@ -201,7 +201,7 @@ not declared in configuration!".format(source_name, reference))
 		for src_name in src_names:
 			src_params = self.params_for_source(src_name)
 			if src_param in src_params:
-				self.set_external_param(src_params[src_param], value)
+				self._set_external_param(src_params[src_param], value)
 
 
 

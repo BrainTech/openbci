@@ -10,7 +10,7 @@ import variables_pb2
 import zmq
 
 import peer_config_control
-import config_message
+import common.config_message as config_message
 
 
 class PeerConfigMultiplexer(BaseMultiplexerServer):
@@ -48,7 +48,7 @@ class PeerConfigMultiplexer(BaseMultiplexerServer):
         self._BaseMultiplexerServer__handle_message()
 
     def request_once(self, p_req_msg):
-        self.send_msg(p_msg)
+        self.send_msg(p_req_msg)
         self.serve_once()
 
 

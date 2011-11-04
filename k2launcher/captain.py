@@ -22,7 +22,7 @@ _env = {
         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
         "MULTIPLEXER_PASSWORD": "",
         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":"
+        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":" + obci_path + "../obci_control/:"
 }
 
 env.update(_env)

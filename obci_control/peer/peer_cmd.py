@@ -5,10 +5,10 @@ import os
 import argparse
 
 import peer_config_control
-from config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
+from common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
 							PEER_CONFIG_SECTIONS
 
-import obci_control_settings
+import common.obci_control_settings
 
 
 class PeerCmd(object):
@@ -21,7 +21,7 @@ class PeerCmd(object):
 		self.parser.add_argument('peer_id',
 									help="Unique name for this instance of this module")
 
-		if obci_control_settings.USE_ZMQ:
+		if common.obci_control_settings.USE_ZMQ:
 			self.parser.add_argument('rep_sock', help="Socket address for incoming requests")
 
 		self.parser.add_argument('-p', '--'+LOCAL_PARAMS,

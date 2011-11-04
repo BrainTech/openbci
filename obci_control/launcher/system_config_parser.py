@@ -3,7 +3,8 @@
 
 import ConfigParser
 
-from peer import peer_config, peer_config_parser
+import peer.peer_config
+import peer.peer_config_parser
 from launcher.system_config import OBCISystemConfig, OBCISystemConfigError
 
 PEERS = "peers"

@@ -3,7 +3,7 @@
 import json
 import ConfigParser
 
-import config_helpers as helpers
+import common.config_helpers as helpers
 
 class PeerConfigSerializer(object):
 
