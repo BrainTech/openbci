@@ -40,8 +40,7 @@ class ConfigMessage(object):
 		self.message = ''
 
 	def __repr__(self):
-		st = ' '.join(["type:", self.type, "receiver", self.receiver, "sender:", self.sender, "message", self.message])
-		return st
+		return repr(vars(self))
 
 	def unpack(self, p_msg):
 		msg = p_msg.split(DM, MSG_DELIMITERS_N)
