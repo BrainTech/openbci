@@ -3,12 +3,14 @@
 
 import zmq
 import uuid
+import signal
 
 import argparse
 
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
 import common.net_tools as net
+import common.obci_control_settings as settings
 
 class OBCIControlPeer(object):
 
@@ -32,6 +34,18 @@ class OBCIControlPeer(object):
 		if self.source_addresses:
 			self.register()
 
+		self.interrupted = False
+		signal.signal(signal.SIGTERM, self.signal_handler())
+		signal.signal(signal.SIGINT, self.signal_handler())
+
+
+	def signal_handler(self):
+		def handler(signum, frame):
+			#print "Process {0} (uuid {1}) interrupted!\
+#Signal: {2}, frame: {3}".format(self.name, self.uuid, signum, frame)
+			self.interrupted = True
+		return handler
+
 	def peer_type(self):
 		return 'obci_control_peer'
 
@@ -47,7 +61,7 @@ class OBCIControlPeer(object):
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
 
-		print "name: {0}, uuid: {1}".format(self.name, self.uuid)
+		print "\nname: {0}, uuid: {1}".format(self.name, self.uuid)
 		print "rep: {0}".format(self.rep_addresses)
 		print "pub: {0}".format(self.pub_addresses)
 
@@ -124,14 +138,23 @@ class OBCIControlPeer(object):
 			poller.register(sock, zmq.POLLIN)
 
 		while True:
-			socks = dict(poller.poll())
+			socks = []
+			try:
+				socks = dict(poller.poll())
+			except zmq.ZMQError, e:
+				print "zmq.poll(): " + e.strerror
 
 			for sock in socks:
 				if socks[sock] == zmq.POLLIN:
 					msg = recv_msg(sock)
 					self.handle_message(msg, sock)
 
+			if self.interrupted:
+				break
+
 			self._update_poller(poller, poll_sockets)
+
+		self.clean_up()
 
 
 	def _update_poller(self, poller, curr_sockets):
@@ -147,6 +170,10 @@ class OBCIControlPeer(object):
 
 	def pre_run(self):
 		pass
+
+	def clean_up(self):
+		print "Cleaning up"
+
 
 ########## pass message handling ######################################
 
@@ -206,7 +233,7 @@ def basic_arg_parser():
 						help='REP Addresses of the peer.')
 	parser.add_argument('--pub-addresses', nargs='+',
 						help='PUB Addresses of the peer.')
-	parser.add_argument('--obci-dir', required=True,
+	parser.add_argument('--obci-dir', default=settings.INSTALL_DIR,
 						help='Main OpenBCI installation directory')
 
 	return parser
@@ -224,7 +251,7 @@ if __name__ == '__main__':
 	parser.add_argument('--name', default='obci_control_peer',
 	                   help='Human readable name of this process')
 	args = parser.parse_args()
-	print args
+	print vars(args)
 	peer = OBCIControlPeer(args.obci_dir, args.sv_addresses,
 							args.rep_addresses, args.pub_addresses, args.name)
 	peer.run()

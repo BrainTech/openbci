@@ -1,19 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import threading
 import subprocess
 import uuid
 import argparse
+import os.path
+import sys
+import json
 
 import zmq
 
-from obci_process_supervisor import OBCIProcessSupervisor
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates, error_codes
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
+import common.obci_control_settings as settings
+
 import obci_experiment
+from obci_process_supervisor import OBCIProcessSupervisor
 
 class OBCIServer(OBCIControlPeer):
 
@@ -29,12 +33,33 @@ class OBCIServer(OBCIControlPeer):
 														  name)
 		#TODO do sth with other server rep addresses
 
+	def pre_run(self):
+		"""
+		Subclassed from OBCIControlPeer. Create a file in temp directory with
+		REP addresses.
+		"""
+		directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
+		if not os.path.exists(directory):
+			os.mkdir(directory)
 
+		filename = settings.SERVER_CONTACT_NAME
+		self.fpath = os.path.join(directory, filename)
+		if os.path.exists(self.fpath):
+			print "\nOBCIServer contact file exists, \
+probably a server is already working"
+			print "Abort.\n"
+			sys.exit(2)
+
+		with open(self.fpath, 'w') as f:
+			json.dump(self.rep_addresses, f)
+
+	def clean_up(self):
+		os.remove(self.fpath)
 
 
 	def start_experiment_controller(self, sandbox_dir, launch_file):
 		path = obci_experiment.__file__
-		path = '.'.join(path.rsplit('.', 1)[0], 'py')
+		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
 
 		exp = subprocess.Popen([path, '--srv-addresses', str(self.addresses),
 										'--obci-dir', self.obci_install_dir,
@@ -72,7 +97,7 @@ if __name__ == '__main__':
 	parser.add_argument('--name', default='obci_server',
 	                   help='Human readable name of this process')
 	args = parser.parse_args()
-	print obci_experiment.__file__
+
 	srv = OBCIServer(args.obci_dir, args.other_srv_addresses,
 							args.rep_addresses, args.pub_addresses, args.name)
 	srv.run()
