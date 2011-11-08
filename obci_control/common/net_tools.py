@@ -18,7 +18,6 @@ def public_socket(address_list, zmq_type, zmq_context, random_port=True,
 
 	addrs = [prepare_addr(addr) for addr in address_list]
 
-	print addrs
 	return __public_sock_init(zmq_type, addrs,
 							zmq_context, random_port, ipc_core_name)
 

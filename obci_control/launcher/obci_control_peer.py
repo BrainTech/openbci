@@ -70,6 +70,7 @@ class OBCIControlPeer(object):
 			self.source_req_socket = self.ctx.socket(zmq.REQ)
 			for addr in addresses:
 				self.source_req_socket.connect(addr)
+		self._set_poll_sockets()
 
 	def _init_socket(self, addrs, zmq_type):
 		ipc_name=''
@@ -130,10 +131,13 @@ class OBCIControlPeer(object):
 	def all_sockets(self):
 		return self.basic_sockets() + self.custom_sockets()
 
+	def _set_poll_sockets(self):
+		self._poll_sockets = self.basic_sockets() + self.custom_sockets()
+
 	def run(self):
 		self.pre_run()
 		poller = zmq.Poller()
-		poll_sockets = self.all_sockets()
+		poll_sockets = list(self._poll_sockets)
 		for sock in poll_sockets:
 			poller.register(sock, zmq.POLLIN)
 
@@ -158,7 +162,7 @@ class OBCIControlPeer(object):
 
 
 	def _update_poller(self, poller, curr_sockets):
-		new_socks = self.all_sockets()
+		new_socks = list(self._poll_sockets)
 
 		for sock in new_socks:
 			if not sock in curr_sockets:

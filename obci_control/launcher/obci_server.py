@@ -17,16 +17,17 @@ from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
 
 import obci_experiment
-from obci_process_supervisor import OBCIProcessSupervisor
+import obci_process_supervisor
 
 class OBCIServer(OBCIControlPeer):
-
 	def __init__(self, obci_install_dir, other_srv_addresses,
 												rep_addresses=None,
 												pub_addresses=None,
 												name='obci_server'):
 		self.other_addrs = other_srv_addresses
 		self.experiments = {}
+
+		self.__all_sockets = []
 
 		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
 														  pub_addresses,
@@ -52,6 +53,7 @@ probably a server is already working"
 
 		with open(self.fpath, 'w') as f:
 			json.dump(self.rep_addresses, f)
+
 
 	def clean_up(self):
 		os.remove(self.fpath)
@@ -86,16 +88,30 @@ probably a server is already working"
 		send_msg(sock, result)
 
 	def handle_register_experiment(self, message, sock):
-		send_msg(self.mtool.fill_msg("rq_ok"))
+		send_msg(sock, self.mtool.fill_msg("rq_ok"))
 
+	def handle_register_peer(self, message, sock):
+		if message["peer_type"] == "obci_client":
+			send_msg(sock, self.mtool.fill_msg("rq_ok"))
+		else:
+			super(OBCIServer, self).handle_register_peer(message_sock)
 
-if __name__ == '__main__':
+	def handle_create_experiment(self, message, sock):
+
+def server_arg_parser(add_help=False):
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
-							description="OBCI Server : manage OBCI experiments.")
+							description="OBCI Server : manage OBCI experiments.",
+							add_help=add_help)
 	parser.add_argument('--other-srv-addresses', nargs='+',
 	                   help='REP Addresses of OBCI servers on other machines')
 	parser.add_argument('--name', default='obci_server',
 	                   help='Human readable name of this process')
+	return parser
+
+
+if __name__ == '__main__':
+	parser = server_arg_parser(add_help=True)
+
 	args = parser.parse_args()
 
 	srv = OBCIServer(args.obci_dir, args.other_srv_addresses,

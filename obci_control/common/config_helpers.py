@@ -3,8 +3,9 @@
 CONFIG_SOURCES = "config_sources"
 EXT_PARAMS = "external_params"
 LOCAL_PARAMS = "local_params"
+LAUNCH_DEPENDENCIES = "launch_dependencies"
 
-PEER_CONFIG_SECTIONS = [CONFIG_SOURCES, EXT_PARAMS, LOCAL_PARAMS]
+PEER_CONFIG_SECTIONS = [CONFIG_SOURCES, EXT_PARAMS, LOCAL_PARAMS, LAUNCH_DEPENDENCIES]
 
 
 def module_id_type_check(p_module_id):

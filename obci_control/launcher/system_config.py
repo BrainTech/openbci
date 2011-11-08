@@ -19,7 +19,7 @@ class OBCISystemConfig(object):
 		self.peers = {}
 
 	def add_peer(self, peer_id):
-		self.peers[peer_id] = OBCIPeerState(peer_id, self.uuid)
+		self.peers[peer_id] = PeerConfigData(peer_id, self.uuid)
 
 	def set_peer_config(self, peer_id, peer_config):
 		self.peers[peer_id].config = peer_config
@@ -35,10 +35,13 @@ class OBCISystemConfig(object):
 
 		self.peers[peer_id].config.set_config_source(src_name, src_peer_id)
 
+	def set_launch_dependency(self, peer_id, dep_name, dep_peer_id):
+		pass
+
 	def config_ready(self):
 
 		for peer_state in self.peers.values():
-			if not peer_state.config.config_ready():
+			if not peer_state.ready():
 				return False
 
 		# check config graph
@@ -47,18 +50,9 @@ class OBCISystemConfig(object):
 
 
 
-NOT_RUNNING = 0
-LAUNCHING = 1
-RUNNING = 2
-FINISHED = 3
-FAILED = 4
-
-PEER_STATES = [NOT_RUNNING, LAUNCHING, RUNNING, FINISHED, FAILED]
-
-class OBCIPeerState(object):
+class PeerConfigData(object):
 	def __init__(self, peer_id, system_instance_id, config=None, path=None, machine=None):
 		self.peer_id = peer_id
-		self.uuid = None
 
 		self.system_instance_id = system_instance_id
 
@@ -66,9 +60,13 @@ class OBCIPeerState(object):
 		self.path = path
 		self.machine = machine
 
-		self.state = NOT_RUNNING
+	def ready(self):
+		ready = self.config is not None and \
+				self.path is not None and\
+				self.machine is not None and\
+				self.config is not None
+		return ready and self.config.config_ready()
 
-		self.os_info = None
 
 
 class OBCIPeerOSInfo(object):

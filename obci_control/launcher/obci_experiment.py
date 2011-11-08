@@ -16,7 +16,7 @@ from obci_control_peer import OBCIControlPeer, basic_arg_parser
 
 class OBCIExperiment(OBCIControlPeer):
 
-	def __init__(self, obci_install_dir, sandbox_dir, launch_file,
+	def __init__(self, obci_install_dir, sandbox_dir, launch_file=None,
 										source_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 	                   help='Human readable name of this process')
 
 	args = parser.parse_args()
-	print args
+	print vars(args)
 
 #	exp = OBCIExperiment( ['tcp://*:22233'], '/host/dev/openbci',
 #							'~/.obci', None, 'obci_exp')

@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import ConfigParser
+import os
 
-import peer.peer_config
-import peer.peer_config_parser
+import peer.peer_config as peer_config
+import peer.peer_config_parser as peer_config_parser
 from launcher.system_config import OBCISystemConfig, OBCISystemConfigError
 
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"
 SYS_SECTIONS = [PEERS]
 
-class SystemConfigParser(object):
+class LaunchFileParser(object):
 
 	def __init__(self, obci_base_dir):
 		self.base_dir = obci_base_dir
@@ -36,10 +37,11 @@ class SystemConfigParser(object):
 		peer_sections = self.__peer_sections()
 
 		self._load_peer_ids(peer_sections)
+		self._load_launch_data(peer_sections)
+		self._set_sources()
 
-		self._load_configs(peer_sections)
-
-		self._set_sources(peer_sections)
+		for peer_sec in peer_sections:
+			print self.config.peers[self.__peer_id(peer_sec)].config
 
 
 	def _check_sections(self):
@@ -54,26 +56,37 @@ class SystemConfigParser(object):
 			self.config.add_peer(peer_id)
 
 
-	def _load_configs(self, peer_sections):
+	def _load_launch_data(self, peer_sections):
 		for sec in peer_sections:
-			self._load_peer_config(sec)
+			self._load_peer(sec)
 
-	def _load_peer_config(self, peer_section):
+	def _load_peer(self, peer_section):
 		peer_id = self.__peer_id(peer_section)
 		items = self.parser.items(peer_section)
 		for (param, value) in items:
 			if param == "path":
 				self.config.set_peer_path(peer_id, value)
 			elif param == "config":
-				peer_parser = peer_config_parser.parser("ini")
-				peer_cfg = peer_config.PeerConfig(peer_id)
-				with open(self.base_dir + '/' + value) as f:
-					peer_parser.parse(f, peer_cfg)
-					self.config.set_peer_config(peer_id, peer_cfg)
-					print self.config.peers[peer_id].config
+				self._parse_peer_config(peer_id, value)
 			elif param == "machine":
 				pass
+			else:
+				raise OBCISystemConfigError()
 
+	def _parse_peer_config(self, peer_id, config_path):
+		peer_parser = peer_config_parser.parser("ini")
+		peer_cfg = peer_config.PeerConfig(peer_id)
+		with open(os.path.join(self.base_dir, config_path)) as f:
+			peer_parser.parse(f, peer_cfg)
+			self.config.set_peer_config(peer_id, peer_cfg)
+
+
+	def _set_sources(self):
+		for src_sec in self.__config_src_sections():
+			for src_name, src_id in self.parser.items(src_sec):
+				self.config.set_config_source(self.__peer_id(src_sec),
+												src_name,
+												src_id)
 
 
 	def __peer_id(self, conf_section):
