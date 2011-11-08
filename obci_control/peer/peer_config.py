@@ -12,8 +12,8 @@ class PeerConfig(object):
 	a configuration holder for the running peer (wrapped in a controller
 	with networking capabilities).
 
-	Peer configuration consists of local parameters, external parameters
-	and config sources definitions.
+	Peer configuration consists of local parameters, external parameters,
+	config sources definitions and launch dependencies.
 
 	Local parameters:
 			param_name : value
@@ -21,11 +21,17 @@ class PeerConfig(object):
 	obtained from other peers.
 
 	External parameter definition:
-			local_parameter_name : config_source_name.parameter_name.
+			local_parameter_name : config_source_name.parameter_name
 
 	Config source names are symbolic names for dependencies.
 	In run time real peer ID's are assingned to those names; parameter_name
 	is the remote parameter that is requested from source.
+
+	Launch dependencies are similar to config sources: the definitions
+	are identical and symbolic name pool is common with config source names
+	i.e. all names are global in the configuration file.
+	Launch dependencies are used when we want to delay peer start
+	until all dependncies report that they are ready to work.
 	"""
 	def __init__(self, peer_id=None):
 		# system ID of the peer
@@ -35,9 +41,16 @@ class PeerConfig(object):
 		# keys are source names, values are real peer IDs
 		self._config_sources = {}
 
+		# keys are symbolic names, values are peer IDs
+		self._launch_deps = {}
+
 		# the other way: keys are peer IDs, values are lists of source names
 		# to which the ID is assigned
 		self._src_ids = {}
+
+		# the other way: keys are peer IDs, values are lists of launch
+		# dependencies to which the ID is assigned
+		self._dep_ids = {}
 
 		# external parameter definitions: keys are local param names, values
 		# are source names and remote parameter names
@@ -56,6 +69,8 @@ class PeerConfig(object):
 		st = ''.join([st, "\nPeer ID: {0}".format(self.peer_id)])
 		st = ''.join([st, "\nConfig_sources: {0}".format(
 														self._config_sources)])
+		st = ''.join([st, "\nLaunch dependencies: {0}".format(
+														self._launch_deps)])
 		st = ''.join([st, "\nExternal param definitions: {0}".format(
 														self._ext_param_defs)])
 		st = ''.join([st, "\nParameter values: {0}".format(
@@ -73,9 +88,25 @@ class PeerConfig(object):
 		return self._config_sources
 
 	@property
+	def launch_deps(self):
+		"""
+		Launch dependencies' symbolic names and their assigned real peer IDs.
+		(A dictionary)
+		"""
+		return self._launch_deps
+
+	@property
 	def source_ids(self):
 		"""
 		Peer ID's of the config sources and lists of their symbolic names.
+		(A dictionary)
+		"""
+		return self._src_ids
+
+	@property
+	def dep_ids(self):
+		"""
+		Peer ID's of the launch dependencies and lists of their symbolic names.
 		(A dictionary)
 		"""
 		return self._src_ids
@@ -104,6 +135,12 @@ class PeerConfig(object):
 		"""
 		return self._set_ext_params
 
+	def assign_id_to_name(self, sym_name, peer_id):
+		if sym_name in self._config_sources:
+			self.set_config_source(sym_name, peer_id)
+		elif sym_name in self._launch_deps:
+			self.set_launch_dependency(sym_name, peer_id)
+
 
 	def set_config_source(self, source_name, peer_id=''):
 		"""
@@ -127,6 +164,30 @@ Name: {0}, old id: {1}, new id: {2}""".format(
 		if not peer_id in self._src_ids:
 			self._src_ids[peer_id] = []
 		self._src_ids[peer_id].append(source_name)
+		if source_name in self._launch_deps:
+			self.set_launch_dependency(source_name, peer_id)
+
+	def set_launch_dependency(self, dep_name, peer_id=''):
+		"""
+		"""
+		param_name_type_check(dep_name)
+		module_id_type_check(peer_id)
+		argument_not_empty_check(dep_name)
+
+		deps = self._launch_deps
+		if dep_name in deps:
+			old_id = deps[dep_name]
+			self._overwrite_warn("""Dependency overwrite! \
+Name: {0}, old id: {1}, new id: {2}""".format(
+							dep_name, old_id, peer_id))
+			self._dep_ids[old_id].remove(dep_name)
+
+		self._launch_deps[dep_name] = peer_id
+		if not peer_id in self._dep_ids:
+			self._dep_ids[peer_id] = []
+		self._dep_ids[peer_id].append(dep_name)
+		if dep_name in self._config_sources:
+			self.set_config_source(dep_name, peer_id)
 
 
 	def get_param(self, param_name):
@@ -246,15 +307,25 @@ not declared in configuration!".format(source_name, reference))
 		config sources have peer ID's assigned and all external parameter
 		values are already obtained.
 		"""
-		return self.config_sources_ready() and self.external_params_ready()
+		return self.config_sources_ready() and self.external_params_ready() \
+					and self.launch_deps_ready()
 
 	def config_sources_ready(self):
 		"""
-		Return  True if all config sources have peer ID's assigned.
+		Return  True if all used config sources have peer ID's assigned.
 		"""
 		unused = self.unused_config_sources()
 		for src, peer_id in self._config_sources.iteritems():
 			if not peer_id and not src in unused:
+				return False
+		return True
+
+	def launch_deps_ready(self):
+		"""
+		Return  True if all launch deps have peer ID's assigned.
+		"""
+		for dep, peer_id in self._launch_deps.iteritems():
+			if not peer_id:
 				return False
 		return True
 
@@ -315,6 +386,14 @@ not declared in configuration!".format(source_name, reference))
 		ss = self._config_sources
 		return [src for src in ss.keys() if ss[src] == '']
 
+	def unassigned_launch_deps(self):
+		"""
+		Return a list of launch dependency names which do not have real
+		peer ID assigned.
+		"""
+		deps = self._launch_deps
+		return [dep for dep in deps.keys() if deps[dep] == '']
+
 
 	def _update_check(self, param_name):
 		if param_name not in self._param_values:
@@ -355,4 +434,7 @@ class ConfigWarning(Warning):
 			return repr(self)
 
 class ConfigOverwriteWarning(ConfigWarning):
+	pass
+
+if __name__ == '__main__':
 	pass

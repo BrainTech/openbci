@@ -14,6 +14,7 @@ class TestServer2(BaseMultiplexerServer):
 
     def initialize_config(self):
         self.config.initialize_config()
+        print "PEER_A INITIALISED!"
 
 
 

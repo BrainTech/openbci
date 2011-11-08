@@ -16,7 +16,8 @@ class PeerConfigParser(object):
 	config_parts = [
 		helpers.CONFIG_SOURCES,
 		helpers.EXT_PARAMS,
-		helpers.LOCAL_PARAMS
+		helpers.LOCAL_PARAMS,
+		helpers.LAUNCH_DEPENDENCIES
 		]
 
 	def parse(self, p_file, p_config_obj, update=False):
@@ -32,6 +33,7 @@ class PeerConfigParser(object):
 		self._parse_config_sources()
 		self._parse_external_params()
 		self._parse_local_params()
+		self._parse_launch_dependencies()
 
 	def check_complete(self, p_config):
 		return p_config.check()
@@ -48,6 +50,19 @@ class PeerConfigParser(object):
 			self._check_source(name, val)
 			val = '' if val == None else val
 			self.config.set_config_source(name, val)
+
+	def _get_launch_dependencies(self):
+		raise NotImplemented
+
+	def _parse_launch_dependencies(self):
+		if not self._check_has_section(helpers.LAUNCH_DEPENDENCIES):
+			return
+
+		sources = self._get_launch_dependencies()
+		for name, val in sources:
+			self._check_source(name, val)
+			val = '' if val == None else val
+			self.config.set_launch_dependency(name, val)
 
 	def _get_external_params(self):
 		raise NotImplemented
@@ -76,6 +91,9 @@ class PeerConfigParser(object):
 				self.config.update_local_param(name, val)
 			else:
 				self.config.add_local_param(name, val)
+
+	def _parse_launch_dependencies(self):
+		pass
 
 	def _check_has_section(self, name):
 		pass
@@ -121,6 +139,9 @@ class PeerConfigParserINI(PeerConfigParser):
 	def _get_local_params(self):
 		return self.parser.items(helpers.LOCAL_PARAMS)
 
+	def _get_launch_dependencies(self):
+		return self.parser.items(helpers.LAUNCH_DEPENDENCIES)
+
 	def _check_has_section(self, name):
 		if self.parser.has_section(name):
 			return True
@@ -151,6 +172,10 @@ class PeerConfigParserJSON(PeerConfigParser):
 	def _get_config_sources(self):
 		return [(key, val) for (key, val) in \
 					self.load[helpers.CONFIG_SOURCES].iteritems()]
+
+	def _get_launch_dependencies(self):
+		return [(key, val) for (key, val) in \
+					self.load[helpers.LAUNCH_DEPENDENCIES].iteritems()]
 
 	def _get_external_params(self):
 		return [(key, val) for (key, val) in \

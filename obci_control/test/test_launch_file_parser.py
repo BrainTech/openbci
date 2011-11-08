@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 import io
 
-from launcher import system_config, system_config_parser
+from launcher import system_config, launch_file_parser
 
-class TestSystemConfigParser(object):
+class TestLaunchFileParser(object):
 
 	def setup(self):
 		self.txt = """
@@ -25,14 +25,14 @@ peerb=p_b
 
 [peers.p_b]
 
-path=openbci/obci_control/test/peer_b.py
-config=path/to/another/config
+path=obci_control/test/peer_b.py
+config=obci_control/test/peer_b.ini
 
 [peers.p_b.config_sources]
 peer1=p_a
 """
 		self.cf = system_config.OBCISystemConfig()
-		self.pr = system_config_parser.SystemConfigParser("/host/dev/openbci")
+		self.pr = launch_file_parser.LaunchFileParser("/host/dev/openbci")
 
 	def test_sth(self):
 		self.pr.parse(io.BytesIO(self.txt), self.cf)

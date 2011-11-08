@@ -6,7 +6,7 @@ import argparse
 
 import peer_config_control
 from common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
-							PEER_CONFIG_SECTIONS
+							PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES
 
 import common.obci_control_settings
 
@@ -35,6 +35,8 @@ class PeerCmd(object):
 
 		self.parser.add_argument('-c', '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
 									help="[src_name module_id] Config source ID assignment")
+		self.parser.add_argument('-d', '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
+									help="[dep_name module_id] Launch dependency ID assignment")
 
 		self.parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
 									help="[path_to_file] Additional configuration file (overrides).")
@@ -68,6 +70,9 @@ class ExtParamAction(PeerParamAction):
 	pass
 
 class ConfigSourceAction(PeerParamAction):
+	pass
+
+class LaunchDepAction(PeerParamAction):
 	pass
 
 def path_to_file(string):
