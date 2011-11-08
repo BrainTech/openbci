@@ -37,8 +37,6 @@ class PeerControl(object):
 		self.file_list = []
 		self.wait_config = False
 
-		self._wait_peers = []
-
 		self.peer_id = None
 
 		self.io = None
@@ -48,9 +46,10 @@ class PeerControl(object):
 		self._handlers = {
 			'SET_CONFIG' : self._handle_set_config,
 			'GET_CONFIG' : self._handle_get_config,
+
 			'GET_PARAMS' : self._handle_get_params,
 			'PARAM_VALUES' : self._handle_param_values,
-			'CONFIG_READY' : self._handle_config_ready,
+			'PEER_READY' : self._handle_peer_ready,
 			'PEER_CONFIG_ALL' : self._handle_unsupported_message,
 			'PEER_CONFIG' : self._handle_unsupported_message
 		}
@@ -63,22 +62,18 @@ class PeerControl(object):
 		dictparser = peer_config_parser.parser('python')
 		dictparser.parse(self.cmd_overrides, self.core, update=True)
 
-		#for src_name in self.core.used_config_sources():
-		#	self._wait_peers.append(src_name) = False
 
-		self.io = config_control_io.PeerConfigMultiplexer(
+		self.io = config_control_io.PeerConfigMx(
 										settings.MULTIPLEXER_ADDRESSES, self)
 
 		self.request_ext_params()
 
-		msg = common.config_message.ConfigMessage()
-		msg.sender = self.peer_id
-		msg.receiver = ''
-		msg.type = 'CONFIG_READY'
-		self.io.send_msg(msg.pack())
+		# msg = common.config_message.ConfigMessage()
+		# msg.sender = self.peer_id
+		# msg.receiver = ''
+		# msg.type = 'CONFIG_READY'
+		# self.io.send_msg(msg.pack())
 
-		while self._wait_peers:
-			self.io.serve_once()
 
 	def synchronize(self, event):
 		pass
@@ -158,12 +153,13 @@ class PeerControl(object):
 		for par, val in params.iteritems():
 			self.core.set_param_from_source(p_msg.sender, par, val)
 
-	def _handle_config_ready(self, p_msg):
-		src_names = self.core.source_ids[p_msg.sender]
+	def _handle_peer_ready(self, p_msg):
+		pass
+		# src_names = self.core.source_ids[p_msg.sender]
 
-		for name in src_names:
-			if name in self._wait_peers:
-				self._wait_peers.remove(name)
+		# for name in src_names:
+		# 	if name in self._wait_peers:
+		# 		self._wait_peers.remove(name)
 
 	def _handle_unsupported_message(self, p_msg):
 		warnings.warn(UnsupportedMessageType())
@@ -175,15 +171,20 @@ class PeerControl(object):
 		msg.type = 'GET_PARAMS'
 		msg.sender = self.peer_id
 
+		def _unset_param_count():
+			return reduce(lambda x, y: x + y,
+							[len(self.core.unset_params_for_source(src)) \
+								for src in self.core.used_config_sources()], 0)
+
 		while not self.core.config_ready():
 			for src in self.core.used_config_sources():
 				params = self.core.unset_params_for_source(src).keys()
+
 				msg.receiver = self.core.config_sources[src]
 				msg.message = json.dumps(params)
-				print "REQ: "
-				print msg
-				print "-------------"
+				print "requesting: {0}".format(msg)
 				self.io.request_once(msg.pack())
+			print "{0} external params still unset".format(_unset_param_count())
 
 		print self.core
 

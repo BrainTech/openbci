@@ -227,6 +227,11 @@ peer {
     name: "PEER_CONFIG_CONTROL"
 }
 
+peer {
+    type: 143
+    name: "CONFIG_SERVER"
+}
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -776,7 +781,8 @@ type {
     }
 }
 
-
+################# CONFIGURATION MESSAGES ############################
+#TODO get rid of this type
 type {
     type: 213
     name: "CONFIG_MESSAGE"
@@ -788,4 +794,78 @@ type {
         peer: "PEER_CONFIG_CONTROL"
         whom: ALL
     }
+}
+
+# message contains ConfigParamsRequest message
+type {
+	type: 214
+	name: "GET_CONFIG_PARAMS"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains ConfigParams message
+type {
+	type: 215
+	name: "CONFIG_PARAMS"
+}
+
+# message contains ConfigParams message
+type {
+	type: 216
+	name: "REGISTER_PEER_CONFIG"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains peer_id (string)
+type {
+	type: 217
+	name: "PEER_REGISTERED"
+}
+
+# message contains ConfigParams message
+type {
+	type: 218
+	name: "UPDATE_PARAMS"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains ConfigParams message
+type {
+	type: 219
+	name: "PARAMS_CHANGED"
+}
+
+# message contains peer_id (string)
+type {
+	type: 220
+	name: "PEER_READY"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#PeerReadyQuery
+type {
+	type: 221
+	name: "PEER_READY_QUERY"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#PeerReadyStatus
+type {
+	type: 222
+	name: "READY_STATUS"
 }

@@ -1,0 +1,36 @@
+package cfg_messages;
+
+
+message Param {
+    required string name = 1;
+    required string value = 2; // value should be json encoded!
+}
+
+message ParamVector {
+    repeated Param params = 2;
+}
+
+message ConfigParamsRequest {
+    required string sender = 1;
+    required string receiver = 2;
+    repeated string param_names = 3;
+}
+
+message ConfigParams {
+    required string sender = 1;
+    required string receiver = 2;
+    required ParamVector params = 3;
+}
+
+message PeerIdentity {
+    required string peer_id;
+}
+
+message PeerReadyQuery {
+    required string sender = 1;
+}
+
+message PeerReadyStatus {
+    required string receiver = 1;
+    required bool peers_ready = 2;
+}
