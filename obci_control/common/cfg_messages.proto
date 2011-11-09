@@ -6,9 +6,6 @@ message Param {
     required string value = 2; // value should be json encoded!
 }
 
-message ParamVector {
-    repeated Param params = 2;
-}
 
 message ConfigParamsRequest {
     required string sender = 1;
@@ -18,19 +15,26 @@ message ConfigParamsRequest {
 
 message ConfigParams {
     required string sender = 1;
-    required string receiver = 2;
-    required ParamVector params = 3;
+    optional string receiver = 2;
+    repeated Param params = 3;
 }
 
 message PeerIdentity {
-    required string peer_id;
+    required string peer_id = 1;
 }
 
 message PeerReadyQuery {
     required string sender = 1;
+    repeated string deps = 2;
 }
 
 message PeerReadyStatus {
     required string receiver = 1;
     required bool peers_ready = 2;
+}
+
+message ConfigError {
+    optional string rq_type = 1;
+    optional string error_str = 2;
+    optional string errno = 3;
 }

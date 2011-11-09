@@ -11,12 +11,9 @@ class TestServer2(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(TestServer2, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
         self.config = peer.peer_config_control.PeerControl(self)
-
-    def initialize_config(self):
-        self.config.initialize_config()
-        print "PEER_A INITIALISED!"
-
-
+        self.config.initialize_config(self.conn)
+        self.config.send_peer_ready(self.conn)
+        self.config.synchronize_ready(self.conn)
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
@@ -27,5 +24,5 @@ class TestServer2(BaseMultiplexerServer):
 
 if __name__ == "__main__":
     srv = TestServer2(settings.MULTIPLEXER_ADDRESSES)
-    srv.initialize_config()
+
     srv.loop()

@@ -57,7 +57,6 @@ class PeerConfigParser(object):
 	def _parse_launch_dependencies(self):
 		if not self._check_has_section(helpers.LAUNCH_DEPENDENCIES):
 			return
-
 		sources = self._get_launch_dependencies()
 		for name, val in sources:
 			self._check_source(name, val)
@@ -92,8 +91,6 @@ class PeerConfigParser(object):
 			else:
 				self.config.add_local_param(name, val)
 
-	def _parse_launch_dependencies(self):
-		pass
 
 	def _check_has_section(self, name):
 		pass

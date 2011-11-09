@@ -135,6 +135,17 @@ class PeerConfig(object):
 		"""
 		return self._set_ext_params
 
+	@property
+	def local_params(self):
+		"""
+		Local parameters and values (dict)
+		"""
+		params = {}
+		for name in self._param_values:
+			if name not in self._ext_param_defs:
+				params[name] = self._param_values[name]
+		return params
+
 	def assign_id_to_name(self, sym_name, peer_id):
 		if sym_name in self._config_sources:
 			self.set_config_source(sym_name, peer_id)
@@ -142,7 +153,7 @@ class PeerConfig(object):
 			self.set_launch_dependency(sym_name, peer_id)
 
 
-	def set_config_source(self, source_name, peer_id=''):
+	def set_config_source(self, source_name, peer_id='', _set_dep=True):
 		"""
 		Store a configuration symbolic source name and its real peer_id.
 		Default ID is empty and can be updated later.
@@ -164,12 +175,13 @@ Name: {0}, old id: {1}, new id: {2}""".format(
 		if not peer_id in self._src_ids:
 			self._src_ids[peer_id] = []
 		self._src_ids[peer_id].append(source_name)
-		if source_name in self._launch_deps:
-			self.set_launch_dependency(source_name, peer_id)
+		if source_name in self._launch_deps and _set_dep:
+			self.set_launch_dependency(source_name, peer_id, _set_src=False)
 
-	def set_launch_dependency(self, dep_name, peer_id=''):
+	def set_launch_dependency(self, dep_name, peer_id='', _set_src=True):
 		"""
 		"""
+		print "DEPSDEPSDEPS"
 		param_name_type_check(dep_name)
 		module_id_type_check(peer_id)
 		argument_not_empty_check(dep_name)
@@ -186,8 +198,8 @@ Name: {0}, old id: {1}, new id: {2}""".format(
 		if not peer_id in self._dep_ids:
 			self._dep_ids[peer_id] = []
 		self._dep_ids[peer_id].append(dep_name)
-		if dep_name in self._config_sources:
-			self.set_config_source(dep_name, peer_id)
+		if dep_name in self._config_sources and _set_src:
+			self.set_config_source(dep_name, peer_id, _set_dep=False)
 
 
 	def get_param(self, param_name):

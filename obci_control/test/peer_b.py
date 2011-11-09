@@ -14,7 +14,9 @@ class TestServer(BaseMultiplexerServer):
 
     def _config(self):
         self.config = peer.peer_config_control.PeerControl(self)
-        self.config.initialize_config()
+        self.config.initialize_config(self.conn)
+        self.config.send_peer_ready(self.conn)
+        self.config.synchronize_ready(self.conn)
 
 
 

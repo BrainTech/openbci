@@ -857,7 +857,7 @@ type {
 #PeerReadyQuery
 type {
 	type: 221
-	name: "PEER_READY_QUERY"
+	name: "PEERS_READY_QUERY"
 	to {
 		peer: "CONFIG_SERVER"
 		whom: ALL
@@ -868,4 +868,20 @@ type {
 type {
 	type: 222
 	name: "READY_STATUS"
+}
+
+# message contains PeerIdentity
+type {
+	type: 223
+	name: "UNREGISTER_PEER_CONFIG"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#ConfigError
+type {
+	type: 224
+	name: "CONFIG_ERROR"
 }

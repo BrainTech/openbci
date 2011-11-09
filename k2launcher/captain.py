@@ -110,8 +110,8 @@ task("python ./p300dawida/p300.py", "p300dawid")
 task("python ./p300dawida/bloczki.py", "bloczki")
 task("python ./p300dawida/plotting.py", "plottingdawid")
 
-
-task("python ../obci_control/test/peer_a.py ziom_a -c peerb ziom_b", "A")
+task("python ../obci_control/peer/config_server.py", "config_server")
+task("python ../obci_control/test/peer_a.py ziom_a -c peerb ziom_b -c mmm ziom_b", "A")
 task("python ../obci_control/test/peer_b.py ziom_b -c peer1 ziom_a", "B")
 
 
@@ -465,6 +465,7 @@ start("auto_trigger_c++_usb_no_storing", "hashtable")
 start("auto_trigger_c++_usb_no_storing", "c++_usb_amplifier")
 start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 
+start("cftest", "config_server")
 start("cftest", "A")
 start("cftest", "B")
 

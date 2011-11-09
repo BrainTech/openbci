@@ -7,7 +7,6 @@ LAUNCH_DEPENDENCIES = "launch_dependencies"
 
 PEER_CONFIG_SECTIONS = [CONFIG_SOURCES, EXT_PARAMS, LOCAL_PARAMS, LAUNCH_DEPENDENCIES]
 
-
 def module_id_type_check(p_module_id):
 	if not (isinstance(p_module_id, str) or isinstance(p_module_id, unicode)):
 		raise ValueError("Module IDs can only be strings (got {})".format(

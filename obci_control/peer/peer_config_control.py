@@ -2,22 +2,18 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-import codecs
+import time
 import inspect
-import io
-import json
 
 import peer_config
 import peer_config_parser
-import peer_config_serializer
 from peer_cmd import PeerCmd
 
-from common.config_helpers import *
-
-import common.config_message
-import config_control_io
+import common.config_message as cmsg
 
 import settings
+from multiplexer.multiplexer_constants import peers, types
+from azouk._allinone import OperationFailed, OperationTimedOut
 
 CONFIG_FILE_EXT = 'ini'
 WAIT_CONFIG = "wait_config"
@@ -39,44 +35,26 @@ class PeerControl(object):
 
 		self.peer_id = None
 
-		self.io = None
 
-		self.ready_peers = {}
-
-		self._handlers = {
-			'SET_CONFIG' : self._handle_set_config,
-			'GET_CONFIG' : self._handle_get_config,
-
-			'GET_PARAMS' : self._handle_get_params,
-			'PARAM_VALUES' : self._handle_param_values,
-			'PEER_READY' : self._handle_peer_ready,
-			'PEER_CONFIG_ALL' : self._handle_unsupported_message,
-			'PEER_CONFIG' : self._handle_unsupported_message
-		}
-
-	def initialize_config(self):
+	def initialize_config(self, connection):
+		# parse command line
 		self.process_cmd()
+
+		# parse default config file
 		self.load_config_base()
+
+		# parse other config files (names from command line)
 		for filename in self.file_list:
 			self._load_config_from_file(filename, CONFIG_FILE_EXT, update=True)
+
+		# parse overrides (from command line)
 		dictparser = peer_config_parser.parser('python')
 		dictparser.parse(self.cmd_overrides, self.core, update=True)
 
+		self.register_config(connection)
 
-		self.io = config_control_io.PeerConfigMx(
-										settings.MULTIPLEXER_ADDRESSES, self)
-
-		self.request_ext_params()
-
-		# msg = common.config_message.ConfigMessage()
-		# msg.sender = self.peer_id
-		# msg.receiver = ''
-		# msg.type = 'CONFIG_READY'
-		# self.io.send_msg(msg.pack())
-
-
-	def synchronize(self, event):
-		pass
+		# request external parameters
+		self.request_ext_params(connection)
 
 
 	def process_cmd(self):
@@ -99,6 +77,8 @@ class PeerControl(object):
 		print base_config_path
 
 		self._load_config_from_file(base_config_path, CONFIG_FILE_EXT)
+		print "********************"
+		print self.core
 
 
 	def _load_config_from_file(self, p_path, p_type, update=False):
@@ -107,69 +87,53 @@ class PeerControl(object):
 			parser.parse(f, self.core)
 
 
-	def handle_config_message(self, p_msg):
-		print p_msg
-		if p_msg.type not in self._handlers:
-			return self._handle_unsupported_message(p_msg)
-
-		return self._handlers[p_msg.type](p_msg)
+	def handle_config_message(self, p_type, p_msg):
+		#TODO...
+		return self._handle_unsupported_message(p_msg)
 
 
-	def param(self, p_name):
+
+	def get_param(self, p_name):
 		return self.core.get_param(p_name)
 
 	def set_param(self, p_name, p_value):
+		#TODO let know other peers...
+		# right now it's best not to use this method
 		return self.core.update_local_param(p_name, p_value)
-
-	def get_params(self, p_param_names):
-		pass
 
 
 	def _handle_set_config(self, p_msg):
-		jsonparser = peer_config_parser.parser('json')
-		jsonparser.parse(io.BytesIO(p_msg.message), self.core, update=True)
-
-
-	def _handle_get_config(self, p_msg):
+		#jsonparser = peer_config_parser.parser('json')
+		#jsonparser.parse(io.BytesIO(p_msg.message), self.core, update=True)
 		pass
 
-	def _handle_get_params(self, p_msg):
-		params = json.loads(p_msg.message)
-		data = {}
-		print self.core
-		print "GET ", params
-		for param in params:
-			data[param] = self.core.get_param(param)
-		resp = common.config_message.ConfigMessage()
-		resp.type = 'PARAM_VALUES'
-		resp.sender = self.peer_id
-		resp.receiver = p_msg.sender
-		resp.message = json.dumps(data)
-		return resp.pack()
 
 	def _handle_param_values(self, p_msg):
-		params = json.loads(p_msg.message)
-		#TODO check sender id and if params is a dict
+		params = cmsg.params2dict(p_msg)
+
 		for par, val in params.iteritems():
 			self.core.set_param_from_source(p_msg.sender, par, val)
-
-	def _handle_peer_ready(self, p_msg):
-		pass
-		# src_names = self.core.source_ids[p_msg.sender]
-
-		# for name in src_names:
-		# 	if name in self._wait_peers:
-		# 		self._wait_peers.remove(name)
 
 	def _handle_unsupported_message(self, p_msg):
 		warnings.warn(UnsupportedMessageType())
 		return None
 
+	def register_config(self, connection):
+		if self.peer is None:
+			raise NoPeerError
 
-	def request_ext_params(self):
-		msg = common.config_message.ConfigMessage()
-		msg.type = 'GET_PARAMS'
-		msg.sender = self.peer_id
+		msg = cmsg.fill_msg(types.REGISTER_PEER_CONFIG, sender=self.peer_id)
+
+		params = self.core.local_params
+		cmsg.dict2params(params, msg)
+
+		connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
+
+
+	def request_ext_params(self, connection):
+		#TODO set timeout and retry count
+		if self.peer is None:
+			raise NoPeerError
 
 		def _unset_param_count():
 			return reduce(lambda x, y: x + y,
@@ -180,20 +144,89 @@ class PeerControl(object):
 			for src in self.core.used_config_sources():
 				params = self.core.unset_params_for_source(src).keys()
 
-				msg.receiver = self.core.config_sources[src]
-				msg.message = json.dumps(params)
-				print "requesting: {0}".format(msg)
-				self.io.request_once(msg.pack())
-			print "{0} external params still unset".format(_unset_param_count())
+				msg = cmsg.fill_msg(types.GET_CONFIG_PARAMS,
+									sender=self.peer_id,
+									param_names=params,
+									receiver=self.core.config_sources[src])
 
+				print "requesting: {0}".format(msg)
+				reply = self.__query(connection, cmsg.pack_msg(msg),
+									types.GET_CONFIG_PARAMS)
+
+				if reply == None:
+					# raise something?
+					continue
+
+				if reply.type == types.CONFIG_ERROR:
+					print "peer {0} has not yet started".format(msg.receiver)
+				elif reply.type == types.CONFIG_PARAMS:
+					self._handle_param_values(cmsg.unpack_msg(reply.type, reply.message))
+				else:
+					print "WTF? {0}".format(reply.message)
+
+			print "{0} external params still unset".format(_unset_param_count())
+			time.sleep(0.1)
+
+		print "External parameters initialised."
 		print self.core
+
+	def send_peer_ready(self, connection):
+		if self.peer is None:
+			raise NoPeerError
+		mtype = types.PEER_READY
+		connection.send_message(message=cmsg.fill_and_pack(mtype,
+															peer_id=self.peer_id), type=mtype)
+
+
+	def synchronize_ready(self, connection):
+		#TODO set timeout and retry count
+		if self.peer is None:
+			raise NoPeerError
+
+		others = self.core.launch_deps.values()
+		msg = cmsg.fill_and_pack(types.PEERS_READY_QUERY, sender=self.peer_id,
+															deps=others)
+		reply = self.__query(connection, msg, types.PEERS_READY_QUERY)
+		ready = False
+		while not ready:
+			time.sleep(0.2)
+			if reply is None:
+				#TODO sth bad happened, raise exception?
+				continue
+			if reply.type is types.READY_STATUS:
+				ready = cmsg.unpack_msg(reply.type, reply.message).peers_ready
+		print "Dependencies are ready, I can start working"
+
+
+
+
+	def __query(self, conn, msg, msgtype):
+		try:
+			reply = conn.query(message=msg,
+									type=msgtype)
+		except OperationFailed:
+			print "Could not connect"
+			reply = None
+		except OperationTimedOut:
+			print "Operation timed out!"
+			reply = None
+		return reply
+
+
 
 
 #todo message verification
 
 
 class PeerConfigControlError(Exception):
-	pass
+	def __init__(self, value=None):
+		self.value = value
+
+	def __str__(self):
+		if self.value is not None:
+			return repr(self.value)
+		else:
+			return repr(self)
 
 class NoPeerError(PeerConfigControlError):
 	pass

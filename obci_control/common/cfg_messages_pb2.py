@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='cfg_messages.proto',
   package='cfg_messages',
-  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"2\n\x0bParamVector\x12#\n\x06params\x18\x02 \x03(\x0b\x32\x13.cfg_messages.Param\"L\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\"[\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12)\n\x06params\x18\x03 \x02(\x0b\x32\x19.cfg_messages.ParamVector\" \n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08')
+  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"L\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\"U\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x01(\t\x12#\n\x06params\x18\x03 \x03(\x0b\x32\x13.cfg_messages.Param\"\x1f\n\x0cPeerIdentity\x12\x0f\n\x07peer_id\x18\x01 \x02(\t\".\n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x0c\n\x04\x64\x65ps\x18\x02 \x03(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08\"@\n\x0b\x43onfigError\x12\x0f\n\x07rq_type\x18\x01 \x01(\t\x12\x11\n\terror_str\x18\x02 \x01(\t\x12\r\n\x05\x65rrno\x18\x03 \x01(\t')
 
 
 
@@ -48,34 +48,6 @@ _PARAM = descriptor.Descriptor(
   extension_ranges=[],
   serialized_start=36,
   serialized_end=72,
-)
-
-
-_PARAMVECTOR = descriptor.Descriptor(
-  name='ParamVector',
-  full_name='cfg_messages.ParamVector',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    descriptor.FieldDescriptor(
-      name='params', full_name='cfg_messages.ParamVector.params', index=0,
-      number=2, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  extension_ranges=[],
-  serialized_start=74,
-  serialized_end=124,
 )
 
 
@@ -116,8 +88,8 @@ _CONFIGPARAMSREQUEST = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=126,
-  serialized_end=202,
+  serialized_start=74,
+  serialized_end=150,
 )
 
 
@@ -137,15 +109,15 @@ _CONFIGPARAMS = descriptor.Descriptor(
       options=None),
     descriptor.FieldDescriptor(
       name='receiver', full_name='cfg_messages.ConfigParams.receiver', index=1,
-      number=2, type=9, cpp_type=9, label=2,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=unicode("", "utf-8"),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     descriptor.FieldDescriptor(
       name='params', full_name='cfg_messages.ConfigParams.params', index=2,
-      number=3, type=11, cpp_type=10, label=2,
-      has_default_value=False, default_value=None,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -158,8 +130,36 @@ _CONFIGPARAMS = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=204,
-  serialized_end=295,
+  serialized_start=152,
+  serialized_end=237,
+)
+
+
+_PEERIDENTITY = descriptor.Descriptor(
+  name='PeerIdentity',
+  full_name='cfg_messages.PeerIdentity',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='peer_id', full_name='cfg_messages.PeerIdentity.peer_id', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=239,
+  serialized_end=270,
 )
 
 
@@ -177,6 +177,13 @@ _PEERREADYQUERY = descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    descriptor.FieldDescriptor(
+      name='deps', full_name='cfg_messages.PeerReadyQuery.deps', index=1,
+      number=2, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -186,8 +193,8 @@ _PEERREADYQUERY = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=297,
-  serialized_end=329,
+  serialized_start=272,
+  serialized_end=318,
 )
 
 
@@ -221,30 +228,66 @@ _PEERREADYSTATUS = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=331,
-  serialized_end=387,
+  serialized_start=320,
+  serialized_end=376,
 )
 
-_PARAMVECTOR.fields_by_name['params'].message_type = _PARAM
-_CONFIGPARAMS.fields_by_name['params'].message_type = _PARAMVECTOR
+
+_CONFIGERROR = descriptor.Descriptor(
+  name='ConfigError',
+  full_name='cfg_messages.ConfigError',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='rq_type', full_name='cfg_messages.ConfigError.rq_type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='error_str', full_name='cfg_messages.ConfigError.error_str', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='errno', full_name='cfg_messages.ConfigError.errno', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=378,
+  serialized_end=442,
+)
+
+_CONFIGPARAMS.fields_by_name['params'].message_type = _PARAM
 DESCRIPTOR.message_types_by_name['Param'] = _PARAM
-DESCRIPTOR.message_types_by_name['ParamVector'] = _PARAMVECTOR
 DESCRIPTOR.message_types_by_name['ConfigParamsRequest'] = _CONFIGPARAMSREQUEST
 DESCRIPTOR.message_types_by_name['ConfigParams'] = _CONFIGPARAMS
+DESCRIPTOR.message_types_by_name['PeerIdentity'] = _PEERIDENTITY
 DESCRIPTOR.message_types_by_name['PeerReadyQuery'] = _PEERREADYQUERY
 DESCRIPTOR.message_types_by_name['PeerReadyStatus'] = _PEERREADYSTATUS
+DESCRIPTOR.message_types_by_name['ConfigError'] = _CONFIGERROR
 
 class Param(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PARAM
 
   # @@protoc_insertion_point(class_scope:cfg_messages.Param)
-
-class ParamVector(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
-  DESCRIPTOR = _PARAMVECTOR
-
-  # @@protoc_insertion_point(class_scope:cfg_messages.ParamVector)
 
 class ConfigParamsRequest(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
@@ -258,6 +301,12 @@ class ConfigParams(message.Message):
 
   # @@protoc_insertion_point(class_scope:cfg_messages.ConfigParams)
 
+class PeerIdentity(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _PEERIDENTITY
+
+  # @@protoc_insertion_point(class_scope:cfg_messages.PeerIdentity)
+
 class PeerReadyQuery(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PEERREADYQUERY
@@ -269,5 +318,11 @@ class PeerReadyStatus(message.Message):
   DESCRIPTOR = _PEERREADYSTATUS
 
   # @@protoc_insertion_point(class_scope:cfg_messages.PeerReadyStatus)
+
+class ConfigError(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _CONFIGERROR
+
+  # @@protoc_insertion_point(class_scope:cfg_messages.ConfigError)
 
 # @@protoc_insertion_point(module_scope)
