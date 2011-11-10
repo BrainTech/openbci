@@ -39,7 +39,8 @@ def mx_path():
 	return os.path.join(obci_root(), 'multiplexer-install', 'bin')
 
 
-
+if __name__=='__main__':
+	print obci_pythonpath()
 # env = os.environ.copy()
 
 # _env = {

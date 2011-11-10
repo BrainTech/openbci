@@ -15,3 +15,4 @@ from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
 
 class OBCIClient(OBCIControlPeer):
+	pass

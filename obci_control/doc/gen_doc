@@ -1,0 +1,22 @@
+#!/bin/bash
+
+export PYTHONPATH=`python ../launcher/launcher_tools.py`
+echo $PYTHONPATH
+
+#/host/dev/openbci/openbci/:/host/dev/openbci/openbci/../:/host/dev/openbci/multiplexer-install/lib/python2.6/site-packages/:/host/dev/openbci/openbci/../obci_control/:
+
+dir='apidoc/'
+
+if [ -d $dir ]; then
+	for f in common.rst peer.rst launcher.rst modules.rst; do
+		rm $dir$f
+		echo "removed $dir$f"
+	done
+fi
+
+cd ..
+
+sphinx-apidoc -o doc/apidoc . doc/ *.sublime-*
+
+cd doc
+make html
