@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'obci_control'
-copyright = u'2011, Titanis / Joanna Tustanowska'
+copyright = u'2011 UW'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -92,11 +92,33 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 html_theme = 'default'
-
+# footerbgcolor (CSS color): Background color for the footer line.
+# footertextcolor (CSS color): Text color for the footer line.
+# sidebarbgcolor (CSS color): Background color for the sidebar.
+# sidebarbtncolor (CSS color): Background color for the sidebar collapse button (used when collapsiblesidebar is true).
+# sidebartextcolor (CSS color): Text color for the sidebar.
+# sidebarlinkcolor (CSS color): Link color for the sidebar.
+# relbarbgcolor (CSS color): Background color for the relation bar.
+# relbartextcolor (CSS color): Text color for the relation bar.
+# relbarlinkcolor (CSS color): Link color for the relation bar.
+# bgcolor (CSS color): Body background color.
+# textcolor (CSS color): Body text color.
+# linkcolor (CSS color): Body link color.
+# visitedlinkcolor (CSS color): Body color for visited links.
+# headbgcolor (CSS color): Background color for headings.
+# headtextcolor (CSS color): Text color for headings.
+# headlinkcolor (CSS color): Link color for headings.
+# codebgcolor (CSS color): Background color for code blocks.
+# codetextcolor (CSS color): Default text color for code blocks, if not set differently by the highlighting style.
+# bodyfont (CSS font-family): Font for normal text.
+# headfont (CSS font-family): Font for headings.
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {'relbarbgcolor': '#222222',
+					'footerbgcolor': '#222222',
+					'sidebarbgcolor' : '#555555',
+					'headtextcolor' : '#222222'}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []

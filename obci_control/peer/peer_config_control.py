@@ -51,10 +51,12 @@ class PeerControl(object):
 		dictparser = peer_config_parser.parser('python')
 		dictparser.parse(self.cmd_overrides, self.core, update=True)
 
+		# request external parameters
+		# this will hang forever if there are cycles in the config depenency graph!
+		self.request_ext_params(connection)
 		self.register_config(connection)
 
-		# request external parameters
-		self.request_ext_params(connection)
+
 
 
 	def process_cmd(self):

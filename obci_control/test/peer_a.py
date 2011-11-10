@@ -16,13 +16,10 @@ class TestServer2(BaseMultiplexerServer):
         self.config.synchronize_ready(self.conn)
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
-	       pass
+        # handle something
         self.no_response()
-
 
 
 if __name__ == "__main__":
     srv = TestServer2(settings.MULTIPLEXER_ADDRESSES)
-
     srv.loop()

@@ -4,7 +4,6 @@
 import os
 import argparse
 
-import peer_config_control
 from common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
 							PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES
 
@@ -19,27 +18,24 @@ class PeerCmd(object):
 	def configure_argparser(self):
 
 		self.parser.add_argument('peer_id',
-									help="Unique name for this instance of this module")
-
-		if common.obci_control_settings.USE_ZMQ:
-			self.parser.add_argument('rep_sock', help="Socket address for incoming requests")
+									help="Unique name for this instance of this peer")
 
 		self.parser.add_argument('-p', '--'+LOCAL_PARAMS,
 									nargs=2,
 									action=PeerParamAction,
-									help="[param_name value] Local parameter override value.",
+									help="Local parameter override value: param_name, value.",
 									type=str)
 		self.parser.add_argument('-e', '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
-									help="[param_name value] External parameter override value.")
+									help="External parameter override value: param_name value .")
 
 
 		self.parser.add_argument('-c', '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
-									help="[src_name module_id] Config source ID assignment")
+									help="Config source ID assignment: src_name peer_id")
 		self.parser.add_argument('-d', '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
-									help="[dep_name module_id] Launch dependency ID assignment")
+									help="Launch dependency ID assignment: dep_name peer_id")
 
 		self.parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
-									help="[path_to_file] Additional configuration file (overrides).")
+									help="Additional configuration file (overrides): path_to_file.")
 		self.parser.add_argument('--wait-config', action='store_true',
 									help="Wait for init configuration message.")
 
