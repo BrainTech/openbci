@@ -23,9 +23,9 @@ po::options_description AmplifierDriver::get_options() {
 
 	return options;
 }
-void AmplifierDriver::init(boost::program_options::variables_map vm) {
-	set_sampling_rate(vm["sampling_rate"].as<int>());
-	set_active_channels_string(vm["channels"].as<string>());
+void AmplifierDriver::init(boost::program_options::variables_map &vm) {
+//	set_sampling_rate(vm["sampling_rate"].as<int>());
+//	set_active_channels_string(vm["channels"].as<string>());
 }
 AmplifierDriver * AmplifierDriver::signal_handler=NULL;
 void AmplifierDriver::start_sampling() {
@@ -33,6 +33,7 @@ void AmplifierDriver::start_sampling() {
 	cur_sample=-1;
 	AmplifierDriver::signal_handler = this;
 	signal(SIGINT, &AmplifierDriver::stop_sampling_handler);
+	logger.sampling=sampling_rate;
 	logger.info()<<" Sampling started with sampling rate "
 			<<sampling_rate<<"\nActive Channels: " << get_active_channels_string() <<"\n";
 	last_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();

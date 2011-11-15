@@ -2,7 +2,7 @@ PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\(
 ROOTDIR		= ../../..
 AZOUKDIR	= `cd $(ROOTDIR)/multiplexer-install;pwd`
 CXX		= g++
-O		= -O2
+O		= -g #-O2
 GENERALFLAGS	+= $(O) -Wall \
 			-DBOOST_DISABLE_THREADS \
 			#
@@ -35,9 +35,8 @@ LDFLAGS	+=-lboost_program_options-mt \
 LDFLAGS_TEST	= -lboost_date_time-mt
 else
 GENERALFLAGS	+=	-DBLUETOOTH -DBOOST
-LDFLAGS_TEST +=	-lbluetooth -lboost_date_time
-LDFLAGS	+=	-lboost_program_options \
-			-lboost_signals \
+LDFLAGS_TEST +=	-lbluetooth -lboost_date_time -lboost_program_options
+LDFLAGS	+=	-lboost_signals \
 			-lboost_system \
 			-lboost_python
 endif
@@ -46,8 +45,8 @@ BUILD = build
 
 LIBRARIES	:= -L$(AZOUKDIR)/lib -lmultiplexer
 
-TARGETS = tmsi_server test_server test_driver dummy_receiver signal_receiver
-
+TARGETS = tmsi_driver_server signal_receiver
+TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver 
 AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
 AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
 TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o
@@ -56,21 +55,20 @@ all: $(TARGETS)
 
 clean:
 	rm -rf $(BUILD)
-	rm $(TARGETS)
+	rm $(TARGETS) $(TESTS)
+tests : $(TESTS)
 
 tmsi_install:
 	cd tmsi; \
+	make
 	sudo make install
-tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o tmsiAmpServer.o variables.pb.o TmsiAmplifier.o tmsi.o AmplifierDriver.o)
+test_server: $(addprefix $(BUILD)/, $(AMPLIFIER_DRIVER) $(AMPLIFIER_SERVER) test_server.o)
 	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
 
-test_server: $(addprefix $(BUILD)/, AmplifierServer.o testAmplifierServer.o variables.pb.o AmplifierDriver.o)
-	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
+test_tmsi_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_tmsi_driver.o  $(TMSI_DRIVER))
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
-test_driver: $(addprefix $(BUILD)/, test_driver.o $(TMSI_DRIVER))
-	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS) 
-
-test_amplifier: $(addprefix $(BUILD)/, test_amplifier.o $(AMPLIFIER_DRIVER))
+test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o  $(AMPLIFIER_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
 tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o)
@@ -107,10 +105,16 @@ $(BUILD)/%.o :  src/%.cpp
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
 
+$(BUILD)/%.o :  src/tests/%.cpp src/tests/%.h
+	mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
+
 
 $(BUILD)/%.o :  src/tests/%.cpp
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
+
+	
 
 src/AmplifierServer.h: $(BUILD)/variables.pb.h
 

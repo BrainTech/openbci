@@ -98,9 +98,9 @@ public:
 			out <<(i?",":"")<<active_channels[i]->name;
 		return out.str();
 	}
-	boost::program_options::options_description get_options();
-	void init(boost::program_options::variables_map vm);
-	uint64_t next_samples();
+	virtual boost::program_options::options_description get_options();
+	virtual void init(boost::program_options::variables_map &vm);
+	virtual uint64_t next_samples();
 	inline double get_sample_timestamp(){
 		return last_sample/1000000.0;
 	}

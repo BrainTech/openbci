@@ -17,13 +17,13 @@ class DriverServer(BaseMultiplexerServer):
         super(DriverServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
         self.config = peer.peer_config_control.PeerControl(self)
         self.config.initialize_config(self.conn)
-        args=self.get_run_args(adresses[0])
+        args=self.get_run_args(addresses[0])
         LOGGER.info("Executing: "+' '.join(args))
         self.driver=Popen(args,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
         out = self._communicate()
         self.load_params(out)
         self.config.send_peer_ready(self.conn)
-        self.config.synchronize_ready(self.conn)
+#        self.config.synchronize_ready(self.conn)
         
         self.set_sampling_rate(self.config.get_param("sampling_rate"))
         self.set_active_channels(self.config.get_param("active_channels"))
@@ -46,7 +46,7 @@ class DriverServer(BaseMultiplexerServer):
             args.extend(["--save_responses", self.config.get_param("amplifier_responses")])
         return args
     def load_params(self,output):
-        amp_desc=json.loads(out)
+        amp_desc=json.loads(output)
         self.config.set_param('amplifier_name',amp_desc[u"name"])
         self.config.set_param('physical_channels_no',amp_desc[u"physical_channels"])
         self.config.set_param('sampling_rates',json.dumps(amp_desc[u"sampling_rates"]))
