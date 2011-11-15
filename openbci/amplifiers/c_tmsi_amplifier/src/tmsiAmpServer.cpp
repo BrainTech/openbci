@@ -7,21 +7,6 @@
 
 #include "tmsiAmpServer.h"
 
-void TmsiAmpServer::check_status(std::vector<int>& isamples){
-    return;
-    if (tmsi_driver->is_onoff_pressed())
-    {
-        printf("TmsiAmpServer: On/Off is pressed\n");
-    }
-    if (tmsi_driver->is_battery_low())
-    {
-        printf("TmsiAmpServer: Amplifier battery is low\n");
-    }
-    if (tmsi_driver->is_trigger())
-    {
-        printf("TmsiAmpServer: Trigger is active\n");
-    }
-}
 void print_help()
 {
      printf("Usage: \n"\
@@ -33,12 +18,16 @@ void print_help()
                             "[-l nr_of_samples] print log message after number_of_samples\n" \
                             "[-D file] whole amplifier output will be dumped to file\n"\
                             "[-s sampling_rate] force set sampling rate in Hz\n"\
+                            "[-c channels] string with channel names or indexes, or \"*\" for all channels. Default is \"*\""\
+                            "[-i] interactive mode. Listen for commands on stdin:\n	s sampling_rate\n	c channels\n	start - starts sampling\n sending SIG_INT stops sampling"\
                             "[-h] show this message\n");
 }
 int main(int argc, char**argv)
 {
-    const char * device="/dev/tmsi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL;
+    const char * device="/dev/tmsi0",*host="127.0.0.1",*read_db=NULL, *dump_file=NULL, *channels="*";
     int port=31889,type=USB_AMPLIFIER,sampling_rate=-1;
+    bool interactive=false;
+
     Logger *log=NULL;
 
     for (int i =1; i<argc; i++)
@@ -57,7 +46,7 @@ int main(int argc, char**argv)
                 case 'r':
                     read_db=argv[i+1]; break;
                 case 'p':
-                    port=atoi(argv[i+1]);
+                    port=atoi(argv[i+1]); break;
                 case 'l':
                     log=new Logger(atoi(argv[i+1]),"tmsiAmpServer"); break;
                 case 'h':
@@ -67,9 +56,14 @@ int main(int argc, char**argv)
                     dump_file=argv[i+1]; break;
                 case 's':
                     sampling_rate=atoi(argv[i+1]); break;
+                case 'i':
+                	interactive=true; break;
+                case 'c':
+                	channels=argv[i+1]; break;
                 default:
                     printf("Unknown option -%c",argv[i][1]);
                     print_help();
+                    exit(0);
             }
 
     }

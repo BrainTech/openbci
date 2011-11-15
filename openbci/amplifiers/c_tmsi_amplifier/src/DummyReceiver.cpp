@@ -18,7 +18,7 @@ int main(int argc,char ** argv)
             {
                 case 's': sampling_rate=atoi(argv[i+1]); break;
                 case 'p': port=atoi(argv[i+1]); break;
-                case 'h': host=argv[i+1];
+                case 'h': host=argv[i+1]; break;
             }
     
     DummyReceiver dr(host,port,sampling_rate);

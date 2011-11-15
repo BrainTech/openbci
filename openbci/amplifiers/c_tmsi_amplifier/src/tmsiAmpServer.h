@@ -20,7 +20,6 @@ public:
     {
         tmsi_driver=(TmsiAmplifier *)driver;
     }
-    void check_status(std::vector<int> &isamples);
 };
 
 #endif	/* TMSIAMPSERVER_H */

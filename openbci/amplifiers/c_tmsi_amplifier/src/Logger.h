@@ -10,8 +10,11 @@
 #include <ctime>
 #include <stdio.h>
 #include <cmath>
+#include <iostream>
+#include <stdarg.h>
 #include <boost/date_time/posix_time/posix_time.hpp>
 using namespace boost::posix_time;
+using namespace std;
 class Logger{
 public:
     int sampling;
@@ -36,16 +39,36 @@ public:
         {
             char buffer[100];
             ptime now=boost::posix_time::microsec_clock::local_time();
-            struct tm  timeinfo=to_tm(now);
-            strftime(buffer,100,"%Y-%m-%d %H:%M:%S",&timeinfo);
-            fprintf(stderr,"%s,%.3lld - ",buffer,now.time_of_day().total_microseconds()%1000000/1000);
-            fprintf(stderr,"%s - INFO - Time of last %d samples / all avg:"\
-                    "%f / %f \n",name,sampling,
+            sprintf(buffer,"Time of last %d samples / all avg:"\
+                    "%f / %f",sampling,
                     ((double)(now-last_pack_time).total_microseconds())/1000000,
                     ((double)sampling*(now-start_time).total_microseconds())/1000000/number_of_samples);
+            info(buffer);
             last_pack_time=now;
         }
     }
+    char * header(char * buffer){
+    	ptime now=boost::posix_time::microsec_clock::local_time();
+		struct tm  timeinfo=to_tm(now);
+		strftime(buffer,100,"%Y-%m-%d %H:%M:%S",&timeinfo);
+		sprintf(buffer,"%s,%.3lld - %s - ",buffer,now.time_of_day().total_microseconds()%1000000/1000,name);
+		return buffer;
+    }
+    void info(const char * string,...){
+    	va_list ap;
+    	char buffer[100];
+		fprintf(stderr,"%s INFO - ",header(buffer));
+		int n;
+		va_start(ap, string);
+		n = fprintf(stderr, string, ap);
+		va_end(ap);
+		fprintf(stderr,"\n");
+    }
+    ostream & info(){
+    	char buffer[100];
+    	return cerr<<"\n" << header(buffer) << "INFO - ";
+        }
+
 };
 
 

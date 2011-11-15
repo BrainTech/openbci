@@ -12,7 +12,6 @@
 #include "multiplexer/Client.h"
 #include "multiplexer/backend/BaseMultiplexerServer.h"
 #include "variables.pb.h"
-#include "azouk/util/kwargs.h"
 #include "Logger.h"
 using namespace multiplexer;
 class DummyReceiver:public backend::BaseMultiplexerServer {
@@ -29,6 +28,7 @@ public:
     virtual void handle_message(MultiplexerMessage & msg)
     {
         logger.next_sample();
+        no_response();
 	
     }
     virtual ~DummyReceiver(){};

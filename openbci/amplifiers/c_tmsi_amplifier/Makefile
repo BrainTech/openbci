@@ -5,12 +5,11 @@ CXX		= g++
 O		= -O2
 GENERALFLAGS	+= $(O) -Wall \
 			-DBOOST_DISABLE_THREADS \
-			#-DAMP_DEBUG
-			 \
 			#
 ifdef DEBUG
 GENERALFLAGS	+= -DAMP_DEBUG
 endif
+
 CXXFLAGS	+= $(GENERALFLAGS)
 INCLUDEDIRS =			-I . -I/usr/share/multiplexer/src \
 			-I$(AZOUKDIR)/include \
@@ -20,28 +19,47 @@ INCLUDEDIRS =			-I . -I/usr/share/multiplexer/src \
 			#
 
 LDFLAGS		+= $(GENERALFLAGS) \
-			-lboost_date_time\
-    			-lprotobuf \
-			-lboost_program_options \
+			-lprotobuf \
+			-lpthread \
+			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil \
+			-Wl,--rpath,$(AZOUKDIR)/lib
+
+
+#WINDOWS :=1
+ifdef WINDOWS
+GENERALFLAGS	+= -DWINDOWS -D__USE_W32_SOCKETS
+LDFLAGS	+=-lboost_program_options-mt \
+			-lboost_signals-mt \
+			-lboost_system-mt \
+			-lboost_python-mt
+LDFLAGS_TEST	= -lboost_date_time-mt
+else
+GENERALFLAGS	+=	-DBLUETOOTH -DBOOST
+LDFLAGS_TEST +=	-lbluetooth -lboost_date_time
+LDFLAGS	+=	-lboost_program_options \
 			-lboost_signals \
 			-lboost_system \
-			-lpthread \
-			-lbluetooth \
-			-lpython$(PYTHON_VERSION) -ldl -lpthread -lutil -lboost_python\
-			-Wl,--rpath,$(AZOUKDIR)/lib
-    			#
+			-lboost_python
+endif
+LDFLAGS +=	$(LDFLAGS_TEST) 
 BUILD = build
 
-LIBRARIES = -L$(AZOUKDIR)/lib -lmultiplexer
+LIBRARIES	:= -L$(AZOUKDIR)/lib -lmultiplexer
+
 TARGETS = tmsi_server test_server test_driver dummy_receiver signal_receiver
+
+AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
+AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
+TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o
+
 all: $(TARGETS)
 
 clean:
 	rm -rf $(BUILD)
 	rm $(TARGETS)
 
-fusbi_install:
-	cd fusbi; \
+tmsi_install:
+	cd tmsi; \
 	sudo make install
 tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o tmsiAmpServer.o variables.pb.o TmsiAmplifier.o tmsi.o AmplifierDriver.o)
 	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
@@ -49,8 +67,14 @@ tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o tmsiAmpServer.o variables
 test_server: $(addprefix $(BUILD)/, AmplifierServer.o testAmplifierServer.o variables.pb.o AmplifierDriver.o)
 	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
 
-test_driver: $(addprefix $(BUILD)/, TmsiAmplifier.o tmsi.o test_driver.o AmplifierDriver.o)
-	$(CXX) -o $@ $(CXXFLAGS) -lboost_date_time -lbluetooth $^
+test_driver: $(addprefix $(BUILD)/, test_driver.o $(TMSI_DRIVER))
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS) 
+
+test_amplifier: $(addprefix $(BUILD)/, test_amplifier.o $(AMPLIFIER_DRIVER))
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
+
+tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o)
+	$(CXX) -o $@ $(CXXFLAGS) $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES) $^  
 
 dummy_receiver: $(BUILD)/DummyReceiver.o
 	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
@@ -58,15 +82,31 @@ dummy_receiver: $(BUILD)/DummyReceiver.o
 signal_receiver: $(BUILD)/SignalReceiver.o  $(BUILD)/variables.pb.o
 	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
 
-
 test_logger: $(BUILD)/test_logger.o
 	$(CXX) -o $@ $<
 
 $(BUILD)/%: $(BUILD)
 
-$(BUILD)/%.o : src/%.cpp src/%.h src/Logger.h
+$(BUILD)/AmplifierDriver.o: src/AmplifierDriver.cpp src/AmplifierDriver.h src/Logger.h $\
+						$(addprefix $(BUILD)/, AmplifierDescription.o)
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
+
+$(BUILD)/TmsiAmplifier.o: src/TmsiAmplifier.cpp src/TmsiAmplifier.h src/Logger.h \
+						$(addprefix $(BUILD)/, AmplifierDriver.o TmsiChannels.o TmsiDriverDesc.o)
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
+$(BUILD)/AmplifierServer.o: src/AmplifierServer.cpp src/AmplifierServer.h $(BUILD)/variables.pb.o
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
+$(BUILD)/%.o :  src/%.cpp src/%.h src/Logger.h
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+	
+$(BUILD)/%.o :  src/%.cpp
+	mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
 
 $(BUILD)/%.o :  src/tests/%.cpp
 	mkdir -p $(BUILD)
@@ -80,10 +120,10 @@ $(BUILD)/tmsi.o: src/nexus/tmsi.c src/nexus/tmsi.h
 
 $(BUILD):
 	mkdir -p $(BUILD)
-
+$(BUILD)/variables.pb.cc:	$(BUILD)/variables.pb.h
 $(BUILD)/variables.pb.h: $(ROOTDIR)/openbci/variables.proto
 	mkdir -p $(BUILD)
 	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/openbci/ $<
 
 $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
-	g++ -c $(CXXFLAGS) -o $@ $<
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@

@@ -6,8 +6,10 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef BLUETOOTH
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
+#endif
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -16,87 +18,105 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <string.h>
 #include "TmsiAmplifier.h"
 #include "nexus/tmsi.h"
-TmsiAmplifier * tmsiAmplifierInstance=NULL;
+#include <boost/program_options.hpp>
+#include <boost/bind.hpp>
+namespace po=boost::program_options;
 
-void handler(int sig)
-{
-    signal(sig,SIG_DFL);
-    fprintf(stderr,"Signal %d (%s) intercepted. Driver stopping\n",
-            sig,strsignal(sig));
-    tmsiAmplifierInstance->~TmsiAmplifier();
-    exit(-1);
-}
-
-
-TmsiAmplifier::TmsiAmplifier(const char * address, int type, const char * r_address, const char* dump_file /* = NULL */) {
-    printf("TmsiAmplifier writing to: %s\n", address);
-    if (r_address!=NULL)
-        printf(" reading from: %s",r_address);
-    if (dump_file!=NULL)
-        printf(" dumping amplifier output to: %s",dump_file);
-    printf("\n");
-    if (tmsiAmplifierInstance!=NULL)
-        fprintf(stderr,"Warning: multiple tmsiAmplifier instances!!\n");
-    tmsiAmplifierInstance = this;
+TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
     dev.Channel = NULL;
     vli.SampDiv = NULL;
     channel_data = NULL;
     channel_data_index=0;
-    digi_channels=0;
     read_errors=0;
-    mode=type;
-    if (type == USB_AMPLIFIER)
-        fd = connect_usb(address);
-    else
-        fd = connect_bluetooth(address);
-    if (r_address != NULL)
-        read_fd = open(r_address, O_RDONLY);
-    else
-        read_fd = fd;
-    if (dump_file!=NULL)
-        dump_fd = open(dump_file, O_WRONLY|O_CREAT|O_TRUNC,(S_IRUSR|S_IWUSR));
-    else
-        dump_fd=-1;
-    debug("Descriptors: %d %d", fd, read_fd);
-    if (fd <= 0) {
-        perror("DEVICE OPEN ERROR");
-        exit(-1);
-        return;
-    }
-    refreshInfo();
-
+    fd=-1;
+    read_fd=-1;
+    dump_fd=-1;
+    mode=0;
+}
+po::options_description TmsiAmplifier::get_options(){
+	po::options_description options=AmplifierDriver::get_options();
+	options.add_options()
+			("device_path,d",po::value<string>()->default_value("/dev/tmsi0")
+					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,false,_1)),"Device path for usb connection")
+			("bluetooth_addr,b",po::value<string>()
+					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,true,_1)),"Bluetooth address of amplifier")
+			("amplifier_responses,r",po::value<string>()
+					->notifier(boost::bind(&TmsiAmplifier::read_from,this,_1)),"File with saved amplifier responses. Useful for debug")
+			("save_responses",po::value<string>()
+					->notifier(boost::bind(&TmsiAmplifier::dump_to,this,_1)),"File for dumping amplifier responses");
+	po::typed_value<string> * act_channels=(po::typed_value<string> *)options.find("active_channels",true).semantic().get();
+	act_channels->default_value("1,2,onoff,Driver_Saw");
+	return options;
+}
+void TmsiAmplifier::init(po::variables_map &vm){
+	refreshInfo();
+}
+void TmsiAmplifier::connect_device(bool bluetooth,const string &address){
+	if (fd>=0)
+		close(fd);
+	if (read_fd==fd)
+		read_fd=-1;
+	if (bluetooth)
+		fd=connect_bluetooth(address);
+	else
+		fd=connect_usb(address);
+	if (fd<0)
+		cout << "DEVICE OPEN ERROR: "<<address << " errno: "<<fd<<" "<<strerror(fd);
+	else
+		logger.info()<< (bluetooth?"Bluetooth ":"Usb ") << "device connected "<<address<<"\n";
+	if (read_fd<0)
+	read_fd=fd;
+}
+int TmsiAmplifier::connect_usb(const string & address) {
+	mode=USB_AMPLIFIER;
+	return open(address.c_str(), O_RDWR);
 }
 
-int TmsiAmplifier::connect_usb(const char * address) {
-    return open(address, O_RDWR);
-}
+int TmsiAmplifier::connect_bluetooth(const string & address) {
+	int s, status;
+	mode=BLUETOOTH_AMPLIFIER;
+#ifdef BLUETOOTH
+	struct sockaddr_rc addr = {0};
 
-int TmsiAmplifier::connect_bluetooth(const char * address) {
-       struct sockaddr_rc addr = {0};
-      int s, status;
-    
-      /* allocate a socket */
-      s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
-    
-      /* set the connection parameters (who to connect to) */
-      addr.rc_family = AF_BLUETOOTH;
-      addr.rc_channel = (uint8_t) 1;
-      addr.rc_bdaddr = *BDADDR_ANY;
-      str2ba(address, &addr.rc_bdaddr );
-    
-      /* open connection to TMSi hardware */
-      status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
-    
+
+	/* allocate a socket */
+	s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+
+	/* set the connection parameters (who to connect to) */
+	addr.rc_family = AF_BLUETOOTH;
+	addr.rc_channel = (uint8_t) 1;
+	addr.rc_bdaddr = *BDADDR_ANY;
+	str2ba(address.c_str(), &addr.rc_bdaddr );
+
+	/* open connection to TMSi hardware */
+	status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
       /* return socket */
-      return(s);
-    return -1;
+#endif
+	return s;
 }
+void TmsiAmplifier::read_from(const string &file){
+if (read_fd && read_fd!=fd)
+	close(read_fd);
+	read_fd=open(file.c_str(),O_RDONLY);
+	if (read_fd<0)
+		read_fd=fd;
+	else
+		logger.info()<<"Reading amplifier responses from: " << file <<"\n";
+}
+void TmsiAmplifier::dump_to(const string &file){
+	if (dump_fd>=0)
+		close(dump_fd);
+	dump_fd = open(file.c_str(), O_WRONLY|O_CREAT|O_TRUNC,S_IRWXU);
+	if (dump_fd>=0)
+		logger.info() << "Dumping Amplifier responses to: "<< file <<"\n";
 
+}
 int TmsiAmplifier::refreshInfo() {
     if (sampling) {
-        fprintf(stderr, "Cannot refresh info while sampling");
+        cout << "Cannot refresh info while sampling!\n";
         return -1;
     }
     if (dev.Channel != NULL) {
@@ -114,8 +134,7 @@ int TmsiAmplifier::refreshInfo() {
 }
 
 int TmsiAmplifier::send_request(int type) {
-    printf("Sending request for %s\n", get_type_name(type));
-    debug("Sending request for %s\n", get_type_name(type));
+    logger.info()<<"Sending request for"<<get_type_name(type) <<"\n";
     switch (type) {
         case TMSFRONTENDINFO:
             tms_snd_FrontendInfoReq(fd);
@@ -135,6 +154,7 @@ int TmsiAmplifier::send_request(int type) {
             break;
         default:
             fprintf(stderr, "Wrong Request\n");
+            break;
     }
     return 0;
 }
@@ -162,6 +182,7 @@ bool TmsiAmplifier::update_info(int type) {
             return tms_get_ack(msg, br, &ack) != -1;
         default:
             fprintf(stderr, "Wrong Info type\n");
+            break;
 
     }
     return false;
@@ -180,47 +201,14 @@ bool TmsiAmplifier::_refreshInfo(int type) {
     return false;
 }
 
-void TmsiAmplifier::load_channel_desc() {
-    channels_desc.clear();
-    tms_prt_iddata(stderr,&dev);
-    for (int i = 0; i < dev.NrOfChannels; i++) {
-        channel_desc chan;
-        tms_channel_desc_t &t_chan = dev.Channel[i];
-        chan.name = t_chan.ChannelDescription;
-        chan.gain = t_chan.GainCorrection;
-        chan.offset = t_chan.OffsetCorrection;
-        chan.a = t_chan.Type.a;
-        chan.b = t_chan.Type.b;
-        chan.exp = t_chan.Type.Exp;
-        chan.type = t_chan.Type.Type;
-        chan.subtype = t_chan.Type.SubType;
-        chan.is_signed = t_chan.Type.Format & 0x100;
-        chan.bit_length = t_chan.Type.Format & 0x11;
-        channels_desc.push_back(chan);
-	if (chan.type==CHAN_TYPE_DIG)
-		digi_channel[digi_channels++]=i;
-    }
-    channel_desc ch;
-    ch.name="Empty";
-    channels_desc.push_back(ch);
-    ch.name="trig";
-    channels_desc.push_back(ch);
-    ch.name="onoff";
-    channels_desc.push_back(ch);
-    ch.name="bat";
-    channels_desc.push_back(ch);
-}
-
 void TmsiAmplifier::start_sampling() {
-    if (fd < 0) return;
+    if (fd < 0 || read_fd < 0) return;
     fei.mode &= 0x10;
     fei.currentsampleratesetting = sample_rate_div&0xFFFF;
     br = 0;
     keep_alive=1;
     int counter = 0;
     int type=0;
-    signal(SIGINT,handler);
-    signal(SIGTERM,handler);
     tms_write_frontendinfo(fd, &fei);
     receive();
     while (counter < sampling_rate && (!update_info(TMSACKNOWLEDGE))) {
@@ -242,10 +230,10 @@ void TmsiAmplifier::start_sampling() {
         receive();
         type = tms_get_type(msg, br);
     }
-    sampling=true;
     free_channel_data(channel_data);
     channel_data = alloc_channel_data(type == TMSVLDELTADATA);
-
+    channel_data_index=1<<30;
+    AmplifierDriver::start_sampling();
 }
 
 void TmsiAmplifier::stop_sampling() {
@@ -254,8 +242,9 @@ void TmsiAmplifier::stop_sampling() {
     if (!sampling) return;
     signal(SIGINT,SIG_DFL);
     signal(SIGTERM,SIG_DFL);
-    printf("Sending stop message...\n");
+    logger.info() <<"Sending stop message...\n";
     tms_write_frontendinfo(fd, &fei);
+    AmplifierDriver::stop_sampling();
     int retry=0;
     read_errors=0;
     receive();
@@ -264,99 +253,52 @@ void TmsiAmplifier::stop_sampling() {
         if (type == TMSACKNOWLEDGE) {
             tms_get_ack(msg, br, &ack);
             tms_prt_ack(stderr, &ack);
-            printf("Ack Received. Clearing buffer from pending messages...\n");
             in_debug(return);
             if (mode==BLUETOOTH_AMPLIFIER|| read_fd!=fd) return;
         }
         if (++retry % (2 * sampling_rate) == 0)
-        {
-            printf("After %d I am still getting messages\n"
-                    "Trying to stop again...\n",retry);
             tms_write_frontendinfo(fd,&fei);
-        }
         receive();
     }
-    printf("Stop sampling succeeded after %d messages!\n",retry);
-    sampling=false;
+    logger.info()<<"Stop sampling succeeded after "<<retry<<" messages!\n";
+}
+uint64_t TmsiAmplifier::next_samples() {
+    channel_data_index++;
+    if (channel_data_index >= channel_data[0].ns)
+		while (sampling) {
+			receive();
+//			if (fd==read_fd)
+//				last_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();
+//			else
+//				last_sample = AmplifierDriver::next_samples();
+			int type = tms_get_type(msg, br);
+			if (tms_chk_msg(msg, br) != 0) {
+				fprintf(stderr, "Sample dropped!!!\n");
+				continue;
+			}
+			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
+				uint64_t result=AmplifierDriver::next_samples();
+				tms_get_data(msg, br, &dev, channel_data);
+				channel_data_index = 0;
+				debug("Channel data received...\n");
+				if (--keep_alive==0)
+				{
+					keep_alive=sampling_rate*KEEP_ALIVE_RATE/channel_data[0].ns;
+					logger.info()<<"Sending keep_alive\n";
+					tms_snd_keepalive(fd);
+				}
+				return result;
+			}
+		}
+	return AmplifierDriver::next_samples();
 }
 
-
-bool TmsiAmplifier::get_samples() {
-    if (!sampling || fd < 0)
-        return false;
-    if (channel_data_index < channel_data[0].ns)
-        return true;
-    while (sampling) {
-        receive();
-        int type = tms_get_type(msg, br);
-        if (tms_chk_msg(msg, br) != 0) {
-            fprintf(stderr, "Sample dropped!!!\n");
-            continue;
-        }
-        if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
-            tms_get_data(msg, br, &dev, channel_data);
-            channel_data_index = 0;
-            debug("Channel data received...\n");
-            if (--keep_alive==0)
-            {
-                keep_alive=sampling_rate*KEEP_ALIVE_RATE/channel_data[0].ns;
-		struct tm *current;
-		time_t now;
-	
-		time(&now);
-		current = localtime(&now);
-		printf("%i:%i:%i Keep alive\n", current->tm_hour, current->tm_min, current->tm_sec);
-                tms_snd_keepalive(fd);
-            }
-
-            return true;
-        }
-    }
-    return false;
-}
-//template<typename T>
-//int TmsiAmplifier::fill_samples(vector<T>& samples) {
-//    debug("Filling samples\n");
-//    if (!get_samples()) return -1;
-//    //printf("fill_samplse %d\n",sampling);
-//    if (sampling)
-//    {
-//        for (unsigned int i = 0; i < act_channels.size(); i++)
-//            _put_sample(&samples[i],channel_data[act_channels[i]].data[channel_data_index]);
-//        channel_data_index++;
-//    debug("Filling special channels\n");
-//    if (spec_channels[TRIGGER_CHANNEL]!=-1)
-//        samples[spec_channels[TRIGGER_CHANNEL]]=is_trigger();
-//    if (spec_channels[ONOFF_CHANNEL]!=-1)
-//        samples[spec_channels[ONOFF_CHANNEL]]=is_onoff_pressed();
-//    if (spec_channels[BATTERY_CHANNEL]!=-1)
-//        samples[spec_channels[BATTERY_CHANNEL]]=is_battery_low()?1:0;
-//    return active_channels.size();
-//    }
-//    return -1;
-//}
-
-//int TmsiAmplifier::fill_samples(vector<float>& samples) {
-//    if (!get_samples()) return -1;
-//    if (sampling){
-//        for (unsigned int i = 0; i < act_channels.size(); i++)
-//            samples[i] = channel_data[act_channels[i]].data[channel_data_index].sample;
-//    channel_data_index++;
-//    if (spec_channels[TRIGGER_CHANNEL]!=-1)
-//        samples[spec_channels[TRIGGER_CHANNEL]]=get_digi()&TRIGGER_ACTIVE;
-//    if (spec_channels[ONOFF_CHANNEL]!=-1)
-//        samples[spec_channels[ONOFF_CHANNEL]]=get_digi()&ON_OFF_BUTTON;
-//    if (spec_channels[BATTERY_CHANNEL]!=-1)
-//        samples[spec_channels[BATTERY_CHANNEL]]=get_digi()&BATTERY_LOW;
-//    return active_channels.size();}
-//    return -1;
-//}
-
- int TmsiAmplifier::get_digi(int num) {
+ uint TmsiAmplifier::get_digi(uint index) {
     if (channel_data == NULL) return 0;
-    int digi = channel_data[digi_channel[num]].data[0].isample;
-    for (int i = 1; i < channel_data[digi_channel[num]].ns; i++)
-        digi |= channel_data[digi_channel[num]].data[i].isample;
+    tms_channel_data_t channel=channel_data[index];
+    int digi = channel.data[0].isample;
+    for (int i = 1; i < channel.ns; i++)
+        digi |= channel.data[i].isample;
     return digi;
 }
 void TmsiAmplifier::receive() {
@@ -691,74 +633,4 @@ tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
         channel_data[i].td = ns_max / (channel_data[i].ns * tms_get_sample_freq());
     }
     return channel_data;
-}
-using namespace std;
-void TmsiAmplifier::set_active_channels(vector<string>& channels)
-{
-    int tmp;
-    uint described_channels=dev.NrOfChannels;
-    int all_channels=fei.nrofswchannels;
-    act_channels.clear();
-    spec_channels.clear();
-    for (int i=0;i<=ADDITIONAL_CHANNELS;i++)
-        spec_channels.push_back(-1);
-    printf("Sending channels: ");
-    debug("Sending channels: ");
-	
-    for (unsigned int i=0;i<channels.size();i++)
-    {
-        stringstream stream(channels[i]);
-        if ((stream>>tmp)==0)
-        {
-            bool ok=false;
-            for(unsigned int j=0;j<channels_desc.size();j++)
-		if (channels_desc[j].name==channels[i]){
-                    if (j<described_channels){
-                        act_channels.push_back(j);
-                        printf("%s(%d), ",channels_desc[j].name.c_str(),j);
-			debug("%s(%d), ",channels_desc[j].name.c_str(),j);
-                        ok=true;
-                    }
-                    else
-                    {
-                        act_channels.push_back(0);
-                        spec_channels[j-described_channels]=i;
-                        printf("%s(%d), ",channels_desc[j].name.c_str(),described_channels-j);
-			debug("%s(%d), ",channels_desc[j].name.c_str(),described_channels-j);
-                        ok=true;
-                    }
-                }
-            if (!ok)
-            {
-                fprintf(stderr,"Unknown channel name: %s",channels[i].c_str());
-                exit(-1);
-            }
-        }
-        else {
-            if (tmp>=0)
-                if (tmp>=all_channels)
-                {
-                    fprintf(stderr,"Channel index to big:%d (max:%d)!\n",tmp,all_channels);
-                    exit(-1);
-                }
-                else
-                {
-                    act_channels.push_back(tmp);
-                    printf("%s(%d), ",channels_desc[tmp].name.c_str(),tmp);
-		    debug("%s(%d), ",channels_desc[tmp].name.c_str(),tmp);
-                }
-            else
-                if (-tmp>ADDITIONAL_CHANNELS)
-                {
-                    fprintf(stderr,"Unknown special channel: %d!\n",tmp);
-                    exit(-1);
-                }
-                else{
-                    spec_channels[-tmp]=i;
-                    printf("%s(%d), ",channels_desc[described_channels-tmp].name.c_str(),tmp);
-                    debug("%s(%d), ",channels_desc[described_channels-tmp].name.c_str(),tmp);
-                }
-        }
-    }
-    printf("\n");
 }

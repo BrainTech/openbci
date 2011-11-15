@@ -4,87 +4,46 @@
  * 
  * Created on 14 październik 2010, 15:31
  */
+#include "AmplifierServer.h"
 #include "multiplexer/Multiplexer.pb.h"
 #include "multiplexer/multiplexer.constants.h"
 #include "multiplexer/Client.h"
 #include "multiplexer/backend/BaseMultiplexerServer.h"
 #include "variables.pb.h"
-#include "AmplifierServer.h"
 #include "Logger.h"
 #include <boost/shared_ptr.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <vector>
 using namespace multiplexer;
-
-AmplifierServer::AmplifierServer(const std::string& host, boost::uint16_t port,
-        AmplifierDriver *driv) :
-BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER) {
-
-    debug("Connecting....");
-    conn->connect(host, port);
-    debug("Sending query...");
-    shared_ptr<MultiplexerMessage> msg =
-            conn->query("AmplifierChannelsToRecord", types::DICT_GET_REQUEST_MESSAGE).second;
-    std::string s_channels = msg->message();
-    std::stringstream ss_chan(s_channels);
-    std::string tmp;
-    vector<std::string> channels;
-
-
-    std::string sp = "sample";
-    ext_number_of_channels = 0;
-    while (ss_chan >> tmp) {
-      if (tmp != sp)
-	channels.push_back(tmp);
-      else
-	ext_number_of_channels = 1;
-    };
-
-    number_of_channels = channels.size();
-    ext_number_of_channels += number_of_channels;
-    driver = driv;
-    driver->set_active_channels(channels);
-    debug("Sending query");
-    msg = conn->query("SamplingRate", types::DICT_GET_REQUEST_MESSAGE).second;
-    int samp_rate = atoi(msg->message().c_str());
-    set_sampling_rate(samp_rate);
-
-    debug("Sending query");
-    msg = conn->query("SamplesPerVector", types::DICT_GET_REQUEST_MESSAGE).second;
-    samples_per_vector = atoi(msg->message().c_str());
-
-    // send peer_ready
-    variables::Variable v;
-    std::string str_msg;
-    v.set_key("PEER_READY");
-    ostringstream ss;
-    ss << peers::AMPLIFIER;
-    v.set_value(ss.str());
-    v.SerializeToString(&str_msg);
-
-
-    MultiplexerMessage mx_msg;
-    mx_msg.set_from(conn->instance_id());
-    mx_msg.set_type(types::DICT_SET_MESSAGE);
-    mx_msg.set_id(conn->random64());
-    mx_msg.set_message(str_msg);
-    Client::ScheduledMessageTracker tracker = conn->schedule_one(mx_msg);
-    if (!tracker) {
-      fprintf(stderr,"Error: sending failed.\n");
-      return;
-    }
-    conn->flush(tracker, -1);
-    // after send peer_ready
-
-
-    logger = NULL;
-}
-void AmplifierServer::set_sampling_rate(int samp_rate)
+namespace po=boost::program_options;
+AmplifierServer::AmplifierServer(AmplifierDriver *driv) :
+BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER)
 {
-    if (driver->set_sampling_rate(samp_rate) != samp_rate)
-        fprintf(stderr, "Warning: sampling rate set to %d Hz instead of %d Hz",
-            driver->get_sampling_rate(), samp_rate);
+    driver=driv;
+	logger = NULL;
 }
+po::options_description AmplifierServer::get_options(){
+	po::options_description	options("Server Options");
+	options.add_options()
+    		("host,h",po::value<string>()->default_value("127.0.0.1"),"IP Address of the multiplexer")
+    		("port,p",po::value<uint>()->default_value(31889),"Port of the multiplexer")
+    		("samples_per_vector,v",po::value<uint>(&samples_per_vector)->default_value(1),"Number of samples sent in one package")
+    		("start","If specified - don't wait on stdin for additional parameters")
+    		;
+    return options;
+}
+void AmplifierServer::init(po::variables_map vm){
+	connect(vm["host"].as<string>(),vm["port"].as<uint>());
+	if (vm.count("start"))
+		start_sampling();
+}
+
+void AmplifierServer::connect(string host,uint port){
+	if (logger)
+		logger->info() << "Connecting to:" << host <<":"<< port<< "\n";
+	conn->connect(host,port);
+}
+
 void * _receive(void *amp) {
     ((AmplifierServer *) amp)->loop();
     return NULL;
@@ -101,58 +60,42 @@ AmplifierServer::~AmplifierServer() {
 }
 
 void AmplifierServer::do_sampling(void * ptr = NULL) {
-    debug("Sampling started\n");
-    variables::SampleVector s_vector;
-    variables::Sample * sample;
-    for (int i = 0; i < samples_per_vector; i++)
-        sample = s_vector.add_samples();
-    std::cout<<"Test1"<<std::endl;
-    std::vector<int> isamples(number_of_channels, 0);
     MultiplexerMessage msg;
-    msg.set_from(conn->instance_id());
-    msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
-    double samples_no = 0.0;
-
-    int gathered_samples = 0;
+	msg.set_from(conn->instance_id());
+	msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
+	vector<Channel *> channels=driver->get_active_channels();
+	variables::SampleVector s_vector;
+    variables::Sample * sample[samples_per_vector];
+    for (uint i = 0; i < samples_per_vector; i++){
+        sample[i] = s_vector.add_samples();
+        for (uint j=0;j<channels.size();j++)
+        	sample[i]->add_channels(0);
+    }
     while (driver->is_sampling()) {
-        boost::posix_time::ptime t=boost::posix_time::microsec_clock::local_time();
-        double ti=time(NULL);
-        ti+=(t.time_of_day().total_nanoseconds()%1000000000)/1000000000.0;
-        if (driver->fill_samples(isamples) < 0) {
-            stop_sampling();
-            return;
-        }
-        debug("Received samples:\n");
-	sample = s_vector.mutable_samples(gathered_samples);
-	gathered_samples++;
-	sample->Clear();
-        for (int i = 0; i < number_of_channels; i++) {
-	  sample->add_channels(isamples[i]);
-          //debug("%2d: %d %x\n",i,isamples[i],isamples[i]);
-        }
-	sample->set_timestamp(ti);
-
-	if (ext_number_of_channels == number_of_channels + 1) {
-	  samples_no += 1.0;
-	  sample->add_channels(samples_no);
-	}
-
-	if (gathered_samples == samples_per_vector) {
-	  gathered_samples = 0;
-	  std::string msgstr;
-	  s_vector.SerializeToString(&msgstr);
-	  msg.set_id(conn->random64());
-	  msg.set_message(msgstr);
-	  Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
-	  if (!tracker) {
-	    fprintf(stderr,"Error: sending failed.\n");
-	    return;
-	  }
-	  conn->flush(tracker, -1);
-	} // (gathered_samples == samples_per_vector)
-	check_status(isamples);
-        if (logger != NULL) logger->next_sample();
-    } //while (driver->is_sampling())
+    	for (uint i=0;i<samples_per_vector;i++){
+    		driver->next_samples();
+    		if (!driver->is_sampling()) {
+    			while (i++<samples_per_vector)
+    				s_vector.mutable_samples()->RemoveLast();
+    			break;
+    		}
+    		sample[i]->set_timestamp(driver->get_sample_timestamp());
+    		for (uint j=0;j<channels.size();j++)
+    			channels[j]->fill_sample(sample[i]->mutable_channels()->Mutable(j));
+    	  	if (logger != NULL) logger->next_sample();
+    	}
+  	  string msgstr;
+  	  s_vector.SerializeToString(&msgstr);
+  	  msg.set_id(conn->random64());
+  	  msg.set_message(msgstr);
+  	  Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
+  	  if (!tracker) {
+  	    fprintf(stderr,"Error: sending failed.\n");
+  	    return;
+  	  }
+  	  conn->flush(tracker, -1);
+  	}
+    if (logger) logger->info() << "Sampling stopped\n";
 }
 
 void * _do_sampling(void * amp) {
@@ -161,9 +104,12 @@ void * _do_sampling(void * amp) {
 }
 
 void AmplifierServer::start_sampling() {
-    driver->start_sampling();
+	driver->start_sampling();
     //  sampling_thread = new boost::thread(t);
-    if (logger!=NULL) logger->restart();
+    if (logger!=NULL) {
+    	logger->restart();
+    	logger->info() << "Sampling started\n";
+    }
     //pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);
     do_sampling();
     
@@ -181,5 +127,4 @@ void AmplifierServer::stop_sampling() {
 
 void AmplifierServer::handle_message(MultiplexerMessage & msg) {
     debug("Received message! Type:%s message: %s", types::get_name(msg.type()), msg.message().c_str());
-
 }

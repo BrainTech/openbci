@@ -13,60 +13,47 @@
  */
 #include "../TmsiAmplifier.h"
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/program_options.hpp>
+using namespace boost::posix_time;
+namespace po=boost::program_options;
 #include <fcntl.h>
 #include <stdio.h>
 #include <signal.h>
-using namespace boost::posix_time;
+
 
 int main(int argc, char ** argv) {
-    const char *dev="/dev/tmsi0", *read_dev=NULL,*dump_file=NULL,*chann_names="1 2 trig onoff bat";
     int sample_rate=128,length=5;
-    int mode=USB_AMPLIFIER;
-    for (int i=1;i<argc;i++)
-        if (argv[i][0]=='-')
-            switch (argv[i][1])
-            {
-                case 'd':
-                    dev=argv[i+1]; break;
-                case 'r':
-                    read_dev=argv[i+1]; break;
-                case 'f':
-                    sample_rate=atoi(argv[i+1]);break;
-                case 'b':
-                    mode = BLUETOOTH_AMPLIFIER;
-                    dev=argv[i+1];
-                    break;
-                case 'l':
-                    length=atoi(argv[i+1]);break;
-                case 'a':
-                    dump_file=argv[i+1];
-                    break;
-                case 'c':
-                    chann_names=argv[i+1];
-            }
-    TmsiAmplifier amp(dev, mode,read_dev,dump_file);
-    sample_rate=amp.set_sampling_rate(sample_rate);
-    printf("Sampling rate: %d Hz;Number of channels: %d;Channel Names:%s\n",sample_rate,amp.number_of_channels(),chann_names);
-    vector<string> channels;
-    stringstream str(chann_names);
-    string tmp;
-    while (str>>tmp)
-       channels.push_back(tmp);
-    amp.set_active_channels(channels);
+    po::options_description options("Program Options");
+    options.add_options()
+    		("length,l",po::value<int>(&length)->default_value(5),"Length of the test in seconds")
+    		("help,h","Show help")
+    		("start","Start sampling");
+    TmsiAmplifier amp;
+    options.add(amp.get_options());
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc,argv,options),vm);
+    po::notify(vm);
+    amp.init(vm);
+    if (vm.count("help"))
+        	cout<<options<<"\n";
+
+    cout << amp.get_description()->get_json()<<"\n";
+    sample_rate = amp.get_sampling_rate();
+
+    vector<Channel *> channels = amp.get_active_channels();
+    if (!vm.count("start"))
+    	return 0;
     amp.start_sampling();
     ptime start=microsec_clock::local_time();
-    printf("SAMPLING STARTED at %s\n",to_simple_string(start).c_str());
+    printf("SAMPLING STARTED at %s  and will stop after %d (%d)samples\n",to_simple_string(start).c_str(),length*sample_rate,length);
     for (int i = 0; i < length*sample_rate; i++) {
-        vector<int> isamples(amp.number_of_channels(), 0);
-        //vector<float> fsamples(amp.number_of_channels(), 0.0);
-        amp.fill_samples(isamples);
+    	amp.next_samples();
         printf("Samples %d:\n",i);
-        for (unsigned int j = 0; j < channels.size(); j++)
-            printf("%7s: %d %x\n", channels[j].c_str(), isamples[j], isamples[j]);
-        //            amp.fill_samples(fsamples);
-        //            printf("Float samples form channels:\n");
-        //            for (int j = 0; j < fsamples.size(); j++)
-        //                printf("%3d: %f\n", j, fsamples[j]);
+        for (uint j = 0; j < channels.size(); j++)
+        	{
+        		channels[j]->get_sample_int();
+        		printf("%7s: %d %x\n", channels[j]->name.c_str(), channels[j]->get_sample_int(),channels[j]->get_sample_int());
+        	}
     }
     ptime end=microsec_clock::local_time();
     printf("Sampling will be stopped at %s after %d samples\n",
@@ -74,6 +61,5 @@ int main(int argc, char ** argv) {
     printf("Duration: %s\n",to_simple_string(end-start).c_str());
     printf("Actual frequency: %f\n",length*sample_rate/(double)(end-start).total_microseconds()*1000000);
     amp.stop_sampling();
-    
     return 0;
 }
