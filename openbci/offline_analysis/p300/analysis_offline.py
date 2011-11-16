@@ -5,7 +5,7 @@ from scipy import *
 from scipy import linalg
 from scipy import signal
 import pylab
-import PyML
+#import PyML
 import copy
 from openbci.offline_analysis.obci_signal_processing import read_manager
 from openbci.offline_analysis.obci_signal_processing.signal import read_info_source, read_data_source
