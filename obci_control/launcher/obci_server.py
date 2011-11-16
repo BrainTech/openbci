@@ -7,6 +7,7 @@ import argparse
 import os.path
 import sys
 import json
+import time
 
 import zmq
 
@@ -26,6 +27,7 @@ class OBCIServer(OBCIControlPeer):
 												name='obci_server'):
 		self.other_addrs = other_srv_addresses
 		self.experiments = {}
+		self.exp_processes = {}
 
 		self.__all_sockets = []
 
@@ -33,6 +35,11 @@ class OBCIServer(OBCIControlPeer):
 														  pub_addresses,
 														  name)
 		#TODO do sth with other server rep addresses
+
+	def net_init(self):
+		super(OBCIServer, self).net_init()
+
+
 
 	def pre_run(self):
 		"""
@@ -59,7 +66,7 @@ probably a server is already working"
 		os.remove(self.fpath)
 
 
-	def start_experiment_controller(self, sandbox_dir, launch_file):
+	def start_experiment(self, sandbox_dir, launch_file):
 		path = obci_experiment.__file__
 		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
 
@@ -69,6 +76,7 @@ probably a server is already working"
 										'--launch-file', str(launch_file),
 										'--name', str(launch_file).split('.')[0]
 										])
+		return exp
 
 
 	def handle_register_supervisor(self, message, sock):
@@ -97,6 +105,18 @@ probably a server is already working"
 			super(OBCIServer, self).handle_register_peer(message_sock)
 
 	def handle_create_experiment(self, message, sock):
+		launch_file = message["launch_file"]
+		sandbox = message["sandbox_dir"]
+		sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
+		exp = self.start_experiment(sandbox, launch_file)
+
+		self.exp_processes[exp_pid] = exp
+		#TODO this is ugly
+		time.sleep(0.0001)
+		if exp.poll() is None:
+			send_msg(sock, self.mtool.fill_msg("rq_ok"))
+
+
 
 def server_arg_parser(add_help=False):
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],

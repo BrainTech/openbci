@@ -14,5 +14,16 @@ from obci_control_peer import OBCIControlPeer, basic_arg_parser
 
 import common.obci_control_settings as settings
 
-class OBCIClient(OBCIControlPeer):
-	pass
+class OBCIClient(object):
+
+	def __init__(self, server_addresses, zmq_context=None):
+		self.ctx = zmq_context if zmq_context else zmq.Context()
+
+		self.server_req_socket = self.ctx.socket(zmq.REQ)
+		for addr in addresses:
+			self.server_req_socket.connect(addr)
+
+
+
+	def send_create_experiment(self, launch_file=None):
+		pass

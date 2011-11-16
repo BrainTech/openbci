@@ -77,6 +77,7 @@ specified in a launch file or in a newly created Experiment")
 
 	parser_launch.add_argument('file', type=path_to_file,
 				help="OpenBCI launch configuration (experiment configuration).")
+	parser_launch.set_defaults(func=cmd_launch)
 
 
 	parser_add = subparsers.add_parser('add',
