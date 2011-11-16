@@ -32,7 +32,7 @@ class BlinkAndDiodeCatcher(BaseMultiplexerServer):
         elif mxmsg.type == types.BLINK_MESSAGE:
             b = variables_pb2.Blink()
             b.ParseFromString(mxmsg.message)
-            print("GOT BLINK: "+b.timestamp+" / "+b.index)
+            print("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
             TAGGER.send_tag(b.timestamp, b.timestamp, "blink"+self.get_state(),
                             {"index" : b.index})
 

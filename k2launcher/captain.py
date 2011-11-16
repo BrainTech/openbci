@@ -155,9 +155,21 @@ start("blink_test", "blink_catcher")
 
 start("mati_exp", "hashtable")
 start("mati_exp", "blinking_ugm")
-start("mati_exp", "virtual_amplifier")
+start("mati_exp", "virtual_f_amplifier")
 start("mati_exp", "mati_exp_catcher")
 start("mati_exp", "mati_exp")
+start("mati_exp", "diode_catcher")
+start("mati_exp", "diode_control")
+
+
+start("mati_real_exp", "hashtable")
+start("mati_real_exp", "blinking_ugm")
+start("mati_real_exp", "c++_usb_amplifier")
+start("mati_real_exp", "mati_exp_catcher")
+start("mati_real_exp", "mati_exp")
+start("mati_real_exp", "diode_catcher")
+start("mati_real_exp", "diode_control")
+
 
 start("logics_test", "hashtable")
 start("logics_test", "ugm")
