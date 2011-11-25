@@ -10,11 +10,11 @@
 
 import warnings
 
-class OBCISystemConfig(object):
+class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
 		self.uuid = uuid
-		self.launch_file_path = uuid
-		self.origin_machine = uuid
+		self.launch_file_path = launch_file_path
+		self.origin_machine = origin_machine
 
 		self.peers = {}
 
@@ -36,7 +36,12 @@ class OBCISystemConfig(object):
 		self.peers[peer_id].config.set_config_source(src_name, src_peer_id)
 
 	def set_launch_dependency(self, peer_id, dep_name, dep_peer_id):
-		pass
+		if dep_peer_id not in self.peers.keys() or \
+			peer_id not in self.peers.keys() or \
+			self.peers[peer_id] is None:
+			raise OBCISystemConfigError()
+
+		self.peers[peer_id].config.set_launch_dependency(dep_name, dep_peer_id)
 
 	def config_ready(self):
 
@@ -48,13 +53,25 @@ class OBCISystemConfig(object):
 
 		return True
 
+	def info(self):
+		exp = {}
+		exp["uuid"] = self.uuid
+		exp["origin_machine"] = self.origin_machine
+		exp["launch_file_path"] = self.launch_file_path
+		peers = {}
+		for p in self.peers:
+			peers[p] = self.peers[p].info()
+		exp["peers"] = peers
+		return exp
+
+
 
 
 class PeerConfigData(object):
-	def __init__(self, peer_id, system_instance_id, config=None, path=None, machine=None):
+	def __init__(self, peer_id, experiment_id, config=None, path=None, machine=None):
 		self.peer_id = peer_id
 
-		self.system_instance_id = system_instance_id
+		self.experiment_id = experiment_id
 
 		self.config = config
 		self.path = path
@@ -66,6 +83,9 @@ class PeerConfigData(object):
 				self.machine is not None and\
 				self.config is not None
 		return ready and self.config.config_ready()
+
+	def info(self):
+		return vars(self)
 
 
 

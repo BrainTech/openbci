@@ -6,7 +6,7 @@ import os
 
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
-from launcher.system_config import OBCISystemConfig, OBCISystemConfigError
+from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
 
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"
@@ -31,8 +31,6 @@ class LaunchFileParser(object):
 
 	def _do_parse(self):
 		self._check_sections()
-
-		print self.parser.sections()
 
 		peer_sections = self.__peer_sections()
 
@@ -65,7 +63,7 @@ class LaunchFileParser(object):
 		items = self.parser.items(peer_section)
 		for (param, value) in items:
 			if param == "path":
-				self.config.set_peer_path(peer_id, value)
+				self.config.set_peer_path(peer_id, os.path.join(self.base_dir, value))
 			elif param == "config":
 				self._parse_peer_config(peer_id, value)
 			elif param == "machine":
@@ -76,7 +74,7 @@ class LaunchFileParser(object):
 	def _parse_peer_config(self, peer_id, config_path):
 		peer_parser = peer_config_parser.parser("ini")
 		peer_cfg = peer_config.PeerConfig(peer_id)
-		with open(os.path.join(self.base_dir, config_path)) as f:
+		with open(config_path) as f:
 			peer_parser.parse(f, peer_cfg)
 			self.config.set_peer_config(peer_id, peer_cfg)
 

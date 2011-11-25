@@ -30,7 +30,7 @@ def update_obci_syspath():
 
 def update_pythonpath():
 	obci_paths = obci_pythonpath()
-	pythonpath=os.environ["PYTHONPATH"]
+	pythonpath=os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ''
 	pythonpath=os.pathsep.join([pythonpath, obci_paths])
 	os.environ["PYTHONPATH"] = pythonpath
 

@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 import os
 import argparse
@@ -10,6 +8,10 @@ import json
 import time
 import subprocess
 import sys
+import ConfigParser
+import signal
+
+import zmq
 
 import launcher_tools
 launcher_tools.update_obci_syspath()
@@ -18,15 +20,33 @@ launcher_tools.update_pythonpath()
 import obci_server
 import obci_client
 import common.obci_control_settings as settings
+import common.net_tools as net
+import view
+from common.config_helpers import OBCISystemError
+
+disp = view.OBCIViewText()
 
 def cmd_srv(args):
-	if server_rep_addresses() is not None:
-		print "OBCI Server is already running."
-	else: server_prep(argv())
+	client_server_prep(argv())
+
+def cmd_srv_kill(args):
+	running, pid = server_process_running()
+	if running:
+		try:
+			os.kill(pid, signal.SIGTERM)
+			#os.waitpid(pid, 0)
+		except OSError, e:
+			disp.view("srv_kill: something went wrong... {0}".format(e))
+	else:
+		disp.view("Server was not running")
+
 
 def cmd_launch(args):
-	server_prep(argv())
+	client = client_server_prep()
 
+	response = client.launch(args.launch_file, args.sandbox_dir)
+	print response
+	#disp.view(response)
 
 def cmd_new(args):
 	pass
@@ -53,7 +73,10 @@ def cmd_config(args):
 	pass
 
 def cmd_info(args):
-	pass
+	client = client_server_prep()
+
+	response = client.send_list_experiments()
+	disp.view(response)
 
 def obci_arg_parser():
 	parser = argparse.ArgumentParser(description="Launch and manage OBCI experiments,\
@@ -71,12 +94,19 @@ def configure_argparser(parser):
 				help="Start OBCIServer")
 	parser_srv.set_defaults(func=cmd_srv)
 
+	parser_srv_kill = subparsers.add_parser('srv_kill',
+				parents=[obci_server.server_arg_parser(add_help=False)],
+				help="Kill OBCIServer")
+	parser_srv_kill.set_defaults(func=cmd_srv_kill)
+
 	parser_launch = subparsers.add_parser('launch',
 				help="Launch an OpenBCI system with configuration \
 specified in a launch file or in a newly created Experiment")
 
-	parser_launch.add_argument('file', type=path_to_file,
+	parser_launch.add_argument('launch_file', type=path_to_file,
 				help="OpenBCI launch configuration (experiment configuration).")
+	parser_launch.add_argument('--sandbox_dir', type=path_to_file,
+				help="Directory for log file and various temp files storeage.")
 	parser_launch.set_defaults(func=cmd_launch)
 
 
@@ -105,45 +135,93 @@ specified in a launch file or in a newly created Experiment")
 	parser_info = subparsers.add_parser('info',
 				help="Get information about controlled OpenBCI experiments\
 						and peers")
+	#parser_info.add_argument()
+	parser_info.set_defaults(func=cmd_info)
 
-
+def connect_client(addresses, client=None):
+	if client is None:
+		ctx = zmq.Context()
+		client = obci_client.OBCIClient(addresses, ctx)
+	result = client.ping_server(timeout=200)
+	return result, client
 
 def server_rep_addresses():
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
+
+	filename = settings.MAIN_CONFIG_NAME
+	fpath = os.path.join(directory, filename)
+
+	if os.path.exists(fpath):
+		parser = ConfigParser.RawConfigParser()
+		with open(fpath) as f:
+			parser.readfp(f)
+	else:
+		print "Main config file not found in {0}".format(directory)
+		raise OBCISystemError()
+
+	port = parser.get('server', 'port')
+
+	return ['tcp://' + net.lo_ip() + ':' + port,
+			'tcp://' + net.ext_ip() + ':' + port]
+
+def server_process_running():
+	"""
+	Return true if there is an obci_server process running
+	"""
+	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
-		os.mkdir(directory)
+		print "obci directory not found: {0}".format(directory)
+		raise OBCISystemError()
 
 	filename = settings.SERVER_CONTACT_NAME
 	fpath = os.path.join(directory, filename)
-	if os.path.exists(fpath):
-		with open(fpath) as f:
-			return json.load(f)
-	else:
-		return None
 
-def server_prep(args=[]):
+	if not os.path.exists(fpath):
+		return False, None
+
+	with open(fpath) as f:
+		pid = f.readline()
+
+		if not pid:
+			return False, None
+		pid = int(pid)
+		#Check whether pid exists in the current process table.
+		if pid < 0:
+			return False, None
+		try:
+			os.kill(pid, 0)
+		except OSError, e:
+			return e.errno == errno.EPERM, pid
+		else:
+			return True, pid
+
+
+def client_server_prep(args=[], sock=None):
 	addrs = server_rep_addresses()
-	if addrs:
-		return addrs
 
-	success = launch_obci_server(args)
+	res, client = connect_client(addrs)
+
+	if res is not None:
+		return client
+
+
+	if server_process_running()[0]:
+		cmd_srv_kill(None)
+		disp.view("Restarting OBCI Server...")
+	success = launch_obci_server(args+['--rep-addresses']+addrs)
 	if not success:
-		print "Could not launch OBCI Server"
+		disp.view("Could not launch OBCI Server")
 		sys.exit(1)
-	print "OBCI server launched. PID: {0}".format(success.pid)
+	disp.view("OBCI server launched. PID: {0}".format(success.pid))
 
-	tries = 30
 
-	while addrs is None and tries:
-		time.sleep(0.05)
-		tries -= 1
-		addrs = server_rep_addresses()
+	res = client.retry_ping(timeout=800)
 
-	if addrs is None:
-		print "Could not obtain OBCI Server Addresses"
+	if res is None:
+		disp.view("Could not connect to OBCI Server")
 		sys.exit(1)
 	else:
-		return addrs
+		return client
 
 def launch_obci_server(args=[]):
 	path = obci_server.__file__
