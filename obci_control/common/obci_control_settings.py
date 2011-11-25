@@ -12,6 +12,7 @@ PORT_RANGE = (30000, 60000)
 
 DEFAULT_SANDBOX_DIR = os.path.join(os.getenv('HOME'), '.obci')
 SERVER_CONTACT_NAME = '.obci_server_contact'
+MAIN_CONFIG_NAME = 'main_config'
 
 def __obci_install_dir():
 	f = __file__

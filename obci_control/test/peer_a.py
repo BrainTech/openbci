@@ -10,7 +10,7 @@ import peer.peer_config_control
 class TestServer2(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(TestServer2, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-        self.config = peer.peer_config_control.PeerControl(self)
+        self.config = peer.peer_config_control.PeerConfigControl(self)
         self.config.initialize_config(self.conn)
         self.config.send_peer_ready(self.conn)
         self.config.synchronize_ready(self.conn)

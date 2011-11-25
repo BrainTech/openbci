@@ -11,7 +11,8 @@ common_templates = {
 	"rq_error" : dict(err_code='', request='', details=''),
 	"kill" : None,
 	"heartbeat" : None,
-	"ping" : None,
+	"ping" : dict(),
+	"pong" : dict(),
 	"pub_addr_rq" : dict(),
 	"pub_addr" : dict(pub_addresses='', request='')
 }
@@ -44,11 +45,38 @@ class OBCIMessageTool(object):
 	def decode_msg(self, msg):
 		return json.loads(msg)
 
+	def unpack_msg(self, msg):
+		m = LauncherMessage()
+		m.ParseFromString(msg)
+		return m
+
+
 def send_msg(sock, message):
 	return sock.send_unicode(message)
 
 def recv_msg(sock):
 	return sock.recv_unicode()
+
+class LauncherMessage(object):
+	def SerializeToString(self):
+		return json.dumps(vars(self))
+
+	def __repr__(self):
+		return str(self.dict())
+
+	def ParseFromString(self, string):
+		message = json.loads(string)
+		if not isinstance(message, dict): #TODO more general keyed collection?
+			raise OBCIMessageError()
+		for key in message:
+			setattr(self, key, message[key])
+
+	def keys(self):
+		return vars(self).keys()
+
+	def dict(self):
+		return vars(self)
+
 
 
 class OBCIMessageError(Exception):

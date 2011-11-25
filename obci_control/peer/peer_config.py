@@ -33,7 +33,7 @@ class PeerConfig(object):
 	Launch dependencies are used when we want to delay peer start
 	until all dependncies report that they are ready to work.
 	"""
-	def __init__(self, peer_id=None):
+	def __init__(self, peer_id=None, warn_overwrite=False):
 		# system ID of the peer
 		#TODO - is this necessary in config core?
 		self.peer_id = peer_id
@@ -62,6 +62,8 @@ class PeerConfig(object):
 		# all parameter values, for not-yet-obtained external params
 		# None is stored
 		self._param_values = {}
+
+		self._warn_overwrite = warn_overwrite
 
 
 	def __repr__(self):
@@ -181,7 +183,6 @@ Name: {0}, old id: {1}, new id: {2}""".format(
 	def set_launch_dependency(self, dep_name, peer_id='', _set_src=True):
 		"""
 		"""
-		print "DEPSDEPSDEPS"
 		param_name_type_check(dep_name)
 		module_id_type_check(peer_id)
 		argument_not_empty_check(dep_name)
@@ -414,7 +415,8 @@ not declared in configuration!".format(source_name, reference))
 
 
 	def _overwrite_warn(self, p_message):
-		warnings.warn(ConfigOverwriteWarning(p_message), stacklevel=2)
+		if self._warn_overwrite:
+			warnings.warn(ConfigOverwriteWarning(p_message), stacklevel=2)
 
 
 

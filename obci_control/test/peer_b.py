@@ -13,7 +13,7 @@ class TestServer(BaseMultiplexerServer):
         super(TestServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
         self.config = None
 
-    def config(self):
+    def configure(self):
         self.config = peer.peer_config_control.PeerConfigControl(self)
         self.config.initialize_config(self.conn)
 
@@ -27,5 +27,5 @@ class TestServer(BaseMultiplexerServer):
 
 if __name__ == "__main__":
     srv = TestServer(settings.MULTIPLEXER_ADDRESSES)
-    srv.config()
+    srv.configure()
     srv.loop()
