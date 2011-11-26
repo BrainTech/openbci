@@ -36,7 +36,7 @@ class PeerCmd(object):
 
 		self.parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
 									help="Additional configuration file (overrides): path_to_file.")
-		self.parser.add_argument('--wait-config', action='store_true',
+		self.parser.add_argument('--wait-ready-signal', action='store_true',
 									help="Wait for init configuration message.")
 
 	def parse_cmd(self):

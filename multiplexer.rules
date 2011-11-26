@@ -842,6 +842,10 @@ type {
 type {
 	type: 219
 	name: "PARAMS_CHANGED"
+	to {
+		peer: "ALL_TYPES"
+		whom: ALL
+	}
 }
 
 # message contains peer_id (string)
@@ -884,4 +888,19 @@ type {
 type {
 	type: 224
 	name: "CONFIG_ERROR"
+}
+
+#PeerIdentity
+type {
+	type: 225
+	name: "PEER_READY_SIGNAL"
+}
+
+type {
+	type: 226
+	name: "SHUTDOWN_REQUEST"
+	to {
+		peer: "ALL_TYPES"
+		whom: ALL
+	}
 }

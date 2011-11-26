@@ -2,19 +2,16 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer
 import settings, variables_pb2
 
-import peer.peer_config_control
-import common.config_message as cmsg
+from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-class TestServer(BaseMultiplexerServer):
+
+class TestServer(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(TestServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-        self.config = None
 
     def configure(self):
-        self.config = peer.peer_config_control.PeerConfigControl(self)
         self.config.initialize_config(self.conn)
 
         self.config.send_peer_ready(self.conn)
@@ -22,6 +19,7 @@ class TestServer(BaseMultiplexerServer):
 
 
     def handle_message(self, mxmsg):
+        self.filter_config_message(mxmsg)
         # handle something
         self.no_response()
 

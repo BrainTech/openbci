@@ -17,7 +17,8 @@ MX_CFG_MESSAGES = {
 	types.PEER_READY : templates.PeerIdentity,
 	types.PEERS_READY_QUERY : templates.PeerReadyQuery,
 	types.READY_STATUS : templates.PeerReadyStatus,
-	types.CONFIG_ERROR : templates.ConfigError
+	types.CONFIG_ERROR : templates.ConfigError,
+	types.PEER_READY_SIGNAL : templates.PeerIdentity
 }
 
 def msg_for_type(mx_type):

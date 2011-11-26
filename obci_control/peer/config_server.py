@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer
+from multiplexer.clients import BaseMultiplexerServer, connect_client
 import settings
 
 
@@ -14,6 +14,8 @@ class ConfigServer(BaseMultiplexerServer):
 	def __init__(self, addresses):
 		self._configs = {}
 		self._ready_peers = []
+		self.__to_all = False
+		self.spare_conn = connect_client(addresses=addresses, type=peers.CONFIGURER)
 		super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
 
 
@@ -21,11 +23,17 @@ class ConfigServer(BaseMultiplexerServer):
 		message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)
 
 		msg, mtype = self._call_handler(mxmsg.type, message)
+		print mxmsg.type, mtype
 		if msg is None:
 			self.no_response()
 		else:
 			msg = cmsg.pack_msg(msg)
-			self.send_message(message=msg, type=mtype, to=int(mxmsg.from_), flush=True)
+			if self.__to_all:
+				self.no_response()
+				self.spare_conn.send_message(message=msg, type=mtype, flush=True)
+				self.__to_all = False
+			else:
+				self.send_message(message=msg, to=int(mxmsg.from_), type=mtype, flush=True)
 
 	def _call_handler(self, mtype, message):
 		if mtype == types.GET_CONFIG_PARAMS:
@@ -35,7 +43,10 @@ class ConfigServer(BaseMultiplexerServer):
 		elif mtype == types.UNREGISTER_PEER_CONFIG:
 			return self.handle_unregister_peer_config(message)
 		elif mtype == types.UPDATE_PARAMS:
-			return self.handle_update_params(message)
+			msg, mtype =  self.handle_update_params(message)
+			if mtype != types.CONFIG_ERROR:
+				self.__to_all = True
+			return msg, mtype
 		elif mtype == types.PEER_READY:
 			return self.handle_peer_ready(message)
 		elif mtype == types.PEERS_READY_QUERY:
@@ -82,6 +93,23 @@ class ConfigServer(BaseMultiplexerServer):
 		return None, None #TODO confirm unregister...
 
 	def handle_update_params(self, message_obj):
+		params = cmsg.params2dict(message_obj)
+		param_owner = message_obj.sender
+		if param_owner not in self._configs:
+			return cmsg.fill_msg(types.CONFIG_ERROR,
+								error_str="Peer unknown: {0}".format(param_owner)),\
+					types.CONFIG_ERROR
+		updated = {}
+		for param in params:
+			if param in self._configs[param_owner]:
+				self._configs[param_owner][param] = params[param]
+				updated[param] = params[param]
+
+		if updated:
+			mtype = types.PARAMS_CHANGED
+			msg = cmsg.fill_msg(types.PARAMS_CHANGED, sender=param_owner)
+			cmsg.dict2params(updated, msg)
+			return msg, mtype
 		return None, None
 
 	def handle_peer_ready(self, message_obj):

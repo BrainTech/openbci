@@ -303,7 +303,7 @@ not declared in configuration!".format(source_name, reference))
 
 	def update_local_param(self, param_name, value):
 		"""
-		Update local parameter. Works like as add_local_param()
+		Update local parameter. Works like add_local_param()
 		but the parameter should already exist in PeerConfig.
 		Otherwise raise ValueError.
 		"""

@@ -4,7 +4,6 @@ import os
 import sys
 
 
-
 from utils import pb2_construct, set_env
 import k2launcher_pb2
 
@@ -113,6 +112,7 @@ task("python ./p300dawida/plotting.py", "plottingdawid")
 task("python ../obci_control/peer/config_server.py", "config_server")
 task("python ../obci_control/test/peer_a.py ziom_a -c peerb ziom_b -c mmm ziom_b", "A")
 task("python ../obci_control/test/peer_b.py ziom_b -c peer1 ziom_a", "B")
+task("python ../obci_control/test/test_config_changing.py", "cfg_changer")
 
 
 for task in tasks:
@@ -468,6 +468,7 @@ start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 start("cftest", "config_server")
 start("cftest", "A")
 start("cftest", "B")
+start("cftest", "cfg_changer")
 
 
 if __name__ == "__main__":
