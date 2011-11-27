@@ -7,6 +7,8 @@ class OBCIView(object):
 		"""
 		Abstract method for printing data in launcher messages.
 		"""
+		if msg is None:
+			msg = str(msg)
 		if isinstance(msg, basestring):
 			formatter = self._view_str
 		else:
@@ -52,13 +54,14 @@ class OBCIViewText(OBCIView):
 		if isinstance(msg, dict):
 			for key in msg.keys():
 				val = msg[key]
-				lst += ['   '*depth, key, ':\n']
+				lst += ['\n','   '*depth, key, ':  ']
 				self._format_msg(val, lst, depth+1)
 		elif isinstance(msg, list):
 			for elt in msg:
 				self._format_msg(elt, lst, depth+2)
+				lst += ['\n', '   '*(depth+3)]
 		else:
-			lst += ['   '*depth, str(msg), '\n']
+			lst += [str(msg)]
 
 	def _view_running_experiments(self, msg):
 		return self.format_default(msg)

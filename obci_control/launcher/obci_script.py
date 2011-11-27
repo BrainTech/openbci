@@ -10,6 +10,7 @@ import subprocess
 import sys
 import ConfigParser
 import signal
+import errno
 
 import zmq
 
@@ -43,10 +44,8 @@ def cmd_srv_kill(args):
 
 def cmd_launch(args):
 	client = client_server_prep()
-
 	response = client.launch(args.launch_file, args.sandbox_dir)
-	print response
-	#disp.view(response)
+	disp.view(response)
 
 def cmd_new(args):
 	pass
@@ -55,7 +54,9 @@ def cmd_join(args):
 	pass
 
 def cmd_kill(args):
-	pass
+	client = client_server_prep()
+	response = client.kill_exp(args.id)
+	disp.view(response)
 
 def cmd_killall(args):
 	pass
@@ -74,9 +75,20 @@ def cmd_config(args):
 
 def cmd_info(args):
 	client = client_server_prep()
-
-	response = client.send_list_experiments()
+	if not args.e:
+		response = client.send_list_experiments()
+	else:
+		response = client.get_experiment_details(args.e, args.p)
+	if response is None:
+		response = "whyyyy"
 	disp.view(response)
+
+########################################################
+
+
+###############################################################################
+
+
 
 def obci_arg_parser():
 	parser = argparse.ArgumentParser(description="Launch and manage OBCI experiments,\
@@ -118,6 +130,12 @@ specified in a launch file or in a newly created Experiment")
 
 	parser_kill = subparsers.add_parser('kill',
 				help="Kill an OpenBCI experiment")
+	parser_kill.add_argument('id', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)')
+	parser_kill.add_argument('--brutal', help='Just kill the specified experiment manager, \
+do not send a "kill" message')
+	parser_kill.set_defaults(func=cmd_kill)
 
 	parser_killall = subparsers.add_parser('killall',
 				help="Kill everything: all experiments and OBCI server.")
@@ -135,7 +153,10 @@ specified in a launch file or in a newly created Experiment")
 	parser_info = subparsers.add_parser('info',
 				help="Get information about controlled OpenBCI experiments\
 						and peers")
-	#parser_info.add_argument()
+	parser_info.add_argument('-e', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)')
+	parser_info.add_argument('-p', help='Peer ID in the specified experiment.')
 	parser_info.set_defaults(func=cmd_info)
 
 def connect_client(addresses, client=None):
@@ -179,22 +200,25 @@ def server_process_running():
 	if not os.path.exists(fpath):
 		return False, None
 
+	pid = None
+	opened_file = False
+	running = False
 	with open(fpath) as f:
 		pid = f.readline()
+		opened_file = True
 
-		if not pid:
-			return False, None
+	if pid:
 		pid = int(pid)
-		#Check whether pid exists in the current process table.
-		if pid < 0:
-			return False, None
-		try:
-			os.kill(pid, 0)
-		except OSError, e:
-			return e.errno == errno.EPERM, pid
-		else:
-			return True, pid
-
+	#Check whether pid exists in the current process table.
+	try:
+		os.kill(pid, 0)
+	except OSError, e:
+		running = e.errno == errno.EPERM
+	else:
+		running = True
+	if not running and opened_file:
+		os.remove(fpath)
+	return running, pid
 
 def client_server_prep(args=[], sock=None):
 	addrs = server_rep_addresses()

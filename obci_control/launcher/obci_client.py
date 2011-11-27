@@ -16,7 +16,7 @@ import common.obci_control_settings as settings
 
 class OBCIClient(object):
 
-	default_timeout=200
+	default_timeout=5000
 
 	def __init__(self, server_addresses, zmq_context=None):
 		self.ctx = zmq_context if zmq_context else zmq.Context()
@@ -37,21 +37,37 @@ class OBCIClient(object):
 		if result.type != "experiment_created":
 			return result
 
-		start_result = self.send_start_experiment(result.rep_addrs)
+		return self.send_start_experiment(result.rep_addrs)
 
 	def send_start_experiment(self, exp_addrs):
 		exp_sock = self.ctx.socket(zmq.REQ)
 		for addr in exp_addrs:
 			exp_sock.connect(addr)
+		self.poller.register(exp_sock, zmq.POLLIN)
 
 		send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
+		reply =  self._poll_recv(exp_sock, 20000)
+		self.poller.unregister(exp_sock)
+		return reply
+
+	def force_kill_experiment(self, strname):
+		pass
+
+	def get_experiment_contact(self, strname):
+		send_msg(self.server_req_socket, self.mtool.fill_msg("get_experiment_contact",
+										strname=strname))
+		response = self._poll_recv(self.server_req_socket, self.default_timeout)
+		return response
+
 
 	def ping_server(self, timeout=50):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("ping"))
-		return self._poll_recv(self.server_req_socket, timeout)
+		response = self._poll_recv(self.server_req_socket, timeout)
+		return response
 
 	def retry_ping(self, timeout=50):
-		return self._poll_recv(self.server_req_socket, timeout)
+		response = self._poll_recv(self.server_req_socket, timeout)
+		return response
 
 
 	def _poll_recv(self, socket, timeout):
@@ -62,7 +78,7 @@ class OBCIClient(object):
 			return None
 
 		if socket in socks and socks[socket] == zmq.POLLIN:
-			return recv_msg(socket)
+			return self.mtool.unpack_msg(recv_msg(socket))
 		else:
 			return None
 
@@ -71,22 +87,32 @@ class OBCIClient(object):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("create_experiment",
 							launch_file=launch_file, sandbox_dir=sandbox_dir))
 
-		enc_msg = recv_msg(self.server_req_socket)
-		message = self.mtool.unpack_msg(enc_msg)
-		return message
+		response = self._poll_recv(self.server_req_socket, 2000)
+		return response
 
 	def send_list_experiments(self):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("list_experiments"))
 
-		response = recv_msg(self.server_req_socket)
-		return self.mtool.unpack_msg(response)
+		response = self._poll_recv(self.server_req_socket, 2000)
+		return response
 
-	def send_get_experiment_info(self, exp_rep_addr):
-		if self.exp_req_socket is None:
-			self.exp_req_socket = self.ctx.socket(zmq.REQ)
-			for addr in exp_rep_addr:
-				self.exp_req_socket.connect(addr)
+	def get_experiment_details(self, strname, peer_id=None):
+		response = self.get_experiment_contact(strname)
 
-		send_msg(self.exp_req_socket, self.mtool.fill_msg("get_experiment_info"))
-		response = recv_msg(self.exp_req_socket)
-		return self.mtool.unpack_msg(response)
+		if response.type == "rq_error":
+			return response
+
+		sock = self.ctx.socket(zmq.REQ)
+		for addr in response.rep_addrs:
+			sock.connect(addr)
+		self.poller.register(sock, zmq.POLLIN)
+
+		send_msg(sock, self.mtool.fill_msg("get_experiment_info", peer_id=peer_id))
+		response = self._poll_recv(sock, 2000)
+		self.poller.unregister(sock)
+		return response
+
+	def kill_exp(self, strname, force=False):
+		send_msg(self.server_req_socket,
+				self.mtool.fill_msg("kill_experiment", strname=strname))
+		return self._poll_recv(self.server_req_socket, 2000)

@@ -9,8 +9,8 @@ BASIC_MSG = dict(type='', sender='', receiver='')
 common_templates = {
 	"rq_ok" : dict(status='', request='', params=''),
 	"rq_error" : dict(err_code='', request='', details=''),
-	"kill" : None,
-	"heartbeat" : None,
+	"kill" : dict(),
+	"heartbeat" : dict(),
 	"ping" : dict(),
 	"pong" : dict(),
 	"pub_addr_rq" : dict(),

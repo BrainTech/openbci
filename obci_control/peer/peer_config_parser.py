@@ -216,14 +216,15 @@ values assigned in config file. Name: '{0}', illegal value: '{1}'."
 err_illegal_sec_name = "Illegal section name: '{0}'"
 
 class PeerConfigParserError(Exception):
-	def __init__(self, value=None):
-		self.value = value
+	pass
+	# def __init__(self, value=None):
+	# 	self.value = value
 
-	def __str__(self):
-		if self.value is not None:
-			return repr(self.value)
-		else:
-			return repr(self)
+	# def __str__(self):
+	# 	if self.value is not None:
+	# 		return repr(self.value)
+	# 	else:
+	# 		return repr(self)
 
 class ParserNotFoundError(PeerConfigParserError):
 	pass

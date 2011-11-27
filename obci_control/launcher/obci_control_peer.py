@@ -19,6 +19,9 @@ class OBCIControlPeer(object):
 										rep_addresses=None,
 										pub_addresses=None,
 										name='obci_control_peer'):
+
+		###TODO TODO TODO !!!!
+		###cleaner subclassing of obci_control_peer!!!
 		self.source_addresses = source_addresses if source_addresses else []
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses
@@ -56,10 +59,8 @@ class OBCIControlPeer(object):
 		return OBCIMessageTool(message_templates)
 
 	def net_init(self):
-
 		(self.pub_socket, self.pub_addresses) = self._init_socket(
 												self.pub_addresses, zmq.PUB)
-
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
 
@@ -67,14 +68,14 @@ class OBCIControlPeer(object):
 		print "rep: {0}".format(self.rep_addresses)
 		print "pub: {0}\n".format(self.pub_addresses)
 
-		self.source_req_socket = None
+		self.source_req_socket = self.ctx.socket(zmq.REQ)
 		if self.source_addresses:
-			self.source_req_socket = self.ctx.socket(zmq.REQ)
 			for addr in self.source_addresses:
 				self.source_req_socket.connect(addr)
 		self._set_poll_sockets()
 
-	def _init_socket(self, addrs, zmq_type):
+	def _init_socket(self, addrs, zmq_type, create_ipc=True):
+
 		ipc_name=''
 		if not addrs:
 			addresses = [addr for addr in self.source_addresses \
@@ -82,11 +83,12 @@ class OBCIControlPeer(object):
 			if not self.source_addresses:
 				addresses = ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip()]
 			random_port = True
-			ipc_name=self.name+'.'+self.uuid
+			if create_ipc:
+				ipc_name=self.name+'.'+self.uuid
 		else:
 			addresses = addrs
 			random_port = False
-			if not [addr for addr in addresses if not net.is_net_addr(addr)]:
+			if not [addr for addr in addresses if not net.is_net_addr(addr)] and create_ipc:
 				ipc_name=self.name+'.'+self.uuid
 			if not [addr for addr in addresses if net.is_net_addr(addr)]:
 				addresses += ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip()]
@@ -116,14 +118,14 @@ class OBCIControlPeer(object):
 		self._register(self.rep_addresses, self.pub_addresses, params)
 
 	def shutdown(self):
-		#TODO CLEAN!!!
+		print '{0} [{1}] -- IS SHUTTING DOWN'.format(self.name, self.peer_type())
 		sys.exit(0)
 
 	def params_for_registration(self):
 		return {}
 
 	def basic_sockets(self):
-		return [self.pub_socket, self.rep_socket]
+		return [self.rep_socket]
 
 	def custom_sockets(self):
 		"""
@@ -135,7 +137,7 @@ class OBCIControlPeer(object):
 		return self.basic_sockets() + self.custom_sockets()
 
 	def _set_poll_sockets(self):
-		self._poll_sockets = self.basic_sockets() + self.custom_sockets()
+		self._poll_sockets = self.all_sockets()
 
 	def run(self):
 		self.pre_run()
@@ -200,6 +202,7 @@ class OBCIControlPeer(object):
 				handler = getattr(self, "handle_" + msg_type)
 			except AttributeError:
 				print "Unknown message type: {0}".format(msg_type)
+				print message
 				if sock.getsockopt(zmq.TYPE) == zmq.REP:
 					handler = self.unsupported_msg_handler
 
@@ -211,27 +214,32 @@ class OBCIControlPeer(object):
 		send_msg(sock, result)
 
 	def handle_ping(self, message, sock):
-		send_msg(sock, self.mtool.fill_msg("pong"))
+		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			send_msg(sock, self.mtool.fill_msg("pong"))
 
 	def default_handler(self, message, sock):
 		"""Ignore message"""
 		pass
 
 	def unsupported_msg_handler(self, message, sock):
-		msg = self.mtool.fill_msg("rq_error",
+		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			msg = self.mtool.fill_msg("rq_error",
 					request=vars(message), err_code="unsupported_msg_type")
-		send_msg(sock, msg)
+			send_msg(sock, msg)
 
 	def bad_msg_handler(self, message, sock):
 		msg = self.mtool.fill_msg("rq_error",
 					request=vars(message), err_code="invalid_msg_format")
 		send_msg(sock, msg)
 
-	def kill_handler(self, message, sock):
-		msg = self.mtool.fill_msg("rq_ok", sender=self.uuid,
-					status="trying_to_die")
-		send_msg(sock, msg)
-		self.shutdown()
+	def handle_kill(self, message, sock):
+
+		if not message.receiver or message.receiver == self.uuid:
+			self.cleanup_before_net_shutdown(message, sock)
+			self.shutdown()
+
+	def cleanup_before_net_shutdown(self, kill_message, sock=None):
+		pass
 
 
 def basic_arg_parser():

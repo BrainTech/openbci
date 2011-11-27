@@ -3,6 +3,7 @@
 
 import ConfigParser
 import os
+import warnings
 
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
@@ -31,22 +32,29 @@ class LaunchFileParser(object):
 
 	def _do_parse(self):
 		self._check_sections()
-
+		self._load_general_settings()
 		peer_sections = self.__peer_sections()
 
 		self._load_peer_ids(peer_sections)
 		self._load_launch_data(peer_sections)
 		self._set_sources()
 
-		for peer_sec in peer_sections:
-			print self.config.peers[self.__peer_id(peer_sec)].config
+		#for peer_sec in peer_sections:
+		#	print self.config.peers[self.__peer_id(peer_sec)].config
 
 
 	def _check_sections(self):
 		for section in self.parser.sections():
 			main_s = self.__main_section(section)
 			if main_s not in SYS_SECTIONS:
-				raise OBCISystemConfigError
+				raise OBCISystemConfigError("Unrecognized launch file section: {0}".format(main_s))
+
+	def _load_general_settings(self):
+		items = self.parser.items(PEERS)
+		if self.parser.has_option(PEERS, 'mx'):
+			self.config.mx = self.parser.get(PEERS, 'mx')
+		if self.parser.has_option(PEERS, 'scenario_dir'):
+			self.config.scenario_dir = self.parser.get(PEERS, 'scenario_dir')
 
 	def _load_peer_ids(self, peer_sections):
 		for section in peer_sections:
@@ -61,15 +69,26 @@ class LaunchFileParser(object):
 	def _load_peer(self, peer_section):
 		peer_id = self.__peer_id(peer_section)
 		items = self.parser.items(peer_section)
+		machine_set= False
+
 		for (param, value) in items:
 			if param == "path":
-				self.config.set_peer_path(peer_id, os.path.join(self.base_dir, value))
+				#self.config.set_peer_path(peer_id, os.path.join(self.base_dir, value))
+				self.config.set_peer_path(peer_id, value)
 			elif param == "config":
+				if self.config.scenario_dir:
+					warnings.warn("Choosing {0} for {1} config\
+ instead of a file in scenario dir {2}!!!".format(value, peer_id, self.config.scenario_dir))
 				self._parse_peer_config(peer_id, value)
 			elif param == "machine":
-				pass
+				machine_set = True
+				self._set_peer_machine(peer_id, value)
 			else:
-				raise OBCISystemConfigError()
+				raise OBCISystemConfigError("Unrecognized launch file option {0}".format(param))
+		if not machine_set:
+			self._set_peer_machine(peer_id, '')
+		if not self.config.peers[peer_id].config:
+			config_file = os.path.join(self.config.scenario_dir, peer_id + '.ini')
 
 	def _parse_peer_config(self, peer_id, config_path):
 		peer_parser = peer_config_parser.parser("ini")
@@ -86,6 +105,8 @@ class LaunchFileParser(object):
 												src_name,
 												src_id)
 
+	def _set_peer_machine(self, peer_id, machine_name):
+		self.config.set_peer_machine(peer_id, machine_name)
 
 	def __peer_id(self, conf_section):
 		return conf_section.split('.')[1]

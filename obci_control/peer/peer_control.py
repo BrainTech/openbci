@@ -134,7 +134,11 @@ class PeerControl(object):
 					self.core.set_param_from_source(reply_msg.sender, par, val)
 
 		if param_owner == self.peer_id:
+			local_params = self.core.local_params
 			for par, val in params.iteritems():
+				if par not in local_params:
+					## protest?
+					continue
 				if val != self.core.get_param(par):
 					old_values[par] = self.core.get_param(par)
 					updated[par] = val

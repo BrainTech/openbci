@@ -12,27 +12,52 @@ import zmq
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
 import common.net_tools as net
+import common.obci_control_settings as settings
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
+import launcher_tools
 
 class OBCIProcessSupervisor(OBCIControlPeer):
-	def __init__(self, obci_install_dir, source_addresses=None,
+
+	def __init__(self, obci_install_dir, sandbox_dir,
+										source_addresses=None,
+										source_pub_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
 										name='obci_process_supervisor'):
 
 		self.peers = {}
-		self.obci_instance = None
+		self.status = launcher_tools.ExperimentStatus()
+		self.source_pub_addresses = source_pub_addresses
+		self.ip = net.ext_ip()
+		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
+
+
 		super(OBCIProcessSupervisor, self).__init__(obci_install_dir,
-														None, rep_addresses,
-														  pub_addresses,
-														  name)
+											source_addresses=source_addresses,
+											rep_addresses=rep_addresses,
+											pub_addresses=pub_addresses,
+											name=name)
 
-	def start_peer(self, peer_state):
-		pass
+	def peer_type(self):
+		return "obci_process_supervisor"
 
-	def kill_peer(self, peer_state):
-		pass
+	def net_init(self):
+		self.source_sub_socket = self.ctx.socket(zmq.SUB)
+		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+
+		if self.source_pub_addresses:
+			for addr in self.source_pub_addresses:
+				self.source_sub_socket.connect(addr)
+
+
+		super(OBCIProcessSupervisor, self).net_init()
+
+	def params_for_registration(self):
+		return dict(pid=os.getpid(), machine=self.ip)
+
+	def custom_sockets(self):
+		return [self.source_sub_socket]
 
 	def start_instance(self):
 		pass
@@ -45,45 +70,33 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.start_instance(obci_inst_state)
 
 
-# Process states
 
-NOT_RUNNING = 0 # process hasn't started yet
-RUNNING = 1     # process is running
-FINISHED = 2    # process exited normally
-FAILED = 3      # process exited with error
 
-PEER_STATES_BASIC = [NOT_RUNNING, RUNNING, FINISHED, FAILED]
+class SysPeerStatus(launcher_tools.PeerStatus):
+	def __init__(self, peer_id):
+		pass
 
-class SysPeerState(object):
+def process_supervisor_arg_parser():
+	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
+					description='A process supervisor for OBCI Peers')
+	parser.add_argument('--sv-pub-addresses', nargs='+',
+					help='Addresses of the PUB socket of the supervisor')
+	parser.add_argument('--sandbox-dir',
+					help='Directory to store temporary and log files')
 
-	def __init__(self, peer_id, peer_uuid, obci_inst_state,
-										peer_path, peer_args=None):
-
-		self.peer_id = peer_id
-		self.peer_uuid = peer_uuid
-		self.obci_inst = obci_inst_state
-		self.path = peer_path
-		self.peer_init_args = peer_args
-		self.pid = None
-		self.log_file = None
-		self.process_state = NOT_RUNNING
-		self.return_code = None
-
-class SysOBCIInstanceState(object):
-
-	def __init__(self, uuid, log_dir, main_machine, launch_file=None):
-		self.uuid = uuid
-		self.log_dir = log_dir
-		self.launch_file = launch_file
-		self.main_machine = main_machine
+	parser.add_argument('--name', default='obci_process_supervisor',
+					help='Human readable name of this process')
+	return parser
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(parents=[basic_arg_parser()])
-	parser.add_argument('--name', default='obci_process_supervisor',
-	                   help='Human readable name of this process')
+	parser = process_supervisor_arg_parser()
 	args = parser.parse_args()
-	print args
-	process_sv = OBCIProcessSupervisor(args.obci_dir, args.sv_addresses,
-							args.rep_addresses, args.pub_addresses, args.name)
+
+	process_sv = OBCIProcessSupervisor(args.obci_dir, args.sandbox_dir,
+							source_addresses=args.sv_addresses,
+							source_pub_addresses=args.sv_pub_addresses,
+							rep_addresses=args.rep_addresses,
+							pub_addresses=args.pub_addresses,
+							name=args.name)
 	process_sv.run()

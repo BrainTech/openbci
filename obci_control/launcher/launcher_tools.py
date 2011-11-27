@@ -4,6 +4,53 @@
 import os
 import sys
 
+NOT_READY = 'not_ready'
+READY_TO_LAUNCH = 'ready_to_launch'
+LAUNCHING = 'launching'
+RUNNING = 'running'
+FINISHED = 'finished'
+CRASHED = 'crashed'
+KILLED = 'killed'
+
+EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, RUNNING, FINISHED, CRASHED, KILLED]
+
+class ExperimentStatus(object):
+	def __init__(self):
+		self.status_name = NOT_READY
+		self.details = {}
+		self.peers_status = {}
+
+	def set_status(self, status_name, details={}):
+		self.status_name = status_name
+		self.details = details
+
+	def as_dict(self):
+		d = dict(status_name=self.status_name,
+				details=self.details, peers_status={})
+		for peer_id, st in self.peers_status.iteritems():
+			d['peers_status'][peer_id] = st.as_dict()
+		return d
+
+	def peer_status(self, peer_id):
+
+		return self.peers_status.get(peer_id, None)
+
+
+class PeerStatus(object):
+	def __init__(self, peer_id):
+		self.peer_id = peer_id
+		self.status_name = NOT_READY
+		self.details = {}
+
+	def set_status(self, status_name, details=()):
+		self.status_name = status_name
+		self.details = details
+
+	def as_dict(self):
+		return dict(peer_id=self.peer_id, status_name=self.status_name,
+				details=self.details)
+
+
 
 def obci_root():
 	path = os.path.realpath(os.path.dirname(__file__))
