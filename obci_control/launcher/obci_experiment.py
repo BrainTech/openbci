@@ -99,12 +99,12 @@ class OBCIExperiment(OBCIControlPeer):
 							self.launch_file + '-' + self.origin_machine)]
 		return args
 
-	def start_obci_supervisor_process(self):
+	def _start_obci_supervisor_process(self, args_for_proc_supervisor):
 		path = obci_process_supervisor.__file__
 		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
 
 		args = ['python', path]
-		args += self.args_for_process_sv(local=True)
+		args += args_for_proc_supervisor
 
 		result, details, sv, reg_timer = False, None, None, None
 		try:
@@ -123,6 +123,11 @@ class OBCIExperiment(OBCIControlPeer):
 			reg_timer.start()
 
 		return result, details, sv, reg_timer
+
+
+	def _request_supervisor(self, machine_addr):
+		result, details, response, reg_timer = None, None, None, None
+		return result, details, response, reg_timer
 
 	def _handle_register_sv_timeout(self, sv_popen, machine):
 		print "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(machine)
@@ -160,17 +165,22 @@ class OBCIExperiment(OBCIControlPeer):
 		#print "CREATE EXP!!! {0}".format(message.launch_file)
 
 		result, details, sv_popen, reg_timer = \
-							self.start_obci_supervisor_process()
+							self._start_obci_supervisor_process(
+									self._args_for_proc_supervisor(local=True))
 
 		if result is False:
-			send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
-								err_code='launch_supervisor_os_error', details=details))
+			return False, self.mtool.fill_msg("rq_error", request=vars(message),
+								err_code='launch_supervisor_os_error', details=details)
 		else:
 			self.sv_processes[sv_popen.pid] = sv_popen
 			# now wait for experiment to register itself here
 			self.start_rq = (message, sock, reg_timer)
+			return True,
 		pass
 
+	def _start_all_supervisors(self):
+		for machine in self.exp_config.peer_machines():
+			result, details, response, req_timer = self._request_supervisor(machine)
 
 
 	def make_experiment_config(self):
@@ -230,10 +240,11 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_start_experiment(self, message, sock):
 		if not self.status.status_name == launcher_tools.READY_TO_LAUNCH:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
-											err_code="experiment_not_ready"))
+											err_code='exp_status_'+self.status.status_name,
+											details=self.status.details))
 		else:
 			self.status.set_status(launcher_tools.LAUNCHING)
-			self._start_experiment(message, sock)
+			result, msg = self._start_experiment(message, sock)
 
 
 

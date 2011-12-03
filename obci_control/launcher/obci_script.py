@@ -166,24 +166,7 @@ def connect_client(addresses, client=None):
 	result = client.ping_server(timeout=200)
 	return result, client
 
-def server_rep_addresses():
-	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 
-	filename = settings.MAIN_CONFIG_NAME
-	fpath = os.path.join(directory, filename)
-
-	if os.path.exists(fpath):
-		parser = ConfigParser.RawConfigParser()
-		with open(fpath) as f:
-			parser.readfp(f)
-	else:
-		print "Main config file not found in {0}".format(directory)
-		raise OBCISystemError()
-
-	port = parser.get('server', 'port')
-
-	return ['tcp://' + net.lo_ip() + ':' + port,
-			'tcp://' + net.ext_ip() + ':' + port]
 
 def server_process_running():
 	"""
@@ -221,9 +204,9 @@ def server_process_running():
 	return running, pid
 
 def client_server_prep(args=[], sock=None):
-	addrs = server_rep_addresses()
-
-	res, client = connect_client(addrs)
+	rep_addrs = [net.server_address('rep', local=True)]
+	pub_addrs = [net.server_address('pub', local=False)]
+	res, client = connect_client(rep_addrs)
 
 	if res is not None:
 		return client
@@ -232,7 +215,8 @@ def client_server_prep(args=[], sock=None):
 	if server_process_running()[0]:
 		cmd_srv_kill(None)
 		disp.view("Restarting OBCI Server...")
-	success = launch_obci_server(args+['--rep-addresses']+addrs)
+	success = launch_obci_server(args+['--rep-addresses']+rep_addrs +\
+										['--pub-addresses']+pub_addrs)
 	if not success:
 		disp.view("Could not launch OBCI Server")
 		sys.exit(1)

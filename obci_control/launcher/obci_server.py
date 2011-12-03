@@ -25,11 +25,12 @@ import obci_process_supervisor
 REGISTER_TIMEOUT = 3
 
 class OBCIServer(OBCIControlPeer):
-	def __init__(self, obci_install_dir, other_srv_addresses,
+	def __init__(self, obci_install_dir, other_srv_ips,
 												rep_addresses=None,
 												pub_addresses=None,
 												name='obci_server'):
-		self.other_addrs = other_srv_addresses
+		self.other_addrs = other_srv_ips
+
 		self.experiments = {}
 		self.exp_processes = {}
 
@@ -206,21 +207,28 @@ probably a server is already working"
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
 												exp_data=exp_data))
 
-	def _handle_match_name(self, message, sock):
+	def _handle_match_name(self, message, sock, this_machine=False):
 		matches = self.exp_matching(message.strname)
+		match = None
+		msg = None
 		if not matches:
-			send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
-							err_code='experiment_not_found'))
-			return None
+			msg = self.mtool.fill_msg("rq_error", request=vars(message),
+							err_code='experiment_not_found')
 
 		elif len(matches) > 1:
 			matches = [(exp.uuid, exp.name) for exp in matches]
-			send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
+			msg = self.mtool.fill_msg("rq_error", request=vars(message),
 							err_code='ambiguous_exp_name',
-							details=matches))
-			return None
+							details=matches)
 		else:
-			return matches.pop()
+			match = matches.pop()
+			if this_machine and match.origin_machine != self.machine:
+				msg = self.mtool.fill_msg("rq_error", request=vars(message),
+							err_code='exp_not_on_this_machine', details=match.origin_machine)
+				match = None
+		if msg and sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			send_msg(sock, msg)
+		return match
 
 	def handle_get_experiment_contact(self, message, sock):
 		print "##### rq contact for: ", message.strname
@@ -257,9 +265,10 @@ probably a server is already working"
 		return experiments
 
 	def handle_kill_experiment(self, message, sock):
-		match = self._handle_match_name(message, sock)
+		match = self._handle_match_name(message, sock, this_machine=True)
 
 		if match:
+
 			if not message.force:
 				print "{0} [{1}] - sending kill to experiment {2} ({3})".format(
 									self.name, self.peer_type(),match.uuid, match.name)
@@ -293,6 +302,14 @@ probably a server is already working"
 
 
 
+	def _join_srv_network(self, srv_address):
+		# send srv_table_request
+		# update sekf's srv
+		# send announce_request
+		#
+		pass
+
+
 class ExperimentInfo(object):
 	def __init__(self, uuid, name, rep_addrs, pub_addrs, registration_time,
 							origin_machine, pid):
@@ -305,8 +322,21 @@ class ExperimentInfo(object):
 		self.experiment_pid = pid
 		self.kill_timer = None
 
+	def from_dict(dic):
+		try:
+			return ExperimentInfo(dic['uuid'], dic['rep_addrs'], dic['pub_addrs'],
+					dic['registration_time'], dic['origin_machine'], dic['pid']), None
+		except KeyError as e:
+			return None, e.args
+
 	def info(self):
-		d = vars(self).copy()
+		d = dict(uuid=self.uuid,
+				name=self.name,
+				rep_addrs=self.rep_addrs,
+				pub_addrs=self.pub_addrs,
+				registration_time=self.registration_time,
+				origin_machine=self.origin_machine,
+				experiment_pid=self.experiment_pid)
 
 		return d
 
@@ -315,8 +345,8 @@ def server_arg_parser(add_help=False):
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
 							description="OBCI Server : manage OBCI experiments.",
 							add_help=add_help)
-	parser.add_argument('--other-srv-addresses', nargs='+',
-	                   help='REP Addresses of OBCI servers on other machines')
+	parser.add_argument('--other-srv-ips', nargs='+',
+	                   help='IP addresses of OBCI servers on other machines')
 	parser.add_argument('--name', default='obci_server',
 	                   help='Human readable name of this process')
 	return parser
@@ -327,6 +357,6 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	srv = OBCIServer(args.obci_dir, args.other_srv_addresses,
+	srv = OBCIServer(args.obci_dir, args.other_srv_ips,
 							args.rep_addresses, args.pub_addresses, args.name)
 	srv.run()

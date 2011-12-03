@@ -10,9 +10,11 @@ USE_ZMQ = False
 
 PORT_RANGE = (30000, 60000)
 
-DEFAULT_SANDBOX_DIR = os.path.join(os.getenv('HOME'), '.obci')
+OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
+DEFAULT_SANDBOX_DIR = os.path.join(OBCI_HOME_DIR, 'sandbox')
+
 SERVER_CONTACT_NAME = '.obci_server_contact'
-MAIN_CONFIG_NAME = 'main_config'
+MAIN_CONFIG_NAME = 'main_config.ini'
 
 def __obci_install_dir():
 	f = __file__

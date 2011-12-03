@@ -3,8 +3,10 @@
 
 import zmq
 import socket
+import os
+import ConfigParser
 
-from common.obci_control_settings import PORT_RANGE, INSTALL_DIR
+from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
 
 
 def public_socket(address_list, zmq_type, zmq_context, random_port=True,
@@ -67,10 +69,48 @@ def ext_ip():
 	    s.connect(('google.com', 9))
 	    client_ip = s.getsockname()[0]
 	except socket.error:
-	    client_ip = ""
+	    client_ip = lo_ip()
 	finally:
 	    del s
 	return client_ip
+
+
+def server_address(sock_type='rep', local=False):
+	parser = __parser_main_config_file()
+
+	if sock_type == 'rep':
+		port = parser.get('server', 'port')
+	else:
+		port = parser.get('server', 'pub_port')
+
+	ip = lo_ip() if local else ext_ip()
+	return 'tcp://' + ip + ':' + port
+
+def __parser_main_config_file():
+	directory = os.path.abspath(OBCI_HOME_DIR)
+
+	filename = MAIN_CONFIG_NAME
+	fpath = os.path.join(directory, filename)
+
+	parser = None
+	if os.path.exists(fpath):
+		parser = ConfigParser.RawConfigParser()
+		with open(fpath) as f:
+			parser.readfp(f)
+	else:
+		print "Main config file not found in {0}".format(directory)
+		raise OBCISystemError()
+	return parser
+
+def server_pub_port():
+	parser = __parser_main_config_file()
+	port = parser.get('server', 'pub_port')
+	return port
+
+def server_rep_port():
+	parser = __parser_main_config_file()
+	port = parser.get('server', 'port')
+	return port
 
 if __name__ == '__main__':
 	print ext_ip()

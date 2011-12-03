@@ -5,7 +5,7 @@
 
 message_templates = {
 	"register_peer" : dict(peer_type='', uuid='', rep_addrs='', pub_addrs='', name='', other_params=''),
-	#TODO delete
+
 	"create_experiment" : dict(launch_file='', sandbox_dir=''),
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
 	"list_experiments" : dict(),
@@ -14,16 +14,14 @@ message_templates = {
 	"experiment_info" : dict(exp_info=''),
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
-	"get_peer_info" : dict(),
-	"peer_info" : dict(),
 
-	#"start_peer" : None,
-	#"kill_peer" : None,
+	"launch_process" : dict(path='', args='', must_register='',),
+	"launched_process_info" : dict(machine='', pid='', path='', args=''),
+
 	"start_experiment" : dict(),
 	"starting_experiment" : dict(),
 	"kill_experiment" : dict(strname='', force=''),
 	"kill_sent" : dict()
-
 
 }
 

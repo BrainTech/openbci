@@ -4,6 +4,8 @@
 import os
 import sys
 
+
+
 NOT_READY = 'not_ready'
 READY_TO_LAUNCH = 'ready_to_launch'
 LAUNCHING = 'launching'
@@ -86,8 +88,10 @@ def mx_path():
 	return os.path.join(obci_root(), 'multiplexer-install', 'bin')
 
 
+
 if __name__=='__main__':
 	print obci_pythonpath()
+
 # env = os.environ.copy()
 
 # _env = {

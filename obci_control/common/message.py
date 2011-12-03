@@ -5,6 +5,8 @@ import json
 
 
 BASIC_MSG = dict(type='', sender='', receiver='')
+#BasicMessage = namedtuple('BasicMessage', 'type sender receiver')
+#_basic_message = BasicMessage(type='basic_message', sender='', receiver='')
 
 common_templates = {
 	"rq_ok" : dict(status='', request='', params=''),
