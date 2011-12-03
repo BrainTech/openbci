@@ -36,15 +36,17 @@ DEFAULT_TAIL_RQ = 10
 LINES_TO_GET = 5
 IO_WAIT = 0.5
 
+
+
 class SubprocessManager(object):
 	def __init__(self):
-		self.processes = []
+		self.processes = {}
 
 	def new_local_process(self, path, args, proc_type='', proc_name='',
 								capture_io= STDOUT | STDIN,
 								stdout_log=None,
 								stderr_log=None,
-								must_register=True,
+								register_timeout_desc=None,
 								monitoring_optflags=RETURNCODE | PING):
 
 		if path.endswith('.py'):
@@ -54,29 +56,35 @@ class SubprocessManager(object):
 
 		machine = net.ext_ip()
 		out = subprocess.PIPE if capture_io & STDOUT else None
-		print "out capture: ", capture_io & STDOUT, out
 
 		if capture_io & STDERR:
 			err = subprocess.PIPE
 		elif out is not None:
 			err = subprocess.STDOUT
 		else: err = None
-		print "err capt: ", capture_io & STDERR, err, subprocess.STDOUT
 
 		stdin = subprocess.PIPE if capture_io & STDIN else None
 
-		if must_register:
-			timeout_desc = TimeoutDescription()
-		else: timeout_desc = None
+
+		timeout_desc = register_timeout_desc
 
 		ON_POSIX = 'posix' in sys.builtin_module_names
 		try:
 			popen_obj = subprocess.Popen(launch_args,
 										stdout=out, stderr=err, stdin=stdin,
 										bufsize=1, close_fds=ON_POSIX)
-		except:
-			print "Popen ERROR!!! {0}".format(path)
-			raise
+		except OSError as e:
+			details = "{0} : Unable to spawn process {1} [{2}]".format(
+														machine, path, e.args)
+			print details
+			return None, details
+		except ValueError as e:
+			details = "{0} : Unable to spawn process (bad arguments) \
+{1} [{2}]".format(machine, path, e.args)
+			print details
+			return None, details
+		except Exception as e:
+			return None, "Error: " + str(e) + str(e.args)
 		else:
 
 			process_desc = ProcessDescription(proc_type=proc_type,
@@ -86,15 +94,16 @@ class SubprocessManager(object):
 											machine_ip=machine,
 											pid=popen_obj.pid)
 
-			if out is not None or stdin is not None:
+			io_handler = None
+			if out is not None or err is not None or stdin is not None:
+
 				out_handle = popen_obj.stdout if out is not None else None
 				if err == subprocess.STDOUT or err is None:
 					err_handle = None
 				else: err_handle = popen_obj.stderr
-				print "out: ", out_handle, "err: ", err_handle
+
 				in_handle = popen_obj.stdin if stdin is not None else None
 
-				#io_handler = None
 				io_handler = ProcessIOHandler(
 								name=':'.join([machine, path, proc_name]),
 								stdout=out_handle,
@@ -103,14 +112,18 @@ class SubprocessManager(object):
 								out_log=stdout_log, err_log=stderr_log)
 				io_handler.start_output_handler()
 
-				return LocalProcess(process_desc, popen_obj, io_handler=io_handler,
-								must_register=must_register,
+			new_proc = LocalProcess(process_desc, popen_obj, io_handler=io_handler,
 								reg_timeout_desc=timeout_desc,
-								monitoring_optflags=monitoring_optflags)
+								monitoring_optflags=monitoring_optflags), None
+
+			self.processes[(machine, popen_obj.pid)] = new_proc
+
+			return new_proc
+
 
 
 	def new_remote_process(self, path, args, rq_socket, machine,
-								must_register=True,
+								register_timeout_desc=None,
 								monitoring_optflags=PING):
 		pass
 
@@ -128,27 +141,36 @@ _REG_TIMER = 0
 
 class Process(object):
 	def __init__(self, proc_description,
-								must_register=True,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING):
-		self._desc = proc_description
-		self.proc_type = self._desc.proc_type
+		self.desc = proc_description
+		self.proc_type = self.desc.proc_type
 
-		self.status = UNKNOWN
+		self.must_register = reg_timeout_desc is not None
+		self.status = UNKNOWN if self.must_register else RUNNING
 		self.status_details = None
-
-		self.must_register = must_register
-		self.reg_timeout_desc = reg_timeout_desc if reg_timeout_desc else TimeoutDescription()
-		self.reg_timer = None if not self.must_register else \
-										self.new_timer(self.reg_timeout_desc)
 
 		self.ping_it = monitoring_optflags & PING if self.must_register else False
 		self.os_check_it = monitoring_optflags & RETURNCODE if \
-										self._desc.pid is not None else False
+										self.desc.pid is not None else False
+		self.set_registration_timeout_handler(reg_timeout_desc)
+		self.registration_data = None
 
+	@property
+	def machine_ip(self):
+		return self.desc.machine_ip
+
+	@property
+	def pid(self):
+		return self.desc.pid
+
+	def set_registration_timeout_handler(self, reg_timeout_desc):
+		self.must_register = reg_timeout_desc is not None
+		self.reg_timeout_desc = reg_timeout_desc
+		self.reg_timer = None if not self.must_register else \
+										self.new_timer(self.reg_timeout_desc, _REG_TIMER)
 		if self.must_register:
 			self.reg_timer.start()
-
 
 	def is_local(self):
 		raise NotImplementedError()
@@ -161,12 +183,14 @@ class Process(object):
 		raise NotImplementedError()
 
 	def new_timer(self, tim_desc, type_):
-		threading.Timer(self.timeout, self.timeout_handler,
+		return threading.Timer(tim_desc.timeout, self.timeout_handler,
 							[tim_desc.timeout_method, tim_desc.timeout_args, type_])
 
-	def registered(self, **kwargs):
-		self.status = RUNNING
+	def registered(self, reg_data):
 		self.reg_timer.cancel()
+		print "YAY, registered!!!!!!"
+		self.status = RUNNING
+		self.registration_data = reg_data
 
 	def check_status(self):
 		raise NotImplementedError()
@@ -175,13 +199,12 @@ class Process(object):
 
 class LocalProcess(Process):
 	def __init__(self, proc_description, popen_obj, io_handler=None,
-								must_register=True,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING | RETURNCODE):
 		self.popen_obj = popen_obj
 		self.io_handler = io_handler
 
-		super(LocalProcess, self).__init__(proc_description, must_register,
+		super(LocalProcess, self).__init__(proc_description,
 										reg_timeout_desc, monitoring_optflags)
 
 	def is_local(self):
@@ -207,13 +230,12 @@ class LocalProcess(Process):
 
 class RemoteProcess(Process):
 	def __init__(self, proc_description, launch_rq_result, rq_socket,
-								must_register=True,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING):
 
 		self.launch_rq_result = launch_rq_result
 		self.launch_rq_socket = rq_socket
-		super(RemoteProcess, self).__init__(proc_description, must_register,
+		super(RemoteProcess, self).__init__(proc_description,
 										reg_timeout_desc, monitoring_optflags)
 
 
@@ -265,16 +287,12 @@ class ProcessIOHandler(object):
 		self._out_q, self._stdout_thread, self._out_log = \
 								self.__init_io(self.stdout, out_log)
 
-		print "OUTTT: ", self._out_q, self._stdout_thread, self._out_log
-
-
 		self.out_tail = deque(maxlen=STDIO_TAIL_LEN)
 		self.err_tail = deque(maxlen=STDIO_TAIL_LEN)
 
 
 		self._err_q, self._stderr_thread, self._err_log = \
 									self.__init_io(self.stderr, err_log)
-		print "ERRR: ", self._err_q, self._stderr_thread, self._err_log
 
 		if self.stdout or self.stderr:
 			self._start_background_io_reading()
@@ -285,7 +303,7 @@ class ProcessIOHandler(object):
 		if stream is not None:
 			q = Queue(maxsize=STDIO_QUEUE_MAX_SIZE)
 			thr = threading.Thread(target=self._read, args=(stream, q))
-			#thr.daemon = True
+			thr.daemon = True
 
 			if log_name:
 				try:
@@ -304,7 +322,6 @@ class ProcessIOHandler(object):
 			try:
 				data.append(self.out_tail.pop())
 			except IndexError:
-				print "deque empty"
 				break
 		return data
 
@@ -337,7 +354,7 @@ class ProcessIOHandler(object):
 
 	def _output_handler(self):
 		while self.__io_readers_alive() and not self._stop:
-			self.process_output(lines=LINES_TO_GET)
+			self.process_output(lines=LINES_TO_GET, timeout=IO_WAIT)
 			time.sleep(0.1)#IO_WAIT)
 
 	def _start_background_io_reading(self):
@@ -350,7 +367,6 @@ class ProcessIOHandler(object):
 		print "reading... ", stream
 		for line in iter(stream.readline, ''):
 			try:
-				print "aaaa", line
 				queue.put(line)
 				if self._stop:
 					break
@@ -374,7 +390,6 @@ class ProcessIOHandler(object):
 				return out
 			else: # got line
 				out.append(line)
-				print line
 		return out
 
 	def _handle_stdout(self, lines=None, timeout=None):
@@ -383,7 +398,6 @@ class ProcessIOHandler(object):
 
 	def _handle_stdio(self, stream, q, log, tail, lines=None, timeout=None):
 		out = self._get_lines(stream, q, lines, timeout)
-		print "got out:", out
 		tail.extend(out)
 		if log is not None:
 			try:
@@ -409,3 +423,6 @@ class TimeoutDescription(object):
 
 	def timer(self):
 		return threading.Timer(self.timeout, self.timeout_method, self.timeout_args)
+
+def default_timeout_handler():
+	return TimeoutDescription()

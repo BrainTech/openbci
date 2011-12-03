@@ -241,6 +241,20 @@ class OBCIControlPeer(object):
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		pass
 
+class RegistrationDescription(object):
+	def __init__(self, uuid, name, rep_addrs, pub_addrs, machine, pid, other=None):
+		self.machine = machine
+		self.pid = pid
+		self.uuid = uuid
+		self.name = name
+		self.rep_addrs = rep_addrs
+		self.pub_addrs = pub_addrs
+		self.other = other
+
+	def info(self):
+		return dict(machine=self.machine, pid=self.pid, uuid=self.uuid, name=self.name,
+						rep_addrs=self.rep_addrs, pub_addrs=self.pub_addrs, other=self.other)
+
 
 def basic_arg_parser():
 	parser = argparse.ArgumentParser(add_help=False,

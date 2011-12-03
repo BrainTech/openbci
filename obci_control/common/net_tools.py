@@ -59,6 +59,17 @@ def is_net_addr(addr):
 	return not addr.startswith('ipc') \
 			and not addr.startswith('inproc')
 
+def choose_local(addrs):
+	result = [a for a in addrs if a.startswith('ipc://')]
+	if not result:
+		result += [a for a in addrs if a == 'tcp://'+lo_ip()]
+	return result
+
+def choose_not_local(addrs):
+	result = [a for a in addrs if a.startswith('tcp://') and not a == 'tcp://'+lo_ip()]
+	if not result:
+		result += [a for a in addrs if a.startswith('tcp://')]
+	return result
 
 def lo_ip():
 	return '127.0.0.1'

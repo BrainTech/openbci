@@ -4,10 +4,11 @@
 import sys
 import time
 
-print "to ja"
+
 if __name__ == '__main__':
 
 	print "Heello"
+	print "to ja"
 	if len(sys.argv) > 1:
 		msg = sys.argv[1]
 	else:
@@ -15,7 +16,8 @@ if __name__ == '__main__':
 
 	cnt = 1
 
-	for i in range(5):
+	while True:
 		print "Message {0}: {1}".format(cnt, msg)
 		time.sleep(0.3)
+		print >> sys.stderr, "Err msg {0}".format(cnt)
 		cnt += 1
