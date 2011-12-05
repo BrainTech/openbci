@@ -205,7 +205,7 @@ def server_process_running():
 	return running, pid
 
 def client_server_prep(cmdargs=None):
-	ifname = args.ifname if cmdargs else None
+	ifname = cmdargs.ifname if cmdargs else None
 
 	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
 	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
