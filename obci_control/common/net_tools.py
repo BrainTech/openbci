@@ -3,6 +3,8 @@
 
 import zmq
 import socket
+import struct
+import fcntl
 import os
 import ConfigParser
 
@@ -75,10 +77,18 @@ def choose_not_local(addrs):
 def lo_ip():
 	return '127.0.0.1'
 
-def ext_ip():
+def ext_ip(peer_ip=None, ifname=None):
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	if ifname:
+		return str(socket.inet_ntoa(fcntl.ioctl(
+											s.fileno(),
+											0x8915,  # SIOCGIFADDR
+											struct.pack('256s', ifname[:15])
+									)[20:24]))
+
+	peer_ip = peer_ip if peer_ip else 'google.com'
 	try:
-	    s.connect(('google.com', 9))
+	    s.connect((peer_ip, 9))
 	    client_ip = s.getsockname()[0]
 	except socket.error:
 	    client_ip = lo_ip()
@@ -87,15 +97,18 @@ def ext_ip():
 	return client_ip
 
 
-def server_address(sock_type='rep', local=False):
+
+def server_address(sock_type='rep', local=False, ifname=None, peer_ip=None):
 	parser = __parser_main_config_file()
 
 	if sock_type == 'rep':
 		port = parser.get('server', 'port')
 	else:
 		port = parser.get('server', 'pub_port')
+	if not ifname and not peer_ip:
+		ifname = parser.get('server', 'ifname')
 
-	ip = lo_ip() if local else ext_ip()
+	ip = lo_ip() if local else ext_ip(ifname=ifname, peer_ip=peer_ip)
 	return 'tcp://' + ip + ':' + port
 
 def __parser_main_config_file():

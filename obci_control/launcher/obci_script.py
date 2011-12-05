@@ -28,7 +28,7 @@ from common.config_helpers import OBCISystemError
 disp = view.OBCIViewText()
 
 def cmd_srv(args):
-	client_server_prep(argv())
+	client_server_prep(args)
 
 def cmd_srv_kill(args):
 	running, pid = server_process_running()
@@ -104,6 +104,7 @@ def configure_argparser(parser):
 	parser_srv = subparsers.add_parser('srv',
 				parents=[obci_server.server_arg_parser(add_help=False)],
 				help="Start OBCIServer")
+
 	parser_srv.set_defaults(func=cmd_srv)
 
 	parser_srv_kill = subparsers.add_parser('srv_kill',
@@ -203,18 +204,23 @@ def server_process_running():
 		os.remove(fpath)
 	return running, pid
 
-def client_server_prep(args=[], sock=None):
-	rep_addrs = [net.server_address('rep', local=True)]
-	pub_addrs = [net.server_address('pub', local=False)]
+def client_server_prep(cmdargs=None):
+	ifname = args.ifname if cmdargs else None
+
+	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
+	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
+	print rep_addrs, pub_addrs
 	res, client = connect_client(rep_addrs)
 
 	if res is not None:
 		return client
 
 
+
 	if server_process_running()[0]:
 		cmd_srv_kill(None)
 		disp.view("Restarting OBCI Server...")
+	args = argv() if cmdargs else []
 	success = launch_obci_server(args+['--rep-addresses']+rep_addrs +\
 										['--pub-addresses']+pub_addrs)
 	if not success:

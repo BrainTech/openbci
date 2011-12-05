@@ -122,7 +122,7 @@ class OBCIExperiment(OBCIControlPeer):
 			return False, details
 
 		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
-						timeout_method=self._handle_register_sv_timeout,
+						timeout_method=_handle_register_sv_timeout,
 						timeout_args=(sv_obj))
 		sv_obj.set_registration_timeout_handler(timeout_handler)
 		self.sv_processes[self.origin_machine] = sv_obj
@@ -140,37 +140,17 @@ class OBCIExperiment(OBCIControlPeer):
 												)
 
 		if sv_obj is None:
+
 			return False, details
 
 		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
-						timeout_method=self._handle_register_sv_timeout,
+						timeout_method=_handle_register_sv_timeout,
 						timeout_args=(sv_obj))
 		sv_obj.set_registration_timeout_handler(timeout_handler)
 		self.sv_processes[machine_addr] = sv_obj
 		return sv_obj, None
 
-	def _handle_register_sv_timeout(self, sv_process):
-		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
-																sv_process.machine_ip)
-		print txt
 
-		if sv_process.machine_ip == self.origin_machine and sv_process.is_local():
-			pid = sv_process.pid
-			if sv_process.popen_obj.returncode is None:
-				sv_process.kill()
-				sv_process.popen_obj.wait()
-			del self.sv_processes[sv_process.machine_ip]
-		else:
-			# send KILL request for the rogue supervisor
-			pass
-		self._wait_register = 0
-
-		# inform observers about failure
-		send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-												sender=self.uuid,
-												err_code="create_supervisor_error",
-												details=dict(machine=sv_process.machine_ip,
-															error=txt)))
 
 	def _start_experiment(self):
 		# * check status - if != READY_TO_LAUNCH - error
@@ -308,14 +288,6 @@ class OBCIExperiment(OBCIControlPeer):
 							sender=self.uuid))
 			result, details = self._start_experiment()
 			if not result:
-				print "!!!!!!!!!!!!!!!!!!"
-				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-									 sender=self.uuid, err_code='', details=details))
-				print "????????????"
-				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-									 sender=self.uuid, err_code='', details=details))
-				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-									 sender=self.uuid, err_code='', details=details))
 				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
 									 sender=self.uuid, err_code='', details=details))
 				print ':-('
@@ -323,11 +295,34 @@ class OBCIExperiment(OBCIControlPeer):
 
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
+		send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+									 sender=self.uuid, err_code='', details='dupa'))
 		send_msg(self.pub_socket,
 						self.mtool.fill_msg("kill", receiver=""))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
 
+def _handle_register_sv_timeout(sv_process):
+		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
+																sv_process.machine_ip)
+		print txt
 
+		if sv_process.is_local():
+			pid = sv_process.pid
+			if sv_process.popen_obj.returncode is None:
+				sv_process.kill()
+				sv_process.popen_obj.wait()
+			#del self.sv_processes[sv_process.machine_ip]
+		else:
+			# send KILL request for the rogue supervisor
+			pass
+		#self._wait_register = 0
+
+		# inform observers about failure
+		# send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+		# 										sender=self.uuid,
+		# 										err_code="create_supervisor_error",
+		# 										details=dict(machine=sv_process.machine_ip,
+		# 													error=txt)))
 
 def experiment_arg_parser():
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],

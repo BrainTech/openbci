@@ -18,7 +18,8 @@ class OBCIControlPeer(object):
 	def __init__(self, obci_install_dir, source_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
-										name='obci_control_peer'):
+										name='obci_control_peer',
+										ifname=None):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
@@ -147,7 +148,7 @@ class OBCIControlPeer(object):
 			poller.register(sock, zmq.POLLIN)
 
 		while True:
-			print self.name
+			print self.name, poll_sockets
 			socks = []
 			try:
 				socks = dict(poller.poll())
@@ -205,8 +206,8 @@ class OBCIControlPeer(object):
 			except AttributeError:
 				print "Unknown message type: {0}".format(msg_type)
 				print message
-				if sock.getsockopt(zmq.TYPE) == zmq.REP:
-					handler = self.unsupported_msg_handler
+
+				handler = self.unsupported_msg_handler
 
 		handler(msg, sock)
 
@@ -228,6 +229,7 @@ class OBCIControlPeer(object):
 			msg = self.mtool.fill_msg("rq_error",
 					request=vars(message), err_code="unsupported_msg_type")
 			send_msg(sock, msg)
+		print "--"
 
 	def bad_msg_handler(self, message, sock):
 		msg = self.mtool.fill_msg("rq_error",
@@ -270,6 +272,8 @@ def basic_arg_parser():
 						help='PUB Addresses of the peer.')
 	parser.add_argument('--obci-dir', default=settings.INSTALL_DIR,
 						help='Main OpenBCI installation directory')
+	parser.add_argument('--ifname', help='Name of the network interface in which this\
+peer will be listening for requests.')
 
 	return parser
 
@@ -288,5 +292,5 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	print vars(args)
 	peer = OBCIControlPeer(args.obci_dir, args.sv_addresses,
-							args.rep_addresses, args.pub_addresses, args.name)
+							args.rep_addresses, args.pub_addresses, args.name, args.ifname)
 	peer.run()

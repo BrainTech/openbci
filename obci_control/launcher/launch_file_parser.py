@@ -124,24 +124,26 @@ class LaunchFileParser(object):
 			return os.path.join(self.base_dir, path)
 
 	def __parse_peer_default_config(self, peer_id, peer_program_path):
-		print "Trying to find default config for {0}, path: {1}".format(
-													peer_id, peer_program_path)
+		#print "Trying to find default config for {0}, path: {1}".format(
+		#											peer_id, peer_program_path)
 		peer_parser = peer_config_parser.parser("ini")
 		peer_cfg = peer_config.PeerConfig(peer_id)
 		conf_path = self.__find_default_config_path(peer_program_path)
 		if conf_path:
 			with open(conf_path) as f:
 				peer_parser.parse(f, peer_cfg)
-			print "Loaded default config {0} for {1}, path: {2}".format(
-										conf_path, peer_id, peer_program_path)
-		else: print "No default config found for {1}, prog.path: {1}".format(
-													peer_id, peer_program_path)
+			#print "Loaded default config {0} for {1}, path: {2}".format(
+			#							conf_path, peer_id, peer_program_path)
+		else:
+			#print "No default config found for {1}, prog.path: {1}".format(
+			#										peer_id, peer_program_path)
+			pass
 		return peer_cfg, peer_parser
 
 	def _parse_peer_config(self, peer_id, config_path, peer_program_path):
 		peer_cfg, peer_parser = self.__parse_peer_default_config(
 												peer_id, peer_program_path)
-		print "Trying to parse {0} for {1}".format(config_path, peer_id)
+		#print "Trying to parse {0} for {1}".format(config_path, peer_id)
 		with open(config_path) as f:
 			peer_parser.parse(f, peer_cfg)
 		self.config.set_peer_config(peer_id, peer_cfg)
