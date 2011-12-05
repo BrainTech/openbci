@@ -76,10 +76,10 @@ class PeerControl(object):
 		peer_file = inspect.getfile(self.peer.__init__)
 		base_name = peer_file.rsplit('.', 1)[0]
 		base_config_path = '.'.join([base_name, CONFIG_FILE_EXT])
-		print base_config_path
+		print "Peer {0} base config path: {1}".format(self.peer_id, base_config_path)
 
 		self._load_config_from_file(base_config_path, CONFIG_FILE_EXT)
-		print self.core
+		print "Peer {0} base config: {1}".format(self.peer_id, self.core)
 
 
 	def _load_config_from_file(self, p_path, p_type, update=False):

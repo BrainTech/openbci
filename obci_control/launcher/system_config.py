@@ -21,6 +21,15 @@ class OBCIExperimentConfig(object):
 		self.mx = 1
 		self.peers = {}
 
+	def peer_config(self, peer_id):
+		return self.peers[peer_id].config
+
+	def peer_path(self, peer_id):
+		return self.peers[peer_id].path
+
+	def peer_machine(self, peer_id):
+		return self.peers[peer_id].path
+
 	def add_peer(self, peer_id):
 		self.peers[peer_id] = PeerConfigDescription(peer_id, self.uuid)
 
@@ -78,7 +87,7 @@ class OBCIExperimentConfig(object):
 			self.peers[peer_id].status(pst)
 
 	def peer_machines(self):
-		machines = set(self.origin_machine)
+		machines = set([self.origin_machine])
 		for peer in self.peers.values():
 			if peer.machine:
 				machines.add(peer.machine)
@@ -132,9 +141,8 @@ class PeerConfigDescription(object):
 
 	def info(self, detailed=False):
 		info = dict(peer_id=self.peer_id,
-					path=self.path, machine=self.machine,
-					config_sources=None, launch_dependencies=None,
-					local_params=None, ext_params=None)
+					path=self.path, machine=self.machine
+					)
 
 		if not self.config:
 			return info

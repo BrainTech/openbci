@@ -2,17 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import threading
-import common.obci_control_settings as settings
-import common.net_tools as net
 import subprocess
 import sys
 import time
+
+import zmq
 
 from collections import deque
 try:
     from Queue import Queue, Empty, Full
 except ImportError:
     from queue import Queue, Empty, Full  # python 3.x
+
+import common.obci_control_settings as settings
+import common.net_tools as net
+from common.message import OBCIMessageTool, send_msg, recv_msg
+from launcher_messages import message_templates
 
 PING = 2
 RETURNCODE = 4
@@ -36,13 +41,17 @@ DEFAULT_TAIL_RQ = 10
 LINES_TO_GET = 5
 IO_WAIT = 0.5
 
-
+_DEFAULT_TIMEOUT=2
 
 class SubprocessManager(object):
-	def __init__(self):
+	def __init__(self, zmq_ctx, uuid):
 		self.processes = {}
+		self.ctx = zmq_ctx
+		self.poller = zmq.Poller()
+		self.uuid = uuid
+		self.mtool = OBCIMessageTool(message_templates)
 
-	def new_local_process(self, path, args, proc_type='', proc_name='',
+	def new_local_process(self, path, args, proc_type='', name='',
 								capture_io= STDOUT | STDIN,
 								stdout_log=None,
 								stderr_log=None,
@@ -88,7 +97,7 @@ class SubprocessManager(object):
 		else:
 
 			process_desc = ProcessDescription(proc_type=proc_type,
-											name=proc_name,
+											name=name,
 											path=path,
 											args=args,
 											machine_ip=machine,
@@ -105,7 +114,7 @@ class SubprocessManager(object):
 				in_handle = popen_obj.stdin if stdin is not None else None
 
 				io_handler = ProcessIOHandler(
-								name=':'.join([machine, path, proc_name]),
+								name=':'.join([machine, path, name]),
 								stdout=out_handle,
 								stderr=err_handle,
 								stdin=in_handle,
@@ -114,20 +123,88 @@ class SubprocessManager(object):
 
 			new_proc = LocalProcess(process_desc, popen_obj, io_handler=io_handler,
 								reg_timeout_desc=timeout_desc,
-								monitoring_optflags=monitoring_optflags), None
+								monitoring_optflags=monitoring_optflags)
 
 			self.processes[(machine, popen_obj.pid)] = new_proc
 
-			return new_proc
+			return new_proc, None
 
 
 
-	def new_remote_process(self, path, args, rq_socket, machine,
+	def new_remote_process(self, path, args, proc_type, name,
+								machine_ip, conn_addr,
+								capture_io= STDOUT | STDIN,
+								stdout_log=None,
+								stderr_log=None,
 								register_timeout_desc=None,
 								monitoring_optflags=PING):
-		pass
 
 
+		timeout_desc = register_timeout_desc
+
+		rq_message = self.mtool.fill_msg('launch_process',
+								path=path,
+								args=args, proc_type=proc_type,
+								name=name,
+								machine_ip=machine_ip,
+								capture_io=capture_io,
+								stdout_log=stdout_log,
+								stderr_log=stderr_log)
+
+		rq_sock = self.ctx.socket(zmq.REQ)
+		print "********************************", conn_addr
+		try:
+			rq_sock.connect(conn_addr)
+		except zmq.ZMQError as e:
+			return None, "Could not connect to {0}, err: {1}, {2}".format(
+															conn_addr, e, e.args)
+		print "********************************"
+		self.poller.register(rq_sock, zmq.POLLIN)
+		print "************SENDING LAUNCH REQUEST  ", rq_message
+		send_msg(rq_sock, rq_message)
+		result, details = self._poll_recv(rq_sock, _DEFAULT_TIMEOUT)
+		self.poller.unregister(rq_sock)
+		print "********************************"
+		if not result:
+
+			details = details + "  [address was: {0}]".format(conn_addr)
+			print "@@@@@@@@@@@@@@@@@@@@@@@@@  ", details
+			return None, details
+
+
+		elif result.type == 'rq_error':
+			return None, result.err_code + ':' + result.details
+			print "REQUEST FAILED  ", result.err_code + ':' + result.details
+		elif result.type == 'launched_process_info':
+			print "REQUEST SUCCESS  ", result.dict()
+			process_desc = ProcessDescription(proc_type=result.proc_type,
+											name=result.name,
+											path=result.path,
+											args=args,
+											machine_ip=result.machine,
+											pid=result.pid)
+
+
+
+			new_proc = RemoteProcess(process_desc, rq_socket,
+								reg_timeout_desc=timeout_desc,
+								monitoring_optflags=monitoring_optflags)
+
+			self.processes[(result.machine, result.pid)] = new_proc
+
+			return new_proc, None
+
+	def _poll_recv(self, socket, timeout):
+		try:
+			socks = dict(self.poller.poll(timeout=timeout))
+		except zmq.ZMQError, e:
+
+			return None, "zmq.poll error: " + e.strerror
+
+		if socket in socks and socks[socket] == zmq.POLLIN:
+			return self.mtool.unpack_msg(recv_msg(socket)), None
+		else:
+			return None, "No data "
 
 UNKNOWN = 'unknown'
 RUNNING = 'running'
@@ -143,8 +220,8 @@ class Process(object):
 	def __init__(self, proc_description,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING):
+
 		self.desc = proc_description
-		self.proc_type = self.desc.proc_type
 
 		self.must_register = reg_timeout_desc is not None
 		self.status = UNKNOWN if self.must_register else RUNNING
@@ -163,6 +240,18 @@ class Process(object):
 	@property
 	def pid(self):
 		return self.desc.pid
+
+	@property
+	def path(self):
+		return self.desc.path
+
+	@property
+	def proc_type(self):
+		return self.desc.proc_type
+
+	@property
+	def name(self):
+		return self.desc.name
 
 	def set_registration_timeout_handler(self, reg_timeout_desc):
 		self.must_register = reg_timeout_desc is not None
@@ -188,7 +277,7 @@ class Process(object):
 
 	def registered(self, reg_data):
 		self.reg_timer.cancel()
-		print "YAY, registered!!!!!!"
+		print "YAY, registered!!!!!!", reg_data
 		self.status = RUNNING
 		self.registration_data = reg_data
 
@@ -229,12 +318,11 @@ class LocalProcess(Process):
 
 
 class RemoteProcess(Process):
-	def __init__(self, proc_description, launch_rq_result, rq_socket,
+	def __init__(self, proc_description, rq_socket,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING):
 
-		self.launch_rq_result = launch_rq_result
-		self.launch_rq_socket = rq_socket
+		self.rq_socket = rq_socket
 		super(RemoteProcess, self).__init__(proc_description,
 										reg_timeout_desc, monitoring_optflags)
 
@@ -246,6 +334,10 @@ class RemoteProcess(Process):
 		if type_ == _REG_TIMER:
 			self.status = FAILED
 			self.status_details = "Failed to register before timeout."
+
+	def registered(self, reg_data):
+		super(RemoteProcess, self).registered(reg_data)
+		self.desc.pid = reg_data.pid
 
 
 class ProcessDescription(object):

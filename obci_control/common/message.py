@@ -40,7 +40,9 @@ class OBCIMessageTool(object):
 
 		for key, value in kwargs.iteritems():
 			if key not in msg:
-				raise OBCIMessageError()
+				raise OBCIMessageError(
+						"Key {0} not defined for message {1}".format(
+															key, msg_type))
 			msg[key] = value
 		return json.dumps(msg)
 
@@ -77,7 +79,8 @@ class LauncherMessage(object):
 		return vars(self).keys()
 
 	def dict(self):
-		return vars(self)
+
+		return vars(self).copy()
 
 
 

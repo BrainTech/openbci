@@ -59,6 +59,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def custom_sockets(self):
 		return [self.source_sub_socket]
 
+
+	def __path(self, path):
+		if os.path.isabs(path):
+			return path
+		else:
+			return os.path.join(self.base_dir, path)
+
 	def start_instance(self):
 		pass
 

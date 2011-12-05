@@ -51,7 +51,9 @@ class OBCIExperiment(OBCIControlPeer):
 
 		self.launch_file = launch_file
 		self.supervisors = {} #machine -> supervisor contact/other info
-		self.sv_processes = {} # pid -> (supervisro Popen object, timer)
+		self._wait_register = 0
+		self.sv_processes = {} # machine -> Process objects)
+		self.subprocess_mgr = SubprocessManager(self.ctx, self.uuid)
 
 		self.status = launcher_tools.ExperimentStatus()
 
@@ -67,7 +69,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.exp_config.status(self.status)
 		self.status.details = details
 
-		self.subprocess_mgr = SubprocessManager()
+
 
 	def net_init(self):
 		self.source_sub_socket = self.ctx.socket(zmq.SUB)
@@ -89,7 +91,7 @@ class OBCIExperiment(OBCIControlPeer):
 	def custom_sockets(self):
 		return [self.source_sub_socket, self.supervisors_sub, self.supervisors_rep]
 
-	def args_for_process_sv(self, local=False):
+	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
 		args += self.supervisors_rep_addrs
 		args.append('--sv-pub-addresses')
@@ -102,8 +104,9 @@ class OBCIExperiment(OBCIControlPeer):
 		args += [
 					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),
-					'--name', os.path.basename(
-							self.launch_file + '-' + self.origin_machine)]
+					'--name', 'sv-' + os.path.basename(self.launch_file) +\
+							 '-' + self.uuid.split('-',1)[0] + \
+							'-' + machine]
 		return args
 
 	def _start_obci_supervisor_process(self, args_for_proc_supervisor):
@@ -113,24 +116,43 @@ class OBCIExperiment(OBCIControlPeer):
 		args = args_for_proc_supervisor
 
 		sv_obj, details = self.subprocess_mgr.new_local_process(path, args,
+												proc_type='obci_process_supervisor',
 													capture_io=NO_STDIO)
 		if sv_obj is None:
 			return False, details
 
-		timeout_handler = TimeoutDescription(
+		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
 						timeout_method=self._handle_register_sv_timeout,
 						timeout_args=(sv_obj))
 		sv_obj.set_registration_timeout_handler(timeout_handler)
+		self.sv_processes[self.origin_machine] = sv_obj
 
-		return sv_obj, False
+		return sv_obj, None
 
 	def _request_supervisor(self, machine_addr):
-		result, details, response, reg_timer = None, None, None, None
-		return result, details, response, reg_timer
+		args = self.args_for_process_sv(machine_addr)
+		proc_type = 'obci_process_supervisor'
+		conn_addr = 'tcp://' + machine_addr + ':' + net.server_rep_port()
+		sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
+												args=args, proc_type=proc_type,
+												name=self.uuid, machine_ip=machine_addr,
+												conn_addr=conn_addr, capture_io=NO_STDIO
+												)
+
+		if sv_obj is None:
+			return False, details
+
+		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
+						timeout_method=self._handle_register_sv_timeout,
+						timeout_args=(sv_obj))
+		sv_obj.set_registration_timeout_handler(timeout_handler)
+		self.sv_processes[machine_addr] = sv_obj
+		return sv_obj, None
 
 	def _handle_register_sv_timeout(self, sv_process):
-		print "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
+		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
 																sv_process.machine_ip)
+		print txt
 
 		if sv_process.machine_ip == self.origin_machine and sv_process.is_local():
 			pid = sv_process.pid
@@ -141,11 +163,14 @@ class OBCIExperiment(OBCIControlPeer):
 		else:
 			# send KILL request for the rogue supervisor
 			pass
+		self._wait_register = 0
 
-		#TODO send this to a PUB socket
-		#send_msg(rq_sock, self.mtool.fill_msg("rq_error",
-		#										err_code="create_supervisor_error",
-		#										request=vars(self.start_rq[0])))
+		# inform observers about failure
+		send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+												sender=self.uuid,
+												err_code="create_supervisor_error",
+												details=dict(machine=sv_process.machine_ip,
+															error=txt)))
 
 	def _start_experiment(self):
 		# * check status - if != READY_TO_LAUNCH - error
@@ -166,15 +191,25 @@ class OBCIExperiment(OBCIControlPeer):
 
 		result, details = \
 							self._start_obci_supervisor_process(
-									self.args_for_process_sv(local=True))
+									self.args_for_process_sv(self.origin_machine, local=True))
+		self._wait_register = len(self.exp_config.peer_machines())
 
-		if result is False:
+		if not result:
 			#return False, self.mtool.fill_msg("rq_error", request=vars(message),
 			#					err_code='launch_supervisor_os_error', details=details)
 			print "FAILED to start local supervisor", details
 			self.status.set_status(launcher_tools.CRASHED, details)
 			return False, details
 		else:
+			for machine in self.exp_config.peer_machines():
+				print "^^^^^^^^    ", machine
+				if machine == self.origin_machine:
+					pass
+
+				result, details = self._request_supervisor(machine)
+				if not result:
+					return False, details
+
 			#k = ':'.join[result.machine_ip, result.pid]
 			k = result.machine_ip
 			self.sv_processes[k] = result
@@ -206,6 +241,13 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def handle_register_peer(self, message, sock):
 		if message.peer_type == "obci_process_supervisor":
+			if self._wait_register > 0:
+				self._wait_register -= 1
+			else:
+				send_msg(sock, self.mtool.fill_msg("rq_error",
+								err_code='peer_spam', request=message.dict()))
+				return
+
 			desc = self.supervisors[message.other_params['machine']] = \
 							RegistrationDescription(
 												message.uuid,
@@ -214,6 +256,7 @@ class OBCIExperiment(OBCIControlPeer):
 												message.pub_addrs,
 												message.other_params['machine'],
 												message.other_params['pid'])
+			print self.sv_processes
 			proc = self.sv_processes[desc.machine]
 			proc.registered(desc)
 			addrs = []
@@ -226,9 +269,12 @@ class OBCIExperiment(OBCIControlPeer):
 				self.supervisors_sub_addrs.append(a)
 				self.supervisors_sub.connect(a)
 
-			#send_msg(self.start_rq[1], self.mtool.fill_msg('starting_experiment',
-			#												sender=self.uuid))
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
+
+			# inform observers
+			send_msg(self.pub_socket, self.mtool.fill_msg("process_supervisor_registered",
+												sender=self.uuid,
+												machine_ip=desc.machine))
 
 
 	def handle_get_experiment_info(self, message, sock):
@@ -260,7 +306,19 @@ class OBCIExperiment(OBCIControlPeer):
 			self.status.set_status(launcher_tools.LAUNCHING)
 			send_msg(sock, self.mtool.fill_msg('starting_experiment',
 							sender=self.uuid))
-			result, msg = self._start_experiment()
+			result, details = self._start_experiment()
+			if not result:
+				print "!!!!!!!!!!!!!!!!!!"
+				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+									 sender=self.uuid, err_code='', details=details))
+				print "????????????"
+				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+									 sender=self.uuid, err_code='', details=details))
+				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+									 sender=self.uuid, err_code='', details=details))
+				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+									 sender=self.uuid, err_code='', details=details))
+				print ':-('
 
 
 

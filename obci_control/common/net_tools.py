@@ -7,6 +7,7 @@ import os
 import ConfigParser
 
 from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
+from common.config_helpers import OBCISystemError
 
 
 def public_socket(address_list, zmq_type, zmq_context, random_port=True,

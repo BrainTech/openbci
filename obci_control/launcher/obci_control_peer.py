@@ -147,6 +147,7 @@ class OBCIControlPeer(object):
 			poller.register(sock, zmq.POLLIN)
 
 		while True:
+			print self.name
 			socks = []
 			try:
 				socks = dict(poller.poll())
@@ -187,6 +188,7 @@ class OBCIControlPeer(object):
 ########## message handling ######################################
 
 	def handle_message(self, message, sock):
+
 		handler = self.default_handler
 		try:
 			msg = self.mtool.unpack_msg(message)

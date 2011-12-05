@@ -21,6 +21,9 @@ import common.net_tools as net
 
 import obci_experiment
 import obci_process_supervisor
+import subprocess_monitor
+from subprocess_monitor import SubprocessManager, TimeoutDescription,\
+STDIN, STDOUT, STDERR, NO_STDIO
 
 REGISTER_TIMEOUT = 3
 
@@ -34,7 +37,7 @@ class OBCIServer(OBCIControlPeer):
 		self.experiments = {}
 		self.exp_processes = {}
 
-		self.worker_processes = {}
+		self.exp_process_supervisors = {}
 
 		self.machine = net.ext_ip()
 
@@ -43,6 +46,7 @@ class OBCIServer(OBCIControlPeer):
 		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
 														  pub_addresses,
 														  name)
+		self.subprocess_mgr = SubprocessManager(self.ctx, self.uuid)
 		#TODO do sth with other server rep addresses
 
 	def peer_type(self):
@@ -300,7 +304,50 @@ probably a server is already working"
 				del self.experiments[uid]
 			return returncode
 
+	def handle_launch_process(self, message, sock):
+		if message.proc_type == 'obci_process_supervisor':
+			self._handle_launch_process_supervisor(message, sock)
 
+	def _handle_launch_process_supervisor(self, message, sock):
+		sv_obj, details = self._start_obci_supervisor_process( message)
+		self.exp_process_supervisors[message.sender] = sv_obj
+
+		if sv_obj:
+			send_msg(sock,
+					self.mtool.fill_msg("launched_process_info",
+											sender=self.uuid, machine=self.machine,
+											pid=sv_obj.pid, proc_type=sv_obj.proc_type,
+											name=sv_obj.name,
+											path=sv_obj.path))
+		else:
+			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
+												err_code="launch_error",
+												details=details))
+
+	def handle_kill_process_supervisor(self, message, sock):
+		proc = self.exp_process_supervisors.get(message.sender, None)
+		if not proc:
+			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="experiment_not_found"))
+		else:
+			proc.kill()
+			proc.popen_obj.wait()
+			send_msg(sock, self.mtool.fill_msg("rq_ok"))
+			del self.exp_process_supervisors[message.sender]
+
+
+	def _start_obci_supervisor_process(self, rq_message):
+		path = obci_process_supervisor.__file__
+		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
+		start_params = rq_message.dict()
+		start_params['path'] = path
+		del start_params['type']
+		del start_params['sender']
+		del start_params['receiver']
+		sv_obj, details = self.subprocess_mgr.new_local_process(**start_params)
+		if sv_obj is None:
+			return False, details
+
+		return sv_obj, False
 
 	def _join_srv_network(self, srv_address):
 		# send srv_table_request
