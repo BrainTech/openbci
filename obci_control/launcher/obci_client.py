@@ -33,7 +33,8 @@ class OBCIClient(object):
 
 	def launch(self, launch_file=None, sandbox_dir=None):
 		result = self.send_create_experiment(launch_file, sandbox_dir)
-
+		if not result:
+			return result
 		if result.type != "experiment_created":
 			return result
 
@@ -87,7 +88,7 @@ class OBCIClient(object):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("create_experiment",
 							launch_file=launch_file, sandbox_dir=sandbox_dir))
 
-		response = self._poll_recv(self.server_req_socket, 2000)
+		response = self._poll_recv(self.server_req_socket, 5000)
 		return response
 
 	def send_list_experiments(self):

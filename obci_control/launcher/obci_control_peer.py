@@ -60,6 +60,7 @@ class OBCIControlPeer(object):
 		return OBCIMessageTool(message_templates)
 
 	def net_init(self):
+		print "obci_control_peer  net init"
 		(self.pub_socket, self.pub_addresses) = self._init_socket(
 												self.pub_addresses, zmq.PUB)
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
@@ -74,15 +75,16 @@ class OBCIControlPeer(object):
 			for addr in self.source_addresses:
 				self.source_req_socket.connect(addr)
 		self._set_poll_sockets()
+		print "------------obci_control_peer  net init"
 
 	def _init_socket(self, addrs, zmq_type, create_ipc=True):
 
 		ipc_name=''
 		if not addrs:
-			addresses = [addr for addr in self.source_addresses \
-												if net.is_net_addr(addr)]
-			if not self.source_addresses:
-				addresses = ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip()]
+			#addresses = [addr for addr in self.source_addresses \
+			#									if net.is_net_addr(addr)]
+			#if not self.source_addresses:
+			addresses = ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip(ifname=net.server_ifname())]
 			random_port = True
 			if create_ipc:
 				ipc_name=self.name+'.'+self.uuid

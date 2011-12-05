@@ -111,6 +111,10 @@ def server_address(sock_type='rep', local=False, ifname=None, peer_ip=None):
 	ip = lo_ip() if local else ext_ip(ifname=ifname, peer_ip=peer_ip)
 	return 'tcp://' + ip + ':' + port
 
+def server_ifname():
+	parser = __parser_main_config_file()
+	return parser.get('server', 'ifname')
+
 def __parser_main_config_file():
 	directory = os.path.abspath(OBCI_HOME_DIR)
 

@@ -41,7 +41,9 @@ class OBCIExperiment(OBCIControlPeer):
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
-		self.origin_machine = net.ext_ip()
+		print "EXPERIMENT INIT"
+		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
+		print "EXPERIMENT INIT"
 		super(OBCIExperiment, self).__init__(obci_install_dir,
 											source_addresses,
 											rep_addresses,
@@ -82,7 +84,7 @@ class OBCIExperiment(OBCIControlPeer):
 									['ipc://rep_experiment_supervisors-'+self.uuid +'.ipc'],
 									zmq.REP)
 		(self.supervisors_sub, self.supervisors_sub_addrs) = (self.ctx.socket(zmq.SUB), [])
-
+		print "EXPERIMENT!!!  ", self.source_addresses, self.origin_machine
 		super(OBCIExperiment, self).net_init()
 
 	def params_for_registration(self):
@@ -350,10 +352,11 @@ if __name__ == '__main__':
 
 #	exp = OBCIExperiment( ['tcp://*:22233'], '/host/dev/openbci',
 #							'~/.obci', None, 'obci_exp')
+	print "????"
 	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch)
 
-
+	print "!!!!!"
 	exp.run()

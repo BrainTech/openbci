@@ -25,7 +25,7 @@ import subprocess_monitor
 from subprocess_monitor import SubprocessManager, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
-REGISTER_TIMEOUT = 3
+REGISTER_TIMEOUT = 6
 
 class OBCIServer(OBCIControlPeer):
 	def __init__(self, obci_install_dir, other_srv_ips,
@@ -129,6 +129,7 @@ probably a server is already working"
 			print "Bad arguments!"
 		else:
 			result = True
+			print "SRV starting EXP: ", args
 			reg_timer = threading.Timer(REGISTER_TIMEOUT,
 										self._handle_register_experiment_timeout,
 										[exp])
@@ -168,6 +169,7 @@ probably a server is already working"
 		pid = exp.pid
 		if exp.returncode is None:
 			exp.kill()
+			exp.wait()
 		del self.exp_processes[pid]
 
 		msg_type = self.client_rq[0].type
@@ -195,9 +197,11 @@ probably a server is already working"
 							self.start_experiment_process(sandbox, launch_file)
 
 		if result is False:
+			print "BLEEEEEE"
 			send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
 								err_code='launch_error', details=details))
 		else:
+			print "launched:  ", exp.pid
 			self.exp_processes[exp.pid] = exp
 			# now wait for experiment to register itself here
 			self.client_rq = (message, sock, reg_timer)
