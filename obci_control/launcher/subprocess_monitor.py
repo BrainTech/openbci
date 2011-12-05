@@ -56,14 +56,15 @@ class SubprocessManager(object):
 								stdout_log=None,
 								stderr_log=None,
 								register_timeout_desc=None,
-								monitoring_optflags=RETURNCODE | PING):
+								monitoring_optflags=RETURNCODE | PING,
+								machine_ip=None):
 
 		if path.endswith('.py'):
 			launch_args = PYTHON_CALL +[path] + args
 		else:
 			launch_args = [path] + args
 
-		machine = net.ext_ip()
+		machine = machine_ip if machine_ip else net.ext_ip(peer_ip=net.server_address())
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
 		if capture_io & STDERR:

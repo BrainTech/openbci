@@ -17,7 +17,7 @@ message_templates = {
 
 
 	"launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
-									capture_io='', stdout_log='', stdin_log='', stderr_log=''),
+									capture_io='', stdout_log='', stderr_log=''),
 	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type=''),
 	"kill_process" : dict(),
 	"restart_process" : dict(),
