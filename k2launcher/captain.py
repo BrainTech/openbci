@@ -150,7 +150,7 @@ start("etr_save", "logics_control")
 
 
 start("blink_test", "hashtable")
-start("blink_test", "blinking_ugm")
+start("blink_test", "blinking_ugm_test")
 start("blink_test", "blink_catcher")
 
 start("logics_test", "hashtable")

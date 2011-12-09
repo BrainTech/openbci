@@ -221,18 +221,18 @@ class Hashtable(BaseMultiplexerServer):
         # RANDOM_SEQUENTIAL - random, but not repeated values from range [0;BLINK_ID_COUNT]. Eg. for [0,1,2,3] we`ll get
         # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
         #'BLINK_ID_TYPE': 'RANDOM',
-        'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
-        #'BLINK_ID_TYPE': 'SEQUENTIAL',
+        #'BLINK_ID_TYPE': 'RANDOM_SEQUENTIAL',
+        'BLINK_ID_TYPE': 'SEQUENTIAL',
 
         # blink ids will be genereated from range [0;BLINK_ID_COUNT]
-        'BLINK_ID_COUNT':'1',
+        'BLINK_ID_COUNT':'8',
 
         # Time (in secs) between two blinks will be generated as float from range[BLINK_MIN_BREAK;BLINK_MAX_BREAK]
         'BLINK_MIN_BREAK':'0.1',
         'BLINK_MAX_BREAK':'0.1',
         
         # Duration of a single blink (in secs)
-        'BLINK_DURATION':'0.1',
+        'BLINK_DURATION':'0.5',
 
         # An algorithm generating counts. Possible values:
         # INF - always returns -1 (should indicate infinity - blink forever)
@@ -267,7 +267,7 @@ class Hashtable(BaseMultiplexerServer):
         # It is assumed that to-be-blinked components are enumerated sequentially, eg. from 101 to 106 -
         # - then BLINK_UGM_ID_START would be 101, BLINK_UGM_COL_COUNT would be 5
         'BLINK_UGM_ID_START':'101',
-        'BLINK_UGM_ID_COUNT':'1',
+        'BLINK_UGM_ID_COUNT':'8',
 
         # What property (KEY) and how (VALUE) should be changed on blink.
         # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
