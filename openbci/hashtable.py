@@ -173,7 +173,7 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        'SPELLER_CONFIG':'speller_config_8',
+        'SPELLER_CONFIG':'multiple_speller_config_8',
         #'SPELLER_AREA_COUNT':'6',
         'SPELLER_AREA_COUNT':'8',
 
@@ -261,6 +261,9 @@ class Hashtable(BaseMultiplexerServer):
         # We should have always: BLINK_UGM_ID_COUNT == BLINK_UGM_ROW_COUNT * BLINK_UGM_COL_COUNT
         # IN SINGLE blinker we whould have always: BLINK_UGM_ID_COUNT == BLINK_ID_COUNT
 
+        #1 if we want to start blinking on start-up, 0 if we want to start blinking somwere
+        #from the software
+        'BLINK_RUNNING_ON_START': "1",
 
 
         # Start id and count of ugm components that are considered 'blinking' elements
@@ -275,6 +278,14 @@ class Hashtable(BaseMultiplexerServer):
         'BLINK_UGM_VALUE':'#ff0000',
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ BLINKING UGM ------------------------------------------------------------------------------
+
+        # ------------ SWITCH ----------------------------------------------------------------------------------
+        # ------------ BEGIN -------------------------------------------------------------------------------------
+        'SWITCH_RUNNING_ON_START':"1",
+        'SWITCH_TYPE':"SPACE",
+
+        # ------------ END -------------------------------------------------------------------------------------
+        # ------------ SWITCH ---------------------------------------------------------------------------------
 
 
 

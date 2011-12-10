@@ -216,6 +216,19 @@ peer {
 }
 
 
+peer {
+     type: 141
+     name: "SWITCH_SERVER"
+}
+
+
+peer {
+     type: 142
+     name: "SWITCH_AMPLIFIER"
+}
+
+
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages
@@ -592,6 +605,12 @@ type {
      to {
         peer: "BLINK_CATCHER"
         whom: ALL
+	report_delivery_error: false
+     }
+     to {
+        peer: "SWITCH_SERVER"
+        whom: ALL
+	report_delivery_error: false
      }
 }
 
@@ -761,6 +780,24 @@ type {
     name: "UGM_CONTROL_MESSAGE"
     to {
         peer: "UGM"
+        whom: ALL
+    }
+}
+
+type {
+    type: 213
+    name: "SWITCH_CONTROL_MESSAGE"
+    to {
+        peer: "SWITCH_SERVER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 214
+    name: "SWITCH_MESSAGE"
+    to {
+        peer: "SWITCH_SERVER"
         whom: ALL
     }
 }

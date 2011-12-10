@@ -3,6 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 from ugm import ugm_internal_server
+from multiplexer.multiplexer_constants import peers, types
 import variables_pb2
 import ugm_logging as logger
 LOGGER = logger.get_logger('run_blinking_ugm')
@@ -43,7 +44,8 @@ if __name__ == "__main__":
     ENG = ugm_blinking_engine.UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
                                                 connection
                                                 )
-    c = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(ENG.get_requested_configs())
+    cfg = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES)
+    c = cfg.get_configs(ENG.get_requested_configs())
     ENG.set_configs(c)
 
     thread.start_new_thread(UdpBlinkingServer(ENG, 
@@ -55,7 +57,6 @@ if __name__ == "__main__":
     # Start multiplexer in a separate process
     path = os.path.join(settings.module_abs_path(), "ugm_server.py")
     os.system("python " + path + " &")
-
 
     #TODO - works only when running from openbci directiory...
     # fire ugm engine in MAIN thread (current thread)

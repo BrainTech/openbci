@@ -44,6 +44,9 @@ def multitask(task_ids, task_id):
 
 task("./etr/etr_amplifier.py", "etr_amplifier")
 task("./etr/etr_server.py", "etr_server")
+task("./switch/switch_amplifier.py", "switch_amplifier")
+task("./switch/switch_server.py", "switch_server")
+
 task("./data_storage/etr_saver.py", "etr_saver")
 task("./etr/etr_dasher_server.py", "etr_dasher_server")
 
@@ -150,8 +153,19 @@ start("etr_save", "logics_control")
 
 
 start("blink_test", "hashtable")
-start("blink_test", "blinking_ugm_test")
+start("blink_test", "blinking_ugm")
 start("blink_test", "blink_catcher")
+
+start("ms", "hashtable")
+start("ms", "logics")
+start("ms", "ugm")
+start("ms", "blink_catcher")
+
+start("switch", "hashtable")
+start("switch", "logics")
+start("switch", "blinking_ugm")
+start("switch", "switch_amplifier")
+start("switch", "switch_server")
 
 start("logics_test", "hashtable")
 start("logics_test", "ugm")

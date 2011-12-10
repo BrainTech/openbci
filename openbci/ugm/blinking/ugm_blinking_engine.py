@@ -27,17 +27,20 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
 
         self.mgrs = [self.time_mgr, self.id_mgr, self.ugm_mgr, self.count_mgr]
         self.STOP = False
+        self._run_on_start = False
 
     def get_requested_configs(self):
         ret = set()
         map(ret.update,[m.get_requested_configs() for m in self.mgrs])
         ret.add('BLINK_DURATION')
+        ret.add('BLINK_RUNNING_ON_START')
         return ret
 
     def set_configs(self, configs):
         for m in self.mgrs:
             m.set_configs(configs)
         self._blink_duration = float(configs['BLINK_DURATION'])
+        self._run_on_start = int(configs['BLINK_RUNNING_ON_START'])
         assert(self._blink_duration > 0)
 
     def control(self, msg):
@@ -109,6 +112,9 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._stop_timer.setSingleShot(True)
         self._stop_timer.connect(self._stop_timer, QtCore.SIGNAL("timeout()"), self._stop)
 
+        if self._run_on_start:
+            self.start_blinking()
+
 if __name__ == '__main__':
     def start_test_blinking(engine):
         time.sleep(10)
@@ -119,12 +125,12 @@ if __name__ == '__main__':
     from ugm import ugm_config_manager
     import thread
     import settings
-    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG'])
+    cfg = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES)
+    configs = cfg.get_configs(['UGM_CONFIG'])
     eng = UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
                             ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
                             )
     c = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(eng.get_requested_configs())
     eng.set_configs(c)
-
     thread.start_new_thread(start_test_blinking, (eng,))
     eng.run()
