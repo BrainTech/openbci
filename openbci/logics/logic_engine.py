@@ -63,6 +63,9 @@ class LogicEngine(object):
         self._state_machine.set_config(configs['SPELLER_CONFIG'])
         self._server.send_message({'value':' ', 'type':'switch_mode'})
         self._update_global_gui()
+
+    def get_requested_configs(self):
+        return ['SPELLER_CONFIG', 'SPELLER_TEXT_ID', 'SPELLER_START_TEXT_ID']
         
         
     def handle_decision(self, p_decision_object):

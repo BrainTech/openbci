@@ -36,8 +36,8 @@ class LogicSpellerServer(BaseMultiplexerServer):
     def __init__(self, p_addresses):
         """Init server."""
         self.configurer = configurer.Configurer(p_addresses)
-        self.configs = self.configurer.get_configs(['SPELLER_CONFIG', 'SPELLER_START_TEXT_ID', 'SPELLER_TEXT_ID', 'PEER_READY'+str(peers.UGM)])
         self._init_types()
+        self.configurer.get_configs(['PEER_READY'+str(peers.UGM)])
 
         super(LogicSpellerServer, self).__init__(addresses=p_addresses, 
                                                  type=peers.LOGIC)
@@ -56,7 +56,9 @@ class LogicSpellerServer(BaseMultiplexerServer):
     def set_engine(self, p_engine):
         """Setter for logic_engine slot."""
         self._logic_engine = p_engine
-        self._logic_engine.set_configs(self.configs)
+        requested_configs = self._logic_engine.get_requested_configs()
+        configs = self.configurer.get_configs(requested_configs)
+        self._logic_engine.set_configs(configs)
         self.configurer.set_configs({'PEER_READY':str(peers.LOGIC)}, self.conn)
 
 
@@ -72,7 +74,7 @@ class LogicSpellerServer(BaseMultiplexerServer):
             l_message = l_msg_var.SerializeToString()
         elif p_params['type'] == 'ugm_update_message':
             l_msg_var = variables_pb2.UgmUpdate()
-            l_msg_var.type = 1 #'simple' update type 
+            l_msg_var.type = p_params.get('update_type', 1) #'simple' update type 
             l_msg_var.value = p_params['value']
             l_message = l_msg_var.SerializeToString()
         else:

@@ -185,8 +185,9 @@ class Hashtable(BaseMultiplexerServer):
 
         # ------------ EYETRACKER ------------------------------------------------------------------------------
         # ------------ START -----------------------------------------------------------------------------------
-        'ETR_TYPE':'NESW',
-        #'ETR_TYPE':'CLASSIC',
+        #'ETR_TYPE':'NESW',
+        'ETR_TYPE':'CLASSIC',
+        'ETR_RUNNING_ON_START':'0',
         #'ETR_DEC_TYPE':'FRACTION',
         #'ETR_PUSH_DEC_COUNT':'0.7', 
         #'ETR_PUSH_FEED_COUNT':'0.1',
@@ -287,8 +288,11 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ SWITCH ---------------------------------------------------------------------------------
 
-
-
+        # dsfdsfds
+        'MS_SWITCH_UGM':'speller_config_8_black_etr',
+        'MS_SWITCH_BLINK_MIN_BREAK':'0.1',
+        'MS_SWITCH_BLINK_MAX_BREAK':'0.1',
+        'MS_SWITCH_BLINK_DURATION':'2',
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

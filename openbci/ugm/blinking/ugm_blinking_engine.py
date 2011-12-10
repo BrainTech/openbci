@@ -28,7 +28,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self.mgrs = [self.time_mgr, self.id_mgr, self.ugm_mgr, self.count_mgr]
         self.STOP = False
         self._run_on_start = False
-
+        
     def get_requested_configs(self):
         ret = set()
         map(ret.update,[m.get_requested_configs() for m in self.mgrs])
@@ -49,8 +49,18 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
             self.start_blinking()
         elif msg_type == 'stop_blinking':
             self.stop_blinking()
+        elif msg_type == 'update_and_start_blinking':
+            self._update_and_start_blinking()
         else:
             raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
+
+    def _update_and_start_blinking(self):
+        for m in self.mgrs:
+            m.reset()
+        requested_configs = self.get_requested_configs()
+        configs = self.connection.get_configs(requested_configs)
+        self.set_configs(configs)
+        self.start_blinking()
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()

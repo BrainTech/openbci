@@ -6,6 +6,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
+import configurer
 import variables_pb2
 import time
 
@@ -13,7 +14,10 @@ class UgmBlinkingConnection(object):
     """Provides connection for engine to 'external' wold - other MX modules."""
     def __init__(self, addresses):
         self.connection = connect_client(type = peers.UGM_ENGINE, addresses=addresses)
+        self.configurer = configurer.Configurer(addresses)
         self.blink_msg = variables_pb2.Blink()
+    def get_configs(self, configs):
+        return self.configurer.get_configs(configs)
 
     def send_blink(self, blink_id, blink_time):
         self.blink_msg.index = blink_id

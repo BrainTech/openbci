@@ -803,3 +803,11 @@ type {
 }
 
 
+type {
+    type: 215
+    name: "ETR_CONTROL_MESSAGE"
+    to {
+        peer: "ETR_SERVER"
+        whom: ALL
+    }
+}

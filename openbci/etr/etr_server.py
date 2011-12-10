@@ -18,7 +18,8 @@ LOGGER = logger.get_logger("etr_amplifier", "info")
 class EtrServer(BaseMultiplexerServer):
     def __init__(self, addresses):
         configurer_ = configurer.Configurer(addresses)
-        configs = configurer_.get_configs(['ETR_TYPE'])
+        configs = configurer_.get_configs(['ETR_TYPE','ETR_RUNNING_ON_START'])
+        self.running = int(configs['ETR_RUNNING_ON_START'])
         if configs['ETR_TYPE'] == 'CLASSIC':
             self.mgr = etr_manager.EtrManager()
         elif configs['ETR_TYPE'] == 'NESW':
@@ -39,28 +40,43 @@ class EtrServer(BaseMultiplexerServer):
         LOGGER.info("EtrServer init finished!")
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.Sample2D()
+        if mxmsg.type == types.ETR_CONTROL_MESSAGE:
+	    l_msg = variables_pb2.Variable()
             l_msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
-
-            dec, ugm = self.mgr.handle_message(l_msg)
-            if dec >= 0:
-                LOGGER.info("Sending dec message...")
-                l_dec_msg = variables_pb2.Decision()
-                l_dec_msg.decision = dec
-                l_dec_msg.type = 0
-                self.conn.send_message(message = l_dec_msg.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
-            elif ugm is not None:
-                LOGGER.info("Sending ugm message...")
-                l_ugm_msg = variables_pb2.UgmUpdate()
-                l_ugm_msg.type = 1
-                l_ugm_msg.value = ugm
-                self.conn.send_message(
-                    message = l_ugm_msg.SerializeToString(), 
-                    type=types.UGM_UPDATE_MESSAGE, flush=True)
+            if l_msg.key == 'stop':
+                LOGGER.info("Stop etr!")
+                self.running = False
+            elif l_msg.key == 'start':
+                LOGGER.info("Start etr!")
+                self.running = True
             else:
-                LOGGER.info("Got notihing from manager...")
+                LOGGER.warning("Unrecognised etr control message! "+str(l_msg.key))
+
+        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
+            if self.running:
+                l_msg = variables_pb2.Sample2D()
+                l_msg.ParseFromString(mxmsg.message)
+                LOGGER.debug("GOT MESSAGE: "+str(l_msg))
+                
+                dec, ugm = self.mgr.handle_message(l_msg)
+                if dec >= 0:
+                    LOGGER.info("Sending dec message...")
+                    l_dec_msg = variables_pb2.Decision()
+                    l_dec_msg.decision = dec
+                    l_dec_msg.type = 0
+                    self.conn.send_message(message = l_dec_msg.SerializeToString(), type = types.DECISION_MESSAGE, flush=True)
+                elif ugm is not None:
+                    LOGGER.info("Sending ugm message...")
+                    l_ugm_msg = variables_pb2.UgmUpdate()
+                    l_ugm_msg.type = 1
+                    l_ugm_msg.value = ugm
+                    self.conn.send_message(
+                        message = l_ugm_msg.SerializeToString(), 
+                        type=types.UGM_UPDATE_MESSAGE, flush=True)
+                else:
+                    LOGGER.info("Got notihing from manager...")
+
+
         self.no_response()
             
 

@@ -93,6 +93,7 @@ task("python ./amplifiers/virtual_amplifier.py fast", "fast_virtual_amplifier")
 
 task("sleep 4; ./filters/svarog_filter.py", "svarog_filter")
 task("sleep 1; ./logics/logic_speller.py", "logics")
+task("sleep 1; ./logics/logic_multiple_speller.py", "logics_multiple")
 task("sleep 1; ./logics/test_manually_logic_speller.py", "logics_control")
 task("sleep 4; ./analysis/ssvep_analysis.py", "analysis")
 
@@ -157,9 +158,15 @@ start("blink_test", "blinking_ugm")
 start("blink_test", "blink_catcher")
 
 start("ms", "hashtable")
-start("ms", "logics")
-start("ms", "ugm")
-start("ms", "blink_catcher")
+start("ms", "logics_multiple")
+start("ms", "blinking_ugm")
+#start("ms", "blinking_ugm")
+start("ms", "switch_amplifier")
+start("ms", "switch_server")
+start("ms", "etr_amplifier")
+start("ms", "etr_server")
+
+
 
 start("switch", "hashtable")
 start("switch", "logics")
