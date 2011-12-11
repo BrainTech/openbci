@@ -83,9 +83,9 @@ NEU1_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='N
 NEU3_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='Neutr2', 
                                                           start_offset=START_SEC_OFFSET, end_offset=0, duration=DURATION)
 
-POS1_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='P1', 
+POS1_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='blinkSSVEP70', 
                                                           start_offset=START_SEC_OFFSET, end_offset=0, duration=DURATION)
-POS3_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='P3', 
+POS3_TAG_DEF = smart_tag_definition.SmartTagDurationDefinition(start_tag_name='blinkSSVEP15', 
                                                           start_offset=START_SEC_OFFSET, end_offset=0, duration=DURATION)
 
 
@@ -124,10 +124,10 @@ def plot_avgs_for(p_files, plot_type='all', p_show=True, x=None, y=None, channel
     mgr_neg3.kamil_desc = "N3"
 
     mgr_pos1 = smart_tags_manager.SmartTagsManager(POS1_TAG_DEF,  p_files['info'], p_files['data'], p_files['tags'])
-    mgr_pos1.kamil_desc = "P1"
+    mgr_pos1.kamil_desc = "blink0"
 
     mgr_pos3 = smart_tags_manager.SmartTagsManager(POS3_TAG_DEF,  p_files['info'], p_files['data'], p_files['tags'])
-    mgr_pos3.kamil_desc = "P3"
+    mgr_pos3.kamil_desc = "blink15"
 
     mgr_dr = smart_tags_manager.SmartTagsManager(DREWNO_TAG_DEF,  p_files['info'], p_files['data'], p_files['tags'])
     mgr_dr.kamil_desc = "Drewno"
@@ -176,6 +176,9 @@ def plot_avgs_for(p_files, plot_type='all', p_show=True, x=None, y=None, channel
         mgrs.append(mgr_neu1)
 
         mgrs.append(mgr_dr)
+    elif plot_type=='mati':
+        mgrs.append(mgr_pos1) 
+        mgrs.append(mgr_pos3)      
         
 
         
@@ -275,7 +278,7 @@ def fix_file(f, from_sample, num_of_samples, sample_value):
     
 
 if __name__ == "__main__":
-    dr = '/media/windows/titanis/bci/projekty/eksperyment_kamil/eeg-eksperyment-20-05-2011marysia/'
+    dr = '/home/mati/dane/'
 
     #f_name = 'Agata'
     #f_csv_name = 'Agata_Feb_25_1229.csv'
@@ -287,12 +290,12 @@ if __name__ == "__main__":
     #f_csv_name = 'Kasia_Feb_25_0925.csv'
     #f_name = 'Linda'
     #f_csv_name = 'Linda_Feb_25_1501.csv'
-    f_names = ['marysia_18_05_2011']#, 'Agata', 'Justyna', 'Kamila1', 'Kasia']
+    f_names = ['osoba4']#, 'Agata', 'Justyna', 'Kamila1', 'Kasia']
     for f_name in f_names:
         f = {
             'info': os.path.join(dr, f_name+'.xml'),
-            'data': os.path.join(dr, f_name+'.filtered2.raw.obci.dat'),
-            'tags':os.path.join(dr, f_name+'.obci.fixed.arts_free.tags')
+            'data': os.path.join(dr, f_name+'.raw.filterd'),
+            'tags':os.path.join(dr, f_name+'.tag.fixed.tag')
             }
         #lost_samples_test.find_and_print(f['info'], f['data'])
         #fix_file(f, from_sample=2701686-870572, num_of_samples=28877, sample_value=0.0)

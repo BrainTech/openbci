@@ -63,6 +63,8 @@ task("./monitors/spectrum.py 0", "spectrum")
 task("./hashtable.py", "hashtable")
 task("./ugm/run_ugm.py", "ugm")
 task("./ugm/blinking/ugm_blinking_engine.py", "blinking_ugm_test")
+task("./experiment_builder/mati/p300_ssvep_experiment.py", "mati_exp")
+task("./experiment_builder/mati/blink_and_diode_catcher.py", "mati_exp_catcher")
 task("./ugm/run_blinking_ugm.py", "blinking_ugm")
 task("./ugm/run_ugm.py p300_train", "p300_ugm_train")
 task("./ugm/run_ugm.py p300_test", "p300_ugm_test")
@@ -154,7 +156,7 @@ start("etr_save", "logics_control")
 
 
 start("blink_test", "hashtable")
-start("blink_test", "blinking_ugm")
+start("blink_test", "blinking_ugm_test")
 start("blink_test", "blink_catcher")
 
 start("ms", "hashtable")
@@ -173,6 +175,24 @@ start("switch", "logics")
 start("switch", "blinking_ugm")
 start("switch", "switch_amplifier")
 start("switch", "switch_server")
+
+start("mati_exp", "hashtable")
+start("mati_exp", "blinking_ugm")
+start("mati_exp", "virtual_f_amplifier")
+start("mati_exp", "mati_exp_catcher")
+start("mati_exp", "mati_exp")
+start("mati_exp", "diode_catcher")
+start("mati_exp", "diode_control")
+
+
+start("mati_real_exp", "hashtable")
+start("mati_real_exp", "blinking_ugm")
+start("mati_real_exp", "c++_usb_amplifier")
+start("mati_real_exp", "mati_exp_catcher")
+start("mati_real_exp", "mati_exp")
+start("mati_real_exp", "diode_catcher")
+start("mati_real_exp", "diode_control")
+
 
 start("logics_test", "hashtable")
 start("logics_test", "ugm")

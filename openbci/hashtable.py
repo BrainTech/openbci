@@ -20,7 +20,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 5
+CHANNELS = 23
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -39,11 +39,11 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
-        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
+        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
         #"ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
-        "ChannelsNames": "A;B;C;D;E",
+        #"ChannelsNames": "A;B;C;D;E",
         #"ChannelsNames": "O1;Oz;O2",
 
         #"ChannelsNames":"REKA",
@@ -53,7 +53,7 @@ class Hashtable(BaseMultiplexerServer):
         "NumOfChannels": CHANNELS,
         "SamplesPerVector":"4",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "256",
+        "SamplingRate": "1024",
         "VirtualAmplifierFunction": "100*math.sin(2 * math.pi * offset / 256. * 3)", #"offset", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "4096",
         "NumOfFreq": "8",
@@ -72,7 +72,8 @@ class Hashtable(BaseMultiplexerServer):
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
-        "Freqs": "13 15 7 12 8 9 10 11",
+        #"Freqs": "13 15 7 12 8 9 10 11",
+        "Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
         "Borders": "1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5",
@@ -91,10 +92,10 @@ class Hashtable(BaseMultiplexerServer):
         "Blinks": "5",
         "BlinkPeriod": "0.75",
         "HeightBar": "0.6",
-        "DiodSequence": "1,2,3,4,5,6,7,8",
+        "DiodSequence": "70,70,70,70,70,70,70,70",
         "TrainingSequence": "0 1 2 3 4 5 6 7",
         "Session": "NormalSession",
-    	"BlinkingMode": "P300",
+    	"BlinkingMode": "SSVEP",
         "AmpBattery": "0",
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
@@ -107,7 +108,7 @@ class Hashtable(BaseMultiplexerServer):
         "FilterUp": "32",
         "FilterDown": "2",
         "DriverTriggerIndex":"-1", #str(CHANNELS), #,Append trigger at the end
-        "DriverOnoffIndex": "-1", #str(CHANNELS),
+        "DriverOnoffIndex": "-1", #str(CHANNELS+1),
         "DriverBatteryIndex": "-1",
         "DriverSampleNoIndex": "-1", #str(CHANNELS),
         "SaverTimestampsIndex": "-1", #str(CHANNELS+1),
@@ -160,7 +161,8 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         
         #'UGM_CONFIG': 'speller_config_nesw',
-        #~ 'UGM_CONFIG': 'speller_config_6',
+        #'UGM_CONFIG': 'speller_config_6',
+        #'UGM_CONFIG': 'p300_ssvep',
         'UGM_CONFIG': 'speller_config_8',
         'UGM_USE_TAGGER':'1',
         'UGM_INTERNAL_IP':'127.0.0.1',
@@ -277,6 +279,8 @@ class Hashtable(BaseMultiplexerServer):
         # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
         'BLINK_UGM_KEY':'color',
         'BLINK_UGM_VALUE':'#ff0000',
+		#'BLINK_UGM_KEY':'font_size',
+        #'BLINK_UGM_VALUE':'50',
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ BLINKING UGM ------------------------------------------------------------------------------
 
@@ -292,7 +296,10 @@ class Hashtable(BaseMultiplexerServer):
         'MS_SWITCH_UGM':'speller_config_8_black_etr',
         'MS_SWITCH_BLINK_MIN_BREAK':'0.1',
         'MS_SWITCH_BLINK_MAX_BREAK':'0.1',
-        'MS_SWITCH_BLINK_DURATION':'2',
+        'MS_SWITCH_BLINK_DURATION':'0.5',
+        'MS_INSTRUCTION_UGM_CONFIG':'text_neg',
+        'MS_INSTRUCTION_DURATION':'5',
+        'MS_INSTRUCTION_TEXT_ID':'101',
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

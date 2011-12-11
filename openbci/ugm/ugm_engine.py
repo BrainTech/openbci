@@ -178,7 +178,7 @@ class UgmEngine(QtCore.QObject):
                     msg.type, msg.value)
         self.mutex.unlock()
 
-    def run(self):
+    def run(self, shutdown_time=None, x=False):
         """Fire pyqt application with UgmMainWindow. 
         Refire when app is being closed. (This is justified as if 
         ugm_config_manager has changed its state remarkably main window
@@ -186,8 +186,16 @@ class UgmEngine(QtCore.QObject):
         LOGGER.info("ugm_engine run")
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
+        if x:
+            self._window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self._window.showFullScreen()
         self._timer_on_run()
+        if shutdown_time is not None:
+            timer = QtCore.QTimer()
+            timer.connect(timer, QtCore.SIGNAL("timeout()"),self._window.close)
+            timer.setSingleShot(True)
+            timer.start(shutdown_time*1000)
+            
         l_app.exec_()
         LOGGER.info('ugm_engine main window has closed')
 

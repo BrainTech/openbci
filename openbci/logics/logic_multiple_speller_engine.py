@@ -23,12 +23,15 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
             }
     def get_requested_configs(self):
         configs = super(LogicMultipleSpellerEngine, self).get_requested_configs()
-        return configs + sum([i.get_requested_configs() for i in self._interfaces.values()], [])
+        configs += sum([i.get_requested_configs() for i in self._interfaces.values()], [])
+        configs += ['MS_INSTRUCTION_UGM_CONFIG', 'MS_INSTRUCTION_DURATION','MS_INSTRUCTION_TEXT_ID']
+        return configs
 
     def set_configs(self, configs):
         super(LogicMultipleSpellerEngine, self).set_configs(configs)
         for k, i in self._interfaces.iteritems():
             i.set_configs(configs)
+        self._instruction_mgr = ugm_config_manager.UgmConfigManager(self.configs['MS_INSTRUCTION_UGM_CONFIG'])
 
     def _stop_interfaces(self):
             # *** stop all modules sending decision to logics 
@@ -56,9 +59,13 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
         self._interfaces[speller_type].prepare_system()
 
     def _show_instruction(self, speller_type):
-        eng = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager('speller_config_6'))
-        eng.run()
-        #time.sleep(5)
+        mgr = self._instruction_mgr
+        cfg = mgr.get_config_for(int(self.configs['MS_INSTRUCTION_TEXT_ID']))
+        cfg['message'] = self._interfaces[speller_type].get_instruction()
+        mgr.set_config(cfg)
+        eng = ugm_engine.UgmEngine(mgr)
+        eng.run(int(self.configs['MS_INSTRUCTION_DURATION']))
+        LOGGER.info("Instruction window closed")
 
     def _fire_speller(self, speller_type):
         self._interfaces[speller_type].fire_speller()

@@ -215,15 +215,25 @@ peer {
      name: "ETR_SAVER"
 }
 
-
 peer {
      type: 141
+     name: "EXPERIMENT_MANAGER"
+}
+
+peer {
+     type: 142
+     name: "BLINK_AND_DIODE_CATCHER"
+}
+
+
+peer {
+     type: 143
      name: "SWITCH_SERVER"
 }
 
 
 peer {
-     type: 142
+     type: 144
      name: "SWITCH_AMPLIFIER"
 }
 
@@ -461,7 +471,10 @@ type {
         peer: "ANALYSIS"
         whom: ALL
     }
-
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
 }
 
 type {
@@ -583,6 +596,10 @@ type {
         peer: "SUPER_DIODE"
         whom: ALL
     }
+     to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+     }
 }
 
 type {
@@ -612,6 +629,11 @@ type {
         whom: ALL
 	report_delivery_error: false
      }
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
+
 }
 
 type {
@@ -773,6 +795,14 @@ type {
 type {
      type: 211
      name: "UGM_ENGINE_MESSAGE"
+     to {   
+     	   peer: "EXPERIMENT_MANAGER"
+           whom: ALL
+     }	 
+    to {
+        peer: "BLINK_AND_DIODE_CATCHER"
+        whom: ALL
+	}	
 }
 
 type {

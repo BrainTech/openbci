@@ -8,7 +8,7 @@ from multiplexer.clients import connect_client
 
 import random, time, configurer
 
-
+from experiment_builder import keystroke
 import switch_logging as logger
 LOGGER = logger.get_logger("switch_amplifier", "info")
 
@@ -34,7 +34,10 @@ class SwitchAmplifier(object):
         """Method fired by multiplexer. It conveys update message to 
         ugm_engine using udp sockets."""
         while True:
-            i = raw_input()
+            i = keystroke.wait([str(32)])
+            if i == 'Escape':
+                LOGGER.debug("Got Escape button, finish switch amplifier...")
+                break
             LOGGER.debug("Send switch...")
             self.connection.send_message(message = "",
                                          type = types.SWITCH_MESSAGE, flush=True)            

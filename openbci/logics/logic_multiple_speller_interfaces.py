@@ -58,4 +58,4 @@ class SwitchInterface(object):
                 })
 
     def get_instruction(self):
-        return u'Dupa dupa bla  bla'
+        return u'Dupa dupa \nbla  bla'
