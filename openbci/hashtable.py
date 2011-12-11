@@ -287,7 +287,8 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ SWITCH ----------------------------------------------------------------------------------
         # ------------ BEGIN -------------------------------------------------------------------------------------
         'SWITCH_RUNNING_ON_START':"1",
-        'SWITCH_TYPE':"SPACE",
+        'SWITCH_TYPE':"KEYBOARD",
+        'SWITCH_KEY_CODE':"32", #SPACE
 
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ SWITCH ---------------------------------------------------------------------------------
@@ -297,9 +298,12 @@ class Hashtable(BaseMultiplexerServer):
         'MS_SWITCH_BLINK_MIN_BREAK':'0.1',
         'MS_SWITCH_BLINK_MAX_BREAK':'0.1',
         'MS_SWITCH_BLINK_DURATION':'0.5',
+
         'MS_INSTRUCTION_UGM_CONFIG':'text_neg',
-        'MS_INSTRUCTION_DURATION':'5',
+        'MS_INSTRUCTION_DURATION':'1',
         'MS_INSTRUCTION_TEXT_ID':'101',
+
+        'MS_ETR_CLASSIC_UGM':'speller_config_8',
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

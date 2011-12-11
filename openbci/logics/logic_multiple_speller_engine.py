@@ -19,7 +19,8 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
     def __init__(self, p_server):
         super(LogicMultipleSpellerEngine, self).__init__(p_server)
         self._interfaces = {
-            'switch_space': logic_multiple_speller_interfaces.SwitchInterface(p_server)
+            'switch_space': logic_multiple_speller_interfaces.SwitchInterface(p_server),
+            'etr_classic': logic_multiple_speller_interfaces.EtrClassic(p_server)
             }
     def get_requested_configs(self):
         configs = super(LogicMultipleSpellerEngine, self).get_requested_configs()

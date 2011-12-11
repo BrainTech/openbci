@@ -11,16 +11,15 @@ LOGGER = logger.get_logger("logic_multiple_speller_interfaces", "info")
 class SwitchInterface(object):
     def __init__(self, server):
         self._server = server
-        self._switch_ugm_fields = str(ugm_config_manager.UgmConfigManager('speller_config_8_black_etr').get_ugm_fields())
-
     def get_requested_configs(self):
         return ['MS_SWITCH_UGM',
                 'MS_SWITCH_BLINK_MIN_BREAK',
                 'MS_SWITCH_BLINK_MAX_BREAK',
-                'MS_SWITCH_BLINK_DURATION']
+                'MS_SWITCH_BLINK_DURATION'
+                ]
     def set_configs(self, configs):
         self.configs = configs
-        self._switch_ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_SWITCH_UGM']).get_ugm_fields())
+        self._ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_SWITCH_UGM']).get_ugm_fields())
 
     def fire_speller(self):
         self._server.send_message({
@@ -54,8 +53,40 @@ class SwitchInterface(object):
         self._server.send_message({
                 'type':'ugm_update_message',
                 'update_type':0,
-                'value':self._switch_ugm_fields
+                'value':self._ugm_fields
                 })
 
     def get_instruction(self):
         return u'Dupa dupa \nbla  bla'
+
+
+
+
+
+
+class EtrClassic(object):
+    def __init__(self, server):
+        self._server = server
+
+    def get_requested_configs(self):
+        return ['MS_ETR_CLASSIC_UGM']
+    def set_configs(self, configs):
+        self.configs = configs
+        self._ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_ETR_CLASSIC_UGM']).get_ugm_fields())
+
+    def fire_speller(self):
+        self._server.send_message({
+                'type':'etr_control_message',
+                'key':'start',
+                'value':''
+                })
+
+    def prepare_system(self):
+        self._server.send_message({
+                'type':'ugm_update_message',
+                'update_type':0,
+                'value':self._ugm_fields
+                })
+
+    def get_instruction(self):
+        return u'Dupa dupa \nbla  bla - etr'

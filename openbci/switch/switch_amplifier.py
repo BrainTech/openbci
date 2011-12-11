@@ -23,7 +23,7 @@ class SwitchAmplifier(object):
 
         LOGGER.info("Start initializin switch amplifier...")
         configurer_ = configurer.Configurer(p_addresses)
-        configs = configurer_.get_configs(['SWITCH_TYPE'])
+        configs = configurer_.get_configs(['SWITCH_KEY_CODE'])
         self.configs = configs
         self.connection = connect_client(type = peers.SWITCH_AMPLIFIER, addresses=p_addresses)
         LOGGER.info("Switch connected!")
@@ -31,17 +31,15 @@ class SwitchAmplifier(object):
 
 
     def run(self):
-        """Method fired by multiplexer. It conveys update message to 
-        ugm_engine using udp sockets."""
         while True:
-            i = keystroke.wait([str(32)])
+            i = keystroke.wait([self.configs['SWITCH_KEY_CODE']])
             if i == 'Escape':
                 LOGGER.debug("Got Escape button, finish switch amplifier...")
                 break
             LOGGER.debug("Send switch...")
             self.connection.send_message(message = "",
                                          type = types.SWITCH_MESSAGE, flush=True)            
-
+            
 if __name__ == "__main__":
     SwitchAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
 
