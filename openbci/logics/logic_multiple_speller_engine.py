@@ -7,13 +7,9 @@
 import logic_speller_engine
 import speller_graphics_manager as sgm
 from ugm import ugm_config_manager
-
+from ugm import ugm_engine
 import os, time
 import sys
-
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-
 
 import logic_logging as logger
 import logic_multiple_speller_interfaces
@@ -60,8 +56,9 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
         self._interfaces[speller_type].prepare_system()
 
     def _show_instruction(self, speller_type):
-        #TODO instr = ...get_instruction()
-        time.sleep(5)
+        eng = ugm_engine.UgmEngine(ugm_config_manager.UgmConfigManager('speller_config_6'))
+        eng.run()
+        #time.sleep(5)
 
     def _fire_speller(self, speller_type):
         self._interfaces[speller_type].fire_speller()
