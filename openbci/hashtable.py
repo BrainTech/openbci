@@ -20,7 +20,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 23
+CHANNELS = 4
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -39,7 +39,8 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
-        "ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
+        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
+        "ChannelsNames": "A;B;C;D",
         #"ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
@@ -53,7 +54,7 @@ class Hashtable(BaseMultiplexerServer):
         "NumOfChannels": CHANNELS,
         "SamplesPerVector":"4",
         "BraintronicsDeviceName": "/dev/ttyUSB0",
-        "SamplingRate": "1024",
+        "SamplingRate": "128",
         "VirtualAmplifierFunction": "100*math.sin(2 * math.pi * offset / 256. * 3)", #"offset", #"100. * math.sin((channel_number + 1) * offset / 100.)",
         "SignalCatcherBufferSize": "4096",
         "NumOfFreq": "8",
@@ -72,11 +73,11 @@ class Hashtable(BaseMultiplexerServer):
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
-        #"Freqs": "13 15 7 12 8 9 10 11",
-        "Freqs": "60 60 60 60 60 60 60 60",
+        "Freqs": "7 12 8 9 10 11 13 15",
+        #"Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
-        "Borders": "1.5 1.5 1.5 1.5 1.5 1.5 1.5 1.5",
+        "Borders": "0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4",
         #"Borders": ".7 .2 .7 .7 .7 .2 .6 .6",
 
         "Reps": "2 2 2 2 2 2 2 2" ,
@@ -132,11 +133,11 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
 
         # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':'1.0', 
+        'ANALYSIS_BUFFER_FROM':'4.0', 
         # Define how many samples we wish to analyse every tick (in seconds)
-        'ANALYSIS_BUFFER_COUNT':'1.0',
+        'ANALYSIS_BUFFER_COUNT':'4.0',
         # Define a tick duration (in seconds).
-        'ANALYSIS_BUFFER_EVERY':'1.0',
+        'ANALYSIS_BUFFER_EVERY':'0.5',
         # To SUMP UP - above default values (0.5, 0.4, 0.25) define that
         # every 0.25s we will get buffer of length 0.4s starting from a sample 
         # that we got 0.5s ago.
@@ -175,7 +176,9 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        'SPELLER_CONFIG':'multiple_speller_config_8',
+        #'SPELLER_CONFIG':'multiple_speller_config_8',
+        'SPELLER_CONFIG':'speller_config_8',
+
         #'SPELLER_AREA_COUNT':'6',
         'SPELLER_AREA_COUNT':'8',
 

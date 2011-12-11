@@ -19,6 +19,7 @@ class UgmBlinkingConnection(object):
         self.connection = connect_client(type = peers.UGM_ENGINE, addresses=addresses)
         self.configurer = configurer.Configurer(addresses)
         self.blink_msg = variables_pb2.Blink()
+
     def get_configs(self, configs):
         return self.configurer.get_configs(configs)
 
@@ -40,5 +41,19 @@ class UgmBlinkingConnection(object):
         msg.key = "blinking_stopped"
         msg.value = str(time.time())
         self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
+
+    def send_mouse_event(self, button_nr):
+        msg = variables_pb2.Variable()
+        msg.key = "mouse_event"
+        msg.value = str(button_nr)
+        self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
+
+    def send_keyboard_event(self, key):
+        msg = variables_pb2.Variable()
+        msg.key = "keybord_event"
+        msg.value = str(key)
+        self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
+
+        
 
 
