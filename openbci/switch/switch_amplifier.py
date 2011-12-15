@@ -5,41 +5,36 @@ import sys
 import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
+from multiplexer.clients import BaseMultiplexerServer
 
 import random, time, configurer
-
-from experiment_builder import keystroke
 import switch_logging as logger
+
 LOGGER = logger.get_logger("switch_amplifier", "info")
 
 
+class SwitchAmplifier(BaseMultiplexerServer):
+    def __init__(self, addresses):
+        configurer_ = configurer.Configurer(addresses)
+        configs = configurer_.get_configs(['SWITCH_KEY_CODE', 'SWITCH_MOUSE_BUTTON'])
+        self.mouse_button = configs['SWITCH_MOUSE_BUTTON']
+        self.key_code = configs['SWITCH_KEY_CODE']
+        super(SwitchAmplifier, self).__init__(addresses=addresses, type=peers.SWITCH_AMPLIFIER)
+        configurer_.set_configs({'PEER_READY':str(peers.SWITCH_AMPLIFIER)}, self.conn)
 
+    def handle_message(self, mxmsg):
+        if mxmsg.type == types.UGM_ENGINE_MESSAGE:
+	    l_msg = variables_pb2.Variable()
+            l_msg.ParseFromString(mxmsg.message)
+            if (l_msg.key == 'mouse_event' and l_msg.value == self.mouse_button) or \
+                    (l_msg.key == 'keybord_event' and l_msg.value == self.key_code):
+                LOGGER.info("Got ugm engine message: "+l_msg.key+" - "+l_msg.value+". Send switch message!")
+                self.conn.send_message(message = "",
+                                       type = types.SWITCH_MESSAGE, flush=True)            
+            else:
+                LOGGER.info("Got ugm engine message: "+l_msg.key+" - "+l_msg.value+" but not sending switch!")
+        self.no_response()
 
-class SwitchAmplifier(object):
-    """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
-    to ugm_engine using udp. That level of comminication is needed, as
-    pyqt won`t work with multithreading..."""
-    def __init__(self, p_addresses):
-
-        LOGGER.info("Start initializin switch amplifier...")
-        configurer_ = configurer.Configurer(p_addresses)
-        configs = configurer_.get_configs(['SWITCH_KEY_CODE'])
-        self.configs = configs
-        self.connection = connect_client(type = peers.SWITCH_AMPLIFIER, addresses=p_addresses)
-        LOGGER.info("Switch connected!")
-        configurer_.set_configs({'PEER_READY':str(peers.SWITCH_AMPLIFIER)}, self.connection)
-
-
-    def run(self):
-        while True:
-            i = keystroke.wait([self.configs['SWITCH_KEY_CODE']])
-            if i == 'Escape':
-                LOGGER.debug("Got Escape button, finish switch amplifier...")
-                break
-            LOGGER.debug("Send switch...")
-            self.connection.send_message(message = "",
-                                         type = types.SWITCH_MESSAGE, flush=True)            
-            
 if __name__ == "__main__":
-    SwitchAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
+    SwitchAmplifier(settings.MULTIPLEXER_ADDRESSES).loop()
 

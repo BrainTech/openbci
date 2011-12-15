@@ -125,6 +125,12 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         if self._run_on_start:
             self.start_blinking()
 
+    def mousePressEvent(self, event):
+        self.connection.send_mouse_event(event.button())
+
+    def keyPressEvent(self, event):
+        self.connection.send_keyboard_event(event.key())
+
 if __name__ == '__main__':
     def start_test_blinking(engine):
         time.sleep(10)

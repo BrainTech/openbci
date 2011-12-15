@@ -61,7 +61,7 @@ class LogicEngine(object):
     def set_configs(self, configs):
         self.configs = configs
         self._state_machine.set_config(configs['SPELLER_CONFIG'])
-        self._server.send_message({'value':' ', 'type':'switch_mode'})
+        #self._server.send_message({'value':' ', 'type':'switch_mode'})
         self._update_global_gui()
 
     def get_requested_configs(self):
@@ -142,9 +142,9 @@ class LogicEngine(object):
             l_value = "SSVEP"
         else:
             l_value = "P300"
-        self._server.send_message({'value':l_value,
-                                   'key':'BlinkingMode',
-                                   'type':'dict_set_message'})
+        #self._server.send_message({'value':l_value,
+        #                           'key':'BlinkingMode',
+        #                           'type':'dict_set_message'})
 
 
 

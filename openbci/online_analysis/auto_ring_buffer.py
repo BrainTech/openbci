@@ -26,6 +26,10 @@ class AutoRingBuffer(object):
             import ring_buffer_numpy_channels
             self.buffer = ring_buffer_numpy_channels.RingBufferNumpyChannels(from_sample, num_of_channels, copy_on_ret)
 
+    def clear(self):
+        self.count = 0
+        self.is_full = False
+        self.buffer.clear()
 
     def handle_sample_vect(self, sample_vector):
         for i in range(len(sample_vector.samples)):

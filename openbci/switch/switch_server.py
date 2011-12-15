@@ -44,7 +44,7 @@ class SwitchServer(BaseMultiplexerServer):
             if self.running:
                 l_msg = variables_pb2.Blink()
                 l_msg.ParseFromString(mxmsg.message)
-                LOGGER.info("Got blink message: "+str(l_msg.index))
+                LOGGER.debug("Got blink message: "+str(l_msg.index))
                 self._curr_index = int(l_msg.index)
             else:
                 LOGGER.warning("Got blink message, but not running!!! Do noting.")

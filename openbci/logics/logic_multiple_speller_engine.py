@@ -20,7 +20,8 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
         super(LogicMultipleSpellerEngine, self).__init__(p_server)
         self._interfaces = {
             'switch_space': logic_multiple_speller_interfaces.SwitchInterface(p_server),
-            'etr_classic': logic_multiple_speller_interfaces.EtrClassic(p_server)
+            'etr_classic': logic_multiple_speller_interfaces.EtrClassic(p_server),
+            'ssvep': logic_multiple_speller_interfaces.Ssvep(p_server)
             }
     def get_requested_configs(self):
         configs = super(LogicMultipleSpellerEngine, self).get_requested_configs()
@@ -38,23 +39,9 @@ class LogicMultipleSpellerEngine(logic_speller_engine.LogicSpellerEngine):
             # *** stop all modules sending decision to logics 
             # and (sometimes) feedback to ugm
             # + stop all inteface-specific modes (eg. blinking, diodes etc.)
-        self._server.send_message({
-                'type':'switch_control_message',
-                'key':'stop',
-                'value':''
-                })
-        self._server.send_message({
-                'type':'etr_control_message',
-                'key':'stop',
-                'value':''
-                })
             #diode controlo stop
-        self._server.send_message({
-                'type':'ugm_control_message',
-                'key':'stop_blinking',
-                'value':''
-                })
-
+        for k, i in self._interfaces.iteritems():
+            i.stop_speller()
 
     def _prepare_system(self, speller_type):
         self._interfaces[speller_type].prepare_system()

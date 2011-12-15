@@ -7,10 +7,12 @@ class RingBufferImpl(object):
         self.size = int(size)
         self.number_of_channels = int(number_of_channels)
         self.copy_on_ret = bool(copy_on_ret)
+        self.clear()
+
+    def clear(self):
         self.is_full = False
         self.index = 0
-
-        self._init_buffer()
+        self._init_buffer()        
 
     def add(self, s):
         self._add(s)

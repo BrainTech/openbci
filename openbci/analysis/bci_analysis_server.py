@@ -32,21 +32,10 @@ class BCIAnalysisServer(BaseMultiplexerServer):
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision)
 
-        #Ask analysis for its internal required configs (to be set in hashtable)
-        requested_configs = self.analysis.get_requested_configs()
-
-        #Define which peers should we wait for
-        #requested_configs.append('PEER_READY'+str(peers.UGM))
-        #requested_configs.append('PEER_READY'+str(peers.LOGIC))
-        requested_configs.append('PEER_READY'+str(peers.AMPLIFIER))
-
-        #Add some other required configs
-        requested_configs += ['NumOfChannels', 'SamplingRate', 
-                              'ANALYSIS_BUFFER_FROM', 'ANALYSIS_BUFFER_COUNT', 'ANALYSIS_BUFFER_EVERY',
-                              'ANALYSIS_BUFFER_RET_FORMAT', 'ANALYSIS_BUFFER_COPY_ON_RET']
-
+        requested_configs = self.get_requested_configs()
         LOGGER.info("Request system settings ...")
         configs = configurer_.get_configs(requested_configs)
+        self.configs = configs
         LOGGER.info("Got system settings ...")
 
         #Set internal configuration for analysis
@@ -71,7 +60,20 @@ class BCIAnalysisServer(BaseMultiplexerServer):
         configurer_.set_configs({'PEER_READY':str(peers.ANALYSIS)}, self.conn)
         LOGGER.info("SampleBCIAnalysisServer init finished!")
 
+    def get_requested_configs(self):
+        #Ask analysis for its internal required configs (to be set in hashtable)
+        requested_configs = self.analysis.get_requested_configs()
 
+        #Define which peers should we wait for
+        #requested_configs.append('PEER_READY'+str(peers.UGM))
+        #requested_configs.append('PEER_READY'+str(peers.LOGIC))
+        requested_configs.append('PEER_READY'+str(peers.AMPLIFIER))
+
+        #Add some other required configs
+        requested_configs += ['NumOfChannels', 'SamplingRate', 
+                              'ANALYSIS_BUFFER_FROM', 'ANALYSIS_BUFFER_COUNT', 'ANALYSIS_BUFFER_EVERY',
+                              'ANALYSIS_BUFFER_RET_FORMAT', 'ANALYSIS_BUFFER_COPY_ON_RET']
+        return requested_configs
         
     def handle_message(self, mxmsg):
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:

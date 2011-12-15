@@ -803,6 +803,10 @@ type {
         peer: "BLINK_AND_DIODE_CATCHER"
         whom: ALL
 	}	
+    to {
+        peer: "SWITCH_AMPLIFIER"
+	whom: ALL
+    }
 }
 
 type {
@@ -840,4 +844,18 @@ type {
         peer: "ETR_SERVER"
         whom: ALL
     }
+}
+
+type {
+    type: 216
+    name: "SSVEP_CONTROL_MESSAGE"
+    to {
+        peer: "ANALYSIS"
+        whom: ALL
+    }
+    to {
+        peer: "SUPER_DIODE"
+        whom: ALL
+    }
+
 }

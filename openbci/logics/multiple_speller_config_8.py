@@ -34,9 +34,9 @@ screen[9] = [0, 9, 9, 9, 9, 9, 9, 9]
 # Hovewever, sometimes we have a collection of strings, not a single string. It happens when we have a 'dynamic' state.
 # In that case there should be a corresponding graphics_solver variable with method that resolves graphics definition at runtime.
 graphics = number_of_states * [number_of_decisions * [""]]
-#graphics[0] = ["SSVEP", "P300", "ETR-PUNKT", "ETR-KURSOR" ,"WII","MYSZ","SPACJA",u"Zakończ"]
-graphics[0] = ["ETR-KURSOR", "ETR-KURSOR", "ETR-KURSOR", "ETR-KURSOR" ,"SPACJA","SPACJA","SPACJA",u"Zakończ"]
-graphics[1] = [u"a b c d e f",u"g h i j k l",u"m n o p r s",u"t u w y z ż",u"ą ć ę ł ń ó ś", u"Znaki", u"Akcje", u"Menu"]
+graphics[0] = ["SSVEP", "P300", "ETR", "SWITCH" ,"OPTIONS","","",u"BACK"]
+#graphics[0] = ["SSVEP", "ETR-KURSOR", "ETR-KURSOR", "ETR-KURSOR" ,"SPACJA","SPACJA","SPACJA",u"Zakończ"]
+graphics[1] = [u"a b c\nd e f",u"g h i\nj k l",u"m n o\np r s",u"t u w\ny z ż",u"ą ć ę\nł ń ó ś", u"Znaki", u"Akcje", u"Menu"]
 graphics[2] = ["a","b","c","d","e","f","Skasuj", u"Wróć"]
 graphics[3] = ["g","h","i","j","k","l","Skasuj", u"Wróć"]
 graphics[4] = ["m","n","o","p","r","s","Skasuj", u"Wróć"]
@@ -61,9 +61,12 @@ actions = number_of_states * [number_of_decisions * [""]]
 #actions[0] = ["fire_speller('ssvep')", "fire_speller('p300')", "fire_speller('etr_classic')", 
 #              "fire_speller('etr_nesw')", "fire_speller('switch_wii')", 
 #              "fire_speller('switch_mouse')", "fire_speller('switch_space')", ""]
-actions[0] = ["fire_speller('etr_classic')", "fire_speller('etr_classic')", "fire_speller('etr_classic')", 
-              "fire_speller('etr_classic')", "fire_speller('switch_space')", 
-              "fire_speller('switch_space')", "fire_speller('switch_space')", ""]
+#actions[0] = ["fire_speller('ssvep')", "fire_speller('etr_classic')", "fire_speller('etr_classic')", 
+#              "fire_speller('etr_classic')", "fire_speller('switch_space')", 
+#              "fire_speller('switch_space')", "fire_speller('switch_space')", ""]
+actions[0] = ["fire_speller('switch_space')", "fire_speller('switch_space')", "fire_speller('switch_space')", 
+              "fire_speller('switch_space')", "fire_speller('switch_space')", 
+              "fire_speller('switch_space')", "fire_speller('switch_space')", "fire_speller('switch_space')"]
 
 actions[1] = ["", "", "", "", "", "", "", ""] 
 actions[2] = ["msg('a')", "msg('b')","msg('c')", "msg('d')", "msg('e')", "msg('f')", "backspace()", ""] 

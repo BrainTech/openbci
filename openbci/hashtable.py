@@ -77,7 +77,7 @@ class Hashtable(BaseMultiplexerServer):
         #"Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
-        "Borders": "0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4",
+        "Borders": "20 20 20 20 20 20 20 20", #"0.4 0.4 0.4 0.4 0.4 0.4 0.4 0.4",
         #"Borders": ".7 .2 .7 .7 .7 .2 .6 .6",
 
         "Reps": "2 2 2 2 2 2 2 2" ,
@@ -164,7 +164,7 @@ class Hashtable(BaseMultiplexerServer):
         #'UGM_CONFIG': 'speller_config_nesw',
         #'UGM_CONFIG': 'speller_config_6',
         #'UGM_CONFIG': 'p300_ssvep',
-        'UGM_CONFIG': 'speller_config_8',
+        'UGM_CONFIG': 'speller_config_8_black_etr2',
         'UGM_USE_TAGGER':'1',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',
@@ -176,8 +176,8 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        #'SPELLER_CONFIG':'multiple_speller_config_8',
-        'SPELLER_CONFIG':'speller_config_8',
+        'SPELLER_CONFIG':'multiple_speller_config_8',
+        #'SPELLER_CONFIG':'speller_config_8',
 
         #'SPELLER_AREA_COUNT':'6',
         'SPELLER_AREA_COUNT':'8',
@@ -281,7 +281,7 @@ class Hashtable(BaseMultiplexerServer):
         # What property (KEY) and how (VALUE) should be changed on blink.
         # Eg. BLINK_UGM_KEY migh be 'color' and BLINK_UGM_VALUE migt be '#ff0000'
         'BLINK_UGM_KEY':'color',
-        'BLINK_UGM_VALUE':'#ff0000',
+        'BLINK_UGM_VALUE':'#00cb21',#'#ff0000',
 		#'BLINK_UGM_KEY':'font_size',
         #'BLINK_UGM_VALUE':'50',
         # ------------ END -------------------------------------------------------------------------------------
@@ -290,14 +290,14 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ SWITCH ----------------------------------------------------------------------------------
         # ------------ BEGIN -------------------------------------------------------------------------------------
         'SWITCH_RUNNING_ON_START':"1",
-        'SWITCH_TYPE':"KEYBOARD",
         'SWITCH_KEY_CODE':"32", #SPACE
+        'SWITCH_MOUSE_BUTTON': "1", #left button
 
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ SWITCH ---------------------------------------------------------------------------------
 
         # dsfdsfds
-        'MS_SWITCH_UGM':'speller_config_8_black_etr',
+        'MS_SWITCH_UGM':'speller_config_8_black_etr2',
         'MS_SWITCH_BLINK_MIN_BREAK':'0.1',
         'MS_SWITCH_BLINK_MAX_BREAK':'0.1',
         'MS_SWITCH_BLINK_DURATION':'0.5',
@@ -307,6 +307,10 @@ class Hashtable(BaseMultiplexerServer):
         'MS_INSTRUCTION_TEXT_ID':'101',
 
         'MS_ETR_CLASSIC_UGM':'speller_config_8',
+        'MS_SSVEP_UGM':'speller_config_8_black_etr2',
+
+
+        'SSVEP_RUNNING_ON_START':'0',
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 

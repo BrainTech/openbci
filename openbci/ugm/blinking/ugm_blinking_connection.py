@@ -43,12 +43,14 @@ class UgmBlinkingConnection(object):
         self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
 
     def send_mouse_event(self, button_nr):
+        LOGGER.debug("Send mouse event "+str(button_nr))
         msg = variables_pb2.Variable()
         msg.key = "mouse_event"
         msg.value = str(button_nr)
         self.connection.send_message(message = msg.SerializeToString(), type = types.UGM_ENGINE_MESSAGE, flush=True)
 
     def send_keyboard_event(self, key):
+        LOGGER.debug("Send keyboard event "+str(key))
         msg = variables_pb2.Variable()
         msg.key = "keybord_event"
         msg.value = str(key)

@@ -21,6 +21,18 @@ class SwitchInterface(object):
         self.configs = configs
         self._ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_SWITCH_UGM']).get_ugm_fields())
 
+    def stop_speller(self):
+        self._server.send_message({
+                'type':'switch_control_message',
+                'key':'stop',
+                'value':''
+                })
+        self._server.send_message({
+                'type':'ugm_control_message',
+                'key':'stop_blinking',
+                'value':''
+                })
+        
     def fire_speller(self):
         self._server.send_message({
                 'type':'ugm_control_message',
@@ -73,7 +85,13 @@ class EtrClassic(object):
     def set_configs(self, configs):
         self.configs = configs
         self._ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_ETR_CLASSIC_UGM']).get_ugm_fields())
-
+    def stop_speller(self):
+        self._server.send_message({
+                'type':'etr_control_message',
+                'key':'stop',
+                'value':''
+                })
+        
     def fire_speller(self):
         self._server.send_message({
                 'type':'etr_control_message',
@@ -90,3 +108,43 @@ class EtrClassic(object):
 
     def get_instruction(self):
         return u'Dupa dupa \nbla  bla - etr'
+
+
+
+
+
+
+class Ssvep(object):
+    def __init__(self, server):
+        self._server = server
+
+    def get_requested_configs(self):
+        return ['MS_SSVEP_UGM']
+
+    def set_configs(self, configs):
+        self.configs = configs
+        self._ugm_fields = str(ugm_config_manager.UgmConfigManager(configs['MS_SSVEP_UGM']).get_ugm_fields())
+
+    def stop_speller(self):
+        self._server.send_message({
+                'type':'ssvep_control_message',
+                'key':'stop',
+                'value':''
+                })
+        
+    def fire_speller(self):
+        self._server.send_message({
+                'type':'ssvep_control_message',
+                'key':'start',
+                'value':''
+                })
+
+    def prepare_system(self):
+        self._server.send_message({
+                'type':'ugm_update_message',
+                'update_type':0,
+                'value':self._ugm_fields
+                })
+
+    def get_instruction(self):
+        return u'Dupa dupa \nbla  bla - ssvep'

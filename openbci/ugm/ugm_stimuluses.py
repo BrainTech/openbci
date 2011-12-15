@@ -379,7 +379,6 @@ class UgmTextStimulus(UgmStimulus, UgmRectConfig):
             self._font.setPointSize(int(p_config_dict['font_size']))
             self._color = p_config_dict['font_color']
             self._messages = p_config_dict['message'].split('\n')
-            print(self._messages)
             l_font_metrics = QtGui.QFontMetrics(self._font)
             p_config_dict['width_type'] = 'absolute'
             p_config_dict['height_type'] = 'absolute'

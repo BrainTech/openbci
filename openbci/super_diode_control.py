@@ -40,7 +40,15 @@ class SuperDiodeControl(BaseMultiplexerServer):
 	self.breakt = 3
         # save needed configuration.
         self._cache_diode_params()
-	self.check_mode_and_start_blinking()
+        self._init_freqs()
+        self._init_mode()
+        if self.mode == 'SSVEP':
+            start = int(self.conn.query(message='SSVEP_RUNNING_ON_START', type=types.DICT_GET_REQUEST_MESSAGE).message)
+            if start:
+                self.check_mode_and_start_blinking()
+        else:
+                self.check_mode_and_start_blinking()
+
     def start_blinking(self, freqs):
         d = []
         [d.append(int(x)) for x in freqs]
@@ -65,22 +73,29 @@ class SuperDiodeControl(BaseMultiplexerServer):
         """
         Prepare self and start blinking in current configured blinking mode.
         """
-        self.mode = self.conn.query(message="BlinkingMode", type=types.DICT_GET_REQUEST_MESSAGE).message
+        print(x)
+        self._init_mode()
         if (self.mode.lower() == "SSVEP".lower()):
             self._start_blinking_SSVEP()
         elif (self.mode.lower() == "P300".lower()):
             self._start_blinking_P300()
 
-    def _start_blinking_SSVEP(self):
+    def _init_mode(self):
+        self.mode = self.conn.query(message="BlinkingMode", type=types.DICT_GET_REQUEST_MESSAGE).message
+
+    def _init_freqs(self):
+        self.freqs = self.conn.query(message = "Freqs", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
+        self.freqs = self.freqs.split(" ")
+        for i in range(len(self.freqs)):
+            self.freqs[i] = int(self.freqs[i])
+
+    def _start_blinking_SSVEP(self, freqs=None):
         """
         Prepare self and start blinking in SSVEP mode.
         """
         #  [jt: moved from handle_message() to avoid repetition]
         self.diodes_on()
-        self.freqs = self.conn.query(message = "Freqs", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
-        self.freqs = self.freqs.split(" ")
-        for i in range(len(self.freqs)):
-            self.freqs[i] = int(self.freqs[i])
+        self._init_freqs()
         self.start_blinking(self.freqs)
 
     def _start_blinking_P300(self):
@@ -137,6 +152,20 @@ class SuperDiodeControl(BaseMultiplexerServer):
             self.check_mode_and_start_blinking()
             
             LOGGER.info("Mode: " + str(self.mode) + "  Freqs:  "+ str(self.freqs))
+        elif mxmsg.type == types.SSVEP_CONTROL_MESSAGE and self.mode == 'SSVEP':
+	    l_msg = variables_pb2.Variable()
+            l_msg.ParseFromString(mxmsg.message)
+            if l_msg.key == 'stop':
+                LOGGER.info("Stop ssvep!")
+                self.diodes_off()
+            elif l_msg.key == 'start':
+                LOGGER.info("Start ssvep!")
+                self.diodes_on()
+                self.start_blinking(self.freqs)
+
+            else:
+                LOGGER.warning("Unrecognised ssvep control message! "+str(l_msg.key))
+        
             
         self.no_response()
 
