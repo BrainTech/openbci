@@ -296,14 +296,13 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ END -------------------------------------------------------------------------------------
         # ------------ SWITCH ---------------------------------------------------------------------------------
 
-        # dsfdsfds
         'MS_SWITCH_UGM':'speller_config_8_black_etr2',
         'MS_SWITCH_BLINK_MIN_BREAK':'0.1',
         'MS_SWITCH_BLINK_MAX_BREAK':'0.1',
         'MS_SWITCH_BLINK_DURATION':'0.5',
 
         'MS_INSTRUCTION_UGM_CONFIG':'text_neg',
-        'MS_INSTRUCTION_DURATION':'1',
+        'MS_INSTRUCTION_DURATION':'5',
         'MS_INSTRUCTION_TEXT_ID':'101',
 
         'MS_ETR_CLASSIC_UGM':'speller_config_8',

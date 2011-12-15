@@ -69,7 +69,7 @@ class SwitchInterface(object):
                 })
 
     def get_instruction(self):
-        return u'Dupa dupa \nbla  bla'
+        return u'Switch-speller'
 
 
 
@@ -107,7 +107,7 @@ class EtrClassic(object):
                 })
 
     def get_instruction(self):
-        return u'Dupa dupa \nbla  bla - etr'
+        return u'Eye-tracker'
 
 
 
@@ -147,4 +147,4 @@ class Ssvep(object):
                 })
 
     def get_instruction(self):
-        return u'Dupa dupa \nbla  bla - ssvep'
+        return u'SSVEP-speller'

@@ -168,9 +168,9 @@ class UgmEngine(QtCore.QObject):
         self.update_gui_timer.connect(self.update_gui_timer,QtCore.SIGNAL("timeout()"),self.timer_update_gui)
         self.update_gui_timer.start(10)
 
-
     def timer_update_gui(self):
         """Fired very often - clear self.queue and update gui with those messages."""
+
         self.mutex.lock()
         if self.queue.qsize() == 0:
             self.mutex.unlock()
@@ -205,8 +205,7 @@ class UgmEngine(QtCore.QObject):
         LOGGER.info("ugm_engine run")
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
-        if x:
-            self._window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+        #self._window.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self._window.showFullScreen()
         self._timer_on_run()
         if shutdown_time is not None:
