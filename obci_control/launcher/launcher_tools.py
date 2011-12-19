@@ -9,12 +9,13 @@ import sys
 NOT_READY = 'not_ready'
 READY_TO_LAUNCH = 'ready_to_launch'
 LAUNCHING = 'launching'
+FAILED_LAUNCH = 'failed_launch'
 RUNNING = 'running'
 FINISHED = 'finished'
 CRASHED = 'crashed'
 KILLED = 'killed'
 
-EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, RUNNING, FINISHED, CRASHED, KILLED]
+EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, FAILED_LAUNCH, RUNNING, FINISHED, CRASHED, KILLED]
 
 class ExperimentStatus(object):
 	def __init__(self):

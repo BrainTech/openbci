@@ -79,21 +79,27 @@ def lo_ip():
 
 def ext_ip(peer_ip=None, ifname=None):
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	client_ip = ''
 	if ifname:
-		return str(socket.inet_ntoa(fcntl.ioctl(
-											s.fileno(),
-											0x8915,  # SIOCGIFADDR
-											struct.pack('256s', ifname[:15])
-									)[20:24]))
+		try:
+			client_ip = str(socket.inet_ntoa(fcntl.ioctl(
+												s.fileno(),
+												0x8915,  # SIOCGIFADDR
+												struct.pack('256s', ifname[:15])
+										)[20:24]))
+		except IOError as e:
+			print e
+			client_ip = lo_ip()
+	else:
+		peer_ip = peer_ip if peer_ip else 'google.com'
+		try:
+			s.connect((peer_ip, 9))
+			client_ip = s.getsockname()[0]
+		except socket.error as e:
+			print e
+			client_ip = lo_ip()
 
-	peer_ip = peer_ip if peer_ip else 'google.com'
-	try:
-	    s.connect((peer_ip, 9))
-	    client_ip = s.getsockname()[0]
-	except socket.error:
-	    client_ip = lo_ip()
-	finally:
-	    del s
+	del s
 	return client_ip
 
 
@@ -107,6 +113,8 @@ def server_address(sock_type='rep', local=False, ifname=None, peer_ip=None):
 		port = parser.get('server', 'pub_port')
 	if not ifname and not peer_ip:
 		ifname = parser.get('server', 'ifname')
+
+	print "INTERFACE: ", ifname, "PORT  ", port
 
 	ip = lo_ip() if local else ext_ip(ifname=ifname, peer_ip=peer_ip)
 	return 'tcp://' + ip + ':' + port

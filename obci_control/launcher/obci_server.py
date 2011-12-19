@@ -22,7 +22,7 @@ import common.net_tools as net
 import obci_experiment
 import obci_process_supervisor
 import subprocess_monitor
-from subprocess_monitor import SubprocessManager, TimeoutDescription,\
+from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
 REGISTER_TIMEOUT = 6
@@ -39,14 +39,14 @@ class OBCIServer(OBCIControlPeer):
 
 		self.exp_process_supervisors = {}
 
-		self.machine = net.ext_ip()
+		self.machine = net.ext_ip(ifname=net.server_ifname())
 
 		self.__all_sockets = []
 
 		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
 														  pub_addresses,
 														  name)
-		self.subprocess_mgr = SubprocessManager(self.ctx, self.uuid)
+		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 		#TODO do sth with other server rep addresses
 
 	def peer_type(self):
@@ -114,16 +114,19 @@ probably a server is already working"
 	def start_experiment_process(self, sandbox_dir, launch_file):
 		path = obci_experiment.__file__
 		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
+		print "PATH:  ", path
 
-		args = ['python', path]
+		args = ['python', '-u', path]
 		args += self._args_for_experiment(sandbox_dir, launch_file, local=True)
 
-		result, details, sv, exp_timer = False, None, None, None
+		result, details, exp, reg_timer = False, None, None, None
+
 		try:
 			exp = subprocess.Popen(args)
 		except OSError as e:
 			details = e.args
-			print "Unable to spawn experiment!!!"
+			print "Unable to spawn experiment!!!", e
+
 		except ValueError as e:
 			details = e.args
 			print "Bad arguments!"
@@ -314,19 +317,22 @@ probably a server is already working"
 
 	def _handle_launch_process_supervisor(self, message, sock):
 		sv_obj, details = self._start_obci_supervisor_process( message)
-		self.exp_process_supervisors[message.sender] = sv_obj
 
+		print "LAUNCH PROCESS SV   ", sv_obj, details
 		if sv_obj:
+			self.exp_process_supervisors[message.sender] = sv_obj
 			send_msg(sock,
 					self.mtool.fill_msg("launched_process_info",
 											sender=self.uuid, machine=self.machine,
 											pid=sv_obj.pid, proc_type=sv_obj.proc_type,
 											name=sv_obj.name,
 											path=sv_obj.path))
+			print "CONFIRMED LAUNCH"
 		else:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 												err_code="launch_error",
 												details=details))
+			print "LAUNCH FAILURE"
 
 	def handle_kill_process_supervisor(self, message, sock):
 		proc = self.exp_process_supervisors.get(message.sender, None)
@@ -349,7 +355,7 @@ probably a server is already working"
 		del start_params['receiver']
 		sv_obj, details = self.subprocess_mgr.new_local_process(**start_params)
 		if sv_obj is None:
-			return False, details
+			return None, details
 
 		return sv_obj, False
 

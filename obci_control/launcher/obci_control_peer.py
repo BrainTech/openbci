@@ -60,7 +60,6 @@ class OBCIControlPeer(object):
 		return OBCIMessageTool(message_templates)
 
 	def net_init(self):
-		print "obci_control_peer  net init"
 		(self.pub_socket, self.pub_addresses) = self._init_socket(
 												self.pub_addresses, zmq.PUB)
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
@@ -71,11 +70,11 @@ class OBCIControlPeer(object):
 		print "pub: {0}\n".format(self.pub_addresses)
 
 		self.source_req_socket = self.ctx.socket(zmq.REQ)
+		print self.name, "  SOURCE ADDRS  ", self.source_addresses
 		if self.source_addresses:
 			for addr in self.source_addresses:
 				self.source_req_socket.connect(addr)
 		self._set_poll_sockets()
-		print "------------obci_control_peer  net init"
 
 	def _init_socket(self, addrs, zmq_type, create_ipc=True):
 
@@ -150,7 +149,6 @@ class OBCIControlPeer(object):
 			poller.register(sock, zmq.POLLIN)
 
 		while True:
-			print self.name, poll_sockets
 			socks = []
 			try:
 				socks = dict(poller.poll())
@@ -195,7 +193,8 @@ class OBCIControlPeer(object):
 		handler = self.default_handler
 		try:
 			msg = self.mtool.unpack_msg(message)
-			print "{0} [{1}], got message: {2}".format(self.name, self.peer_type(), msg.type)
+			print "{0} [{1}], got message: {2}".format(
+										self.name, self.peer_type(), msg.type)
 		except ValueError:
 			print "Bad message format! {0}".format(message)
 			if sock.getsockopt(zmq.TYPE) == zmq.REP:
@@ -247,9 +246,10 @@ class OBCIControlPeer(object):
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		pass
 
+
 class RegistrationDescription(object):
 	def __init__(self, uuid, name, rep_addrs, pub_addrs, machine, pid, other=None):
-		self.machine = machine
+		self.machine_ip = machine
 		self.pid = pid
 		self.uuid = uuid
 		self.name = name

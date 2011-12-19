@@ -41,15 +41,32 @@ DEFAULT_TAIL_RQ = 10
 LINES_TO_GET = 5
 IO_WAIT = 0.5
 
-_DEFAULT_TIMEOUT=2
+_DEFAULT_TIMEOUT=20
 
-class SubprocessManager(object):
+class SubprocessMonitor(object):
 	def __init__(self, zmq_ctx, uuid):
 		self.processes = {}
-		self.ctx = zmq_ctx
-		self.poller = zmq.Poller()
+		self._ctx = zmq_ctx
 		self.uuid = uuid
-		self.mtool = OBCIMessageTool(message_templates)
+		self._mtool = OBCIMessageTool(message_templates)
+		self.monitor_ticker = threading.Timer(None, None, None)
+
+	def not_running_processes(self):
+		status = {}
+		status[FAILED] = [proc for proc in self.processes.items()\
+							if proc.status()[0] == FAILED]
+		status[FINISHED] = [proc for proc in self.processes.items()\
+							if proc.status()[0] == FINISHED]
+		status[TERMINATED] = [proc for proc in self.processes.items()\
+							if proc.status()[0] == TERMINATED]
+		status[NON_RESPONSIVE] = [proc for proc in self.processes.items()\
+							if proc.status()[0] == NON_RESPONSIVE]
+		return status
+
+	def unknown_status_processes(self):
+		return [proc for proc in self.processes.items()\
+							if proc.status()[0] == UNKNOWN]
+
 
 	def new_local_process(self, path, args, proc_type='', name='',
 								capture_io= STDOUT | STDIN,
@@ -63,7 +80,7 @@ class SubprocessManager(object):
 			launch_args = PYTHON_CALL +[path] + args
 		else:
 			launch_args = [path] + args
-
+		print "loc.PATH:  ", path
 		machine = machine_ip if machine_ip else net.ext_ip(peer_ip=net.server_address())
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
@@ -126,7 +143,12 @@ class SubprocessManager(object):
 								reg_timeout_desc=timeout_desc,
 								monitoring_optflags=monitoring_optflags)
 
+			if monitoring_optflags & PING:
+				new_proc._ctx = self._ctx
+
 			self.processes[(machine, popen_obj.pid)] = new_proc
+
+			new_proc.start_monitoring()
 
 			return new_proc, None
 
@@ -143,7 +165,7 @@ class SubprocessManager(object):
 
 		timeout_desc = register_timeout_desc
 
-		rq_message = self.mtool.fill_msg('launch_process',
+		rq_message = self._mtool.fill_msg('launch_process',
 								path=path,
 								args=args, proc_type=proc_type,
 								name=name,
@@ -152,7 +174,7 @@ class SubprocessManager(object):
 								stdout_log=stdout_log,
 								stderr_log=stderr_log)
 
-		rq_sock = self.ctx.socket(zmq.REQ)
+		rq_sock = self._ctx.socket(zmq.REQ)
 		print "********************************", conn_addr
 		try:
 			rq_sock.connect(conn_addr)
@@ -160,11 +182,10 @@ class SubprocessManager(object):
 			return None, "Could not connect to {0}, err: {1}, {2}".format(
 															conn_addr, e, e.args)
 		print "********************************"
-		self.poller.register(rq_sock, zmq.POLLIN)
-		print "************SENDING LAUNCH REQUEST  ", rq_message
+		print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT
 		send_msg(rq_sock, rq_message)
-		result, details = self._poll_recv(rq_sock, _DEFAULT_TIMEOUT)
-		self.poller.unregister(rq_sock)
+		result, details = _poll_recv(rq_sock, _DEFAULT_TIMEOUT)
+		rq_sock.close()
 		print "********************************"
 		if not result:
 
@@ -187,33 +208,39 @@ class SubprocessManager(object):
 
 
 
-			new_proc = RemoteProcess(process_desc, rq_socket,
+			new_proc = RemoteProcess(process_desc, conn_addr,
 								reg_timeout_desc=timeout_desc,
 								monitoring_optflags=monitoring_optflags)
 
+			if monitoring_optflags & PING:
+				new_proc._ctx = self._ctx
+
 			self.processes[(result.machine, result.pid)] = new_proc
+
+			new_proc.start_monitoring()
 
 			return new_proc, None
 
-	def _poll_recv(self, socket, timeout):
-		try:
-			socks = dict(self.poller.poll(timeout=timeout))
-		except zmq.ZMQError, e:
+def _poll_recv(socket, timeout):
+	try:
+		events = socket.poll(timeout=timeout)
+	except zmq.ZMQError, e:
 
-			return None, "zmq.poll error: " + e.strerror
+		return None, "zmq.poll error: " + e.strerror
 
-		if socket in socks and socks[socket] == zmq.POLLIN:
-			return self.mtool.unpack_msg(recv_msg(socket)), None
-		else:
-			return None, "No data "
+	if events | zmq.POLLIN:
+		return self._mtool.unpack_msg(recv_msg(socket)), None
+	else:
+		return None, "No data received, timeout. "
 
 UNKNOWN = 'unknown'
 RUNNING = 'running'
 FAILED = 'failed'
 FINISHED = 'finished'
+TERMINATED = 'terminated'
 NON_RESPONSIVE = 'non_responsive'
 
-PROCESS_STATUS = [UNKNOWN, RUNNING, FAILED, FINISHED, NON_RESPONSIVE]
+PROCESS_STATUS = [UNKNOWN, RUNNING, FAILED, FINISHED, TERMINATED, NON_RESPONSIVE]
 
 _REG_TIMER = 0
 
@@ -225,14 +252,24 @@ class Process(object):
 		self.desc = proc_description
 
 		self.must_register = reg_timeout_desc is not None
-		self.status = UNKNOWN if self.must_register else RUNNING
-		self.status_details = None
+		self._status_lock = threading.RLock()
+		self._status = UNKNOWN if self.must_register else RUNNING
+		self._status_details = None
 
 		self.ping_it = monitoring_optflags & PING if self.must_register else False
-		self.os_check_it = monitoring_optflags & RETURNCODE if \
+		self.check_returncode = monitoring_optflags & RETURNCODE if \
 										self.desc.pid is not None else False
+
 		self.set_registration_timeout_handler(reg_timeout_desc)
 		self.registration_data = None
+
+		self._stop_monitoring = False
+		self._ping_thread = None
+		self._returncode_thread = None
+		self._mtool = OBCIMessageTool(message_templates)
+		self._ctx = None
+		self.rq_sock = None
+
 
 	@property
 	def machine_ip(self):
@@ -253,6 +290,10 @@ class Process(object):
 	@property
 	def name(self):
 		return self.desc.name
+
+	def status(self):
+		with self._status_lock:
+			return self._status, self._status_details
 
 	def set_registration_timeout_handler(self, reg_timeout_desc):
 		self.must_register = reg_timeout_desc is not None
@@ -278,12 +319,53 @@ class Process(object):
 
 	def registered(self, reg_data):
 		self.reg_timer.cancel()
-		print "YAY, registered!!!!!!", reg_data
-		self.status = RUNNING
+		print "YAY, registered!!!!!!", reg_data.machine_ip
+		with self._status_lock:
+			self._status = RUNNING
+		#TODO validate registration data
 		self.registration_data = reg_data
+		if self.ping_it:
+			if not self._ctx:
+				self._ctx = zmq.Context()
+			self.rq_sock = self._ctx.socket(zmq.REQ)
 
-	def check_status(self):
-		raise NotImplementedError()
+
+	def stop_monitoring(self):
+		self._stop_monitoring = True
+
+		if self._ping_thread is not None:
+			self._ping_thread.join()
+		if self._returncode_thread is not None:
+			self._returncode_thread.join()
+
+	def start_monitoring(self):
+		if self.ping_it:
+			self._ping_thread = threading.Thread(target=self.ping_monitor, args=())
+			self._ping_thread.daemon = True
+			self._ping_thread.start()
+		if self.check_returncode:
+			self._returncode_thread = threading.Thread(target=self.returncode_monitor, args=())
+			self._returncode_thread.daemon = True
+			self._returncode_thread.start()
+
+	def ping_monitor(self):
+		is_alive = True
+		while not self._stop_monitoring and is_alive:
+			time.sleep(2)
+			if self.rq_sock is not None:
+				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
+				result, det = _poll_recv(socket=rq_sock, timeout=4)
+				if not result:
+					with self._status_lock:
+						if self._status not in [FAILED, FINISHED]:
+							self._status = NON_RESPONSIVE
+							self._status_details = 'ping response timeout'
+						else:
+							is_alive = False
+
+
+	def returncode_monitor(self):
+		pass
 
 
 
@@ -302,9 +384,11 @@ class LocalProcess(Process):
 
 	def _do_handle_timeout(self, type_):
 		if type_ == _REG_TIMER:
-			self.status = FAILED
-			self.status_details = "Failed to register before timeout."
-			self.popen_obj.kill()
+			with self._status_lock:
+				self._status = FAILED
+				self._status_details = "Failed to register before timeout."
+
+			self.kill()
 
 	def tail_stdout(self, lines=DEFAULT_TAIL_RQ):
 		if not self.io_handler:
@@ -313,17 +397,51 @@ class LocalProcess(Process):
 			return self.io_handler.tail_stdout(lines)
 
 	def kill(self):
-		if self.popen_obj.returncode is None:
-			self.popen_obj.kill()
+		self.stop_monitoring()
+
+		if self.io_handler.is_running():
+			self.io_handler.stop_output_handler()
+
+		self.popen_obj.poll()
+		with self._status_lock:
+			if self.popen_obj.returncode is None:
+				self.popen_obj.kill()
+			self.popen_obj.wait()
+			self._status = TERMINATED
+			self._status_details = -(self.popen_obj.returncode)
+
+
+	def returncode_monitor(self):
+		while not self._stop_monitoring:
+			self.popen_obj.poll()
+			code = self.popen_obj.returncode
+			if code is not None:
+				with self._status_lock:
+					self.popen_obj.wait()
+					if code == 0:
+						self._status = FINISHED
+						self._status_details = ''
+					elif code < 0:
+						self._status = TERMINATED
+						self._status_details = -code
+					else:
+						self._status = FAILED
+						self._status_detals = self.tail_stdout(15)
+				break
+			else:
+				time.sleep(1)
+
 
 
 
 class RemoteProcess(Process):
-	def __init__(self, proc_description, rq_socket,
+	def __init__(self, proc_description, rq_address,
 								reg_timeout_desc=None,
 								monitoring_optflags=PING):
 
-		self.rq_socket = rq_socket
+		self.rq_address = rq_address
+		# returncode monitoring is not supported in remote processes..
+		monitoring_optflags = monitoring_optflags & ~(1 << RETURNCODE)
 		super(RemoteProcess, self).__init__(proc_description,
 										reg_timeout_desc, monitoring_optflags)
 
@@ -333,8 +451,8 @@ class RemoteProcess(Process):
 
 	def _do_handle_timeout(self, type_):
 		if type_ == _REG_TIMER:
-			self.status = FAILED
-			self.status_details = "Failed to register before timeout."
+			self._status = FAILED
+			self._status_details = "Failed to register before timeout."
 
 	def registered(self, reg_data):
 		super(RemoteProcess, self).registered(reg_data)
@@ -437,6 +555,9 @@ class ProcessIOHandler(object):
 	def stop_output_handler(self):
 		self._stop = True
 
+	def is_running(self):
+		return self._stop == False and self.__io_readers_alive()
+
 	def __io_readers_alive(self):
 		alive = False
 		if self.stdout:
@@ -470,6 +591,7 @@ class ProcessIOHandler(object):
 
 		stream.close()
 
+
 	def _get_lines(self, stream, q, lines=None, timeout=None):
 		lines = lines if lines else 1
 		out = []
@@ -485,9 +607,11 @@ class ProcessIOHandler(object):
 				out.append(line)
 		return out
 
+
 	def _handle_stdout(self, lines=None, timeout=None):
 		self._handle_stdio(self.stdout, self._out_q,
 							self._out_log, self.out_tail, lines, timeout)
+
 
 	def _handle_stdio(self, stream, q, log, tail, lines=None, timeout=None):
 		out = self._get_lines(stream, q, lines, timeout)
@@ -497,6 +621,7 @@ class ProcessIOHandler(object):
 				log.writelines(out)
 			except Error, e:
 				print e, e.args
+
 
 	def _handle_stderr(self, lines=None, timeout=None):
 		self._handle_stdio(self.stderr, self._err_q,

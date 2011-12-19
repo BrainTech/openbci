@@ -29,7 +29,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.peers = {}
 		self.status = launcher_tools.ExperimentStatus()
 		self.source_pub_addresses = source_pub_addresses
-		self.ip = net.ext_ip()
+		self.ip = net.ext_ip(ifname=net.server_ifname())
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 
 

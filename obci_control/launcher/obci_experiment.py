@@ -16,7 +16,7 @@ import common.net_tools as net
 import common.obci_control_settings as settings
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
-from subprocess_monitor import SubprocessManager, TimeoutDescription,\
+from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 from obci_control_peer import RegistrationDescription
 import subprocess_monitor
@@ -26,7 +26,7 @@ import launcher_tools
 import system_config
 import obci_process_supervisor
 
-REGISTER_TIMEOUT = 15
+REGISTER_TIMEOUT = 25
 
 class OBCIExperiment(OBCIControlPeer):
 
@@ -41,9 +41,7 @@ class OBCIExperiment(OBCIControlPeer):
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
-		print "EXPERIMENT INIT"
 		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
-		print "EXPERIMENT INIT"
 		super(OBCIExperiment, self).__init__(obci_install_dir,
 											source_addresses,
 											rep_addresses,
@@ -55,7 +53,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.supervisors = {} #machine -> supervisor contact/other info
 		self._wait_register = 0
 		self.sv_processes = {} # machine -> Process objects)
-		self.subprocess_mgr = SubprocessManager(self.ctx, self.uuid)
+		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
 		self.status = launcher_tools.ExperimentStatus()
 
@@ -95,7 +93,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		args += self.supervisors_rep_addrs
+		args += [net.choose_not_local(self.supervisors_rep_addrs).pop()]
 		args.append('--sv-pub-addresses')
 		if local:
 			addrs = net.choose_local(self.pub_addresses)
@@ -180,13 +178,13 @@ class OBCIExperiment(OBCIControlPeer):
 			#return False, self.mtool.fill_msg("rq_error", request=vars(message),
 			#					err_code='launch_supervisor_os_error', details=details)
 			print "FAILED to start local supervisor", details
-			self.status.set_status(launcher_tools.CRASHED, details)
+			self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
 			return False, details
 		else:
 			for machine in self.exp_config.peer_machines():
-				print "^^^^^^^^    ", machine
-				if machine == self.origin_machine:
-					pass
+				print "^^^^^^^^    ", machine, self.origin_machine
+				if machine.strip() == self.origin_machine.strip():
+					continue
 
 				result, details = self._request_supervisor(machine)
 				if not result:
@@ -239,13 +237,13 @@ class OBCIExperiment(OBCIControlPeer):
 												message.other_params['machine'],
 												message.other_params['pid'])
 			print self.sv_processes
-			proc = self.sv_processes[desc.machine]
+			proc = self.sv_processes[desc.machine_ip]
 			proc.registered(desc)
 			addrs = []
 			if proc.is_local():
 				addrs = net.choose_local(desc.pub_addrs)
 			if not addrs:
-				addrs = net.choose_not_local(desc_pub_addrs)
+				addrs = net.choose_not_local(desc.pub_addrs)
 			if addrs:
 				a = addrs.pop()
 				self.supervisors_sub_addrs.append(a)
@@ -256,7 +254,7 @@ class OBCIExperiment(OBCIControlPeer):
 			# inform observers
 			send_msg(self.pub_socket, self.mtool.fill_msg("process_supervisor_registered",
 												sender=self.uuid,
-												machine_ip=desc.machine))
+												machine_ip=desc.machine_ip))
 
 
 	def handle_get_experiment_info(self, message, sock):
@@ -293,12 +291,11 @@ class OBCIExperiment(OBCIControlPeer):
 				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
 									 sender=self.uuid, err_code='', details=details))
 				print ':-('
+				self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
 
 
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
-		send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-									 sender=self.uuid, err_code='', details='dupa'))
 		send_msg(self.pub_socket,
 						self.mtool.fill_msg("kill", receiver=""))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
@@ -352,11 +349,11 @@ if __name__ == '__main__':
 
 #	exp = OBCIExperiment( ['tcp://*:22233'], '/host/dev/openbci',
 #							'~/.obci', None, 'obci_exp')
-	print "????"
+
 	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch)
 
-	print "!!!!!"
+
 	exp.run()
