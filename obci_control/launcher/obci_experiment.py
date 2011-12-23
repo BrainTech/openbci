@@ -122,7 +122,7 @@ class OBCIExperiment(OBCIControlPeer):
 			return False, details
 
 		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
-						timeout_method=_handle_register_sv_timeout,
+						timeout_method=self._handle_register_sv_timeout,
 						timeout_args=(sv_obj))
 		sv_obj.set_registration_timeout_handler(timeout_handler)
 		self.sv_processes[self.origin_machine] = sv_obj
@@ -144,7 +144,7 @@ class OBCIExperiment(OBCIControlPeer):
 			return False, details
 
 		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
-						timeout_method=_handle_register_sv_timeout,
+						timeout_method=self._handle_register_sv_timeout,
 						timeout_args=(sv_obj))
 		sv_obj.set_registration_timeout_handler(timeout_handler)
 		self.sv_processes[machine_addr] = sv_obj
@@ -203,9 +203,11 @@ class OBCIExperiment(OBCIControlPeer):
 
 
 	def make_experiment_config(self):
-		launch_parser = launch_file_parser.LaunchFileParser(launcher_tools.obci_root())
+		launch_parser = launch_file_parser.LaunchFileParser(
+							launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
 		try:
 			with open(self.launch_file) as f:
+				print "launch file opened"
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=e.args)
@@ -227,7 +229,7 @@ class OBCIExperiment(OBCIControlPeer):
 				send_msg(sock, self.mtool.fill_msg("rq_error",
 								err_code='peer_spam', request=message.dict()))
 				return
-
+			print self.supervisors
 			desc = self.supervisors[message.other_params['machine']] = \
 							RegistrationDescription(
 												message.uuid,
@@ -252,7 +254,7 @@ class OBCIExperiment(OBCIControlPeer):
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
 
 			# inform observers
-			send_msg(self.pub_socket, self.mtool.fill_msg("process_supervisor_registered",
+			send_msg(self._publish_socket, self.mtool.fill_msg("process_supervisor_registered",
 												sender=self.uuid,
 												machine_ip=desc.machine_ip))
 
@@ -269,7 +271,6 @@ class OBCIExperiment(OBCIControlPeer):
 			exp_info = self.exp_config.info()
 			exp_info['experiment_status'] = self.status.as_dict()
 
-		#send_msg(self.pub_socket, self.mtool.fill_msg('ping', sender=self.uuid))
 		send_msg(sock, self.mtool.fill_msg('experiment_info',
 											exp_info=exp_info))
 
@@ -288,7 +289,7 @@ class OBCIExperiment(OBCIControlPeer):
 							sender=self.uuid))
 			result, details = self._start_experiment()
 			if not result:
-				send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
+				send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
 									 sender=self.uuid, err_code='', details=details))
 				print ':-('
 				self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
@@ -296,32 +297,24 @@ class OBCIExperiment(OBCIControlPeer):
 
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
-		send_msg(self.pub_socket,
+		send_msg(self._publish_socket,
 						self.mtool.fill_msg("kill", receiver=""))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
 
-def _handle_register_sv_timeout(sv_process):
+	def _handle_register_sv_timeout(self, sv_process):
 		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
 																sv_process.machine_ip)
 		print txt
 
-		if sv_process.is_local():
-			pid = sv_process.pid
-			if sv_process.popen_obj.returncode is None:
-				sv_process.kill()
-				sv_process.popen_obj.wait()
-			#del self.sv_processes[sv_process.machine_ip]
-		else:
-			# send KILL request for the rogue supervisor
-			pass
-		#self._wait_register = 0
+		sock = self._push_sock(self.ctx, self._push_addr)
 
 		# inform observers about failure
-		# send_msg(self.pub_socket, self.mtool.fill_msg("experiment_launch_error",
-		# 										sender=self.uuid,
-		# 										err_code="create_supervisor_error",
-		# 										details=dict(machine=sv_process.machine_ip,
-		# 													error=txt)))
+		send_msg(sock, self.mtool.fill_msg("experiment_launch_error",
+												sender=self.uuid,
+												err_code="create_supervisor_error",
+												details=dict(machine=sv_process.machine_ip,
+															error=txt)))
+		sock.close()
 
 def experiment_arg_parser():
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],

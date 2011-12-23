@@ -32,7 +32,7 @@ config=obci_control/test/peer_b.ini
 peer1=p_a
 """
 		self.cf = system_config.OBCISystemConfig()
-		self.pr = launch_file_parser.LaunchFileParser("/host/dev/openbci")
+		self.pr = launch_file_parser.LaunchFileParser("/host/dev/openbci", "~/.obci/scenarios")
 
 	def test_sth(self):
 		self.pr.parse(io.BytesIO(self.txt), self.cf)

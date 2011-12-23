@@ -5,6 +5,7 @@ import zmq
 import uuid
 import signal
 import sys
+import threading
 
 import argparse
 
@@ -27,6 +28,8 @@ class OBCIControlPeer(object):
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses
 		self.obci_dir = obci_install_dir
+		self._pull_addr = 'inproc://publisher_msg'
+		self._push_addr = 'inproc://publisher'
 
 		self.uuid = str(uuid.uuid4())
 		self.name = str(name)
@@ -59,9 +62,52 @@ class OBCIControlPeer(object):
 	def message_tool(self):
 		return OBCIMessageTool(message_templates)
 
+	def _publisher_thread(self, pub_addrs, pull_address, push_addr):
+		#FIXME aaaaahhh pub_addresses are set here, not in the main thread
+		# (which reads them in _register method)
+		pub_sock, self.pub_addresses = self._init_socket(
+									pub_addrs, zmq.PUB)
+		pull_sock = self.ctx.socket(zmq.PULL)
+		pull_sock.bind(pull_address)
+
+		push_sock = self.ctx.socket(zmq.PUSH)
+		push_sock.connect(push_addr)
+
+		send_msg(push_sock, u'1')
+
+		while not self._stop_publishing:
+			try:
+				to_publish = recv_msg(pull_sock)
+
+				send_msg(pub_sock, to_publish)
+			except:
+				#print self.name, '.Publisher -- STOP.'
+				break
+
+	def _push_sock(self, ctx, addr):
+		sock = ctx.socket(zmq.PUSH)
+		sock.connect(addr)
+		return sock
+
+	def _prepare_publisher(self):
+		tmp_pull = self.ctx.socket(zmq.PULL)
+		tmp_pull.bind(self._pull_addr)
+		self.pub_thr = threading.Thread(target=self._publisher_thread,
+										args=[self.pub_addresses,
+											self._push_addr,
+											self._pull_addr])
+		self.pub_thr.daemon = True
+
+		self._stop_publishing = False
+		self.pub_thr.start()
+		recv_msg(tmp_pull)
+		self._publish_socket = self._push_sock(self.ctx, self._push_addr)
+
 	def net_init(self):
-		(self.pub_socket, self.pub_addresses) = self._init_socket(
-												self.pub_addresses, zmq.PUB)
+		# (self.pub_socket, self.pub_addresses) = self._init_socket(
+		# 										self.pub_addresses, zmq.PUB)
+		self._prepare_publisher()
+
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
 
@@ -93,7 +139,7 @@ class OBCIControlPeer(object):
 			if not [addr for addr in addresses if not net.is_net_addr(addr)] and create_ipc:
 				ipc_name=self.name+'.'+self.uuid
 			if not [addr for addr in addresses if net.is_net_addr(addr)]:
-				addresses += ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip()]
+				addresses += ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip(ifname=net.server_ifname())]
 				random_port = True
 
 		return net.public_socket(addresses, zmq_type, self.ctx,

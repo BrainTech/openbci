@@ -4,6 +4,7 @@
 import threading
 import subprocess
 import sys
+import os
 import time
 
 import zmq
@@ -16,7 +17,7 @@ except ImportError:
 
 import common.obci_control_settings as settings
 import common.net_tools as net
-from common.message import OBCIMessageTool, send_msg, recv_msg
+from common.message import OBCIMessageTool, PollingObject, send_msg, recv_msg
 from launcher_messages import message_templates
 
 PING = 2
@@ -43,6 +44,7 @@ IO_WAIT = 0.5
 
 _DEFAULT_TIMEOUT=20
 
+
 class SubprocessMonitor(object):
 	def __init__(self, zmq_ctx, uuid):
 		self.processes = {}
@@ -50,6 +52,7 @@ class SubprocessMonitor(object):
 		self.uuid = uuid
 		self._mtool = OBCIMessageTool(message_templates)
 		self.monitor_ticker = threading.Timer(None, None, None)
+		self.poller = PollingObject()
 
 	def not_running_processes(self):
 		status = {}
@@ -81,7 +84,7 @@ class SubprocessMonitor(object):
 		else:
 			launch_args = [path] + args
 		print "loc.PATH:  ", path
-		machine = machine_ip if machine_ip else net.ext_ip(peer_ip=net.server_address())
+		machine = machine_ip if machine_ip else net.ext_ip(ifname=net.server_ifname())
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
 		if capture_io & STDERR:
@@ -113,7 +116,8 @@ class SubprocessMonitor(object):
 		except Exception as e:
 			return None, "Error: " + str(e) + str(e.args)
 		else:
-
+			if not name:
+				name = os.path.basename(path)
 			process_desc = ProcessDescription(proc_type=proc_type,
 											name=name,
 											path=path,
@@ -184,7 +188,7 @@ class SubprocessMonitor(object):
 		print "********************************"
 		print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT
 		send_msg(rq_sock, rq_message)
-		result, details = _poll_recv(rq_sock, _DEFAULT_TIMEOUT)
+		result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT)
 		rq_sock.close()
 		print "********************************"
 		if not result:
@@ -192,9 +196,11 @@ class SubprocessMonitor(object):
 			details = details + "  [address was: {0}]".format(conn_addr)
 			print "@@@@@@@@@@@@@@@@@@@@@@@@@  ", details
 			return None, details
+		else:
+			result = self._mtool.unpack_msg(result)
 
 
-		elif result.type == 'rq_error':
+		if result.type == 'rq_error':
 			return None, result.err_code + ':' + result.details
 			print "REQUEST FAILED  ", result.err_code + ':' + result.details
 		elif result.type == 'launched_process_info':
@@ -221,17 +227,7 @@ class SubprocessMonitor(object):
 
 			return new_proc, None
 
-def _poll_recv(socket, timeout):
-	try:
-		events = socket.poll(timeout=timeout)
-	except zmq.ZMQError, e:
 
-		return None, "zmq.poll error: " + e.strerror
-
-	if events | zmq.POLLIN:
-		return self._mtool.unpack_msg(recv_msg(socket)), None
-	else:
-		return None, "No data received, timeout. "
 
 UNKNOWN = 'unknown'
 RUNNING = 'running'
@@ -318,7 +314,8 @@ class Process(object):
 							[tim_desc.timeout_method, tim_desc.timeout_args, type_])
 
 	def registered(self, reg_data):
-		self.reg_timer.cancel()
+		if self.reg_timer is not None:
+			self.reg_timer.cancel()
 		print "YAY, registered!!!!!!", reg_data.machine_ip
 		with self._status_lock:
 			self._status = RUNNING
@@ -328,6 +325,8 @@ class Process(object):
 			if not self._ctx:
 				self._ctx = zmq.Context()
 			self.rq_sock = self._ctx.socket(zmq.REQ)
+			for addr in reg_data.rep_addrs:
+				self.rq_sock.connect(addr)
 
 
 	def stop_monitoring(self):
@@ -337,6 +336,7 @@ class Process(object):
 			self._ping_thread.join()
 		if self._returncode_thread is not None:
 			self._returncode_thread.join()
+		print self.name, "  ...monitoring threads stopped."
 
 	def start_monitoring(self):
 		if self.ping_it:
@@ -354,7 +354,7 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = _poll_recv(socket=rq_sock, timeout=4)
+				result, det = self.poller.poll_recv(socket=rq_sock, timeout=4)
 				if not result:
 					with self._status_lock:
 						if self._status not in [FAILED, FINISHED]:
@@ -399,23 +399,29 @@ class LocalProcess(Process):
 	def kill(self):
 		self.stop_monitoring()
 
-		if self.io_handler.is_running():
-			self.io_handler.stop_output_handler()
+		if self.io_handler is not None:
+			if self.io_handler.is_running():
+				self.io_handler.stop_output_handler()
 
 		self.popen_obj.poll()
 		with self._status_lock:
 			if self.popen_obj.returncode is None:
 				self.popen_obj.kill()
 			self.popen_obj.wait()
+
+			if not self._status == NON_RESPONSIVE:
+				self._status_details = -(self.popen_obj.returncode)
 			self._status = TERMINATED
-			self._status_details = -(self.popen_obj.returncode)
 
 
 	def returncode_monitor(self):
+		# TODO just use wait() instead of poll()ing every 0.5s
 		while not self._stop_monitoring:
 			self.popen_obj.poll()
 			code = self.popen_obj.returncode
+
 			if code is not None:
+				print "aaaaahaha  ", code
 				with self._status_lock:
 					self.popen_obj.wait()
 					if code == 0:
@@ -428,8 +434,12 @@ class LocalProcess(Process):
 						self._status = FAILED
 						self._status_detals = self.tail_stdout(15)
 				break
+			elif self.status()[0] == NON_RESPONSIVE:
+				self.kill()
 			else:
-				time.sleep(1)
+				time.sleep(0.5)
+		if self.popen_obj.returncode is not None:
+			self.popen_obj.wait()
 
 
 

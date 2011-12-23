@@ -12,6 +12,7 @@ PORT_RANGE = (30000, 60000)
 
 OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
 DEFAULT_SANDBOX_DIR = os.path.join(OBCI_HOME_DIR, 'sandbox')
+DEFAULT_SCENARIO_DIR = os.path.join(OBCI_HOME_DIR, 'scenarios')
 
 SERVER_CONTACT_NAME = '.obci_server_contact'
 MAIN_CONFIG_NAME = 'main_config.ini'

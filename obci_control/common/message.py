@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
+import zmq
 
 
 BASIC_MSG = dict(type='', sender='', receiver='')
@@ -53,6 +54,28 @@ class OBCIMessageTool(object):
 		m = LauncherMessage()
 		m.ParseFromString(msg)
 		return m
+
+class PollingObject(object):
+	def __init__(self):
+		self.poller = zmq.Poller()
+
+	def poll_recv(self, socket, timeout):
+		self.poller.register(socket, zmq.POLLIN)
+		socks = None
+		fail_det = None
+		try:
+			socks = dict(self.poller.poll(timeout=timeout))
+		except zmq.ZMQError, e:
+			fail_det = "obci_client: zmq.poll(): " + e.strerror
+		finally:
+			self.poller.unregister(socket)
+			if socks is None:
+				return None, fail_det
+
+		if socket in socks and socks[socket] == zmq.POLLIN:
+			return recv_msg(socket), None
+		else:
+			return None, "No data"
 
 
 def send_msg(sock, message):

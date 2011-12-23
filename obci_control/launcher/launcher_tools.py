@@ -17,6 +17,7 @@ KILLED = 'killed'
 
 EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, FAILED_LAUNCH, RUNNING, FINISHED, CRASHED, KILLED]
 
+
 class ExperimentStatus(object):
 	def __init__(self):
 		self.status_name = NOT_READY
@@ -60,6 +61,7 @@ def obci_root():
 	path = os.path.split(path)[0]
 	path = os.path.split(path)[0]
 	return path
+
 
 def obci_pythonpath():
 	root = obci_root()

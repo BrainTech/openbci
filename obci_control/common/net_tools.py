@@ -12,6 +12,7 @@ from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR,
 from common.config_helpers import OBCISystemError
 
 
+
 def public_socket(address_list, zmq_type, zmq_context, random_port=True,
 															ipc_core_name=''):
 	def prepare_addr(addr):
@@ -32,8 +33,8 @@ def __public_sock_init(zmq_type, addrs, zmq_context, random_port, ipc_core_name)
 	port = None
 
 	addresses = []
-	net_addresses = [addr for addr in addrs if is_net_addr(addr)]
-	other_addresses = [addr for addr in addrs if not is_net_addr(addr)]
+	net_addresses = list(set([addr for addr in addrs if is_net_addr(addr)]))
+	other_addresses = list(set([addr for addr in addrs if not is_net_addr(addr)]))
 
 	if random_port and net_addresses:
 		addr = net_addresses.pop(0)
@@ -88,7 +89,7 @@ def ext_ip(peer_ip=None, ifname=None):
 												struct.pack('256s', ifname[:15])
 										)[20:24]))
 		except IOError as e:
-			print e
+			print "ext_ip(ifname:  {0}): {1}".format(ifname, e)
 			client_ip = lo_ip()
 	else:
 		peer_ip = peer_ip if peer_ip else 'google.com'
@@ -96,7 +97,7 @@ def ext_ip(peer_ip=None, ifname=None):
 			s.connect((peer_ip, 9))
 			client_ip = s.getsockname()[0]
 		except socket.error as e:
-			print e
+			print "ext_ip(peer_ip: {0}):  {1}".format(peer_ip, e)
 			client_ip = lo_ip()
 
 	del s

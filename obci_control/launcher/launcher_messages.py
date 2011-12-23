@@ -15,7 +15,8 @@ message_templates = {
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
 
-
+	"launch_remote_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
+									capture_io='', stdout_log='', stderr_log=''),
 	"launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
 									capture_io='', stdout_log='', stderr_log=''),
 	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type=''),
