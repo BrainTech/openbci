@@ -65,12 +65,10 @@ class Experiment_manager(object):
     def __init__(self, p_config_name):
         super(Experiment_manager, self).__init__()
         self.config_file = self.read_experiment_config(p_config_name)
-        print self.config_file
         self.screens = self.config_file['screens']
         self.sc_configs = []
         self.repeats = self.config_file['repeats']
         self.readable_names = self.config_file['readable_names']
-        self.programme = self.config_file['file_to_run'] 
 
         # set up screens configuration - pair screens with diode freqs
         if not self.config_file.get('USE_DEFAULT_FREQS'):
@@ -182,8 +180,9 @@ class Experiment_manager(object):
                 self.send_to_ugm()
                 # change diode frequencies 
                 self.update_diode_freqs(i_screen_conf[1])
-
-                time.sleep(self._get_delay())
+                d = self._get_delay()
+                self._pre_post_screen(i_screen_conf)
+                time.sleep(d)
                 self._post_screen(i_screen_conf)
 
             self._post_screen_package(i_screens_pack)
@@ -214,10 +213,10 @@ class Experiment_manager(object):
         self.config_manager.update_from_file(p_screen, True)
         self.send_to_ugm()
         l_time = time.time()
-        TAGGER.send_tag(l_time, l_time, p_tag_name, 
-                        {
-                "delay" : p_delay
-                })
+        #TAGGER.send_tag(l_time, l_time, p_tag_name, 
+        #                {
+        #        "delay" : p_delay
+        #        })
 
     def send_to_ugm(self):
         if USE_MULTIPLEXER:
@@ -282,6 +281,21 @@ class Experiment_manager(object):
         # self._play_sound()
     
     def _post_screen(self, p_screen_config):
+        # Make after-screen beak if defined in config
+        if self.config_file['make_screen_breaks']:
+            self.update_diode_freqs(self.config_file['break_screen_freqs'])
+            l_delay = self.config_file['break_screen_len']
+            self._send_simple_screen(self.config_file['break_screen_screen'],
+                                     'experiment_screen_break', l_delay)
+            l_time = time.time()
+            TAGGER.send_tag(l_time, l_time, "break", 
+                        {
+                            "duration" : l_delay
+                        }) 
+            time.sleep(l_delay)
+
+    def _pre_post_screen(self, p_screen_config):
+        l_time = time.time()
         l_screen_config_name = p_screen_config[0]
 
         if l_screen_config_name in self.readable_names:
@@ -289,24 +303,16 @@ class Experiment_manager(object):
         else:
             l_screen_name = l_screen_config_name
         
-        l_time = time.time()
-        TAGGER.send_tag(l_time, l_time, "experiment_update", 
+
+        TAGGER.send_tag(l_time, l_time, "trial", 
                         {
-                            "concentrating_on_field" : self._screen_look_num,
+                            "concentrating_on_field" : l_screen_name[-1],
                             "screen" : l_screen_name,
                             "Freqs" : p_screen_config[1],
-                            "delay" : self._last_delay 
+                            "duration" : self._last_delay 
                         }) 
         LOGGER.info('screen ' + str(p_screen_config[0]) + '  freqs: ' +\
                         str(p_screen_config[1]) + ' delay: '+ str(self._last_delay))
-
-        # Make after-screen beak if defined in config
-        if self.config_file['make_screen_breaks']:
-            self.update_diode_freqs(self.config_file['break_screen_freqs'])
-            l_delay = self.config_file['break_screen_len']
-            self._send_simple_screen(self.config_file['break_screen_screen'],
-                                     'experiment__screen_break', l_delay)
-            time.sleep(l_delay)
 
 
     def _play_sound(self):
@@ -319,27 +325,8 @@ class Experiment_manager(object):
 
 
     def read_experiment_config(self, p_config_name):
-        CONFIG = {}
-        Config = ConfigParser.ConfigParser()
-        Config.read(os.path.join("./experiment_builder/config/", p_config_name))
-        for section in Config.sections():
-                print section
-                for option in Config.options(section):
-                        print Config.get(section, option)
-			CONFIG[option] = eval(Config.get(section, option))
-	#CONFIG['screens'] = eval(CONFIG['screens'])
-	#CONFIG['freqs'] = eval(CONFIG['freq_sets'])
-	
-        #if p_config_name == None:
-        #    config_module = __import__(module_prefix + '.config', \
-        #            fromlist=['CONFIG'])
-        #else:
-        #    try:
-        #        config_module = __import__(module_prefix +'.'+ p_config_name, \
-        #                fromlist=['CONFIG'])
-        #    except: 
-        #        print "INVALID EXPERIMENT CONFIG NAME! ", p_config_name
-        #        raise
+        config = __import__('experiment_builder.config', globals(), locals(), [p_config_name], -1).__dict__[p_config_name]
+        CONFIG = dict(config.__dict__)
         return CONFIG 
 
 

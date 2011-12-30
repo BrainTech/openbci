@@ -20,7 +20,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 4
+CHANNELS = 25
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -165,7 +165,7 @@ class Hashtable(BaseMultiplexerServer):
         #'UGM_CONFIG': 'speller_config_6',
         #'UGM_CONFIG': 'p300_ssvep',
         'UGM_CONFIG': 'speller_config_8_black_etr2',
-        'UGM_USE_TAGGER':'1',
+        'UGM_USE_TAGGER':'0',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',
         # ------------ END -------------------------------------------------------------------------------------

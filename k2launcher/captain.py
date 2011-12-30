@@ -81,13 +81,14 @@ task("./data_storage/tests/test_manually_signal_saver_control.py", "manual_saver
 
 task("./experiment_builder/experiment_manager.py mx-on", "experiment_manager")
 task("sleep 20; ./experiment_builder/experiment_manager_ania.py mx-on config", "experiment_manager_ania")
-task("sleep 5; ./experiment_builder/experiment_manager_ssvep.py mx-on config_ssvep_calibration.ini", "experiment_manager_ssvep")
+task("sleep 5; ./experiment_builder/experiment_manager_ssvep.py mx-on config_ssvep_calibration", "experiment_manager_ssvep")
 task("sleep 1; ./super_diode_control.py", "super_diode_control")
 task("sleep 1; ./diode_catcher.py", "diode_catcher")
 
 task("./amplifiers/tmsi_bluetooth_eeg_amplifier.py --bt_addr 00:A0:96:1B:42:DC	", "python_bt_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server", "c++_usb_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:48:DB", "c++_bt_amplifier")
+task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:45:B1", "c++_bt_porti7_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "c++_bt_mobimini_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:48:4B", "c++_bt_mobi5_amplifier")
 task("./amplifiers/c_tmsi_amplifier/tmsi_server -b 00:A0:96:1B:42:DC", "py_bt_mobimini_amplifier")
@@ -529,6 +530,12 @@ start("ss", "ugm")
 start("ss", "super_diode_control")
 start("ss", "virtual_f_amplifier")
 start("ss", "experiment_manager_ssvep")
+
+start("sv", "hashtable")
+start("sv", "ugm")
+start("sv", "super_diode_control")
+start("sv", "c++_bt_porti7_amplifier")
+start("sv", "experiment_manager_ssvep")
 
 
 if __name__ == "__main__":

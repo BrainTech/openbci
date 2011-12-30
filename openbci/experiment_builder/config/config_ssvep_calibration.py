@@ -38,15 +38,16 @@ shuffle = True
 #located in openbci/ugm/config/ directory.
 
 
-f = [15,16,17] #15,...,24
+f = range(15, 25)#15,...,24
 
-screens = [['field1']*len(f)]
+screens = [['text']*len(f)]
 
 #Set diode frequencies for every screen. Structure of 'freqs' should be
 #the same as structure of 'screens'
 freqs = [
-      [[0]*len(f)]*len(f)
+      [[0]*8]*len(f)
 	]
+
 for i, fr in enumerate(f):
     freqs[0][i][1] = fr
 
