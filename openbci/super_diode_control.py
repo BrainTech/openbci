@@ -32,106 +32,46 @@ import blinker
 from openbci.core import openbci_logging
 LOGGER = openbci_logging.get_logger('super_diode_control')
 
+DIODE_ON_FREQ = -1
+
 class SuperDiodeControl(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(SuperDiodeControl, self).__init__(addresses=addresses, type=peers.SUPER_DIODE)
         # an update request can be handled for config elements listed below:
-        self.updatable_params = ["Freqs"]
-	self.breakt = 3
         # save needed configuration.
-        self._cache_diode_params()
+        self.blinker = blinker.Blinker('/dev/ttyUSB0')
+        self.blinker.open()
         self._init_freqs()
         self._init_mode()
         if self.mode == 'SSVEP':
             start = int(self.conn.query(message='SSVEP_RUNNING_ON_START', type=types.DICT_GET_REQUEST_MESSAGE).message)
             if start:
-                self.check_mode_and_start_blinking()
+                self.start_blinking()
         else:
-                self.check_mode_and_start_blinking()
-
-    def start_blinking(self, freqs):
-        d = []
-        [d.append(int(x)) for x in freqs]
-        blinker.blink(d, 1, 1)
-    
-    def diodes_on(self):
-        d = self.squares * [0]
-        blinker.blink(d, 1, 1)
-    
-    def diodes_off(self):
-        d = self.squares * [-1]
-        blinker.blink(d, 1, 1)
-    
-    def generateSequence(self, blinks, squares):
-        seq = []
-        for i in range(squares):
-            [seq.append(i) for x in range(blinks)]
-        random.shuffle(seq)
-        return seq
-
-    def check_mode_and_start_blinking(self):
-        """
-        Prepare self and start blinking in current configured blinking mode.
-        """
-        print(x)
-        self._init_mode()
-        if (self.mode.lower() == "SSVEP".lower()):
-            self._start_blinking_SSVEP()
-        elif (self.mode.lower() == "P300".lower()):
-            self._start_blinking_P300()
+            raise Exception("Only SSVEP mode implemented!!!")
 
     def _init_mode(self):
         self.mode = self.conn.query(message="BlinkingMode", type=types.DICT_GET_REQUEST_MESSAGE).message
 
     def _init_freqs(self):
-        self.freqs = self.conn.query(message = "Freqs", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
-        self.freqs = self.freqs.split(" ")
-        for i in range(len(self.freqs)):
-            self.freqs[i] = int(self.freqs[i])
+        freqs = self.conn.query(message = "Freqs", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
+        self.update_freqs(freqs)
 
-    def _start_blinking_SSVEP(self, freqs=None):
-        """
-        Prepare self and start blinking in SSVEP mode.
-        """
-        #  [jt: moved from handle_message() to avoid repetition]
-        self.diodes_on()
-        self._init_freqs()
-        self.start_blinking(self.freqs)
+    def update_freqs(self, freqs_str):
+        freqs = freqs_str.split(" ")
+        self.freqs = [0]*len(freqs)
+        for i in range(len(freqs)):
+            self.freqs[i] = int(freqs[i])
 
-    def _start_blinking_P300(self):
-        """
-        Prepare self and start blinking in P300 mode.
-        """
-        #  [jt: moved from handle_message() to avoid repetition]
-        self.diodes_off()
-	time.sleep(self.breakt)
-        self.blinks = int(self.conn.query(message = "Blinks", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.blinkPeriod = float(self.conn.query(message = "BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.squares = int(self.conn.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.seq = self.generateSequence(self.blinks, self.squares)
-        s = ""
-        for x in self.seq:
-            s += str(x) + ","
-        s = s[:len(s) - 1]
-        var = variables_pb2.Variable()
-        var.key = "DiodSequence"
-        var.value = s
-
-        self.conn.send_message(message = var.SerializeToString(), type = types.DICT_SET_MESSAGE, flush=True)
-
-        print "dc ds ", self.seq
-        for x in self.seq:
-            blinker.blink_p300(x, self.blinkPeriod)
-            time.sleep(self.blinkPeriod)
-            tstamp = time.time()
-            msg = variables_pb2.Blink()
-            msg.index = x
-
-            msg.timestamp = tstamp
-            self.conn.send_message(message = msg.SerializeToString(), type = types.DIODE_MESSAGE, flush=True)
-	    #print "SENT DIODE MESSAGE"
-
-
+    def start_blinking(self):
+        self.blinker.blinkSSVEP(self.freqs, 1, 1)
+    
+    def diodes_on(self):
+        self.blinker.on()
+    
+    def diodes_off(self):
+        self.blinker.off()
+    
     def handle_message(self, mxmsg):
         if mxmsg.type == types.SWITCH_MODE:
             # get blinking mode config and start blinking
@@ -140,16 +80,13 @@ class SuperDiodeControl(BaseMultiplexerServer):
             LOGGER.info("got message: " + str(mxmsg.type))
             l_msg = variables_pb2.Variable()
             l_msg.ParseFromString(mxmsg.message)
-
-            assert(l_msg.key in self.updatable_params)
+            self.update_freqs(l_msg.value)
+            if self.freqs[0] == -1:
+                self.diodes_on()
+            else:
+                self.start_blinking()
             # this property can be updated by self, so set it in hashtable
             self.conn.send_message(message = mxmsg.message, type = types.DICT_SET_MESSAGE, flush=True)
-            
-            # refresh configuration
-            self._cache_diode_params()
-
-            # get blinking mode config and start blinking
-            self.check_mode_and_start_blinking()
             
             LOGGER.info("Mode: " + str(self.mode) + "  Freqs:  "+ str(self.freqs))
         elif mxmsg.type == types.SSVEP_CONTROL_MESSAGE and self.mode == 'SSVEP':
@@ -157,32 +94,16 @@ class SuperDiodeControl(BaseMultiplexerServer):
             l_msg.ParseFromString(mxmsg.message)
             if l_msg.key == 'stop':
                 LOGGER.info("Stop ssvep!")
-                self.diodes_off()
+                self.diodes_on()
             elif l_msg.key == 'start':
                 LOGGER.info("Start ssvep!")
-                self.diodes_on()
-                self.start_blinking(self.freqs)
+                self.start_blinking()
 
             else:
                 LOGGER.warning("Unrecognised ssvep control message! "+str(l_msg.key))
         
             
         self.no_response()
-
-    def _cache_diode_params(self):
-        """
-        Save/update self's configuration. Used to __init__ self and to refresh
-        config after changes in hashtable.
-        """
-        #self.buffer_size = int(self.conn.query(message="DiodeCatcherBufferSize", type=types.DICT_GET_REQUEST_MESSAGE).message)
-        self.blinks = int(self.conn.query(message = "Blinks", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.blinkPeriod = float(self.conn.query(message = "BlinkPeriod", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.squares = int(self.conn.query(message = "Squares", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message)
-        self.trainingSequence = self.conn.query(message = "TrainingSequence", type = types.DICT_GET_REQUEST_MESSAGE, timeout = 1).message
-
-        self.buffer = collections.deque()
-        
-
 
 if __name__ == "__main__":
     SuperDiodeControl(settings.MULTIPLEXER_ADDRESSES).loop()
