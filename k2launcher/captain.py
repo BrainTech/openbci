@@ -81,6 +81,7 @@ task("./data_storage/tests/test_manually_signal_saver_control.py", "manual_saver
 
 task("./experiment_builder/experiment_manager.py mx-on", "experiment_manager")
 task("sleep 20; ./experiment_builder/experiment_manager_ania.py mx-on config", "experiment_manager_ania")
+task("sleep 5; ./experiment_builder/experiment_manager_ssvep.py mx-on config_ssvep_calibration.ini", "experiment_manager_ssvep")
 task("sleep 1; ./super_diode_control.py", "super_diode_control")
 task("sleep 1; ./diode_catcher.py", "diode_catcher")
 
@@ -520,6 +521,14 @@ start("auto_trigger_c++_bt_no_storing", "auto_trigger")
 start("auto_trigger_c++_usb_no_storing", "hashtable")
 start("auto_trigger_c++_usb_no_storing", "c++_usb_amplifier")
 start("auto_trigger_c++_usb_no_storing", "auto_trigger")
+
+
+
+start("ss", "hashtable")
+start("ss", "ugm")
+start("ss", "super_diode_control")
+start("ss", "virtual_f_amplifier")
+start("ss", "experiment_manager_ssvep")
 
 
 if __name__ == "__main__":
