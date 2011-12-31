@@ -35,6 +35,8 @@ import time
 import sys
 import os.path
 from openbci.tags import tagger
+import keystroke
+
 
 TAGGER = tagger.get_tagger()
 
@@ -73,13 +75,6 @@ class Experiment_manager(object):
         # set up screens configuration - pair screens with diode freqs
         if not self.config_file.get('USE_DEFAULT_FREQS'):
             self.freq_sets = self.config_file['freqs']
-	    print "UWAGA"
-	    print ""
-	    print ""
-	    print self.screens
-	    print len(self.screens)
-	    print self.freq_sets
-	    print len(self.freq_sets)
             assert(len(self.screens) == len(self.freq_sets))
             self.sc_configs = [zip(scr, fre) for scr, fre in zip(self.screens,
                 self.freq_sets)]
@@ -154,9 +149,8 @@ class Experiment_manager(object):
             l_saver_control.start_saving()
         
         l_time = time.time()
-        TAGGER.send_tag(l_time, l_time, "experiment_start",
+        TAGGER.send_tag(l_time, l_time, "experimentStart",
                 {
-                    "exp_config" : self.config_file
                     })
 
         for i_screens_pack in self.sc_configs:
@@ -190,33 +184,44 @@ class Experiment_manager(object):
 
         self.send_bye_screen()
         l_time = time.time()
-        TAGGER.send_tag(l_time, l_time, "experiment_end", {})
+        TAGGER.send_tag(l_time, l_time, "experimentEnd", {})
 
         if USE_MULTIPLEXER:
             l_saver_control.finish_saving()
 
     def send_hi_screen(self):
-        l_sc = self.config_file['hi_screen']
-        l_sc_del = self.config_file['hi_screen_delay']
-        if l_sc:
-            self._send_simple_screen(l_sc, 'experiment_hi', l_sc_del)
-            time.sleep(l_sc_del)
+        l_delays = self.config_file['hi_screen_delays']
+        l_screens = self.config_file['hi_screens']
+        for i in range(len(l_delays)):
+            self._send_simple_screen(l_screens[i],
+                                     'hi', 
+                                     l_delays[i])
 
     def send_bye_screen(self):
-        l_sc = self.config_file['bye_screen']
-        l_sc_del = self.config_file.get('bye_screen_delay',0)
-        if l_sc:
-            self._send_simple_screen(l_sc, 'experiment_bye', l_sc_del)
-            time.sleep(l_sc_del)
-    
+        l_delays = self.config_file['bye_screen_delays']
+        l_screens = self.config_file['bye_screens']
+        for i in range(len(l_delays)):
+            self._send_simple_screen(l_screens[i],
+                                     'bye',
+                                     l_delays[i])
+
     def _send_simple_screen(self, p_screen, p_tag_name, p_delay):
         self.config_manager.update_from_file(p_screen, True)
         self.send_to_ugm()
         l_time = time.time()
-        #TAGGER.send_tag(l_time, l_time, p_tag_name, 
-        #                {
-        #        "delay" : p_delay
-        #        })
+        if p_delay >= 0:
+            TAGGER.send_tag(l_time, l_time+p_delay, p_tag_name,
+                            {
+                    "duration" : p_delay
+                    })
+            time.sleep(p_delay)
+        else:
+            keystroke.wait([' '])
+            TAGGER.send_tag(l_time, time.time(), p_tag_name,
+                            {
+                    "duration" : time.time()-l_time
+                    })
+
 
     def send_to_ugm(self):
         if USE_MULTIPLEXER:
@@ -270,10 +275,12 @@ class Experiment_manager(object):
     def _post_screen_package(self, p_screen_package):
         if self.config_file['make_package_breaks']:
             self.update_diode_freqs(self.config_file['break_package_freqs'])
-            l_delay = self.config_file['break_package_len']
-            self._send_simple_screen(self.config_file['break_package_screen'],
-                                     'experiment_package_break', l_delay)
-            time.sleep(l_delay)
+            l_delays = self.config_file['break_package_lens']
+            l_screens = self.config_file['break_package_screens']
+            for i in range(len(l_delays)):
+                self._send_simple_screen(l_screens[i],
+                                         'packageBreak',
+                                         l_delays[i])
     
     def _pre_screen(self, p_screen_config):
         print('New screen: ' + str(p_screen_config[0]))
@@ -284,15 +291,12 @@ class Experiment_manager(object):
         # Make after-screen beak if defined in config
         if self.config_file['make_screen_breaks']:
             self.update_diode_freqs(self.config_file['break_screen_freqs'])
-            l_delay = self.config_file['break_screen_len']
-            self._send_simple_screen(self.config_file['break_screen_screen'],
-                                     'experiment_screen_break', l_delay)
-            l_time = time.time()
-            TAGGER.send_tag(l_time, l_time, "break", 
-                        {
-                            "duration" : l_delay
-                        }) 
-            time.sleep(l_delay)
+            l_delays = self.config_file['break_screen_lens']
+            l_screens = self.config_file['break_screen_screens']
+            for i in range(len(l_delays)):
+                self._send_simple_screen(l_screens[i],
+                                         'trialBreak',
+                                         l_delays[i])
 
     def _pre_post_screen(self, p_screen_config):
         l_time = time.time()
@@ -306,9 +310,10 @@ class Experiment_manager(object):
 
         TAGGER.send_tag(l_time, l_time, "trial", 
                         {
-                            "concentrating_on_field" : l_screen_name[-1],
+                            "field" : l_screen_name[-1],
+                            "freq" : p_screen_config[1][int(l_screen_name[-1])],
                             "screen" : l_screen_name,
-                            "Freqs" : p_screen_config[1],
+                            "freqs" : p_screen_config[1],
                             "duration" : self._last_delay 
                         }) 
         LOGGER.info('screen ' + str(p_screen_config[0]) + '  freqs: ' +\

@@ -110,7 +110,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         if l_type == 'int' or l_type == 'float':
             editor.setValue(l_value)
         elif l_type == 'string':
-            editor.setText(QtCore.QString(str(l_value)))
+            editor.setText(QtCore.QString(unicode(l_value)))
         elif l_type == 'enumerated':
             editor.setCurrentIndex(editor.findText(l_value))
         elif l_type == 'color':
@@ -126,7 +126,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             p_editor.interpretText()
             l_value = p_editor.value()
         elif l_type == 'string':
-            l_value = str(p_editor.text())
+            l_value = unicode(p_editor.text())
         elif l_type == 'enumerated':
             l_value = str(p_editor.currentText())
         elif l_type == 'color':
