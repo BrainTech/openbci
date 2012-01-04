@@ -537,6 +537,12 @@ start("sv", "super_diode_control")
 start("sv", "c++_bt_porti7_amplifier")
 start("sv", "experiment_manager_ssvep")
 
+start("sc", "hashtable")
+start("sc", "ugm")
+start("sc", "super_diode_control")
+start("sc", "c++_usb_amplifier")
+start("sc", "experiment_manager_ssvep")
+
 
 if __name__ == "__main__":
     from captain_helper import Captain

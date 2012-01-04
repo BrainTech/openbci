@@ -119,11 +119,11 @@ class Experiment_manager(object):
         for i_nr in range(len(p_sc_set)):
             l_original_screens = p_sc_set[i_nr]
             if not self.config_file.get('shuffle', True):
-                l_current_screens = l_original_screens*self.repeats
+                l_current_screens = l_original_screens*self.repeats[i_nr]
             elif len(l_original_screens) > 2:
                 l_current_screens = []
                 l_last_screen = None
-                for i_iterations in range(self.repeats):
+                for i_iterations in range(self.repeats[i_nr]):
                     random.shuffle(l_original_screens)
                     if l_original_screens[0] == l_last_screen:
                         l_tmp = l_original_screens[0]
@@ -132,7 +132,7 @@ class Experiment_manager(object):
                     l_last_screen = l_original_screens[-1]
                     l_current_screens += l_original_screens
             else:
-                l_current_screens = p_sc_set[i_nr] * self.repeats
+                l_current_screens = p_sc_set[i_nr] * self.repeats[i_nr]
                 random.shuffle(l_current_screens)
             p_sc_set[i_nr] = l_current_screens
         if self.config_file.get('shuffle', True):
@@ -311,7 +311,7 @@ class Experiment_manager(object):
         TAGGER.send_tag(l_time, l_time, "trial", 
                         {
                             "field" : l_screen_name[-1],
-                            "freq" : p_screen_config[1][int(l_screen_name[-1])],
+                            "freq" : p_screen_config[1][1],#int(l_screen_name[-1])],
                             "screen" : l_screen_name,
                             "freqs" : p_screen_config[1],
                             "duration" : self._last_delay 

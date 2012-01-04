@@ -20,7 +20,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 25
+CHANNELS = 10
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -40,7 +40,8 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
-        "ChannelsNames": "A;B;C;D",
+        #"ChannelsNames": "A;B;C;D",
+        "ChannelsNames": "O1;O2;T5;P3;Pz;P4;T6;A1;A2;FCz",
         #"ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
