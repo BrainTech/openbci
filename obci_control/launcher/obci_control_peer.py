@@ -14,7 +14,62 @@ from launcher_messages import message_templates
 import common.net_tools as net
 import common.obci_control_settings as settings
 
+
+class HandlerCollection(object):
+	def __init__(self):
+		self.handlers = {}
+		self.default = self._default_handler
+		self.error = self._error_handler
+
+	def new_from(other):
+		new = HandlerCollection()
+		new.handlers = dict(other.handlers)
+		new.default = other.default
+		new.error = other.error
+		return new
+
+	def copy(self):
+		new = HandlerCollection()
+		new.handlers = dict(self.handlers)
+		new.default = self.default
+		new.error = self.error
+		return new
+
+	def _default_handler(*args):
+		pass
+
+	def _error_handler(*args):
+		pass
+
+	def handler(self, message_type):
+		def save_handler(fun):
+			self.handlers[message_type] = fun
+			return fun
+		return save_handler
+
+	def default_handler(self):
+		def save_default_handler(fun):
+			self.default = fun
+			return fun
+		return save_default_handler
+
+	def error_handler(self):
+		def save_error_handler(fun):
+			self.error = fun
+			return fun
+		return save_error_handler
+
+	def handler_for(self, message_name):
+		handler = self.handlers.get(message_name, None)
+
+		return handler
+
+
+
+
 class OBCIControlPeer(object):
+
+	msg_handlers = HandlerCollection()
 
 	def __init__(self, obci_install_dir, source_addresses=None,
 										rep_addresses=None,
@@ -248,25 +303,29 @@ class OBCIControlPeer(object):
 		else:
 			msg_type = msg.type
 
-			try:
-				handler = getattr(self, "handle_" + msg_type)
-			except AttributeError:
+
+			handler = self.msg_handlers.handler_for(msg_type)
+			if handler is None:
 				print "Unknown message type: {0}".format(msg_type)
 				print message
 
 				handler = self.unsupported_msg_handler
 
-		handler(msg, sock)
+		handler(self,msg, sock)
 
+	@msg_handlers.handler("register_peer")
 	def handle_register_peer(self, message, sock):
+		"""Subclass this."""
 		result = self.mtool.fill_msg("rq_error",
 			request=vars(message), err_code="unsupported_peer_type")
 		send_msg(sock, result)
 
+	@msg_handlers.handler("ping")
 	def handle_ping(self, message, sock):
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
 			send_msg(sock, self.mtool.fill_msg("pong"))
 
+	@msg_handlers.default_handler()
 	def default_handler(self, message, sock):
 		"""Ignore message"""
 		pass
@@ -283,6 +342,7 @@ class OBCIControlPeer(object):
 					request=vars(message), err_code="invalid_msg_format")
 		send_msg(sock, msg)
 
+	@msg_handlers.handler("kill")
 	def handle_kill(self, message, sock):
 
 		if not message.receiver or message.receiver == self.uuid:
@@ -341,4 +401,5 @@ if __name__ == '__main__':
 	print vars(args)
 	peer = OBCIControlPeer(args.obci_dir, args.sv_addresses,
 							args.rep_addresses, args.pub_addresses, args.name, args.ifname)
+	print peer.msg_handlers.handlers["register_peer"]
 	peer.run()

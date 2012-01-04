@@ -28,6 +28,9 @@ STDIN, STDOUT, STDERR, NO_STDIO
 REGISTER_TIMEOUT = 6
 
 class OBCIServer(OBCIControlPeer):
+
+	msg_handlers = OBCIControlPeer.msg_handlers.copy()
+
 	def __init__(self, obci_install_dir, other_srv_ips,
 												rep_addresses=None,
 												pub_addresses=None,
@@ -163,7 +166,8 @@ probably a server is already working"
 												rep_addrs=info.rep_addrs,
 												pub_addrs=info.pub_addrs,
 												machine=info.origin_machine))
-
+		print ":):):):):):)------------------------------"
+		print self.msg_handlers._handlers["register_peer"].__doc__
 
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
 
@@ -181,7 +185,10 @@ probably a server is already working"
 												err_code="create_experiment_error",
 												request=vars(self.client_rq[0])))
 
+
+	@msg_handlers.handler("register_peer")
 	def handle_register_peer(self, message, sock):
+		"""Register peer"""
 		if message.peer_type == "obci_client":
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
 		elif message.peer_type == "obci_experiment":
@@ -189,6 +196,8 @@ probably a server is already working"
 		else:
 			super(OBCIServer, self).handle_register_peer(message, sock)
 
+
+	@msg_handlers.handler("create_experiment")
 	def handle_create_experiment(self, message, sock):
 		#print "CREATE EXP!!! {0}".format(message.launch_file)
 		launch_file = message.launch_file
@@ -209,7 +218,7 @@ probably a server is already working"
 			# now wait for experiment to register itself here
 			self.client_rq = (message, sock, reg_timer)
 
-
+	@msg_handlers.handler("list_experiments")
 	def handle_list_experiments(self, message, sock):
 		exp_data = {}
 		for exp_id in self.experiments:
@@ -241,6 +250,7 @@ probably a server is already working"
 			send_msg(sock, msg)
 		return match
 
+	@msg_handlers.handler("get_experiment_contact")
 	def handle_get_experiment_contact(self, message, sock):
 		print "##### rq contact for: ", message.strname
 
@@ -275,6 +285,7 @@ probably a server is already working"
 
 		return experiments
 
+	@msg_handlers.handler("kill_experiment")
 	def handle_kill_experiment(self, message, sock):
 		match = self._handle_match_name(message, sock, this_machine=True)
 
@@ -311,6 +322,7 @@ probably a server is already working"
 				del self.experiments[uid]
 			return returncode
 
+	@msg_handlers.handler("launch_process")
 	def handle_launch_process(self, message, sock):
 		if message.proc_type == 'obci_process_supervisor':
 			self._handle_launch_process_supervisor(message, sock)
@@ -334,6 +346,7 @@ probably a server is already working"
 												details=details))
 			print "LAUNCH FAILURE"
 
+	@msg_handlers.handler("kill_process_supervisor")
 	def handle_kill_process_supervisor(self, message, sock):
 		proc = self.exp_process_supervisors.get(message.sender, None)
 		if not proc:
@@ -358,13 +371,6 @@ probably a server is already working"
 			return None, details
 
 		return sv_obj, False
-
-	def _join_srv_network(self, srv_address):
-		# send srv_table_request
-		# update sekf's srv
-		# send announce_request
-		#
-		pass
 
 
 class ExperimentInfo(object):
@@ -416,4 +422,5 @@ if __name__ == '__main__':
 
 	srv = OBCIServer(args.obci_dir, args.other_srv_ips,
 							args.rep_addresses, args.pub_addresses, args.name)
+	print srv.msg_handlers.handlers["register_peer"].__doc__
 	srv.run()

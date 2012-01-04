@@ -30,6 +30,8 @@ REGISTER_TIMEOUT = 25
 
 class OBCIExperiment(OBCIControlPeer):
 
+	msg_handlers = OBCIControlPeer.msg_handlers.copy()
+
 	def __init__(self, obci_install_dir, sandbox_dir, launch_file=None,
 										source_addresses=None,
 										source_pub_addresses=None,
@@ -221,7 +223,9 @@ class OBCIExperiment(OBCIControlPeer):
 	def peer_type(self):
 		return 'obci_experiment'
 
+	@OBCIControlPeer.msg_handlers.handler('register_peer')
 	def handle_register_peer(self, message, sock):
+		"""Experiment"""
 		if message.peer_type == "obci_process_supervisor":
 			if self._wait_register > 0:
 				self._wait_register -= 1
@@ -258,7 +262,7 @@ class OBCIExperiment(OBCIControlPeer):
 												sender=self.uuid,
 												machine_ip=desc.machine_ip))
 
-
+	@OBCIControlPeer.msg_handlers.handler('get_experiment_info')
 	def handle_get_experiment_info(self, message, sock):
 		## a not-launched version
 		if message.peer_id:
@@ -274,10 +278,13 @@ class OBCIExperiment(OBCIControlPeer):
 		send_msg(sock, self.mtool.fill_msg('experiment_info',
 											exp_info=exp_info))
 
+
+	@OBCIControlPeer.msg_handlers.handler('get_peer_config')
 	def handle_get_peer_config(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('ping', sender=self.uuid))
 
 
+	@OBCIControlPeer.msg_handlers.handler('start_experiment')
 	def handle_start_experiment(self, message, sock):
 		if not self.status.status_name == launcher_tools.READY_TO_LAUNCH:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
@@ -348,5 +355,5 @@ if __name__ == '__main__':
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch)
 
-
+	print exp.msg_handlers.handlers["register_peer"].__doc__
 	exp.run()

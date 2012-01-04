@@ -165,6 +165,9 @@ class SubprocessMonitor(object):
 								stderr_log=None,
 								register_timeout_desc=None,
 								monitoring_optflags=PING):
+		"""Send a request to conn_addr for a process launch. By default
+		the process will be monitored with ping requests and locally by the
+		remote peer."""
 
 
 		timeout_desc = register_timeout_desc
@@ -179,18 +182,18 @@ class SubprocessMonitor(object):
 								stderr_log=stderr_log)
 
 		rq_sock = self._ctx.socket(zmq.REQ)
-		print "********************************", conn_addr
+
 		try:
 			rq_sock.connect(conn_addr)
 		except zmq.ZMQError as e:
 			return None, "Could not connect to {0}, err: {1}, {2}".format(
 															conn_addr, e, e.args)
-		print "********************************"
+
 		print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT
 		send_msg(rq_sock, rq_message)
 		result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT)
 		rq_sock.close()
-		print "********************************"
+
 		if not result:
 
 			details = details + "  [address was: {0}]".format(conn_addr)
