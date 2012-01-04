@@ -58,7 +58,7 @@ for i, fr in enumerate(f3):
     diodes[1] = fr
     freqs[2].append(diodes)
 
-BBB = 5
+BBB = 2
 for i in range(BBB-1):
     screens.append(copy.deepcopy(screens[0]))
     freqs.append(copy.deepcopy(freqs[0]))
@@ -70,7 +70,7 @@ for i in range(BBB-1):
 #Use tuple eg. (2, 5) to set random delay between two numbers.
 #Delay is in seconds
 #CONFIG['delay'] = (2, 5)
-delay = 4
+delay = 1
 
 #Define how many repeaded cycles from one package should be presented.
 #Eg. having 'packages' = [['x','y'],['a','b','c']] and repeats = 3
@@ -78,7 +78,7 @@ delay = 4
 # x,y,x,y,x,y,a,b,c,a,b,c,a,b,c
 #when repeats = 1 you'll get:
 # x,y,a,b,c
-repeats = [10, 10, 5]*BBB
+repeats = [1, 1, 1]*BBB
 
 #Set readable descriptions for every config file
 #Those descriptions will be visible in tags
@@ -97,7 +97,7 @@ default_freqs = [70, 12, 15, 70, 70, 13, 14, 70]
 make_package_breaks = True
 
 #Set break duration in seconds
-break_package_lens = [5,
+break_package_lens = [1,
                       1, 1, 1,
                       1, 1
                       ]

@@ -107,7 +107,7 @@ class SignalSaver(BaseMultiplexerServer):
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and \
                 self._session_is_active:
 
-            self._number_of_samples += 1
+            self._number_of_samples += self._samples_per_vector
             self._data_received(mxmsg.message)
 
             if __debug__:
@@ -117,9 +117,11 @@ class SignalSaver(BaseMultiplexerServer):
         elif mxmsg.type == types.SIGNAL_SAVER_FINISH_SAVING:
             LOGGER.info("Signal saver got finish saving _message")
             self._finish_saving_session()
+        self.no_response()
                 
     def _start_saving_session(self):
         """Start storing data..."""
+
         if self._session_is_active:
             LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
             return 
@@ -134,6 +136,11 @@ class SignalSaver(BaseMultiplexerServer):
                                           type = types.DICT_GET_REQUEST_MESSAGE, 
                                           timeout = 1).message)
 
+        self._samples_per_vector = int(self.conn.query(message = "SamplesPerVector",
+                                                       type = types.DICT_GET_REQUEST_MESSAGE,
+                                                       timeout = 1).message)
+
+        self._number_of_samples = 0
         l_f_dir = os.path.normpath(l_f_dir)
         if not os.access(l_f_dir, os.F_OK):
              os.mkdir(l_f_dir)

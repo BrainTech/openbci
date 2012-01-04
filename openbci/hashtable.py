@@ -102,7 +102,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : 'etr_test2', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
+        "SaveFileName" : 'test1', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
         "SaveFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "FilterLevel": "3",

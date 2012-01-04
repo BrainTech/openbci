@@ -530,6 +530,7 @@ start("ss", "ugm")
 start("ss", "super_diode_control")
 start("ss", "virtual_f_amplifier")
 start("ss", "experiment_manager_ssvep")
+start("ss", "signal_saver")
 
 start("sv", "hashtable")
 start("sv", "ugm")
