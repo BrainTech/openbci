@@ -36,7 +36,7 @@ from openbci.offline_analysis.obci_signal_processing.signal import info_file_pro
 LOGGER = logger.get_logger("info_saver", 'info')
 
 #TIMESTAMPS_AS_SEPARATE_CHANNEL = False
-INFO_FILE_EXTENSION = ".obci.info"
+INFO_FILE_EXTENSION = ".obci.xml"
 class InfoSaver(BaseMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):

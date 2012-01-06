@@ -37,7 +37,7 @@ from openbci.offline_analysis.obci_signal_processing.tags import tags_file_write
 LOGGER = logger.get_logger("tags_saver", 'info')
 TAGGER = tagger.get_tagger()
 
-TAG_FILE_EXTENSION = ".obci.tags"
+TAG_FILE_EXTENSION = ".obci.tag"
 
 class TagSaver(BaseMultiplexerServer):
     def __init__(self, addresses):

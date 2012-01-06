@@ -36,7 +36,7 @@ from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')
 TAGGER = tagger.get_tagger()
-DATA_FILE_EXTENSION = ".obci.dat"
+DATA_FILE_EXTENSION = ".obci.raw"
 class SignalSaver(BaseMultiplexerServer):
 
     def _all_but_first_data_received(self, p_data):
