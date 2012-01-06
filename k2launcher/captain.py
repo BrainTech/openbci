@@ -24,7 +24,7 @@ _env = {
         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
         "MULTIPLEXER_PASSWORD": "",
         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":"
+        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":"+"/usr/lib/python2.6/site-packages/"
 }
 
 env.update(_env)
@@ -71,6 +71,7 @@ task("./ugm/run_ugm.py p300_test", "p300_ugm_test")
 task("./analysis/p300.py", "p300_analysis")
 task("./analysis/sample_bci_analysis_server.py", "sample_analysis")
 task("./analysis/ssvep_bci_analysis_server.py", "ssvep_analysis")
+task("./analysis/csp/csp_calibration_server.py", "csp_calibration")
 task("./blink_catcher.py", "blink_catcher")
 task("./logics/logic_speller.py p300_speller_config", "p300_logics")
 
@@ -525,24 +526,29 @@ start("auto_trigger_c++_usb_no_storing", "auto_trigger")
 
 
 
-start("ss", "hashtable")
-start("ss", "ugm")
-start("ss", "super_diode_control")
-start("ss", "virtual_f_amplifier")
-start("ss", "experiment_manager_ssvep")
-start("ss", "signal_saver")
+start("sf", "hashtable")
+start("sf", "ugm")
+start("sf", "super_diode_control")
+start("sf", "virtual_f_amplifier")
+start("sf", "experiment_manager_ssvep")
+start("sf", "signal_saver")
 
-start("sv", "hashtable")
-start("sv", "ugm")
-start("sv", "super_diode_control")
-start("sv", "c++_bt_porti7_amplifier")
-start("sv", "experiment_manager_ssvep")
+start("csp", "hashtable")
+start("csp", "csp_calibration")
+
+start("sb", "hashtable")
+start("sb", "ugm")
+start("sb", "super_diode_control")
+start("sb", "c++_bt_porti7_amplifier")
+start("sb", "experiment_manager_ssvep")
+start("sb", "signal_saver")
 
 start("sc", "hashtable")
 start("sc", "ugm")
 start("sc", "super_diode_control")
 start("sc", "c++_usb_amplifier")
 start("sc", "experiment_manager_ssvep")
+start("sc", "signal_saver")
 
 
 if __name__ == "__main__":
