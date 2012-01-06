@@ -17,6 +17,7 @@
 #include "TmsiDriverDesc.h"
 #define BLUETOOTH_AMPLIFIER 1
 #define USB_AMPLIFIER 2
+#define IP_AMPLIFIER 3
 #define MESSAGE_SIZE 1024*1024
 #define CHAN_TYPE_DIG 4
 #define KEEP_ALIVE_RATE 1 //seconds between every keep_alive message
@@ -103,7 +104,7 @@ public:
     int refreshInfo();
 	boost::program_options::options_description get_options();
 	void init(boost::program_options::variables_map &vm);
-	void connect_device(bool bluetooth,const string &address);
+	void connect_device(uint type,const string &address);
     ~TmsiAmplifier();
 private:
     inline void _put_sample(int *s, uint index) {
@@ -114,6 +115,7 @@ private:
 	}
     int connect_usb(const string & address);
     int connect_bluetooth(const string &address);
+    int connect_ip(const string &address);
     void read_from(const string &file);
     void dump_to(const string &file);
     int send_request(int type);

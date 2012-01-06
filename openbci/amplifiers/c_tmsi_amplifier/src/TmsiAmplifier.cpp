@@ -6,11 +6,15 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #ifdef BLUETOOTH
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
 #endif
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <time.h>
@@ -18,6 +22,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <arpa/inet.h>
 #include <string.h>
 #include "TmsiAmplifier.h"
 #include "nexus/tmsi.h"
@@ -39,10 +44,11 @@ TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
 po::options_description TmsiAmplifier::get_options(){
 	po::options_description options=AmplifierDriver::get_options();
 	options.add_options()
-			("device_path,d",po::value<string>()->default_value("/dev/tmsi0")
-					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,false,_1)),"Device path for usb connection")
+			("device_path,d",po::value<string>()->default_value("/dev/tmsi0"),"Device path for usb connection")
 			("bluetooth_addr,b",po::value<string>()
-					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,true,_1)),"Bluetooth address of amplifier")
+					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,BLUETOOTH_AMPLIFIER,_1)),"Bluetooth address of amplifier")
+			("ip_addr,i",po::value<string>()->implicit_value("10.11.12.13:4242")
+					->notifier(boost::bind(&TmsiAmplifier::connect_device,this,IP_AMPLIFIER,_1)),"IP address and port of amplifier")
 			("amplifier_responses,r",po::value<string>()
 					->notifier(boost::bind(&TmsiAmplifier::read_from,this,_1)),"File with saved amplifier responses. Useful for debug")
 			("save_responses",po::value<string>()
@@ -52,21 +58,27 @@ po::options_description TmsiAmplifier::get_options(){
 	return options;
 }
 void TmsiAmplifier::init(po::variables_map &vm){
+	if (fd==-1)
+		connect_device(USB_AMPLIFIER,vm["device_path"].as<string>());
+	if (fd<0)
+		exit(-1);
 	refreshInfo();
 }
-void TmsiAmplifier::connect_device(bool bluetooth,const string &address){
+void TmsiAmplifier::connect_device(uint type,const string &address){
 	if (fd>=0)
 		close(fd);
 	if (read_fd==fd)
 		read_fd=-1;
-	if (bluetooth)
+	if (type==BLUETOOTH_AMPLIFIER)
 		fd=connect_bluetooth(address);
-	else
+	else if (type== USB_AMPLIFIER )
 		fd=connect_usb(address);
+	else
+		fd=connect_ip(address);
 	if (fd<0)
 		cout << "DEVICE OPEN ERROR: "<<address << " errno: "<<fd<<" "<<strerror(fd);
 	else
-		logger.info()<< (bluetooth?"Bluetooth ":"Usb ") << "device connected "<<address<<"\n";
+		logger.info()<< (type==IP_AMPLIFIER?"IP ":(type==BLUETOOTH_AMPLIFIER?"Bluetooth ":"Usb ")) << "device connected "<<address<<"\n";
 	if (read_fd<0)
 	read_fd=fd;
 }
@@ -74,7 +86,40 @@ int TmsiAmplifier::connect_usb(const string & address) {
 	mode=USB_AMPLIFIER;
 	return open(address.c_str(), O_RDWR);
 }
-
+int TmsiAmplifier::connect_ip(const string &address_port){
+    int Socket;
+    struct sockaddr_in Server_Address;
+    struct hostent *server;
+    Socket = socket ( AF_INET, SOCK_STREAM, 0 );
+    if ( Socket == -1 )
+    {
+        printf ("Can Not Create A Socket!");
+    }
+    int Port=4242 ;
+    uint pos=address_port.find(':');
+    if (pos!=string::npos){
+		Port = atoi(address_port.substr(pos+1).c_str());
+    };
+    string address=address_port.substr(0,pos);
+    cerr <<"Port: "<<Port<<" Address:"<<address<<"\n";
+    bzero((char *) &Server_Address, sizeof(Server_Address));
+    server = gethostbyname(address.c_str());
+    Server_Address.sin_family = AF_INET;
+    Server_Address.sin_port = htons ( Port );
+    if (server== NULL)
+    	Server_Address.sin_addr.s_addr = inet_addr(address.c_str());
+    else
+    	bcopy((char *)server->h_addr,
+    	         (char *)&Server_Address.sin_addr.s_addr,
+    	         server->h_length);
+    cout<< "Port: "<<Port << " Address:" << Server_Address.sin_addr.s_addr<<" \n";
+    if ( Server_Address.sin_addr.s_addr == INADDR_NONE )
+    {
+        printf ( "Bad Address!" );
+    }
+    connect ( Socket, (struct sockaddr *)&Server_Address, sizeof (Server_Address) );
+    return Socket;
+}
 int TmsiAmplifier::connect_bluetooth(const string & address) {
 	int s, status;
 	mode=BLUETOOTH_AMPLIFIER;
