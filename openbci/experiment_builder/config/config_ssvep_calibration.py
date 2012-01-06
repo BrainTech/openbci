@@ -14,36 +14,36 @@ f3 = [13, 15, 17, 19,
 #by one list of strings representing relative path to ugm config file
 #located in openbci/ugm/config/ directory.
 screens = [
-    ['fields1']*len(f1),
-    ['fields4']*len(f2),
+    #888 ['fields1']*len(f1),
+    #888 ['fields4']*len(f2),
     ['fields8']*len(f3)
     ]
 
 #Set diode frequencies for every screen. Structure of 'freqs' should be
 #the same as structure of 'screens'
 freqs = [
-      [],
-      [],
+      #888 [],
+      #888 [],
       []
       ]
 #f1
-for i, fr in enumerate(f1):
-    diodes = [0]*8
-    diodes[1] = fr
-    freqs[0].append(diodes)
+#888 for i, fr in enumerate(f1):
+#888    diodes = [0]*8
+#888    diodes[1] = fr
+#888    freqs[0].append(diodes)
     # like [ [0,15,0,0,0,0,0,0], [0,16,..... , [0,24,0,0,0,0,0,0] ]
 
 #f2
-for i, fr in enumerate(f2):
-    diodes = [0]*8
-    diodes[1] = fr
-    f22 = list(f2)
-    f22.remove(fr)
-    random.shuffle(f22)
-    diodes[2] = f22[0]
-    diodes[5] = f22[1]
-    diodes[6] = f22[2]
-    freqs[1].append(diodes)
+#888 for i, fr in enumerate(f2):
+#888    diodes = [0]*8
+#888    diodes[1] = fr
+#888    f22 = list(f2)
+#888    f22.remove(fr)
+#888    random.shuffle(f22)
+#888    diodes[2] = f22[0]
+#888    diodes[5] = f22[1]
+#888    diodes[6] = f22[2]
+#888    freqs[1].append(diodes)
 
 #f3
 for i, fr in enumerate(f3):
@@ -56,9 +56,11 @@ for i, fr in enumerate(f3):
         diodes[i+2] = f33[i]
     diodes[0] = f33[-1]
     diodes[1] = fr
-    freqs[2].append(diodes)
+#888    freqs[2].append(diodes)
+    freqs[0].append(diodes)
 
-BBB = 2
+#888 BBB = 2
+BBB = 1
 for i in range(BBB-1):
     screens.append(copy.deepcopy(screens[0]))
     freqs.append(copy.deepcopy(freqs[0]))
@@ -70,7 +72,7 @@ for i in range(BBB-1):
 #Use tuple eg. (2, 5) to set random delay between two numbers.
 #Delay is in seconds
 #CONFIG['delay'] = (2, 5)
-delay = 1
+delay = 4
 
 #Define how many repeaded cycles from one package should be presented.
 #Eg. having 'packages' = [['x','y'],['a','b','c']] and repeats = 3
@@ -78,7 +80,8 @@ delay = 1
 # x,y,x,y,x,y,a,b,c,a,b,c,a,b,c
 #when repeats = 1 you'll get:
 # x,y,a,b,c
-repeats = [1, 1, 1]*BBB
+#888 repeats = [10, 10, 15]*BBB
+repeats = [5]*BBB
 
 #Set readable descriptions for every config file
 #Those descriptions will be visible in tags
