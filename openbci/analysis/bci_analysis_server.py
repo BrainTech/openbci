@@ -54,11 +54,14 @@ class BCIAnalysisServer(BaseMultiplexerServer):
             copy_on_ret=int(configs['ANALYSIS_BUFFER_COPY_ON_RET'])
             )
 
+        self.hold_after_dec = float(configs['ANALYSIS_HOLD_AFTER_DEC'])
+        self._to_hold = 0.0
+
         super(BCIAnalysisServer, self).__init__(addresses=addresses, type=peers.ANALYSIS)
 
         #Send 'I am ready' message
         configurer_.set_configs({'PEER_READY':str(peers.ANALYSIS)}, self.conn)
-        LOGGER.info("SampleBCIAnalysisServer init finished!")
+        LOGGER.info("BCIAnalysisServer init finished!")
 
     def get_requested_configs(self):
         #Ask analysis for its internal required configs (to be set in hashtable)
@@ -72,7 +75,7 @@ class BCIAnalysisServer(BaseMultiplexerServer):
         #Add some other required configs
         requested_configs += ['NumOfChannels', 'SamplingRate', 
                               'ANALYSIS_BUFFER_FROM', 'ANALYSIS_BUFFER_COUNT', 'ANALYSIS_BUFFER_EVERY',
-                              'ANALYSIS_BUFFER_RET_FORMAT', 'ANALYSIS_BUFFER_COPY_ON_RET']
+                              'ANALYSIS_BUFFER_RET_FORMAT', 'ANALYSIS_BUFFER_COPY_ON_RET','ANALYSIS_HOLD_AFTER_DEC']
         return requested_configs
         
     def handle_message(self, mxmsg):

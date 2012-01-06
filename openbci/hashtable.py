@@ -102,7 +102,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : 'test1', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
+        "SaveFileName" : 'maciek3', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
         "SaveFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "CSPFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
@@ -154,6 +154,9 @@ class Hashtable(BaseMultiplexerServer):
 
         #we will not modify data, so no need to copy it
         'ANALYSIS_BUFFER_COPY_ON_RET':"0", 
+
+        #time in secs to hold analysis after making decision
+        'ANALYSIS_HOLD_AFTER_DEC':"0.5",
 
 
         # ------------ END -------------------------------------------------------------------------------------

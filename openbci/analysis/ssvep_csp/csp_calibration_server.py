@@ -43,8 +43,8 @@ class CSP(BaseMultiplexerServer):
         channels = ['O1','O2','T5','P3','Pz','P4','T6']#nazwa kanałów usznych to A1 i A2; jeśli nie to trzeba zmienić
                                                 #modCSPv2 w funkcji prep_signal
         q = csp.modCSP(file_name+'.obci', freqs, channels)
-        q.start_CSP(signal_time, to_frequency, baseline = False, filt='cheby', method = 'regular', train_tags = train_tags)#liczenie CSP
-        value, mu, sigma = q.count_stats(signal_time, to_freq, train_tags)#Liczenie statystyk
+        q.start_CSP(to_signal, to_frequency, baseline = False, filt='cheby', method = 'regular', train_tags = train_tags)#liczenie CSP
+        value, mu, sigma = q.count_stats(to_signal, to_frequency, train_tags)#Liczenie statystyk
 
         LOGGER.info("Finished CSP with stats:")
         LOGGER.info(str(value) + " / " + str(mu) + " / " + str(sigma))
