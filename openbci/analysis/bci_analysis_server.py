@@ -18,8 +18,11 @@ class BCIAnalysisServer(BaseMultiplexerServer):
     def send_decision(self, dec):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
-
         LOGGER.info("Sending dec message: "+str(dec))
+        
+        self._last_dec_time = time.time()
+        self.buffer.clear()
+
         l_dec_msg = variables_pb2.Decision()
         l_dec_msg.decision = dec
         l_dec_msg.type = 0
@@ -55,7 +58,7 @@ class BCIAnalysisServer(BaseMultiplexerServer):
             )
 
         self.hold_after_dec = float(configs['ANALYSIS_HOLD_AFTER_DEC'])
-        self._to_hold = 0.0
+        self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
 
         super(BCIAnalysisServer, self).__init__(addresses=addresses, type=peers.ANALYSIS)
 
@@ -79,6 +82,13 @@ class BCIAnalysisServer(BaseMultiplexerServer):
         return requested_configs
         
     def handle_message(self, mxmsg):
+        if self._last_dec_time > 0:
+            if (time.time() - self._last_dec_time) > self.hold_after_dec:
+                self._last_dec_time = 0
+            else:
+                LOGGER.debug("Holding: "+str(time.time() - self._last_dec_time))
+                self.no_response()
+                return
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
 	    l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)

@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sample_bci_analysis
 import random, time, numpy
 import analysis_logging as logger
-LOGGER = logger.get_logger("sample_bci_analysis", "info")
+LOGGER = logger.get_logger("ssvep_bci_analysis", "info")
 
 class SsvepBCIAnalysis(object):
     def __init__(self, send_func):
@@ -39,6 +38,10 @@ class SsvepBCIAnalysis(object):
         for i in range(self.numOfFreq):
             while (allFreqs[j] == 0):
                 j += 1
+                if j == self.numOfFreq:
+                    break
+            if j == self.numOfFreq:
+                break
             self.freqs[i] = allFreqs[j]
             self.indexMap[i] = j
             self.freqs[i + self.numOfFreq] = 2 * allFreqs[j]

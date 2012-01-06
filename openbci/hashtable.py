@@ -41,7 +41,10 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames":"gen1;gen2;gen3",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
         #"ChannelsNames": "A;B;C;D",
+
         "ChannelsNames": "O1;O2;T5;P3;Pz;P4;T6;A1;A2;FCz",
+        #"ChannelsNames": 'O1;O2;T5;P3;Pz;P4;T6',
+
         #"ChannelsNames":"gen1",
         #"ChannelsNames": "SAMPLE_NUMBER",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG", #25
@@ -74,7 +77,7 @@ class Hashtable(BaseMultiplexerServer):
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
-        "Freqs": "7 12 8 9 10 11 13 15",
+        "Freqs": "0 15 17 0 0 19 25 0", #"7 12 8 9 10 11 13 15",
         #"Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
@@ -314,7 +317,7 @@ class Hashtable(BaseMultiplexerServer):
         'MS_SSVEP_UGM':'speller_config_8_black_etr2',
 
 
-        'SSVEP_RUNNING_ON_START':'0',
+        'SSVEP_RUNNING_ON_START':'1',
 
     }  # temporarily we enter here default values. In future it will be set using SVAROG probably
 
