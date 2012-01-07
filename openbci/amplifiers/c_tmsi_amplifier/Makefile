@@ -10,7 +10,7 @@ ifdef DEBUG
 GENERALFLAGS	+= -DAMP_DEBUG
 endif
 
-CXXFLAGS	+= $(GENERALFLAGS)
+CXXFLAGS	+= $(GENERALFLAGS) -fpermissive
 INCLUDEDIRS =			-I . -I/usr/share/multiplexer/src \
 			-I$(AZOUKDIR)/include \
 			-I$(ROOTDIR)/openbci \
@@ -63,7 +63,7 @@ tmsi_install:
 	make
 	sudo make install
 test_server: $(addprefix $(BUILD)/, $(AMPLIFIER_DRIVER) $(AMPLIFIER_SERVER) test_server.o)
-	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBRARIES)
 
 test_tmsi_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_tmsi_driver.o  $(TMSI_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
