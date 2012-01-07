@@ -83,8 +83,8 @@
 
 /* Buffer structure */
 #define PACKET_BUFFER_SIZE            131072
-#define BULK_RECV_URBS                  100
-#define ISOC_RECV_URBS                  100
+#define BULK_RECV_URBS                  50
+#define ISOC_RECV_URBS                  50
 
 /* Get a minor range for your devices from the usb maintainer */
 #define USB_TMSI_MINOR_BASE            192
@@ -291,10 +291,8 @@ static int tmsi_release_dev(struct tmsi_data* dev) {
 
     if (dev->device_open > 0)
         dev->device_open = 0;
-    kfree(dev->isoc_recv_urb);
-    kfree(dev->isoc_recv_buffer);
-    kfree(dev->bulk_recv_urb);
-    kfree(dev->bulk_recv_buffer);
+
+
     // Remove buffer
 
     kfifo_reset(dev->packet_buffer);
