@@ -14,6 +14,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/date_time/posix_time/ptime.hpp>
 #include <vector>
+#include <signal.h>
 using namespace multiplexer;
 
 AmplifierServer::AmplifierServer(const std::string& host, boost::uint16_t port,

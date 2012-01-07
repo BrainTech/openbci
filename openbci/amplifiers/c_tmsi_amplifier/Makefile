@@ -11,7 +11,7 @@ GENERALFLAGS	+= $(O) -Wall \
 ifdef DEBUG
 GENERALFLAGS	+= -DAMP_DEBUG
 endif
-CXXFLAGS	+= $(GENERALFLAGS)
+CXXFLAGS	+= $(GENERALFLAGS) -fpermissive
 INCLUDEDIRS =			-I . -I/usr/share/multiplexer/src \
 			-I$(AZOUKDIR)/include \
 			-I$(ROOTDIR)/openbci \
@@ -44,19 +44,19 @@ fusbi_install:
 	cd fusbi; \
 	sudo make install
 tmsi_server:  $(addprefix $(BUILD)/, AmplifierServer.o tmsiAmpServer.o variables.pb.o TmsiAmplifier.o tmsi.o AmplifierDriver.o)
-	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
+	$(CXX) -o $@ $^ $(LIBRARIES) $(LDFLAGS)
 
 test_server: $(addprefix $(BUILD)/, AmplifierServer.o testAmplifierServer.o variables.pb.o AmplifierDriver.o)
-	$(CXX) -o $@ $(LDFLAGS) $^ $(LIBRARIES)
+	$(CXX) -o $@ $^ $(LIBRARIES) $(LDFLAGS)
 
 test_driver: $(addprefix $(BUILD)/, TmsiAmplifier.o tmsi.o test_driver.o AmplifierDriver.o)
-	$(CXX) -o $@ $(CXXFLAGS) -lboost_date_time -lbluetooth $^
+	$(CXX) -o $@ $(CXXFLAGS) $^ -lboost_date_time -lbluetooth
 
 dummy_receiver: $(BUILD)/DummyReceiver.o
-	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+	$(CXX) -o $@ $^  $(LIBRARIES) $(LDFLAGS)
 
 signal_receiver: $(BUILD)/SignalReceiver.o  $(BUILD)/variables.pb.o
-	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+	$(CXX) -o $@ $^ $(LIBRARIES) $(LDFLAGS)
 
 
 test_logger: $(BUILD)/test_logger.o
