@@ -200,10 +200,6 @@ static int tmsi_open(struct inode *inode, struct file *file) {
 #else
     dev->packet_buffer = kfifo_alloc(PACKET_BUFFER_SIZE, GFP_KERNEL, &dev->buffer_lock);
 #endif
-    dev->bulk_recv_urb = kmalloc(BULK_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
-    dev->bulk_recv_buffer = kmalloc(BULK_RECV_URBS * sizeof (char *),GFP_KERNEL);
-    dev->isoc_recv_urb = kmalloc(ISOC_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
-    dev->isoc_recv_buffer = kmalloc(ISOC_RECV_URBS * sizeof (char *),GFP_KERNEL);
     
     // Setup initial bulk receive URB and submit
     pipe=usb_rcvbulkpipe(dev->udev, dev->bulk_recv_endpoint->bEndpointAddress);
