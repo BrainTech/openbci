@@ -42,7 +42,7 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	amp->start_sampling();
 	ptime start=microsec_clock::local_time();
 	printf("SAMPLING STARTED at %s  and will stop after %d (%d)samples\n",to_simple_string(start).c_str(),length*sample_rate,length);
-	for (int i = 0; i < length*sample_rate; i++) {
+	for (int i = 0; (i < length*sample_rate) & amp->is_sampling(); i++) {
 		amp->next_samples();
 		printf("Samples %d:\n",i);
 		for (uint j = 0; j < channels.size(); j++)

@@ -5,7 +5,6 @@ using namespace std;
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/program_options.hpp>
 #include <boost/bind.hpp>
-#include <signal.h>
 #include <errno.h>
 #include <time.h>
 namespace po = boost::program_options;
@@ -14,7 +13,7 @@ using namespace boost::posix_time;
 po::options_description AmplifierDriver::get_options() {
 	po::options_description options("Amplifier Options");
 	options.add_options()
-			("sampling_rate,s",	po::value<int>()->default_value(128)
+			("sampling_rate,s",	po::value<int>()
 					->notifier(boost::bind(&AmplifierDriver::set_sampling_rate_, this,_1)),
 					"Sampling rate to use")
 			("active_channels,c",po::value<string>()->default_value("*")->
@@ -28,11 +27,14 @@ void AmplifierDriver::init(boost::program_options::variables_map &vm) {
 //	set_active_channels_string(vm["channels"].as<string>());
 }
 AmplifierDriver * AmplifierDriver::signal_handler=NULL;
+void AmplifierDriver::setup_handler(){
+	AmplifierDriver::signal_handler = this;
+	signal(SIGINT, &AmplifierDriver::stop_sampling_handler);
+}
 void AmplifierDriver::start_sampling() {
 	sampling = true;
 	cur_sample=-1;
-	AmplifierDriver::signal_handler = this;
-	signal(SIGINT, &AmplifierDriver::stop_sampling_handler);
+	setup_handler();
 	logger.sampling=sampling_rate;
 	logger.info()<<" Sampling started with sampling rate "
 			<<sampling_rate<<"\nActive Channels: " << get_active_channels_string() <<"\n";
@@ -42,7 +44,7 @@ void AmplifierDriver::stop_sampling_handler(int sig) {
 	signal(sig, SIG_DFL);
 	fprintf(stderr, "Signal %d (%s) intercepted. Driver stopping\n", sig,
 			strsignal(sig));
-	AmplifierDriver::signal_handler->stop_sampling();
+	AmplifierDriver::signal_handler->stop_sampling(true);
 }
 uint64_t AmplifierDriver::next_samples() {
 	uint64_t wait = last_sample + 1000000 / sampling_rate;

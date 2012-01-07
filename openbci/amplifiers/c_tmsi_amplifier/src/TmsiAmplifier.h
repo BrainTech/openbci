@@ -100,7 +100,7 @@ public:
         return sample_rate_div;
     }
     void start_sampling();
-    void stop_sampling();
+    void stop_sampling(bool disconnecting=false);
     int refreshInfo();
 	boost::program_options::options_description get_options();
 	void init(boost::program_options::variables_map &vm);
@@ -147,6 +147,8 @@ private:
         }
 //        tms_prt_iddata(stderr,&dev);
         set_description(new TmsiDriverDesc(dev,this));
+        if (sampling_rate==0)
+        	set_sampling_rate(description->get_sampling_rates()[0]);
     }
 
     void refreshVLDeltaInfo() {
@@ -162,6 +164,7 @@ private:
     int fetch_iddata();
     void receive();
     const char * get_type_name(int type);
+    void disconnect_mobita();
 };
 
 #endif	/* TMSIAMPLIFIER_H */

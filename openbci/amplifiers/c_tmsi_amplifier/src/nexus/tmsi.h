@@ -529,4 +529,5 @@ double tms_get_sample_freq();
 */
 int32_t tms_shutdown();
 extern int fd_dump;
+extern char ip_amplifier;
 #endif

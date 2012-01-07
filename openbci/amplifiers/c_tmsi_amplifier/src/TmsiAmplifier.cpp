@@ -29,7 +29,7 @@
 #include <boost/program_options.hpp>
 #include <boost/bind.hpp>
 namespace po=boost::program_options;
-
+TmsiAmplifier * mobita_amp=NULL;
 TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
     dev.Channel = NULL;
     vli.SampDiv = NULL;
@@ -40,6 +40,8 @@ TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
     read_fd=-1;
     dump_fd=-1;
     mode=0;
+    sampling_rate=sampling_rate_=0;
+
 }
 po::options_description TmsiAmplifier::get_options(){
 	po::options_description options=AmplifierDriver::get_options();
@@ -88,20 +90,26 @@ int TmsiAmplifier::connect_usb(const string & address) {
 }
 int TmsiAmplifier::connect_ip(const string &address_port){
     int Socket;
-    struct sockaddr_in Server_Address;
+    struct sockaddr_in Server_Address,client;
     struct hostent *server;
+    bzero((char *) &client, sizeof(client));
+    mode = IP_AMPLIFIER;
+    client.sin_family = AF_INET;
+	client.sin_addr.s_addr = INADDR_ANY;
+	client.sin_port=60000;
     Socket = socket ( AF_INET, SOCK_STREAM, 0 );
     if ( Socket == -1 )
     {
         printf ("Can Not Create A Socket!");
     }
+    if (bind(Socket, (struct sockaddr *) &client, sizeof(client)) < 0)
+    	              cerr << "ERROR on binding";
     int Port=4242 ;
     uint pos=address_port.find(':');
     if (pos!=string::npos){
 		Port = atoi(address_port.substr(pos+1).c_str());
     };
     string address=address_port.substr(0,pos);
-    cerr <<"Port: "<<Port<<" Address:"<<address<<"\n";
     bzero((char *) &Server_Address, sizeof(Server_Address));
     server = gethostbyname(address.c_str());
     Server_Address.sin_family = AF_INET;
@@ -112,12 +120,14 @@ int TmsiAmplifier::connect_ip(const string &address_port){
     	bcopy((char *)server->h_addr,
     	         (char *)&Server_Address.sin_addr.s_addr,
     	         server->h_length);
-    cout<< "Port: "<<Port << " Address:" << Server_Address.sin_addr.s_addr<<" \n";
     if ( Server_Address.sin_addr.s_addr == INADDR_NONE )
     {
         printf ( "Bad Address!" );
     }
+    logger.info()<<"Connection to socket to port\n"<<Server_Address.sin_port;
     connect ( Socket, (struct sockaddr *)&Server_Address, sizeof (Server_Address) );
+    ip_amplifier=1;
+    setup_handler();
     return Socket;
 }
 int TmsiAmplifier::connect_bluetooth(const string & address) {
@@ -213,6 +223,7 @@ bool TmsiAmplifier::update_info(int type) {
     {
         debug("\n");
     }
+    debug("Print message: %d",_print_message(stderr,msg,br));
     if (tms_chk_msg(msg,br)!=0) return false;
     switch (type) {
         case TMSFRONTENDINFO:
@@ -248,7 +259,10 @@ bool TmsiAmplifier::_refreshInfo(int type) {
 
 void TmsiAmplifier::start_sampling() {
     if (fd < 0 || read_fd < 0) return;
-    fei.mode &= 0x10;
+    if (mode==IP_AMPLIFIER)
+    	fei.mode = 0x0;
+    else
+    	fei.mode &= 0x02;
     fei.currentsampleratesetting = sample_rate_div&0xFFFF;
     br = 0;
     keep_alive=1;
@@ -280,16 +294,23 @@ void TmsiAmplifier::start_sampling() {
     channel_data_index=1<<30;
     AmplifierDriver::start_sampling();
 }
-
-void TmsiAmplifier::stop_sampling() {
+void TmsiAmplifier::disconnect_mobita(){
+	logger.info() << "Disconnecting Mobita...\n";
+	char disconnect_message[]={0xaa,0xaa,0x06,0x49,0x06,0x00,0x00,0x00,0x14,0x00,0x04,0x00,0x01,0x00,0x00,0x00,0x31,0x0c};
+	write(fd,disconnect_message,18);
+}
+void TmsiAmplifier::stop_sampling(bool disconnecting) {
     if (fd < 0) return;
-    fei.mode = 0x11;
-    if (!sampling) return;
-    signal(SIGINT,SIG_DFL);
-    signal(SIGTERM,SIG_DFL);
+    fei.mode = 0x3;
+    if (!sampling) {
+    	if (mode==IP_AMPLIFIER&& disconnecting)
+    		disconnect_mobita();
+    	return;
+    }
+    AmplifierDriver::stop_sampling();
     logger.info() <<"Sending stop message...\n";
     tms_write_frontendinfo(fd, &fei);
-    AmplifierDriver::stop_sampling();
+
     int retry=0;
     read_errors=0;
     receive();
@@ -299,13 +320,14 @@ void TmsiAmplifier::stop_sampling() {
             tms_get_ack(msg, br, &ack);
             tms_prt_ack(stderr, &ack);
             in_debug(return);
-            if (mode==BLUETOOTH_AMPLIFIER|| read_fd!=fd) return;
+            if (mode!=USB_AMPLIFIER|| read_fd!=fd) break;
         }
         if (++retry % (2 * sampling_rate) == 0)
             tms_write_frontendinfo(fd,&fei);
         receive();
     }
     logger.info()<<"Stop sampling succeeded after "<<retry<<" messages!\n";
+    if (mode==IP_AMPLIFIER&& disconnecting) 	disconnect_mobita();
 }
 uint64_t TmsiAmplifier::next_samples() {
     channel_data_index++;
@@ -324,6 +346,15 @@ uint64_t TmsiAmplifier::next_samples() {
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
 				uint64_t result=AmplifierDriver::next_samples();
 				tms_get_data(msg, br, &dev, channel_data);
+				int saw=fei.nrofswchannels-1;
+//				if (mode==IP_AMPLIFIER)
+//					// Mobita Saw channel is different:
+//					for (int i=0;i<channel_data[saw].ns;i++)
+//					{
+//						int tmp=channel_data[saw].data[i].isample;
+//						channel_data[saw].data[i].isample=(tmp<<16)&(tmp>>16);
+//						cout<<"Switching saw was "<< tmp<<" new: "<<channel_data[saw].data[i].isample;
+//					}
 				channel_data_index = 0;
 				debug("Channel data received...\n");
 				if (--keep_alive==0)
@@ -459,7 +490,7 @@ int TmsiAmplifier::_print_message(FILE * f,uint8_t *msg, int br) {
 }
 
 TmsiAmplifier::~TmsiAmplifier() {
-    stop_sampling();
+    stop_sampling(true);
     if (dev.Channel != NULL) {
         free(dev.Channel);
         dev.Channel = NULL;
@@ -658,6 +689,7 @@ tms_channel_data_t * TmsiAmplifier::alloc_channel_data(bool vldelta = false) {
     /* allocate storage space for all channels */
    
     tms_channel_data_t *channel_data = (tms_channel_data_t *) calloc(channel_count, sizeof (tms_channel_data_t));
+    fprintf(stderr,"fei.channels=%d, dev.channels=%d\n",channel_count,dev.NrOfChannels);
     for (i = 0; i < channel_count; i++) {
         if (i<dev.NrOfChannels)
         if (!vldelta) {

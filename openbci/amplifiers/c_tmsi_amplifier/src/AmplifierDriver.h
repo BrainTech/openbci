@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <iostream>
+#include <signal.h>
 #include "AmplifierDescription.h"
 #include "Logger.h"
 using namespace std;
@@ -42,6 +43,7 @@ public:
 	uint cur_sample;
 	AmplifierDriver():logger(128,"AmplifierDriver"){
 		description=NULL;
+		sampling_rate=sampling_rate_=128;
 	}
 
 	void set_description(AmplifierDescription * description){
@@ -53,11 +55,14 @@ public:
 		if (description)
 			delete description;
 	}
+	void setup_handler();
 	virtual void start_sampling();
 
-	virtual void stop_sampling() {
-		logger.info()<<"Sampling stopped\n";
+	virtual void stop_sampling(bool disconnecting=false) {
 		sampling = false;
+		signal(SIGINT,SIG_DFL);
+		signal(SIGTERM,SIG_DFL);
+		logger.info()<<"Sampling stopped"<< (disconnecting?" and disconnecting":"")<<"\n";
 	}
 	static void stop_sampling_handler(int signal);
 	virtual int fill_samples(vector<int> &samples){
