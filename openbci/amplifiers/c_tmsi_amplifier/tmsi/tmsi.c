@@ -59,7 +59,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.6.0"
+#define DRIVER_VERSION                  "1.6.1"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -200,6 +200,10 @@ static int tmsi_open(struct inode *inode, struct file *file) {
 #else
     dev->packet_buffer = kfifo_alloc(PACKET_BUFFER_SIZE, GFP_KERNEL, &dev->buffer_lock);
 #endif
+    dev->bulk_recv_urb = kmalloc(BULK_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
+    dev->bulk_recv_buffer = kmalloc(BULK_RECV_URBS * sizeof (char *),GFP_KERNEL);
+    dev->isoc_recv_urb = kmalloc(ISOC_RECV_URBS * sizeof (struct urb*), GFP_KERNEL);
+    dev->isoc_recv_buffer = kmalloc(ISOC_RECV_URBS * sizeof (char *),GFP_KERNEL);
     
     // Setup initial bulk receive URB and submit
     pipe=usb_rcvbulkpipe(dev->udev, dev->bulk_recv_endpoint->bEndpointAddress);
