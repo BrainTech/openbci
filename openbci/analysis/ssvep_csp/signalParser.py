@@ -7,8 +7,6 @@ import os.path as osp
 import sys
 #sys.path.reverse()
 import scipy
-print("DUPA "+str(scipy.__version__))
-print scipy
 from scipy.signal import decimate
 
 class signalParser(object):
@@ -178,6 +176,8 @@ class signalParser(object):
         tag_list = []
         for i,exp in enumerate(exp_update_list):
             position = float(exp.attributes['position'].value)
+            if position*self.sampling_frequency> self.sample_count/float(self.channel_count):
+                print("WARNING! Too short signal.")
             if screen:
                 #cor_tab = [36, 38, 40, 42]
                 scr = exp.getElementsByTagName('screen')[0].firstChild.data
@@ -325,6 +325,8 @@ class signalParser(object):
         e = ch[1] + ch[2]
         return ch[0] - e / 2.0
 
+    def nic(self, ch):
+        return ch[0]
     def __is_int(self, x):
         """Checks if x is an integer"""
         try:

@@ -8,8 +8,10 @@ shuffle = True
 #Set frequencies to be part of the experiment
 f1 = [15, 17, 19, 25]#range(15, 17)#15,...,24
 f2 = [15, 17, 19, 25]
-f3 = [13, 15, 17, 19,
-      21, 23, 25, 27]
+#f3 = [13, 15, 17, 19,
+#      21, 23, 14, 16]
+f3 = [30, 32, 34, 36,
+      40, 42, 44, 46]
 #Set screens to be shown, divided into packages. Each package is determined 
 #by one list of strings representing relative path to ugm config file
 #located in openbci/ugm/config/ directory.

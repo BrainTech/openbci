@@ -310,9 +310,11 @@ class modCSP(object):
                     s_pre = signal_tmp[:, to_frequency * (idx ) : to_frequency *\
                             (idx  + signal_time)]
                     dane_A = np.matrix(s_pre)
+
                     R_A = dane_A * dane_A.T / np.trace(dane_A * dane_A.T)
                     cov_pre += R_A
                     pre_i += 1
+            
         if method == 'regular' or method == 'maxcontrast':
             self.P[:,:], self.vals =  self.__get_filter(cov_post / post_i, cov_pre / pre_i)
         elif method == 'pfu':

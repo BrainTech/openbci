@@ -77,7 +77,10 @@ class Hashtable(BaseMultiplexerServer):
         #        "Panel":  "| ligth on :: | sound on :: | speller :: |  :: | light off :: | sound off :: |  :: | ",
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
-        "Freqs": "0 15 17 0 0 19 25 0", #"7 12 8 9 10 11 13 15",
+        #"Freqs": "0 15 17 0 0 19 25 0", #"7 12 8 9 10 11 13 15",
+        #"Freqs": "13 15 17 19 21 23 14 16",
+        "Freqs": "30 32 34 36 40 42 44 46",
+
         #"Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
@@ -105,7 +108,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : 'maciek4', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
+        "SaveFileName" : 'maciek8', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
         "SaveFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "CSPFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
@@ -184,8 +187,8 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        'SPELLER_CONFIG':'multiple_speller_config_8',
-        #'SPELLER_CONFIG':'speller_config_8',
+        #'SPELLER_CONFIG':'multiple_speller_config_8',
+        'SPELLER_CONFIG':'speller_config_8',
 
         #'SPELLER_AREA_COUNT':'6',
         'SPELLER_AREA_COUNT':'8',

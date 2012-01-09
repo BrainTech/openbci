@@ -38,7 +38,9 @@ class CSP(BaseMultiplexerServer):
         to_frequency = 128#Częstotliwość do której będziemy downsamplować; lub częstotliwość próbkowania
         data = sp.signalParser(file_name+'.obci')#Wymaga 3 plików .raw, .xml i .tag o danym prefiksie
         train_tags = data.get_train_tags(tag_filter=('field', '8'))#888 ('field','4'))#Tak na przykład dla 4 częstotliwości
-        freqs = [13, 15, 17, 19, 21, 23, 25, 27] #888 [15, 17, 19, 25]#lista częstotliwości
+        #freqs = [13, 15, 17, 19, 21, 23, 14, 16] 
+        freqs = [30, 32, 34, 36, 40, 42, 44, 46] 
+        #freqs = [15, 17, 19, 25]#lista częstotliwości
         channels = ['O1','O2','T5','P3','Pz','P4','T6']#nazwa kanałów usznych to A1 i A2; jeśli nie to trzeba zmienić
                                                 #modCSPv2 w funkcji prep_signal
         q = csp.modCSP(file_name+'.obci', freqs, channels)

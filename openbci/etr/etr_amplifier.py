@@ -9,7 +9,7 @@ import socket
 from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
 
 BUFFER_SIZE = 1024
-VIRTUAL = True
+VIRTUAL = False
 VIRTUAL_MANUAL = False
 VIRTUAL_CONSTANT = None #0.1
 VIRTUAL_FILE = None #'/home/mati/openbci/openbci/temp/etr_test.etr.dat'
