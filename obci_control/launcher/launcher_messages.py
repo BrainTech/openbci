@@ -21,6 +21,8 @@ message_templates = {
 	"kill_process" : dict(),
 	"restart_process" : dict(),
 	"launch_error" : dict(err_code='', details=''),
+	"all_peers_launched": dict(machine=''),
+	"obci_launch_failed" : dict(machine='', path='', args='', details=''),
 
 	"start_experiment" : dict(),
 	"starting_experiment" : dict(),
@@ -31,7 +33,10 @@ message_templates = {
 	"kill_sent" : dict(),
 
 	"start_mx" : dict(args=''),
-	"start_peers" : dict(mx_data='')
+	"start_peers" : dict(mx_data=''),
+
+	"get_tail" : dict(peer_id='', len=''),
+	"tail" : dict(txt='', experiment_id='', peer_id='')
 }
 
 error_codes = ["invalid_supervisor_data",

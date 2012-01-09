@@ -423,7 +423,7 @@ class LocalProcess(Process):
 		if not self.io_handler:
 			return None
 		else:
-			return self.io_handler.tail_stdout(lines)
+			return self.io_handler.tail_stdout(int(lines))
 
 	def kill(self):
 		self.stop_monitoring()
@@ -575,7 +575,7 @@ class ProcessIOHandler(object):
 				data.append(self.out_tail.pop())
 			except IndexError:
 				break
-		return data
+		return list(reversed(data))
 
 	def process_output(self, lines=None, timeout=None):
 		"""Check if there is data from stdout and stderr (if it is monitored).

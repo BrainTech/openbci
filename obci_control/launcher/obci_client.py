@@ -124,5 +124,17 @@ class OBCIClient(object):
 				self.mtool.fill_msg("kill"))
 		return self._poll_recv(self.server_req_socket, 2000)
 
-	def get_tail(self, strname, peer_id, len):
-		return "Page in construction :P"
+	def get_tail(self, strname, peer_id, len_):
+		response = self.get_experiment_contact(strname)
+
+		if response.type == "rq_error":
+			return response
+
+		sock = self.ctx.socket(zmq.REQ)
+		for addr in response.rep_addrs:
+			sock.connect(addr)
+		self.poller.register(sock, zmq.POLLIN)
+		send_msg(sock, self.mtool.fill_msg("get_tail", peer_id=peer_id, len=len_))
+		response = self._poll_recv(sock, 2000)
+		self.poller.unregister(sock)
+		return response

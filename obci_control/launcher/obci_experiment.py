@@ -172,22 +172,10 @@ class OBCIExperiment(OBCIControlPeer):
 		pass
 
 	def _start_experiment(self):
-		# * check status - if != READY_TO_LAUNCH - error
-		# * start supervisor on origin machine (here)
-		# *  --for every other machine send request for a supervisor
-		# * wait until all supervisors register
-		#				if timeout then error
-		# * if mx, send mx start request for main supervisor
-		# * send peer paths and configs to respective machine supervisors
-		# * send START signal
-		# * gather start reports from all supervisors
-		# * if all processes started and didn't manage to crash before report,
-		#		# ok, status = running
-		# * if something crashed, then shutdown everything
-		#       # error, status = crashed
-		#        ---> send result to the requesting client
-		#print "CREATE EXP!!! {0}".format(message.launch_file)
-
+		"""
+		START EXPERIMENT!!!!
+		##################################################################
+		"""
 		result, details = self._start_all_obci_process_supervisors()
 		if not result:
 			send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
@@ -282,9 +270,20 @@ class OBCIExperiment(OBCIControlPeer):
 	@msg_handlers.handler("launched_process_info")
 	def handle_launched_process_info(self, message, sock):
 		if message.proc_type == 'multiplexer':
+			self._wait_register = len(self.exp_config.peer_machines())
 			send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
 											mx_data=self.mx_args()))
+		elif message.proc_type == 'obci_peer':
+			pass
+		self.status.peer_status(message.name).set_status(
+											launcher_tools.RUNNING)
 
+
+	@msg_handlers.handler("all_peers_launched")
+	def handle_all_peers_launched(self, message, sock):
+		self._wait_register -= 1
+		if self._wait_register == 0:
+				self.status.set_status(launcher_tools.RUNNING)
 
 	def _choose_process_address(self, proc, addresses):
 		addrs = []
@@ -359,6 +358,22 @@ class OBCIExperiment(OBCIControlPeer):
 												details=dict(machine=sv_process.machine_ip,
 															error=txt)))
 		sock.close()
+
+	@msg_handlers.handler("")
+
+
+	@msg_handlers.handler("get_tail")
+	def handle_get_tail(self, message, sock):
+		if self.status.status_name == launcher_tools.RUNNING:
+			machine = self.exp_config.peer_machine(message.peer_id)
+			send_msg(self._publish_socket, message.SerializeToString())
+			self.client_rq = (message, sock)
+
+	@msg_handlers.handler("tail")
+	def handle_tail(self, message, sock):
+		if self.client_rq:
+			if message.peer_id == self.client_rq[0].peer_id:
+				send_msg(self.client_rq[1], message.SerializeToString())
 
 
 def experiment_arg_parser():

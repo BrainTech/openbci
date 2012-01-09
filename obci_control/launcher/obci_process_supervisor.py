@@ -20,7 +20,7 @@ import launcher_tools
 
 import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
-STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
+STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE, DEFAULT_TAIL_RQ
 
 class OBCIProcessSupervisor(OBCIControlPeer):
 
@@ -42,7 +42,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.mx_data = self.set_mx_data()
 		self.env = self.peer_env(self.mx_data)
 		self.launch_data = []
-
+		self.processes = {}
 
 		super(OBCIProcessSupervisor, self).__init__(obci_install_dir,
 											source_addresses=source_addresses,
@@ -127,19 +127,39 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 						'--rules', launcher_tools.mx_rules_path()]
 			proc, details = self._launch_process(path, args, 'multiplexer', 'mx',
 												env=self.env)
+			self.processes['mx'] = proc
 			if proc is not None:
 				self.mx = proc
 
 
 	@msg_handlers.handler("start_peers")
 	def handle_start_peers(self, message, sock):
+		proc, details = None, None
+		success = True
+		path, args = None, None
 		for peer, data in self.launch_data.iteritems():
 			if peer.startswith('mx'):
 				continue
 			path = os.path.join(launcher_tools.obci_root(), data['path'])
 			args = data['args']
 			proc, details = self._launch_process(path, args, data['peer_type'],
-														peer, env=self.env)
+														peer, env=self.env, capture_io=STDOUT)
+			if proc is not None:
+				self.processes[peer] = proc
+			else:
+				success = False
+				break
+		if success:
+			send_msg(self._publish_socket, self.mtool.fill_msg("all_peers_launched",
+													machine=self.ip))
+		else:
+			print "OBCI LAUNCH FAILED"
+			send_msg(self._publish_socket, self.mtool.fill_msg("obci_launch_failed",
+													machine=self.ip, path=path,
+													args=args, details=details))
+			self.processes = {}
+			self.subprocess_mgr.killall()
+
 
 	def _launch_process(self, path, args, proc_type, name,
 									env=None, capture_io=NO_STDIO):
@@ -164,10 +184,23 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 											args=args))
 		return proc, details
 
+	@msg_handlers.handler("get_tail")
+	def handle_get_tail(self, message, sock):
+		lines = message.len if message.len else DEFAULT_TAIL_RQ
+		peer = message.peer_id
+		experiment_id = self.launch_data[peer]['experiment_id']
+		txt = self.processes[peer].tail_stdout(lines=lines)
+		send_msg(self._publish_socket, self.mtool.fill_msg("tail", txt=txt,
+													sender=self.uuid,
+													experiment_id=experiment_id,
+												peer_id=peer))
+
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
+		self.processes = {}
 		self.subprocess_mgr.killall()
 
 	def cleanup(self):
+		self.processes = {}
 		self.subprocess_mgr.killall()
 
 
