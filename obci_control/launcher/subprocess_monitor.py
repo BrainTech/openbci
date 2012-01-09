@@ -56,19 +56,27 @@ class SubprocessMonitor(object):
 
 	def not_running_processes(self):
 		status = {}
-		status[FAILED] = [proc for proc in self.processes.items()\
+		status[FAILED] = [proc for proc in self.processes.values()\
 							if proc.status()[0] == FAILED]
-		status[FINISHED] = [proc for proc in self.processes.items()\
+		status[FINISHED] = [proc for proc in self.processes.values()\
 							if proc.status()[0] == FINISHED]
-		status[TERMINATED] = [proc for proc in self.processes.items()\
+		status[TERMINATED] = [proc for proc in self.processes.values()\
 							if proc.status()[0] == TERMINATED]
-		status[NON_RESPONSIVE] = [proc for proc in self.processes.items()\
+		status[NON_RESPONSIVE] = [proc for proc in self.processes.values()\
 							if proc.status()[0] == NON_RESPONSIVE]
 		return status
 
 	def unknown_status_processes(self):
-		return [proc for proc in self.processes.items()\
+		return [proc for proc in self.processes.values()\
 							if proc.status()[0] == UNKNOWN]
+
+	def process(self, machine_ip, pid):
+		return self.processes.get((machine_ip, pid), None)
+
+	def killall(self):
+		for proc in self.processes.values():
+			proc.kill()
+			del proc
 
 
 	def new_local_process(self, path, args, proc_type='', name='',
@@ -77,13 +85,14 @@ class SubprocessMonitor(object):
 								stderr_log=None,
 								register_timeout_desc=None,
 								monitoring_optflags=RETURNCODE | PING,
-								machine_ip=None):
+								machine_ip=None,
+								env=None):
 
 		if path.endswith('.py'):
 			launch_args = PYTHON_CALL +[path] + args
 		else:
 			launch_args = [path] + args
-		print "loc.PATH:  ", path
+		print "[subprocess monitor] local path:  ", path
 		machine = machine_ip if machine_ip else net.ext_ip(ifname=net.server_ifname())
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
@@ -102,7 +111,7 @@ class SubprocessMonitor(object):
 		try:
 			popen_obj = subprocess.Popen(launch_args,
 										stdout=out, stderr=err, stdin=stdin,
-										bufsize=1, close_fds=ON_POSIX)
+										bufsize=1, close_fds=ON_POSIX, env=env)
 		except OSError as e:
 			details = "{0} : Unable to spawn process {1} [{2}]".format(
 														machine, path, e.args)
@@ -216,7 +225,6 @@ class SubprocessMonitor(object):
 											pid=result.pid)
 
 
-
 			new_proc = RemoteProcess(process_desc, conn_addr,
 								reg_timeout_desc=timeout_desc,
 								monitoring_optflags=monitoring_optflags)
@@ -255,7 +263,7 @@ class Process(object):
 		self._status = UNKNOWN if self.must_register else RUNNING
 		self._status_details = None
 
-		self.ping_it = monitoring_optflags & PING if self.must_register else False
+		self.ping_it = monitoring_optflags & PING
 		self.check_returncode = monitoring_optflags & RETURNCODE if \
 										self.desc.pid is not None else False
 
@@ -268,6 +276,9 @@ class Process(object):
 		self._mtool = OBCIMessageTool(message_templates)
 		self._ctx = None
 		self.rq_sock = None
+		self._poller = PollingObject()
+
+		self.delete = False
 
 
 	@property
@@ -295,10 +306,14 @@ class Process(object):
 			return self._status, self._status_details
 
 	def set_registration_timeout_handler(self, reg_timeout_desc):
+		with self._status_lock:
+			self._status = UNKNOWN
+			self._status_details = None
 		self.must_register = reg_timeout_desc is not None
 		self.reg_timeout_desc = reg_timeout_desc
 		self.reg_timer = None if not self.must_register else \
 										self.new_timer(self.reg_timeout_desc, _REG_TIMER)
+
 		if self.must_register:
 			self.reg_timer.start()
 
@@ -307,7 +322,7 @@ class Process(object):
 
 	def timeout_handler(self, custom_method, args, type_):
 		self._do_handle_timeout(type_)
-		custom_method(args)
+		custom_method(*args)
 
 	def _do_handle_timeout(self, type_):
 		raise NotImplementedError()
@@ -319,7 +334,8 @@ class Process(object):
 	def registered(self, reg_data):
 		if self.reg_timer is not None:
 			self.reg_timer.cancel()
-		print "YAY, registered!!!!!!", reg_data.machine_ip
+		print "[subprocess_monitor] {0} [{1}]  REGISTERED!!! {2}".format(self.name, self.proc_type, reg_data.machine_ip)
+		print "ping:", self.ping_it, "ret:", self.check_returncode
 		with self._status_lock:
 			self._status = RUNNING
 		#TODO validate registration data
@@ -336,10 +352,20 @@ class Process(object):
 		self._stop_monitoring = True
 
 		if self._ping_thread is not None:
+			print "[subprocess_monitor]", self.name ,"Joining ping thread"
 			self._ping_thread.join()
 		if self._returncode_thread is not None:
+			print "[subprocess_monitor]", self.name, "joining returncode thread"
 			self._returncode_thread.join()
-		print self.name, "  ...monitoring threads stopped."
+		print "[subprocess_monitor] monitor for: ", self.name, "  ...monitoring threads stopped."
+
+	def finished(self):
+		return self.popen_obj.returncode is not None and\
+			(not self._ping_thread.is_alive()) and \
+			(not self._returncode_thread.is_alive())
+
+	def process_is_running(self):
+		return self.popen_obj.returncode is None
 
 	def start_monitoring(self):
 		if self.ping_it:
@@ -357,14 +383,14 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = self.poller.poll_recv(socket=rq_sock, timeout=4)
+				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=4)
 				if not result:
 					with self._status_lock:
 						if self._status not in [FAILED, FINISHED]:
 							self._status = NON_RESPONSIVE
 							self._status_details = 'ping response timeout'
-						else:
-							is_alive = False
+
+						is_alive = False
 
 
 	def returncode_monitor(self):
@@ -417,6 +443,8 @@ class LocalProcess(Process):
 			self._status = TERMINATED
 
 
+
+
 	def returncode_monitor(self):
 		# TODO just use wait() instead of poll()ing every 0.5s
 		while not self._stop_monitoring:
@@ -424,7 +452,7 @@ class LocalProcess(Process):
 			code = self.popen_obj.returncode
 
 			if code is not None:
-				print "aaaaahaha  ", code
+				print "[subprocess_monitor]","process", self.name, "pid", self.pid, "ended with", code
 				with self._status_lock:
 					self.popen_obj.wait()
 					if code == 0:
@@ -567,9 +595,19 @@ class ProcessIOHandler(object):
 
 	def stop_output_handler(self):
 		self._stop = True
+		self._output_handler_thread.join(timeout=0.1)
+		if self.stdout:
+			self._stdout_thread.join(timeout=0.1)
+		if self.stderr:
+			self._stderr_thread.join(timeout=0.1)
+		return self.finished()
 
 	def is_running(self):
 		return self._stop == False and self.__io_readers_alive()
+
+	def finished(self):
+		return (not self.__io_readers_alive()) and \
+				(not self._output_handler_thread.is_alive())
 
 	def __io_readers_alive(self):
 		alive = False

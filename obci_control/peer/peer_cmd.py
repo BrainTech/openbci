@@ -5,7 +5,7 @@ import os
 import argparse
 
 from common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
-							PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES
+							PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES, CS, LP, LD, EP
 
 import common.obci_control_settings
 
@@ -20,18 +20,18 @@ class PeerCmd(object):
 		self.parser.add_argument('peer_id',
 									help="Unique name for this instance of this peer")
 
-		self.parser.add_argument('-p', '--'+LOCAL_PARAMS,
+		self.parser.add_argument(LP, '--'+LOCAL_PARAMS,
 									nargs=2,
 									action=PeerParamAction,
 									help="Local parameter override value: param_name, value.",
 									type=str)
-		self.parser.add_argument('-e', '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
+		self.parser.add_argument(EP, '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
 									help="External parameter override value: param_name value .")
 
 
-		self.parser.add_argument('-c', '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
+		self.parser.add_argument(CS, '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
 									help="Config source ID assignment: src_name peer_id")
-		self.parser.add_argument('-d', '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
+		self.parser.add_argument(LD, '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
 									help="Launch dependency ID assignment: dep_name peer_id")
 
 		self.parser.add_argument('-f', '--config_file', type=path_to_file, action='append',

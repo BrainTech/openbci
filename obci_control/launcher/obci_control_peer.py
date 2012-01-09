@@ -9,8 +9,8 @@ import threading
 
 import argparse
 
-from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
+from common.message import OBCIMessageTool, send_msg, recv_msg
 import common.net_tools as net
 import common.obci_control_settings as settings
 
@@ -20,19 +20,20 @@ class HandlerCollection(object):
 		self.handlers = {}
 		self.default = self._default_handler
 		self.error = self._error_handler
+		self.unsupported = self._error_handler
 
 	def new_from(other):
+		return HandlerCollection._new_from(other)
+
+	def copy(self):
+		return HandlerCollection._new_from(self)
+
+	def _new_from(other):
 		new = HandlerCollection()
 		new.handlers = dict(other.handlers)
 		new.default = other.default
 		new.error = other.error
-		return new
-
-	def copy(self):
-		new = HandlerCollection()
-		new.handlers = dict(self.handlers)
-		new.default = self.default
-		new.error = self.error
+		new.unsupported = other.unsupported
 		return new
 
 	def _default_handler(*args):
@@ -59,6 +60,12 @@ class HandlerCollection(object):
 			return fun
 		return save_error_handler
 
+	def unsupported_handler(self):
+		def save_unsupported_handler(fun):
+			self.unsupported = fun
+			return fun
+		return save_unsupported_handler
+
 	def handler_for(self, message_name):
 		handler = self.handlers.get(message_name, None)
 
@@ -82,6 +89,7 @@ class OBCIControlPeer(object):
 		self.source_addresses = source_addresses if source_addresses else []
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses
+		self._all_sockets = []
 		self.obci_dir = obci_install_dir
 		self._pull_addr = 'inproc://publisher_msg'
 		self._push_addr = 'inproc://publisher'
@@ -92,12 +100,15 @@ class OBCIControlPeer(object):
 
 		self.mtool = self.message_tool()
 
-		self.ctx = zmq.Context()
+		if not hasattr(self, "ctx"):
+			self.ctx = zmq.Context()
 
 		self.net_init()
 
 		if self.source_addresses:
-			self.register()
+			self.registration_response = self.register()
+			self._handle_registration_response(self.registration_response)
+		else: self.registration_response = None
 
 		self.interrupted = False
 		signal.signal(signal.SIGTERM, self.signal_handler())
@@ -106,8 +117,6 @@ class OBCIControlPeer(object):
 
 	def signal_handler(self):
 		def handler(signum, frame):
-			#print "Process {0} (uuid {1}) interrupted!\
-#Signal: {2}, frame: {3}".format(self.name, self.uuid, signum, frame)
 			self.interrupted = True
 		return handler
 
@@ -122,6 +131,7 @@ class OBCIControlPeer(object):
 		# (which reads them in _register method)
 		pub_sock, self.pub_addresses = self._init_socket(
 									pub_addrs, zmq.PUB)
+
 		pull_sock = self.ctx.socket(zmq.PULL)
 		pull_sock.bind(pull_address)
 
@@ -137,6 +147,11 @@ class OBCIControlPeer(object):
 				send_msg(pub_sock, to_publish)
 			except:
 				#print self.name, '.Publisher -- STOP.'
+
+				print "close  sock ", pub_addrs, pub_sock
+				pub_sock.close()
+				pull_sock.close()
+				push_sock.close()
 				break
 
 	def _push_sock(self, ctx, addr):
@@ -157,34 +172,41 @@ class OBCIControlPeer(object):
 		self.pub_thr.start()
 		recv_msg(tmp_pull)
 		self._publish_socket = self._push_sock(self.ctx, self._push_addr)
+		self._all_sockets.append(self._publish_socket)
+		tmp_pull.close()
 
 	def net_init(self):
 		# (self.pub_socket, self.pub_addresses) = self._init_socket(
 		# 										self.pub_addresses, zmq.PUB)
+		self._all_sockets = []
 		self._prepare_publisher()
 
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
+		self._all_sockets.append(self.rep_socket)
 
-		print "\nname: {0}, uuid: {1}".format(self.name, self.uuid)
-		print "rep: {0}".format(self.rep_addresses)
-		print "pub: {0}\n".format(self.pub_addresses)
+		print "\n\tname: {0}\n\tpeer_type: {1}\n\tuuid: {2}\n".format(
+									self.name, self.peer_type(), self.uuid)
+		#print "rep: {0}".format(self.rep_addresses)
+		#print "pub: {0}\n".format(self.pub_addresses)
 
 		self.source_req_socket = self.ctx.socket(zmq.REQ)
-		print self.name, "  SOURCE ADDRS  ", self.source_addresses
+
 		if self.source_addresses:
 			for addr in self.source_addresses:
 				self.source_req_socket.connect(addr)
+		self._all_sockets.append(self.source_req_socket)
 		self._set_poll_sockets()
 
 	def _init_socket(self, addrs, zmq_type, create_ipc=True):
-
+		basic_addrs = [ "tcp://"+net.lo_ip(),
+						"tcp://"+net.ext_ip(ifname=net.server_ifname())]
 		ipc_name=''
 		if not addrs:
 			#addresses = [addr for addr in self.source_addresses \
 			#									if net.is_net_addr(addr)]
 			#if not self.source_addresses:
-			addresses = ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip(ifname=net.server_ifname())]
+			addresses = basic_addrs
 			random_port = True
 			if create_ipc:
 				ipc_name=self.name+'.'+self.uuid
@@ -194,7 +216,7 @@ class OBCIControlPeer(object):
 			if not [addr for addr in addresses if not net.is_net_addr(addr)] and create_ipc:
 				ipc_name=self.name+'.'+self.uuid
 			if not [addr for addr in addresses if net.is_net_addr(addr)]:
-				addresses += ["tcp://"+net.lo_ip(), "tcp://"+net.ext_ip(ifname=net.server_ifname())]
+				addresses += basic_addrs
 				random_port = True
 
 		return net.public_socket(addresses, zmq_type, self.ctx,
@@ -213,12 +235,17 @@ class OBCIControlPeer(object):
 		response_str = recv_msg(self.source_req_socket)
 		response = self.mtool.unpack_msg(response_str)
 		if response.type == "rq_error":
-			print "Registration failed: {0}".format(response_str)
+			print "{0} [{1}] Registration failed: {2}".format(
+										self.name, self.peer_type(),response_str)
 			sys.exit(2)
+		return response
 
 	def register(self):
 		params = self.params_for_registration()
-		self._register(self.rep_addresses, self.pub_addresses, params)
+		return self._register(self.rep_addresses, self.pub_addresses, params)
+
+	def _handle_registration_response(self, response):
+		pass
 
 	def shutdown(self):
 		print '{0} [{1}] -- IS SHUTTING DOWN'.format(self.name, self.peer_type())
@@ -254,7 +281,7 @@ class OBCIControlPeer(object):
 			try:
 				socks = dict(poller.poll())
 			except zmq.ZMQError, e:
-				print self.name +": zmq.poll(): " + e.strerror
+				print self.name + ' ['+self.peer_type() + ']' +": zmq.poll(): " + e.strerror
 
 			for sock in socks:
 				if socks[sock] == zmq.POLLIN:
@@ -266,7 +293,7 @@ class OBCIControlPeer(object):
 
 			self._update_poller(poller, poll_sockets)
 
-		self.clean_up()
+		self._clean_up()
 
 
 	def _update_poller(self, poller, curr_sockets):
@@ -280,38 +307,51 @@ class OBCIControlPeer(object):
 				poller.deregister(sock)
 		curr_sockets = new_sockets
 
+
 	def pre_run(self):
 		pass
 
+	def _clean_up(self):
+		for sock in self._all_sockets:
+			#print self.name, "closing ", sock
+			sock.close()
+		# try:
+		# 	self.ctx.term()
+		# except zmq.ZMQError(), e:
+		# 	print "Ctx closing interrupted."
+		self.clean_up()
+
 	def clean_up(self):
-		print "Cleaning up"
+		print "{0} [{1}], Cleaning up".format(self.name, self.peer_type())
 
 
 ########## message handling ######################################
 
 	def handle_message(self, message, sock):
 
-		handler = self.default_handler
+		handler = self.msg_handlers.default
 		try:
 			msg = self.mtool.unpack_msg(message)
-			print "{0} [{1}], got message: {2}".format(
+			if msg.type != "ping":
+				print "{0} [{1}], got message: {2}".format(
 										self.name, self.peer_type(), msg.type)
 		except ValueError:
-			print "Bad message format! {0}".format(message)
+			print "{0} [{1}], Bad message format! {2}".format(
+									self.name, self.peer_type(),message)
 			if sock.getsockopt(zmq.TYPE) == zmq.REP:
-				handler = self.bad_msg_handler
+				handler = self.msg_handlers.error
 		else:
 			msg_type = msg.type
 
 
 			handler = self.msg_handlers.handler_for(msg_type)
 			if handler is None:
-				print "Unknown message type: {0}".format(msg_type)
+				print "{0} [{1}], Unknown message type: {2}".format(
+										self.name, self.peer_type(),msg_type)
 				print message
 
-				handler = self.unsupported_msg_handler
-
-		handler(self,msg, sock)
+				handler = self.msg_handlers.unsupported
+		handler(self, msg, sock)
 
 	@msg_handlers.handler("register_peer")
 	def handle_register_peer(self, message, sock):
@@ -330,13 +370,15 @@ class OBCIControlPeer(object):
 		"""Ignore message"""
 		pass
 
+	@msg_handlers.unsupported_handler()
 	def unsupported_msg_handler(self, message, sock):
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
 			msg = self.mtool.fill_msg("rq_error",
-					request=vars(message), err_code="unsupported_msg_type")
+					request=vars(message), err_code="unsupported_msg_type", sender=self.uuid)
 			send_msg(sock, msg)
 		print "--"
 
+	@msg_handlers.error_handler()
 	def bad_msg_handler(self, message, sock):
 		msg = self.mtool.fill_msg("rq_error",
 					request=vars(message), err_code="invalid_msg_format")
@@ -347,6 +389,7 @@ class OBCIControlPeer(object):
 
 		if not message.receiver or message.receiver == self.uuid:
 			self.cleanup_before_net_shutdown(message, sock)
+			self._clean_up()
 			self.shutdown()
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):

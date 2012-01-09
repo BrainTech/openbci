@@ -17,9 +17,10 @@ message_templates = {
 
 	"launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
 									capture_io='', stdout_log='', stderr_log=''),
-	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type=''),
+	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type='', details=''),
 	"kill_process" : dict(),
 	"restart_process" : dict(),
+	"launch_error" : dict(err_code='', details=''),
 
 	"start_experiment" : dict(),
 	"starting_experiment" : dict(),
@@ -27,8 +28,10 @@ message_templates = {
 	"process_supervisor_registered" : dict(machine_ip=''),
 
 	"kill_experiment" : dict(strname='', force=''),
-	"kill_sent" : dict()
+	"kill_sent" : dict(),
 
+	"start_mx" : dict(args=''),
+	"start_peers" : dict(mx_data='')
 }
 
 error_codes = ["invalid_supervisor_data",

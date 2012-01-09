@@ -9,6 +9,7 @@ class PeerConfigSerializer(object):
 
 	config_parts = [
 		helpers.CONFIG_SOURCES,
+		helpers.LAUNCH_DEPENDENCIES,
 		helpers.EXT_PARAMS,
 		helpers.LOCAL_PARAMS
 	]
@@ -24,14 +25,15 @@ class PeerConfigSerializer(object):
 		self._save(p_file_obj)
 
 	def _prepare(self, p_config):
-		raise NotImplemented
+		raise NotImplementedError()
 
 	def _save(self, p_file_obj):
-		raise NotImplemented
+		raise NotImplementedError()
 
 	def _do_serialize(self, p_config):
 
 		self._serialize_config_sources(p_config.config_sources)
+		self._serialize_launch_deps(p_config.launch_deps)
 		self._serialize_local_params(p_config.param_values,
 									 p_config.ext_param_defs)
 		self._serialize_ext_params(p_config.param_values,
@@ -55,13 +57,16 @@ class PeerConfigSerializer(object):
 		self._serialize_ext_params(params, p_config.ext_param_defs)
 
 	def _serialize_config_sources(self, p_sources):
-		raise NotImplemented
+		raise NotImplementedError()
+
+	def _serialize_launch_deps(self, p_deps):
+		raise NotImplementedError()
 
 	def _serialize_ext_params(self, p_values, p_ext_param_defs):
-		raise NotImplemented
+		raise NotImplementedError()
 
 	def _serialize_local_params(self, p_values, p_ext_param_defs):
-		raise NotImplemented
+		raise NotImplementedError()
 
 
 class PeerConfigSerializerINI(PeerConfigSerializer):
@@ -79,6 +84,10 @@ class PeerConfigSerializerINI(PeerConfigSerializer):
 	def _serialize_config_sources(self, p_sources):
 		for src in p_sources.keys():
 			self.parser.set(helpers.CONFIG_SOURCES, src, '')
+
+	def _serialize_launch_deps(self, p_deps):
+		for src in p_deps.keys():
+			self.parser.set(helpers.LAUNCH_DEPENDENCIES, src, '')
 
 	def _serialize_ext_params(self, p_values, p_ext_param_defs):
 		for name, value in p_values.iteritems():
@@ -106,6 +115,9 @@ class PeerConfigSerializerJSON(PeerConfigSerializer):
 	def _serialize_config_sources(self, p_sources):
 		self.dic[helpers.CONFIG_SOURCES] = p_sources
 
+	def _serialize_launch_deps(self, p_deps):
+		self.dic[helpers.LAUNCH_DEPENDENCIES] = p_deps
+
 	def _serialize_local_params(self, p_values, p_ext_param_defs):
 		self.dic[helpers.LOCAL_PARAMS] = {}
 		for name, value in p_values.iteritems():
@@ -118,6 +130,38 @@ class PeerConfigSerializerJSON(PeerConfigSerializer):
 			if name in p_ext_param_defs:
 				(src, par) = p_ext_param_defs[name]
 				self.dic[helpers.EXT_PARAMS][name] = src + '.' + par
+
+class PeerConfigSerializerCmd(PeerConfigSerializer):
+	def __init__(self):
+		self.args = []
+
+	def _prepare(self, p_config):
+		self.args = []
+
+	def _save(self, p_file_obj):
+		#p_file_obj.write(str(self.args))
+		print self.args
+		for a in self.args:
+			p_file_obj.append(a)
+		#p_file_obj = self.args
+
+	def _serialize_config_sources(self, p_sources):
+		for sname, peer_id in p_sources.iteritems():
+			self.args += [helpers.CS, sname, peer_id]
+
+	def _serialize_launch_deps(self, p_deps):
+		for sname, peer_id in p_deps.iteritems():
+			self.args += [helpers.LD, sname, peer_id]
+
+	def _serialize_local_params(self, p_values, p_ext_param_defs):
+		for name, value in p_values.iteritems():
+			if name not in p_ext_param_defs:
+				self.args += [helpers.LP, name, value]
+
+	def _serialize_ext_params(self, p_values, p_ext_param_defs):
+		for name, value in p_values.iteritems():
+			if name in p_ext_param_defs and value is not None:
+				self.args += [helpers.EP, name, value]
 
 #TODO?
 class PeerConfigSerializerProtobuf(PeerConfigSerializer):

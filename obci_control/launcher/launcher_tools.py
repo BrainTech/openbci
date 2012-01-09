@@ -88,8 +88,16 @@ def update_pythonpath():
 
 
 def mx_path():
-	return os.path.join(obci_root(), 'multiplexer-install', 'bin')
+	return os.path.join(obci_root(), 'multiplexer-install', 'bin', 'mxcontrol')
 
+def mx_rules_path():
+	return os.path.join(obci_root(), 'multiplexer.rules')
+
+
+def module_path(module):
+	path = module.__file__
+	path = '.'.join([path.rsplit('.', 1)[0], 'py'])
+	return os.path.normpath(path)
 
 
 if __name__=='__main__':

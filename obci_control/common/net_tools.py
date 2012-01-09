@@ -115,8 +115,6 @@ def server_address(sock_type='rep', local=False, ifname=None, peer_ip=None):
 	if not ifname and not peer_ip:
 		ifname = parser.get('server', 'ifname')
 
-	print "INTERFACE: ", ifname, "PORT  ", port
-
 	ip = lo_ip() if local else ext_ip(ifname=ifname, peer_ip=peer_ip)
 	return 'tcp://' + ip + ':' + port
 

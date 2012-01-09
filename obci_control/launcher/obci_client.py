@@ -117,3 +117,12 @@ class OBCIClient(object):
 		send_msg(self.server_req_socket,
 				self.mtool.fill_msg("kill_experiment", strname=strname))
 		return self._poll_recv(self.server_req_socket, 2000)
+
+
+	def srv_kill(self):
+		send_msg(self.server_req_socket,
+				self.mtool.fill_msg("kill"))
+		return self._poll_recv(self.server_req_socket, 2000)
+
+	def get_tail(self, strname, peer_id, len):
+		return "Page in construction :P"

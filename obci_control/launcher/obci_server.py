@@ -14,6 +14,7 @@ import zmq
 
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates, error_codes
+from launcher_tools import module_path
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
@@ -38,22 +39,20 @@ class OBCIServer(OBCIControlPeer):
 		self.other_addrs = other_srv_ips
 
 		self.experiments = {}
-		self.exp_processes = {}
-
 		self.exp_process_supervisors = {}
 
 		self.machine = net.ext_ip(ifname=net.server_ifname())
 
-		self.__all_sockets = []
-
 		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
 														  pub_addresses,
 														  name)
+
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
-		#TODO do sth with other server rep addresses
+
 
 	def peer_type(self):
 		return 'obci_server'
+
 
 	def net_init(self):
 
@@ -61,20 +60,20 @@ class OBCIServer(OBCIControlPeer):
 												['ipc://rep_server_exp.ipc'], zmq.REP)
 		(self.exp_pub, self.exp_pub_addrs) = self._init_socket(
 												['ipc://pub_server_exp.ipc'], zmq.PUB)
+		self.exp_pub.setsockopt(zmq.LINGER, 0)
+		self._all_sockets.append(self.exp_rep)
+		self._all_sockets.append(self.exp_pub)
 		super(OBCIServer, self).net_init()
-		# (self.srv_rep, self.srv_addresses) = self._init_socket(
-		# 										None, zmq.REP)
-		# (self.srv_pub, self.srv_addresses) = self._init_socket(
-		# 										None, zmq.PUB)
 
 
 	def custom_sockets(self):
 		return [self.exp_rep]#, self.srv_rep, self.srv_pub]
 
+
 	def pre_run(self):
 		"""
 		Subclassed from OBCIControlPeer. Create a file in temp directory with
-		REP addresses.
+		self's PID.
 		"""
 		directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 		if not os.path.exists(directory):
@@ -94,8 +93,13 @@ probably a server is already working"
 
 
 	def clean_up(self):
-		# send "die" to everybody
 		os.remove(self.fpath)
+
+	def cleanup_before_net_shutdown(self, kill_message, sock=None):
+		send_msg(self.exp_pub,
+						self.mtool.fill_msg("kill", receiver=""))
+		print '{0} [{1}] -- sent KILL to experiments'.format(self.name, self.peer_type())
+
 
 	def _args_for_experiment(self, sandbox_dir, launch_file, local=False):
 
@@ -115,59 +119,46 @@ probably a server is already working"
 		return args
 
 	def start_experiment_process(self, sandbox_dir, launch_file):
-		path = obci_experiment.__file__
-		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
-		print "PATH:  ", path
+		path = module_path(obci_experiment)
 
-		args = ['python', '-u', path]
-		args += self._args_for_experiment(sandbox_dir, launch_file, local=True)
+		args = self._args_for_experiment(sandbox_dir, launch_file, local=True)
 
-		result, details, exp, reg_timer = False, None, None, None
+		return self.subprocess_mgr.new_local_process(path, args,
+											proc_type='obci_experiment',
+											capture_io=NO_STDIO)
 
-		try:
-			exp = subprocess.Popen(args)
-		except OSError as e:
-			details = e.args
-			print "Unable to spawn experiment!!!", e
-
-		except ValueError as e:
-			details = e.args
-			print "Bad arguments!"
-		else:
-			result = True
-			print "SRV starting EXP: ", args
-			reg_timer = threading.Timer(REGISTER_TIMEOUT,
-										self._handle_register_experiment_timeout,
-										[exp])
-			reg_timer.start()
-
-		return result, details, exp, reg_timer
 
 
 	def handle_register_experiment(self, message, sock):
+		machine, pid = message.other_params['origin_machine'], message.other_params['pid']
+
+		exp_proc = self.subprocess_mgr.process(machine, pid)
+
+		if exp_proc is None:
+			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="experiment_not_found"))
+			return
+
 		info = self.experiments[message.uuid] = ExperimentInfo(message.uuid,
 															message.name,
 															message.rep_addrs,
 															message.pub_addrs,
 															time.time(),
-															message.other_params['origin_machine'],
-															message.other_params['pid'])
+															machine,
+															pid)
+
+		exp_proc.registered(info)
 
 		if self.client_rq:
 			msg_type = self.client_rq[0].type
 			rq_sock = self.client_rq[1]
 			if msg_type == "create_experiment":
-				timer = self.client_rq[2]
 				self.client_rq = None
-				timer.cancel()
 				send_msg(rq_sock, self.mtool.fill_msg("experiment_created",
 												uuid=info.uuid,
 												name=info.name,
 												rep_addrs=info.rep_addrs,
 												pub_addrs=info.pub_addrs,
 												machine=info.origin_machine))
-		print ":):):):):):)------------------------------"
-		print self.msg_handlers._handlers["register_peer"].__doc__
 
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
 
@@ -177,7 +168,6 @@ probably a server is already working"
 		if exp.returncode is None:
 			exp.kill()
 			exp.wait()
-		del self.exp_processes[pid]
 
 		msg_type = self.client_rq[0].type
 		rq_sock = self.client_rq[1]
@@ -199,24 +189,25 @@ probably a server is already working"
 
 	@msg_handlers.handler("create_experiment")
 	def handle_create_experiment(self, message, sock):
-		#print "CREATE EXP!!! {0}".format(message.launch_file)
+
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
 
 		sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
 
-		result, details, exp, reg_timer = \
+		exp, details = \
 							self.start_experiment_process(sandbox, launch_file)
 
-		if result is False:
-			print "BLEEEEEE"
+		if exp is None:
+			print "failed to launch experiment process"
 			send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
 								err_code='launch_error', details=details))
 		else:
-			print "launched:  ", exp.pid
-			self.exp_processes[exp.pid] = exp
-			# now wait for experiment to register itself here
-			self.client_rq = (message, sock, reg_timer)
+			print "{0} [{1}] -- experiment process launched:  {2}".format(
+										self.name, self.peer_type(), exp.pid)
+			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+				self.client_rq = (message, sock)
+
 
 	@msg_handlers.handler("list_experiments")
 	def handle_list_experiments(self, message, sock):
@@ -226,6 +217,7 @@ probably a server is already working"
 
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
 												exp_data=exp_data))
+
 
 	def _handle_match_name(self, message, sock, this_machine=False):
 		matches = self.exp_matching(message.strname)
@@ -249,6 +241,7 @@ probably a server is already working"
 		if msg and sock.socket_type in [zmq.REP, zmq.ROUTER]:
 			send_msg(sock, msg)
 		return match
+
 
 	@msg_handlers.handler("get_experiment_contact")
 	def handle_get_experiment_contact(self, message, sock):
@@ -285,12 +278,12 @@ probably a server is already working"
 
 		return experiments
 
+
 	@msg_handlers.handler("kill_experiment")
 	def handle_kill_experiment(self, message, sock):
 		match = self._handle_match_name(message, sock, this_machine=True)
 
 		if match:
-
 			if not message.force:
 				print "{0} [{1}] - sending kill to experiment {2} ({3})".format(
 									self.name, self.peer_type(),match.uuid, match.name)
@@ -300,32 +293,29 @@ probably a server is already working"
 				send_msg(sock, self.mtool.fill_msg("kill_sent"))
 				pid = match.experiment_pid
 				uid = match.uuid
-				match.kill_timer = threading.Thread(
-									target=self._handle_killing_exp, args=[pid, uid])
+				print "{0} [{1}]  Waiting for experiment process {2} to terminate".format(
+															self.name, self.peer_type(), uid)
+				match.kill_timer = threading.Timer(1.1,
+									self._handle_killing_exp, args=[pid, uid])
 				match.kill_timer.start()
-				#match.kill_timer = threading.Timer(REGISTER_TIMEOUT,
-				#						self._handle_kill_experiment_timeout,
-				#						[match])
+
 
 	def _handle_killing_exp(self, pid, uid):
-		print "Waiting for experiment process {0} to terminate".format(uid)
-
-		if pid in self.exp_processes:
-			popen_obj = self.exp_processes[pid]
-
-			returncode = popen_obj.wait()
-			print "{0} [{1}] - experiment {2} FINISHED".format(
+		proc = self.subprocess_mgr.process(self.machine, pid)
+		if proc.process_is_running():
+			proc.kill()
+		print "{0} [{1}] - experiment {2} FINISHED".format(
 									self.name, self.peer_type(), uid)
+		proc.delete = True
+		del self.experiments[uid]
+		return proc.popen_obj.returncode
 
-			del self.exp_processes[pid]
-			if uid in self.experiments:
-				del self.experiments[uid]
-			return returncode
 
 	@msg_handlers.handler("launch_process")
 	def handle_launch_process(self, message, sock):
 		if message.proc_type == 'obci_process_supervisor':
 			self._handle_launch_process_supervisor(message, sock)
+
 
 	def _handle_launch_process_supervisor(self, message, sock):
 		sv_obj, details = self._start_obci_supervisor_process( message)
@@ -346,16 +336,19 @@ probably a server is already working"
 												details=details))
 			print "LAUNCH FAILURE"
 
+
 	@msg_handlers.handler("kill_process_supervisor")
 	def handle_kill_process_supervisor(self, message, sock):
 		proc = self.exp_process_supervisors.get(message.sender, None)
 		if not proc:
 			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="experiment_not_found"))
 		else:
+			#TODO
 			proc.kill()
-			proc.popen_obj.wait()
+
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
 			del self.exp_process_supervisors[message.sender]
+
 
 
 	def _start_obci_supervisor_process(self, rq_message):
@@ -392,6 +385,14 @@ class ExperimentInfo(object):
 		except KeyError as e:
 			return None, e.args
 
+	@property
+	def machine_ip(self):
+		return self.origin_machine
+
+	@property
+	def pid(self):
+		return self.experiment_pid
+
 	def info(self):
 		d = dict(uuid=self.uuid,
 				name=self.name,
@@ -422,5 +423,5 @@ if __name__ == '__main__':
 
 	srv = OBCIServer(args.obci_dir, args.other_srv_ips,
 							args.rep_addresses, args.pub_addresses, args.name)
-	print srv.msg_handlers.handlers["register_peer"].__doc__
+
 	srv.run()

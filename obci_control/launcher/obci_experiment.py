@@ -66,25 +66,34 @@ class OBCIExperiment(OBCIControlPeer):
 		result, details = self.make_experiment_config()
 
 		if not result and self.launch_file:
-			print "LAUNCH FILE INVALID"
+			print "- - - - - - -  LAUNCH FILE INVALID!!!  - - - - - - - "
 
 		self.exp_config.status(self.status)
 		self.status.details = details
+
+		self.mx_addr = None
+		self.mx_pass = None
+
 
 
 
 	def net_init(self):
 		self.source_sub_socket = self.ctx.socket(zmq.SUB)
 		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+
 		if self.source_pub_addresses:
 			for addr in self.source_pub_addresses:
 				self.source_sub_socket.connect(addr)
+		self._all_sockets.append(self.source_sub_socket)
 
 		(self.supervisors_rep, self.supervisors_rep_addrs) = self._init_socket(
 									['ipc://rep_experiment_supervisors-'+self.uuid +'.ipc'],
 									zmq.REP)
 		(self.supervisors_sub, self.supervisors_sub_addrs) = (self.ctx.socket(zmq.SUB), [])
-		print "EXPERIMENT!!!  ", self.source_addresses, self.origin_machine
+
+		self._all_sockets.append(self.supervisors_sub)
+		self._all_sockets.append(self.supervisors_rep)
+
 		super(OBCIExperiment, self).net_init()
 
 	def params_for_registration(self):
@@ -101,58 +110,66 @@ class OBCIExperiment(OBCIControlPeer):
 			addrs = net.choose_local(self.pub_addresses)
 		else:
 			addrs = net.choose_not_local(self.pub_addresses)
+		launch_data = self.exp_config.launch_data(machine)
 
 		args += [addrs.pop()] #self.pub_addresses
 		args += [
 					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),
-					'--name', 'sv-' + os.path.basename(self.launch_file) +\
+					'--name', os.path.basename(self.launch_file) +\
 							 '-' + self.uuid.split('-',1)[0] + \
-							'-' + machine]
+							'-' + machine
+					]
 		return args
 
-	def _start_obci_supervisor_process(self, args_for_proc_supervisor):
-		path = obci_process_supervisor.__file__
-		path = '.'.join([path.rsplit('.', 1)[0], 'py'])
 
-		args = args_for_proc_supervisor
-
-		sv_obj, details = self.subprocess_mgr.new_local_process(path, args,
-												proc_type='obci_process_supervisor',
-													capture_io=NO_STDIO)
-		if sv_obj is None:
-			return False, details
-
-		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
-						timeout_method=self._handle_register_sv_timeout,
-						timeout_args=(sv_obj))
-		sv_obj.set_registration_timeout_handler(timeout_handler)
-		self.sv_processes[self.origin_machine] = sv_obj
-
-		return sv_obj, None
-
-	def _request_supervisor(self, machine_addr):
+	def _start_obci_process_supervisor(self, machine_addr):
 		args = self.args_for_process_sv(machine_addr)
 		proc_type = 'obci_process_supervisor'
-		conn_addr = 'tcp://' + machine_addr + ':' + net.server_rep_port()
-		sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
+
+		if machine_addr == self.origin_machine:
+			path = obci_process_supervisor.__file__
+			path = '.'.join([path.rsplit('.', 1)[0], 'py'])
+			sv_obj, details = self.subprocess_mgr.new_local_process(path, args,
+															proc_type=proc_type,
+															capture_io=NO_STDIO)
+		else:
+			conn_addr = 'tcp://' + machine_addr + ':' + net.server_rep_port()
+			sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
 												args=args, proc_type=proc_type,
 												name=self.uuid, machine_ip=machine_addr,
 												conn_addr=conn_addr, capture_io=NO_STDIO
 												)
-
 		if sv_obj is None:
-
 			return False, details
 
 		timeout_handler = TimeoutDescription(timeout=REGISTER_TIMEOUT,
 						timeout_method=self._handle_register_sv_timeout,
-						timeout_args=(sv_obj))
+						timeout_args=[sv_obj])
 		sv_obj.set_registration_timeout_handler(timeout_handler)
 		self.sv_processes[machine_addr] = sv_obj
 		return sv_obj, None
 
+	def _start_all_obci_process_supervisors(self):
+		self._wait_register = len(self.exp_config.peer_machines())
+		details = None
 
+		for machine in self.exp_config.peer_machines():
+			result, details = self._start_obci_process_supervisor(machine)
+
+			if not result:
+				self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
+				details = "{0} [{1}], FAILED to start supervisor: {2}".format(
+											self.name, self.peer_type(), details)
+				print details
+				return False, details
+
+			k = result.machine_ip
+			self.sv_processes[k] = result
+		return True, details
+
+	def _send_launch_data(self):
+		pass
 
 	def _start_experiment(self):
 		# * check status - if != READY_TO_LAUNCH - error
@@ -171,38 +188,14 @@ class OBCIExperiment(OBCIControlPeer):
 		#        ---> send result to the requesting client
 		#print "CREATE EXP!!! {0}".format(message.launch_file)
 
-		result, details = \
-							self._start_obci_supervisor_process(
-									self.args_for_process_sv(self.origin_machine, local=True))
-		self._wait_register = len(self.exp_config.peer_machines())
-
+		result, details = self._start_all_obci_process_supervisors()
 		if not result:
-			#return False, self.mtool.fill_msg("rq_error", request=vars(message),
-			#					err_code='launch_supervisor_os_error', details=details)
-			print "FAILED to start local supervisor", details
-			self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
-			return False, details
-		else:
-			for machine in self.exp_config.peer_machines():
-				print "^^^^^^^^    ", machine, self.origin_machine
-				if machine.strip() == self.origin_machine.strip():
-					continue
-
-				result, details = self._request_supervisor(machine)
-				if not result:
-					return False, details
-
-			#k = ':'.join[result.machine_ip, result.pid]
-			k = result.machine_ip
-			self.sv_processes[k] = result
-			# now wait for experiment to register itself here
-			return True, details
+			send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
+												sender=self.uuid, details=details,
+												err_code='supervisor_launch_error'))
 
 
-	def _start_all_supervisors(self):
-		for machine in self.exp_config.peer_machines():
-			result, details, response, req_timer = self._request_supervisor(machine)
-
+		return result, details
 
 	def make_experiment_config(self):
 		launch_parser = launch_file_parser.LaunchFileParser(
@@ -213,6 +206,7 @@ class OBCIExperiment(OBCIControlPeer):
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=e.args)
+			#raise
 			return False, e.args
 
 		#print self.exp_config
@@ -223,17 +217,32 @@ class OBCIExperiment(OBCIControlPeer):
 	def peer_type(self):
 		return 'obci_experiment'
 
-	@OBCIControlPeer.msg_handlers.handler('register_peer')
+	@msg_handlers.handler('register_peer')
 	def handle_register_peer(self, message, sock):
 		"""Experiment"""
 		if message.peer_type == "obci_process_supervisor":
-			if self._wait_register > 0:
-				self._wait_register -= 1
-			else:
+
+
+			machine, pid = message.other_params['machine'], message.other_params['pid']
+			self.mx_addr = message.other_params['mx_data'][0]
+			self.mx_pass = message.other_params['mx_data'][1]
+
+			proc = self.subprocess_mgr.process(machine, pid)
+			if proc is None:
 				send_msg(sock, self.mtool.fill_msg("rq_error",
-								err_code='peer_spam', request=message.dict()))
+								err_code='process_not_found', request=message.dict()))
 				return
-			print self.supervisors
+
+			status, details = proc.status()
+			if status != subprocess_monitor.UNKNOWN:
+				send_msg(sock, self.mtool.fill_msg("rq_error",
+								err_code='process_status_invalid', request=message.dict(),
+								details=(status, details)))
+				send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
+												sender=self.uuid, details=(status, details),
+												err_code='registration_error'))
+				return
+
 			desc = self.supervisors[message.other_params['machine']] = \
 							RegistrationDescription(
 												message.uuid,
@@ -242,27 +251,53 @@ class OBCIExperiment(OBCIControlPeer):
 												message.pub_addrs,
 												message.other_params['machine'],
 												message.other_params['pid'])
-			print self.sv_processes
-			proc = self.sv_processes[desc.machine_ip]
 			proc.registered(desc)
-			addrs = []
-			if proc.is_local():
-				addrs = net.choose_local(desc.pub_addrs)
-			if not addrs:
-				addrs = net.choose_not_local(desc.pub_addrs)
-			if addrs:
-				a = addrs.pop()
+			a = self._choose_process_address(proc, desc.pub_addrs)
+			if a is not None:
 				self.supervisors_sub_addrs.append(a)
+				self.supervisors_sub.setsockopt(zmq.SUBSCRIBE, "")
 				self.supervisors_sub.connect(a)
+				print "{0} [{1}], Connecting to supervisor pub address {2}".format(
+								self.name, self.peer_type(), a)
 
-			send_msg(sock, self.mtool.fill_msg("rq_ok"))
+			launch_data = self.exp_config.launch_data(machine)
+
+			send_msg(sock, self.mtool.fill_msg("rq_ok", params=launch_data))
 
 			# inform observers
 			send_msg(self._publish_socket, self.mtool.fill_msg("process_supervisor_registered",
 												sender=self.uuid,
 												machine_ip=desc.machine_ip))
 
-	@OBCIControlPeer.msg_handlers.handler('get_experiment_info')
+			self._wait_register -= 1
+			if self._wait_register == 0:
+				send_msg(self._publish_socket, self.mtool.fill_msg("start_mx",
+										args=self.mx_args()))
+
+	def mx_args(self):
+		return ["run_multiplexer", self.mx_addr,
+				'--multiplexer-password', self.mx_pass,
+				'--rules', launcher_tools.mx_rules_path()]
+
+	@msg_handlers.handler("launched_process_info")
+	def handle_launched_process_info(self, message, sock):
+		if message.proc_type == 'multiplexer':
+			send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
+											mx_data=self.mx_args()))
+
+
+	def _choose_process_address(self, proc, addresses):
+		addrs = []
+		chosen = None
+		if proc.is_local():
+			addrs = net.choose_local(addresses)
+		if not addrs:
+			addrs = net.choose_not_local(addresses)
+		if addrs:
+			chosen = addrs.pop()
+		return chosen
+
+	@msg_handlers.handler('get_experiment_info')
 	def handle_get_experiment_info(self, message, sock):
 		## a not-launched version
 		if message.peer_id:
@@ -279,12 +314,13 @@ class OBCIExperiment(OBCIControlPeer):
 											exp_info=exp_info))
 
 
-	@OBCIControlPeer.msg_handlers.handler('get_peer_config')
+	@msg_handlers.handler('get_peer_config')
 	def handle_get_peer_config(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('ping', sender=self.uuid))
 
 
-	@OBCIControlPeer.msg_handlers.handler('start_experiment')
+
+	@msg_handlers.handler('start_experiment')
 	def handle_start_experiment(self, message, sock):
 		if not self.status.status_name == launcher_tools.READY_TO_LAUNCH:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
@@ -308,6 +344,7 @@ class OBCIExperiment(OBCIControlPeer):
 						self.mtool.fill_msg("kill", receiver=""))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
 
+
 	def _handle_register_sv_timeout(self, sv_process):
 		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
 																sv_process.machine_ip)
@@ -322,6 +359,7 @@ class OBCIExperiment(OBCIControlPeer):
 												details=dict(machine=sv_process.machine_ip,
 															error=txt)))
 		sock.close()
+
 
 def experiment_arg_parser():
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
@@ -355,5 +393,4 @@ if __name__ == '__main__':
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch)
 
-	print exp.msg_handlers.handlers["register_peer"].__doc__
 	exp.run()

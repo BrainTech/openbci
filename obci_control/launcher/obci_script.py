@@ -28,9 +28,12 @@ from common.config_helpers import OBCISystemError
 disp = view.OBCIViewText()
 
 def cmd_srv(args):
+	print "(main config) INTERFACE: ", net.server_ifname(), "PORT:  ", net.server_rep_port()
 	client_server_prep(args)
 
 def cmd_srv_kill(args):
+	client = client_server_prep()
+	client.srv_kill()
 	running, pid = server_process_running()
 	if running:
 		try:
@@ -39,7 +42,7 @@ def cmd_srv_kill(args):
 		except OSError, e:
 			disp.view("srv_kill: something went wrong... {0}".format(e))
 	else:
-		disp.view("Server was not running")
+		disp.view("Server is not running")
 
 
 def cmd_launch(args):
@@ -79,6 +82,18 @@ def cmd_info(args):
 		response = client.send_list_experiments()
 	else:
 		response = client.get_experiment_details(args.e, args.p)
+	if response is None:
+		response = "whyyyy"
+	disp.view(response)
+
+def cmd_tail(args):
+	client = client_server_prep()
+	if not args.e:
+		response = client.send_list_experiments()
+	elif not args.p:
+		response = client.get_experiment_details(args.e, args.p)
+	else:
+		response = client.get_tail(args.e, args.p, args.l)
 	if response is None:
 		response = "whyyyy"
 	disp.view(response)
@@ -160,6 +175,16 @@ a few first letters of its UUID or of its name \
 	parser_info.add_argument('-p', help='Peer ID in the specified experiment.')
 	parser_info.set_defaults(func=cmd_info)
 
+	parser_tail = subparsers.add_parser('tail',
+				help="View output tail of a chosen peer.")
+	parser_tail.add_argument('-e', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)')
+	parser_tail.add_argument('-p', help='Peer ID in the specified experiment.')
+	parser_tail.add_argument('-l', help='Number of lines to get')
+	parser_tail.set_defaults(func=cmd_tail)
+
+
 ###############################################################################
 
 ###############################################################################
@@ -213,7 +238,7 @@ def client_server_prep(cmdargs=None):
 
 	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
 	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
-	print rep_addrs, pub_addrs
+	#print rep_addrs, pub_addrs
 	res, client = connect_client(rep_addrs)
 
 	if res is not None:

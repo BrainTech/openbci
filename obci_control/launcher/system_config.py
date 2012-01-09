@@ -1,16 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# 1. przeczytać plik uruchomieniowy
-#		-- ustawić ID modułów
-# dla każdego modułu:
-#		-- przeczytać pliki konf
-#		-- sprawdzić&ustawić nazwy źródeł
-# ustawić 'na sucho' źródła
 
 import warnings
 from common.config_helpers import *
 import launcher_tools
+from peer.peer_config_serializer import PeerConfigSerializerCmd
 
 class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
@@ -18,7 +13,7 @@ class OBCIExperimentConfig(object):
 		self.launch_file_path = launch_file_path
 		self.origin_machine = origin_machine if origin_machine else ''
 		self.scenario_dir = ''
-		self.mx = 1
+		self.mx = 0
 		self.peers = {}
 
 	def peer_config(self, peer_id):
@@ -28,7 +23,7 @@ class OBCIExperimentConfig(object):
 		return self.peers[peer_id].path
 
 	def peer_machine(self, peer_id):
-		return self.peers[peer_id].path
+		return self.peers[peer_id].machine
 
 	def add_peer(self, peer_id):
 		self.peers[peer_id] = PeerConfigDescription(peer_id, self.uuid)
@@ -65,7 +60,10 @@ class OBCIExperimentConfig(object):
 
 		self.peers[peer_id].machine = machine_name
 
+
 	def config_ready(self):
+		if not self.peers:
+			return False
 
 		for peer_state in self.peers.values():
 			if not peer_state.ready():
@@ -92,6 +90,18 @@ class OBCIExperimentConfig(object):
 			if peer.machine:
 				machines.add(peer.machine)
 		return list(machines)
+
+	def launch_data(self, peer_machine):
+		ldata = {}
+		# if peer_machine == self.origin_machine and self.mx:
+			# ldata['multiplexer'] = dict(machine=self.origin_machine,
+			# 			peer_id='multiplexer', peer_type='obci_multiplexer',
+			# 			path=launcher_tools.mx_path(), args=[])
+		for peer in self.peers.values():
+			machine = peer.machine if peer.machine else self.origin_machine
+			if machine == peer_machine:
+				ldata[peer.peer_id] = peer.launch_data()
+		return ldata
 
 	def check_dependency_cycles(self):
 		#TODO
@@ -139,9 +149,25 @@ class PeerConfigDescription(object):
 
 		peer_status_obj.set_status(st)
 
+	def peer_type(self):
+		if self.peer_id.startswith('mx'):
+			return 'multiplexer'
+		else:
+			return 'obci_peer'
+
+	def launch_data(self):
+		ser = PeerConfigSerializerCmd()
+		args = [self.peer_id]
+		ser.serialize(self.config, args)
+
+		return dict(peer_id=self.peer_id, experiment_id=self.experiment_id,
+					path=self.path, machine=self.machine,
+					args=args, peer_type=self.peer_type())
+
+
 	def info(self, detailed=False):
 		info = dict(peer_id=self.peer_id,
-					path=self.path, machine=self.machine
+					path=self.path, machine=self.machine, peer_type=self.peer_type()
 					)
 
 		if not self.config:
@@ -154,14 +180,6 @@ class PeerConfigDescription(object):
 			info[LOCAL_PARAMS] = self.config.local_params
 			info[EXT_PARAMS] = self.config.ext_param_defs
 		return info
-
-
-
-class OBCIPeerOSInfo(object):
-
-	def __init__(self, peer_id, system_instance_id, machine=None):
-		pass
-
 
 
 

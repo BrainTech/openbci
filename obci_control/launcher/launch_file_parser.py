@@ -41,8 +41,8 @@ class LaunchFileParser(object):
 		self._load_launch_data(peer_sections)
 		self._set_sources()
 
-		#for peer_sec in peer_sections:
-		#	print self.config.peers[self.__peer_id(peer_sec)].config
+		for peer_sec in peer_sections:
+			print self.config.peers[self.__peer_id(peer_sec)].config
 
 
 	def _check_sections(self):
@@ -56,6 +56,7 @@ class LaunchFileParser(object):
 		items = self.parser.items(PEERS)
 		if self.parser.has_option(PEERS, 'mx'):
 			self.config.mx = self.parser.get(PEERS, 'mx')
+
 		if self.parser.has_option(PEERS, 'scenario_dir'):
 			self.config.scenario_dir = self.parser.get(PEERS, 'scenario_dir')
 			self.config.scenario_dir = self.__path(self.config.scenario_dir, base_dir=self.scenario_dir)
@@ -140,7 +141,6 @@ class LaunchFileParser(object):
 			with open(conf_path) as f:
 				print "parsing default config for peer  ", peer_id, conf_path
 				peer_parser.parse(f, peer_cfg)
-				print "default config parsed"
 			#print "Loaded default config {0} for {1}, path: {2}".format(
 			#							conf_path, peer_id, peer_program_path)
 		else:
@@ -153,11 +153,10 @@ class LaunchFileParser(object):
 		peer_cfg, peer_parser = self.__parse_peer_default_config(
 												peer_id, peer_program_path)
 		#print "Trying to parse {0} for {1}".format(config_path, peer_id)
-
-		with open(config_path) as f:
-			print "parsing custom config for peer  ", peer_id, config_path
-			peer_parser.parse(f, peer_cfg)
-			print "custom config parsed"
+		if config_path:
+			with open(config_path) as f:
+				print "parsing custom config for peer  ", peer_id, config_path
+				peer_parser.parse(f, peer_cfg)
 		self.config.set_peer_config(peer_id, peer_cfg)
 
 

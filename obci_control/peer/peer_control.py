@@ -201,7 +201,7 @@ class PeerControl(object):
 									param_names=params,
 									receiver=self.core.config_sources[src])
 
-				print "requesting: {0}".format(msg)
+				#print "requesting: {0}".format(msg)
 				reply = self.__query(connection, cmsg.pack_msg(msg),
 									types.GET_CONFIG_PARAMS)
 
@@ -221,7 +221,7 @@ class PeerControl(object):
 				else:
 					print "WTF? {0}".format(reply.message)
 
-			print "{0} external params still unset".format(_unset_param_count())
+			print '.'#"{0} external params still unset".format(_unset_param_count())
 			time.sleep(0.1)
 
 		print "External parameters initialised."

@@ -14,10 +14,17 @@ from launcher_messages import message_templates
 import common.net_tools as net
 import common.obci_control_settings as settings
 
+
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import launcher_tools
 
+import subprocess_monitor
+from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
+STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
+
 class OBCIProcessSupervisor(OBCIControlPeer):
+
+	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
 	def __init__(self, obci_install_dir, sandbox_dir,
 										source_addresses=None,
@@ -31,6 +38,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.source_pub_addresses = source_pub_addresses
 		self.ip = net.ext_ip(ifname=net.server_ifname())
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
+		self.ctx = zmq.Context()
+		self.mx_data = self.set_mx_data()
+		self.env = self.peer_env(self.mx_data)
+		self.launch_data = []
 
 
 		super(OBCIProcessSupervisor, self).__init__(obci_install_dir,
@@ -38,6 +49,49 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 											rep_addresses=rep_addresses,
 											pub_addresses=pub_addresses,
 											name=name)
+		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
+
+	def _handle_registration_response(self, response):
+		self.launch_data = response.params
+
+
+	def set_mx_data(self):
+		src = net.choose_not_local(self.source_pub_addresses).pop()
+		src = src[6:].split(':')[0]
+
+		if src == self.ip:
+			sock = self.ctx.socket(zmq.REP)
+			port = str(sock.bind_to_random_port("tcp://" + self.ip,
+											min_port=settings.PORT_RANGE[0],
+											max_port=settings.PORT_RANGE[1]))
+			sock.close()
+			return (self.ip, port), "" #empty passwd
+		else:
+			return None, None
+
+	def mx_addr_str(self, mx_data):
+		if mx_data[0] is None:
+			return None
+		addr, port = mx_data[0]
+		print "mx addr str", addr + ':' + str(port)
+		return addr + ':' + str(port)
+
+
+	def peer_env(self, mx_data):
+
+		if mx_data[0] is None:
+			return None
+
+		env = os.environ.copy()
+		addr, port = mx_data[0]
+
+		_env = {
+			"MULTIPLEXER_ADDRESSES": str(addr) + ':' + str(port),
+			"MULTIPLEXER_PASSWORD": mx_data[1],
+			"MULTIPLEXER_RULES": launcher_tools.mx_rules_path()
+		}
+		env.update(_env)
+		return env
 
 	def peer_type(self):
 		return "obci_process_supervisor"
@@ -45,6 +99,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def net_init(self):
 		self.source_sub_socket = self.ctx.socket(zmq.SUB)
 		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+		self._all_sockets.append(self.source_sub_socket)
 
 		if self.source_pub_addresses:
 			for addr in self.source_pub_addresses:
@@ -54,34 +109,67 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		super(OBCIProcessSupervisor, self).net_init()
 
 	def params_for_registration(self):
-		return dict(pid=os.getpid(), machine=self.ip)
+		return dict(pid=os.getpid(), machine=self.ip,
+					mx_data=[self.mx_addr_str(self.mx_data), self.mx_data[1]])
 
 	def custom_sockets(self):
 		return [self.source_sub_socket]
 
+	@msg_handlers.handler("start_mx")
+	def handle_start_mx(self, message, sock):
+		if 'mx' in self.launch_data and self.mx_data[0] is not None:
+			path = launcher_tools.mx_path()
+			if message.args:
+				args = message.args
+			else:
+				args = ['run_multiplexer', self.mx_addr_str(self.mx_data),
+						'--multiplexer-password', self.mxdata[1],
+						'--rules', launcher_tools.mx_rules_path()]
+			proc, details = self._launch_process(path, args, 'multiplexer', 'mx',
+												env=self.env)
+			if proc is not None:
+				self.mx = proc
 
-	def __path(self, path):
-		if os.path.isabs(path):
-			return path
+
+	@msg_handlers.handler("start_peers")
+	def handle_start_peers(self, message, sock):
+		for peer, data in self.launch_data.iteritems():
+			if peer.startswith('mx'):
+				continue
+			path = os.path.join(launcher_tools.obci_root(), data['path'])
+			args = data['args']
+			proc, details = self._launch_process(path, args, data['peer_type'],
+														peer, env=self.env)
+
+	def _launch_process(self, path, args, proc_type, name,
+									env=None, capture_io=NO_STDIO):
+		proc, details = self.subprocess_mgr.new_local_process(path, args,
+														proc_type=proc_type,
+														name=name,
+														monitoring_optflags=RETURNCODE,
+														capture_io=capture_io,
+														env=env)
+		if proc is None:
+			send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
+											sender=self.uuid,
+											details=dict(machine=self.ip, path=path, args=args,
+														error=details)))
 		else:
-			return os.path.join(self.base_dir, path)
+			send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
+											sender=self.uuid,
+											machine=self.ip,
+											pid=proc.pid,
+											proc_type=proc_type, name=name,
+											path=path,
+											args=args))
+		return proc, details
 
-	def start_instance(self):
-		pass
+	def cleanup_before_net_shutdown(self, kill_message, sock=None):
+		self.subprocess_mgr.killall()
 
-	def kill_instance(self, wipe_logs=True):
-		pass
+	def cleanup(self):
+		self.subprocess_mgr.killall()
 
-	def restart_instance(self, wipe_logs=True):
-		self.kill_instance(obci_inst_state, wipe_logs)
-		self.start_instance(obci_inst_state)
-
-
-
-
-class SysPeerStatus(launcher_tools.PeerStatus):
-	def __init__(self, peer_id):
-		pass
 
 def process_supervisor_arg_parser():
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],

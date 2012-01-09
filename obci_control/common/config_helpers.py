@@ -5,6 +5,11 @@ EXT_PARAMS = "external_params"
 LOCAL_PARAMS = "local_params"
 LAUNCH_DEPENDENCIES = "launch_dependencies"
 
+CS = '-c'
+EP = '-e'
+LP = '-p'
+LD = '-d'
+
 PEER_CONFIG_SECTIONS = [CONFIG_SOURCES, EXT_PARAMS, LOCAL_PARAMS, LAUNCH_DEPENDENCIES]
 
 def module_id_type_check(p_module_id):
