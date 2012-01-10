@@ -370,7 +370,11 @@ class OBCIExperiment(OBCIControlPeer):
 	@msg_handlers.handler("get_tail")
 	def handle_get_tail(self, message, sock):
 		if self.status.status_name == launcher_tools.RUNNING:
-
+			if not message.peer_id in self.exp_config.peers:
+				send_msg(sock, self.mtool.fill_msg("rq_error",
+											err_code="peer_not_found",
+											details="No such peer: "+message.peer_id))
+				return
 			machine = self.exp_config.peer_machine(message.peer_id)
 			print "getting tail for", message.peer_id, machine
 			send_msg(self._publish_socket, message.SerializeToString())
