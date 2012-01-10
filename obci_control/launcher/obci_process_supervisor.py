@@ -170,11 +170,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 														capture_io=capture_io,
 														env=env)
 		if proc is None:
+			print "process launch FAILED:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
 											sender=self.uuid,
 											details=dict(machine=self.ip, path=path, args=args,
 														error=details)))
 		else:
+			print "process launch success:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
 											sender=self.uuid,
 											machine=self.ip,

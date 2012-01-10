@@ -231,6 +231,7 @@ class OBCIControlPeer(object):
 												pub_addrs=pub_addrs,
 												name=self.name,
 												other_params=params)
+		print message
 		send_msg(self.source_req_socket, message)
 		response_str = recv_msg(self.source_req_socket)
 		response = self.mtool.unpack_msg(response_str)
@@ -335,6 +336,8 @@ class OBCIControlPeer(object):
 			if msg.type != "ping":
 				print "{0} [{1}], got message: {2}".format(
 										self.name, self.peer_type(), msg.type)
+				if msg.type == "get_tail":
+					print self.msg_handlers
 		except ValueError:
 			print "{0} [{1}], Bad message format! {2}".format(
 									self.name, self.peer_type(),message)

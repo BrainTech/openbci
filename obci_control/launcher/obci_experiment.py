@@ -210,10 +210,12 @@ class OBCIExperiment(OBCIControlPeer):
 		"""Experiment"""
 		if message.peer_type == "obci_process_supervisor":
 
-
 			machine, pid = message.other_params['machine'], message.other_params['pid']
-			self.mx_addr = message.other_params['mx_data'][0]
-			self.mx_pass = message.other_params['mx_data'][1]
+
+			if message.other_params['mx_data'][0] is not None and not self.mx_addr:
+				## right now we support only one mx per obci instance
+				self.mx_addr = message.other_params['mx_data'][0]
+				self.mx_pass = message.other_params['mx_data'][1]
 
 			proc = self.subprocess_mgr.process(machine, pid)
 			if proc is None:
@@ -286,6 +288,7 @@ class OBCIExperiment(OBCIControlPeer):
 				self.status.set_status(launcher_tools.RUNNING)
 
 	def _choose_process_address(self, proc, addresses):
+		print "(exp) choosing sv address:", addresses
 		addrs = []
 		chosen = None
 		if proc.is_local():
@@ -359,13 +362,15 @@ class OBCIExperiment(OBCIControlPeer):
 															error=txt)))
 		sock.close()
 
-	@msg_handlers.handler("")
+	#@msg_handlers.handler("")
 
 
 	@msg_handlers.handler("get_tail")
 	def handle_get_tail(self, message, sock):
 		if self.status.status_name == launcher_tools.RUNNING:
+
 			machine = self.exp_config.peer_machine(message.peer_id)
+			print "getting tail for", message.peer_id, machine
 			send_msg(self._publish_socket, message.SerializeToString())
 			self.client_rq = (message, sock)
 

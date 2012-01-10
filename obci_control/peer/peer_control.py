@@ -221,7 +221,7 @@ class PeerControl(object):
 				else:
 					print "WTF? {0}".format(reply.message)
 
-			print '.'#"{0} external params still unset".format(_unset_param_count())
+			print '.',#"{0} external params still unset".format(_unset_param_count())
 			time.sleep(0.1)
 
 		print "External parameters initialised."

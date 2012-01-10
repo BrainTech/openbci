@@ -135,6 +135,6 @@ class OBCIClient(object):
 			sock.connect(addr)
 		self.poller.register(sock, zmq.POLLIN)
 		send_msg(sock, self.mtool.fill_msg("get_tail", peer_id=peer_id, len=len_))
-		response = self._poll_recv(sock, 2000)
+		response = self._poll_recv(sock, 4000)
 		self.poller.unregister(sock)
 		return response

@@ -43,6 +43,7 @@ LINES_TO_GET = 5
 IO_WAIT = 0.5
 
 _DEFAULT_TIMEOUT=20
+_DEFAULT_TIMEOUT_MS=6000
 
 
 class SubprocessMonitor(object):
@@ -92,7 +93,7 @@ class SubprocessMonitor(object):
 			launch_args = PYTHON_CALL +[path] + args
 		else:
 			launch_args = [path] + args
-		print "[subprocess monitor] local path:  ", path
+		print "[subprocess monitor]",proc_type," local path:  ", path
 		machine = machine_ip if machine_ip else net.ext_ip(ifname=net.server_ifname())
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
@@ -198,9 +199,10 @@ class SubprocessMonitor(object):
 			return None, "Could not connect to {0}, err: {1}, {2}".format(
 															conn_addr, e, e.args)
 
-		print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT
+		print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT_MS, 'ms'
 		send_msg(rq_sock, rq_message)
-		result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT)
+		result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT_MS)
+
 		rq_sock.close()
 
 		if not result:
@@ -352,12 +354,12 @@ class Process(object):
 		self._stop_monitoring = True
 
 		if self._ping_thread is not None:
-			print "[subprocess_monitor]", self.name ,"Joining ping thread"
+			print "[subprocess_monitor]", self.proc_type, self.name ,"Joining ping thread"
 			self._ping_thread.join()
 		if self._returncode_thread is not None:
-			print "[subprocess_monitor]", self.name, "joining returncode thread"
+			print "[subprocess_monitor]", self.proc_type,self.name, "joining returncode thread"
 			self._returncode_thread.join()
-		print "[subprocess_monitor] monitor for: ", self.name, "  ...monitoring threads stopped."
+		print "[subprocess_monitor] monitor for: ", self.proc_type,self.name, "  ...monitoring threads stopped."
 
 	def finished(self):
 		return self.popen_obj.returncode is not None and\
@@ -383,7 +385,7 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=4)
+				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=9000)
 				if not result:
 					with self._status_lock:
 						if self._status not in [FAILED, FINISHED]:
@@ -452,7 +454,7 @@ class LocalProcess(Process):
 			code = self.popen_obj.returncode
 
 			if code is not None:
-				print "[subprocess_monitor]","process", self.name, "pid", self.pid, "ended with", code
+				print "[subprocess_monitor]",self.proc_type,"process", self.name, "pid", self.pid, "ended with", code
 				with self._status_lock:
 					self.popen_obj.wait()
 					if code == 0:
