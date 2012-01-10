@@ -373,7 +373,7 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_tail(self, message, sock):
 		if self.client_rq:
 			if message.peer_id == self.client_rq[0].peer_id:
-				send_msg(self.client_rq[1], message.SerializeToString())
+				send_msg(self.qwEIJFASEFJclient_rq[1], message.SerializeToString())
 
 
 def experiment_arg_parser():
