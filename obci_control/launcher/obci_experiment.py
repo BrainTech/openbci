@@ -283,7 +283,9 @@ class OBCIExperiment(OBCIControlPeer):
 
 	@msg_handlers.handler("all_peers_launched")
 	def handle_all_peers_launched(self, message, sock):
+		print self._wait_register
 		self._wait_register -= 1
+		print message, self._wait_register
 		if self._wait_register == 0:
 				self.status.set_status(launcher_tools.RUNNING)
 
@@ -378,7 +380,7 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_tail(self, message, sock):
 		if self.client_rq:
 			if message.peer_id == self.client_rq[0].peer_id:
-				send_msg(self.qwEIJFASEFJclient_rq[1], message.SerializeToString())
+				send_msg(self.client_rq[1], message.SerializeToString())
 
 
 def experiment_arg_parser():

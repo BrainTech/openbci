@@ -190,6 +190,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def handle_get_tail(self, message, sock):
 		lines = message.len if message.len else DEFAULT_TAIL_RQ
 		peer = message.peer_id
+		if peer not in self.launch_data:
+			return
 		experiment_id = self.launch_data[peer]['experiment_id']
 		txt = self.processes[peer].tail_stdout(lines=lines)
 		send_msg(self._publish_socket, self.mtool.fill_msg("tail", txt=txt,
