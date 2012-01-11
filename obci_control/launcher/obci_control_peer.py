@@ -6,11 +6,12 @@ import uuid
 import signal
 import sys
 import threading
+import time
 
 import argparse
 
 from launcher_messages import message_templates
-from common.message import OBCIMessageTool, send_msg, recv_msg
+from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 import common.net_tools as net
 import common.obci_control_settings as settings
 
@@ -139,20 +140,21 @@ class OBCIControlPeer(object):
 		push_sock.connect(push_addr)
 
 		send_msg(push_sock, u'1')
+		po = PollingObject()
 
 		while not self._stop_publishing:
 			try:
-				to_publish = recv_msg(pull_sock)
+				to_publish, det = po.poll_recv(pull_sock, 500)
 
-				send_msg(pub_sock, to_publish)
+				if to_publish:
+					send_msg(pub_sock, to_publish)
 			except:
 				#print self.name, '.Publisher -- STOP.'
-
-				print "close  sock ", pub_addrs, pub_sock
-				pub_sock.close()
-				pull_sock.close()
-				push_sock.close()
 				break
+		print "close  sock ", pub_addrs, pub_sock
+		pub_sock.close()
+		pull_sock.close()
+		push_sock.close()
 
 	def _push_sock(self, ctx, addr):
 		sock = ctx.socket(zmq.PUSH)
@@ -280,6 +282,7 @@ class OBCIControlPeer(object):
 		while True:
 			socks = []
 			try:
+				#print self.name + ' ['+self.peer_type() + ']' + 'listening'
 				socks = dict(poller.poll())
 			except zmq.ZMQError, e:
 				print self.name + ' ['+self.peer_type() + ']' +": zmq.poll(): " + e.strerror
@@ -313,6 +316,10 @@ class OBCIControlPeer(object):
 		pass
 
 	def _clean_up(self):
+		time.sleep(0.01)
+		self._stop_publishing = True
+		self.pub_thr.join()
+
 		for sock in self._all_sockets:
 			#print self.name, "closing ", sock
 			sock.close()

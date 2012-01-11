@@ -195,8 +195,7 @@ probably a server is already working"
 
 		sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
 
-		exp, details = \
-							self.start_experiment_process(sandbox, launch_file)
+		exp, details = self.start_experiment_process(sandbox, launch_file)
 
 		if exp is None:
 			print "failed to launch experiment process"
