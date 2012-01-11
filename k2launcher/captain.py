@@ -551,6 +551,7 @@ start("ssvep_csp", "ugm")
 start("ssvep_csp", "virtual_f_amplifier")
 start("ssvep_csp", "csp_analysis")
 start("ssvep_csp", "super_diode_control")
+start("ssvep_csp", "logics_control")
 
 
 # fft ssvep -------------------------------------------
@@ -560,6 +561,7 @@ start("ssvep_fft", "ugm")
 start("ssvep_fft", "virtual_f_amplifier")
 start("ssvep_fft", "ssvep_analysis")
 start("ssvep_fft", "super_diode_control")
+start("ssvep_fft", "logics_control")
 
 
 

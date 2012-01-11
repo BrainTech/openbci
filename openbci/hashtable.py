@@ -159,7 +159,7 @@ class Hashtable(BaseMultiplexerServer):
         'ANALYSIS_BUFFER_COPY_ON_RET':"0", 
 
         #time in secs to hold analysis after making decision
-        'ANALYSIS_HOLD_AFTER_DEC':"0.5",
+        'ANALYSIS_HOLD_AFTER_DEC':"1.0",
 
 
         # ------------ END -------------------------------------------------------------------------------------
@@ -171,8 +171,9 @@ class Hashtable(BaseMultiplexerServer):
         
         #'UGM_CONFIG': 'speller_config_nesw',
         #'UGM_CONFIG': 'speller_config_6',
+        'UGM_CONFIG': 'speller_config_8',
         #'UGM_CONFIG': 'p300_ssvep',
-        'UGM_CONFIG': 'speller_config_8_black_etr2',
+        #'UGM_CONFIG': 'speller_config_8_black_etr2',
         'UGM_USE_TAGGER':'0',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',
@@ -184,8 +185,8 @@ class Hashtable(BaseMultiplexerServer):
         # ------------ START -----------------------------------------------------------------------------------
         #'SPELLER_CONFIG':'speller_config_nesw',
         #~ 'SPELLER_CONFIG':'speller_config_6',
-        'SPELLER_CONFIG':'multiple_speller_config_8',
-        #'SPELLER_CONFIG':'speller_config_8',
+        #'SPELLER_CONFIG':'multiple_speller_config_8',
+        'SPELLER_CONFIG':'speller_config_8',
 
         #'SPELLER_AREA_COUNT':'6',
         'SPELLER_AREA_COUNT':'8',
