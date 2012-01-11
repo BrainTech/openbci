@@ -201,9 +201,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}
-		self.subprocess_mgr.killall()
+		#self.subprocess_mgr.killall()
 
-	def cleanup(self):
+	def clean_up(self):
 		self.processes = {}
 		self.subprocess_mgr.killall()
 

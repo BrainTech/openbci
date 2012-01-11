@@ -6,7 +6,7 @@
 message_templates = {
 	"register_peer" : dict(peer_type='', uuid='', rep_addrs='', pub_addrs='', name='', other_params=''),
 
-	"create_experiment" : dict(launch_file='', sandbox_dir=''),
+	"create_experiment" : dict(launch_file='', sandbox_dir='', name=''),
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
 	"list_experiments" : dict(),
 	"running_experiments" : dict(exp_data=''),

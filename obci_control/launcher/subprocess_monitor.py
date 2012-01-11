@@ -351,6 +351,9 @@ class Process(object):
 
 
 	def stop_monitoring(self):
+		if self.reg_timer:
+			self.reg_timer.cancel()
+			self.reg_timer = None
 		self._stop_monitoring = True
 
 		if self._ping_thread is not None:
@@ -386,18 +389,21 @@ class Process(object):
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
 				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=9000)
-				if not result:
+				if not result and not self._stop_monitoring:
+					print "[subprocess_monitor] for", self.proc_type, self.name, "NO RESPONSE TO PING!",
 					with self._status_lock:
 						if self._status not in [FAILED, FINISHED]:
 							self._status = NON_RESPONSIVE
 							self._status_details = 'ping response timeout'
-
+						print "status:", self._status
 						is_alive = False
 
 
 	def returncode_monitor(self):
-		pass
+		raise NotImplementedError()
 
+	def kill(self):
+		raise NotImplementedError()
 
 
 class LocalProcess(Process):
@@ -449,6 +455,24 @@ class LocalProcess(Process):
 
 	def returncode_monitor(self):
 		# TODO just use wait() instead of poll()ing every 0.5s
+		# self.popen_obj.wait()
+		# code = self.popen_obj.returncode
+
+
+		# print "[subprocess_monitor]",self.proc_type,"process", \
+		# 				self.name, "pid", self.pid, "ended with", code
+		# with self._status_lock:
+
+		# 	if code == 0:
+		# 		self._status = FINISHED
+		# 		self._status_details = ''
+		# 	elif code < 0:
+		# 		self._status = TERMINATED
+		# 		self._status_details = -code
+		# 	else:
+		# 		self._status = FAILED
+		# 		self._status_detals = self.tail_stdout(15)
+
 		while not self._stop_monitoring:
 			self.popen_obj.poll()
 			code = self.popen_obj.returncode
@@ -475,8 +499,6 @@ class LocalProcess(Process):
 			self.popen_obj.wait()
 
 
-
-
 class RemoteProcess(Process):
 	def __init__(self, proc_description, rq_address,
 								reg_timeout_desc=None,
@@ -501,6 +523,12 @@ class RemoteProcess(Process):
 		super(RemoteProcess, self).registered(reg_data)
 		self.desc.pid = reg_data.pid
 
+	def returncode_monitor(self):
+		pass
+
+	def kill(self):
+		#send "kill" to the process or kill request to its supervisor?
+		pass
 
 class ProcessDescription(object):
 	def __init__(self, proc_type, name, path, args, machine_ip, pid=None):
