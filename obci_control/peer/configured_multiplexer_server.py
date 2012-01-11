@@ -20,7 +20,6 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 	def configure(self):
 		self.init_config()
 		self.send_peer_ready()
-		self.synchronize_ready()
 
 	def init_config(self):
 		self.config.initialize_config(self.conn)
@@ -29,14 +28,12 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 		self.ready_to_work = True
 		self.config.send_peer_ready(self.conn)
 
-	def synchronize_ready(self):
-		self.config.synchronize_ready(self.conn)
+	def _is_private_message(self, mxmsg):
+		return mxmsg.type in cmsg.MX_CFG_MESSAGES
 
-
-	def filter_config_message(self, mxmsg):
+	def _handle_message(self, mxmsg):
 		print "Handling secret message!", mxmsg.type
-		if mxmsg.type in cmsg.MX_CFG_MESSAGES:
-			self.config.handle_config_message(mxmsg)
+		self.config.handle_config_message(mxmsg)
 
 	def validate_params(self, params):
 		print "VALIDATE PARAMS, {0}".format(params)
@@ -48,7 +45,6 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 
 	def clean_up(self):
 		print "CLEAN UP"
-		pass
 
 	def shut_down(self):
 		self.clean_up()

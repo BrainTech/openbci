@@ -234,8 +234,10 @@ class PeerControl(object):
 		connection.send_message(message=cmsg.fill_and_pack(mtype,
 															peer_id=self.peer_id), type=mtype)
 
+		self._synchronize_ready(connection)
 
-	def synchronize_ready(self, connection):
+
+	def _synchronize_ready(self, connection):
 		#TODO set timeout and retry count
 		if self.peer is None:
 			raise NoPeerError

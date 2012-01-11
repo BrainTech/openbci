@@ -68,3 +68,9 @@ class OBCIViewText(OBCIView):
 
 	def _view_str(self, msg):
 		return msg
+
+	def _view_tail(self, msg):
+		output = ''
+		for line in msg.txt:
+			output += line
+		return output
