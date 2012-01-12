@@ -1,21 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
+
+import os.path
+import settings, variables_pb2
 
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-#import signalml_save_manager
-import sys, time, os.path
-import settings, variables_pb2
 
 import data_storage_logging as logger
 from openbci.offline_analysis.obci_signal_processing.signal import info_file_proxy
 
 LOGGER = logger.get_logger("info_saver", 'info')
-INFO_FILE_EXTENSION = ".obci.info"
-
+INFO_FILE_EXTENSION = ".obci.xml"
 
 class InfoSaver(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -23,14 +21,21 @@ class InfoSaver(ConfiguredMultiplexerServer):
         super(InfoSaver, self).__init__(addresses=addresses, 
                                           type=peers.INFO_SAVER)
         self.configure()
+        
         #local params
-        l_f_name =  self.config.get_param("save_file_name")
+        l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
         l_file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + INFO_FILE_EXTENSION))
         self._info_proxy = info_file_proxy.InfoFileWriteProxy(l_file_path)
+        self.append_ts = int(self.config.get_param("append_timestamps"))
 
         #external params
+        self.freq = float(self.config.get_param("sampling_rate"))
+        self.ch_nums = self.config.get_param("channels_numbers").split(",")
+        self.ch_names = self.config.get_param("channels_names").split(",")
+        self.ch_gains = [float(i) for i in self.config.get_param("channels_gains").split(",")]
+        self.ch_offsets = [float(i) for i in self.config.get_param("channels_offsets").split(",")]
 
     def handle_message(self, mxmsg):
         """Handle messages:
@@ -55,60 +60,38 @@ class InfoSaver(ConfiguredMultiplexerServer):
         """Create xml manifest file with data received from hashtable
         and from signal saver (parameters in the function)."""
 
-        l_signal_params = {}
-        l_freq = int(self.conn.query(message = "SamplingRate", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message)
-        l_ch_nums = self.conn.query(message = "AmplifierChannelsToRecord", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message.strip().split(' ')
-        l_ch_names = self.conn.query(message = "ChannelsNames", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message.strip().split(';')
-        l_ch_gains = self.conn.query(message = "Gain", 
-                                     type = types.DICT_GET_REQUEST_MESSAGE, 
-                                     timeout = 1).message.strip().split(' ')
-        l_ch_offsets = self.conn.query(message = "Offset", 
-                                       type = types.DICT_GET_REQUEST_MESSAGE, 
-                                       timeout = 1).message.strip().split(' ')
-        l_append_ts = int(self.conn.query(message = "SaverTimestampsIndex", 
-                                          type = types.DICT_GET_REQUEST_MESSAGE, 
-                                          timeout = 1).message)
-
-
-        l_signal_params['number_of_channels'] = len(l_ch_nums)
-        l_signal_params['sampling_frequency'] = l_freq
-        l_signal_params['channels_numbers'] = l_ch_nums
-        l_signal_params['channels_names'] = l_ch_names
-        l_signal_params['channels_gains'] = l_ch_gains
-        l_signal_params['channels_offsets'] = l_ch_offsets
-        l_signal_params['number_of_samples'] = p_number_of_samples
-        l_signal_params['file'] = p_data_file_path
-        l_signal_params['first_sample_timestamp'] = p_first_sample_ts
+        l_signal_params = {
+            'number_of_channels':len(self.ch_nums),
+            'sampling_frequency':self.freq,
+            'channels_numbers':self.ch_nums,
+            'channels_names':self.ch_names,
+            'channels_gains':self.ch_gains,
+            'channels_offsets':self.ch_offsets,
+            'number_of_samples':p_number_of_samples,
+            'file':p_data_file_path,
+            'first_sample_timestamp':p_first_sample_ts
+            }
         
-        if l_append_ts > -1:
+        if self.append_ts:
             l_signal_params['number_of_channels'] += 1
-            l_signal_params["channels_numbers"].insert(l_append_ts, "1000")
+            l_signal_params["channels_numbers"].append("1000")
             
             # Add name to special channel
-            l_signal_params["channels_names"].insert(l_append_ts, "TIMESTAMPS")
+            l_signal_params["channels_names"].append("TSS")
 
             # Add gain to special channel
-            l_signal_params["channels_gains"].insert(l_append_ts, "1.0")
+            l_signal_params["channels_gains"].append(1.0)
 
             # Add offset to special channel
-            l_signal_params["channels_offsets"].insert(l_append_ts, "0.0")
+            l_signal_params["channels_offsets"].append(0.0)
 
 
         l_log = "Finished saving info with values:\n"
         for i_key, i_value in l_signal_params.iteritems():
             l_log = ''.join([l_log, i_key, " : ", str(i_value), "\n"])
         LOGGER.info(l_log)
-
         
         self._info_proxy.finish_saving(l_signal_params)
-        
-
 
 if __name__ == "__main__":
     InfoSaver(settings.MULTIPLEXER_ADDRESSES).loop()

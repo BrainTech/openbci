@@ -1,43 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer
+from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
-import sys, time, os.path
+import sys, os.path
 import settings, variables_pb2
 
 import data_storage_logging as logger
 from openbci.offline_analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
-from tags import tagger
 
 LOGGER = logger.get_logger("signal_saver", 'info')
-TAGGER = tagger.get_tagger()
-DATA_FILE_EXTENSION = ".obci.dat"
-class SignalSaver(BaseMultiplexerServer):
+
+DATA_FILE_EXTENSION = ".obci.raw"
+class SignalSaver(ConfiguredMultiplexerServer):
 
     def _all_but_first_data_received(self, p_data):
         """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
@@ -96,6 +76,7 @@ class SignalSaver(BaseMultiplexerServer):
         self._number_of_samples = 0
         self._first_sample_timestamp = -1.0
 
+        self.configure()
         self._start_saving_session()
 
     def handle_message(self, mxmsg):
@@ -107,7 +88,7 @@ class SignalSaver(BaseMultiplexerServer):
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and \
                 self._session_is_active:
 
-            self._number_of_samples += 1
+            self._number_of_samples += self._samples_per_vector
             self._data_received(mxmsg.message)
 
             if __debug__:
@@ -117,23 +98,25 @@ class SignalSaver(BaseMultiplexerServer):
         elif mxmsg.type == types.SIGNAL_SAVER_FINISH_SAVING:
             LOGGER.info("Signal saver got finish saving _message")
             self._finish_saving_session()
+        self.no_response()
                 
     def _start_saving_session(self):
         """Start storing data..."""
+
         if self._session_is_active:
             LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
             return 
+        append_ts = int(self.config.get_param("append_timestamps"))
+        if append_ts:
+            self._append_ts_index = len(self.config.get_param("channels_numbers").split(","))
+        else:
+            self._append_ts_index = -1
 
-        l_f_name =  self.conn.query(message = "SaveFileName", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message
-        l_f_dir = self.conn.query(message = "SaveFilePath", 
-                                   type = types.DICT_GET_REQUEST_MESSAGE, 
-                                   timeout = 1).message
-        self._append_ts = int(self.conn.query(message = "SaverTimestampsIndex", 
-                                          type = types.DICT_GET_REQUEST_MESSAGE, 
-                                          timeout = 1).message)
+        self._samples_per_vector = int(self.config.get_param("samples_per_packet"))
 
+        l_f_name =  self.config.get_param("save_file_name")
+        l_f_dir = self.config.get_param("save_file_path")
+        self._number_of_samples = 0
         l_f_dir = os.path.normpath(l_f_dir)
         if not os.access(l_f_dir, os.F_OK):
              os.mkdir(l_f_dir)
@@ -170,12 +153,9 @@ class SignalSaver(BaseMultiplexerServer):
             message=l_vec.SerializeToString(), 
             type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
         
-        l_files = self._data_proxy.finish_saving(self._append_ts)
+        l_files = self._data_proxy.finish_saving(self._append_ts_index)
         LOGGER.info("Saved file "+str(l_files))
         return l_files
-
-
-
 
 if __name__ == "__main__":
     SignalSaver(settings.MULTIPLEXER_ADDRESSES).loop()
