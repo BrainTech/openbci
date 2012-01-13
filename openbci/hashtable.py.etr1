@@ -211,30 +211,30 @@ class Hashtable(BaseMultiplexerServer):
         'ETR_START_AREA_ID': '101',
         'ETR_FIX_ID': '12345',
 
-	#-------------- CLASSIC ETR PARAMS------------------
+	    #-------------- CLASSIC ETR PARAMS------------------
         #'ETR_DEC_TYPE':'FRACTION',
         #'ETR_PUSH_DEC_COUNT':'0.7', 
         #'ETR_PUSH_FEED_COUNT':'0.1',
 
- 	# enumerator {'COUNT', 'FRACTION'}:
+ 	    # enumerator {'COUNT', 'FRACTION'}:
         # - COUNT means that decision is made by considering 'how many times the area has been pushed'
         # - FRACTION means that decision is made by considering 'what is the fraction of a number times given ara has been pushed 
         #   in relation to a number of times all areas has been pushed
         # in practice FRACTION mode is independent of etr sampling frequency; using COUNT mode you need to know the sampling frequency
         'ETR_DEC_TYPE':'COUNT',
 
-	# Above this value it is considered that an area is pushed (the decision has been made)
+	    # Above this value it is considered that an area is pushed (the decision has been made)
         # In COUNT mode it should be some natural number (eg. 20 denotes that if in previous ETR_BUFFER_SIZE seconds given
         # field has been pushed more than 20 times it means that the user really want to push it.)
         # In FRACTION mode it should be float in [0;1] range (eg. 0.4 denotes that if in previous ETR_BUFFER_SIZE seconds given
         # field has been pushed more than 40% times it means that the user really want to push it.)
         'ETR_PUSH_DEC_COUNT':'10', 
 
-	# This is simillar to ETR_PUSH_DEC_COUNT, above this value area is considered to be 'interesting' for the user
+	    # This is simillar to ETR_PUSH_DEC_COUNT, above this value area is considered to be 'interesting' for the user
         # and the user should be given a feedback
         'ETR_PUSH_FEED_COUNT':'3',
 
-	# How many previous seconds should be taken into consideration
+	    # How many previous seconds should be taken into consideration
         'ETR_BUFFER_SIZE':'5.0',
 
         # enumerator { 1(True), 0(False)}
@@ -245,7 +245,7 @@ class Hashtable(BaseMultiplexerServer):
         # if ETR_IGNORE_MISSED == False then fraction(area1) == 3/(3+2) and fraction(area2) == 2/(3+2)
         'ETR_IGNORE_MISSED':'1',
 
-	# Don`t generate decisions up to ETR_DEC_BREAK seconds after previous decision
+	    # Don`t generate decisions up to ETR_DEC_BREAK seconds after previous decision
         'ETR_DEC_BREAK':'0.3',
 
 
