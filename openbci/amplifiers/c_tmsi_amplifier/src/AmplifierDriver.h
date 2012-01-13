@@ -110,15 +110,6 @@ public:
 		return last_sample/1000000.0;
 	}
 };
-class DummyAmplifier:public AmplifierDescription{
-public:
-	DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
-		add_channel(new Channel("temp1"));
-		add_channel(new Channel("temp2"));
-		add_channel(new SawChannel(this));
-		add_channel(new BoolChannel("Trigger",this));
-	}
-};
 
 
 #endif	/* AMPLIFIERDRIVER_H */

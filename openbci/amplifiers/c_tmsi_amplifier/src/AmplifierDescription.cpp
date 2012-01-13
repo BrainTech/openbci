@@ -7,7 +7,9 @@
 
 #include "AmplifierDescription.h"
 #include "AmplifierDriver.h"
+#include "math.h"
 #include <iostream>
+#include <limits>
 void AmplifierDescription::clear_channels() {
 	while (channels.size()) {
 		delete channels.back();
@@ -70,8 +72,8 @@ NoSuchChannel::~NoSuchChannel() throw () {
 }
 string Channel::get_json() {
 	ostringstream out;
-	out.setf(ios::fixed, ios::floatfield);
-	cout.precision(10);
+	out.setf(ios::scientific, ios::floatfield);
+	out.precision(numeric_limits<double>::digits10+1);
 	out << "{\"name\": \"" << name << "\", \"gain\": " << gain
 			<< ", \"offset\": " << offset << ",\n \"a\": " << a;
 	out << ", \"b\": " << b << ", \"idle\": " << get_idle();
@@ -93,3 +95,84 @@ string Channel::get_idle() {
 int SawChannel::get_sample_int() {
 	return amplifier->get_driver()->cur_sample;
 }
+double SinusChannel::get_value(){
+	return sin((amplifier->get_driver()->cur_sample%period)*2*M_PI/period);
+}
+double CosinusChannel::get_value(){
+	return cos((amplifier->get_driver()->cur_sample%period)*2*M_PI/period);
+}
+double ModuloChannel::get_value(){
+	return (amplifier->get_driver()->cur_sample%period)/(double)period;
+}
+
+FunctionChannel::FunctionChannel(AmplifierDescription *amp,uint period,string function_name):
+	GeneratedChannel(function_name,amp){
+	this->period=period;
+	amplitude=rand()%100+1;
+	char tmp[100];
+	sprintf(tmp,"[%d]%dVolt-3",period,amplitude);
+
+	exp=(rand()%3+1)*(-3);
+	for (int i=exp;i<-3;i++)
+		amplitude*=10;
+	uint max=1<<(rand()%22+10);
+	offset=rand()%32000+rand()/(float)RAND_MAX;
+	gain=rand()%4+rand()/(float)RAND_MAX;
+	a=((double)amplitude)/gain/max;
+	b=-offset*a;
+	name+=tmp;
+	i_g=amplitude/(gain*a);
+	i_o=-(b-offset*a)/(gain*a);
+//	cout <<"max: "<<max<<" amp:"<<amplitude<<" gain:"<< gain<<" offset:" << offset <<" a:" << a<< " b: "<<b << " i_g:" << i_g << " i_o:"<< i_o;
+}
+int FunctionChannel::get_sample_int(){
+	int temp= get_value()*i_g+i_o;
+	return temp;
+//	printf("(%d * %f + %f) * %f + %f = %f  <=>  %f * %d = %f \n",temp,gain,offset,a,b,(temp*gain+offset)*a+b,get_value(),amplitude,get_value()*amplitude);
+
+}
+DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
+
+	add_channel(new SinusChannel(this,128));
+	add_channel(new CosinusChannel(this,128));
+	add_channel(new ModuloChannel(this,128));
+	add_channel(new FunctionChannel(this,128));
+
+	add_channel(new SinusChannel(this,256));
+	add_channel(new CosinusChannel(this,256));
+	add_channel(new ModuloChannel(this,256));
+	add_channel(new FunctionChannel(this,256));
+
+	add_channel(new SinusChannel(this,512));
+	add_channel(new CosinusChannel(this,512));
+	add_channel(new ModuloChannel(this,512));
+	add_channel(new FunctionChannel(this,512));
+
+	add_channel(new SinusChannel(this,1024));
+	add_channel(new CosinusChannel(this,1024));
+	add_channel(new ModuloChannel(this,1024));
+	add_channel(new FunctionChannel(this,1024));
+
+	add_channel(new SinusChannel(this,1024));
+	add_channel(new CosinusChannel(this,1024));
+	add_channel(new ModuloChannel(this,1024));
+	add_channel(new FunctionChannel(this,1024));
+
+	add_channel(new SinusChannel(this,2048));
+	add_channel(new CosinusChannel(this,2048));
+	add_channel(new ModuloChannel(this,2048));
+	add_channel(new FunctionChannel(this,2048));
+
+	add_channel(new SinusChannel(this,4096));
+	add_channel(new CosinusChannel(this,4096));
+	add_channel(new ModuloChannel(this,4096));
+	add_channel(new FunctionChannel(this,4096));
+
+	add_channel(new Channel("temp2"));
+	add_channel(new SawChannel(this));
+	add_channel(new BoolChannel("Trigger",this));
+	sampling_rates.push_back(128);
+	sampling_rates.push_back(256);
+	sampling_rates.push_back(2048);
+}
+

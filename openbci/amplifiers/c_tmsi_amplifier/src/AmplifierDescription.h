@@ -9,9 +9,11 @@
 #define AMPLIFIERDESCRIPTION_H_
 #include <vector>
 #include <string>
+#include <iostream>
 #include <sstream>
 #include <typeinfo>
 #include <stdlib.h>
+#include <stdio.h>
 using namespace std;
 class Channel;
 class AmplifierDriver;
@@ -49,6 +51,11 @@ public:
 		return driver;
 	}
 };
+class DummyAmplifier:public AmplifierDescription{
+public:
+	DummyAmplifier(AmplifierDriver *driver);
+};
+
 
 class Channel {
 public:
@@ -133,6 +140,41 @@ public:
 	virtual string get_type(){
 		return "ZAAG";
 	}
+};
+class FunctionChannel: public GeneratedChannel{
+	uint amplitude;
+	uint exp;
+	double i_g,i_o;
+public:
+	FunctionChannel(AmplifierDescription *amp,uint period,string name="Random");
+	string get_unit(){
+		char tmp[100];
+		sprintf(tmp,"Volt %d",exp);
+		return tmp;
+	}
+	inline int get_sample_int();
+protected:
+	uint period;
+	virtual double get_value(){return (rand()%period)/(float)period;}
+};
+class SinusChannel:public FunctionChannel{
+public:
+	SinusChannel(AmplifierDescription *amp,uint period):FunctionChannel(amp,period,"Sinus"){};
+protected:
+	virtual double get_value();
+};
+
+class CosinusChannel:public FunctionChannel{
+public:
+	CosinusChannel(AmplifierDescription *amp,uint period):FunctionChannel(amp,period,"Cos"){};
+protected:
+	virtual double get_value();
+};
+class ModuloChannel:public FunctionChannel{
+public:
+	ModuloChannel(AmplifierDescription *amp,uint period):FunctionChannel(amp,period,"Modulo"){};
+protected:
+	virtual double get_value();
 };
 class NoSuchChannel: public exception {
 	string name;

@@ -7,7 +7,7 @@
 
 #ifndef AMPLIFIERSERVER_H
 #define	AMPLIFIERSERVER_H
-
+#define BOOST
 #include "boost.h"
 #include "multiplexer/backend/BaseMultiplexerServer.h"
 #include "variables.pb.h"

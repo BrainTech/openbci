@@ -10,20 +10,13 @@ from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 class TestServer(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(TestServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-
-    def configure(self):
-        self.config.initialize_config(self.conn)
-
-        self.config.send_peer_ready(self.conn)
-        self.config.synchronize_ready(self.conn)
+        self.configure()
 
 
     def handle_message(self, mxmsg):
-        self.filter_config_message(mxmsg)
         # handle something
         self.no_response()
 
 if __name__ == "__main__":
     srv = TestServer(settings.MULTIPLEXER_ADDRESSES)
-    srv.configure()
     srv.loop()

@@ -46,7 +46,7 @@ BUILD = build
 LIBRARIES	:= -L$(AZOUKDIR)/lib -lmultiplexer
 
 TARGETS = tmsi_driver_server signal_receiver
-TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver 
+TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver dummy_tmsi_driver_server
 AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
 AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
 TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o
@@ -63,7 +63,11 @@ tmsi_install:
 	make
 	sudo make install
 test_server: $(addprefix $(BUILD)/, $(AMPLIFIER_DRIVER) $(AMPLIFIER_SERVER) test_server.o)
+	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBRARIES) 
+	
+dummy_tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_DRIVER) $(AMPLIFIER_SERVER) dummy_tmsi_driver_server.o)
 	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBRARIES)
+
 
 test_tmsi_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_tmsi_driver.o  $(TMSI_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
