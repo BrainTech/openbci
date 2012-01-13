@@ -24,7 +24,7 @@ _env = {
         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
         "MULTIPLEXER_PASSWORD": "",
         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":"+"/usr/lib/python2.6/site-packages/"
+        "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path,
 }
 
 env.update(_env)
@@ -551,6 +551,7 @@ start("ssvep_csp", "ugm")
 start("ssvep_csp", "c++_usb_amplifier")
 start("ssvep_csp", "csp_analysis")
 start("ssvep_csp", "super_diode_control")
+start("ssvep_csp", "logics_control")
 
 
 # fft ssvep -------------------------------------------
@@ -560,6 +561,7 @@ start("ssvep_fft", "ugm")
 start("ssvep_fft", "virtual_f_amplifier")
 start("ssvep_fft", "ssvep_analysis")
 start("ssvep_fft", "super_diode_control")
+start("ssvep_fft", "logics_control")
 
 
 if __name__ == "__main__":
