@@ -15,6 +15,7 @@
 #include "nexus/tmsi.h"
 #include "AmplifierDriver.h"
 #include "TmsiDriverDesc.h"
+#include "AmplifierDescription.h"
 #define BLUETOOTH_AMPLIFIER 1
 #define USB_AMPLIFIER 2
 #define IP_AMPLIFIER 3
@@ -166,6 +167,11 @@ private:
     const char * get_type_name(int type);
     void disconnect_mobita();
 };
-
+class DummyTmsiAmplifier: public AmplifierDriver{
+public:
+	DummyTmsiAmplifier():AmplifierDriver(){
+		set_description(new DummyAmplifier(this));
+	}
+};
 #endif	/* TMSIAMPLIFIER_H */
 
