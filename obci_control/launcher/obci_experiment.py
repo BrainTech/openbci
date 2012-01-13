@@ -348,6 +348,9 @@ class OBCIExperiment(OBCIControlPeer):
 						self.mtool.fill_msg("kill", receiver=""))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
 
+	def clean_up(self):
+		print "exp cleaning up"
+		self.subprocess_mgr.stop_monitoring()
 
 	def _handle_register_sv_timeout(self, sv_process):
 		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(

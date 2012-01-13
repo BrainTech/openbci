@@ -79,6 +79,10 @@ class SubprocessMonitor(object):
 			proc.kill()
 			del proc
 
+	def stop_monitoring(self):
+		for proc in self.processes.values():
+			proc.stop_monitoring()
+
 
 	def new_local_process(self, path, args, proc_type='', name='',
 								capture_io= STDOUT | STDIN,
