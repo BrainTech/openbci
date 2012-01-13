@@ -60,7 +60,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
                                           type=peers.SIGNAL_SAVER)
         if __debug__:
             from openbci.core import streaming_debug
-            self.debug = streaming_debug.Debug(128, LOGGER)
+            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), LOGGER)
 
 
         self._session_is_active = False
@@ -75,9 +75,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
         # Needed slots
         self._number_of_samples = 0
         self._first_sample_timestamp = -1.0
-
-        self.configure()
-        self._start_saving_session()
+        self._init_saving_session()
+        self.ready()
+        self._session_is_active = True
 
     def handle_message(self, mxmsg):
         """Handle messages:
@@ -100,7 +100,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             self._finish_saving_session()
         self.no_response()
                 
-    def _start_saving_session(self):
+    def _init_saving_session(self):
         """Start storing data..."""
 
         if self._session_is_active:
@@ -108,7 +108,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             return 
         append_ts = int(self.config.get_param("append_timestamps"))
         if append_ts:
-            self._append_ts_index = len(self.config.get_param("channels_numbers").split(","))
+            self._append_ts_index = len(self.config.get_param("channel_names").split(";"))
         else:
             self._append_ts_index = -1
 
@@ -124,7 +124,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
         self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
-        self._session_is_active = True
+
 
     def _finish_saving_session(self):
         """Send signal_saver_control_message to MX with

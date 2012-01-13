@@ -20,8 +20,6 @@ class InfoSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(InfoSaver, self).__init__(addresses=addresses, 
                                           type=peers.INFO_SAVER)
-        self.configure()
-        
         #local params
         l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
@@ -32,10 +30,15 @@ class InfoSaver(ConfiguredMultiplexerServer):
 
         #external params
         self.freq = float(self.config.get_param("sampling_rate"))
-        self.ch_nums = self.config.get_param("channels_numbers").split(",")
-        self.ch_names = self.config.get_param("channels_names").split(",")
-        self.ch_gains = [float(i) for i in self.config.get_param("channels_gains").split(",")]
-        self.ch_offsets = [float(i) for i in self.config.get_param("channels_offsets").split(",")]
+        self.amp_null=float(self.config.get_param("amplifier_null"))
+        self.ch_nums = self.config.get_param("channel_numbers").split(";")
+        self.ch_names = self.config.get_param("channel_names").split(";")
+        self.ch_gains = [float(i) for i in self.config.get_param("channel_gains").split(";")]
+        self.ch_offsets = [float(i) for i in self.config.get_param("channel_offsets").split(";")]
+        self.ch_as = [float(i) for i in self.config.get_param("channel_as").split(";")]
+        self.ch_bs = [float(i) for i in self.config.get_param("channel_bs").split(";")]
+
+        self.ready()
 
     def handle_message(self, mxmsg):
         """Handle messages:
@@ -63,10 +66,13 @@ class InfoSaver(ConfiguredMultiplexerServer):
         l_signal_params = {
             'number_of_channels':len(self.ch_nums),
             'sampling_frequency':self.freq,
+            'amplifier_null':self.amp_null,
             'channels_numbers':self.ch_nums,
             'channels_names':self.ch_names,
             'channels_gains':self.ch_gains,
             'channels_offsets':self.ch_offsets,
+            'channels_as':self.ch_as,
+            'channels_bs':self.ch_bs,
             'number_of_samples':p_number_of_samples,
             'file':p_data_file_path,
             'first_sample_timestamp':p_first_sample_ts

@@ -5,7 +5,6 @@
 
 from multiplexer.multiplexer_constants import peers, types
 
-#import signalml_save_manager
 import sys, os.path
 import settings, variables_pb2
 
