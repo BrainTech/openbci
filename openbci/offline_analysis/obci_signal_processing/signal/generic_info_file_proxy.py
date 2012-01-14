@@ -45,12 +45,18 @@ TAGS_DEFINITIONS = {
                 ('list', ['calibrationGain', 'calibrationParam']),
             'channels_offsets':
                 ('list', ['calibrationOffset', 'calibrationParam']),
+            'channels_as':
+                ('list', ['calibrationA', 'calibrationParam']),
+            'channels_bs':
+                ('list', ['calibrationB', 'calibrationParam']),
             'number_of_samples':
                 ('simple', ['sampleCount']),
             'number_of_channels':
                 ('simple', ['channelCount']),
             'sampling_frequency':
                 ('simple', ['samplingFrequency']),
+            'amplifier_null':
+                ('simple', ['amplifierNull']),
             'first_sample_timestamp':
                 ('simple', ['firstSampleTimestamp']),
             'file':

@@ -1,61 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-
+#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer
 
-#import signalml_save_manager
-import sys, time, os.path
+import sys, os.path
 import settings, variables_pb2
 
 import tags_logging as logger
-import tagger
 from openbci.offline_analysis.obci_signal_processing.tags import tags_file_writer as tags_writer
+from openbci.offline_analysis.obci_signal_processing.tags import tag_utils
+
+from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 LOGGER = logger.get_logger("tags_saver", 'info')
-TAGGER = tagger.get_tagger()
 
-TAG_FILE_EXTENSION = ".obci.tags"
+TAG_FILE_EXTENSION = ".obci.tag"
 
-class TagSaver(BaseMultiplexerServer):
+class TagSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         """Init slots."""
         super(TagSaver, self).__init__(addresses=addresses, 
                                           type=peers.TAG_SAVER)
-
-        # Get file path data from hashtable...
-        l_f_name =  self.conn.query(message = "SaveFileName", 
-                                    type = types.DICT_GET_REQUEST_MESSAGE, 
-                                    timeout = 1).message
-        l_f_dir = self.conn.query(message = "SaveFilePath", 
-                                   type = types.DICT_GET_REQUEST_MESSAGE, 
-                                   timeout = 1).message
-
+        self.configure()
+        # Get file path data
+        l_f_name = self.config.get_param("save_file_name")
+        l_f_dir = self.config.get_param("save_file_path")
         l_file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + TAG_FILE_EXTENSION))
-
 
         self._tags_proxy = tags_writer.TagsFileWriter(l_file_path)
         self._session_is_active = True
@@ -69,7 +42,14 @@ class TagSaver(BaseMultiplexerServer):
         depending on data received."""
         if mxmsg.type == types.TAG and \
                 self._session_is_active:
-            l_tag = TAGGER.unpack_tag(mxmsg.message) #TOOD - dont use tagger, use tag_utils
+            str_tag = variables_pb2.Tag()
+            str_tag.ParseFromString(p_tag_msg)
+            tag_desc = dict()
+            for i_var in str_tag.desc.variables:
+                tag_desc[i_var.key] = i_var.value
+            l_tag = tag_utils.pack_tag_to_dict(str_tag.start_timestamp, str_tag.end_timestamp,
+                                                    str_tag.name, tag_desc, str_tag.channels)
+
             LOGGER.info(''.join(['Signal saver got tag: ',
                                 'start_timestamp:',
                                 str(l_tag['start_timestamp']),
@@ -111,8 +91,6 @@ class TagSaver(BaseMultiplexerServer):
     def _tag_received(self, p_tag_dict):
         """Convey tag to tags_proxy."""
         self._tags_proxy.tag_received(p_tag_dict)
-
-
 
 if __name__ == "__main__":
     TagSaver(settings.MULTIPLEXER_ADDRESSES).loop()
