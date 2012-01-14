@@ -58,9 +58,6 @@ public:
     inline int get_sample_int(uint index){
     	return channel_data[index].data[channel_data_index].isample;
     }
-    inline double get_sample_double(uint index){
-    	return channel_data[index].data[channel_data_index].sample;
-    }
     template <class T>
     inline void fill_sample(T* s,uint index){
     	_put_sample(s,index);
@@ -73,7 +70,7 @@ public:
         return fei.nrofswchannels;
     }
 
-    int set_sampling_rate(int sample_rate) {
+    uint set_sampling_rate(uint sample_rate) {
     	vector<uint> s_r=description->get_sampling_rates();
     	bool ok=false;
     	for (uint i=0;i<s_r.size();i++)
@@ -83,8 +80,9 @@ public:
     			cout <<"Sampling rate "<<sample_rate << " not available!";
     			return 0;
     		}
-        int tmp = 0, bsr = fei.basesamplerate;
-        while (tmp < 4 && abs(sample_rate - (bsr >> tmp)) > abs(sample_rate - (bsr >> (tmp + 1)))) tmp++;
+        int tmp = 0;
+        uint bsr = fei.basesamplerate;
+        while (tmp < 4 && (bsr>>tmp)>sample_rate) tmp++;
         sample_rate_div = tmp;
         sampling_rate = bsr >> tmp;
         if (sample_rate > 128 && mode == BLUETOOTH_AMPLIFIER)
@@ -112,7 +110,7 @@ private:
 			(*s) = get_sample_int(index);
 	}
 	inline void _put_sample(double *s, uint index) {
-			(*s) = get_sample_double(index);
+			(*s) = description->get_channels()[index]->get_sample_double();
 	}
     int connect_usb(const string & address);
     int connect_bluetooth(const string &address);

@@ -266,7 +266,7 @@ void TmsiAmplifier::start_sampling() {
     fei.currentsampleratesetting = sample_rate_div&0xFFFF;
     br = 0;
     keep_alive=1;
-    int counter = 0;
+    uint counter = 0;
     int type=0;
     tms_write_frontendinfo(fd, &fei);
     receive();
@@ -334,10 +334,6 @@ uint64_t TmsiAmplifier::next_samples() {
     if (channel_data_index >= channel_data[0].ns)
 		while (sampling) {
 			receive();
-//			if (fd==read_fd)
-//				last_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();
-//			else
-//				last_sample = AmplifierDriver::next_samples();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
 				fprintf(stderr, "Sample dropped!!!\n");
@@ -346,15 +342,6 @@ uint64_t TmsiAmplifier::next_samples() {
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
 				uint64_t result=AmplifierDriver::next_samples();
 				tms_get_data(msg, br, &dev, channel_data);
-				int saw=fei.nrofswchannels-1;
-//				if (mode==IP_AMPLIFIER)
-//					// Mobita Saw channel is different:
-//					for (int i=0;i<channel_data[saw].ns;i++)
-//					{
-//						int tmp=channel_data[saw].data[i].isample;
-//						channel_data[saw].data[i].isample=(tmp<<16)&(tmp>>16);
-//						cout<<"Switching saw was "<< tmp<<" new: "<<channel_data[saw].data[i].isample;
-//					}
 				channel_data_index = 0;
 				debug("Channel data received...\n");
 				if (--keep_alive==0)

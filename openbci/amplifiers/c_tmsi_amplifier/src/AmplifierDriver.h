@@ -23,7 +23,7 @@ class AmplifierDriver {
 protected:
 	bool sampling;
 
-	int sampling_rate,sampling_rate_;
+	uint sampling_rate,sampling_rate_;
 	string active_channels_str;
 	std::vector<Channel *> active_channels;
 	uint64_t last_sample;
@@ -74,10 +74,10 @@ public:
 		return sampling;
 	}
 
-	virtual int set_sampling_rate(const int samp_rate) {
+	virtual uint set_sampling_rate(const uint samp_rate) {
 		return sampling_rate = samp_rate;
 	}
-	inline void set_sampling_rate_(const int samp_rate){
+	inline void set_sampling_rate_(const uint samp_rate){
 		if (!description)
 		{
 			sampling_rate_=samp_rate;

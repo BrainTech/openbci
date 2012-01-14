@@ -61,8 +61,8 @@ class Channel {
 public:
 	string name;
 	Channel(string name);
-	float gain;
-	float offset;
+	double gain;
+	double offset;
 	virtual string get_type() {
 		return "UNKNOWN";
 	}
@@ -73,8 +73,8 @@ public:
 	bool is_signed;
 	short bit_length;
 	virtual string get_idle();
-	float a; // Information for converting bits to units:
-	float b; // Unit  = a * Bits  + b ;
+	double a; // Information for converting bits to units:
+	double b; // Unit  = a * Bits  + b ;
 
 	short exp; // Unit exponent, 3 for Kilo, -6 for micro, etc.
 	virtual string get_json();
@@ -83,7 +83,7 @@ public:
 		return rand() % 100;
 	}
 	virtual inline double get_sample_double(){
-		return get_sample_int();
+		return (get_sample_int()*gain+offset)*a+b;
 	}
 	inline void fill_sample(int *sample) {
 			(*sample) = get_sample_int();
@@ -105,10 +105,6 @@ public:
 		this->amplifier=amp;
 		this->amplifier->add_generated_channel(this);
 		is_signed=0;
-		a=1;
-		b=0;
-		gain=1;
-		offset=0;
 	}
 };
 class BoolChannel: public GeneratedChannel {
@@ -152,7 +148,8 @@ public:
 		sprintf(tmp,"Volt %d",exp);
 		return tmp;
 	}
-	inline int get_sample_int();
+	int get_sample_int();
+	double get_sample_double();
 protected:
 	uint period;
 	virtual double get_value(){return (rand()%period)/(float)period;}

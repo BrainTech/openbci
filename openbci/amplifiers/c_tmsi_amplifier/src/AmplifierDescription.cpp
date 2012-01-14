@@ -82,7 +82,7 @@ string Channel::get_json() {
 	return out.str();
 }
 Channel::Channel(string name) :
-		name(name), gain(0), offset(0), a(0), b(0) {
+		name(name), gain(1.0), offset(0), a(1.0), b(0) {
 }
 string Channel::get_idle() {
 	ostringstream out;
@@ -121,15 +121,18 @@ FunctionChannel::FunctionChannel(AmplifierDescription *amp,uint period,string fu
 	a=((double)amplitude)/gain/max;
 	b=-offset*a;
 	name+=tmp;
-	i_g=amplitude/(gain*a);
+	i_g=1/(gain*a);
 	i_o=-(b-offset*a)/(gain*a);
 //	cout <<"max: "<<max<<" amp:"<<amplitude<<" gain:"<< gain<<" offset:" << offset <<" a:" << a<< " b: "<<b << " i_g:" << i_g << " i_o:"<< i_o;
 }
 int FunctionChannel::get_sample_int(){
-	int temp= get_value()*i_g+i_o;
+	int temp= get_sample_double()*i_g+i_o;
 	return temp;
 //	printf("(%d * %f + %f) * %f + %f = %f  <=>  %f * %d = %f \n",temp,gain,offset,a,b,(temp*gain+offset)*a+b,get_value(),amplitude,get_value()*amplitude);
 
+}
+double FunctionChannel::get_sample_double(){
+	return get_value()*amplitude;
 }
 DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
 
