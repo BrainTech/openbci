@@ -13,19 +13,16 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 		super(ConfiguredMultiplexerServer, self).__init__(addresses, type)
 
 		self.config = PeerControl(self,
+									connection=self.conn,
 									param_validate_method=self.validate_params,
 									param_change_method=self.params_changed)
 		self.ready_to_work = False
 
-	def configure(self):
-		self.init_config()
-		self.send_peer_ready()
 
-	def init_config(self):
-		self.config.initialize_config(self.conn)
 
-	def send_peer_ready(self):
+	def ready(self):
 		self.ready_to_work = True
+		self.config.register_config(self.conn)
 		self.config.send_peer_ready(self.conn)
 
 	def _is_private_message(self, mxmsg):
@@ -36,7 +33,7 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 		self.config.handle_config_message(mxmsg)
 
 	def validate_params(self, params):
-		print "VALIDATE PARAMS, {0}".format(params)
+		print "*VALIDATE PARAMS, {0}".format(params)
 		return True
 
 	def params_changed(self, params):

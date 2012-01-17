@@ -22,7 +22,7 @@ PEER_ID = "peer_id"
 
 class PeerControl(object):
 
-	def __init__(self, p_peer=None, param_validate_method=None,
+	def __init__(self, p_peer=None, connection=None, param_validate_method=None,
 							   param_change_method=None):
 		self.core = peer_config.PeerConfig()
 		self.peer = p_peer
@@ -31,17 +31,33 @@ class PeerControl(object):
 
 		self.wait_ready_signal = False
 		self.peer_id = None
+		self.conn = connection
 
 		self.cmd_overrides = {}
 		self.file_list = []
 
+		if self.conn:
+			self.initialize_config(self.conn)
+
 
 	def initialize_config(self, connection):
+		self._load_provided_configs()
+
+		self._request_ext_params(connection)
+		self.peer_validate_params(self.core.param_values)
+
+		return self.config_ready()
+
+	def initialize_config_locally(self):
+		self._load_provided_configs()
+		return self.config_ready()
+
+	def _load_provided_configs(self):
 		# parse command line
-		self.process_command_line()
+		self._process_command_line()
 
 		# parse default config file
-		self.load_config_base()
+		self._load_config_base()
 
 		# parse other config files (names from command line)
 		for filename in self.file_list:
@@ -51,12 +67,8 @@ class PeerControl(object):
 		dictparser = peer_config_parser.parser('python')
 		dictparser.parse(self.cmd_overrides, self.core, update=True)
 
-		self.register_config(connection)
-		self.request_ext_params(connection)
-		self.peer_validate_params(self.core.param_values)
 
-
-	def process_command_line(self):
+	def _process_command_line(self):
 		cmd_ovr, other_params = PeerCmd().parse_cmd()
 		self.peer_id = self.core.peer_id = other_params[PEER_ID]
 		if other_params[CONFIG_FILE] is not None:
@@ -66,7 +78,7 @@ class PeerControl(object):
 			self.wait_ready_signal = True
 
 
-	def load_config_base(self):
+	def _load_config_base(self):
 		"""Parse the base configuration file, named the same as peer's
 		implementation file"""
 
@@ -102,16 +114,16 @@ class PeerControl(object):
 
 	def _call_handler(self, mtype, message):
 		if mtype == types.PARAMS_CHANGED:
-			return self.handle_params_changed(message)
+			return self._handle_params_changed(message)
 		elif mtype == types.PEER_READY_SIGNAL:
-			return self.handle_peer_ready_signal(message)
+			return self._handle_peer_ready_signal(message)
 		elif mtype == types.SHUTDOWN_REQUEST:
 			self.peer.shut_down()
 			#return None, None
 		else:
 			return None, None
 
-	def handle_params_changed(self, p_msg):
+	def _handle_params_changed(self, p_msg):
 		print "peer_control: PARAMS CHANGED - ", p_msg.sender
 		params = cmsg.params2dict(p_msg)
 		param_owner = p_msg.sender
@@ -152,7 +164,7 @@ class PeerControl(object):
 	def config_ready(self):
 		return self.core.config_ready() and self.peer_id is not None
 
-	def handle_peer_ready_signal(self, p_msg):
+	def _handle_peer_ready_signal(self, p_msg):
 		if not self.peer.ready_to_work and self.config_ready():
 			self.peer.ready_to_work = True
 			self.send_peer_ready(self.peer.conn)
@@ -169,10 +181,9 @@ class PeerControl(object):
 		# right now it's best not to use this method
 		return self.core.update_local_param(p_name, p_value)
 
-
 	def register_config(self, connection):
 		if self.peer is None:
-			raise NoPeerError
+			raise NoPeerError()
 
 		msg = cmsg.fill_msg(types.REGISTER_PEER_CONFIG, sender=self.peer_id)
 
@@ -182,7 +193,7 @@ class PeerControl(object):
 		connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
 
 
-	def request_ext_params(self, connection):
+	def _request_ext_params(self, connection):
 		#TODO set timeout and retry count
 		if self.peer is None:
 			raise NoPeerError
@@ -283,6 +294,9 @@ class PeerConfigControlError(Exception):
 			return repr(self.value)
 		else:
 			return repr(self)
+
+class ConfigNotReadyError(PeerConfigControlError):
+	pass
 
 class NoPeerError(PeerConfigControlError):
 	pass
