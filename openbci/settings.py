@@ -2,9 +2,11 @@ import os
 
 addrs = os.environ.get('MULTIPLEXER_ADDRESSES', '').split(',')
 addr_tuples = []
-for addr in addrs:
-    addr = addr.split(':')
-    addr_tuples.append((addr[0], int(addr[1])))
+if addrs:
+    for addr in addrs:
+        addr = addr.split(':')
+        if len(addr) == 2:
+            addr_tuples.append((addr[0], int(addr[1])))
 
 MULTIPLEXER_ADDRESSES = addr_tuples if addr_tuples else [("0.0.0.0", 31889)]
 MULTIPLEXER_PASSWORD = os.environ.get('MULTIPLEXER_PASSWORD', "")
