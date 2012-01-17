@@ -104,15 +104,17 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		args += [net.choose_not_local(self.supervisors_rep_addrs).pop()]
-		args.append('--sv-pub-addresses')
-		if local:
-			addrs = net.choose_local(self.pub_addresses)
-		else:
-			addrs = net.choose_not_local(self.pub_addresses)
-		launch_data = self.exp_config.launch_data(machine)
+		sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
+		if not sv_rep_ or local:
+			sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
 
-		args += [addrs.pop()] #self.pub_addresses
+		args += sv_rep_[:1]
+		args.append('--sv-pub-addresses')
+		pub_addrs = net.choose_not_local(self.pub_addresses)
+		if not pub_addrs or local:
+			pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+
+		args += pub_addrs[:1] #self.pub_addresses
 		args += [
 					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),

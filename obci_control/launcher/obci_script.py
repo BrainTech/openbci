@@ -234,6 +234,13 @@ def server_process_running():
 	return running, pid
 
 def client_server_prep(cmdargs=None):
+	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
+	if not os.path.exists(directory):
+		print "obci directory not found: {0}".format(directory)
+		raise OBCISystemError()
+
+	os.chdir(directory)
+
 	ifname = cmdargs.ifname if cmdargs else None
 
 	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]

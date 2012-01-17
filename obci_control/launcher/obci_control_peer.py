@@ -189,8 +189,8 @@ class OBCIControlPeer(object):
 
 		print "\n\tname: {0}\n\tpeer_type: {1}\n\tuuid: {2}\n".format(
 									self.name, self.peer_type(), self.uuid)
-		#print "rep: {0}".format(self.rep_addresses)
-		#print "pub: {0}\n".format(self.pub_addresses)
+		print "rep: {0}".format(self.rep_addresses)
+		print "pub: {0}\n".format(self.pub_addresses)
 
 		self.source_req_socket = self.ctx.socket(zmq.REQ)
 
@@ -201,7 +201,7 @@ class OBCIControlPeer(object):
 		self._set_poll_sockets()
 
 	def _init_socket(self, addrs, zmq_type, create_ipc=True):
-		basic_addrs = [ "tcp://"+net.lo_ip(),
+		basic_addrs = [ "tcp://"+net.ext_ip(ifname='lo'),
 						"tcp://"+net.ext_ip(ifname=net.server_ifname())]
 		ipc_name=''
 		if not addrs:

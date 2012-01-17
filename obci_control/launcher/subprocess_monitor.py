@@ -112,7 +112,7 @@ class SubprocessMonitor(object):
 
 		timeout_desc = register_timeout_desc
 
-		ON_POSIX = 'posix' in sys.builtin_module_names
+		ON_POSIX = False #'posix' in sys.builtin_module_names
 		try:
 			popen_obj = subprocess.Popen(launch_args,
 										stdout=out, stderr=err, stdin=stdin,
@@ -130,6 +130,9 @@ class SubprocessMonitor(object):
 		except Exception as e:
 			return None, "Error: " + str(e) + str(e.args)
 		else:
+			if popen_obj.returncode is not None:
+				print "aaaaaaaaaaa"
+				print popen_obj.communicate()
 			if not name:
 				name = os.path.basename(path)
 			process_desc = ProcessDescription(proc_type=proc_type,
@@ -499,6 +502,7 @@ class LocalProcess(Process):
 				self.kill()
 			else:
 				time.sleep(0.5)
+		print self.name, self.pid, self.popen_obj.returncode, self._stop_monitoring
 		if self.popen_obj.returncode is not None:
 			self.popen_obj.wait()
 

@@ -53,12 +53,17 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	def _handle_registration_response(self, response):
 		self.launch_data = response.params
+		print self.launch_data
 
 
 	def set_mx_data(self):
-		src = net.choose_not_local(self.source_pub_addresses).pop()
+		print self.source_pub_addresses
+		src_ = net.choose_not_local(self.source_pub_addresses)[:1]
+		if not src_:
+			src_ = net.choose_local(self.source_pub_addresses, ip=True)[:1]
+		src = src_[0]
 		src = src[6:].split(':')[0]
-
+		print "!!!!!!", src, self.ip, "!!!!!!!!!!!!!!"
 		if src == self.ip:
 			sock = self.ctx.socket(zmq.REP)
 			port = str(sock.bind_to_random_port("tcp://" + self.ip,
@@ -118,6 +123,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	@msg_handlers.handler("start_mx")
 	def handle_start_mx(self, message, sock):
 		if 'mx' in self.launch_data and self.mx_data[0] is not None:
+			print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 			path = launcher_tools.mx_path()
 			if message.args:
 				args = message.args
@@ -204,6 +210,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		#self.subprocess_mgr.killall()
 
 	def clean_up(self):
+		print self.name, "cleaning up"
 		self.processes = {}
 		self.subprocess_mgr.killall()
 
