@@ -195,8 +195,8 @@ class OBCIExperiment(OBCIControlPeer):
 				print "launch file opened"
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
-			self.status.set_status(launcher_tools.NOT_READY, details=e.args)
-			#raise
+			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
+
 			return False, e.args
 
 		#print self.exp_config
