@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from launcher.subprocess_monitor import SubprocessMonitor, RETURNCODE
+#from launcher.subprocess_monitor import SubprocessMonitor, RETURNCODE
 import time
 import subprocess
-
+import sys
 # process, details = SubprocessMonitor(None, '12345').new_local_process('infinite_print.py', ['asdfjkl;'],
 # monitoring_optflags=RETURNCODE)
 # print process
@@ -23,16 +23,17 @@ import subprocess
 
 
 # print "AFTER KILL: ", process.status()
-f = open('/home/lis/__tmp__', 'w')
+f = open('/home/lis/__tmp__', 'a', 0)
 f.write("HAHAHAHA\n")
 
-proc = subprocess.Popen(['python','/host/dev/openbci/obci_control/test/infinite_print.py'], stdout=f, stderr=subprocess.STDOUT)
+sys.stdout = sys.stderr = f
+proc = subprocess.Popen(['python','/host/dev/openbci/obci_control/test/infinite_print.py'], stdout=f, stderr=f)
 
 for i in range(10):
-    t = subprocess.Popen(['tail', '/home/lis/__tmp__'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    std, err = t.communicate()
-    print 'c', std,
-    print "...", err
+    #t = subprocess.Popen(['tail', '/home/lis/__tmp__'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #std, err = t.communicate()
+    #print 'c', std,
+    #print "...", err
     time.sleep(1)
 f.close()
 proc.kill()
