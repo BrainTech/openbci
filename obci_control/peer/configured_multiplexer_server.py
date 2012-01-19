@@ -10,7 +10,7 @@ from peer.peer_control import PeerControl
 import common.config_message as cmsg
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):
-	def __init__(self, addresses, type = None):
+	def __init__(self, addresses, type=None):
 		super(ConfiguredMultiplexerServer, self).__init__(addresses, type)
 
 		self.ready_to_work = False
@@ -35,7 +35,7 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 		self.config.register_config(self.conn)
 		self.config.send_peer_ready(self.conn)
 
-	def param(self, param_name):
+	def get_param(self, param_name):
 		return self.config.get_param(param_name)
 
 	def set_param(self, param_name, param_value):

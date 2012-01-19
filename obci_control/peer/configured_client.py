@@ -9,23 +9,30 @@ import common.config_message as cmsg
 class ConfiguredClient(object):
 
     def __init__(self, type, addresses, connect_config=True):
-        self.config = PeerControl(self,
-                                    param_validate_method=self.validate_params,
-                                    param_change_method=self.params_changed)
-        self.conn = connect_client(type, addresses)
 
+        self.conn = connect_client(type, addresses)
+        self.ready_to_work = False
+        self.config = PeerControl(self)
+        self.config.connection = self.conn
+        self.config.peer_validate_params = self.validate_params
+        self.config.peer_params_change = self.params_changed
+        result, details = self.config.initialize_config(self.conn)
+
+
+        if not result:
+            txt = '[{0}] (CRITICAL!) config initialisation FAILED: {1}'.format(
+                                                        self.config.peer_id, details)
+            sys.exit(txt)
+        else:
+            self.validate_params(self.config.param_values())
         if not self.init_config(connect_config):
             raise ConfigNotReadyError(str(self.config))
 
-    def init_config(self, connect_config):
-        if connect_config:
-            return self.config.initialize_config(self.conn)
-        else:
-            return self.config.initialize_config_locally()
-
-    def send_peer_ready(self):
+    def ready(self):
         self.ready_to_work = True
+        self.config.register_config(self.conn)
         self.config.send_peer_ready(self.conn)
+
 
     def validate_params(self, params):
         print '[',self.config.peer_id,"] VALIDATE PARAMS, {0}".format(params)
