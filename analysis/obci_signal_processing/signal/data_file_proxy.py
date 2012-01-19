@@ -244,23 +244,25 @@ class MxBufferDataFileWriteProxy(object):
             msg = temp_file.read(self._data_len)
             l_vec = variables_pb2.SampleVector()
             l_vec.ParseFromString(msg)
-            for i, i_sample in enumerate(l_vec.samples):
-                ts = i_sample.timestamp
-
-                if i == p_append_ts_index:
+            for j in range(len(l_vec.samples)):
+                s = l_vec.samples[j]
+                ts = s.timestamp
+                for i in range(len(s.channels)):
+                    i_sample = s.channels[i]
+                    if i == p_append_ts_index:
+                        try:
+                            final_file.write(struct.pack("d", ts))
+                        except struct.error:
+                            LOGGER.error("Error while writhing to file. Bad sample format.")
+                            raise(signal_exceptions.BadSampleFormat())
+                    
                     try:
-                        final_file.write(struct.pack("d", ts))
+                        final_file.write(struct.pack("d", i_sample))
                     except struct.error:
                         LOGGER.error("Error while writhing to file. Bad sample format.")
                         raise(signal_exceptions.BadSampleFormat())
-                    
-                try:
-                    final_file.write(struct.pack("d", i_sample.value))
-                except struct.error:
-                    LOGGER.error("Error while writhing to file. Bad sample format.")
-                    raise(signal_exceptions.BadSampleFormat())
             # p_append_ts_index might be the last channel
-            if p_append_ts_index == i + 1:
+                if p_append_ts_index == i + 1:
                     try:
                         final_file.write(struct.pack("d", ts))
                     except struct.error:
