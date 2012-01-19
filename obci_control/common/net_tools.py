@@ -161,8 +161,3 @@ if __name__ == '__main__':
 	#print ext_ip()
 	print __file__
 	print INSTALL_DIR
-
-	l1 = [u'tcp://192.168.210.131:39051', u'tcp://127.0.0.1:39051',
-	u'ipc://pub_6cc0476d.ipc']
-	l2 = [u'tcp://192.168.210.131:39051', u'tcp://127.0.0.1:39051', u'ipc://pub_laund.ipc']
-	same_machine(l1, l2)

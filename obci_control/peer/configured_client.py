@@ -28,9 +28,9 @@ class ConfiguredClient(object):
         self.config.send_peer_ready(self.conn)
 
     def validate_params(self, params):
-        print "VALIDATE PARAMS, {0}".format(params)
+        print '[',self.config.peer_id,"] VALIDATE PARAMS, {0}".format(params)
         return True
 
     def params_changed(self, params):
-        print "PARAMS CHAnGED, {0}".format(params)
+        print '[',self.config.peer_id,"] PARAMS CHAnGED, {0}".format(params)
         return True

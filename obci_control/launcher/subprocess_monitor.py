@@ -32,7 +32,7 @@ STDIN = 4
 
 STDIO = [NO_STDIO, STDOUT, STDERR, STDIN]
 
-PYTHON_CALL = ['python', '-u']
+PYTHON_CALL = ['python']#, '-u']
 
 REGISTER_TIMEOUT = 3
 STDIO_QUEUE_MAX_SIZE = 8192
@@ -112,7 +112,7 @@ class SubprocessMonitor(object):
 
 		timeout_desc = register_timeout_desc
 
-		ON_POSIX = False #'posix' in sys.builtin_module_names
+		ON_POSIX = 'posix' in sys.builtin_module_names
 		try:
 			popen_obj = subprocess.Popen(launch_args,
 										stdout=out, stderr=err, stdin=stdin,
@@ -344,7 +344,7 @@ class Process(object):
 		if self.reg_timer is not None:
 			self.reg_timer.cancel()
 		print "[subprocess_monitor] {0} [{1}]  REGISTERED!!! {2}".format(self.name, self.proc_type, reg_data.machine_ip)
-		print "ping:", self.ping_it, "ret:", self.check_returncode
+		#print "ping:", self.ping_it, "ret:", self.check_returncode
 		with self._status_lock:
 			self._status = RUNNING
 		#TODO validate registration data
@@ -485,7 +485,8 @@ class LocalProcess(Process):
 			code = self.popen_obj.returncode
 
 			if code is not None:
-				print "[subprocess_monitor]",self.proc_type,"process", self.name, "pid", self.pid, "ended with", code
+				print "[subprocess_monitor]",self.proc_type,"process", self.name,\
+										 "pid", self.pid, "ended with", code
 				with self._status_lock:
 					self.popen_obj.wait()
 					if code == 0:
@@ -502,7 +503,8 @@ class LocalProcess(Process):
 				self.kill()
 			else:
 				time.sleep(0.5)
-		print self.name, self.pid, self.popen_obj.returncode, self._stop_monitoring
+		#print "[subprocess_monitor]",self.proc_type,self.name, self.pid,\
+		#							 self.popen_obj.returncode, self._stop_monitoring
 		if self.popen_obj.returncode is not None:
 			self.popen_obj.wait()
 

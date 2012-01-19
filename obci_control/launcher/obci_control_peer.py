@@ -151,7 +151,7 @@ class OBCIControlPeer(object):
 			except:
 				#print self.name, '.Publisher -- STOP.'
 				break
-		print "close  sock ", pub_addrs, pub_sock
+		print self.name,'[', self.type, ']', "close  sock ", pub_addrs, pub_sock
 		pub_sock.close()
 		pull_sock.close()
 		push_sock.close()
@@ -233,7 +233,7 @@ class OBCIControlPeer(object):
 												pub_addrs=pub_addrs,
 												name=self.name,
 												other_params=params)
-		print message
+		print self.name,'[', self.type, ']', message
 		send_msg(self.source_req_socket, message)
 		response_str = recv_msg(self.source_req_socket)
 		response = self.mtool.unpack_msg(response_str)

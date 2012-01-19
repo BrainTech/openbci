@@ -23,7 +23,7 @@ class ConfigServer(BaseMultiplexerServer):
 		message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)
 
 		msg, mtype = self._call_handler(mxmsg.type, message)
-		print mxmsg.type, mtype
+		#print mxmsg.type, mtype
 		if msg is None:
 			self.no_response()
 		else:

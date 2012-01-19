@@ -140,7 +140,7 @@ class PeerConfigSerializerCmd(PeerConfigSerializer):
 
 	def _save(self, p_file_obj):
 		#p_file_obj.write(str(self.args))
-		print self.args
+		#print self.args
 		for a in self.args:
 			p_file_obj.append(a)
 		#p_file_obj = self.args
