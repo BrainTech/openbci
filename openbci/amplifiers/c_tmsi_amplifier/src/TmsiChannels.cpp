@@ -13,9 +13,9 @@ string TmsiChannel::get_type(){
 int TmsiChannel::get_sample_int(){
 	return amplifier->get_sample_int(index);
 }
-double TmsiChannel::get_sample_double(){
-	return amplifier->get_sample_double(index);
-}
+//double TmsiChannel::get_sample_double(){
+//	return amplifier->get_sample_double(index);
+//}
 int DigiChannel::get_sample_int(){
 	return amplifier->get_digi(index);
 }

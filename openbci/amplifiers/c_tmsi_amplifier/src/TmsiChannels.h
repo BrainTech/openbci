@@ -109,7 +109,7 @@ public:
     	return out.str();
     }
     int get_sample_int();
-    double get_sample_double();
+//    double get_sample_double();
 };
 class DigiChannel:public TmsiChannel{
 public:
