@@ -4,15 +4,15 @@
 import os
 from multiplexer.multiplexer_constants import peers, types
 from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
-from openbci.core import  core_logging as logger
-import settings
+from drivers import drivers_logging as logger
+from configs import settings
 from launcher.launcher_tools import obci_root
 
 LOGGER = logger.get_logger("AmplifierVirtual", "info")
 
 class AmplifierVirtual(BinaryDriverWrapper):
     def __init__(self, addresses):
-        super(AmplifierVirtual, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
+        super(AmplifierVirtual, self).__init__(addresses=addresses, type=peers.AMPLIFIER_SERVER)
 
     def get_run_args(self,multiplexer_address):
 

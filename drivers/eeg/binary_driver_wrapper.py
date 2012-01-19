@@ -5,10 +5,10 @@ import sys
 import subprocess
 import signal
 
-from openbci.core import  core_logging as logger
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-import settings
+from drivers import drivers_logging as logger
+from configs import settings
 from launcher.launcher_tools import obci_root
 
 from subprocess import Popen
@@ -55,10 +55,6 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         amp_desc=json.loads(driver_output)
         for par, desc_par in self.desc_params.iteritems():
             self.config.set_param(par, amp_desc[desc_par])
-        # self.config.set_param('amplifier_name',amp_desc[u"name"])
-        # self.config.set_param('physical_channels_no',amp_desc[u"physical_channels"])
-        # self.config.set_param('sampling_rates',json.dumps(amp_desc[u"sampling_rates"]))
-        # self.config.set_param('channels',json.dumps(amp_desc[u"channels"]))
 
     def set_driver_params(self):
         self.set_sampling_rate(self.config.get_param("sampling_rate"))

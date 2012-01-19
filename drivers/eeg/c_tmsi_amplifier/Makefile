@@ -45,8 +45,8 @@ BUILD = build
 
 LIBRARIES	:= -L$(AZOUKDIR)/lib -lmultiplexer
 
-TARGETS = tmsi_driver_server signal_receiver
-TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver dummy_tmsi_driver_server
+TARGETS = tmsi_driver_server signal_receiver dummy_tmsi_driver_server
+TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver
 AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
 AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
 TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o

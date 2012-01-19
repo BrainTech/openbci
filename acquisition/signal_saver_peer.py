@@ -3,16 +3,16 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
+import sys, os.path
 
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
-import sys, os.path
-import settings, variables_pb2
 
-import data_storage_logging as logger
-from openbci.offline_analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
+from configs import settings, variables_pb2
+from acquisition import acquisition_logging as logger
+from analysis.obci_signal_processing.signal import data_file_proxy
+from analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
 
 LOGGER = logger.get_logger("signal_saver", 'info')
 
@@ -59,7 +59,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         super(SignalSaver, self).__init__(addresses=addresses,
                                           type=peers.SIGNAL_SAVER)
         if __debug__:
-            from openbci.core import streaming_debug
+            from utils import streaming_debug
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), LOGGER)
 
 
@@ -85,7 +85,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         If session is active convey data to save_manager.
         * signal_saver_finish_message - finish saving session"""
 
-        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and \
+        if mxmsg.type == self._signal_type and \
                 self._session_is_active:
 
             self._number_of_samples += self._samples_per_vector
@@ -124,6 +124,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
         self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
+
+        self._signal_type = types.__dict__[self.config.get_param("signal_type")]
 
 
     def _finish_saving_session(self):

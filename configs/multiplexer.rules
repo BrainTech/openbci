@@ -232,6 +232,12 @@ peer {
     name: "CONFIG_SERVER"
 }
 
+peer {
+     type: 144
+     name: "AMPLIFIER_SERVER"
+}
+
+
 # packages and routing rules definitions
 #
 #   PACKAGES 1 - 99 reserved for Multiplexer meta packages

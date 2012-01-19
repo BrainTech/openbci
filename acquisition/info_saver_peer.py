@@ -5,13 +5,13 @@
 
 import os.path
 import sys
-import settings, variables_pb2
 
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-import data_storage_logging as logger
-from openbci.offline_analysis.obci_signal_processing.signal import info_file_proxy
+from configs import settings, variables_pb2
+from acquisition import acquisition_logging as logger
+from analysis.obci_signal_processing.signal import info_file_proxy
 
 LOGGER = logger.get_logger("info_saver", 'info')
 INFO_FILE_EXTENSION = ".obci.xml"
@@ -33,12 +33,10 @@ class InfoSaver(ConfiguredMultiplexerServer):
         #external params
         self.freq = float(self.config.get_param("sampling_rate"))
         self.amp_null=float(self.config.get_param("amplifier_null"))
-        self.ch_nums = self.config.get_param("channel_numbers").split(";")
+        self.ch_nums = self.config.get_param("active_channels").split(";")
         self.ch_names = self.config.get_param("channel_names").split(";")
         self.ch_gains = [float(i) for i in self.config.get_param("channel_gains").split(";")]
         self.ch_offsets = [float(i) for i in self.config.get_param("channel_offsets").split(";")]
-        self.ch_as = [float(i) for i in self.config.get_param("channel_as").split(";")]
-        self.ch_bs = [float(i) for i in self.config.get_param("channel_bs").split(";")]
 
         self.ready()
 
@@ -73,8 +71,6 @@ class InfoSaver(ConfiguredMultiplexerServer):
             'channels_names':self.ch_names,
             'channels_gains':self.ch_gains,
             'channels_offsets':self.ch_offsets,
-            'channels_as':self.ch_as,
-            'channels_bs':self.ch_bs,
             'number_of_samples':p_number_of_samples,
             'file':p_data_file_path,
             'first_sample_timestamp':p_first_sample_ts

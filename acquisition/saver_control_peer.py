@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import time
 
 from multiplexer.multiplexer_constants import peers, types
-
 from peer.configured_client import ConfiguredClient
-import time
-import settings
+
+from configs import settings
 
 class SaverControl(ConfiguredClient):
 
