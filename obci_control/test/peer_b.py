@@ -6,11 +6,13 @@ import settings, variables_pb2
 
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
+print "dupadupadupadupa"
 
 class TestServer(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(TestServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-        self.configure()
+        self.ready()
+
 
 
     def handle_message(self, mxmsg):

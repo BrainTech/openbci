@@ -53,10 +53,15 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	def _handle_registration_response(self, response):
 		self.launch_data = response.params
+		print self.name,'[', self.type, ']',  "RECEIVED LAUNCH DATA: ", self.launch_data
 
 
 	def set_mx_data(self):
-		src = net.choose_not_local(self.source_pub_addresses).pop()
+
+		src_ = net.choose_not_local(self.source_pub_addresses)[:1]
+		if not src_:
+			src_ = net.choose_local(self.source_pub_addresses, ip=True)[:1]
+		src = src_[0]
 		src = src[6:].split(':')[0]
 
 		if src == self.ip:
@@ -73,7 +78,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		if mx_data[0] is None:
 			return None
 		addr, port = mx_data[0]
-		print "mx addr str", addr + ':' + str(port)
+		print self.name,'[', self.type, ']', "mx addr str", addr + ':' + str(port)
 		return addr + ':' + str(port)
 
 
@@ -118,6 +123,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	@msg_handlers.handler("start_mx")
 	def handle_start_mx(self, message, sock):
 		if 'mx' in self.launch_data and self.mx_data[0] is not None:
+			print self.name,'[', self.type, ']', "..starting multiplexer"
 			path = launcher_tools.mx_path()
 			if message.args:
 				args = message.args
@@ -143,7 +149,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			path = os.path.join(launcher_tools.obci_root(), data['path'])
 			args = data['args']
 			proc, details = self._launch_process(path, args, data['peer_type'],
-														peer, env=self.env, capture_io=STDOUT)
+														peer, env=self.env, capture_io=NO_STDIO)
 			if proc is not None:
 				self.processes[peer] = proc
 			else:
@@ -153,7 +159,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			send_msg(self._publish_socket, self.mtool.fill_msg("all_peers_launched",
 													machine=self.ip))
 		else:
-			print "OBCI LAUNCH FAILED"
+			print self.name,'[', self.type, ']', "OBCI LAUNCH FAILED"
 			send_msg(self._publish_socket, self.mtool.fill_msg("obci_launch_failed",
 													machine=self.ip, path=path,
 													args=args, details=details))
@@ -170,13 +176,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 														capture_io=capture_io,
 														env=env)
 		if proc is None:
-			print "process launch FAILED:", path, args
+			print self.name,'[', self.type, ']', "process launch FAILED:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
 											sender=self.uuid,
 											details=dict(machine=self.ip, path=path, args=args,
 														error=details)))
 		else:
-			print "process launch success:", path, args
+			print self.name,'[', self.type, ']', "process launch success:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
 											sender=self.uuid,
 											machine=self.ip,
@@ -204,6 +210,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		#self.subprocess_mgr.killall()
 
 	def clean_up(self):
+		print self.name,'[', self.type, ']',  "cleaning up"
 		self.processes = {}
 		self.subprocess_mgr.killall()
 

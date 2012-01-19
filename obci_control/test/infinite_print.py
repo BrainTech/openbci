@@ -17,7 +17,8 @@ if __name__ == '__main__':
 	cnt = 1
 
 	while True:
-		print "Message {0}: {1}".format(cnt, msg)
-		time.sleep(0.3)
+		print >>sys.stdout," Message {0}: {1}".format(cnt, msg)
+
 		print >> sys.stderr, "Err msg {0}".format(cnt)
 		cnt += 1
+		time.sleep(0.5)

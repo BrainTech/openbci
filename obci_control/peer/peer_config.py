@@ -210,6 +210,9 @@ Name: {0}, old id: {1}, new id: {2}""".format(
 		"""
 		return self._param_values[param_name]
 
+	def has_param(self, param_name):
+		return param_name in self._param_values
+
 	def add_external_param_def(self, param_name, reference):
 		"""
 		Store an external parameter definition. param_name is the
@@ -320,37 +323,55 @@ not declared in configuration!".format(source_name, reference))
 		config sources have peer ID's assigned and all external parameter
 		values are already obtained.
 		"""
-		return self.config_sources_ready() and self.external_params_ready() \
-					and self.launch_deps_ready()
+		details = {}
+		rd = self.config_sources_ready(details)
+		rd = self.external_params_ready(details) and rd
+		rd = self.launch_deps_ready(details) and rd
+		return rd, details
 
-	def config_sources_ready(self):
+	def config_sources_ready(self, details=None):
 		"""
 		Return  True if all used config sources have peer ID's assigned.
 		"""
+		result = True
 		unused = self.unused_config_sources()
+		if details is not None:
+			details["config_sources"] = []
 		for src, peer_id in self._config_sources.iteritems():
 			if not peer_id and not src in unused:
-				return False
-		return True
+				if details is not None:
+					details["config_sources"].append((src, peer_id))
+				result = False
+		return result
 
-	def launch_deps_ready(self):
+	def launch_deps_ready(self, details=None):
 		"""
 		Return  True if all launch deps have peer ID's assigned.
 		"""
+		result = True
+		if details is not None:
+			details["launch_deps"] = []
 		for dep, peer_id in self._launch_deps.iteritems():
 			if not peer_id:
-				return False
-		return True
+				if details is not None:
+					details["launch_deps"].append((dep, peer_id))
+				result = False
+		return result
 
-	def external_params_ready(self):
+	def external_params_ready(self, details=None):
 		"""
 		Return True if the values of all external parameters have been
 		successfully obtained.
 		"""
+		result = True
+		if details is not None:
+			details["ext_params"] = []
 		for name in self._ext_param_defs.keys():
 			if name not in self._set_ext_params:
-				return False
-		return True
+				if details is not None:
+					details["ext_params"].append((name, self._ext_param_defs[name]))
+				result = False
+		return result
 
 	def params_for_source(self, p_src):
 		"""

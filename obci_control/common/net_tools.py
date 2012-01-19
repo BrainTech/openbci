@@ -63,16 +63,23 @@ def is_net_addr(addr):
 	return not addr.startswith('ipc') \
 			and not addr.startswith('inproc')
 
-def choose_local(addrs):
-	result = [a for a in addrs if a.startswith('ipc://')]
+def addr_is_local(addr):
+	return addr.startswith('tcp://'+ext_ip(ifname='lo')) or\
+					addr.startswith('tcp://0.0.0.0') or\
+					addr.startswith('tcp://127.0.0.1')
+
+def choose_local(addrs, ip=False):
+	result = []
+	if not ip:
+		result = [a for a in addrs if a.startswith('ipc://')]
 	if not result:
-		result += [a for a in addrs if a == 'tcp://'+lo_ip()]
+		result += [a for a in addrs if addr_is_local(a)]
 	return result
 
 def choose_not_local(addrs):
-	result = [a for a in addrs if a.startswith('tcp://') and not a == 'tcp://'+lo_ip()]
-	if not result:
-		result += [a for a in addrs if a.startswith('tcp://')]
+	result = [a for a in addrs if a.startswith('tcp://') and not a.startswith('tcp://'+lo_ip())]
+	#if not result:
+	#	result += [a for a in addrs if a.startswith('tcp://')]
 	return result
 
 def lo_ip():
@@ -90,7 +97,9 @@ def ext_ip(peer_ip=None, ifname=None):
 										)[20:24]))
 		except IOError as e:
 			print "ext_ip(ifname:  {0}): {1}".format(ifname, e)
-			client_ip = lo_ip()
+			if ifname != 'lo':
+
+				client_ip = ext_ip(peer_ip, ifname='lo')
 	else:
 		peer_ip = peer_ip if peer_ip else 'google.com'
 		try:
@@ -149,6 +158,6 @@ def server_rep_port():
 	return port
 
 if __name__ == '__main__':
-	print ext_ip()
+	#print ext_ip()
 	print __file__
 	print INSTALL_DIR

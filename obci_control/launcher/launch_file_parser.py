@@ -11,6 +11,7 @@ from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
 
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"
+LAUNCH_DEPS = "launch_dependencies"
 SYS_SECTIONS = [PEERS]
 
 class LaunchFileParser(object):
@@ -32,7 +33,6 @@ class LaunchFileParser(object):
 		self.config = p_config_obj
 
 	def _do_parse(self):
-		print "parsing"
 		self._check_sections()
 		self._load_general_settings()
 		peer_sections = self.__peer_sections()
@@ -40,9 +40,11 @@ class LaunchFileParser(object):
 		self._load_peer_ids(peer_sections)
 		self._load_launch_data(peer_sections)
 		self._set_sources()
+		self._set_launch_deps()
 
 		for peer_sec in peer_sections:
-			print self.config.peers[self.__peer_id(peer_sec)].config
+			#print self.config.peers[self.__peer_id(peer_sec)].config
+			pass
 
 
 	def _check_sections(self):
@@ -60,7 +62,7 @@ class LaunchFileParser(object):
 		if self.parser.has_option(PEERS, 'scenario_dir'):
 			self.config.scenario_dir = self.parser.get(PEERS, 'scenario_dir')
 			self.config.scenario_dir = self.__path(self.config.scenario_dir, base_dir=self.scenario_dir)
-			print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
+			#print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
 
 	def _load_peer_ids(self, peer_sections):
 		for section in peer_sections:
@@ -155,7 +157,7 @@ class LaunchFileParser(object):
 		#print "Trying to parse {0} for {1}".format(config_path, peer_id)
 		if config_path:
 			with open(config_path) as f:
-				print "parsing custom config for peer  ", peer_id, config_path
+				print "parsing _custom_ config for peer  ", peer_id, config_path
 				peer_parser.parse(f, peer_cfg)
 		self.config.set_peer_config(peer_id, peer_cfg)
 
@@ -166,6 +168,13 @@ class LaunchFileParser(object):
 				self.config.set_config_source(self.__peer_id(src_sec),
 												src_name,
 												src_id)
+
+	def _set_launch_deps(self):
+		for dep_sec in self.__launch_dep_sections():
+			for dep_name, dep_id in self.parser.items(dep_sec):
+				self.config.set_launch_dependency(self.__peer_id(dep_sec),
+												dep_name,
+												dep_id)
 
 	def _set_peer_machine(self, peer_id, machine_name):
 		self.config.set_peer_machine(peer_id, machine_name)
@@ -185,3 +194,8 @@ class LaunchFileParser(object):
 		return [sec for sec in self.parser.sections() if
 								sec.startswith(PEERS + '.') and \
 								sec.endswith(CONFIG_SRCS)]
+
+	def __launch_dep_sections(self):
+		return [sec for sec in self.parser.sections() if
+								sec.startswith(PEERS + '.') and \
+								sec.endswith(LAUNCH_DEPS)]

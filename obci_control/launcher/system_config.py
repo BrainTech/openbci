@@ -62,16 +62,17 @@ class OBCIExperimentConfig(object):
 
 
 	def config_ready(self):
+		details = {}
 		if not self.peers:
-			return False
+			return False, details
 
 		for peer_state in self.peers.values():
-			if not peer_state.ready():
-				return False
+			if not peer_state.ready(details):
+				return False, details
 
 		# check config graph
 
-		return True
+		return True, {}
 
 	def status(self, status_obj):
 		ready = self.config_ready()
@@ -135,19 +136,24 @@ class PeerConfigDescription(object):
 		self.path = path
 		self.machine = machine
 
-	def ready(self):
+	def ready(self, details=None):
+		loc_det = {}
 		ready = self.config is not None and \
 				self.path is not None and\
 				self.machine is not None and\
 				self.peer_id is not None
-		return ready and self.config.config_sources_ready() and\
-				self.config.launch_deps_ready()
+		ready = self.config.config_sources_ready(loc_det) and ready
+		ready = self.config.launch_deps_ready(loc_det) and ready
+		if details is not None:
+			details[self.peer_id] = loc_det
+		return ready
 
 	def status(self, peer_status_obj):
-		ready = self.ready()
+		det = {}
+		ready = self.ready(det)
 		st = launcher_tools.READY_TO_LAUNCH if ready else launcher_tools.NOT_READY
 
-		peer_status_obj.set_status(st)
+		peer_status_obj.set_status(st, details=det)
 
 	def peer_type(self):
 		if self.peer_id.startswith('mx'):

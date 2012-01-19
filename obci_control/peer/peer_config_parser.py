@@ -86,10 +86,11 @@ class PeerConfigParser(object):
 
 		exts = self._get_local_params()
 		for name, val in exts:
+			v = '' if val == None else val
 			if self.update:
-				self.config.update_local_param(name, val)
+				self.config.update_local_param(name, v)
 			else:
-				self.config.add_local_param(name, val)
+				self.config.add_local_param(name, v)
 
 
 	def _check_has_section(self, name):
