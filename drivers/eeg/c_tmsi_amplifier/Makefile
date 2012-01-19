@@ -129,9 +129,9 @@ $(BUILD)/tmsi.o: src/nexus/tmsi.c src/nexus/tmsi.h
 $(BUILD):
 	mkdir -p $(BUILD)
 $(BUILD)/variables.pb.cc:	$(BUILD)/variables.pb.h
-$(BUILD)/variables.pb.h: $(ROOTDIR)/openbci/variables.proto
+$(BUILD)/variables.pb.h: $(ROOTDIR)/configs/variables.proto
 	mkdir -p $(BUILD)
-	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/openbci/ $<
+	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/configs/ $<
 
 $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
