@@ -15,7 +15,7 @@ mvn test && mvn install
 cd
 git clone http://escher.fuw.edu.pl/git/http/azouk-libraries
 git clone http://escher.fuw.edu.pl/git/http/openbci
-cd openbci
+cd openbci/scripts/
 ./install_mx_and_drivers.sh
 
 
