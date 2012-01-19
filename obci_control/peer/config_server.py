@@ -3,7 +3,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
-import settings
+from configs import settings
 
 
 import common.config_message as cmsg

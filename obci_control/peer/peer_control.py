@@ -12,7 +12,7 @@ from peer_cmd import PeerCmd
 
 import common.config_message as cmsg
 
-import settings
+from configs import settings
 from multiplexer.multiplexer_constants import peers, types
 from azouk._allinone import OperationFailed, OperationTimedOut
 

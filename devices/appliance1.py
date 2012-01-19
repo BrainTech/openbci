@@ -1,71 +1,91 @@
 #!/usr/bin/env python
-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski 
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+# -*- coding: utf-8 -*-
 # Author:
-#      Krzysztof Kulewski <kulewski@gmail.com>
 #      Magdalena Michalska <jezzy.nietoperz@gmail.com>
-#
-
+#      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import serial
+import logging
+import sys
 import os
-
-ser = serial.Serial('/dev/ttyUSB0', baudrate=9600)
-
-
-# codes a decimal number a hexadecimally on two bytes 
+ 
 def to_hex_word(a):
-    #return chr(a / 256) + chr(a % 256)
+    '''encodes a decimal number hexadecimally on two bytes'''
     return chr(a%256) + chr(a/256)
+ 
+class Blinker(object):
+    def __init__(self, port_name):
+        import serial
+        try:
+            self.port = serial.Serial(
+                port=port_name,
+                baudrate=9600,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                xonxoff=False
+                )
+        except serial.SerialException, e:
+            print "Nieprawidłowa nazwa portu lub port zajęty."
+            raise e
+        self.close()
+ 
+    def open(self):
+        self.port.open()
+ 
+    def close(self):
+        self.port.close()
+ 
+    def send(self, value):
+        self.port.write(value)
+ 
+    def blinkSSVEP(self,d, p1, p2):
+        '''
+        d = list of frequencies;
+        p1:p2 = ratio LED_on_time/LED_off_time
+        if you want i-th LED to be OFF all the time send  d[i] = 0
+        if you want i-th LED to be ON all the time send  d[i] = -1
+        in these two cases p1 and p2 do not matter
+        '''
+        clock  = 62500
+        factor = float(p1) / float(p1 + p2)
+ 
+        str = chr(3) # 'SSVEP_RUN'
+ 
+        for i in range(len(d)):
+            # i-th LED OFF
+            if d[i] == 0:                       
+                str += to_hex_word(0) + to_hex_word(255) 
+            # i-th LED ON
+            elif d[i] == -1:
+                str += to_hex_word(255) + to_hex_word(0)
+                #str = 'S'
+                # i-th LED blinks d[i] times per second
+                # p1:p2 = on_time:off_time in one blink
+            else:
+                period = clock/d[i]
+                bright = int((clock/d[i]) * factor)
+                dark = period - bright
+                str += to_hex_word(bright) + to_hex_word(dark)
+ 
+        self.send(str)
+ 
+    def blinkP300(self,d):
+        clock  = 62500
+        str = chr(4) # 'P300_RUN'
+ 
+        for i in range(len(d)):
+            period = int(clock*d[i]/1000.0)
+            str += to_hex_word(period)
+            print(period)
+ 
+        self.send(str)
 
-# d = list of frequencies, p1:p2 = proportion time_diode_is_on/time_diod_is_off
-# if you want diode number i to be OFF all the time send  d[i] = 0
-# if you want diode number i to be ON all the time send  d[i] = -1
-# in those two cases p1 and p2 do not matter
+    def on(self):
+        str = chr(2) # 'P300_RUN'
+        self.send(str)
 
+    def off(self):
+        str = chr(1) # 'P300_RUN'
+        self.send(str)
 
-def blink_p300(i, p):
-    
-    str = chr(4) + chr(i) + chr(255) + chr(32) + chr(0) + chr(0)
-    ser.write(str)  
-    
-
-def blink(d, p1, p2):
-    clock = 62500
-    factor = float(p1) / float(p1 + p2)
-    
-    str = chr(3) #'R'
-    for i in range(len(d)):
-        # diode i OFF
-        if d[i] == 0:                       
-            str += to_hex_word(0) + to_hex_word(255) 
-        # diode i ON
-        elif d[i] == -1:
-            str += to_hex_word(255) + to_hex_word(0)
-	    #str = 'S'
-        # diode i blinks d[i] times per second, p1:p2 = on_time:off_time in one blink
-        else:
-	    period = clock/d[i]
-	    bright = int((clock/d[i]) * factor)
-	    dark = period - bright
-            str += to_hex_word(bright) + to_hex_word(dark)
-    ser.write(str)
-  
