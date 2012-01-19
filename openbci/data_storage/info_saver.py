@@ -4,10 +4,11 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import os.path
+import sys
 import settings, variables_pb2
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 import data_storage_logging as logger
 from openbci.offline_analysis.obci_signal_processing.signal import info_file_proxy
@@ -18,8 +19,9 @@ INFO_FILE_EXTENSION = ".obci.xml"
 class InfoSaver(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
-        super(InfoSaver, self).__init__(addresses=addresses, 
+        super(InfoSaver, self).__init__(addresses=addresses,
                                           type=peers.INFO_SAVER)
+
         #local params
         l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
@@ -77,11 +79,11 @@ class InfoSaver(ConfiguredMultiplexerServer):
             'file':p_data_file_path,
             'first_sample_timestamp':p_first_sample_ts
             }
-        
+
         if self.append_ts:
             l_signal_params['number_of_channels'] += 1
             l_signal_params["channels_numbers"].append("1000")
-            
+
             # Add name to special channel
             l_signal_params["channels_names"].append("TSS")
 
@@ -96,7 +98,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         for i_key, i_value in l_signal_params.iteritems():
             l_log = ''.join([l_log, i_key, " : ", str(i_value), "\n"])
         LOGGER.info(l_log)
-        
+
         self._info_proxy.finish_saving(l_signal_params)
 
 if __name__ == "__main__":

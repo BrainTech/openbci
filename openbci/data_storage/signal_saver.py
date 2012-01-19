@@ -5,7 +5,7 @@
 
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy
 import sys, os.path
@@ -21,7 +21,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
 
     def _all_but_first_data_received(self, p_data):
         """Validate p_data (is it a correct float? If not exit the program.), send it to data_proxy.
-        _all_but_first_data_received is set to self.data_received in 
+        _all_but_first_data_received is set to self.data_received in
         self._first_sample_data_received, so in fact _all_but_first_data_received
         is fired externally by calling self.data_received."""
         try:
@@ -46,9 +46,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
             break
 
         self._data_proxy.set_data_len(len(p_data))
-        
+
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # !!! below operation changes self._data_received method 
+        # !!! below operation changes self._data_received method
         # from _first_sample_timestamp to _all_but_first_data_received
         self._data_received = self._all_but_first_data_received
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -56,7 +56,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
 
 
     def __init__(self, addresses):
-        super(SignalSaver, self).__init__(addresses=addresses, 
+        super(SignalSaver, self).__init__(addresses=addresses,
                                           type=peers.SIGNAL_SAVER)
         if __debug__:
             from openbci.core import streaming_debug
@@ -99,13 +99,13 @@ class SignalSaver(ConfiguredMultiplexerServer):
             LOGGER.info("Signal saver got finish saving _message")
             self._finish_saving_session()
         self.no_response()
-                
+
     def _init_saving_session(self):
         """Start storing data..."""
 
         if self._session_is_active:
             LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
-            return 
+            return
         append_ts = int(self.config.get_param("append_timestamps"))
         if append_ts:
             self._append_ts_index = len(self.config.get_param("channel_names").split(";"))
@@ -150,9 +150,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_var.value = self._file_path
 
         self.conn.send_message(
-            message=l_vec.SerializeToString(), 
+            message=l_vec.SerializeToString(),
             type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
-        
+
         l_files = self._data_proxy.finish_saving(self._append_ts_index)
         LOGGER.info("Saved file "+str(l_files))
         return l_files
@@ -161,4 +161,4 @@ if __name__ == "__main__":
     SignalSaver(settings.MULTIPLEXER_ADDRESSES).loop()
 
 
-        
+
