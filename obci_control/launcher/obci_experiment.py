@@ -64,17 +64,16 @@ class OBCIExperiment(OBCIControlPeer):
 		self.exp_config.launch_file_path = self.launch_file
 
 		result, details = self.make_experiment_config()
-
-		if not result and self.launch_file:
-			print "- - - - - - -  LAUNCH FILE INVALID!!!  - - - - - - - "
-
 		self.exp_config.status(self.status)
 		self.status.details = details
+		if not result and self.launch_file:
+			print "- - - - - - -  LAUNCH FILE INVALID!!!  - - - - - - - "
+			print "status:", self.status.as_dict(), details
+
+
 
 		self.mx_addr = None
 		self.mx_pass = None
-
-
 
 
 	def net_init(self):
@@ -197,7 +196,7 @@ class OBCIExperiment(OBCIControlPeer):
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
 
-			return False, e.args
+			return False, str(e)
 
 		#print self.exp_config
 		rd, details = self.exp_config.config_ready()

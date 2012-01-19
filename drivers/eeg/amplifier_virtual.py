@@ -3,7 +3,7 @@
 
 import os
 from multiplexer.multiplexer_constants import peers, types
-from openbci.amplifiers.binary_driver_wrapper import BinaryDriverWrapper
+from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from openbci.core import  core_logging as logger
 import settings
 from launcher.launcher_tools import obci_root

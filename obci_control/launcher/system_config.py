@@ -63,7 +63,9 @@ class OBCIExperimentConfig(object):
 
 	def config_ready(self):
 		details = {}
+		print "peers", self.peers, not self.peers
 		if not self.peers:
+			print "!!!"
 			return False, details
 
 		for peer_state in self.peers.values():
@@ -75,10 +77,10 @@ class OBCIExperimentConfig(object):
 		return True, {}
 
 	def status(self, status_obj):
-		ready = self.config_ready()
+		ready, details = self.config_ready()
 		st = launcher_tools.READY_TO_LAUNCH if ready else launcher_tools.NOT_READY
 
-		status_obj.set_status(st)
+		status_obj.set_status(st, details=details)
 		#TODO details, e.g. info about cycles
 
 		for peer_id in self.peers:
@@ -142,6 +144,9 @@ class PeerConfigDescription(object):
 				self.path is not None and\
 				self.machine is not None and\
 				self.peer_id is not None
+
+		if not ready:
+			return ready
 		ready = self.config.config_sources_ready(loc_det) and ready
 		ready = self.config.launch_deps_ready(loc_det) and ready
 		if details is not None:

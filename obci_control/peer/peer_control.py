@@ -4,6 +4,7 @@
 import warnings
 import time
 import inspect
+import numbers
 
 import peer_config
 import peer_config_parser
@@ -192,8 +193,8 @@ class PeerControl(object):
 		return self.core.param_values
 
 	def true_val(self, value):
-		if isinstance(val, Number):
-			return val > 0
+		if isinstance(value, numbers.Number):
+			return value > 0
 		return str(value).lower() in ['1', 'true', 'yes', 't', 'y']
 
 
@@ -206,7 +207,13 @@ class PeerControl(object):
 		params = self.core.local_params
 		cmsg.dict2params(params, msg)
 
-		connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
+		#connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
+		reply = self.__query(connection, msg,
+									types.REGISTER_PEER_CONFIG)
+		#print 'AAAAAAAAAAAAAAAAAA', reply, "(rq:", types.REGISTER_PEER_CONFIG,\
+		#							"exp:", types.PEER_REGISTERED, ')'
+		if not reply.type == types.PEER_REGISTERED:
+			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
 
 
 	def _request_ext_params(self, connection, retries=30):
@@ -264,9 +271,12 @@ class PeerControl(object):
 	def send_peer_ready(self, connection):
 		if self.peer is None:
 			raise NoPeerError
+		print '[', self.peer_id, '] sending ready signal.'
 		mtype = types.PEER_READY
-		connection.send_message(message=cmsg.fill_and_pack(mtype,
-															peer_id=self.peer_id), type=mtype)
+		msg = cmsg.fill_and_pack(mtype, peer_id=self.peer_id)
+
+		reply = self.__query(connection, msg, mtype)
+		print self.peer_id, "ooooooo", reply.type, mtype
 
 		self._synchronize_ready(connection)
 
@@ -277,20 +287,24 @@ class PeerControl(object):
 			raise NoPeerError
 
 		others = self.core.launch_deps.values()
+		print '[', self.peer_id, '] waiting for other peers: ', others
 		msg = cmsg.fill_and_pack(types.PEERS_READY_QUERY, sender=self.peer_id,
 															deps=others)
 
 		ready = False
 		while not ready:
 			reply = self.__query(connection, msg, types.PEERS_READY_QUERY)
-
+			# print 'got!', reply, cmsg.unpack_msg(reply.type, reply.message)
 			if reply is None:
 				#TODO sth bad happened, raise exception?
+
 				continue
-			if reply.type is types.READY_STATUS:
-				ready = cmsg.unpack_msg(reply.type, reply.message).peers_ready
+			if reply.type == types.READY_STATUS:
+				rmsg = cmsg.unpack_msg(reply.type, reply.message)
+
+				ready = rmsg.peers_ready
 			if not ready:
-				time.sleep(0.2)
+				time.sleep(2)
 		print "Dependencies are ready, I can start working"
 
 

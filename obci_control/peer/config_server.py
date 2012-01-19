@@ -117,9 +117,10 @@ class ConfigServer(BaseMultiplexerServer):
 		if peer_id not in self._configs:
 			return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR
 		self._ready_peers.append(peer_id)
-		return None, None
+		return message_obj, types.PEER_READY
 
 	def handle_peers_ready_query(self, message_obj):
+		print '///', message_obj.sender, message_obj.deps,
 		peer_id = message_obj.sender
 		if peer_id not in self._configs:
 			return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR
@@ -128,6 +129,7 @@ class ConfigServer(BaseMultiplexerServer):
 		for dep in message_obj.deps:
 			if not dep in self._ready_peers:
 				green_light = False
+		print self._ready_peers, green_light
 		return cmsg.fill_msg(types.READY_STATUS,
 							receiver=peer_id, peers_ready=green_light), types.READY_STATUS
 

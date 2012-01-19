@@ -37,9 +37,10 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
         self.set_driver_params()
         self.ready()
+        autostart = self.config.true_val(self.config.get_param('start_sampling'))
+        LOGGER.info('Automatic start' + str(autostart))
+        if autostart:
 
-
-        if self.config.true_val(self.config.get_param('start_sampling')):
             self.start_sampling()
 
     def run_driver(self):
@@ -51,7 +52,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         return self._communicate()
 
     def store_driver_description(self, driver_output):
-        amp_desc=json.loads(output)
+        amp_desc=json.loads(driver_output)
         for par, desc_par in self.desc_params.iteritems():
             self.config.set_param(par, amp_desc[desc_par])
         # self.config.set_param('amplifier_name',amp_desc[u"name"])

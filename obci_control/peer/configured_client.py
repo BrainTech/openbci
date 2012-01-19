@@ -8,7 +8,7 @@ import common.config_message as cmsg
 
 class ConfiguredClient(object):
 
-    def __init__(self, type, addresses, connect_config=True):
+    def __init__(self, type, addresses):
 
         self.conn = connect_client(type, addresses)
         self.ready_to_work = False
@@ -25,8 +25,12 @@ class ConfiguredClient(object):
             sys.exit(txt)
         else:
             self.validate_params(self.config.param_values())
-        if not self.init_config(connect_config):
-            raise ConfigNotReadyError(str(self.config))
+
+    def get_param(self, param_name):
+        return self.config.get_param(param_name)
+
+    def set_param(self, param_name, param_value):
+        self.config.set_param(param_name, param_value)
 
     def ready(self):
         self.ready_to_work = True
