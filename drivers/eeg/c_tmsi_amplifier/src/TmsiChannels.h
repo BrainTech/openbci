@@ -29,10 +29,12 @@ protected:
 
 public:
     TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription){
-        gain = t_chan.GainCorrection;
-        offset = t_chan.OffsetCorrection;
-        a = t_chan.Type.a;
-        b = t_chan.Type.b;
+    	gain = t_chan.GainCorrection*t_chan.Type.a;
+        offset = t_chan.OffsetCorrection*t_chan.Type.a+t_chan.Type.b;
+        other_params.push_back(t_chan.GainCorrection);
+        other_params.push_back(t_chan.OffsetCorrection);
+        other_params.push_back(t_chan.Type.a);
+        other_params.push_back(t_chan.Type.b);
         exp = t_chan.Type.Exp;
         type = t_chan.Type.Type;
         subtype = t_chan.Type.SubType;
@@ -108,20 +110,18 @@ public:
     		out <<" "<<exp;
     	return out.str();
     }
-    int get_sample_int();
-//    double get_sample_double();
+    int get_raw_sample();
 };
 class DigiChannel:public TmsiChannel{
 public:
 	DigiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):TmsiChannel(t_chan,amplifier,index){}
-	int get_sample_int();
-	double get_sample_double();
+	int get_raw_sample();
 };
 class SpecialChannel:public GeneratedChannel{
 	uint mask;
 public:
 	SpecialChannel(string name,uint mask,TmsiDriverDesc *description);
-	virtual int get_sample_int();
+	virtual int get_raw_sample();
 	virtual string get_type(){
 		return "BITMAP";
 	}

@@ -30,15 +30,6 @@ protected:
 	AmplifierDescription * description;
 	static AmplifierDriver * signal_handler;
 	Logger logger;
-	template <class T>
-	int _fill_samples(vector<T> &samples) {
-		if (!sampling)
-			return -1;
-		for (uint i = 0; i < active_channels.size(); i++)
-			active_channels[i]->fill_sample(&samples[i]);
-
-		return active_channels.size();
-	}
 public:
 	uint cur_sample;
 	AmplifierDriver():logger(128,"AmplifierDriver"){
@@ -65,8 +56,16 @@ public:
 		logger.info()<<"Sampling stopped"<< (disconnecting?" and disconnecting":"")<<"\n";
 	}
 	static void stop_sampling_handler(int signal);
-	virtual int fill_samples(vector<int> &samples){
-		return _fill_samples(samples);
+	template <class T>
+	int fill_samples(vector<T> &samples,bool adjusted=false){
+		if (!sampling) return -1;
+		if (!adjusted)
+			for (uint i = 0; i < active_channels.size(); i++)
+				samples[i]=active_channels[i]->get_sample();
+		else
+			for (uint i = 0; i < active_channels.size(); i++)
+				samples[i]=active_channels[i]->get_adjusted_sample();
+		return active_channels.size();
 	}
 	void set_active_channels(std::vector<std::string> &channels);
 	void set_active_channels_string(const string &channels);

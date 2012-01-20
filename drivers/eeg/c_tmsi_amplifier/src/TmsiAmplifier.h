@@ -58,10 +58,6 @@ public:
     inline int get_sample_int(uint index){
     	return channel_data[index].data[channel_data_index].isample;
     }
-    template <class T>
-    inline void fill_sample(T* s,uint index){
-    	_put_sample(s,index);
-    }
     uint get_base_sample_rate(){
     	return fei.basesamplerate;
     }
@@ -106,12 +102,7 @@ public:
 	void connect_device(uint type,const string &address);
     ~TmsiAmplifier();
 private:
-    inline void _put_sample(int *s, uint index) {
-			(*s) = get_sample_int(index);
-	}
-	inline void _put_sample(double *s, uint index) {
-			(*s) = description->get_channels()[index]->get_sample_double();
-	}
+
     int connect_usb(const string & address);
     int connect_bluetooth(const string &address);
     int connect_ip(const string &address);

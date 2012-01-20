@@ -75,14 +75,16 @@ string Channel::get_json() {
 	out.setf(ios::scientific, ios::floatfield);
 	out.precision(numeric_limits<double>::digits10+1);
 	out << "{\"name\": \"" << name << "\", \"gain\": " << gain
-			<< ", \"offset\": " << offset << ",\n \"a\": " << a;
-	out << ", \"b\": " << b << ", \"idle\": " << get_idle();
-	out << ", \"type\": \"" << get_type() << "\", \"unit\": \"" << get_unit()
-			<< "\"}";
+			<< ", \"offset\": " << offset << ",\n \"idle\": " << get_idle();
+	out << ", \"type\": \"" << get_type() << "\", \"unit\": \"" << get_unit();
+	out << "\",\n \"other_params\": [";
+	for (uint i=0;i<other_params.size();i++)
+		out << (i!=0?",":"") << other_params[i];
+	out << "]}";
 	return out.str();
 }
 Channel::Channel(string name) :
-		name(name), gain(1.0), offset(0), a(1.0), b(0) {
+		name(name), gain(1.0), offset(0){
 }
 string Channel::get_idle() {
 	ostringstream out;
@@ -92,7 +94,7 @@ string Channel::get_idle() {
 		out << (uint) (1 << (bit_length - 1));
 	return out.str();
 }
-int SawChannel::get_sample_int() {
+int SawChannel::get_raw_sample() {
 	return amplifier->get_driver()->cur_sample;
 }
 double SinusChannel::get_value(){
@@ -111,27 +113,21 @@ FunctionChannel::FunctionChannel(AmplifierDescription *amp,uint period,string fu
 	amplitude=rand()%100+1;
 	char tmp[100];
 	sprintf(tmp,"[%d]%dVolt-3",period,amplitude);
-
+	name+=tmp;
 	exp=(rand()%3+1)*(-3);
 	for (int i=exp;i<-3;i++)
 		amplitude*=10;
 	uint max=1<<(rand()%22+10);
-	offset=rand()%32000+rand()/(float)RAND_MAX;
-	gain=rand()%4+rand()/(float)RAND_MAX;
-	a=((double)amplitude)/gain/max;
-	b=-offset*a;
-	name+=tmp;
-	i_g=1/(gain*a);
-	i_o=-(b-offset*a)/(gain*a);
+	gain=rand()%3+rand()/(float)RAND_MAX;
+	offset=amplitude-max*gain;
+
 //	cout <<"max: "<<max<<" amp:"<<amplitude<<" gain:"<< gain<<" offset:" << offset <<" a:" << a<< " b: "<<b << " i_g:" << i_g << " i_o:"<< i_o;
 }
-int FunctionChannel::get_sample_int(){
-	int temp= get_sample_double()*i_g+i_o;
-	return temp;
+int FunctionChannel::get_raw_sample(){
+	return(get_adjusted_sample()-offset)/gain;
 //	printf("(%d * %f + %f) * %f + %f = %f  <=>  %f * %d = %f \n",temp,gain,offset,a,b,(temp*gain+offset)*a+b,get_value(),amplitude,get_value()*amplitude);
-
 }
-double FunctionChannel::get_sample_double(){
+double FunctionChannel::get_adjusted_sample(){
 	return get_value()*amplitude;
 }
 DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
