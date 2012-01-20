@@ -95,9 +95,14 @@ class SignalSaver(ConfiguredMultiplexerServer):
                 #Log module real sampling rate
                 self.debug.next_sample()
 
-        elif mxmsg.type == types.SIGNAL_SAVER_FINISH_SAVING:
-            LOGGER.info("Signal saver got finish saving _message")
-            self._finish_saving_session()
+        elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
+            v = variables_pb2.Variable()
+            v.ParseFromString(mxmsg.message)
+            if v.key == 'finish':
+                LOGGER.info("Signal saver got finish saving _message")
+                self._finish_saving_session()
+            else:
+                LOGGER.warning("Signal saver got unknown control message "+v.key+"!")                
         self.no_response()
 
     def _init_saving_session(self):
@@ -120,8 +125,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_f_dir = os.path.normpath(l_f_dir)
         if not os.access(l_f_dir, os.F_OK):
              os.mkdir(l_f_dir)
-        self._file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + DATA_FILE_EXTENSION))
+        self._file_path = os.path.expanduser(os.path.normpath(os.path.join(
+               l_f_dir, l_f_name + DATA_FILE_EXTENSION)))
 
         self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
 
@@ -151,11 +156,12 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_var.key = 'file_path'
         l_var.value = self._file_path
 
+        l_files = self._data_proxy.finish_saving(self._append_ts_index)
+
         self.conn.send_message(
             message=l_vec.SerializeToString(),
-            type=types.SIGNAL_SAVER_CONTROL_MESSAGE, flush=True)
+            type=types.SIGNAL_SAVER_FINISHED, flush=True)
 
-        l_files = self._data_proxy.finish_saving(self._append_ts_index)
         LOGGER.info("Saved file "+str(l_files))
         return l_files
 

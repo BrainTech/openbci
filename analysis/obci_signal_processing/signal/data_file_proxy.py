@@ -1,24 +1,5 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 200SAMPLE_SIZE-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
@@ -27,6 +8,10 @@ import struct
 import scipy
 import sys
 import os.path
+try:
+    from configs import variables_pb2
+except ImportError:
+    print("variables_pb2 import failed!!! Mx part of the class will not work")
 
 import signal_exceptions
 import signal_logging as logger
@@ -120,7 +105,7 @@ class MxDataFileWriteProxy(object):
         """ Write p_data t self._file as raw float(C++ double). Here we assume, that
         p_data is of float type. 
         Type verification should be conducted earlier."""
-        import variables_pb2
+
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(p_data)
         for i_sample in l_vec.samples:
@@ -234,8 +219,6 @@ class MxBufferDataFileWriteProxy(object):
         self._file.close()
         
         final_file = open(self._file_path, 'w')
-        
-        import variables_pb2
 
         # Open once more temporary file with protobuf data
         temp_file = open(self._file_path+'.tmp', 'r')

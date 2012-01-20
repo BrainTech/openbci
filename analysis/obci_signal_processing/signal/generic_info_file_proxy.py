@@ -45,10 +45,6 @@ TAGS_DEFINITIONS = {
                 ('list', ['calibrationGain', 'calibrationParam']),
             'channels_offsets':
                 ('list', ['calibrationOffset', 'calibrationParam']),
-            'channels_as':
-                ('list', ['calibrationA', 'calibrationParam']),
-            'channels_bs':
-                ('list', ['calibrationB', 'calibrationParam']),
             'number_of_samples':
                 ('simple', ['sampleCount']),
             'number_of_channels':

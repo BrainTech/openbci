@@ -212,7 +212,9 @@ class PeerControl(object):
 									types.REGISTER_PEER_CONFIG)
 		#print 'AAAAAAAAAAAAAAAAAA', reply, "(rq:", types.REGISTER_PEER_CONFIG,\
 		#							"exp:", types.PEER_REGISTERED, ')'
-		if not reply.type == types.PEER_REGISTERED:
+		if reply is None:
+			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply			
+		elif not reply.type == types.PEER_REGISTERED:
 			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
 
 
@@ -305,7 +307,7 @@ class PeerControl(object):
 				ready = rmsg.peers_ready
 			if not ready:
 				time.sleep(2)
-		print "Dependencies are ready, I can start working"
+		print '[', self.peer_id, "Dependencies are ready, I can start working"
 
 
 	def __query(self, conn, msg, msgtype):
@@ -313,10 +315,10 @@ class PeerControl(object):
 			reply = conn.query(message=msg,
 									type=msgtype)
 		except OperationFailed:
-			print "Could not connect"
+			print '[', self.peer_id, "Could not connect"
 			reply = None
 		except OperationTimedOut:
-			print "Operation timed out!"
+			print '[', self.peer_id, "Operation timed out!"
 			reply = None
 		return reply
 

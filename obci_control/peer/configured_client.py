@@ -8,9 +8,9 @@ import common.config_message as cmsg
 
 class ConfiguredClient(object):
 
-    def __init__(self, type, addresses):
+    def __init__(self, addresses, type):
 
-        self.conn = connect_client(type, addresses)
+        self.conn = connect_client(addresses=addresses, type=type)
         self.ready_to_work = False
         self.config = PeerControl(self)
         self.config.connection = self.conn

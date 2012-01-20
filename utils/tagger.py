@@ -1,34 +1,16 @@
 #!/usr/bin/env python
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #      Mateusz Kruszynski <mateusz.kruszynski@gmail.com>
 #
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
-import variables_pb2
+from configs import variables_pb2
 
-from openbci.offline_analysis.obci_signal_processing import types_utils
+from analysis.obci_signal_processing import types_utils
 
-import tags_logging as logger
+from utils import openbci_logging as logger
 LOGGER = logger.get_logger('tagger', 'info')
 
 class Tagger(object):

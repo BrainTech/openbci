@@ -3,14 +3,14 @@
 import time
 
 from multiplexer.multiplexer_constants import peers, types
-from peer.configured_client import ConfiguredClient
+from obci_control.peer.configured_client import ConfiguredClient
 
-from configs import settings
+from configs import settings, variables_pb2
 
 class SaverControl(ConfiguredClient):
 
-	def __init__(self, addresses, type):
-		super(SaverControl, self).__init__(addresses, type)
+	def __init__(self, addresses):
+		super(SaverControl, self).__init__(addresses=addresses, type=peers.SIGNAL_SAVER_CONTROL)
 		self.sleep_time_s = int(self.get_param('sleep_time_s'))
 		print '[', self.config.peer_id, '] INITIALIZED!', self.sleep_time_s
 
@@ -19,7 +19,14 @@ class SaverControl(ConfiguredClient):
 		self.ready()
 		print '[', self.config.peer_id, '] READY!', self.sleep_time_s
 		time.sleep(self.sleep_time_s)
-		self.conn.send_message(message='', type=types.SIGNAL_SAVER_FINISH_SAVING)
+		v = variables_pb2.Variable()
+		v.key = 'finish'
+		v.value = ''
+		print '[', self.config.peer_id, '] SEND CONTROL!'
+
+		self.conn.send_message(message=v.SerializeToString(), 
+				       type=types.SIGNAL_SAVER_CONTROL_MESSAGE,
+				       flush=True)
 
 	def validate_params(self, params):
 		try:
@@ -29,4 +36,4 @@ class SaverControl(ConfiguredClient):
 
 
 if __name__ == '__main__':
-	SaverControl(settings.MULTIPLEXER_ADDRESSES, peers.ETR_SERVER).run()
+	SaverControl(settings.MULTIPLEXER_ADDRESSES).run()

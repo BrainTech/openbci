@@ -621,6 +621,23 @@ type {
      type: 155
      name: "SIGNAL_SAVER_CONTROL_MESSAGE"
      to {
+     	peer: "SIGNAL_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TAG_SAVER"
+	whom: ALL
+	}	
+     to {
+     	peer: "INFO_SAVER"
+	whom: ALL
+	}	
+}
+
+type {
+     type: 156
+     name: "SIGNAL_SAVER_FINISHED"
+     to {
      	peer: "INFO_SAVER"
 	whom: ALL
 	}
@@ -631,119 +648,22 @@ type {
 }
 
 type {
-     type: 156
-     name: "SIGNAL_SAVER_FINISH_SAVING"
-     to {
-     	peer: "SIGNAL_SAVER"
-	whom: ALL
-	}
+     type: 157
+     name: "INFO_SAVER_FINISHED"
 }
 
-
+type {
+     type: 158
+     name: "TAG_SAVER_FINISHED"
+}
 
 type {
-     type: 157
+     type: 159
      name: "BLINK_VECTOR_MESSAGE"
      to {
         peer: "ANALYSIS"
         whom: ALL
      }
-}
-
-
-peer {
-    type: 201
-    name: "K2_LAUNCHER_CONTROLLER"
-    comment: "BaseMultiplexerServer keeping commands and their state"
-}
-
-peer {
-    type: 202
-    name: "K2_LAUNCHER_NURSE"
-    comment: "Launches tasks at the node based on information fetched from controller"
-}
-peer {
-    type: 203
-    name: "K2_LAUNCHER_CAPTAIN"
-    comment: "Passes commands to the controller"
-}
-
-type {
-    type: 201
-    name: "K2_LAUNCHER_GET_NEXT_REQUEST"
-    comment: "Payload is k2launcher.GetNext"
-    to {
-        peer: "K2_LAUNCHER_CONTROLLER"
-        whom: ALL
-        report_delivery_error: true
-    }
-}
-
-type {
-    type: 202
-    name: "K2_LAUNCHER_GET_NEXT_RESPONSE"
-    comment: "Payload is empty string or k2launcher.Command"
-}
-
-type {
-    type: 203
-    name: "K2_LAUNCHER_COMMAND_REQUEST"
-    comment: "Payload is k2launcher.Command"
-    to {
-        peer: "K2_LAUNCHER_CONTROLLER"
-        whom: ALL
-        report_delivery_error: true
-    }
-}
-
-type {
-    type: 204
-    name: "K2_LAUNCHER_COMMAND_RESPONSE"
-    comment: "Payload is k2launcher.ScheduleResponse"
-}
-
-type {
-    type: 205
-    name: "K2_LAUNCHER_COMMAND_DONE"
-    comment: "Payload is k2launcher.Command"
-    to {
-        peer: "K2_LAUNCHER_CONTROLLER"
-        whom: ALL
-        report_delivery_error: true
-    }
-    to {
-        peer: "K2_LAUNCHER_CAPTAIN"
-        whom: ALL
-        report_delivery_error: false
-    }
-}
-
-type {
-    type: 206
-    name: "K2_LAUNCHER_BABYSITTER_RESTART"
-    comment: "Payload is k2launcher.Command"
-    to {
-        peer: "K2_LAUNCHER_CONTROLLER"
-        whom: ALL
-        report_delivery_error: true
-    }
-}
-
-type {
-    type: 207
-    name: "K2_LAUNCHER_GET_TASK_STATE_REQUEST"
-    comment: "Payload is k2launcher.GetTaskState"
-    to {
-        peer: "K2_LAUNCHER_CONTROLLER"
-        whom: ALL
-        report_delivery_error: true
-    }
-}
-
-type {
-    type: 208
-    name: "K2_LAUNCHER_GET_TASK_STATE_RESPONSE"
-    comment: "Payload is k2launcher.LaunchedTask"
 }
 
 type {
