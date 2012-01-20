@@ -46,8 +46,9 @@ def cmd_srv_kill(args):
 
 
 def cmd_launch(args):
+	launch_f = os.path.abspath(args.launch_file)
 	client = client_server_prep()
-	response = client.launch(args.launch_file, args.sandbox_dir)
+	response = client.launch(launch_f, args.sandbox_dir)
 	disp.view(response)
 
 def cmd_new(args):
