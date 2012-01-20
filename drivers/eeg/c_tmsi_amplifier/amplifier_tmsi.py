@@ -3,20 +3,16 @@
 
 import os
 from multiplexer.multiplexer_constants import peers, types
-from openbci.amplifiers.binary_driver_wrapper import BinaryDriverWrapper
-from openbci.core import  core_logging as logger
-import settings
-
+from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
+from drivers import drivers_logging as logger
+from configs import settings
 
 LOGGER = logger.get_logger("AmplifierTMSI", "info")
 
 class AmplifierTMSI(BinaryDriverWrapper):
     def __init__(self, addresses):
-        super(AmplifierTMSI, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-
-
+        super(AmplifierTMSI, self).__init__(addresses=addresses, type=peers.AMPLIFIER_SERVER)
 
 if __name__ == "__main__":
-
     srv = AmplifierTMSI(settings.MULTIPLEXER_ADDRESSES)
     srv.do_sampling()

@@ -77,7 +77,7 @@ public:
     		if (s_r[i]==sample_rate) ok=true;
     	if (!ok)
     		{
-    			cout <<"Sampling rate "<<sample_rate << " not available!";
+		  std::cerr <<"Sampling rate "<<sample_rate << " not available!";
     			return 0;
     		}
         int tmp = 0;

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import os.path
 import subprocess
 import signal
 
@@ -32,7 +33,10 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         super(BinaryDriverWrapper, self).__init__(addresses=addresses, type=type)
         self._mx_addresses = addresses
         self.driver = self.run_driver()
+        print("AAAASIA")
         desc = self.get_driver_description()
+        print(desc)
+        print("MAAATI")
         self.store_driver_description(desc)
 
         self.set_driver_params()
@@ -64,7 +68,9 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
         host,port=multiplexer_address
         exe=self.config.get_param('driver_executable')
+        exe=os.path.join(obci_root(), exe)
         args=[exe,"-h",str(host),'-p',str(port)]
+
         if self.config.get_param("usb_device"):
             args.extend(["-d",self.config.get_param("usb_device")])
         elif self.config.get_param("bluetooth_device"):
@@ -79,6 +85,8 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
     def do_sampling(self):
         self.driver.wait()
+        LOGGER.info("Driver finished working with code " + str(self.driver.returncode))
+        sys.exit(self.driver.returncode)
 
     def set_sampling_rate(self,sampling_rate):
         LOGGER.info("Set sampling rate: %s "%sampling_rate)
@@ -108,11 +116,17 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         LOGGER.info("Sampling stopped")
 
     def _communicate(self,command=""):
+        self.driver.poll()
+        if self.driver.returncode is not None:
+            raise Exception("Driver is not running!!!!!!!")
         out=""
         self.driver.stdin.write(command+"\n")
         while True:
             line=self.driver.stdout.readline()
-            if line=="\n": break
+            if len(line) == 0:
+                raise Exception("Got empty string from driver. Aborting!!!")
+            elif line=="\n": break
+
             out+=line;
         return out
 
