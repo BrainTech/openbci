@@ -60,6 +60,7 @@ public:
 class Channel {
 public:
 	string name;
+	vector<double> other_params;
 	Channel(string name);
 	double gain;
 	double offset;
@@ -73,28 +74,20 @@ public:
 	bool is_signed;
 	short bit_length;
 	virtual string get_idle();
-	double a; // Information for converting bits to units:
-	double b; // Unit  = a * Bits  + b ;
 
 	short exp; // Unit exponent, 3 for Kilo, -6 for micro, etc.
 	virtual string get_json();
 	virtual ~Channel(){}
-	virtual inline int get_sample_int(){
+
+	virtual inline int get_raw_sample(){
 		return rand() % 100;
 	}
-	virtual inline double get_sample_double(){
-		return (get_sample_int()*gain+offset)*a+b;
+
+	virtual inline float get_sample(){
+		return get_raw_sample();
 	}
-	inline void fill_sample(int *sample) {
-			(*sample) = get_sample_int();
-		}
-	inline void fill_sample(uint *sample){
-		int tmp;
-		fill_sample(&tmp);
-		(*sample)=tmp;
-	}
-	inline void fill_sample(double *sample){
-		(*sample)=get_sample_double();
+	virtual inline double get_adjusted_sample(){
+		return get_raw_sample()*gain+offset;
 	}
 };
 class GeneratedChannel:public Channel{
@@ -119,8 +112,8 @@ public:
 	virtual string get_unit() {
 		return "Bit";
 	}
-	virtual void fill_sample(int *sample) {
-		(*sample) = rand() % 2;
+	int get_raw_sample(){
+		return rand()%2;
 	}
 };
 class SawChannel: public GeneratedChannel {
@@ -129,7 +122,7 @@ public:
 		GeneratedChannel(name,amp) {
 		bit_length=32;
 	}
-	int get_sample_int();
+	int get_raw_sample();
 	virtual string get_unit(){
 		return "Integer";
 	}
@@ -140,7 +133,6 @@ public:
 class FunctionChannel: public GeneratedChannel{
 	uint amplitude;
 	uint exp;
-	double i_g,i_o;
 public:
 	FunctionChannel(AmplifierDescription *amp,uint period,string name="Random");
 	string get_unit(){
@@ -148,8 +140,8 @@ public:
 		sprintf(tmp,"Volt %d",exp);
 		return tmp;
 	}
-	int get_sample_int();
-	double get_sample_double();
+	int get_raw_sample();
+	double get_adjusted_sample();
 protected:
 	uint period;
 	virtual double get_value(){return (rand()%period)/(float)period;}

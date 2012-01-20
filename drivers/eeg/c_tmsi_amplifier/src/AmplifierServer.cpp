@@ -81,7 +81,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
     		}
     		sample[i]->set_timestamp(driver->get_sample_timestamp());
     		for (uint j=0;j<channels.size();j++)
-    			channels[j]->fill_sample(sample[i]->mutable_channels()->Mutable(j));
+    			*sample[i]->mutable_channels()->Mutable(j)=channels[j]->get_sample();
     	  	if (logger != NULL) logger->next_sample();
     	}
   	  string msgstr;

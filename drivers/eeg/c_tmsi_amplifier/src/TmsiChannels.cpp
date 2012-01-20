@@ -10,25 +10,19 @@
 string TmsiChannel::get_type(){
 	return get_main_type()+" "+get_subtype();
 }
-int TmsiChannel::get_sample_int(){
+int TmsiChannel::get_raw_sample(){
 	return amplifier->get_sample_int(index);
 }
-//double TmsiChannel::get_sample_double(){
-//	return amplifier->get_sample_double(index);
-//}
-int DigiChannel::get_sample_int(){
+int DigiChannel::get_raw_sample(){
 	return amplifier->get_digi(index);
 }
-double DigiChannel::get_sample_double(){
-	return get_sample_int();
-}
-int SpecialChannel::get_sample_int(){
+int SpecialChannel::get_raw_sample(){
 		vector<Channel *> digi_chan=((TmsiDriverDesc*)amplifier)->get_digi_channels();
 		uint res=0;
 		uint tmp;
 		for (uint i=0;i<digi_chan.size();i++){
 			res=(res<<1);
-			digi_chan[i]->fill_sample(&tmp);
+			tmp=digi_chan[i]->get_raw_sample();
 			if (tmp&mask)
 				res|=1;
 		}
