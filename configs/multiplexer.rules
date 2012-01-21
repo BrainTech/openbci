@@ -237,6 +237,12 @@ peer {
      name: "AMPLIFIER_SERVER"
 }
 
+peer {
+     type: 145
+     name: "UGM_ENGINE_PEER"
+}
+
+
 
 # packages and routing rules definitions
 #

@@ -1,24 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 """A heart of ugm. This module implements core classes for ugm to work.
@@ -26,10 +7,11 @@ It should be ran as a script in MAIN thread or using UgmEngine.run()."""
 import sys
 from PyQt4 import QtGui, QtCore, Qt
 import Queue
-import ugm_config_manager
-import ugm_stimuluses
 
-import ugm_logging as logger
+from gui.ugm import ugm_config_manager
+from gui.ugm import ugm_stimuluses
+
+from gui import gui_logging as logger
 LOGGER = logger.get_logger("ugm_engine", "error")
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
@@ -190,6 +172,9 @@ class UgmEngine(QtCore.QObject):
         self._timer_on_run()
         l_app.exec_()
         LOGGER.info('ugm_engine main window has closed')
+
+    def control(self, ctr):
+        LOGGER.info("Got control message "+str(ctr)+". Do noting!")
 
     def update_from_message(self, p_msg_type, p_msg_value):
         """Update ugm from config defined by dictionary p_msg_value.

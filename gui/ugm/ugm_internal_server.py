@@ -1,43 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 """Current script is supposed to be fired if you want to run 
 ugm as a part of openbci (with multiplexer and all that stuff)."""
-import socket, thread
-import os, os.path, sys
+import socket, time, sys
 
-from tags import tagger
-import ugm_logging as logger
-import settings
-
+from utils import tagger
+from gui import gui_logging as logger
+from configs import variables_pb2
 
 BUF = 2**19
-
 LOGGER = logger.get_logger('ugm_internal_server')
-
-import variables_pb2, settings, random, time
-
 
 class UdpServer(object):
     """The class solves a problem with PyQt - it`s main window MUST be 
@@ -74,18 +49,17 @@ class UdpServer(object):
         l_msg = variables_pb2.UgmUpdate()
         try:
             l_msg.ParseFromString(message)
+            l_time = time.time()
+            self._ugm_engine.queue_message(l_msg)
+            if self._use_tagger:
+                self._tagger.send_tag(l_time, l_time, "ugm_update", 
+                                      {"ugm_config":str(l_msg.value)})
         except:
-            LOGGER.info("PARSER ERROR, too big ugm update message or not UGM_UPDATE_MESSAGE...")
-            return False
-        
-        l_time = time.time()
-        self._ugm_engine.queue_message(l_msg)
-        
-        if self._use_tagger:
-            self._tagger.send_tag(l_time, l_time, "ugm_update", 
-                                  {"ugm_config":str(l_msg.value)})
-        return True
-
-        
-
-
+            LOGGER.info("PARSER ERROR, too big ugm update message or not UGM_UPDATE_MESSAGE... Try UGM_CONTROL_MESSAGE")
+            l_msg = variables_pb2.Variable()
+            try:
+                l_msg.ParseFromString(message)
+                LOGGER.info("Properly parsed UGM_CONTROL_MESSAGE...")
+                self._ugm_engine.control(l_msg)
+            except:
+                LOGGER.info("PARSER ERROR, too big ugm control message  or not UGM_CONTROL_MESSAGE... Do noting!")

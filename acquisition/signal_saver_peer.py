@@ -6,7 +6,7 @@
 import sys, os.path
 
 from multiplexer.multiplexer_constants import peers, types
-from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
