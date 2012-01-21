@@ -8,7 +8,6 @@ import sys, os.path
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-
 from configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.signal import data_file_proxy
@@ -122,11 +121,11 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_f_name =  self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
         self._number_of_samples = 0
-        l_f_dir = os.path.normpath(l_f_dir)
+        l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))
         if not os.access(l_f_dir, os.F_OK):
              os.mkdir(l_f_dir)
-        self._file_path = os.path.expanduser(os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + DATA_FILE_EXTENSION)))
+        self._file_path = os.path.normpath(os.path.join(
+               l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
         self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
 
