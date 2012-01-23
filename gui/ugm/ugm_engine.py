@@ -88,6 +88,8 @@ class SpellerWindow(QtGui.QFrame):
         self.canvas.update_geometry()
 
 class UgmMainWindow(QtGui.QMainWindow):
+    mousePressSignal = QtCore.pyqtSignal(QtGui.QMouseEvent)
+    keyPressSignal = QtCore.pyqtSignal(QtGui.QKeyEvent)
     """Qt main window for ugm."""
     def __init__(self, p_config_manager):
         QtGui.QMainWindow.__init__(self)
@@ -105,7 +107,14 @@ class UgmMainWindow(QtGui.QMainWindow):
         self.view.deleteLater()
         self.view = SpellerWindow(self, self._config_manager)
         self.setCentralWidget(self.view)
-        
+
+    def mousePressEvent(self, event):
+        super(UgmMainWindow, self).mousePressEvent(event)
+        self.mousePressSignal.emit(event)
+
+    def keyPressEvent(self, event):
+        super(UgmMainWindow, self).keyPressEvent(event)
+        self.keyPressSignal.emit(event)
 
 
 class UgmEngine(QtCore.QObject):
@@ -160,6 +169,15 @@ class UgmEngine(QtCore.QObject):
                     msg.type, msg.value)
         self.mutex.unlock()
 
+
+    @QtCore.pyqtSlot(QtGui.QMouseEvent)
+    def mousePressEvent(self, event):
+        pass
+
+    @QtCore.pyqtSlot(QtGui.QKeyEvent)
+    def keyPressEvent(self, event):
+        pass
+
     def run(self):
         """Fire pyqt application with UgmMainWindow. 
         Refire when app is being closed. (This is justified as if 
@@ -170,6 +188,8 @@ class UgmEngine(QtCore.QObject):
         self._window = UgmMainWindow(self._config_manager)
         self._window.showFullScreen()
         self._timer_on_run()
+        self._window.keyPressSignal.connect(self.keyPressEvent)
+        self._window.mousePressSignal.connect(self.mousePressEvent)
         l_app.exec_()
         LOGGER.info('ugm_engine main window has closed')
 

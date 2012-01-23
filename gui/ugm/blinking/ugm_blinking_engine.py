@@ -3,9 +3,10 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-
 import time
-from ugm import ugm_engine
+from PyQt4 import QtCore
+
+from gui.ugm import ugm_engine
 import ugm_blinking_time_manager
 import ugm_blinking_id_manager
 import ugm_blinking_count_manager
@@ -27,17 +28,20 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
 
         self.mgrs = [self.time_mgr, self.id_mgr, self.ugm_mgr, self.count_mgr]
         self.STOP = False
-
+        self._run_on_start = False
+        
     def get_requested_configs(self):
         ret = set()
         map(ret.update,[m.get_requested_configs() for m in self.mgrs])
         ret.add('BLINK_DURATION')
+        ret.add('BLINK_RUNNING_ON_START')
         return ret
 
     def set_configs(self, configs):
         for m in self.mgrs:
             m.set_configs(configs)
         self._blink_duration = float(configs['BLINK_DURATION'])
+        self._run_on_start = int(configs['BLINK_RUNNING_ON_START'])
         assert(self._blink_duration > 0)
 
     def control(self, msg):
@@ -46,12 +50,23 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
             self.start_blinking()
         elif msg_type == 'stop_blinking':
             self.stop_blinking()
+        elif msg_type == 'update_and_start_blinking':
+            self._update_and_start_blinking()
         else:
-            raise Exception("Got ugm_control nrecognised msg_type:"+msg_type)
+            raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
+
+    def _update_and_start_blinking(self):
+        for m in self.mgrs:
+            m.reset()
+        requested_configs = self.get_requested_configs()
+        configs = self.connection.get_configs(requested_configs)
+        self.set_configs(configs)
+        self.start_blinking()
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()
         self._schedule_blink(time.time())
+        self.connection.send_blinking_started()
 
     def _schedule_blink(self, start_time):
         self._curr_blink_id = self.id_mgr.get_id()
@@ -88,11 +103,8 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         else:
             self._schedule_blink(start_time)
 
-
     def _stop(self):
         self.connection.send_blinking_stopped()
-        
-            
 
     def _timer_on_run(self):
         super(UgmBlinkingEngine, self)._timer_on_run()
@@ -108,22 +120,12 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._stop_timer.setSingleShot(True)
         self._stop_timer.connect(self._stop_timer, QtCore.SIGNAL("timeout()"), self._stop)
 
-if __name__ == '__main__':
-    def start_test_blinking(engine):
-        time.sleep(10)
-        engine.start_blinking()
-        
-    import configurer
-    import ugm_blinking_connection
-    from ugm import ugm_config_manager
-    import thread
-    import settings
-    configs = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(['UGM_CONFIG'])
-    eng = UgmBlinkingEngine(ugm_config_manager.UgmConfigManager(configs['UGM_CONFIG']),
-                            ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
-                            )
-    c = configurer.Configurer(settings.MULTIPLEXER_ADDRESSES).get_configs(eng.get_requested_configs())
-    eng.set_configs(c)
 
-    thread.start_new_thread(start_test_blinking, (eng,))
-    eng.run()
+        if self._run_on_start:
+            self.start_blinking()
+
+    def mousePressEvent(self, event):
+        self.connection.send_mouse_event(event.button())
+
+    def keyPressEvent(self, event):
+        self.connection.send_keyboard_event(event.key())

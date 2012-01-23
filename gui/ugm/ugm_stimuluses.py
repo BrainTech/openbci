@@ -351,6 +351,7 @@ class UgmImageStimulus(UgmStimulus, UgmRectConfig):
         paint.drawImage(0, 0, self._image)
         paint.end()
         
+LINES_DISTANCE = 20
 class UgmTextStimulus(UgmStimulus, UgmRectConfig):
     """Text stimulus definition. It inherits form UgmRectconfig, 
     as geometry of text stimulus widget is rectangular.
@@ -375,15 +376,19 @@ class UgmTextStimulus(UgmStimulus, UgmRectConfig):
         try:
             self._font = QtGui.QFont()
             self._font.setFamily(p_config_dict['font_family'])
-            self._font.setPointSize(p_config_dict['font_size'])
+            self._font.setPointSize(int(p_config_dict['font_size']))
             self._color = p_config_dict['font_color']
-            self._message = p_config_dict['message']
-            
+            self._messages = p_config_dict['message'].split('\n')
+            if len(self._messages) <= 1:
+                self._messages = p_config_dict['message'].split('\\n')                
             l_font_metrics = QtGui.QFontMetrics(self._font)
             p_config_dict['width_type'] = 'absolute'
             p_config_dict['height_type'] = 'absolute'
-            p_config_dict['width'] = l_font_metrics.width(self._message)
-            p_config_dict['height'] = p_config_dict['font_size'] 
+            p_config_dict['width'] = max([l_font_metrics.width(t) for t in self._messages])
+            self._line_height = int(p_config_dict['font_size'])
+            p_config_dict['height'] = self._line_height + \
+                (self._line_height+LINES_DISTANCE)*(len(self._messages)-1)
+
             # Or l_font_metrics.height() ??
         except KeyError, l_exc:
             raise UgmMissingConfigKey(l_exc.args[0], p_config_dict)
@@ -397,7 +402,13 @@ class UgmTextStimulus(UgmStimulus, UgmRectConfig):
         l_color.setNamedColor(self._color)
         paint.setPen(l_color)
         paint.setFont(self._font)
-        paint.drawText(0, self.height, self._message)
+
+        t = self._messages[0]
+        paint.drawText(0, self._line_height, t)
+
+        for i, t in enumerate(self._messages[1:]):
+            paint.drawText(0, self._line_height+(self._line_height+LINES_DISTANCE)*(i+1), t)
+
         paint.end()
 
 class UgmRectStimulus(UgmStimulus, UgmRectConfig):
