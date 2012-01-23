@@ -45,7 +45,7 @@ class RandomSequentialMgr(object):
 
 
 PROVIDERS = {
-    'RANDOM':RandomMgr,
-    'RANDOM_SEQUENTIAL': RandomSequentialMgr,
-    'SEQUENTIAL':SequentialMgr
+    'random':RandomMgr,
+    'random_sequential': RandomSequentialMgr,
+    'sequential':SequentialMgr
 }

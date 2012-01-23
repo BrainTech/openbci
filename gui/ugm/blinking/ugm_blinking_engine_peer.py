@@ -14,6 +14,12 @@ from gui.ugm import ugm_config_manager
 from gui.ugm.blinking import ugm_blinking_engine
 from gui.ugm.blinking import ugm_blinking_connection
 
+class DummyClient(object):
+    def __init__(self, params):
+        self.params = params
+    def get_param(self, key):
+        return self.params[key]
+
 class UgmBlinkingEnginePeer(ConfiguredClient):
     def __init__(self, addresses):
         super(UgmBlinkingEnginePeer, self).__init__(addresses=addresses, type=peers.UGM_ENGINE_PEER)
@@ -21,7 +27,7 @@ class UgmBlinkingEnginePeer(ConfiguredClient):
         ENG = ugm_blinking_engine.UgmBlinkingEngine(
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
             connection)
-        ENG.set_configs(self.config.param_values())
+        ENG.set_configs(DummyClient(self.config.param_values()))
         thread.start_new_thread(
                 ugm_internal_server.UdpServer(
                     ENG, 

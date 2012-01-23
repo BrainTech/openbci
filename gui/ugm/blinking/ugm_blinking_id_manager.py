@@ -10,18 +10,10 @@ class DummyProvider(object):
 
 class UgmBlinkingIdManager(object):
     """Provides ids of subsequent blinks. Eg for speller with 4 cols and 2 rows it should reutrn values in [0...5]"""
-    def get_requested_configs(self):
-        return ['BLINK_ID_TYPE', # An algorithm generationg ids. Possible values:
-                    # RANDOM - random values from range [0;BLINK_ID_COUNT]
-                    # SEQUENTIAL - sequental values from range [0;BLINK_ID_COUNT]
-                    # RANDOM_SEQUENTIAL - random, but not repeated values from 0 to BLINK_ID_COUNT. Eg. for [0,1,2,3] we`ll get
-                    # sth like 0 2 3 1  2 3 0 1  3 1 0 2  0 2 1 3 .... 
-                'BLINK_ID_COUNT'# ids will be genereated from range [0;BLINK_ID_COUNT]
-                ]
 
     def set_configs(self, configs):
-        self._type = configs['BLINK_ID_TYPE']
-        self._blink_count = int(configs['BLINK_ID_COUNT'])
+        self._type = configs.get_param('blink_id_type')
+        self._blink_count = int(configs.get_param('blink_id_count'))
         assert(self._blink_count >= 0)
         self.reset()
 

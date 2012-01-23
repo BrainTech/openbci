@@ -30,18 +30,11 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self.STOP = False
         self._run_on_start = False
         
-    def get_requested_configs(self):
-        ret = set()
-        map(ret.update,[m.get_requested_configs() for m in self.mgrs])
-        ret.add('BLINK_DURATION')
-        ret.add('BLINK_RUNNING_ON_START')
-        return ret
-
     def set_configs(self, configs):
         for m in self.mgrs:
             m.set_configs(configs)
-        self._blink_duration = float(configs['BLINK_DURATION'])
-        self._run_on_start = int(configs['BLINK_RUNNING_ON_START'])
+        self._blink_duration = float(configs.get_param('blink_duration'))
+        self._run_on_start = int(configs.get_param('running_on_start'))
         assert(self._blink_duration > 0)
 
     def control(self, msg):
@@ -50,18 +43,18 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
             self.start_blinking()
         elif msg_type == 'stop_blinking':
             self.stop_blinking()
-        elif msg_type == 'update_and_start_blinking':
-            self._update_and_start_blinking()
+        #elif msg_type == 'update_and_start_blinking':
+        #    self._update_and_start_blinking()
         else:
             raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
 
-    def _update_and_start_blinking(self):
-        for m in self.mgrs:
-            m.reset()
-        requested_configs = self.get_requested_configs()
-        configs = self.connection.get_configs(requested_configs)
-        self.set_configs(configs)
-        self.start_blinking()
+    #def _update_and_start_blinking(self):
+    #    for m in self.mgrs:
+    #        m.reset()
+    #    requested_configs = self.get_requested_configs()
+    #    configs = self.connection.get_configs(requested_configs)
+    #    self.set_configs(configs)
+    #    self.start_blinking()
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()
