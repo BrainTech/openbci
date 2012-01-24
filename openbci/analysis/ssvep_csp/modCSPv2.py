@@ -15,7 +15,8 @@ from scipy.signal import hamming, ellip, cheby2
 from filtfilt import filtfilt
 from scipy.linalg import eig
 import pickle
-from matplotlib.pyplot import plot, show, legend, title, xlabel, ylabel
+from matplotlib.pyplot import plot, show, legend, title, xlabel, ylabel, imshow,\
+                    figure, hist, subplot, savefig, errorbar
 from simpleCSP import pfu_csp
 
 
@@ -197,11 +198,7 @@ class modCSP(object):
         y : bool
             True if x is an integer
         """
-        if int(x) == x:
-            return True
-        else:
-            return False
-
+        return type(x) is int
     def read_matlab_filters(self, txt_file='ba_filters.txt'):
         """Function reads filter coefficient from txt file
 
@@ -310,11 +307,9 @@ class modCSP(object):
                     s_pre = signal_tmp[:, to_frequency * (idx ) : to_frequency *\
                             (idx  + signal_time)]
                     dane_A = np.matrix(s_pre)
-
                     R_A = dane_A * dane_A.T / np.trace(dane_A * dane_A.T)
                     cov_pre += R_A
                     pre_i += 1
-            
         if method == 'regular' or method == 'maxcontrast':
             self.P[:,:], self.vals =  self.__get_filter(cov_post / post_i, cov_pre / pre_i)
         elif method == 'pfu':
@@ -322,7 +317,7 @@ class modCSP(object):
         elif method == 'minimalentropy':
             self.P[:, :], self.vals = self.__get_min_entropy(cov_pre / pre_i)
     
-    def count_stats(self, signal_time, to_freq, tags):
+    def count_stats(self, signal_time, to_freq, tags, plt=False, tr=0.95):
         """Calculates variance and mean"""        
         signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes))
         t_vec = np.linspace(0, signal_time - 0.5, (signal_time - 0.5)*to_freq)
@@ -343,11 +338,61 @@ class modCSP(object):
                     this_cors[idx].append(np.max(xcor))
                 else:
                     other_cors[idx].append(np.max(xcor))
-        oc = np.array(other_cors).flatten()
+        #oc = np.array(np.array(other_cors)).flatten() #Will fail if no. of tags for each frequency is different!
+        oc = np.array([x for y in other_cors for x in y]) #flattening a list
         mu, sigma = oc.mean(), oc.std()
-        oc = (oc - oc.mean())/oc.std()
-        return quantile(oc, [0.95]), mu, sigma
+        oc = (oc - mu)/sigma
+        treshold = quantile(oc, [tr])
+        means = []
+        stds = []
+        for line in this_cors:
+            tc = np.array(line)
+            tc -= mu
+            tc /= sigma
+            means.append(tc.mean())
+            stds.append(tc.std()) 
+        if plt:
+            figure()
+            #plot(self.frequencies, means, 'og', self.frequencies, [treshold]*len(self.frequencies),'-r')
+            plot(self.frequencies, [treshold]*len(self.frequencies), '-r')
+            errorbar(self.frequencies, means, yerr=stds, fmt='og')
+            legend(('threshold of '+str(tr), 'Z-scores'))
+            title('Z-scores '+self.name+'_'+str(signal_time))
+            xlabel('Frequencies (Hz)')
+            ylabel('Z-scores')
+            show()
+            #savefig(self.name + '_' + str(signal_time)+'.png')
+        return treshold, mu, sigma, means, stds
         #return this_cors, other_cors
+        
+    def time_frequency_selection(self, to_frequency, tags, time=[1, 1.5, 2, 2.5, 3, 3.5, 4], frequency_no=8, tr=0.95, plt=False):
+        """Gets shortest time period with frequency_no frequencies' zscores above treshold 
+        """
+        ok_no = []
+        std_ok = []
+        for i, tm in enumerate(time):
+            value, mu, sigma, means, stds = self.count_stats(tm, to_frequency, tags, plt=False, tr=tr)
+            ok_no.append(len([x for x in means if x > value]))
+            std_ok.append(len([means[j] for j in xrange(len(means)) if means[j]-stds[j] > value]))
+        if plt:
+            plot(time, ok_no, 'g-', time, std_ok, 'r-')
+            xlabel('Time (s)')
+            ylabel('# of frequencies above threshold')
+            show()
+        try:
+            xx1 = [x for x in xrange(len(ok_no)) if ok_no[x] >= frequency_no][0]
+            xx2 = [x for x in xrange(len(std_ok)) if std_ok[x] >= frequency_no][0]
+            return time[xx1], time[xx2]    
+        except IndexError:
+            no1 = max(ok_no)
+            no2 = max(std_ok)
+            idx1 = ok_no.index(no1)
+            idx2 = std_ok.index(no2)
+            print "Warning: maximal number of frequencies above treshold is", no1
+            return time[idx1], time[idx2]
+            
+    
+    
     
     def dump_filters(self, name, mode = 'pkl', first = False):
         """Function dumps filters and values into file
@@ -384,51 +429,32 @@ class modCSP(object):
                 f.write(",".join([str(x) for x in self.vals]))
                 f.close()
 
-    def test_filter(self, frequency, pfu=True, to_frequency = 128):
-        """This function draws spectras of filtered signal.
-
-        Parameters:
-        -----------
-        frequency : int
-            a frequnecy of filter
-        to_frequency [= 128] : int
-            a frequency to decimate signal to
-        """
-        if pfu:
-            filt = self.P[:, :]#, self.frequencies.index(frequency)]
-        else:
-            filt = self.P[:, 0]#, self.frequencies.index(frequency)]
-
-        tags_all = self.parsed_data.get_train_tags(screen = True)#, tag_filter = ('screen','allFrequencies'))
-        tags = [x for (x,y) in tags_all if y == frequency]
-        tags_rest = [x for (x, y) in tags_all if y != frequency]
-        #np.random.shuffle(tags_rest)
-        #tags_rest = tags_rest[0:len(tags)]
-        signal = self.parsed_data.prep_signal(to_frequency, self.electrodes)
-        print self.P 
-        if pfu:
-            csp = np.dot(filt, signal)[0, :]
-        else:
-            csp = np.dot(filt, signal)
-        sig = np.zeros(4 * to_frequency)
-        sig_comp = np.zeros(4 * to_frequency)
-        hamm = hamming(len(sig))
-        for j in xrange(len(tags)):
-            sig += np.abs(np.fft.fft(csp[int(tags[j]*to_frequency):int((tags[j]+4)*to_frequency)] * hamm)) ** 2 / len(hamm)
-        for j in xrange(len(tags_rest)):
-            sig_comp += np.abs(np.fft.fft(csp[int((tags_rest[j])*to_frequency):int((tags_rest[j]+4)*to_frequency)] * hamm)) ** 2 / len(hamm)
-        sig /= len(tags)
-        sig_comp /= len(tags_rest)
-        fft_freqs = np.fft.fftfreq(len(sig), 1.0 / to_frequency)
-        idx = np.where(fft_freqs < 0)[0][0]
-        fft_freqs = fft_freqs[:idx]
-        #sig_fft = (abs(np.fft.fft(sig)) ** 2 ) / len(hamm)
-        sig_fft = sig[:idx]
-        #comp_fft = (abs(np.fft.fft(sig_comp)) ** 2) / len(hamm)
-        comp_fft = sig_comp[:idx]
-        plot(fft_freqs[40:], sig_fft[40:],fft_freqs[40:],comp_fft[40:],)
-        legend(('SSVEP','COMP'))
-        title(str(frequency))
-        xlabel('Frequency (Hz)')
-        ylabel('Power')
+    def show_filter(self):
+        """Draws csp matrix"""
+        figure()
+        imshow(self.P)
+        title('CSP Matrix')
+        xlabel('Channels')
+        ylabel('Channels')
+        show()
+    
+    def show_spectrum(self, time_signal, to_freq, tags, step=0.5):
+        """Plots spectrum of the signal after CSP filtering"""
+        signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes))
+        fft = np.zeros((time_signal - step)*to_freq)
+        N = len(fft)
+        for pos, f in tags:
+            sig = signal[(pos+step) * to_freq:(pos+time_signal) * to_freq] * hamming(N)
+            afft = np.abs(np.fft.fft(sig))
+            fft += np.sqrt(afft*afft) / N
+            #fft += np.fft.fft(sig)
+        #fft = np.sqrt(np.abs(fft * fft)) / N
+        fft /= len(tags)
+        idx = [min(self.frequencies) - 5, max(self.frequencies) + 5]
+        if idx[1] > 48:
+            idx[1] = 48
+        f_vec = np.fft.fftfreq(N, 1.0/to_freq)
+        idx1 = np.where(f_vec > idx[0])[0][0]
+        idx2 = np.where(f_vec > idx[1])[0][0]
+        plot(f_vec[idx1:idx2], fft[idx1:idx2])
         show()

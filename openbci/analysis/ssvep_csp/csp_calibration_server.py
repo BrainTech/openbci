@@ -39,13 +39,20 @@ class CSP(BaseMultiplexerServer):
         data = sp.signalParser(file_name+'.obci')#Wymaga 3 plików .raw, .xml i .tag o danym prefiksie
         train_tags = data.get_train_tags(tag_filter=('field', '8'))#888 ('field','4'))#Tak na przykład dla 4 częstotliwości
         #freqs = [13, 15, 17, 19, 21, 23, 14, 16] 
-        freqs = [30, 32, 34, 36, 40, 42, 44, 46] 
+        #freqs = [30, 32, 34, 36, 40, 42, 44, 46] 
+        freqs = [36, 45, 39, 33, 42, 48, 51, 30]
         #freqs = [15, 17, 19, 25]#lista częstotliwości
         channels = ['O1','O2','T5','P3','Pz','P4','T6']#nazwa kanałów usznych to A1 i A2; jeśli nie to trzeba zmienić
                                                 #modCSPv2 w funkcji prep_signal
         q = csp.modCSP(file_name+'.obci', freqs, channels)
         q.start_CSP(to_signal, to_frequency, baseline = False, filt='cheby', method = 'regular', train_tags = train_tags)#liczenie CSP
-        value, mu, sigma = q.count_stats(to_signal, to_frequency, train_tags)#Liczenie statystyk
+        time = p.linspace(1, to_signal, 7)
+        t1, t2 = q.time_frequency_selection(to_signal, to_frequency, train_tags,\
+                                                time=time, frequency_no=8, plt=False)
+
+        LOGGER.info("Got freqs t1: "+str(t1)+ " and t2: "+str(t2))
+        
+        value, mu, sigma, means, stds = q.count_stats(to_signal, to_frequency, train_tags, plt=False)#Liczenie statystyk
 
         LOGGER.info("Finished CSP with stats:")
         LOGGER.info(str(value) + " / " + str(mu) + " / " + str(sigma))

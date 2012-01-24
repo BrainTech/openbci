@@ -83,8 +83,8 @@ class CspBCIAnalysis(object):
         csp_sig = np.dot(self.q.P[:,0], data[:-3,:])#dostajemy jeden kanał o zadanej długości
         csp_sig -= csp_sig.mean()#normujemy
         csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
-        freq = self._analyse(csp_sig)
-
+        freq, feeds = self._analyse(csp_sig)
+        LOGGER.info("Got feeds: "+str(feeds))
         if freq > 0:
             self.send_func(self.indexMap[freq])
         else:
@@ -124,14 +124,16 @@ class CspBCIAnalysis(object):
         sig = signal /  np.sqrt(np.sum(signal * signal))
         result = 0
         mx_old = 0
+        zscores = []
         for f in freqs:
             sin = np.sin(2*np.pi*t_vec*f)
             sin /= np.sqrt(np.sum(sin * sin))
             xcor = np.correlate(sig, sin, 'full')[N - 1 - max_lag:N+max_lag]
             mx = (np.max(xcor) - mu)/sigma
+            zscores.append(mx)
             if mx > value:
                 if mx > mx_old:
                     result = f
                     mx_old = mx
-        return result
+        return result, zscores
                     
