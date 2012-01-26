@@ -18,6 +18,8 @@
 #include "Logger.h"
 using namespace std;
 #include <boost/program_options.hpp>
+#include <sys/time.h>
+#include <time.h>
 
 class AmplifierDriver {
 protected:
@@ -30,6 +32,12 @@ protected:
 	AmplifierDescription * description;
 	static AmplifierDriver * signal_handler;
 	Logger logger;
+	uint64_t get_time(){
+		struct timeval tv;
+		struct timezone tz;
+		gettimeofday(&tv,&tz);
+		return ((uint64_t)time(NULL))*1000000+tv.tv_usec;
+	}
 public:
 	uint cur_sample;
 	AmplifierDriver():logger(128,"AmplifierDriver"){
