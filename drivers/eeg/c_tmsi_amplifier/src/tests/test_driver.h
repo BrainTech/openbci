@@ -44,11 +44,11 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	printf("SAMPLING STARTED at %s  and will stop after %d (%d)samples\n",to_simple_string(start).c_str(),length*sample_rate,length);
 	for (int i = 0; (i < length*sample_rate) & amp->is_sampling(); i++) {
 		amp->next_samples();
-		printf("Samples %d:\n",i);
+		cout.precision(20);
+		cout << "Samples "<<i<<" timestamp:"<<amp->get_sample_timestamp()<<"\n";
 		for (uint j = 0; j < channels.size(); j++)
 			{
-				channels[j]->get_sample_int();
-				printf("%7s: %d %x\n", channels[j]->name.c_str(), channels[j]->get_sample_int(),channels[j]->get_sample_int());
+				printf("%7s: %f %x\n", channels[j]->name.c_str(), channels[j]->get_sample(),channels[j]->get_raw_sample());
 			}
 	}
 	ptime end=microsec_clock::local_time();
