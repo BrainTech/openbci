@@ -12,6 +12,21 @@ class RandomMgr(object):
     def get_value(self):
         return random.randint(self.start, self.end)
 
+class RandomConsMgr(object):
+    def __init__(self, start, count):
+        self.start = start
+        self.end = start+count-1
+        self.last = -1
+
+    def get_value(self):
+        while True:
+            v = random.randint(self.start, self.end)
+            if v == self.last:
+                print("RandomConsMgr - try shuffle again...")
+            else:
+                self.last = v
+                return v
+
 class SequentialMgr(object):
     def __init__(self, start, count):
         self.sequence = range(start, start+count)
@@ -47,5 +62,6 @@ class RandomSequentialMgr(object):
 PROVIDERS = {
     'random':RandomMgr,
     'random_sequential': RandomSequentialMgr,
-    'sequential':SequentialMgr
+    'sequential':SequentialMgr,
+    'random_cons':RandomConsMgr
 }

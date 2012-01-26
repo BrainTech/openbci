@@ -84,10 +84,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         start_time = time.time()
         self.update_from(self._curr_unblink_ugm)
         update_time = time.time()
-        if self._blinks_count == 0:
-            curr_time = self.time_mgr.get_time()
-            self._stop_timer.start(1000*(curr_time - (time.time()-start_time)))
-        elif self.STOP:
+        if self._blinks_count == 0 or self.STOP:
             self.STOP = False
             curr_time = self.time_mgr.get_time()
             for m in self.mgrs:

@@ -242,6 +242,11 @@ peer {
      name: "UGM_ENGINE_PEER"
 }
 
+peer {
+    type: 146
+    name: "LOGIC_P300_CALIBRATION"
+}
+
 
 
 # packages and routing rules definitions
@@ -702,6 +707,10 @@ type {
 type {
      type: 211
      name: "UGM_ENGINE_MESSAGE"
+     to {
+     	peer: "LOGIC_P300_CALIBRATION"
+	whom: ALL
+	}	
 }
 
 type {
@@ -836,3 +845,4 @@ type {
 		whom: ALL
 	}
 }
+

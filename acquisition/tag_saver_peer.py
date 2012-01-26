@@ -87,6 +87,7 @@ class TagSaver(ConfiguredMultiplexerServer):
                     self._finish_saving(float(i_var.value))
                     sys.exit(0)
             LOGGER.error("Got saver finished message without first_sample_timestamp. Do noting ...")
+        self.no_response()
 
 
     def _finish_saving(self, p_first_sample_ts):
@@ -95,6 +96,7 @@ class TagSaver(ConfiguredMultiplexerServer):
         of a first sample stored by signal saver (p_first_sample_ts)."""
 
         # Save tags
+        LOGGER.info("Finish saving with first sample ts: "+str(p_first_sample_ts))
         l_file_path = self._tags_proxy.finish_saving(p_first_sample_ts)
 
         l_vec = variables_pb2.VariableVector()

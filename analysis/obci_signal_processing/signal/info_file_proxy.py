@@ -43,7 +43,7 @@ class InfoFileWriteProxy(generic_info_file_proxy.GenericInfoFileWriteProxy):
         'rs:channelLabels',
         'rs:calibrationGain',
         'rs:calibrationOffset',
-        'rs:amplifierNull',
+        #'rs:amplifierNull',
         'rs:firstSampleTimestamp',
         ]
     def _create_xml_factory(self):
