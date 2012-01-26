@@ -97,7 +97,7 @@ peer {
 
 peer {
     type: 118
-    name: "LOGIC"
+    name: "LOGIC_DECISION"
 }
 peer {
     type: 119
@@ -465,7 +465,7 @@ type {
     type: 136
     name: "DECISION_MESSAGE"
     to {
-        peer: "LOGIC"
+        peer: "LOGIC_DECISION"
         whom: ALL
     }
 }
@@ -502,7 +502,7 @@ type {
     type: 140
     name: "P300_DECISION_MESSAGE"
     to {
-        peer: "LOGIC"
+        peer: "LOGIC_DECISION"
         whom: ALL
     }
 }
@@ -511,7 +511,7 @@ type {
     type: 141
     name: "SSVEP_DECISION_MESSAGE"
     to {
-        peer: "LOGIC"
+        peer: "LOGIC_DECISION"
         whom: ALL
     }
 }

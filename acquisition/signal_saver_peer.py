@@ -40,11 +40,17 @@ class SignalSaver(ConfiguredMultiplexerServer):
         msg = p_data
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(msg)
+        LOGGER.info("REAL SAMPLES PER PACKET: "+str(len(l_vec.samples)))
         for i_sample in l_vec.samples:
             self._first_sample_timestamp = i_sample.timestamp
-            LOGGER.info("First sample ts:" + repr(self._first_sample_timestamp))
+            LOGGER.info("First sample sample ts:" + repr(self._first_sample_timestamp))
             LOGGER.info("First sample system ts:" + repr(time.time()))
+            LOGGER.info("REAL NUM OF CHANNELS:"+str(len(i_sample.channels)))
             break
+
+
+            #self._first_sample_timestamp = time.time()
+            #break
 
         self._data_proxy.set_data_len(len(p_data), self._samples_per_vector)
 

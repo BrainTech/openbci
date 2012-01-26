@@ -126,16 +126,16 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
     def set_driver_params(self):
         self.set_sampling_rate(self.config.get_param("sampling_rate"))
-        self.set_active_channels(self.config.get_param("active_channels").replace(';',','))
+        self.set_active_channels(self.config.get_param("active_channels"))
 
     def get_run_args(self,multiplexer_address):
 
         host,port=multiplexer_address
         exe=self.config.get_param('driver_executable')
+        exe=os.path.join(obci_root(), exe)
         v=self.config.get_param('samples_per_packet')
 
-        exe=os.path.join(obci_root(), exe)
-        args=[exe,"-h",str(host),'-p',str(port),'-v',str(v)]
+        args=[exe,"-h",str(host),'-p',str(port),'-v', v]
 
         if self.config.get_param("usb_device"):
             args.extend(["-d",self.config.get_param("usb_device")])
