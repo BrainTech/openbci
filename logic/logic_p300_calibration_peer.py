@@ -63,6 +63,8 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
 
     def end(self):
         ugm_helper.send_text(self.conn, self.bye_text)
+        #acquire some more data
+        time.sleep(2)
         acquisition_helper.send_finish_saving(self.conn)
     
     def blinking_stopped(self):
