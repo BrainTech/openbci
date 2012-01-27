@@ -218,7 +218,7 @@ class PeerControl(object):
 			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
 
 
-	def _request_ext_params(self, connection, retries=30):
+	def _request_ext_params(self, connection, retries=300):
 		#TODO set timeout and retry count
 		print '[', self.peer_id, ']', "requesting external parameters"
 		if self.peer is None:
