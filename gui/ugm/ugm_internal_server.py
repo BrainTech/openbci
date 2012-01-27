@@ -49,6 +49,8 @@ class UdpServer(object):
         l_msg = variables_pb2.UgmUpdate()
         try:
             l_msg.ParseFromString(message)
+            if len(l_msg.value) == 0:
+                raise Exception("UgmUpdate message len is 0. Assumed parse error!!!")
             l_time = time.time()
             self._ugm_engine.queue_message(l_msg)
             if self._use_tagger:

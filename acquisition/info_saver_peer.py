@@ -107,7 +107,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         l_dict = {
             'number_of_channels':str(params['number_of_channels']),
             'sampling_frequency':str(params['sampling_frequency']),
-            'amplifier_null':str(params['amplifier_null']),
+            #'amplifier_null':str(params['amplifier_null']),
             'channels_numbers':';'.join([str(i) for i in params['channels_numbers']]),
             'channels_names':';'.join(params['channels_names']),
             'channels_gains':';'.join([str(i) for i in params['channels_gains']]),
@@ -115,7 +115,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
             'number_of_samples':str(params['number_of_samples']),
             'file':str(params['file']),
             'first_sample_timestamp':str(params['first_sample_timestamp']),
-            'file_path':self._file_path
+            #'file_path':self._file_path
             }
         l_vec = variables_pb2.VariableVector()
         for k, v in l_dict.iteritems():

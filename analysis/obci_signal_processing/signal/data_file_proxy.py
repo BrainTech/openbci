@@ -18,7 +18,7 @@ import signal_logging as logger
 LOGGER = logger.get_logger("data_file_proxy", 'info')
 import time
 SAMPLE_SIZE = 8 #float
-BUF_SIZE = 4098*2
+BUF_SIZE = 1024
 
 class DataFileWriteProxy(object):
     """
@@ -48,7 +48,7 @@ class DataFileWriteProxy(object):
         self._file.close()
         return self._file_name, self._number_of_samples
 
-    def set_data_len(self, p_len):
+    def set_data_len(self, p_len, sm=1):
         pass
 
     def data_received(self, p_data):
@@ -98,7 +98,7 @@ class MxDataFileWriteProxy(object):
         self._file.close()
         return self._file_name, self._number_of_samples
 
-    def set_data_len(self, p_len):
+    def set_data_len(self, p_len, sm=1):
         pass
 
     def data_received(self, p_data):
@@ -152,7 +152,7 @@ class BufferDataFileWriteProxy(object):
         self._file.close()
         return self._file_name, self._number_of_samples
 
-    def set_data_len(self, p_len):
+    def set_data_len(self, p_len, sm=1):
         pass
 
     def data_received(self, p_data):
@@ -230,8 +230,7 @@ class MxBufferDataFileWriteProxy(object):
             for j in range(len(l_vec.samples)):
                 s = l_vec.samples[j]
                 ts = s.timestamp
-                for i in range(len(s.channels)):
-                    i_sample = s.channels[i]
+                for i, i_sample in enumerate(s.channels):
                     if i == p_append_ts_index:
                         try:
                             final_file.write(struct.pack("d", ts))
@@ -263,12 +262,12 @@ class MxBufferDataFileWriteProxy(object):
 
 
         return self._file_path, self._number_of_samples
-    def set_data_len(self, ln):
+    def set_data_len(self, ln, sm):
         """Set length of one unit of protobuf data
         stored in temporary file. It`ll be useful
         in finish_saving() while extracting data from the file."""
-
         self._data_len = ln
+        self._samples_per_vector = sm
 
     def data_received(self, p_data):
         """ p_data must be protobuf SampleVector message, but serialized to string.

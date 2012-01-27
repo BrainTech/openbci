@@ -49,7 +49,7 @@ void AmplifierDriver::stop_sampling_handler(int sig) {
 uint64_t AmplifierDriver::next_samples() {
 	uint64_t wait = last_sample + 1000000 / sampling_rate;
 //	uint64_t this_sample = 0;
-	last_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();
+	last_sample =get_time();
 	cur_sample++;
 	if (last_sample>wait)
 		return last_sample;
