@@ -20,7 +20,7 @@ def offsets_gen(num):
 def names_gen(num):
     return ' '.join(['nazwa']*num)
 
-CHANNELS = 10
+CHANNELS = 22 #10
 
 class Hashtable(BaseMultiplexerServer):
 
@@ -39,10 +39,13 @@ class Hashtable(BaseMultiplexerServer):
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;OKO",
         #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;C7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2;NIC;EOG_UP_DOWN;EOG_LEFT_RIGHT", #26
         #"ChannelsNames":"gen1;gen2;gen3",
-        #"ChannelsNames": "Fp1;Fpz;Fp2;F7;F3;Fz;F4;F8;M1;T7;C3;Cz;C4;T8;M2;P7;P3;Pz;P4;P8;O1;Oz;O2", #23
+        "ChannelsNames": "Fp1;Fp2;F7;F3;Fz;F4;F8;T3;C3;Cz;C4;T4;T5;P3;Pz;P4;T6;O1;O2;FCz;A1;A2",
         #"ChannelsNames": "A;B;C;D",
 
-        "ChannelsNames": "O1;O2;T5;P3;Pz;P4;T6;A1;A2;FCz",
+
+        #"ChannelsNames": "O1;O2;T5;P3;Pz;P4;T6;A1;A2;FCz",
+
+
         #"ChannelsNames": 'O1;O2;T5;P3;Pz;P4;T6',
 
         #"ChannelsNames":"gen1",
@@ -78,9 +81,12 @@ class Hashtable(BaseMultiplexerServer):
         "Message": "",
 #       "Freqs": "12 13 23 9 16 17 15 19",
         #"Freqs": "0 15 17 0 0 19 25 0", #"7 12 8 9 10 11 13 15",
-        #"Freqs": "13 15 17 19 21 23 14 16",
-        "Freqs": "30 32 34 36 40 42 44 46",
-
+        #"Freqs": "13 15 17 19 21 23 25 27",
+        #"Freqs": "32 35 38 41 44 47 53 55",
+        #"Freqs": "33 35 32 37 36 31 39 30",
+        "Freqs": "25 13 15 27 23 19 17 21",
+        #"Freqs": "31 34 37 40 43 46 49 52",
+        #"Freqs": "30 33 36 39 42 45 48 51",
         #"Freqs": "60 60 60 60 60 60 60 60",
 
 #        "Borders": "0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8",
@@ -108,7 +114,7 @@ class Hashtable(BaseMultiplexerServer):
         "Trigger": "0",
 	"FloorTimeBoundry" : "0.25",
 	"CeilingTimeBoundry" : "0.4",
-        "SaveFileName" : 'maciek8', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
+        "SaveFileName" : 'ania2_tablet', #"p300_128hz_laptop_training_6x6_square_CATDOGFISHWATERBOWL_ublinkShot150_lukasz",
         "SaveFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
         #"SaveFilePath" : "/home/mati/bci_dev/google_openbci/openbci/openbci/experiment_builder/alpha_ass/data_20_07_2010/",
         "CSPFilePath" : "./temp/", #"/media/windows/titanis/bci/projekty/eksperyment_mikolaj/dane_07_12_2010/",
@@ -162,7 +168,7 @@ class Hashtable(BaseMultiplexerServer):
         'ANALYSIS_BUFFER_COPY_ON_RET':"0", 
 
         #time in secs to hold analysis after making decision
-        'ANALYSIS_HOLD_AFTER_DEC':"1.0",
+        'ANALYSIS_HOLD_AFTER_DEC':"0.5",
 
 
         # ------------ END -------------------------------------------------------------------------------------
@@ -174,9 +180,8 @@ class Hashtable(BaseMultiplexerServer):
         
         #'UGM_CONFIG': 'speller_config_nesw',
         #'UGM_CONFIG': 'speller_config_6',
-        'UGM_CONFIG': 'speller_config_8',
         #'UGM_CONFIG': 'p300_ssvep',
-        #'UGM_CONFIG': 'speller_config_8_black_etr2',
+        'UGM_CONFIG': 'speller_config_8_black_etr2',
         'UGM_USE_TAGGER':'0',
         'UGM_INTERNAL_IP':'127.0.0.1',
         'UGM_INTERNAL_PORT':'5028',

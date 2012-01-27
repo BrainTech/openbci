@@ -87,3 +87,8 @@ class Blinker(object):
         str = chr(1) # 'P300_RUN'
         self.send(str)
 
+    def light(self, d):
+        str = chr(5) # 'P300_RUN'
+        str+=chr(d)
+        self.send(str)
+

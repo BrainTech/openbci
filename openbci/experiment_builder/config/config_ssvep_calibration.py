@@ -12,13 +12,28 @@ f2 = [15, 17, 19, 25]
 #      21, 23, 14, 16]
 f3 = [30, 32, 34, 36,
       40, 42, 44, 46]
+
+#f4 = [30, 33, 36, 39, 42, 45, 48, 51]
+#f4 = [31, 34, 37, 40, 43, 46, 49, 52]
+#f4 = [30, 31, 32, 33, 34, 35,
+#      36, 37, 38, 39, 40, 41,
+#      42, 43, 44, 45]
+
+f4 = [13, 14, 15, 16, 
+      17, 18, 19, 20]
+
+#25, 27, 29, 31, 33, 35,
+#      37, 39, 41, 43]
+
+
 #Set screens to be shown, divided into packages. Each package is determined 
 #by one list of strings representing relative path to ugm config file
 #located in openbci/ugm/config/ directory.
 screens = [
     #888 ['fields1']*len(f1),
     #888 ['fields4']*len(f2),
-    ['fields8']*len(f3)
+    #999 ['fields8']*len(f3)
+    ['fields8']*len(f4)    
     ]
 
 #Set diode frequencies for every screen. Structure of 'freqs' should be
@@ -48,10 +63,25 @@ freqs = [
 #888    freqs[1].append(diodes)
 
 #f3
-for i, fr in enumerate(f3):
+#for i, fr in enumerate(f3):
+#    diodes = [0]*8
+#    diodes[1] = fr
+#    f33 = list(f3)
+#    f33.remove(fr)
+#    random.shuffle(f33)
+#    for i in range(6):
+#        diodes[i+2] = f33[i]
+#    diodes[0] = f33[-1]
+#    diodes[1] = fr
+#888    freqs[2].append(diodes)
+#    freqs[0].append(diodes)
+
+
+#f4
+for i, fr in enumerate(f4):
     diodes = [0]*8
     diodes[1] = fr
-    f33 = list(f3)
+    f33 = list(f4)
     f33.remove(fr)
     random.shuffle(f33)
     for i in range(6):
@@ -60,6 +90,23 @@ for i, fr in enumerate(f3):
     diodes[1] = fr
 #888    freqs[2].append(diodes)
     freqs[0].append(diodes)
+
+"""for i, fr in enumerate(f4):
+    diodes = [0]*8
+    diodes[6] = fr
+    f33 = list(f4)
+    f33.remove(fr)
+    random.shuffle(f33)
+    for i in range(6):
+        diodes[i] = f33[i]
+    diodes[7] = f33[-1]
+    #diodes[1] = fr
+#888    freqs[2].append(diodes)
+    freqs[0].append(diodes)
+"""
+
+
+
 
 #888 BBB = 2
 BBB = 1
@@ -83,7 +130,7 @@ delay = 4
 #when repeats = 1 you'll get:
 # x,y,a,b,c
 #888 repeats = [10, 10, 15]*BBB
-repeats = [5]*BBB
+repeats = [10]*BBB
 
 #Set readable descriptions for every config file
 #Those descriptions will be visible in tags
