@@ -205,6 +205,25 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 													experiment_id=experiment_id,
 												peer_id=peer))
 
+	@msg_handlers.handler("stop_all")
+	def handle_stop_all(self, message, sock):
+		
+		self.subprocess_mgr.killall()
+	
+	@msg_handlers.handler("dead_process")
+	def handle_dead_process(self, message, sock):
+		proc = self.subprocess_mgr.process(message.machine, message.pid)
+		if proc is not None:
+			proc.mark_delete()
+			if proc.proc_type == 'obci_peer' or proc.proc_type == 'multiplexer':
+				send_msg(self._publish_socket, self.mtool.fill_msg("obci_peer_dead",
+												sender=self.uuid,
+												sender_ip=self.ip,
+												peer_id=proc.name,
+												path=proc.path,
+												status=proc.status()
+												))
+
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}
 		#self.subprocess_mgr.killall()
@@ -213,6 +232,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		print self.name,'[', self.type, ']',  "cleaning up"
 		self.processes = {}
 		self.subprocess_mgr.killall()
+		self.subprocess_mgr.delete_all()
 
 
 def process_supervisor_arg_parser():

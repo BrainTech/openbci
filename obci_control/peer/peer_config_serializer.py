@@ -155,13 +155,14 @@ class PeerConfigSerializerCmd(PeerConfigSerializer):
 
 	def _serialize_local_params(self, p_values, p_ext_param_defs):
 		for name, value in p_values.iteritems():
-			if name not in p_ext_param_defs:
+			if name not in p_ext_param_defs or value is not None:
 				self.args += [helpers.LP, name, value]
 
 	def _serialize_ext_params(self, p_values, p_ext_param_defs):
 		for name, value in p_values.iteritems():
-			if name in p_ext_param_defs and value is not None:
-				self.args += [helpers.EP, name, value]
+			if name in p_ext_param_defs and value is None:
+				(src, par) = p_ext_param_defs[name]
+				self.args += [helpers.EP, name, src + '.' + par]
 
 #TODO?
 class PeerConfigSerializerProtobuf(PeerConfigSerializer):

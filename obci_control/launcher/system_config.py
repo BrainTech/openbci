@@ -114,14 +114,18 @@ class OBCIExperimentConfig(object):
 		#TODO
 		pass
 
+	def peers_info(self):
+		peers = {}
+		for p in self.peers:
+			peers[p] = self.peers[p].info()
+		return peers
+
 	def info(self):
 		exp = {}
 		exp["uuid"] = self.uuid
 		exp["origin_machine"] = self.origin_machine
 		exp["launch_file_path"] = self.launch_file_path
-		peers = {}
-		for p in self.peers:
-			peers[p] = self.peers[p].info()
+		peers = self.peers_info()
 		exp["peers"] = peers
 		return exp
 

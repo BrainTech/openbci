@@ -24,6 +24,7 @@ import common.obci_control_settings as settings
 import common.net_tools as net
 import view
 from common.config_helpers import OBCISystemError
+from peer.peer_cmd import PeerCmd
 
 disp = view.OBCIViewText()
 
@@ -55,7 +56,11 @@ def cmd_new(args):
 	pass
 
 def cmd_join(args):
-	pass
+	client = client_server_prep()
+	response = client.join_experiment(args.id, args.peer_id, args.peer_path)
+	if response.type == 'rq_ok':
+		pass
+	disp.view(response)
 
 def cmd_kill(args):
 	client = client_server_prep()
@@ -157,8 +162,16 @@ do not send a "kill" message')
 	parser_killall = subparsers.add_parser('killall',
 				help="Kill everything: all experiments and OBCI server.")
 
-	parser_join = subparsers.add_parser('join',
+	parser_join = subparsers.add_parser('join', parents=[PeerCmd(add_help=False).parser],
 				help="Join a running OpenBCI experiment with a new peer.")
+	parser_join.add_argument('id', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)')
+	parser_join.add_argument('peer_path', type=path_to_file,
+				help="Path to an executable file.")
+
+	parser_join.set_defaults(func=cmd_join)
+
 
 	parser_config = subparsers.add_parser('config',
 				help="View or change a single peer configuration")
@@ -251,8 +264,6 @@ def client_server_prep(cmdargs=None):
 
 	if res is not None:
 		return client
-
-
 
 	if server_process_running()[0]:
 		cmd_srv_kill(None)

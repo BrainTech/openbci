@@ -5,7 +5,7 @@ import json
 import zmq
 
 
-BASIC_MSG = dict(type='', sender='', receiver='')
+BASIC_MSG = dict(type='', sender='', receiver='', sender_ip='')
 #BasicMessage = namedtuple('BasicMessage', 'type sender receiver')
 #_basic_message = BasicMessage(type='basic_message', sender='', receiver='')
 
@@ -90,6 +90,9 @@ class LauncherMessage(object):
 
 	def __repr__(self):
 		return str(self.dict())
+
+	def raw(self):
+		return json.dumps(vars(self), sort_keys=True, indent=4)
 
 	def ParseFromString(self, string):
 		message = json.loads(string)

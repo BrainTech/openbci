@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import peers, types
-import settings, variables_pb2
+from configs import settings, variables_pb2
 
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
