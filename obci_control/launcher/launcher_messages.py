@@ -10,8 +10,14 @@ message_templates = {
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
 	"list_experiments" : dict(),
 	"running_experiments" : dict(exp_data=''),
-	"get_experiment_info" : dict(peer_id=''),
-	"experiment_info" : dict(exp_info=''),
+
+	"get_experiment_info" : dict(),
+	"experiment_info" : dict(experiment_status='', launch_file_path='', scenario_dir='',
+						 origin_machine='',	peers='', unsupervised_peers='', uuid=''),
+
+	"get_peer_info" : dict(peer_id=''),
+	"peer_info" : dict(peer_info=''),
+
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
 
@@ -34,9 +40,17 @@ message_templates = {
 
 	"start_mx" : dict(args=''),
 	"start_peers" : dict(mx_data=''),
+	"dead_process" : dict(machine='', pid='', status=''),
+
+	"obci_peer_dead" : dict(path='', peer_id='', status=''),
+	"stop_all" : dict(),
 
 	"get_tail" : dict(peer_id='', len=''),
-	"tail" : dict(txt='', experiment_id='', peer_id='')
+	"tail" : dict(txt='', experiment_id='', peer_id=''),
+
+	"join_experiment" : dict(peer_id='', peer_type='', path=''),
+	"leave_experiment" : dict(peer_id='')
+
 }
 
 error_codes = ["invalid_supervisor_data",

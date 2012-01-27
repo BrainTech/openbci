@@ -54,21 +54,21 @@ class SubprocessMonitor(object):
 		self._mtool = OBCIMessageTool(message_templates)
 		self.monitor_ticker = threading.Timer(None, None, None)
 		self.poller = PollingObject()
+		self._proc_lock = threading.RLock()
 
 	def not_running_processes(self):
 		status = {}
-		status[FAILED] = [proc for proc in self.processes.values()\
-							if proc.status()[0] == FAILED]
-		status[FINISHED] = [proc for proc in self.processes.values()\
-							if proc.status()[0] == FINISHED]
-		status[TERMINATED] = [proc for proc in self.processes.values()\
-							if proc.status()[0] == TERMINATED]
-		status[NON_RESPONSIVE] = [proc for proc in self.processes.values()\
-							if proc.status()[0] == NON_RESPONSIVE]
+		with self._proc_lock:
+			for key, proc in self.processes.iteritems():
+				st = proc.status()
+				if st[0] in [FINISHED, FAILED, TERMINATED] and not proc.marked_delete():
+					status[key] = st
+
 		return status
 
 	def unknown_status_processes(self):
-		return [proc for proc in self.processes.values()\
+		with self._proc_lock:
+			return [proc for proc in self.processes.values()\
 							if proc.status()[0] == UNKNOWN]
 
 	def process(self, machine_ip, pid):
@@ -76,13 +76,19 @@ class SubprocessMonitor(object):
 
 	def killall(self):
 		for proc in self.processes.values():
-			proc.kill()
+			if proc.status()[0] not in [FINISHED, FAILED, TERMINATED]:
+				proc.kill()
+			#del proc
+
+	def delete_all(self):
+		for proc in self.processes.values():
 			del proc
+		self.processes = {}
 
 	def stop_monitoring(self):
-		for proc in self.processes.values():
-			proc.stop_monitoring()
-
+		with self._proc_lock:
+			for proc in self.processes.values():
+				proc.stop_monitoring()
 
 	def new_local_process(self, path, args, proc_type='', name='',
 								capture_io= STDOUT | STDIN,
@@ -395,7 +401,7 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=9000)
+				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=5000)
 				if not result and not self._stop_monitoring:
 					print "[subprocess_monitor] for", self.proc_type, self.name, "NO RESPONSE TO PING!",
 					with self._status_lock:
@@ -412,6 +418,13 @@ class Process(object):
 	def kill(self):
 		raise NotImplementedError()
 
+	def mark_delete(self):
+		with self._status_lock:
+			self.delete = True
+
+	def marked_delete(self):
+		with self._status_lock:
+			return self.delete
 
 class LocalProcess(Process):
 	def __init__(self, proc_description, popen_obj, io_handler=None,

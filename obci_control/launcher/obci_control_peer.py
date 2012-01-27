@@ -15,6 +15,9 @@ from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 import common.net_tools as net
 import common.obci_control_settings as settings
 
+from subprocess_monitor import SubprocessMonitor, FAILED, TERMINATED, FINISHED, \
+														RUNNING, NON_RESPONSIVE
+
 
 class HandlerCollection(object):
 	def __init__(self):
@@ -94,6 +97,7 @@ class OBCIControlPeer(object):
 		self.obci_dir = obci_install_dir
 		self._pull_addr = 'inproc://publisher_msg'
 		self._push_addr = 'inproc://publisher'
+		self._subpr_push_addr = 'inproc://subprocess_info'
 
 		self.uuid = str(uuid.uuid4())
 		self.name = str(name)
@@ -103,7 +107,8 @@ class OBCIControlPeer(object):
 
 		if not hasattr(self, "ctx"):
 			self.ctx = zmq.Context()
-
+		
+		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 		self.net_init()
 
 		if self.source_addresses:
@@ -114,6 +119,7 @@ class OBCIControlPeer(object):
 		self.interrupted = False
 		signal.signal(signal.SIGTERM, self.signal_handler())
 		signal.signal(signal.SIGINT, self.signal_handler())
+		
 
 
 	def signal_handler(self):
@@ -156,6 +162,23 @@ class OBCIControlPeer(object):
 		pull_sock.close()
 		push_sock.close()
 
+	def _subprocess_info(self, push_addr):
+		push_sock = self.ctx.socket(zmq.PUSH)
+		push_sock.connect(push_addr)
+
+		send_msg(push_sock, u'1')
+		while not self._stop_monitoring:
+			dead = self.subprocess_mgr.not_running_processes()
+			if dead:
+				print "DEADDD" , dead
+				for key, status in dead.iteritems():
+					send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
+														pid=key[1], status=status))
+				
+			time.sleep(1)
+		push_sock.close()
+
+
 	def _push_sock(self, ctx, addr):
 		sock = ctx.socket(zmq.PUSH)
 		sock.connect(addr)
@@ -177,11 +200,27 @@ class OBCIControlPeer(object):
 		self._all_sockets.append(self._publish_socket)
 		tmp_pull.close()
 
+	def _prepare_subprocess_info(self):
+		self._subprocess_pull = self.ctx.socket(zmq.PULL)
+		self._subprocess_pull.bind(self._subpr_push_addr)
+
+		self.subprocess_thr = threading.Thread(target=self._subprocess_info,
+											args=[self._subpr_push_addr])
+		self.subprocess_thr.daemon = True
+		self._stop_monitoring = False
+
+		self.subprocess_thr.start()
+		recv_msg(self._subprocess_pull)
+
+		self._all_sockets.append(self._subprocess_pull)
+
+
 	def net_init(self):
 		# (self.pub_socket, self.pub_addresses) = self._init_socket(
 		# 										self.pub_addresses, zmq.PUB)
 		self._all_sockets = []
 		self._prepare_publisher()
+		self._prepare_subprocess_info()
 
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
@@ -258,7 +297,7 @@ class OBCIControlPeer(object):
 		return {}
 
 	def basic_sockets(self):
-		return [self.rep_socket]
+		return [self.rep_socket, self._subprocess_pull]
 
 	def custom_sockets(self):
 		"""
@@ -318,7 +357,9 @@ class OBCIControlPeer(object):
 	def _clean_up(self):
 		time.sleep(0.01)
 		self._stop_publishing = True
+		self._stop_monitoring = True
 		self.pub_thr.join()
+		self.subprocess_thr.join()
 
 		for sock in self._all_sockets:
 			#print self.name, "closing ", sock
@@ -401,6 +442,10 @@ class OBCIControlPeer(object):
 			self.cleanup_before_net_shutdown(message, sock)
 			self._clean_up()
 			self.shutdown()
+
+	@msg_handlers.handler("dead_process")
+	def handle_dead_process(self, message, sock):
+		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		pass

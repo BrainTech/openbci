@@ -30,7 +30,6 @@ class PeerControl(object):
 		self.peer_validate_params = param_validate_method
 		self.peer_params_changed = param_change_method
 
-		self.wait_ready_signal = False
 		self.peer_id = None
 		self.conn = connection
 
@@ -51,7 +50,6 @@ class PeerControl(object):
 		self._request_ext_params(connection)
 
 		#self.peer_validate_params(self.core.param_values)
-
 		return self.config_ready()
 
 	def initialize_config_locally(self):
@@ -81,8 +79,7 @@ class PeerControl(object):
 		if other_params[CONFIG_FILE] is not None:
 			self.file_list = other_params[CONFIG_FILE]
 		self.cmd_overrides = cmd_ovr
-		if other_params[WAIT_READY_SIGNAL]:
-			self.wait_ready_signal = True
+
 
 
 	def _load_config_base(self):
@@ -151,7 +148,6 @@ class PeerControl(object):
 				#restore...
 				for par, val in old_values.iteritems():
 					self.core.set_param_from_source(reply_msg.sender, par, val)
-
 		if param_owner == self.peer_id:
 			local_params = self.core.local_params
 			for par, val in params.iteritems():
@@ -162,6 +158,7 @@ class PeerControl(object):
 					old_values[par] = self.core.get_param(par)
 					updated[par] = val
 					self.core.update_local_param(par, val)
+			
 			if not self.peer_params_changed(updated):
 				for par, val in old_values.iteritems():
 					self.core.update_local_param(par, val)

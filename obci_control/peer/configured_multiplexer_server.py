@@ -17,7 +17,8 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 		self.config = PeerControl(self)
 		self.config.connection = self.conn
 		self.config.peer_validate_params = self.validate_params
-		self.config.peer_params_change = self.params_changed
+		self.config.peer_params_changed = self.params_changed
+		print '[{0}] par_change_method: {1}'.format(self.config.peer_id, self.config.peer_params_changed)
 		result, details = self.config.initialize_config(self.conn)
 
 
