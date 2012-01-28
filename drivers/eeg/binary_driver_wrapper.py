@@ -196,8 +196,8 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         while True:
             line=self.driver.stdout.readline()
             if len(line) == 0:
-                LOGGER.error("Got empty string from driver!!!")
-                
+                LOGGER.error("Got empty string from driver. ABORTING...!!!")
+                sys.exit(1)
             elif line=="\n": break
 
             out+=line;
@@ -211,7 +211,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         if amp_params_received:
             for par in params:
                 if params[par] == '':
-                    LOGGER.error('Parameter ' + par + 'is empty!!! ABORT.')
+                    LOGGER.error('Parameter ' + par + 'is empty!!! ABORTING....')
                     sys.exit(1)
 
 

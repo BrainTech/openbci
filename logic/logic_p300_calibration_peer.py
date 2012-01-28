@@ -12,6 +12,8 @@ from configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 from utils import keystroke
+from utils import tags_helper
+
 from acquisition import acquisition_helper
 
 from logic import logic_logging as logger
@@ -28,6 +30,8 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         self.break_text = self.config.get_param("break_text")
         self.break_duration = float(self.config.get_param("break_duration"))
         self.trials_count = int(self.config.get_param("trials_count"))
+        self.current_target = int(self.config.get_param("target"))
+        self.blink_duration = float(self.config.get_param("blink_duration"))
 
         self._trials_counter = self.trials_count
         self.ready()
@@ -36,22 +40,37 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
     def handle_message(self, mxmsg):
         """Method fired by multiplexer. It conveys decision to logic engine."""
         if (mxmsg.type == types.UGM_ENGINE_MESSAGE):
-            msg = variables_pb2.Variable()
-            msg.ParseFromString(mxmsg.message)
-            if msg.key == "blinking_stopped":
-                LOGGER.info("Got blinking stopped message!")
-                self._trials_counter -= 1
-                if self._trials_counter <= 0:
-                    LOGGER.info("All trials passed")
-                    self.end()
-                else:
-                    LOGGER.info("Blinking stopped...")
-                    self.blinking_stopped()
-            else:
-                LOGGER.info("Got unrecognised ugm engine message: "+str(msg.key))
+            self._handle_ugm_engine(mxmsg.message)
+        elif mxmsg.type == types.BLINK_MESSAGE:
+            self._handle_blink(mxmsg.message)
         else:
             LOGGER.warning("Got unrecognised message type: "+mxmsg.type)
         self.no_response()
+
+    def _handle_blink(self, msg):
+        b = variables_pb2.Blink()
+        b.ParseFromString(msg)
+        LOGGER.debug("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
+        tags_helper.send_tag(self.conn, 
+                             b.timestamp, b.timestamp+self.blink_duration, "blink",
+                             {"index" : b.index,
+                              "target":self.current_target
+                              })
+
+    def _handle_ugm_engine(self, msg):
+        m = variables_pb2.Variable()
+        m.ParseFromString(msg)
+        if m.key == "blinking_stopped":
+            LOGGER.info("Got blinking stopped message!")
+            self._trials_counter -= 1
+            if self._trials_counter <= 0:
+                LOGGER.info("All trials passed")
+                self.end()
+            else:
+                LOGGER.info("Blinking stopped...")
+                self.blinking_stopped()
+        else:
+            LOGGER.info("Got unrecognised ugm engine message: "+str(m.key))
 
     def begin(self):
         ugm_helper.send_text(self.conn, self.hi_text)
