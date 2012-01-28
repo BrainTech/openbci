@@ -463,7 +463,7 @@ class LocalProcess(Process):
 		self.popen_obj.poll()
 		with self._status_lock:
 			if self.popen_obj.returncode is None:
-				self.popen_obj.kill()
+				self.popen_obj.terminate()
 			self.popen_obj.wait()
 
 			if not self._status == NON_RESPONSIVE:
