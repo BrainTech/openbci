@@ -247,6 +247,11 @@ peer {
     name: "LOGIC_P300_CALIBRATION"
 }
 
+peer {
+    type: 147
+    name: "LOGIC_SSVEP_CALIBRATION"
+}
+
 
 
 # packages and routing rules definitions
@@ -585,14 +590,17 @@ type {
      to {
      	peer: "TAG_SAVER"
 	whom: ALL
+	report_delivery_error: false
 	}
      to {
      	peer: "TAGS_RECEIVER"
 	whom: ANY
+	report_delivery_error: false
 	}
     to {
         peer: "STREAM_RECEIVER"
         whom: ALL
+	report_delivery_error: false
     }
 }
 
@@ -625,6 +633,13 @@ type {
      to {
         peer: "BLINK_CATCHER"
         whom: ALL
+	report_delivery_error: false
+     }
+     
+     to {
+     	peer: "LOGIC_P300_CALIBRATION"
+	whom: ALL
+	report_delivery_error: false
      }
 }
 

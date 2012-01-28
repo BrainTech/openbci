@@ -1,4 +1,4 @@
-number_of_decisions = 36 #TODO - it should rather come from outside ...
+number_of_decisions = 36
 number_of_states = 1
 
 # A list of all configs defined for every single state.

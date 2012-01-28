@@ -18,7 +18,6 @@ message BlinkVector {
     repeated Blink blinks = 1;  
 }
 
-
 message Sample {
     required double timestamp = 1;
     repeated double channels = 2;
@@ -29,16 +28,10 @@ message Sample2D {
     required double timestamp = 3;
 }
 
-
-
-
 message SampleVector {
     repeated Sample samples = 1;
 }
-message Decision {
-    required int32 decision = 1;
-    optional int32 type = 2;
-}
+
 message UgmUpdate {
 	required int32 type = 1;
 	required string value = 2;

@@ -9,9 +9,6 @@ import logging
 import sys
 import os
  
-def to_hex_word(a):
-    '''encodes a decimal number hexadecimally on two bytes'''
-    return chr(a%256) + chr(a/256)
  
 class Blinker(object):
     def __init__(self, port_name):
@@ -29,6 +26,10 @@ class Blinker(object):
             print "Nieprawidłowa nazwa portu lub port zajęty."
             raise e
         self.close()
+
+    def to_hex_word(self, a):
+        '''encodes a decimal number hexadecimally on two bytes'''
+        return chr(a%256) + chr(a/256)
  
     def open(self):
         self.port.open()
@@ -55,10 +56,10 @@ class Blinker(object):
         for i in range(len(d)):
             # i-th LED OFF
             if d[i] == 0:                       
-                str += to_hex_word(0) + to_hex_word(255) 
+                str += self.to_hex_word(0) + self.to_hex_word(255) 
             # i-th LED ON
             elif d[i] == -1:
-                str += to_hex_word(255) + to_hex_word(0)
+                str += self.to_hex_word(255) + self.to_hex_word(0)
                 #str = 'S'
                 # i-th LED blinks d[i] times per second
                 # p1:p2 = on_time:off_time in one blink
@@ -66,26 +67,26 @@ class Blinker(object):
                 period = clock/d[i]
                 bright = int((clock/d[i]) * factor)
                 dark = period - bright
-                str += to_hex_word(bright) + to_hex_word(dark)
+                str += self.to_hex_word(bright) + self.to_hex_word(dark)
  
         self.send(str)
  
     def blinkP300(self,d):
         clock  = 62500
-        str = chr(4) # 'P300_RUN'
+        str = chr(4)
  
         for i in range(len(d)):
             period = int(clock*d[i]/1000.0)
-            str += to_hex_word(period)
+            str += self.to_hex_word(period)
             print(period)
  
         self.send(str)
 
     def on(self):
-        str = chr(2) # 'P300_RUN'
+        str = chr(2)
         self.send(str)
 
     def off(self):
-        str = chr(1) # 'P300_RUN'
+        str = chr(1)
         self.send(str)
 
