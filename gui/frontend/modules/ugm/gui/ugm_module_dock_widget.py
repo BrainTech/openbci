@@ -28,11 +28,11 @@ from PyQt4 import QtCore, QtGui
 from modules.ugm.gui.UGMMain import Ui_UGMMainWidget
 from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
 from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
-from ugm.ugm_config_manager import UgmConfigManager
+from obci.gui.ugm.ugm_config_manager import UgmConfigManager
 import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
-import variables_pb2
+from obci.configs import variables_pb2
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""
@@ -133,7 +133,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         #     
         # # Everything done :) All that is left is to establish connection if needed...
         if not self._connection:
-            self._connection = connect_client(type = peers.LOGIC)
+            self._connection = connect_client(type = peers.LOGIC_DECISION)
          # ...and send message to UGM
         self._connection.send_message(
             message = l_msg.SerializeToString(), 

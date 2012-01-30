@@ -24,8 +24,8 @@
 #
 """Module file for UGM - builds GUI to configure it"""
 
-from ugm.ugm_config_manager import UgmConfigManager
-from modules.ugm.gui.ugm_module_dock_widget import UGMModuleDockWidget
+from obci.gui.ugm.ugm_config_manager import UgmConfigManager
+from obci.gui.frontend.modules.ugm.gui.ugm_module_dock_widget import UGMModuleDockWidget
 
 class UgmModule(object):
     """Module file for UGM. Creates and manages its configuration GUI"""
