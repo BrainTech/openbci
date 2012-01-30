@@ -275,7 +275,6 @@ class PeerControl(object):
 		msg = cmsg.fill_and_pack(mtype, peer_id=self.peer_id)
 
 		reply = self.__query(connection, msg, mtype)
-		print self.peer_id, "ooooooo", reply.type, mtype
 
 		self._synchronize_ready(connection)
 

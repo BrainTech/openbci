@@ -55,6 +55,8 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         def handler(signum, frame):
             LOGGER.info("Got signal " + str(signum) + "!!! Stopping driver!")
             self.stop_sampling()
+            self.terminate_driver()
+            LOGGER.info("Exit!")            
             sys.exit(-signum)
         return handler
 
@@ -182,6 +184,11 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         self.driver.wait()
         LOGGER.info("Sampling stopped")
 
+    def terminate_driver(self):
+        self.driver.send_signal(signal.SIGTERM)
+        self.driver.wait()
+        LOGGER.info("Terminated driver.")
+
     def driver_is_running(self):
         self.driver.poll()
         return self.driver.returncode is None
@@ -197,6 +204,13 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
             line=self.driver.stdout.readline()
             if len(line) == 0:
                 LOGGER.error("Got empty string from driver. ABORTING...!!!")
+                if self.driver_is_running():
+                    LOGGER.info("Stopping driver.")
+                    self.stop_sampling()
+                if self.driver_is_running():   
+                #TODO does 'stop_sampling' always terminate the driver process??? 
+                    LOGGER.info("driver still not dead")
+                    self.terminate_driver()
                 sys.exit(1)
             elif line=="\n": break
 

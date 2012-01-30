@@ -333,6 +333,7 @@ class OBCIExperiment(OBCIControlPeer):
 			peer_info = self.exp_config.peers[message.peer_id].info(detailed=True)
 			send_msg(sock, self.mtool.fill_msg('peer_info', peer_info=peer_info))
 
+
 	@msg_handlers.handler('get_peer_config')
 	def handle_get_peer_config(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('ping', sender=self.uuid))
