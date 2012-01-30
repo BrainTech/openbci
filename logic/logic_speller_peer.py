@@ -20,8 +20,8 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
     def __init__(self, addresses):
         super(LogicSpeller, self).__init__(addresses=addresses)
         self._message = ""
-        self.text_id = int(self.config.get_param("text_id"))
-        self.text_ids = [int(i) for i in self.config.get_param("text_ids").split(';')]
+        self.text_id = int(self.config.get_param("ugm_text_id"))
+        self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
         self._update_letters()
         self.ready()
 

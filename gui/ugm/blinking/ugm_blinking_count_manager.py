@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-import sequence_provider
+from utils import sequence_provider
 class DummyProvider(object):
     def get_value(self):
         return -1

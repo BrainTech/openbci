@@ -4,6 +4,12 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 import random
+class ConstantMgr(object):
+    def __init__(self, v):
+        self.v = v
+    def get_value(self):
+        return self.v
+
 class RandomMgr(object):
     def __init__(self, start, count):
         self.start = start
@@ -63,5 +69,6 @@ PROVIDERS = {
     'random':RandomMgr,
     'random_sequential': RandomSequentialMgr,
     'sequential':SequentialMgr,
-    'random_cons':RandomConsMgr
+    'random_cons':RandomConsMgr,
+    'constant':ConstantMgr
 }

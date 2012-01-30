@@ -6,7 +6,7 @@
 from configs import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 
-def stop(conn):
+def send_stop(conn):
     msg = variables_pb2.Variable()
     msg.key = 'stop'
     msg.value = ''
@@ -14,7 +14,7 @@ def stop(conn):
                       type=types.DIODE_CONTROL_MESSAGE,
                       flush=True)
 
-def send(conn, freqs):
+def send_freqs(conn, freqs):
     msg = variables_pb2.Variable()
     msg.key = 'update'
     msg.value = ';'.join(freqs)
