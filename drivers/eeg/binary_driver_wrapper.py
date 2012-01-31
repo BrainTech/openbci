@@ -44,11 +44,13 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
         self.store_driver_description(desc)
 
-        self.set_driver_params()
-        self.ready()
         autostart = self.config.true_val(self.config.get_param('start_sampling'))
+    
+        self.ready()
+        
         LOGGER.info('Automatic start' + str(autostart))
         if autostart:
+            self.set_driver_params()
             self.start_sampling()
     
     def signal_handler(self):
@@ -181,7 +183,6 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         LOGGER.info("Stop sampling")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.driver.send_signal(signal.SIGINT)
-        self.driver.wait()
         LOGGER.info("Sampling stopped")
 
     def terminate_driver(self):
