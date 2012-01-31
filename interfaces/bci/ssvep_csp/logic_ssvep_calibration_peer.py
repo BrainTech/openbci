@@ -53,6 +53,8 @@ class LogicSSVEPCalibration(ConfiguredClient):
             if len(f_list) < fields_count:
                 raise Exception("One of freqs list is smaller than fields_count. That can`t be!!!")
             freqs.append(f_list)
+            
+        self.all_freqs = sum(freqs, [])
 
         #An index of target field - migh be a number or literal representing 'method of generation', eg. random
         target_ind = self.config.get_param("target_ind")
@@ -123,6 +125,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         acquisition_helper.send_finish_saving(self.conn)
 
     def _run(self):
+        self._send_exp_info()
         while True:
             try:
                 freqs, target_ind = self.sequence.get_nowait()
@@ -135,6 +138,16 @@ class LogicSSVEPCalibration(ConfiguredClient):
             self._send_freqs(freqs, target_ind)
             self._send_breaks()
 
+    def _send_exp_info(self):
+        desc = dict(self.config.param_values())
+        desc['all_freqs'] = ';'.join(self.all_freqs)
+
+        t = time.time()
+        tags_helper.send_tag(
+            self.conn, t, t, 
+            "experimentInfo",
+            desc)
+        
     def _send_ugm(self):
         ugm_helper.send_config(self.conn, self.ugm)        
         t = time.time()
