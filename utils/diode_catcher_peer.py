@@ -24,7 +24,7 @@ class DiodeCatcher(ConfiguredMultiplexerServer):
         if mxmsg.type == types.DIODE_MESSAGE:
             msg = variables_pb2.Diode()
             msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT DIODE: "+str(msg.timestamp)+" / "+str(msg.value))
+            LOGGER.debug("GOT DIODE: "+repr(msg.timestamp)+" / "+str(msg.value))
             tags_helper.send_tag(self.conn, msg.timestamp, msg.timestamp, "diode",
                                  {"freqs" : msg.value})
         self.no_response()
