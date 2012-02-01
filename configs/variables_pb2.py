@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='variables.proto',
   package='variables',
-  serialized_pb='\n\x0fvariables.proto\x12\tvariables\"&\n\x08Variable\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"8\n\x0eVariableVector\x12&\n\tvariables\x18\x01 \x03(\x0b\x32\x13.variables.Variable\")\n\x05\x42link\x12\r\n\x05index\x18\x01 \x02(\x05\x12\x11\n\ttimestamp\x18\x02 \x02(\x01\"/\n\x0b\x42linkVector\x12 \n\x06\x62links\x18\x01 \x03(\x0b\x32\x10.variables.Blink\"-\n\x06Sample\x12\x11\n\ttimestamp\x18\x01 \x02(\x01\x12\x10\n\x08\x63hannels\x18\x02 \x03(\x01\"3\n\x08Sample2D\x12\t\n\x01x\x18\x01 \x02(\x01\x12\t\n\x01y\x18\x02 \x02(\x01\x12\x11\n\ttimestamp\x18\x03 \x02(\x01\"2\n\x0cSampleVector\x12\"\n\x07samples\x18\x01 \x03(\x0b\x32\x11.variables.Sample\"*\n\x08\x44\x65\x63ision\x12\x10\n\x08\x64\x65\x63ision\x18\x01 \x02(\x05\x12\x0c\n\x04type\x18\x02 \x01(\x05\"(\n\tUgmUpdate\x12\x0c\n\x04type\x18\x01 \x02(\x05\x12\r\n\x05value\x18\x02 \x02(\t\"~\n\x03Tag\x12\x17\n\x0fstart_timestamp\x18\x01 \x02(\x01\x12\x15\n\rend_timestamp\x18\x02 \x02(\x01\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x10\n\x08\x63hannels\x18\x04 \x02(\t\x12\'\n\x04\x64\x65sc\x18\x05 \x01(\x0b\x32\x19.variables.VariableVector\")\n\tTagVector\x12\x1c\n\x04tags\x18\x01 \x03(\x0b\x32\x0e.variables.Tag')
+  serialized_pb='\n\x0fvariables.proto\x12\tvariables\"&\n\x08Variable\x12\x0b\n\x03key\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"8\n\x0eVariableVector\x12&\n\tvariables\x18\x01 \x03(\x0b\x32\x13.variables.Variable\")\n\x05\x42link\x12\r\n\x05index\x18\x01 \x02(\x05\x12\x11\n\ttimestamp\x18\x02 \x02(\x01\")\n\x05\x44iode\x12\r\n\x05value\x18\x01 \x02(\t\x12\x11\n\ttimestamp\x18\x02 \x02(\x01\"/\n\x0b\x42linkVector\x12 \n\x06\x62links\x18\x01 \x03(\x0b\x32\x10.variables.Blink\"-\n\x06Sample\x12\x11\n\ttimestamp\x18\x01 \x02(\x01\x12\x10\n\x08\x63hannels\x18\x02 \x03(\x01\"3\n\x08Sample2D\x12\t\n\x01x\x18\x01 \x02(\x01\x12\t\n\x01y\x18\x02 \x02(\x01\x12\x11\n\ttimestamp\x18\x03 \x02(\x01\"2\n\x0cSampleVector\x12\"\n\x07samples\x18\x01 \x03(\x0b\x32\x11.variables.Sample\"(\n\tUgmUpdate\x12\x0c\n\x04type\x18\x01 \x02(\x05\x12\r\n\x05value\x18\x02 \x02(\t\"~\n\x03Tag\x12\x17\n\x0fstart_timestamp\x18\x01 \x02(\x01\x12\x15\n\rend_timestamp\x18\x02 \x02(\x01\x12\x0c\n\x04name\x18\x03 \x02(\t\x12\x10\n\x08\x63hannels\x18\x04 \x02(\t\x12\'\n\x04\x64\x65sc\x18\x05 \x01(\x0b\x32\x19.variables.VariableVector\")\n\tTagVector\x12\x1c\n\x04tags\x18\x01 \x03(\x0b\x32\x0e.variables.Tag')
 
 
 
@@ -114,6 +114,41 @@ _BLINK = descriptor.Descriptor(
 )
 
 
+_DIODE = descriptor.Descriptor(
+  name='Diode',
+  full_name='variables.Diode',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='value', full_name='variables.Diode.value', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='timestamp', full_name='variables.Diode.timestamp', index=1,
+      number=2, type=1, cpp_type=5, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=171,
+  serialized_end=212,
+)
+
+
 _BLINKVECTOR = descriptor.Descriptor(
   name='BlinkVector',
   full_name='variables.BlinkVector',
@@ -137,8 +172,8 @@ _BLINKVECTOR = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=171,
-  serialized_end=218,
+  serialized_start=214,
+  serialized_end=261,
 )
 
 
@@ -172,8 +207,8 @@ _SAMPLE = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=220,
-  serialized_end=265,
+  serialized_start=263,
+  serialized_end=308,
 )
 
 
@@ -214,8 +249,8 @@ _SAMPLE2D = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=267,
-  serialized_end=318,
+  serialized_start=310,
+  serialized_end=361,
 )
 
 
@@ -242,43 +277,8 @@ _SAMPLEVECTOR = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=320,
-  serialized_end=370,
-)
-
-
-_DECISION = descriptor.Descriptor(
-  name='Decision',
-  full_name='variables.Decision',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    descriptor.FieldDescriptor(
-      name='decision', full_name='variables.Decision.decision', index=0,
-      number=1, type=5, cpp_type=1, label=2,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-    descriptor.FieldDescriptor(
-      name='type', full_name='variables.Decision.type', index=1,
-      number=2, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  extension_ranges=[],
-  serialized_start=372,
-  serialized_end=414,
+  serialized_start=363,
+  serialized_end=413,
 )
 
 
@@ -312,8 +312,8 @@ _UGMUPDATE = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=416,
-  serialized_end=456,
+  serialized_start=415,
+  serialized_end=455,
 )
 
 
@@ -368,8 +368,8 @@ _TAG = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=458,
-  serialized_end=584,
+  serialized_start=457,
+  serialized_end=583,
 )
 
 
@@ -396,8 +396,8 @@ _TAGVECTOR = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=586,
-  serialized_end=627,
+  serialized_start=585,
+  serialized_end=626,
 )
 
 _VARIABLEVECTOR.fields_by_name['variables'].message_type = _VARIABLE
@@ -408,11 +408,11 @@ _TAGVECTOR.fields_by_name['tags'].message_type = _TAG
 DESCRIPTOR.message_types_by_name['Variable'] = _VARIABLE
 DESCRIPTOR.message_types_by_name['VariableVector'] = _VARIABLEVECTOR
 DESCRIPTOR.message_types_by_name['Blink'] = _BLINK
+DESCRIPTOR.message_types_by_name['Diode'] = _DIODE
 DESCRIPTOR.message_types_by_name['BlinkVector'] = _BLINKVECTOR
 DESCRIPTOR.message_types_by_name['Sample'] = _SAMPLE
 DESCRIPTOR.message_types_by_name['Sample2D'] = _SAMPLE2D
 DESCRIPTOR.message_types_by_name['SampleVector'] = _SAMPLEVECTOR
-DESCRIPTOR.message_types_by_name['Decision'] = _DECISION
 DESCRIPTOR.message_types_by_name['UgmUpdate'] = _UGMUPDATE
 DESCRIPTOR.message_types_by_name['Tag'] = _TAG
 DESCRIPTOR.message_types_by_name['TagVector'] = _TAGVECTOR
@@ -434,6 +434,12 @@ class Blink(message.Message):
   DESCRIPTOR = _BLINK
   
   # @@protoc_insertion_point(class_scope:variables.Blink)
+
+class Diode(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _DIODE
+  
+  # @@protoc_insertion_point(class_scope:variables.Diode)
 
 class BlinkVector(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
@@ -458,12 +464,6 @@ class SampleVector(message.Message):
   DESCRIPTOR = _SAMPLEVECTOR
   
   # @@protoc_insertion_point(class_scope:variables.SampleVector)
-
-class Decision(message.Message):
-  __metaclass__ = reflection.GeneratedProtocolMessageType
-  DESCRIPTOR = _DECISION
-  
-  # @@protoc_insertion_point(class_scope:variables.Decision)
 
 class UgmUpdate(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType

@@ -14,6 +14,12 @@ message Blink {
     required double timestamp = 2;
 }
 
+message Diode {
+    required string value = 1;
+    required double timestamp = 2;
+}
+
+
 message BlinkVector {
     repeated Blink blinks = 1;  
 }

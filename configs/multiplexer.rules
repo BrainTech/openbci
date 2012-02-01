@@ -498,12 +498,8 @@ type {
     to {
         peer: "DIODE_CATCHER"
         whom: ALL
+	report_delivery_error: false
     }
-    to {
-        peer: "ANALYSIS"
-        whom: ALL
-    }
-
 }
 
 type {
