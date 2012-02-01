@@ -16,7 +16,14 @@ message_templates = {
 						 origin_machine='',	peers='', unsupervised_peers='', uuid=''),
 
 	"get_peer_info" : dict(peer_id=''),
-	"peer_info" : dict(peer_info=''),
+	"peer_info" : dict(config_sources='', 
+        external_params='', 
+        launch_dependencies='', 
+        local_params='',
+               machine='', 
+        path='', 
+        peer_id='', 
+        peer_type=''),
 
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),

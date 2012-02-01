@@ -331,7 +331,7 @@ class OBCIExperiment(OBCIControlPeer):
 						err_code='peer_id_not_found'))
 		else:
 			peer_info = self.exp_config.peers[message.peer_id].info(detailed=True)
-			send_msg(sock, self.mtool.fill_msg('peer_info', peer_info=peer_info))
+			send_msg(sock, self.mtool.fill_msg('peer_info', **peer_info))
 
 
 	@msg_handlers.handler('get_peer_config')
