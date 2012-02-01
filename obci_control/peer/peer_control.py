@@ -31,14 +31,14 @@ class PeerControl(object):
 		self.peer_params_changed = param_change_method
 
 		self.peer_id = None
-		self.conn = connection
+		self.connection = connection
 
 		self.cmd_overrides = {}
 		self.file_list = []
 
 		if self.peer_validate_params:
-			if self.conn:
-				self.initialize_config(self.conn)
+			if self.connection:
+				self.initialize_config(self.connection)
 			else:
 				self.initialize_config_locally()
 
@@ -135,7 +135,7 @@ class PeerControl(object):
 		old_values = {}
 		updated = {}
 		if param_owner in self.core.config_sources:
-			src_params = self.core.params_for_source(src_name)
+			src_params = self.core.params_for_source(param_owner)
 
 			for par_name in [par for par in params if par in src_params]:
 				old = self.core.get_param(par_name)
@@ -143,11 +143,11 @@ class PeerControl(object):
 				if old != params[par_name]:
 					old_values[par_name] = old
 					updated[par_name] = new
-					self.core.set_param_from_source(reply_msg.sender, par_name, new)
+					self.core.set_param_from_source(p_msg.sender, par_name, new)
 			if not self.peer_params_changed(updated):
 				#restore...
 				for par, val in old_values.iteritems():
-					self.core.set_param_from_source(reply_msg.sender, par, val)
+					self.core.set_param_from_source(p_msg.sender, par, val)
 		if param_owner == self.peer_id:
 			local_params = self.core.local_params
 			for par, val in params.iteritems():
@@ -182,9 +182,20 @@ class PeerControl(object):
 		return self.core.get_param(p_name)
 
 	def set_param(self, p_name, p_value):
+		result = self.core.update_local_param(p_name, p_value)
 		#TODO let know other peers...
-		# right now it's best not to use this method
-		return self.core.update_local_param(p_name, p_value)
+		if self.connection:
+			msg = cmsg.fill_msg(types.UPDATE_PARAMS, sender=self.peer_id)
+			params = {p_name : p_value}
+			cmsg.dict2params(params, msg)
+			# reply = self.__query(self.connection, msg,
+			# 						types.UPDATE_PARAMS)
+			self.connection.send_message(message=msg, type=types.UPDATE_PARAMS)
+			print '[', self.peer_id,  '] param update (', p_name, p_value,') reply: ',  result
+		else:
+			print '[', self.peer_id,  '] param updated locally (', p_name, p_value,')', result
+
+		return result 
 
 	def param_values(self):
 		return self.core.param_values
@@ -205,7 +216,7 @@ class PeerControl(object):
 		cmsg.dict2params(params, msg)
 
 		#connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
-		reply = self.__query(connection, msg,
+		reply = self.__query(connection, cmsg.pack_msg(msg),
 									types.REGISTER_PEER_CONFIG)
 		#print 'AAAAAAAAAAAAAAAAAA', reply, "(rq:", types.REGISTER_PEER_CONFIG,\
 		#							"exp:", types.PEER_REGISTERED, ')'

@@ -23,13 +23,14 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 
 
 		if not result:
-			txt = '[{0}] (CRITICAL!) config initialisation FAILED: {1}'.format(
-														self.config.peer_id, details)
-			sys.exit(txt)
+			self.bad_initialization_result(result, details)
 		else:
 			self.validate_params(self.config.param_values())
 
-
+	def bad_initialization_result(self, result, details):
+		txt = '[{0}] (CRITICAL!) config initialisation FAILED: {1}'.format(
+														self.config.peer_id, details)
+		sys.exit(txt)
 
 	def ready(self):
 		self.ready_to_work = True
