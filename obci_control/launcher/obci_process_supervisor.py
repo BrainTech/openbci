@@ -104,11 +104,18 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def net_init(self):
 		self.source_sub_socket = self.ctx.socket(zmq.SUB)
 		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+
+		self.config_server_socket = self.ctx.socket(zmq.SUB)
+		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
+
 		self._all_sockets.append(self.source_sub_socket)
+		self._all_sockets.append(self.config_server_socket)
 
 		if self.source_pub_addresses:
 			for addr in self.source_pub_addresses:
 				self.source_sub_socket.connect(addr)
+		self.cs_addr = 'ipc://config_server_' + self.uuid + '.ipc'
+		self.config_server_socket.bind(self.cs_addr)
 
 
 		super(OBCIProcessSupervisor, self).net_init()
@@ -118,7 +125,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 					mx_data=[self.mx_addr_str(self.mx_data), self.mx_data[1]])
 
 	def custom_sockets(self):
-		return [self.source_sub_socket]
+		return [self.source_sub_socket, self.config_server_socket]
 
 	@msg_handlers.handler("start_mx")
 	def handle_start_mx(self, message, sock):
@@ -148,6 +155,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 				continue
 			path = os.path.join(launcher_tools.obci_root(), data['path'])
 			args = data['args']
+			if peer.startswith('config_server'):
+				args += ['-p', 'launcher_socket_addr', self.cs_addr]
 			proc, details = self._launch_process(path, args, data['peer_type'],
 														peer, env=self.env, capture_io=NO_STDIO)
 			if proc is not None:
@@ -223,6 +232,18 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 												path=proc.path,
 												status=proc.status()
 												))
+
+	@msg_handlers.handler("obci_peer_registered")
+	def handle_obci_peer_registered(self, message, sock):
+		send_msg(self._publish_socket, message.SerializeToString())
+
+	@msg_handlers.handler("obci_peer_params_changed")
+	def handle_obci_peer_params_changed(self, message, sock):
+		send_msg(self._publish_socket, message.SerializeToString())
+
+	@msg_handlers.handler("obci_peer_ready")
+	def handle_obci_peer_ready(self, message, sock):
+		send_msg(self._publish_socket, message.SerializeToString())
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}

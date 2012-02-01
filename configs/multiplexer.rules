@@ -254,17 +254,8 @@ peer {
 
 peer {
     type: 148
-    name: "SSVEP_ANALYSIS"
-    queue_size: 32768	       
+    name: "DRIVER_DISCOVERY"
 }
-
-peer {
-    type: 149
-    name: "LOGIC_SSVEP_CSP"
-}
-
-
-
 
 # packages and routing rules definitions
 #
@@ -418,11 +409,6 @@ type {
     }
     to {
        peer: "ANALYSIS"
-       whom: ALL
-	report_delivery_error: false
-       }
-    to {
-       peer: "SSVEP_ANALYSIS"
        whom: ALL
 	report_delivery_error: false
        }
@@ -683,32 +669,17 @@ type {
      to {
      	peer: "TAG_SAVER"
 	whom: ALL
-	}
-     to {
-        peer: "LOGIC_SSVEP_CSP"
-	whom: ALL
-	report_delivery_error: false
 	}	
 }
 
 type {
      type: 157
      name: "INFO_SAVER_FINISHED"
-     to {
-        peer: "LOGIC_SSVEP_CSP"
-	whom: ALL
-	report_delivery_error: false
-	}	
 }
 
 type {
      type: 158
      name: "TAG_SAVER_FINISHED"
-     to {
-        peer: "LOGIC_SSVEP_CSP"
-	whom: ALL
-	report_delivery_error: false
-	}	
 }
 
 type {
@@ -888,4 +859,3 @@ type {
 		whom: ALL
 	}
 }
-

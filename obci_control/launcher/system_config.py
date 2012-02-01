@@ -19,6 +19,9 @@ class OBCIExperimentConfig(object):
 	def peer_config(self, peer_id):
 		return self.peers[peer_id].config
 
+	def update_local_param(self, peer_id, p_name, p_value):
+		return self.peers[peer_id].config.update_local_param(p_name, p_value)
+
 	def peer_path(self, peer_id):
 		return self.peers[peer_id].path
 

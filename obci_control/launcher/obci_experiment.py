@@ -331,7 +331,7 @@ class OBCIExperiment(OBCIControlPeer):
 						err_code='peer_id_not_found'))
 		else:
 			peer_info = self.exp_config.peers[message.peer_id].info(detailed=True)
-			send_msg(sock, self.mtool.fill_msg('peer_info', peer_info=peer_info))
+			send_msg(sock, self.mtool.fill_msg('peer_info', **peer_info))
 
 
 	@msg_handlers.handler('get_peer_config')
@@ -382,6 +382,36 @@ class OBCIExperiment(OBCIControlPeer):
 		else:
 			del self.unsupervised_peers[message.peer_id]
 			send_msg(sock, self.mtool.fill_msg('rq_ok'))
+
+	@msg_handlers.handler("obci_peer_registered")
+	def handle_obci_peer_registered(self, message, sock):
+		peer_id = message.peer_id
+		if not peer_id in self.exp_config.peers:
+			print "{0} [{1}], Unknown Peer registered!!! {2}".format(
+								self.name, self.peer_type(), peer_id)
+		else:
+			print "{0} [{1}], Peer registered!!! {2} {3}".format(
+								self.name, self.peer_type(), 
+								peer_id, message.params)
+			for par, val in message.params.iteritems():
+				self.exp_config.update_local_param(peer_id, par, val)
+
+	@msg_handlers.handler("obci_peer_params_changed")
+	def handle_obci_peer_params_changed(self, message, sock):
+		peer_id = message.peer_id
+		if not peer_id in self.exp_config.peers:
+			print "{0} [{1}], Unknown Peer update!!! {2}".format(
+								self.name, self.peer_type(), peer_id)
+		else:
+			print "{0} [{1}], Params changed!!! {2} {3}".format(
+								self.name, self.peer_type(), peer_id, message.params)
+			for par, val in message.params.iteritems():
+				self.exp_config.update_local_param(peer_id, par, val)
+
+	@msg_handlers.handler("obci_peer_ready")
+	def handle_obci_peer_ready(self, message, sock):
+		pass
+
 
 # {"status": ["failed", null], 
 # "sender": "fb32da42-c8b6-47db-a958-249cd5e1f366", 
