@@ -76,13 +76,13 @@ test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o 
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
 tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o)
-	$(CXX) -o $@ $(CXXFLAGS) $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES) $^  
+	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
 
 dummy_receiver: $(BUILD)/DummyReceiver.o
-	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+	$(CXX) -o $@ $^ $(LDFLAGS)  $(LIBRARIES) 
 
 signal_receiver: $(BUILD)/SignalReceiver.o  $(BUILD)/variables.pb.o
-	$(CXX) -o $@ $(LDFLAGS) $(LIBRARIES) $^
+	$(CXX) -o $@  $^ $(LDFLAGS)  $(LIBRARIES)
 
 test_logger: $(BUILD)/test_logger.o
 	$(CXX) -o $@ $<
