@@ -188,6 +188,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
     def _send_breaks(self):
         t = time.time()
         tags_helper.send_tag(self.conn, t, t, "break",{'duration':sum(self.break_times)})
+        appliance_helper.send_stop(self.conn)        
         for i, t in enumerate(self.break_times):
             ugm_helper.send_text(self.conn, self.break_texts[i])
             time.sleep(t)

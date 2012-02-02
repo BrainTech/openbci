@@ -50,11 +50,11 @@ class TagSaver(ConfiguredMultiplexerServer):
             l_tag = tag_utils.pack_tag_to_dict(str_tag.start_timestamp, str_tag.end_timestamp,
                                                     str_tag.name, tag_desc, str_tag.channels)
 
-            LOGGER.info(''.join(['Signal saver got tag: ',
+            LOGGER.info(''.join(['Tag saver got tag: ',
                                 'start_timestamp:',
-                                str(l_tag['start_timestamp']),
+                                repr(l_tag['start_timestamp']),
                                 ', end_timestamp: ', 
-                                str(l_tag['end_timestamp']),
+                                repr(l_tag['end_timestamp']),
                                 ', name: ',
                                 l_tag['name'],
                                 '. <Change debug level to see desc.>']))
