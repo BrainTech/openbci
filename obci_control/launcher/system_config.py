@@ -6,6 +6,7 @@ import warnings
 from common.config_helpers import *
 import launcher_tools
 from peer.peer_config_serializer import PeerConfigSerializerCmd
+import peer.peer_config_parser
 
 class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
@@ -20,7 +21,21 @@ class OBCIExperimentConfig(object):
 		return self.peers[peer_id].config
 
 	def update_local_param(self, peer_id, p_name, p_value):
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
 		return self.peers[peer_id].config.update_local_param(p_name, p_value)
+
+	def update_external_param(self, peer_id, p_name, src, src_param):
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
+		return self.peers[peer_id].config.update_external_param_def(p_name, src+'.'+src_param)
+
+	def update_peer_config(self, peer_id, config_dict):
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
+		conf = self.peers[peer_id].config
+		dictparser = peer.peer_config_parser.parser('python')
+		return dictparser.parse(config_dict, conf, update=True)
 
 	def peer_path(self, peer_id):
 		return self.peers[peer_id].path
@@ -66,9 +81,8 @@ class OBCIExperimentConfig(object):
 
 	def config_ready(self):
 		details = {}
-		print "peers", self.peers, not self.peers
-		if not self.peers:
-			print "!!!"
+		
+		if not self.peers:	
 			return False, details
 
 		for peer_state in self.peers.values():
