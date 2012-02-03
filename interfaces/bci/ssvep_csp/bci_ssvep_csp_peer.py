@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#
+
 import random, time, pickle
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from configs import settings, variables_pb2
+from devices import appliance_helper
 from acquisition import acquisition_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
@@ -34,7 +39,8 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
                 #get stats from file
         cfg = self._get_csp_config()
 
-        freqs = [float(f) for f in cfg['freqs'].split(';')]
+        freqs = [int(f) for f in cfg['freqs'].split(';')]
+        str_freqs = [str(f) for f in freqs]
         dec_count = int(self.config.get_param('dec_count'))
         if len(freqs) != dec_count:
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
@@ -63,7 +69,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
         self._last_dec = 0
-
+        appliance_helper.send_freqs(self.conn, str_freqs)
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
@@ -119,6 +125,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             cfg,
             int(self.config.get_param('sampling_rate')))
 
+
     def _get_csp_config(self):
         file_name = acquisition_helper.get_file_path(
         self.config.get_param('config_file_path'),
@@ -130,6 +137,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         LOGGER.info("Got csp config:")
         LOGGER.info(str(d))
         return d
+
 
                                                           
 

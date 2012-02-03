@@ -91,7 +91,7 @@ void AmplifierDriver::set_active_channels_string(const string &channels) {
 	vector<string> names;
 	uint i = 0;
 	for (;;) {
-		uint j = channels.find(';', i);
+		uint64_t j = channels.find(';', i);
 		if (j == string::npos)
 			break;
 		names.push_back(channels.substr(i, j - i));

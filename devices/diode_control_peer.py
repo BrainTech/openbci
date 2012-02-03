@@ -22,6 +22,7 @@ class DiodeControl(ConfiguredMultiplexerServer):
                                           type=peers.SUPER_DIODE)
         self.blinker = None
         self._init_blinker()
+
         self._init_freqs()
 
         start = int(self.config.get_param("blink_on_start"))
