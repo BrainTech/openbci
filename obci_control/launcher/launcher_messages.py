@@ -13,7 +13,8 @@ message_templates = {
 
 	"get_experiment_info" : dict(),
 	"experiment_info" : dict(experiment_status='', launch_file_path='', scenario_dir='',
-						 origin_machine='',	peers='', unsupervised_peers='', uuid=''),
+						 origin_machine='',	peers='', unsupervised_peers='', uuid='', status='',
+						 name=''),
 
 	"get_peer_info" : dict(peer_id=''),
 	"peer_info" : dict(config_sources='', 
@@ -24,6 +25,7 @@ message_templates = {
         path='', 
         peer_id='', 
         peer_type=''),
+    "experiment_status_change" : dict(uuid='', status_name='', details=''),
 
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
@@ -61,7 +63,12 @@ message_templates = {
 	"obci_peer_params_changed" : dict(peer_id='', params=''),
 	"obci_peer_registered" : dict(peer_id='', params=''),
 	"obci_peer_unregistered" : dict(peer_id=''),
-	"obci_peer_ready" : dict(peer_id='')
+	"obci_peer_ready" : dict(peer_id=''),
+
+	"update_peer_config" : dict(peer_id='', local_params='', 
+							external_params='', launch_dependencies='', config_sources=''),
+	"save_scenario" : dict(file_name='', force='')
+
 
 }
 

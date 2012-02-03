@@ -11,6 +11,7 @@ import zmq
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher_messages import message_templates, error_codes
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
+from peer import peer_config_parser
 
 import common.obci_control_settings as settings
 
@@ -32,14 +33,22 @@ class OBCIClient(object):
 		self.mtool = OBCIMessageTool(message_templates)
 
 
-	def launch(self, launch_file=None, sandbox_dir=None):
-		result = self.send_create_experiment(launch_file, sandbox_dir)
+	def launch(self, launch_file=None, sandbox_dir=None, name=None):
+		result = self.send_create_experiment(launch_file, sandbox_dir, name)
 		if not result:
 			return result
 		if result.type != "experiment_created":
 			return result
 
 		return self.send_start_experiment(result.rep_addrs)
+
+	def start_chosen_experiment(self, exp_strname):
+		response = self.get_experiment_contact(exp_strname)
+
+		if response.type == "rq_error":
+			return response
+
+		return self.send_start_experiment(response.rep_addrs)
 
 	def send_start_experiment(self, exp_addrs):
 		exp_sock = self.ctx.socket(zmq.REQ)
@@ -70,10 +79,10 @@ class OBCIClient(object):
 		response, details = self.poll_recv(self.server_req_socket, timeout)
 		return response
 
-	def send_create_experiment(self, launch_file=None, sandbox_dir=None):
+	def send_create_experiment(self, launch_file=None, sandbox_dir=None, name=None):
 
 		send_msg(self.server_req_socket, self.mtool.fill_msg("create_experiment",
-							launch_file=launch_file, sandbox_dir=sandbox_dir))
+							launch_file=launch_file, sandbox_dir=sandbox_dir, name=name))
 
 		response, details = self.poll_recv(self.server_req_socket, 5000)
 		return response
@@ -101,6 +110,35 @@ class OBCIClient(object):
 		response, details = self.poll_recv(sock, 2000)
 
 		return response
+
+	def configure_peer(self, exp_strname, peer_id, config_overrides, override_files=None):
+		response = self.get_experiment_contact(exp_strname)
+
+		if response.type == "rq_error":
+			return response
+		
+
+		sock = self.ctx.socket(zmq.REQ)
+		for addr in response.rep_addrs:
+			sock.connect(addr)
+
+		if override_files:
+			send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
+			response, details = self.poll_recv(sock, 2000)
+			if response.type is 'rq_error':
+				return response
+			
+		msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
+																**config_overrides)
+
+		send_msg(sock, msg)
+		print msg
+		response, details = self.poll_recv(sock, 2000)
+		return response
+
+			# "update_peer_config" : dict(peer_id='', local_params='', 
+			# 				external_params='', launch_dependencies='', config_sources=''),
+
 
 	def kill_exp(self, strname, force=False):
 		send_msg(self.server_req_socket,

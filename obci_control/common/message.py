@@ -105,8 +105,11 @@ class LauncherMessage(object):
 		return vars(self).keys()
 
 	def dict(self):
-
-		return vars(self).copy()
+		d = {}
+		for attr, val in vars(self).iteritems():
+			d[attr] = val
+		return d
+		
 
 
 
