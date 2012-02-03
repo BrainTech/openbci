@@ -68,18 +68,23 @@ class BCIMainWindow(QtGui.QMainWindow):
         p_newItem (QTreeWidgetItem) - contains newly selected plugin
         p_oldItem (QTreeWidgetItem) - contains plugin that was selected
         before"""
+        print("DBG 1")
         if self.currentDockWidget != None:
+            print("DBG 2")
             # We remove widget only if it's not floating
             if not self.currentDockWidget.isFloating():
                 self.removeDockWidget(self.currentDockWidget)
             else:
+                print("DBG 3")
                 self.currentDockWidget.setAllowedAreas(QtCore.Qt.NoDockWidgetArea)
             self.currentDockWidget = None
         
         if p_newItem != None:
+            print("DBG 4")
             l_pluginName = p_newItem.plugin.name
             # If we haven't configured this plugin yet, we need to create its GUI
             if not self.dockWidgets.has_key(l_pluginName):
+                print("DBG 5")
                 self.dockWidgets[l_pluginName] = p_newItem.plugin.buildGui(self)
                 self.dockWidgets[l_pluginName].setMinimumWidth(200)
             p_pluginDock = self.dockWidgets[l_pluginName]
@@ -87,6 +92,7 @@ class BCIMainWindow(QtGui.QMainWindow):
             p_pluginDock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
             # If dock was floating and closed before, we reset him into dock
             if not p_pluginDock.isVisible() and p_pluginDock.isFloating():
+                print("DBG 6")
                 p_pluginDock.setFloating(False)
             self.addDockWidget(QtCore.Qt.RightDockWidgetArea, p_pluginDock)
             self.restoreDockWidget(p_pluginDock)
