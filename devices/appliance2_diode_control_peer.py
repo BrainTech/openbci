@@ -15,8 +15,8 @@ class Appliance2DiodeControl(diode_control_peer.DiodeControl):
     def _init_blinker(self):
         self.blinker = appliance2.Blinker(self.config.get_param("device_path"))
         self.blinker.open()
-        #self.blinker.set_intensity(int(self.config.get_param("intensity")))
-        #time.sleep(3) #TODO - without it if just-after _init_blinker freqs will be sent - it will not work (possibly there must be some break between two commands to the device)
+        self.blinker.set_intensity(int(self.config.get_param("intensity")))
+        time.sleep(1) #TODO - without it if just-after _init_blinker freqs will be sent - it will not work (possibly there must be some break between two commands to the device)
 
 if __name__ == "__main__":
     Appliance2DiodeControl(settings.MULTIPLEXER_ADDRESSES).loop()
