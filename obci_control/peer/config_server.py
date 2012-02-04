@@ -35,7 +35,7 @@ class ConfigServer(BaseMultiplexerServer):
 				print "[config_server] -- failed to connect to address", addr, "!!!"
 				self.launcher_sock = None
 			else:
-				print "[config_server] OK OK OK OK OK OK", addr	
+				print "[config_server] OK OK OK OK OK OK", addr
 		super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
 
 
@@ -55,7 +55,7 @@ class ConfigServer(BaseMultiplexerServer):
 			else:
 				self.send_message(message=msg, to=int(mxmsg.from_), type=mtype, flush=True)
 		if launcher_msg is not None and self.launcher_sock is not None:
-			print '[config_server]  SENDING msg ', launcher_msg
+			print '[config_server]  SENDING msg ', launcher_msg[:40] + '[...]'
 			send_msg(self.launcher_sock, launcher_msg)
 
 	def _call_handler(self, mtype, message):
@@ -150,7 +150,7 @@ class ConfigServer(BaseMultiplexerServer):
 		return message_obj, types.PEER_READY, launcher_msg
 
 	def handle_peers_ready_query(self, message_obj):
-	
+
 		peer_id = message_obj.sender
 		if peer_id not in self._configs:
 			return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
@@ -159,7 +159,7 @@ class ConfigServer(BaseMultiplexerServer):
 		for dep in message_obj.deps:
 			if not dep in self._ready_peers:
 				green_light = False
-		
+
 		return cmsg.fill_msg(types.READY_STATUS,
 							receiver=peer_id, peers_ready=green_light), types.READY_STATUS, None
 

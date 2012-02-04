@@ -9,7 +9,7 @@ from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from launcher.launcher_tools import obci_root
 import json
 
-DISCOVERY_MODULE_NAMES = ['amplifier_virtual_discovery']
+DISCOVERY_MODULE_NAMES = ['amplifier_virtual_discovery', 'amplifier_tmsi_discovery']
 discovery_modules = []
 
 for mod_name in DISCOVERY_MODULE_NAMES:
@@ -32,11 +32,14 @@ class DriverDiscovery(ConfiguredMultiplexerServer):
 
     def find_drivers(self):
         descriptions = []
-        for mod in discovery_modules: 
-            if mod.driver_available():
-                descriptions.append(mod.driver_description())
+        for mod in discovery_modules:
+            descriptions += mod.driver_descriptions()
         return descriptions
-        
+
+        # 00:A0:96:1B:48:4B       Mobi5 0925100001
+        # 00:A0:96:1B:42:DC       MobiMini 0931080004
+        # 00:A0:96:1B:48:DB       Porti7-24e4b4at 0207090008
+
 
     def _add_driver(self, driver_desc):
         desc = json.loads(driver_desc)

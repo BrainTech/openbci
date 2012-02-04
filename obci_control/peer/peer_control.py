@@ -14,6 +14,7 @@ import common.config_message as cmsg
 
 from configs import settings
 from multiplexer.multiplexer_constants import peers, types
+from multiplexer.clients import connect_client
 from azouk._allinone import OperationFailed, OperationTimedOut
 
 CONFIG_FILE_EXT = 'ini'
@@ -32,6 +33,8 @@ class PeerControl(object):
 
 		self.peer_id = None
 		self.connection = connection
+		self.query_conn = conn = connect_client(type=peers.CONFIGURER,
+											addresses=settings.MULTIPLEXER_ADDRESSES)
 
 		self.cmd_overrides = {}
 		self.file_list = []
@@ -158,7 +161,7 @@ class PeerControl(object):
 					old_values[par] = self.core.get_param(par)
 					updated[par] = val
 					self.core.update_local_param(par, val)
-			
+
 			if not self.peer_params_changed(updated):
 				for par, val in old_values.iteritems():
 					self.core.update_local_param(par, val)
@@ -184,18 +187,19 @@ class PeerControl(object):
 	def set_param(self, p_name, p_value):
 		result = self.core.update_local_param(p_name, p_value)
 		#TODO let know other peers...
-		if self.connection:
+		if self.query_conn:
 			msg = cmsg.fill_msg(types.UPDATE_PARAMS, sender=self.peer_id)
 			params = {p_name : p_value}
 			cmsg.dict2params(params, msg)
-			# reply = self.__query(self.connection, msg,
-			# 						types.UPDATE_PARAMS)
-			self.connection.send_message(message=msg, type=types.UPDATE_PARAMS)
-			print '[', self.peer_id,  '] param update (', p_name, p_value,') reply: ',  result
+			reply = self.__query(self.query_conn, msg,
+			 						types.UPDATE_PARAMS)
+			#self.connection.send_message(message=msg, type=types.UPDATE_PARAMS)
+			val_short = str(p_value)[:300] + '[...]'
+			print '[', self.peer_id,  '] param update (', p_name, val_short,')  ',  reply
 		else:
-			print '[', self.peer_id,  '] param updated locally (', p_name, p_value,')', result
+			print '[', self.peer_id,  '] param updated locally (', p_name, val_short,')', result
 
-		return result 
+		return result
 
 	def param_values(self):
 		return self.core.param_values
@@ -221,7 +225,7 @@ class PeerControl(object):
 		#print 'AAAAAAAAAAAAAAAAAA', reply, "(rq:", types.REGISTER_PEER_CONFIG,\
 		#							"exp:", types.PEER_REGISTERED, ')'
 		if reply is None:
-			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply			
+			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
 		elif not reply.type == types.PEER_REGISTERED:
 			print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
 
@@ -268,7 +272,7 @@ class PeerControl(object):
 					print '[', self.peer_id, ']',  "WTF? {0}".format(reply.message)
 
 			print '.',#"{0} external params still unset".format(_unset_param_count())
-			time.sleep(0.2)
+			time.sleep(0.4)
 			ready, details = self.core.config_ready()
 			retries -= 1
 
@@ -314,7 +318,7 @@ class PeerControl(object):
 				ready = rmsg.peers_ready
 			if not ready:
 				time.sleep(2)
-		print '[', self.peer_id, "Dependencies are ready, I can start working"
+		print '[', self.peer_id, "] Dependencies are ready, I can start working"
 
 
 	def __query(self, conn, msg, msgtype):
@@ -322,10 +326,10 @@ class PeerControl(object):
 			reply = conn.query(message=msg,
 									type=msgtype)
 		except OperationFailed:
-			print '[', self.peer_id, "Could not connect"
+			print '[', self.peer_id, "] Could not connect to config server"
 			reply = None
 		except OperationTimedOut:
-			print '[', self.peer_id, "Operation timed out!"
+			print '[', self.peer_id, "] Operation timed out! (could not connect to config server)"
 			reply = None
 		return reply
 

@@ -100,7 +100,7 @@ class OBCIExperiment(OBCIControlPeer):
 		super(OBCIExperiment, self).net_init()
 
 	def params_for_registration(self):
-		return dict(pid=os.getpid(), origin_machine=self.origin_machine, 
+		return dict(pid=os.getpid(), origin_machine=self.origin_machine,
 				status_name='', details='')
 
 	def custom_sockets(self):
@@ -381,7 +381,7 @@ class OBCIExperiment(OBCIControlPeer):
 			message.peer_id in self.unsupervised_peers:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 									err_code='peer_id_in_use'))
-		
+
 		elif self.status.status_name != launcher_tools.RUNNING:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 									err_code='exp_status_'+self.status.status_name,
@@ -407,9 +407,9 @@ class OBCIExperiment(OBCIControlPeer):
 			print "{0} [{1}], Unknown Peer registered!!! {2}".format(
 								self.name, self.peer_type(), peer_id)
 		else:
-			print "{0} [{1}], Peer registered!!! {2} {3}".format(
-								self.name, self.peer_type(), 
-								peer_id, message.params)
+			print "{0} [{1}], Peer registered!!! {2}".format(
+								self.name, self.peer_type(),
+								peer_id)
 			for par, val in message.params.iteritems():
 				self.exp_config.update_local_param(peer_id, par, val)
 
@@ -427,19 +427,19 @@ class OBCIExperiment(OBCIControlPeer):
 					self.exp_config.update_local_param(peer_id, par, val)
 				except Exception, e:
 					print "{0} [{1}], Invalid params!!! {2} {3} {4}".format(
-								self.name, self.peer_type(), peer_id, 
+								self.name, self.peer_type(), peer_id,
 								message.params, str(e))
-				
+
 
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
 		pass
 
 
-# {"status": ["failed", null], 
-# "sender": "fb32da42-c8b6-47db-a958-249cd5e1f366", 
-# "receiver": "", "sender_ip": "127.0.0.1", 
-# "path": "/home/administrator/dev/openbci/acquisition/info_saver_peer.py", 
+# {"status": ["failed", null],
+# "sender": "fb32da42-c8b6-47db-a958-249cd5e1f366",
+# "receiver": "", "sender_ip": "127.0.0.1",
+# "path": "/home/administrator/dev/openbci/acquisition/info_saver_peer.py",
 # "peer_id": "info_saver", "type": "obci_peer_dead"}
 
 	@msg_handlers.handler('obci_peer_dead')
@@ -454,7 +454,7 @@ class OBCIExperiment(OBCIControlPeer):
 		if status == launcher_tools.FAILED:
 			send_msg(self._publish_socket,
 						self.mtool.fill_msg("stop_all", receiver=""))
-			self.status.set_status(launcher_tools.FAILED, 
+			self.status.set_status(launcher_tools.FAILED,
 									details='Failed process ' + message.peer_id)
 		elif not self.status.peer_status_exists(launcher_tools.RUNNING) and\
 				self.status.status_name != launcher_tools.FAILED:
@@ -469,12 +469,12 @@ class OBCIExperiment(OBCIControlPeer):
 			send_msg(sock, self.mtool.fill_msg('rq_error', err_code='update_not_possible',
 										details='Experiment status: '+self.status.status_name))
 		else:
-			conf = dict(local_params=message.local_params, 
+			conf = dict(local_params=message.local_params,
 						external_params=message.external_params,
 						launch_dependencies=message.launch_dependencies,
 						config_sources=message.config_sources)
 			peer_id = message.peer_id
-			
+
 			try:
 				self.exp_config.update_peer_config(peer_id, conf)
 			except Exception, e:
@@ -483,7 +483,7 @@ class OBCIExperiment(OBCIControlPeer):
 			else:
 				send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
-			
+
 
 	@msg_handlers.handler('save_scenario')
 	def handle_save_scenario(self, message, sock):

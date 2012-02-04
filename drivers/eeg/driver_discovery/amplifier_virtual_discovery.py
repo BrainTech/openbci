@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import json
+import os
+
 
 DESC_FILE = 'amplifier_virtual.json'
 
-def driver_available():
-	return True
-
-def driver_description():
-	with open(DESC_FILE) as f:
-		return json.load(f)
+def driver_descriptions():
+    with open(os.path.join(os.path.dirname(__file__), DESC_FILE)) as f:
+        desc = {'channels_info' : json.load(f)}
+        return [desc]
