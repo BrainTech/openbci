@@ -230,7 +230,6 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
                     sys.exit(1)
 
 
-
 if __name__ == "__main__":
     pass
     # import settings as settings
