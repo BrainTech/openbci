@@ -22,8 +22,8 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
         self._message = ""
         self.text_id = int(self.config.get_param("ugm_text_id"))
         self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
-        self._update_letters()
         self.ready()
+        self._update_letters()
 
     # --------------------------------------------------------------------------
     # ------------------ actions available in config ---------------------------

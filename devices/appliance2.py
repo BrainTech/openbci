@@ -11,4 +11,3 @@ class Blinker(appliance1.Blinker):
         str = chr(5)
         str+=chr(v)
         self.send(str)
-        

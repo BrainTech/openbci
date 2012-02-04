@@ -12,7 +12,6 @@ import os
  
 class Blinker(object):
     def __init__(self, port_name):
-        import serial
         try:
             self.port = serial.Serial(
                 port=port_name,
@@ -89,4 +88,3 @@ class Blinker(object):
     def off(self):
         str = chr(1)
         self.send(str)
-
