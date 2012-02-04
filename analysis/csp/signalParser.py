@@ -277,7 +277,7 @@ class signalParser(object):
 
         return exp_list 
 
-    def prep_signal(self, to_frequency, channels):
+    def prep_signal(self, to_frequency, channels, montage_channels=['A1','A2'], montage='ears'):
         """This function preps signal to analysis.
 
         Function prepers signal for analysis, i.e. extracts indicated data from .raw file
@@ -288,10 +288,24 @@ class signalParser(object):
             The frequency to which signal will be resampled
         channels : array-like
             The channels to analyze. Can be strings or ints. Must correspond to .xml file
+        montage_channels : list
+            this is a list of channels that will be used in montage function
+        montage : string ('ears'|'ident'|'diff')
+            a montage function to use:
+            'ears' - an ear montage - montage_channels should be two channels that
+            correspond to ears
+            'ident' - identity - montage_channels should be empty list
+            'diff' - one electrode reference - a montage_channels should be the one
+            that corresponds with reference
         Returns:
         --------
         signal : np.array
             An ch x n array where n is length of resampled signal, ch is the number of channels to analyze
+        
+        Example:
+        --------
+        >>> q = signalParser.signalParser('some_file',[10,20,30],['O1','O2','Pz'])
+        >>> new_signal = q.prep_signal(128, ['O1','O2'], montage='diff', montage_channels='FCz')
         """
         
         Fs = self.sampling_frequency
@@ -302,8 +316,17 @@ class signalParser(object):
             signal = np.zeros([len(channels), M])
             for i,e in enumerate(channels):
                 #tmp = np.zeros(self.sample_count)
-                #tmp = self.extract_channel([e]+['A1','A2'], self.ears)
-                tmp = self.extract_channel([e]+['FCz'], self.diff)
+                if montage == 'ears':
+                    tmp = self.extract_channel([e]+montage_channels, self.ears)
+                elif montage == 'diff':
+                    if isinstance(montage_channels, list):
+                        tmp = self.extract_channel([e]+montage_channels, self.diff)
+                    else:
+                        tmp = self.extract_channel([e] + [montage_channels], self.diff)
+                elif montage == 'ident':
+                    tmp = self.extract_channel([e], self.ident)
+                else:
+                    raise ValueError, 'Wrong montage! Please choose one of: "ears", "diff", "ident"'
                 #tmp = self.extract_channel([e], self.ident)
                 #while dec_no > 1:
                 #    dec_no /= 2

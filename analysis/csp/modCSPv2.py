@@ -16,7 +16,7 @@ from filtfilt import filtfilt
 from scipy.linalg import eig
 import pickle
 from matplotlib.pyplot import plot, show, legend, title, xlabel, ylabel, imshow,\
-                    figure, hist, subplot, savefig, errorbar
+                    figure, hist, subplot, savefig, errorbar, boxplot, xticks
 from simpleCSP import pfu_csp
 
 
@@ -117,6 +117,8 @@ class modCSP(object):
         self.P = np.zeros([N, N])
         self.vals = np.zeros(N)
         self.method = 'not calculated'
+        self.montage = 'ears'
+        self.montage_channels = ['A1','A2']
         
     def set_frequencies(self, frequencies):
         """Sets frequencies to analyze
@@ -246,7 +248,7 @@ class modCSP(object):
         if not self.__is_int(to_frequency):
             raise ValueError, 'to_frequency is not int!'
         self.method = method
-        signal = self.parsed_data.prep_signal(to_frequency, self.electrodes)
+        signal = self.parsed_data.prep_signal(to_frequency, self.electrodes, montage=self.montage, montage_channels=self.montage_channels)
         if train_tags == None:
             all_tags = self.parsed_data.get_train_tags(ccof = True)
         else:
@@ -319,7 +321,8 @@ class modCSP(object):
     
     def count_stats(self, signal_time, to_freq, tags, plt=False, tr=0.95):
         """Calculates variance and mean"""        
-        signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes))
+        signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes,\
+                                    montage=self.montage, montage_channels=self.montage_channels))
         t_vec = np.linspace(0, signal_time - 0.5, (signal_time - 0.5)*to_freq)
         max_lag = int(0.1*to_freq)
         this_cors = [[] for i in range(len(self.frequencies))]
@@ -354,12 +357,28 @@ class modCSP(object):
         if plt:
             figure()
             #plot(self.frequencies, means, 'og', self.frequencies, [treshold]*len(self.frequencies),'-r')
+            subplot(311)
             plot(self.frequencies, [treshold]*len(self.frequencies), '-r')
             errorbar(self.frequencies, means, yerr=stds, fmt='og')
             legend(('threshold of '+str(tr), 'Z-scores'))
             title('Z-scores '+self.name+'_'+str(signal_time))
             xlabel('Frequencies (Hz)')
             ylabel('Z-scores')
+            xticks(self.frequencies)
+            subplot(312)
+            plot(self.frequencies, [(means[k] - treshold)/stds[k] for k in xrange(len(means))], 'go')
+            plot(self.frequencies, [0] * len(self.frequencies), 'r-')
+            legend(('"Normalized" z-scores', 'Zero'))
+            xlabel('Frequency (Hz)')
+            ylabel('(Z-scores - threshold)/std(Z-scores)')
+            xticks(self.frequencies)
+            subplot(313)
+            mk = lambda x: [(k - mu)/sigma for k in x]
+            tc = map(mk, this_cors)
+            boxplot(tc, notch=1, positions=self.frequencies)
+            #xticks(np.arange(0, len(this_cors)), self.frequencies)
+            xlabel('Frequencies (Hz)')
+            ylabel('Distribution of z-scores')
             show()
             #savefig(self.name + '_' + str(signal_time)+'.png')
         return treshold, mu, sigma, means, stds
@@ -391,9 +410,6 @@ class modCSP(object):
             print "Warning: maximal number of frequencies above treshold is", no1
             return time[idx1], time[idx2]
             
-    
-    
-    
     def dump_filters(self, name, mode = 'pkl', first = False):
         """Function dumps filters and values into file
 
@@ -428,33 +444,3 @@ class modCSP(object):
                     f.write('\n')
                 f.write(",".join([str(x) for x in self.vals]))
                 f.close()
-
-    def show_filter(self):
-        """Draws csp matrix"""
-        figure()
-        imshow(self.P)
-        title('CSP Matrix')
-        xlabel('Channels')
-        ylabel('Channels')
-        show()
-    
-    def show_spectrum(self, time_signal, to_freq, tags, step=0.5):
-        """Plots spectrum of the signal after CSP filtering"""
-        signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes))
-        fft = np.zeros((time_signal - step)*to_freq)
-        N = len(fft)
-        for pos, f in tags:
-            sig = signal[(pos+step) * to_freq:(pos+time_signal) * to_freq] * hamming(N)
-            afft = np.abs(np.fft.fft(sig))
-            fft += np.sqrt(afft*afft) / N
-            #fft += np.fft.fft(sig)
-        #fft = np.sqrt(np.abs(fft * fft)) / N
-        fft /= len(tags)
-        idx = [min(self.frequencies) - 5, max(self.frequencies) + 5]
-        if idx[1] > 48:
-            idx[1] = 48
-        f_vec = np.fft.fftfreq(N, 1.0/to_freq)
-        idx1 = np.where(f_vec > idx[0])[0][0]
-        idx2 = np.where(f_vec > idx[1])[0][0]
-        plot(f_vec[idx1:idx2], fft[idx1:idx2])
-        show()
