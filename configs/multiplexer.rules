@@ -268,6 +268,10 @@ peer {
     name: "DRIVER_DISCOVERY"
 }   
 
+peer {
+    type: 151
+    name: "LOGIC_FEEDBACK"
+}
 
 
 
@@ -495,6 +499,11 @@ type {
         peer: "LOGIC_DECISION"
         whom: ALL
     }
+    to {
+        peer: "LOGIC_FEEDBACK"
+        whom: ALL
+    }
+
 }
 
 type {

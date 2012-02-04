@@ -15,7 +15,6 @@ from acquisition import acquisition_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
-#FFFfrom etr import etr_ugm_manager
 
 LOGGER = logger.get_logger("bci_ssve_csp")
 
@@ -25,9 +24,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
         LOGGER.info("Sending dec message: "+str(dec))
-        
         self._last_dec_time = time.time()
-        self._last_dec = dec
         self.buffer.clear()
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
@@ -68,42 +65,19 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
-        self._last_dec = 0
-        appliance_helper.send_freqs(self.conn, str_freqs)
         self.ready()
+        appliance_helper.send_freqs(self.conn, str_freqs)
         LOGGER.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         if self._last_dec_time > 0:
             t = time.time() - self._last_dec_time
-            """if t > self.hold_after_dec:
-                #LOGGER.info("FEED-----: "+str([0]*8))
+            if t > self.hold_after_dec:
                 self._last_dec_time = 0
-                feeds = self.feed_manager.get_ugm_field_updates([0]*8)
-                l_ugm_msg = variables_pb2.UgmUpdate()
-                l_ugm_msg.type = 1
-                l_ugm_msg.value = feeds
-                self.conn.send_message(
-                    message = l_ugm_msg.SerializeToString(), 
-                    type=types.UGM_UPDATE_MESSAGE, flush=True)
-
             else:
-                #LOGGER.info("Holding: "+str(t))
-                #LOGGER.info("FEED: "+str([1-(t/self.hold_after_dec)]*8))
-                f = [0]*8
-                f[self._last_dec] = 1-(t/self.hold_after_dec)
-                #f = [1-(t/self.hold_after_dec)]*8
-                feeds = self.feed_manager.get_ugm_field_updates(f)
-
-                l_ugm_msg = variables_pb2.UgmUpdate()
-                l_ugm_msg.type = 1
-                l_ugm_msg.value = feeds
-                self.conn.send_message(
-                    message = l_ugm_msg.SerializeToString(), 
-                    type=types.UGM_UPDATE_MESSAGE, flush=True)
-
                 self.no_response()
-                return"""
+                return
+
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
 	    l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)

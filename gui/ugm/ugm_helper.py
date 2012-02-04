@@ -33,3 +33,45 @@ def send_start_blinking(conn):
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
+
+
+
+class UgmColorUpdater(object):
+  def __init__(self, ugm_config, ids, color='g'):
+    assert(color in ['r', 'g', 'b'])
+    self.color = color
+    self.mutable_configs = []
+    self.initial_configs = []
+    mgr = ugm_config_manager.UgmConfigManager(ugm_config)
+    for id in ids:
+      self.initial_configs.append(
+        {'id':id,
+         'color':mgr.get_config_for(id)['color']
+         })
+      self.mutable_configs.append(
+        {'id':id,
+         'color':mgr.get_config_for(id)['color']
+         })
+  
+  def update(self, ind, level):
+    if self.color == 'g':
+      self.mutable_configs[ind]['color'] = '#%02x%02x%02x' % (255 - int(255*level), 255, 255 - int(255*level))
+    elif self.color == 'r':
+      self.mutable_configs[ind]['color'] = '#%02x%02x%02x' % 255, (255 - int(255*level), 255 - int(255*level))
+    elif self.color == 'b':
+      self.mutable_configs[ind]['color'] = '#%02x%02x%02x' % (255 - int(255*level), 255 - int(255*level)), 255
+
+    return self.mutable_configs[ind]
+
+  def update_ugm(self, ind, level):
+    if level == -1:
+      return str([self.initial_configs[ind]])
+    else:
+      return str([self.update(ind, level)])
+
+  
+    
+      
+    
+
+    
