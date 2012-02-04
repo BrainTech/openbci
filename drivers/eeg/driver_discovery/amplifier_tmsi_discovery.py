@@ -60,7 +60,7 @@ def _check_amp_name(name):
 
 def driver_descriptions():
     descriptions = []
-    bt = []#_find_bluetooth_amps()
+    bt = _find_bluetooth_amps()
     usb = _find_usb_amps()
 
     for amp in bt:
