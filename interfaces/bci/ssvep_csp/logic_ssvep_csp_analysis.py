@@ -39,7 +39,6 @@ def run(in_file, out_file, use_channels, ignore_channels, montage, montage_chann
         train_tags = data.get_train_tags(trial_separator_name='diodes', screen=True)
 	LOGGER.info("Run csp with: use_channels: "+str(use_channels)+" motage: "+str(montage)+" montage_channels: "+str(montage_channels))
         q = csp.modCSP(in_file+'.obci', freqs, use_channels, montage, montage_channels)
-	q.montage
         q.start_CSP(to_signal, to_frequency, baseline = False, filt='cheby', method = 'regular', train_tags = train_tags)#liczenie CSP
         time = pylab.linspace(1, to_signal, 7)
         t1, t2 = q.time_frequency_selection(to_frequency, train_tags, time=time, frequency_no=dec_count, plt=False)
@@ -67,7 +66,10 @@ def run(in_file, out_file, use_channels, ignore_channels, montage, montage_chann
              'sigma': sigma,
              'q' : q,
 	     'freqs':';'.join([str(i) for i in best[:dec_count]]),
-	     'buffer':t2
+	     'buffer':t2,
+	     'use_channels':';'.join(use_channels),
+	     'montage':montage,
+	     'montage_channels':';'.join(montage_channels)
              }
         pickle.dump(d, f)
         f.close()

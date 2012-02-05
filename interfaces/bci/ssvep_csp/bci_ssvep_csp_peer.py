@@ -33,8 +33,10 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         super(BCISsvepCsp, self).__init__(addresses=addresses,
                                           type=peers.SSVEP_ANALYSIS)
 
-                #get stats from file
+        #get stats from file
         cfg = self._get_csp_config()
+        montage_matrix = self._get_montage_matrix(cfg)
+            
 
         freqs = [int(f) for f in cfg['freqs'].split(';')]
         str_freqs = [str(f) for f in freqs]
@@ -43,11 +45,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
 
         #Create analysis object to analyse data 
-        self.analysis = self._get_analysis(self.send_decision, freqs, cfg)
-
-        #FFFself.feed_manager = etr_ugm_manager.EtrUgmManager()
-        #feed manager 
-        #FFFself.feed_manager.set_configs(configs)
+        self.analysis = self._get_analysis(self.send_decision, freqs, cfg, montage_matrix)
 
         #Initialise round buffer that will supply analysis with data
         #See auto_ring_buffer documentation
@@ -86,7 +84,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             self.buffer.handle_sample_vect(l_msg)
         self.no_response()
 
-    def _get_analysis(self, send_func, freqs, cfg):
+    def _get_analysis(self, send_func, freqs, cfg, montage_matrix):
         """Fired in __init__ method.
         Return analysis instance object implementing interface:
         - get_requested_configs()
@@ -97,23 +95,22 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             send_func,
             freqs,
             cfg,
+            montage_matrix,
             int(self.config.get_param('sampling_rate')))
 
 
     def _get_csp_config(self):
-        file_name = acquisition_helper.get_file_path(
-        self.config.get_param('config_file_path'),
-        self.config.get_param('config_file_name'))
-        csp_file = file_name+'.csp'
-        f = open(csp_file, 'r')
-        d = pickle.load(f)
-        f.close()
-        LOGGER.info("Got csp config:")
-        LOGGER.info(str(d))
-        return d
+        return ssvep_csp_helper.get_csp_config(
+            self.config.get_param('config_file_path'),
+            self.config.get_param('config_file_name'))
 
-
-                                                          
+    def _get_montage_matrix(self, cfg):
+        return ssvep_csp_helper.get_montage_matrix(
+            self.config.get_param('channel_names').split(';'),
+            cfg['use_channels'].split(';'),
+            cfg['montage'],
+            cfg['montage_channels'].split(';'))
+        
 
 if __name__ == "__main__":
     BCISsvepCsp(settings.MULTIPLEXER_ADDRESSES).loop()

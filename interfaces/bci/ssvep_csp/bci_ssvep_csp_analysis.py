@@ -9,10 +9,11 @@ from scipy.signal import hamming
 LOGGER = logger.get_logger("bci_ssvep_csp_analysis", "info")
 
 class BCISsvepCspAnalysis(object):
-    def __init__(self, send_func, freqs, cfg, sampling):
+    def __init__(self, send_func, freqs, cfg, montage_matrix, sampling):
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
+        self.montage_matrix = montage_matrix
         allFreqs = freqs
 
         self.indexMap = {}
@@ -58,7 +59,7 @@ class BCISsvepCspAnalysis(object):
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
 
-        csp_sig = np.dot(self.q.P[:,0], data[:-4,:])#dostajemy jeden kanał o zadanej długości
+        csp_sig = np.dot(self.q.P[:,0], np.dot(self.montage_matrix, data))
         csp_sig -= csp_sig.mean()#normujemy
         csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
         freq, feeds = self._analyse(csp_sig)
