@@ -79,7 +79,7 @@ class signalParser(object):
         for i in ch_list:
             if isinstance(i, int):
                 real_ch_list.append(i)
-            elif isinstance(i, str):
+            elif isinstance(i, str) or isinstance(i, unicode):
                 try:
                     real_ch_list.append(ch_str_list.index(i))
                 except ValueError:

@@ -38,10 +38,13 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         if len(tmp) > 0:
             self.ignore_channels = tmp.split(';')
 
-        self.ears_channels=None
-        tmp = self.config.get_param("ears_channels")
+        self.montage = self.config.get_param("montage")
+
+        tmp = self.config.get_param("montage_channels")
         if len(tmp) > 0:
-            self.ears_channels = tmp.split(';')
+            self.montage_channels = tmp.split(';')
+        else:
+            self.montage_channels = []
 
         run_on_start = int(self.config.get_param("run_on_start"))
         self.ready()
@@ -76,7 +79,8 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.csp_file_name,
             self.use_channels,
             self.ignore_channels,
-            self.ears_channels)
+            self.montage,
+            self.montage_channels)
         sys.exit(0)
 
 if __name__ == "__main__":

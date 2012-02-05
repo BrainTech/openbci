@@ -107,7 +107,7 @@ class modCSP(object):
         array containig names or numbers of electrodes to process. Names or numbers should be the same as in name.xml file.
     """
 
-    def __init__(self, name, frequency, electrodes):
+    def __init__(self, name, frequency, electrodes, montage='ears', montage_channels=['A1', 'A2']):
         """Begin here"""
         self.parsed_data = sp(name)
         self.name = name
@@ -117,8 +117,8 @@ class modCSP(object):
         self.P = np.zeros([N, N])
         self.vals = np.zeros(N)
         self.method = 'not calculated'
-        self.montage = 'ears'
-        self.montage_channels = ['A1','A2']
+        self.montage = montage
+        self.montage_channels = montage_channels
         
     def set_frequencies(self, frequencies):
         """Sets frequencies to analyze
