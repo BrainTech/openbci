@@ -22,6 +22,13 @@ def get_csp_config(path, name):
     LOGGER.info(str(d))
     return d
 
+def set_csp_config(path, name, config):
+    csp_file = acquisition_helper.get_file_path(path, name)+'.csp'
+    f = open(csp_file, 'w')
+    pickle.dump(config, f)
+    f.close()
+
+
 
 
 def get_montage_matrix(all_channels, use_channels, montage, montage_channels):

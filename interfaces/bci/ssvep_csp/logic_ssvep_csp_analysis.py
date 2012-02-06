@@ -13,7 +13,7 @@ from analysis.csp import signalParser as sp
 from interfaces import interfaces_logging as logger
 LOGGER = logger.get_logger("csp_analysis", 'info')
 
-def run(in_file, out_file, use_channels, ignore_channels, montage, montage_channels):
+def run(in_file, use_channels, ignore_channels, montage, montage_channels):
     
 	mgr = read_manager.ReadManager(
 		in_file+'.obci.xml',
@@ -52,6 +52,7 @@ def run(in_file, out_file, use_channels, ignore_channels, montage, montage_chann
         pairs.sort(reverse=True)
         LOGGER.info("Sorted: "+str(pairs))
 	best = [i[1] for i in pairs]
+        best_means = [i[0] for i in pairs]
         LOGGER.info("Best freqs: "+str(best))
         
         LOGGER.info("Finished CSP with stats:")
@@ -59,17 +60,16 @@ def run(in_file, out_file, use_channels, ignore_channels, montage, montage_chann
         LOGGER.info("And q:")
         LOGGER.info(str(q))
         
-        csp_file = out_file+'.csp'
-        f = open(csp_file, 'w')
         d = {'value': value,
              'mu': mu,
              'sigma': sigma,
              'q' : q,
 	     'freqs':';'.join([str(i) for i in best[:dec_count]]),
+	     'all_freqs':';'.join([str(i) for i in best]),
+	     'all_means':';'.join([str(i) for i in best_means]),
 	     'buffer':t2,
 	     'use_channels':';'.join(use_channels),
 	     'montage':montage,
 	     'montage_channels':';'.join(montage_channels)
              }
-        pickle.dump(d, f)
-        f.close()
+	return d
