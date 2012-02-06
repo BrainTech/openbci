@@ -121,6 +121,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         ugm_helper.send_config(self.conn, self.ugm)
         ugm_helper.send_config(self.conn, str([{'id':self.text_ids[1], 'message':self.feed_text}]), 1)
         time.sleep(self.target_time)
+        appliance_helper.send_stop(self.conn)
         ugm_helper.send_text(self.conn, self.ready_text)
         keystroke.wait([" "])
         LOGGER.info("Send begin config ...")
