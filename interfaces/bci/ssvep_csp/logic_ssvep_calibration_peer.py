@@ -30,6 +30,8 @@ class LogicSSVEPCalibration(ConfiguredClient):
         self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
         self.hi_text = self.config.get_param("hi_text")
         self.bye_text = self.config.get_param("bye_text")
+        self.trial_text = self.config.get_param("trial_text")
+        self.ready_text = self.config.get_param("ready_text")
         self.break_texts = self.config.get_param("break_texts").split(';')
         self.break_times = [float(i) for i in self.config.get_param("break_times").split(';')]
         assert(len(self.break_texts)==len(self.break_times))
@@ -110,14 +112,24 @@ class LogicSSVEPCalibration(ConfiguredClient):
         
         
     def run(self):
+        #process intro
         ugm_helper.send_text(self.conn, self.hi_text)
         keystroke.wait([" "])
-        #time.sleep(5)
+        ugm_helper.send_text(self.conn, self.trial_text)
+        keystroke.wait([" "])
+        appliance_helper.send_freqs(self.conn, self.all_freqs[:int(self.config.get_param("fields_count"))])
+        ugm_helper.send_config(self.conn, self.ugm)
+        ugm_helper.send_config(self.conn, str([{'id':self.text_ids[1], 'message':self.feed_text}]), 1)
+        time.sleep(self.target_time)
+        ugm_helper.send_text(self.conn, self.ready_text)
+        keystroke.wait([" "])
         LOGGER.info("Send begin config ...")
         ugm_helper.send_config(self.conn, self.ugm)
 
+        #process trials
         self._run()
 
+        #process good bye
         appliance_helper.send_stop(self.conn)
         ugm_helper.send_text(self.conn, self.bye_text)
         #acquire some more data
