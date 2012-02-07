@@ -379,6 +379,7 @@ class OBCIControlPeer(object):
 	def handle_message(self, message, sock):
 
 		handler = self.msg_handlers.default
+
 		try:
 			msg = self.mtool.unpack_msg(message)
 			if msg.type != "ping":
@@ -386,11 +387,13 @@ class OBCIControlPeer(object):
 										self.name, self.peer_type(), msg.type)
 				if msg.type == "get_tail":
 					print self.msg_handlers
-		except ValueError:
+		except ValueError, e:
 			print "{0} [{1}], Bad message format! {2}".format(
 									self.name, self.peer_type(),message)
 			if sock.getsockopt(zmq.TYPE) == zmq.REP:
 				handler = self.msg_handlers.error
+			msg = message
+			print str(e)
 		else:
 			msg_type = msg.type
 
@@ -432,7 +435,7 @@ class OBCIControlPeer(object):
 	@msg_handlers.error_handler()
 	def bad_msg_handler(self, message, sock):
 		msg = self.mtool.fill_msg("rq_error",
-					request=vars(message), err_code="invalid_msg_format")
+					request=message, err_code="invalid_msg_format")
 		send_msg(sock, msg)
 
 	@msg_handlers.handler("kill")
