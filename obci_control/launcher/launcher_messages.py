@@ -17,6 +17,8 @@ message_templates = {
 						 name=''),
 
 	"get_peer_info" : dict(peer_id=''),
+	"get_peer_param_values" : dict(peer_id=''),
+	"peer_param_values" : dict(peer_id='', param_values=''),
 	"peer_info" : dict(config_sources='', 
         external_params='', 
         launch_dependencies='', 
@@ -34,7 +36,7 @@ message_templates = {
 									capture_io='', stdout_log='', stderr_log=''),
 	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type='', details=''),
 	"kill_process" : dict(),
-	"restart_process" : dict(),
+
 	"launch_error" : dict(err_code='', details=''),
 	"all_peers_launched": dict(machine=''),
 	"obci_launch_failed" : dict(machine='', path='', args='', details=''),
@@ -67,7 +69,10 @@ message_templates = {
 
 	"update_peer_config" : dict(peer_id='', local_params='', 
 							external_params='', launch_dependencies='', config_sources=''),
-	"save_scenario" : dict(file_name='', force='')
+	"save_scenario" : dict(file_name='', force=''),
+
+	"find_eeg_experiments" : dict(),
+	"eeg_experiments" : dict(experiment_list='')
 
 
 }
@@ -78,3 +83,18 @@ error_codes = ["invalid_supervisor_data",
 				"launch_error",
 				"start_experiment_error",
 				"create_supervisor_error"]
+
+if __name__ == '__main__':
+	import common.message as msg
+	import json
+	tool = msg.OBCIMessageTool(message_templates)
+	used = []
+	for temp in [msg.common_templates, message_templates]:
+		for msg in temp:
+			if not msg in used:
+				print '//-------------------------   ', msg, '- full   ---------------------'
+				print tool.fill_msg(msg)
+				print '//--', msg, '- without base   -----'
+				st = json.dumps(temp[msg], indent=4)
+				print st
+				used.append(msg)

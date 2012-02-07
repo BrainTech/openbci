@@ -78,6 +78,33 @@ class OBCIExperimentConfig(object):
 
 		self.peers[peer_id].machine = machine_name
 
+	def all_param_values(self, peer_id):
+
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
+
+		config = self.peers[peer_id].config
+		not_fresh = config.param_values
+		vals = {}
+		for key in not_fresh:
+			vals[key] = self._param_value(peer_id, key, config)
+		return vals
+	
+	def param_value(self, peer_id, param_name):
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
+
+		config = self.peers[peer_id].config
+		return self._param_value(peer_id, param_name, config)
+
+	def _param_value(self, peer_id, param_name, config):
+		if param_name in config.local_params:
+			return config.local_params[param_name]
+		elif param_name in config.external_param_defs:
+			peer, param = config.external_param_defs[param_name]
+			return self.param_value(peer, param)
+		else:
+			raise OBCISystemConfigError("Param {0} does not exist in {1}".format(param_name, peer_id))
 
 	def config_ready(self):
 		details = {}
