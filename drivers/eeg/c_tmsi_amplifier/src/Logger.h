@@ -58,9 +58,8 @@ public:
     	va_list ap;
     	char buffer[100];
 		fprintf(stderr,"%s INFO - ",header(buffer));
-		int n;
 		va_start(ap, string);
-		n = fprintf(stderr, string, ap);
+		fprintf(stderr, string, ap);
 		va_end(ap);
 		fprintf(stderr,"\n");
     }

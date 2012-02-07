@@ -153,7 +153,7 @@ classdef ReadManager < handle
             %   .obci.tags
             
             if ~isa(self.data_source,'MemoryDataSource')
-                [~]=self.get_samples();
+                self.get_samples();
             end
             path=[p_dir '/' p_name];
             self.data_source.save_to_file([path '.obci.dat']);

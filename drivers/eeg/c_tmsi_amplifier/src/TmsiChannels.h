@@ -29,8 +29,8 @@ protected:
 
 public:
     TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription){
-    	gain = t_chan.GainCorrection*t_chan.Type.a;
-        offset = t_chan.OffsetCorrection*t_chan.Type.a+t_chan.Type.b;
+    	gain = t_chan.Type.a;
+        offset = t_chan.Type.b;
         other_params.push_back(t_chan.GainCorrection);
         other_params.push_back(t_chan.OffsetCorrection);
         other_params.push_back(t_chan.Type.a);

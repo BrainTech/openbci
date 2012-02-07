@@ -16,9 +16,9 @@ po::options_description AmplifierDriver::get_options() {
 			("sampling_rate,s",	po::value<int>()
 					->notifier(boost::bind(&AmplifierDriver::set_sampling_rate_, this,_1)),
 					"Sampling rate to use")
-			("active_channels,c",po::value<string>()->default_value("*")->
-						notifier(boost::bind(&AmplifierDriver::set_active_channels_string,this, _1)),
-						"String with channel names or indexes separated by commas");
+			("active_channels,c",po::value<string>()->default_value("*")
+					->notifier(boost::bind(&AmplifierDriver::set_active_channels_string,this, _1)),
+					"String with channel names or indexes separated by semicolons");
 
 	return options;
 }
@@ -38,7 +38,7 @@ void AmplifierDriver::start_sampling() {
 	logger.sampling=sampling_rate;
 	logger.info()<<" Sampling started with sampling rate "
 			<<sampling_rate<<"\nActive Channels: " << get_active_channels_string() <<"\n";
-	last_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();
+	last_sample =get_time();
 }
 void AmplifierDriver::stop_sampling_handler(int sig) {
 	signal(sig, SIG_DFL);

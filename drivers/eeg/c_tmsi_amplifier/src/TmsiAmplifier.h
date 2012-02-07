@@ -100,7 +100,7 @@ public:
 	boost::program_options::options_description get_options();
 	void init(boost::program_options::variables_map &vm);
 	void connect_device(uint type,const string &address);
-    ~TmsiAmplifier();
+    virtual ~TmsiAmplifier();
 private:
 
     int connect_usb(const string & address);

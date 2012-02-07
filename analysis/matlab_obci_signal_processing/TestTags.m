@@ -13,10 +13,8 @@ tag_names={'neg','neu','pos','neu','pos','neu','pos','neg','pos','pos'};
 tag_position=[1,2,2.5,3.2,5,20,30,30.7,40,50];
 for i=1:10
     tags(i).name=tag_names{i};
-    tags(i).position=num2str(tag_position(i));
     tags(i).start_timestamp=tag_position(i);
-    tags(i).channelNumber=num2str(i);
-    tags(i).length=num2str(5);    
+    tags(i).channelNumber=num2str(i);    
 end
 ts=TagsSource();
 ts.set_tags(tags);
