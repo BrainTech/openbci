@@ -25,7 +25,7 @@ TmsiDriverDesc::TmsiDriverDesc(tms_input_device_t &dev,TmsiAmplifier *amp):Ampli
 	add_channel(new OnOffChannel(this));
 	add_channel(new BatteryChannel(this));
 	uint base_sampling_rate=amp->get_base_sample_rate();
-	while (base_sampling_rate>=128){
+	while (base_sampling_rate>64){
 		sampling_rates.insert(sampling_rates.begin(),base_sampling_rate);
 		base_sampling_rate=base_sampling_rate>>1;
 	}

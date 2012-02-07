@@ -22,5 +22,10 @@
 int main(int argc, char**argv)
 {
 	TmsiAmplifier driver;
-	return run(argc,argv,&driver);
+	try{
+	run(argc,argv,&driver);
+	}
+	catch (exception &e){
+		cerr << "Exception: "<<e.what();
+	}
 }
