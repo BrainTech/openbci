@@ -18,13 +18,18 @@ _BT_DESCS = {
 _USB_DESCS = { 'Porti7' : 'amplifier_porti7_usb.json'}
 
 def _find_bluetooth_amps():
-    nearby_devices = bluetooth.discover_devices(lookup_names = True)
+    try:
+        nearby_devices = bluetooth.discover_devices(lookup_names = True)
+    except bluetooth.BluetoothError, e:
+        print "ERROR:  ", str(e)
+        nearby_devices = []
+    
     found = []
     for addr, name in nearby_devices:
         is_amp, amp_type = _check_amp_name(name)
         if is_amp:
             found.append((addr, name, amp_type))
-    print "AAAAA found:  ", found
+    print "Found bluetooth devices: ", found
     return found
 
 
@@ -36,7 +41,7 @@ def _find_usb_amps():
     amps = [dev for dev in amps if os.readlink(dev).startswith('tmsi')]
 
     res = [(dev, '', 'Porti7') for dev in amps]
-    print "UUUUSSSSSSBBBBBB  ", res
+    print "Found USB devices: ", res
     return res
 
 
