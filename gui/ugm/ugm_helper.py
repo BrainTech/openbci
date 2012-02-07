@@ -16,6 +16,12 @@ def send_text(conn, text):
   TEXT_SCREEN_MGR.set_config(cfg)
   send_config(conn, TEXT_SCREEN_MGR.config_to_message())
 
+
+def send_config_for(conn, id, key, value):
+  config = str([{'id':id,
+             key:value}])
+  send_config(conn, config, 1)
+
 def send_config(conn, config, type=0):
   l_type = type
   l_msg = variables_pb2.UgmUpdate()

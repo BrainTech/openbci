@@ -15,6 +15,7 @@ from acquisition import acquisition_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
+from interfaces.bci.ssvep_csp import ssvep_csp_helper
 
 LOGGER = logger.get_logger("bci_ssve_csp")
 

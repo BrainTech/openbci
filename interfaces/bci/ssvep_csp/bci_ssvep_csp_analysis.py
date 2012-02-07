@@ -58,8 +58,11 @@ class BCISsvepCspAnalysis(object):
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-
-        csp_sig = np.dot(self.q.P[:,0], np.dot(self.montage_matrix, data))
+        #print("P: "+str(self.q.P[:,0].shape))
+        #print("montage: "+str(self.montage_matrix.shape))
+        #print("data: "+str(data.shape))
+        #print("montage X data: "+str(np.dot(self.montage_matrix, data).shape))
+        csp_sig = np.dot(self.q.P[:,0], np.dot(self.montage_matrix.T, data))
         csp_sig -= csp_sig.mean()#normujemy
         csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
         freq, feeds = self._analyse(csp_sig)

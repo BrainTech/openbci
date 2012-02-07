@@ -22,6 +22,13 @@ def get_csp_config(path, name):
     LOGGER.info(str(d))
     return d
 
+def set_csp_config(path, name, config):
+    csp_file = acquisition_helper.get_file_path(path, name)+'.csp'
+    f = open(csp_file, 'w')
+    pickle.dump(config, f)
+    f.close()
+
+
 
 
 def get_montage_matrix(all_channels, use_channels, montage, montage_channels):
@@ -73,7 +80,41 @@ def get_montage_matrix(all_channels, use_channels, montage, montage_channels):
 
     return m
 
+
+def edit_csp_configs(buf_time, freqs):
+    """
+    >>> a,b = nedit_csp_configs(1.0, [1,2,3,4,5,6,7,8])
+
+    """
+    from PyQt4.QtGui import QDialog, QApplication
+    from ssvep_csp_params_dialog import CspParamsDialog
+    l_app = QApplication(None)
+    d =QDialog()
+    m = CspParamsDialog()
+    m.setupUi(d)
+
+    fields = ['f'+str(i) for i in range(len(freqs))]
+    m.buf_time.setValue(buf_time)
+    for i, f in enumerate(fields):
+        m.__dict__[f].setValue(freqs[i])
+
+    d.show()
+    l_app.exec_()
+    if d.result():
+        buf_time = m.buf_time.value()
+        freqs = []
+        for i, f in enumerate(fields):
+            freqs.append(m.__dict__[f].value())
+
+    return buf_time, freqs
+
+
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
     print("If no errors - tests SUCCEDED!!!")
+
+
+
