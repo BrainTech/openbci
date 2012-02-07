@@ -106,11 +106,16 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             )
 
     def _edit_configs(self, cfg):
-        time.sleep(10)
-        """buffer = 1
-        freqs = [0]*8
+        buffer = float(cfg['buffer'])
+        freqs = [int(i) for i in cfg['freqs'].split(';')]
+        LOGGER.info("Configs before edit:")
+        LOGGER.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
+        buffer, freqs = ssvep_csp_helper.edit_csp_configs(buffer, freqs)
         cfg['buffer'] = buffer
-        cfg['freqs'] = freqs"""
+        cfg['freqs'] = ';'.join([str(i) for i in freqs])
+        LOGGER.info("Configs after edit:")
+        LOGGER.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
+
 
     def _run_next_scenario(self):
         path = self.config.get_param('next_scenario_path')
