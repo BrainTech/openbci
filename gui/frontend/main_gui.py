@@ -44,9 +44,8 @@ class BCIMainWindow(QtGui.QMainWindow):
         # Loads modules from config into dictionary
         self.processModules(MODULES_LIST)
         # TODO: main gui should be made in designer, and not in code here
-        self.setMinimumSize(800, 300)
         self.pluginsList = QtGui.QTreeWidget()
-        self.pluginsList.setMinimumSize(50, 200)
+        self.pluginsList.setMaximumWidth(200)
         self.pluginsList.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.pluginsList.setHeaderLabels(["Nazwa"])
         for i_plugin in self.modules.values():
@@ -81,16 +80,18 @@ class BCIMainWindow(QtGui.QMainWindow):
             # If we haven't configured this plugin yet, we need to create its GUI
             if not self.dockWidgets.has_key(l_pluginName):
                 self.dockWidgets[l_pluginName] = p_newItem.plugin.buildGui(self)
-                self.dockWidgets[l_pluginName].setMinimumWidth(200)
+                self.dockWidgets[l_pluginName].setMinimumWidth(500)
+                self.dockWidgets[l_pluginName].setMinimumHeight(500)
             p_pluginDock = self.dockWidgets[l_pluginName]
             # We allow docking only on right side of window
             p_pluginDock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
             # If dock was floating and closed before, we reset him into dock
             if not p_pluginDock.isVisible() and p_pluginDock.isFloating():
                 p_pluginDock.setFloating(False)
-            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, p_pluginDock)
+
             self.restoreDockWidget(p_pluginDock)
             self.currentDockWidget = p_pluginDock
+            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, p_pluginDock)
     
     def processModules(self, p_modulesList):
         """Processes list with module names, and loads appropriate modules into

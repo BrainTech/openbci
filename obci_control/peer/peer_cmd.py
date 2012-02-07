@@ -11,33 +11,40 @@ import common.obci_control_settings
 
 
 class PeerCmd(object):
-	def __init__(self):
-		self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id [options]")
-		self.configure_argparser()
+	def __init__(self, add_help=True):
+		
+		
 
-	def configure_argparser(self):
+		self.conf_parser = argparse.ArgumentParser(add_help=False)
+		self.configure_argparser(self.conf_parser)
 
+		self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id [options]", add_help=add_help,
+												parents=[self.conf_parser])
 		self.parser.add_argument('peer_id',
 									help="Unique name for this instance of this peer")
 
-		self.parser.add_argument(LP, '--'+LOCAL_PARAMS,
+
+	def configure_argparser(self, parser):
+
+
+		parser.add_argument(LP, '--'+LOCAL_PARAMS,
 									nargs=2,
 									action=PeerParamAction,
 									help="Local parameter override value: param_name, value.",
 									type=str)
-		self.parser.add_argument(EP, '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
+		parser.add_argument(EP, '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
 									help="External parameter override value: param_name value .")
 
 
-		self.parser.add_argument(CS, '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
+		parser.add_argument(CS, '--'+CONFIG_SOURCES, nargs=2, action=ConfigSourceAction,
 									help="Config source ID assignment: src_name peer_id")
-		self.parser.add_argument(LD, '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
+		parser.add_argument(LD, '--'+LAUNCH_DEPENDENCIES, nargs=2, action=LaunchDepAction,
 									help="Launch dependency ID assignment: dep_name peer_id")
 
-		self.parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
+		parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
 									help="Additional configuration file (overrides): path_to_file.")
-		self.parser.add_argument('--wait-ready-signal', action='store_true',
-									help="Wait for init configuration message.")
+		# parser.add_argument('--wait-ready-signal', action='store_true',
+		# 							help="Wait for init configuration message.")
 
 	def parse_cmd(self):
 		args = self.parser.parse_args()

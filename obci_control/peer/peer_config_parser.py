@@ -167,6 +167,11 @@ class PeerConfigParserJSON(PeerConfigParser):
 		self.config = p_config_obj
 		self.update = update
 
+		for key in [helpers.CONFIG_SOURCES, helpers.LAUNCH_DEPENDENCIES,\
+						helpers.LOCAL_PARAMS, helpers.EXT_PARAMS]:
+			if self.load[key] is None:
+				self.load[key] = {}
+
 	def _get_config_sources(self):
 		return [(key, val) for (key, val) in \
 					self.load[helpers.CONFIG_SOURCES].iteritems()]
@@ -207,6 +212,11 @@ class PeerConfigParserDict(PeerConfigParserJSON):
 		if not isinstance(self.load, dict):
 			raise ValueError("Expected a dictionary!")
 
+		for key in [helpers.CONFIG_SOURCES, helpers.LAUNCH_DEPENDENCIES,\
+						helpers.LOCAL_PARAMS, helpers.EXT_PARAMS]:
+			if self.load[key] is None:
+				self.load[key] = {}
+				
 		self.config = p_config_obj
 		self.update = update
 

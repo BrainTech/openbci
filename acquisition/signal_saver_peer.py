@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
-import sys, os.path
+import sys, os.path, time
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -40,11 +40,19 @@ class SignalSaver(ConfiguredMultiplexerServer):
         msg = p_data
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(msg)
+        LOGGER.info("REAL SAMPLES PER PACKET: "+str(len(l_vec.samples)))
         for i_sample in l_vec.samples:
             self._first_sample_timestamp = i_sample.timestamp
+            LOGGER.info("First sample sample ts:" + repr(self._first_sample_timestamp))
+            LOGGER.info("First sample system ts:" + repr(time.time()))
+            LOGGER.info("REAL NUM OF CHANNELS:"+str(len(i_sample.channels)))
             break
 
-        self._data_proxy.set_data_len(len(p_data))
+
+            #self._first_sample_timestamp = time.time()
+            #break
+
+        self._data_proxy.set_data_len(len(p_data), self._samples_per_vector)
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! below operation changes self._data_received method
@@ -98,7 +106,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
             v = variables_pb2.Variable()
             v.ParseFromString(mxmsg.message)
             if v.key == 'finish':
-                LOGGER.info("Signal saver got finish saving _message")
+                LOGGER.info("Signal saver got finish saving _message.")
+                LOGGER.info("Last sample ts ~ "+repr(time.time()))
                 self._finish_saving_session()
             else:
                 LOGGER.warning("Signal saver got unknown control message "+v.key+"!")                

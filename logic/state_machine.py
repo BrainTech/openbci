@@ -1,24 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
@@ -27,7 +9,7 @@ class StateMachine(object):
     """A facade between config file and logic_engine class.
     Provides usefull methods to get and set (by now in-memory) configuration.
     """
-    def set_config(self, p_logic_config_name):
+    def __init__(self, p_logic_config_name):
         """import p_logic_config_name, store state configs for every state."""
         self._config_file = p_logic_config_name
         self.update_from_file()
@@ -35,6 +17,8 @@ class StateMachine(object):
     def update_from_file(self, p_config_file=None):
         if not  p_config_file:
             p_config_file = self._config_file
+        #tmp = __import__('configs', globals(), locals(), [p_config_file], -1)
+        #l_logic_config = tmp.__dict__[p_config_file]
         l_logic_config = __import__(p_config_file)
         reload(l_logic_config)
         self._states = []
@@ -53,7 +37,7 @@ class StateMachine(object):
             self._other_configs[i_config_var] = (l_logic_config.__dict__[i_config_var]) #TODO - #TODO - should i copy?
     def set_next_state(self, p_decision):
         """"Go to next state from current state as a resutl of p_decision."""
-        self._current_state_id = self._states[self._current_state_id]['screen'][p_decision]
+        self._current_state_id = self._states[self._current_state_id]['state'][p_decision]
     def get_current_state(self):
         """Return current state id (number)."""
         return self._current_state_id

@@ -101,7 +101,7 @@ probably a server is already working"
 		print '{0} [{1}] -- sent KILL to experiments'.format(self.name, self.peer_type())
 
 
-	def _args_for_experiment(self, sandbox_dir, launch_file, local=False):
+	def _args_for_experiment(self, sandbox_dir, launch_file, local=False, name=None):
 
 		args = ['--sv-addresses']
 		args += self.exp_rep_addrs
@@ -111,17 +111,19 @@ probably a server is already working"
 		else:
 			addrs = [pub for pub in self.exp_pub_addrs if pub.startswith('tcp://')]
 		args += [addrs.pop()]
+		exp_name = name if name else os.path.basename(launch_file)
 		args += [
 					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
-					'--name', os.path.basename(launch_file)]
+					'--name', exp_name]
+		# print '{0} [{1}] -- experiment args: {2}'.format(self.name, self.peer_type(), args)
 		return args
 
-	def start_experiment_process(self, sandbox_dir, launch_file):
+	def start_experiment_process(self, sandbox_dir, launch_file, name=None):
 		path = module_path(obci_experiment)
 
-		args = self._args_for_experiment(sandbox_dir, launch_file, local=True)
+		args = self._args_for_experiment(sandbox_dir, launch_file, local=True, name=name)
 
 		return self.subprocess_mgr.new_local_process(path, args,
 											proc_type='obci_experiment',
@@ -131,6 +133,7 @@ probably a server is already working"
 
 	def handle_register_experiment(self, message, sock):
 		machine, pid = message.other_params['origin_machine'], message.other_params['pid']
+		status, det = message.other_params['status_name'], message.other_params['details']
 
 		exp_proc = self.subprocess_mgr.process(machine, pid)
 
@@ -144,7 +147,9 @@ probably a server is already working"
 															message.pub_addrs,
 															time.time(),
 															machine,
-															pid)
+															pid,
+															status,
+															det)
 
 		exp_proc.registered(info)
 
@@ -192,10 +197,11 @@ probably a server is already working"
 
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
+		name = message.name
 
 		sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
 
-		exp, details = self.start_experiment_process(sandbox, launch_file)
+		exp, details = self.start_experiment_process(sandbox, launch_file, name)
 
 		if exp is None:
 			print "failed to launch experiment process"
@@ -255,6 +261,20 @@ probably a server is already working"
 												pub_addrs=info.pub_addrs,
 												machine=info.origin_machine))
 
+
+	@msg_handlers.handler("experiment_status_change")
+	def handle_experiment_status_change(self, message, sock):
+		exp = self.experiments.get(message.uuid, None)
+		if not exp:
+			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+				print '##########'	
+				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
+			return
+		exp.status_name = message.status_name
+		exp.details = message.details
+		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			print "%%%%%%%%"
+			send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
 	def exp_matching(self, strname):
 		"""Match *strname* against all created experiment IDs and
@@ -367,7 +387,7 @@ probably a server is already working"
 
 class ExperimentInfo(object):
 	def __init__(self, uuid, name, rep_addrs, pub_addrs, registration_time,
-							origin_machine, pid):
+							origin_machine, pid, status_name=None, details=None):
 		self.uuid = uuid
 		self.name = name
 		self.rep_addrs = rep_addrs
@@ -376,6 +396,8 @@ class ExperimentInfo(object):
 		self.origin_machine = origin_machine
 		self.experiment_pid = pid
 		self.kill_timer = None
+		self.status_name = status_name
+		self.details = details
 
 	def from_dict(dic):
 		try:
@@ -399,7 +421,9 @@ class ExperimentInfo(object):
 				pub_addrs=self.pub_addrs,
 				registration_time=self.registration_time,
 				origin_machine=self.origin_machine,
-				experiment_pid=self.experiment_pid)
+				experiment_pid=self.experiment_pid,
+				status_name=self.status_name,
+				details=self.details)
 
 		return d
 

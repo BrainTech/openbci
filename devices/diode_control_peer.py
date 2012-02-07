@@ -6,6 +6,8 @@
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 #
 
+import time 
+
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from configs import settings, variables_pb2
@@ -16,10 +18,11 @@ LOGGER = logger.get_logger('diode_control_peer')
 class DiodeControl(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
-        super(InfoSaver, self).__init__(addresses=addresses,
+        super(DiodeControl, self).__init__(addresses=addresses,
                                           type=peers.SUPER_DIODE)
         self.blinker = None
         self._init_blinker()
+
         self._init_freqs()
 
         start = int(self.config.get_param("blink_on_start"))
@@ -34,8 +37,8 @@ class DiodeControl(ConfiguredMultiplexerServer):
     def _init_freqs(self):
         freqs_str = self.config.get_param("freqs")
         freqs = freqs_str.split(";")
-        self.on_freqs_str = ';'.join([-1]*len(freqs))
-        self.off_freqs_str = ';'.join([0]*len(freqs))
+        self.on_freqs_str = ';'.join([str(i) for i in [-1]*len(freqs)])
+        self.off_freqs_str = ';'.join([str(i) for i in [0]*len(freqs)])
         self.update_freqs(freqs_str)
 
     def update_freqs(self, freqs_str):
@@ -84,8 +87,8 @@ class DiodeControl(ConfiguredMultiplexerServer):
         self.no_response()
 
     def _send_diode_message(self, freqs_str):
-        msg = variables_pb2.Variable()
-        msg.key = 'update'
-        msg.vlue = freqs_str
+        msg = variables_pb2.Diode()
+        msg.value = freqs_str
+        msg.timestamp = time.time()
         self.conn.send_message(message = msg.SerializeToString(), 
         type = types.DIODE_MESSAGE, flush=True)

@@ -12,10 +12,11 @@ LAUNCHING = 'launching'
 FAILED_LAUNCH = 'failed_launch'
 RUNNING = 'running'
 FINISHED = 'finished'
-CRASHED = 'crashed'
-KILLED = 'killed'
+FAILED = 'failed'
+TERMINATED = 'terminated'
 
-EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, FAILED_LAUNCH, RUNNING, FINISHED, CRASHED, KILLED]
+EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
+				FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED]
 
 
 class ExperimentStatus(object):
@@ -38,6 +39,9 @@ class ExperimentStatus(object):
 	def peer_status(self, peer_id):
 
 		return self.peers_status.get(peer_id, None)
+
+	def peer_status_exists(self, status_name):
+		return status_name in [st.status_name for st in self.peers_status.values()]
 
 
 class PeerStatus(object):

@@ -27,5 +27,5 @@ For each name on this list there should be a corresponding module in modules
 directory"""
 
 MODULES_LIST = [
-        'ugm', 'exp', 'start'
+        'ugm'
     ]

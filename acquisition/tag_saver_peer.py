@@ -50,11 +50,11 @@ class TagSaver(ConfiguredMultiplexerServer):
             l_tag = tag_utils.pack_tag_to_dict(str_tag.start_timestamp, str_tag.end_timestamp,
                                                     str_tag.name, tag_desc, str_tag.channels)
 
-            LOGGER.info(''.join(['Signal saver got tag: ',
+            LOGGER.info(''.join(['Tag saver got tag: ',
                                 'start_timestamp:',
-                                str(l_tag['start_timestamp']),
+                                repr(l_tag['start_timestamp']),
                                 ', end_timestamp: ', 
-                                str(l_tag['end_timestamp']),
+                                repr(l_tag['end_timestamp']),
                                 ', name: ',
                                 l_tag['name'],
                                 '. <Change debug level to see desc.>']))
@@ -87,6 +87,7 @@ class TagSaver(ConfiguredMultiplexerServer):
                     self._finish_saving(float(i_var.value))
                     sys.exit(0)
             LOGGER.error("Got saver finished message without first_sample_timestamp. Do noting ...")
+        self.no_response()
 
 
     def _finish_saving(self, p_first_sample_ts):
@@ -95,6 +96,7 @@ class TagSaver(ConfiguredMultiplexerServer):
         of a first sample stored by signal saver (p_first_sample_ts)."""
 
         # Save tags
+        LOGGER.info("Finish saving with first sample ts: "+str(p_first_sample_ts))
         l_file_path = self._tags_proxy.finish_saving(p_first_sample_ts)
 
         l_vec = variables_pb2.VariableVector()
