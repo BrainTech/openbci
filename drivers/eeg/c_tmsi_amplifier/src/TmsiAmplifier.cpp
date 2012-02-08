@@ -78,7 +78,7 @@ void TmsiAmplifier::connect_device(uint type,const string &address){
 	else
 		fd=connect_ip(address);
 	if (fd<0)
-		cout << "DEVICE OPEN ERROR: "<<address << " errno: "<<fd<<" "<<strerror(fd);
+		cout << "DEVICE OPEN ERROR: "<<address << " errno: "<<fd<<" "<<strerror(errno);
 	else
 		logger.info()<< (type==IP_AMPLIFIER?"IP ":(type==BLUETOOTH_AMPLIFIER?"Bluetooth ":"Usb ")) << "device connected "<<address<<"\n";
 	if (read_fd<0)
@@ -96,16 +96,20 @@ int TmsiAmplifier::connect_ip(const string &address_port){
     mode = IP_AMPLIFIER;
     client.sin_family = AF_INET;
 	client.sin_addr.s_addr = INADDR_ANY;
-	client.sin_port=60000;
+	client.sin_port=0;
     Socket = socket ( AF_INET, SOCK_STREAM, 0 );
     if ( Socket == -1 )
     {
-        printf ("Can Not Create A Socket!");
+        logger.info()<<"Cannot create socket:" <<strerror(errno)<<"\n";
+        exit(-1);
     }
-    if (bind(Socket, (struct sockaddr *) &client, sizeof(client)) < 0)
-    	              cerr << "ERROR on binding";
+    while (bind(Socket, (struct sockaddr *) &client, sizeof(client)) < 0){
+    	logger.info()<< "Bind error: "<<strerror(errno)<<"\n";
+    	exit(-1);
+    }
+
     int Port=4242 ;
-    uint pos=address_port.find(':');
+    uint64_t pos=address_port.find(':');
     if (pos!=string::npos){
 		Port = atoi(address_port.substr(pos+1).c_str());
     };
@@ -124,8 +128,12 @@ int TmsiAmplifier::connect_ip(const string &address_port){
     {
         printf ( "Bad Address!" );
     }
-    logger.info()<<"Connection to socket to port\n"<<Server_Address.sin_port;
-    connect ( Socket, (struct sockaddr *)&Server_Address, sizeof (Server_Address) );
+    logger.info()<<"Connection to socket to port\n"<<Server_Address.sin_port<<"("<<Port<<")\n";
+    if (connect ( Socket, (struct sockaddr *)&Server_Address, sizeof (Server_Address))!=0)
+    	{
+    		logger.info()<<" Connection error: "<< strerror(errno)<<"\n";
+    		exit(-1);
+    	}
     ip_amplifier=1;
     setup_handler();
     return Socket;
@@ -300,6 +308,7 @@ void TmsiAmplifier::disconnect_mobita(){
 	write(fd,disconnect_message,18);
 }
 void TmsiAmplifier::stop_sampling(bool disconnecting) {
+	logger.info()<< "Stop sampling \n";
     if (fd < 0) return;
     fei.mode = 0x3;
     if (!sampling) {
@@ -344,7 +353,7 @@ uint64_t TmsiAmplifier::next_samples() {
 				tms_get_data(msg, br, &dev, channel_data);
 				channel_data_index = 0;
 				debug("Channel data received...\n");
-				if (--keep_alive==0)
+				if (mode!=IP_AMPLIFIER && --keep_alive==0)
 				{
 					keep_alive=sampling_rate*KEEP_ALIVE_RATE/channel_data[0].ns;
 					logger.info()<<"Sending keep_alive\n";

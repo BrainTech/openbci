@@ -51,6 +51,7 @@ public:
 		set_active_channels_string(active_channels_str);
 	}
 	virtual ~AmplifierDriver() {
+		logger.info()<<"Destructor\n";
 		if (description)
 			delete description;
 	}

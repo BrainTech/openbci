@@ -349,6 +349,19 @@ class OBCIExperiment(OBCIControlPeer):
 			send_msg(sock, self.mtool.fill_msg('peer_info', **peer_info))
 
 
+	@msg_handlers.handler('get_peer_param_values')
+	def handle_get_peer_param_values(self, message, sock):
+		if message.peer_id not in self.exp_config.peers:
+			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
+						err_code='peer_id_not_found'))
+		else:
+			peer_id = message.peer_id
+			vals = self.exp_config.all_param_values(peer_id)
+			send_msg(sock, self.mtool.fill_msg('peer_param_values', 
+										peer_id=peer_id,param_values=vals,
+										sender=self.uuid))
+
+
 	@msg_handlers.handler('get_peer_config')
 	def handle_get_peer_config(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('ping', sender=self.uuid))
