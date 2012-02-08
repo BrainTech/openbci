@@ -171,6 +171,7 @@ DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Du
 	SawChannel *saw=new SawChannel(this);
 	saw->name="Saw";
 	add_channel(saw);
+	add_channel(new SawChannel(this));
 	add_channel(new BoolChannel("Trigger",this));
 	sampling_rates.push_back(128);
 	sampling_rates.push_back(256);

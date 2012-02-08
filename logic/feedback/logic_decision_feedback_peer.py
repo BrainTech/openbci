@@ -36,18 +36,21 @@ class LogicDecisionFeedback(ConfiguredMultiplexerServer):
             assert(dec < self.dec_count)
             assert(dec >= 0)
             dec_time = time.time()
-            while True:
-                t = time.time() - dec_time
-                if t > self.feed_time:
-                    ugm_config = self.feed_manager.update_ugm(dec, -1)
-                    ugm_helper.send_config(self.conn, ugm_config, 1)
-                    break
-                else:
-                    LOGGER.debug("t="+str(t)+"FEED: "+str(t/self.feed_time))
-                    ugm_config = self.feed_manager.update_ugm(dec, 1-(t/self.feed_time))
-                    ugm_helper.send_config(self.conn, ugm_config, 1)
-                    time.sleep(0.05)
+            self._send_feedback(dec, dec_time)
         self.no_response()
+
+    def _send_feedback(self, dec, dec_time):
+        while True:
+            t = time.time() - dec_time
+            if t > self.feed_time:
+                ugm_config = self.feed_manager.update_ugm(dec, -1)
+                ugm_helper.send_config(self.conn, ugm_config, 1)
+                break
+            else:
+                LOGGER.debug("t="+str(t)+"FEED: "+str(t/self.feed_time))
+                ugm_config = self.feed_manager.update_ugm(dec, 1-(t/self.feed_time))
+                ugm_helper.send_config(self.conn, ugm_config, 1)
+                time.sleep(0.05)
 
 if __name__ == "__main__":
     LogicDecisionFeedback(settings.MULTIPLEXER_ADDRESSES).loop()

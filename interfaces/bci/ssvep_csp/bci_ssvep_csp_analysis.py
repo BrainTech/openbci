@@ -7,6 +7,7 @@ import numpy as np
 from scipy.signal import hamming
 
 LOGGER = logger.get_logger("bci_ssvep_csp_analysis", "info")
+DEBUG = False
 
 class BCISsvepCspAnalysis(object):
     def __init__(self, send_func, freqs, cfg, montage_matrix, sampling):
@@ -66,7 +67,10 @@ class BCISsvepCspAnalysis(object):
         csp_sig -= csp_sig.mean()#normujemy
         csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
         freq, feeds = self._analyse(csp_sig)
-        LOGGER.info("Got feeds: "+str(feeds))
+        LOGGER.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
+        if DEBUG:
+            if random.random() > 0.7:
+                freq = random.choice(self.indexMap.keys())
         if freq > 0:
             self.send_func(self.indexMap[freq])
         else:

@@ -53,7 +53,7 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	while ((i++ < length * sample_rate) & amp->is_sampling()) {
 		amp->next_samples();
 		if (!saw) {
-			printf("[%20s] S %7d, timestamp: %.20f\n",
+			printf("[%15s] S %d, timestamp: %.20f\n",
 					to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,amp->get_sample_timestamp());
 			for (uint j = 0; j < channels.size(); j++)
 				printf("%12s: %f %x\n", channels[j]->name.c_str(),
@@ -63,22 +63,22 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 			uint new_saw = channels[0]->get_raw_sample();
 			if (new_saw < last_saw) {
 				printf(
-						"[%20s] S %7d: Saw Jump. New Saw value: %d, last saw value: %d",
+						"[%15s] S %d: Saw Jump. Saw  %d ->%d",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						channels[1]->get_raw_sample(), new_saw, last_saw);
+						channels[1]->get_raw_sample(), last_saw,new_saw);
 				if (new_saw != 0)
 					printf(" ERROR samples lost: %d\n", new_saw);
 				else
 					printf("\n");
 				lost_samples += new_saw;
-			} else if (last_saw + saw < new_saw) {
+			} else if (last_saw + saw != new_saw) {
 				printf(
-						"[%20s] S %7d: ERROR!!! %d Samples lost, Saw value: %d, last saw value: %d\n",
+						"[%15s] S %d: ERROR!!! %d Samples lost. Saw %d->%d\n",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
 						channels[1]->get_raw_sample(), new_saw - saw - last_saw,
-						new_saw, last_saw);
+						last_saw,new_saw);
 				lost_samples += new_saw - saw - last_saw;
-			}
+			}						
 			last_saw=new_saw;
 		}
 	}

@@ -25,17 +25,18 @@ class LogicDecision(ConfiguredMultiplexerServer):
     def handle_message(self, mxmsg):
         if (mxmsg.type == types.DECISION_MESSAGE):
             l_decision = int(mxmsg.message)
+            LOGGER.info("Got decision: "+str(l_decision))
             # Fire an action for current state and current decision
             self._run_pre_actions(l_decision)
 
             l_action = self._compute_current_actions()[l_decision]
             if len(l_action) > 0: #if l_action is not an empty string
                 eval(u"".join([u"self.", l_action]))
-
-            self._run_post_actions(l_decision)
             
             # Go to next state...
             self._state_machine.set_next_state(l_decision)
+
+            self._run_post_actions(l_decision)
             
         else:
             LOGGER.info("Got unrecognised message type: "+mxmsg.type)
