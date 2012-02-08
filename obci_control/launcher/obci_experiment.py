@@ -425,6 +425,11 @@ class OBCIExperiment(OBCIControlPeer):
 								peer_id)
 			for par, val in message.params.iteritems():
 				self.exp_config.update_local_param(peer_id, par, val)
+			send_msg(self._publish_socket, self.mtool.fill_msg('obci_control_message', 
+										severity='info', msg_code='obci_peer_registered',
+										launcher_message=message.dict(),
+										sender=self.uuid, peer_name=self.name, peer_type=self.peer_type(),
+										sender_ip=self.origin_machine))
 
 	@msg_handlers.handler("obci_peer_params_changed")
 	def handle_obci_peer_params_changed(self, message, sock):
@@ -566,10 +571,7 @@ def experiment_arg_parser():
 if __name__ == '__main__':
 
 	args = experiment_arg_parser().parse_args()
-	#print vars(args)
 
-#	exp = OBCIExperiment( ['tcp://*:22233'], '/host/dev/openbci',
-#							'~/.obci', None, 'obci_exp')
 
 	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,

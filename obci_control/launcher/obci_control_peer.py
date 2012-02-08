@@ -402,7 +402,7 @@ class OBCIControlPeer(object):
 			if handler is None:
 				print "{0} [{1}], Unknown message type: {2}".format(
 										self.name, self.peer_type(),msg_type)
-				print message
+				# print message
 
 				handler = self.msg_handlers.unsupported
 		handler(self, msg, sock)
