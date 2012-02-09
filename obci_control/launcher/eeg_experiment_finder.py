@@ -4,23 +4,30 @@
 import json
 import zmq
 
-from launcher.obci_client import OBCIClient
-from launcher.obci_script import client_server_prep
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
+import launcher.launcher_logging as logger
+
+LOGGER = logger.get_logger("eeg_experiment_finder", "info")
+
 class EEGExperimentFinder(object):
-    def __init__(self, srv_addrs, ctx):
-        self.client = OBCIClient(srv_addrs, ctx)#client_server_prep()
+    def __init__(self, srv_addrs, ctx, client_push_address):
+        self.ctx = ctx
+        self.server_req_socket = self.ctx.socket(zmq.REQ)
+        for addr in srv_addrs:
+            self.server_req_socket.connect(addr)
+
         self.poller = PollingObject()
         self.mtool = OBCIMessageTool(message_templates)
         self._amplified_cache = {}
 
     def _running_experiments(self):
-        exp_list = self.client.send_list_experiments()
+        send_msg(self.server_req_socket, self.mtool.fill_msg("list_experiments"))
+        exp_list, details = self.poll_recv(self.server_req_socket, 2000)
         if not exp_list:
-            print "FAAAAIL"
+            LOGGER.error("Connection to obci_server failed. (list_experiments)")
             return None
 
         exps = exp_list.exp_data
@@ -34,7 +41,7 @@ class EEGExperimentFinder(object):
         running_exps = self._running_experiments()
         amplified = []
         for exp in running_exps:
-            print exp['name']
+            LOGGER.info("Found running experiment: " + str(exp['name']))
             infos = self._info_amplified(exp)
 
             if infos is not None:
@@ -44,44 +51,53 @@ class EEGExperimentFinder(object):
 
     def _info_amplified(self, exp_desc):
         amp_options = []
-        print exp_desc['rep_addrs']
+        LOGGER.info("Processing experiment "+ str(exp_desc['name']) +\
+                                     "w/ addr: " + str(exp_desc['rep_addrs']))
+
         rep_addrs = net.choose_not_local(exp_desc['rep_addrs'])
-        
+
         if not rep_addrs:
             rep_addrs = net.choose_local(exp_desc['rep_addrs'], ip=True)
+
         rep_addr = rep_addrs.pop()
 
         pub_addrs = net.choose_not_local(exp_desc['pub_addrs'])
         if not pub_addrs:
             pub_addrs = net.choose_local(exp_desc['pub_addrs'], ip=True)
         pub_addr = pub_addrs.pop()
-        print rep_addr, pub_addr
 
-        req_sock = self.client.ctx.socket(zmq.REQ)
+        LOGGER.info("Chosen experiment addresses: REP -- " + \
+                                str(rep_addr) + ", PUB -- " + str(pub_addr))
+
+        req_sock = self.ctx.socket(zmq.REQ)
         req_sock.connect(rep_addr)
 
         send_msg(req_sock, self.mtool.fill_msg('get_experiment_info'))
         res, details = self.poll_recv(req_sock, 4000)
 
         if not res:
-            print "Connection failed (experiment", exp_desc['name'], ")"
+            LOGGER.error("Connection failed (experiment " + exp_desc['name'] + \
+                                                    "), get_experiment_info")
             return None
         exp_info = res#json.loads(res)
 
         peer_list = exp_info.peers
         if not self._has_mx(peer_list):
-            print "no mx"
+            LOGGER.info("Experiment " + exp_desc['name'] + \
+                                                " does not have a multiplexer.")
             return None
-        
+
         maybe_amps = self._amp_like_peers(peer_list)
         if not maybe_amps:
-            print "no amp"
+            LOGGER.info("Experiment "+ exp_desc['name'] + \
+                                                " -- no amplifier.")
             return None
-        
+
         for peer in maybe_amps:
             info, params = self._get_amp_info(req_sock, peer)
             if not self._is_amplifier(info, params):
-                print "ble"
+                LOGGER.info("Experiment "+ exp_desc['name'] + \
+                                " -- peer " + str(peer) + "is not an amplifier.")
                 continue
             else:
                 exp_data = self._create_exp_data(exp_info, info, params.param_values,rep_addr, pub_addr)
@@ -95,7 +111,7 @@ class EEGExperimentFinder(object):
         send_msg(exp_sock, self.mtool.fill_msg('get_peer_param_values', peer_id=peer_id))
         params, details = self.poll_recv(exp_sock, 4000)
         if not info or not params:
-            print "get_peer_info failed", peer_id, details
+            LOGGER.error("get_peer_info failed " + str(peer_id) + "  " + str(details))
             return None, None
         return info, params
 
@@ -103,17 +119,16 @@ class EEGExperimentFinder(object):
     def _is_amplifier(self, peer_info, peer_params):
         info = peer_info
         peer_id = info.peer_id
-        
+
         if not info.peer_type == 'obci_peer':
-            print "not obci_peer", peer_id
+            LOGGER.info("Peer " + str(peer_id) + "  not obci_peer")
             return False
-        
+
         params = peer_params.param_values
         if not 'channels_info' in params or\
             not 'active_channels' in params:
-            print "no channels_info"
+            LOGGER.info('Peer  ' + str(peer_id) + "  no channels_info param.")
             return False
-
         return True
 
     def _create_exp_data(self, exp_info, peer_info, params, rep_addr, pub_addr):
@@ -135,8 +150,18 @@ class EEGExperimentFinder(object):
         result, details = self.poller.poll_recv(socket, timeout)
         if result:
             result = self.mtool.unpack_msg(result)
-        
+
         return result, details
+
+def find_eeg_experiments_and_push_results(ctx, srv_addrs, client_push_address):
+    finder = EEGExperimentFinder(srv_addrs, ctx, client_push_address)
+    exps = finder.find_amplified_experiments()
+    to_client = ctx.socket(zmq.PUSH)
+    to_client.connect(client_push_address)
+
+    send_msg(to_client, finder.mtool.fill_msg('eeg_experiments',
+                                    experiment_list=exps))
+
 
 class AmpExperimentInfo(object):
     def __init__(self, exp_info, amp_info, rep_addr, pub_addr):
@@ -145,6 +170,5 @@ class AmpExperimentInfo(object):
 if __name__ == '__main__':
     finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context())
     exps = finder.find_amplified_experiments()
-    print exps
     desc = json.dumps(exps, indent=4)
     print desc

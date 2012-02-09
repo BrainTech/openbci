@@ -15,6 +15,7 @@ import zmq
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates, error_codes
 from launcher_tools import module_path
+from eeg_experiment_finder import find_eeg_experiments_and_push_results
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
@@ -267,7 +268,7 @@ probably a server is already working"
 		exp = self.experiments.get(message.uuid, None)
 		if not exp:
 			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
-				print '##########'	
+				print '##########'
 				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
 			return
 		exp.status_name = message.status_name
@@ -368,6 +369,15 @@ probably a server is already working"
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
 			del self.exp_process_supervisors[message.sender]
 
+
+	@msg_handlers.handler("find_eeg_experiments")
+	def handle_find_eeg_experiments(self, message, sock):
+		send_msg(sock, self.mtool.fill_msg("rq_ok"))
+		finder_thr = threading.Thread(target=find_eeg_experiments_and_push_results,
+									args=[self.ctx, self.rep_addresses,
+										message.client_push_address])
+		finder_thr.daemon = True
+		finder_thr.start()
 
 
 	def _start_obci_supervisor_process(self, rq_message):

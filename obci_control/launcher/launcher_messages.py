@@ -19,16 +19,16 @@ message_templates = {
 	"get_peer_info" : dict(peer_id=''),
 	"get_peer_param_values" : dict(peer_id=''),
 	"peer_param_values" : dict(peer_id='', param_values=''),
-	"peer_info" : dict(config_sources='', 
-        external_params='', 
-        launch_dependencies='', 
+	"peer_info" : dict(config_sources='',
+        external_params='',
+        launch_dependencies='',
         local_params='',
-               machine='', 
-        path='', 
-        peer_id='', 
+               machine='',
+        path='',
+        peer_id='',
         peer_type=''),
 
-    "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='', 
+    "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='',
     							launcher_message='', params='', details=''),
     "experiment_status_change" : dict(uuid='', status_name='', details=''),
 
@@ -70,11 +70,11 @@ message_templates = {
 	"obci_peer_unregistered" : dict(peer_id=''),
 	"obci_peer_ready" : dict(peer_id=''),
 
-	"update_peer_config" : dict(peer_id='', local_params='', 
+	"update_peer_config" : dict(peer_id='', local_params='',
 							external_params='', launch_dependencies='', config_sources=''),
 	"save_scenario" : dict(file_name='', force=''),
 
-	"find_eeg_experiments" : dict(),
+	"find_eeg_experiments" : dict(client_push_address=''),
 	"eeg_experiments" : dict(experiment_list='')
 
 
