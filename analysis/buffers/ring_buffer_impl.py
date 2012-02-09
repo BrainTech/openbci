@@ -26,6 +26,9 @@ class RingBufferImpl(object):
         else:
             if self.index + start + length <= self.size:
                 d = self._get_normal(self.index+start, self.index+start+length)
+            elif self.index + start >= self.size:
+                ind = (self.index+start)%self.size
+                d = self._get_normal(ind, ind+length)                
             else:
                 d = self._get_concat(self.index+start, length-(self.size - (self.index + start)))
 

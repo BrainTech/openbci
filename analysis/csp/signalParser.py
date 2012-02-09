@@ -253,29 +253,43 @@ class signalParser(object):
         else:
             return tag_list
 
-    def get_p300_tags(self, samples = True, Fs = None):
+    def get_p300_tags(self, idx=1, samples = True, Fs = None):
         """Returns tags with words from different groups
+        
+        Parameters:
+        -----------
+        idx [= 1]: int
+            defines which tags to return
+        samples : bool
+            if true, positions will be returned as samples not in seconds
+        Fs : float or None
+            the sampling frequency used to convert positions to samples
+        
+        Returns:
+        --------
+        exp_list : list
+            a list of positions of target
         """
 
         ftag = minidom.parse(self.tag_file)
-        tag_list = ftag.getElementsByTagName('tag')
-        exp_list = {}
+        tag_list = [e for e in ftag.getElementsByTagName('tag') \
+                    if e.attributes['name'].value == 'blink']
+        exp_list = []
 
         fsp = self.sampling_frequency
         if(samples):
             if Fs != None:
                 fsp = Fs
         else: fsp = 1.0
-
-        for i in tag_list:
-            name = i.attributes['name'].value
-            if name not in exp_list:
-                exp_list[name] = []
-            exp_list[name].append((float(i.attributes['position'].value) * fsp,\
-                            float(i.getElementsByTagName('response')[0].firstChild.data),\
-                            float(i.getElementsByTagName('fix_time')[0].firstChild.data)))
-
-        return exp_list 
+        for e in tag_list:
+            index = e.getElementsByTagName('index')[0].firstChild.data
+            if idx > 0:
+                if int(index) == idx:
+                    exp_list.append(float(e.attributes['position'].value))
+            else:
+                if int(index) !=  abs(idx):
+                    exp_list.append(float(e.attributes['position'].value))
+        return np.array(exp_list) * fsp 
 
     def prep_signal(self, to_frequency, channels, montage_channels=['A1','A2'], montage='ears'):
         """This function preps signal to analysis.

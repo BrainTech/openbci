@@ -273,6 +273,19 @@ peer {
     name: "LOGIC_FEEDBACK"
 }
 
+peer {
+    type: 152
+    name: "P300_ANALYSIS"
+    queue_size: 32768	       
+}
+
+peer {
+    type: 153
+    name: "LOGIC_P300_CSP"
+}
+
+
+
 
 
 # packages and routing rules definitions
@@ -435,6 +448,13 @@ type {
        whom: ALL
 	report_delivery_error: false
        }
+
+    to {
+       peer: "P300_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+
 
 
 }
@@ -668,6 +688,13 @@ type {
 	whom: ALL
 	report_delivery_error: false
      }
+
+     to {
+     	peer: "P300_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
+
 }
 
 type {
@@ -703,6 +730,12 @@ type {
 	whom: ALL
 	report_delivery_error: false
 	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
 }
 
 type {
@@ -713,6 +746,12 @@ type {
 	whom: ALL
 	report_delivery_error: false
 	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
 }
 
 type {
@@ -723,6 +762,12 @@ type {
 	whom: ALL
 	report_delivery_error: false
 	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
 }
 
 type {
