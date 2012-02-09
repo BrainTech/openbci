@@ -202,7 +202,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
                 continue
             if result.type == 'eeg_experiments':
                 print "GOT EXPERIMENTS from", srv_ip
-                exps.append(result.experiment_list)
+                exps += result.experiment_list
         req.close()
 
     print "return to:  ", rq_message.client_push_address
