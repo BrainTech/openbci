@@ -27,6 +27,8 @@ import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
+from server_scanner import update_nearby_servers
+
 REGISTER_TIMEOUT = 6
 
 class OBCIServer(OBCIControlPeer):
@@ -50,6 +52,19 @@ class OBCIServer(OBCIControlPeer):
 
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
+		self._nearby_servers = []
+		self._nearby_servers_lock = threading.RLock()
+		self._nearby_updater = threading.Thread(target=update_nearby_servers,
+												args=[self._nearby_servers,
+														self._nearby_servers_lock,
+														self.ctx])
+		self._nearby_updater.daemon = True
+		self._nearby_updater.start()
+
+
+	def nearby_server_addrs(self):
+		with self._nearby_servers_lock:
+			return list(self._nearby_servers)
 
 	def peer_type(self):
 		return 'obci_server'
@@ -221,6 +236,9 @@ probably a server is already working"
 		for exp_id in self.experiments:
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
+		print "{0} [{1}] -- nearby servers:  {2}".format(
+										self.name, self.peer_type(), self.nearby_server_addrs())
+
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
 												exp_data=exp_data))
 
@@ -375,7 +393,8 @@ probably a server is already working"
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
 		finder_thr = threading.Thread(target=find_eeg_experiments_and_push_results,
 									args=[self.ctx, self.rep_addresses,
-										message.client_push_address])
+										message,
+										self.nearby_server_addrs()])
 		finder_thr.daemon = True
 		finder_thr.start()
 

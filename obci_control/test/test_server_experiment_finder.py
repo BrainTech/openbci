@@ -41,6 +41,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     msg = recv_msg(exp_info_pull)
-    exp_info = mtool.unpack_msg(msg)
 
-    print exp_info.experiment_list
+    exp_info = mtool.unpack_msg(msg)
+    sss = json.dumps(exp_info.experiment_list, indent=4)
+    print sss
