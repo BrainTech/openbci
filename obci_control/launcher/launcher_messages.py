@@ -27,6 +27,9 @@ message_templates = {
         path='', 
         peer_id='', 
         peer_type=''),
+
+    "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='', 
+    							launcher_message='', params='', details=''),
     "experiment_status_change" : dict(uuid='', status_name='', details=''),
 
 	"get_experiment_contact" : dict(strname=''),

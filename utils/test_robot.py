@@ -11,14 +11,14 @@ class TestRobot(object):
 
     def head_up(self):
         # http://192.168.10.18/rev.cgi?Cmd=nav&action=18&drive=13&speed=5
-        params = urllib.urlencode({'Cmd': 'nav', 
-                                    'action': 18, 
-                                    'drive': 13, 
+        params = urllib.urlencode({'Cmd': 'nav',
+                                    'action': 18,
+                                    'drive': 13,
                                     'speed' : 5})
         print params
         try:
             # f = urllib.urlopen("http://" + self.robot_ip + "/rev.cgi?%s" % params)
-            f = urllib.urlopen("http://192.168.10.18/rev.cgi?Cmd=nav&action=18&drive=11&speed=5")
+            f = urllib.urlopen("http://192.168.1.9/rev.cgi?Cmd=nav&action=1")
         except IOError, e:
             print "Connection error: ", str(e)
         else:
