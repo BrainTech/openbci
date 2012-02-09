@@ -181,6 +181,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
         send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
                                         client_push_address=my_push_addr,
                                         checked_srvs=checked))
+        checked.append(srv_ip)
         msg, details = mpoller.poll_recv(req, 5000)
         if not msg:
             req.close()
