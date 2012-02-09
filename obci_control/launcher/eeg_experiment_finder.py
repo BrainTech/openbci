@@ -3,6 +3,7 @@
 
 import json
 import zmq
+import time
 
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
@@ -47,6 +48,7 @@ class EEGExperimentFinder(object):
             infos = self._info_amplified(exp)
 
             if infos is not None:
+                print "Found experiments...", str(infos)[:500]
                 amplified += infos
 
         return amplified
@@ -167,7 +169,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
                                             min_port=PORT_RANGE[0],
                                             max_port=PORT_RANGE[1], max_tries=500)
     my_push_addr = my_addr + ':' + str(port)
-
+    print "my exp_data pull: ", my_push_addr
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
@@ -189,7 +191,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
         print msg
         msg = finder.mtool.unpack_msg(msg)
         if msg.type == 'rq_ok':
-            result, details = mpoller.poll_recv(other_exps_pull, 5000)
+            result, details = mpoller.poll_recv(other_exps_pull, 10000)
             if not result:
                 req.close()
                 continue
@@ -199,6 +201,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
                 req.close()
                 continue
             if result.type == 'eeg_experiments':
+                print "GOT EXPERIMENTS from", srv_ip
                 exps.append(result.experiment_list)
         req.close()
 
@@ -208,6 +211,8 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
 
     send_msg(to_client, finder.mtool.fill_msg('eeg_experiments',
                                     experiment_list=exps))
+    print "sent exp data...", str(exps)[:500], '[...]'
+    time.sleep(0.2)
 
 
 if __name__ == '__main__':

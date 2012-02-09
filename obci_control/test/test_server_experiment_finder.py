@@ -34,14 +34,18 @@ if __name__ == '__main__':
 
     send_msg(server_req, mtool.fill_msg('find_eeg_experiments',
                                     client_push_address=client_push_addr))
-    msg = recv_msg(server_req)
+    msg,details = pl.poll_recv(server_req, 2000)
+    if not msg:
+        print "srv request timeout!"
+        sys.exit(1)
+
     response = mtool.unpack_msg(msg)
 
     if not response.type == 'rq_ok':
         print "whaaa?"
         sys.exit(1)
 
-    msg = pl.poll_recv(exp_info_pull, 5500)
+    msg, details = pl.poll_recv(exp_info_pull, 20000)
 
     if not msg:
         print "TIMEOUT"
