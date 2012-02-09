@@ -179,7 +179,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
         req = ctx.socket(zmq.REQ)
         req.connect(addr)
         send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
-                                        client_push_address=my_push_addr,
+                                        client_push_address='tcp://'+my_push_addr,
                                         checked_srvs=checked))
         checked.append(srv_ip)
         msg, details = mpoller.poll_recv(req, 5000)
@@ -202,6 +202,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
                 exps.append(result.experiment_list)
         req.close()
 
+    print "return to:  ", rq_message.client_push_address
     to_client = ctx.socket(zmq.PUSH)
     to_client.connect(rq_message.client_push_address)
 

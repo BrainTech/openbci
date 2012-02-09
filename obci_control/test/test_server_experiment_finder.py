@@ -13,6 +13,7 @@ import common.net_tools as net
 
 if __name__ == '__main__':
     mtool = OBCIMessageTool(message_templates)
+    pl = PollingObject()
 
     ifname = net.server_ifname()
     my_addr = 'tcp://' + net.ext_ip(ifname=ifname)
@@ -40,8 +41,11 @@ if __name__ == '__main__':
         print "whaaa?"
         sys.exit(1)
 
-    msg = recv_msg(exp_info_pull)
+    msg = pl.poll_recv(exp_info_pull, 5500)
 
-    exp_info = mtool.unpack_msg(msg)
-    sss = json.dumps(exp_info.experiment_list, indent=4)
-    print sss
+    if not msg:
+        print "TIMEOUT"
+    else:
+        exp_info = mtool.unpack_msg(msg)
+        sss = json.dumps(exp_info.experiment_list, indent=4)
+        print sss[:300]
