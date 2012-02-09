@@ -74,7 +74,7 @@ message_templates = {
 							external_params='', launch_dependencies='', config_sources=''),
 	"save_scenario" : dict(file_name='', force=''),
 
-	"find_eeg_experiments" : dict(client_push_address=''),
+	"find_eeg_experiments" : dict(client_push_address='', checked_srvs=''),
 	"eeg_experiments" : dict(experiment_list='')
 
 

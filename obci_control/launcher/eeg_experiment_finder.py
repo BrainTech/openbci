@@ -3,17 +3,19 @@
 
 import json
 import zmq
+import time
 
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
+from common.obci_control_settings import PORT_RANGE
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
 class EEGExperimentFinder(object):
-    def __init__(self, srv_addrs, ctx, client_push_address):
+    def __init__(self, srv_addrs, ctx, client_push_address, nearby_servers):
         self.ctx = ctx
         self.server_req_socket = self.ctx.socket(zmq.REQ)
         for addr in srv_addrs:
@@ -21,6 +23,7 @@ class EEGExperimentFinder(object):
 
         self.poller = PollingObject()
         self.mtool = OBCIMessageTool(message_templates)
+        self.nearby_servers = nearby_servers
         self._amplified_cache = {}
 
     def _running_experiments(self):
@@ -45,6 +48,7 @@ class EEGExperimentFinder(object):
             infos = self._info_amplified(exp)
 
             if infos is not None:
+                print "Found experiments...", str(infos)[:500]
                 amplified += infos
 
         return amplified
@@ -153,19 +157,63 @@ class EEGExperimentFinder(object):
 
         return result, details
 
-def find_eeg_experiments_and_push_results(ctx, srv_addrs, client_push_address):
-    finder = EEGExperimentFinder(srv_addrs, ctx, client_push_address)
+def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_servers):
+    finder = EEGExperimentFinder(srv_addrs, ctx, rq_message.client_push_address, nearby_servers)
     exps = finder.find_amplified_experiments()
+    mpoller = PollingObject()
+
+    other_exps_pull = ctx.socket(zmq.PULL)
+    ifname = net.server_ifname()
+    my_addr = net.ext_ip(ifname=ifname)
+    port = other_exps_pull.bind_to_random_port('tcp://' + my_addr,
+                                            min_port=PORT_RANGE[0],
+                                            max_port=PORT_RANGE[1], max_tries=500)
+    my_push_addr = my_addr + ':' + str(port)
+    print "my exp_data pull: ", my_push_addr
+    checked = rq_message.checked_srvs
+    if not isinstance(checked, list):
+        checked = []
+    checked.append(my_addr)
+    nearby_servers = [ip for ip in nearby_servers if ip not in checked]
+
+    for srv_ip in nearby_servers:
+        addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
+        req = ctx.socket(zmq.REQ)
+        req.connect(addr)
+        send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
+                                        client_push_address='tcp://'+my_push_addr,
+                                        checked_srvs=checked))
+        checked.append(srv_ip)
+        msg, details = mpoller.poll_recv(req, 5000)
+        if not msg:
+            req.close()
+            continue
+        print msg
+        msg = finder.mtool.unpack_msg(msg)
+        if msg.type == 'rq_ok':
+            result, details = mpoller.poll_recv(other_exps_pull, 10000)
+            if not result:
+                req.close()
+                continue
+            result = finder.mtool.unpack_msg(result)
+            if not result:
+                print "ble, ", srv_ip
+                req.close()
+                continue
+            if result.type == 'eeg_experiments':
+                print "GOT EXPERIMENTS from", srv_ip
+                exps.append(result.experiment_list)
+        req.close()
+
+    print "return to:  ", rq_message.client_push_address
     to_client = ctx.socket(zmq.PUSH)
-    to_client.connect(client_push_address)
+    to_client.connect(rq_message.client_push_address)
 
     send_msg(to_client, finder.mtool.fill_msg('eeg_experiments',
                                     experiment_list=exps))
+    print "sent exp data...", str(exps)[:500], '[...]'
+    time.sleep(0.2)
 
-
-class AmpExperimentInfo(object):
-    def __init__(self, exp_info, amp_info, rep_addr, pub_addr):
-        self.dict_info = {}
 
 if __name__ == '__main__':
     finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context())
