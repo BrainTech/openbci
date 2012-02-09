@@ -4,25 +4,28 @@
 import json
 import zmq
 
-from launcher.obci_client import OBCIClient
-from launcher.obci_script import client_server_prep
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
 
-LOGGER = logger.get_logger("running_eeg_experiment_finder", "info")
+LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
 class EEGExperimentFinder(object):
-    def __init__(self, srv_addrs, ctx):
-        self.client = OBCIClient(srv_addrs, ctx)#client_server_prep()
+    def __init__(self, srv_addrs, ctx, client_push_address):
+        self.ctx = ctx
+        self.server_req_socket = self.ctx.socket(zmq.REQ)
+        for addr in srv_addrs:
+            self.server_req_socket.connect(addr)
+
         self.poller = PollingObject()
         self.mtool = OBCIMessageTool(message_templates)
         self._amplified_cache = {}
 
     def _running_experiments(self):
-        exp_list = self.client.send_list_experiments()
+        send_msg(self.server_req_socket, self.mtool.fill_msg("list_experiments"))
+        exp_list, details = self.poll_recv(self.server_req_socket, 2000)
         if not exp_list:
             LOGGER.error("Connection to obci_server failed. (list_experiments)")
             return None
@@ -66,7 +69,7 @@ class EEGExperimentFinder(object):
         LOGGER.info("Chosen experiment addresses: REP -- " + \
                                 str(rep_addr) + ", PUB -- " + str(pub_addr))
 
-        req_sock = self.client.ctx.socket(zmq.REQ)
+        req_sock = self.ctx.socket(zmq.REQ)
         req_sock.connect(rep_addr)
 
         send_msg(req_sock, self.mtool.fill_msg('get_experiment_info'))
@@ -149,6 +152,16 @@ class EEGExperimentFinder(object):
             result = self.mtool.unpack_msg(result)
 
         return result, details
+
+def find_eeg_experiments_and_push_results(ctx, srv_addrs, client_push_address):
+    finder = EEGExperimentFinder(srv_addrs, ctx, client_push_address)
+    exps = finder.find_amplified_experiments()
+    to_client = ctx.socket(zmq.PUSH)
+    to_client.connect(client_push_address)
+
+    send_msg(to_client, finder.mtool.fill_msg('eeg_experiments',
+                                    experiment_list=exps))
+
 
 class AmpExperimentInfo(object):
     def __init__(self, exp_info, amp_info, rep_addr, pub_addr):
