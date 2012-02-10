@@ -13,6 +13,7 @@ from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
+from logic import logic_helper
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("ssvep_csp", 'info')
@@ -120,7 +121,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def _run_next_scenario(self):
         path = self.config.get_param('next_scenario_path')
         if len(path) > 0:
-            os.system("sleep 5 && obci kill ss && sleep 10 && obci launch "+path+" &")
+            logic_helper.restart_scenario(path)
         else:
             LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
