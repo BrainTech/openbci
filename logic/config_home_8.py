@@ -24,12 +24,27 @@ class Config(object):
 
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"Naprzód", u"Do tyłu", u"W prawo", u'W lewo', '', '', '', u'Zakończ']
+        self.letters[0] = [
+            [u"Odkurzacz (OFF)", u"Odkurzacz (ON)"],
+            [u"Wiertarka (OFF)", u"Wiertarka (ON)"], 
+            [u"Pralka (OFF)", u"Pralka (ON)"],
+            '', '', '', '', u'Zakończ']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
+        self.letters_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
+                                  '', '', '', '']
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["robot('forward')", "robot('backward')", "robot('right')", "robot('left')", 
-                      "robot('camera_up')", "robot('camera_middle')", "robot('camera_down')", 
-                      "finish("+self._finish_params+")"] 
+
+        self.actions[0] = [
+            ['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "power off 1\\n\\r"\')'], 
+            ['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
+            ['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
+            '', '', '', '', "finish("+self._finish_params()+")"]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
+        self.actions_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
+                                  '', '', '', '']
+
+
+    def _finish_params(self):
+        return "x, x"

@@ -9,6 +9,7 @@ import os.path, sys, time, os
 from multiplexer.multiplexer_constants import peers, types
 
 from logic import logic_decision_peer
+from logic import logic_helper
 from configs import settings, variables_pb2
 from logic import logic_logging as logger
 from gui.ugm import ugm_helper
@@ -57,6 +58,10 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
     def close_dasher(self):
         self._message = os.popen('xsel -b').read().decode('utf-8')
         os.system('killall dasher')
+
+    def finish(self, action, param):
+        if action == 'restart_scenario':
+            logic_helper.restart_scenario(param)
 
     # --------------------------------------------------------------------------
     # ---------- methods for config updates and other updates  -----------------

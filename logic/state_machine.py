@@ -17,10 +17,16 @@ class StateMachine(object):
     def update_from_file(self, p_config_file=None):
         if not  p_config_file:
             p_config_file = self._config_file
-        #tmp = __import__('configs', globals(), locals(), [p_config_file], -1)
-        #l_logic_config = tmp.__dict__[p_config_file]
-        l_logic_config = __import__(p_config_file)
-        reload(l_logic_config)
+        dot = p_config_file.rfind('.')
+        if dot < 0:
+            mod = ''
+            cls = p_config_file
+        else:
+            mod = p_config_file[:dot]
+            cls = p_config_file[dot+1:]
+        tmp = __import__(mod, globals(), locals(), [cls], -1)
+        reload(tmp)
+        l_logic_config = tmp.__dict__[cls]()
         self._states = []
         for i_state_ind in range(l_logic_config.number_of_states):
             l_state = dict()

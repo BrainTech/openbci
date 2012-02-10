@@ -24,12 +24,13 @@ class Config(object):
 
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"Naprzód", u"Do tyłu", u"W prawo", u'W lewo', '', '', '', u'Zakończ']
+        self.letters[0] = [u"Tryb SSVEP",u'Kalibruj SSVEP', U'Tryb P300', u'Kalibruj P300',
+                           u"Kolor", u'Kolor', u'Kolor', u'Zakończ']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["robot('forward')", "robot('backward')", "robot('right')", "robot('left')", 
-                      "robot('camera_up')", "robot('camera_middle')", "robot('camera_down')", 
-                      "finish("+self._finish_params+")"] 
-
+        self.actions[0] = ["finish('restart_scenario', '"+self._scenario(i)+"')" for i in range(self.number_of_decisions)]
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
+
+    def _scenario(self, i):
+        return "x"
