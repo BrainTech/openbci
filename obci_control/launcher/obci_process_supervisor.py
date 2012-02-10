@@ -150,7 +150,16 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		proc, details = None, None
 		success = True
 		path, args = None, None
+
+		ldata = []
+		ldata.append(('config_server', self.launch_data['config_server']))
+		if 'amplifier' in self.launch_data:
+			ldata.append(('amplifier', self.launch_data['amplifier']))
 		for peer, data in self.launch_data.iteritems():
+			if (peer, data) not in ldata:
+				ldata.append((peer, data))
+
+		for peer, data in ldata:#self.launch_data.iteritems():
 			if peer.startswith('mx'):
 				continue
 			path = os.path.join(launcher_tools.obci_root(), data['path'])
@@ -216,9 +225,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	@msg_handlers.handler("stop_all")
 	def handle_stop_all(self, message, sock):
-		
+
 		self.subprocess_mgr.killall()
-	
+
 	@msg_handlers.handler("dead_process")
 	def handle_dead_process(self, message, sock):
 		proc = self.subprocess_mgr.process(message.machine, message.pid)
