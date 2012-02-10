@@ -25,12 +25,12 @@ class Config(object):
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [
-            [u"Odkurzacz (OFF)", u"Odkurzacz (ON)"],
-            [u"Wiertarka (OFF)", u"Wiertarka (ON)"], 
-            [u"Pralka (OFF)", u"Pralka (ON)"],
-            '', '', '', '', u'Zakończ']
+            [u"Lamp(OFF)", u"Lamp(ON)"],
+            [u"Music(OFF)", u"Music(ON)"], 
+            '',
+            '', '', '', '', u'Finish']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
+        self.letters_solver[0] = ['solve(0)', 'solve(1)', '', '',
                                   '', '', '', '']
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
@@ -38,11 +38,11 @@ class Config(object):
         self.actions[0] = [
             ['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "power off 1\\n\\r"\')'], 
             ['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
-            ['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
+            '', 
             '', '', '', '', "finish("+self._finish_params()+")"]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
+        self.actions_solver[0] = ['solve(0)', 'solve(1)', '', '',
                                   '', '', '', '']
 
 

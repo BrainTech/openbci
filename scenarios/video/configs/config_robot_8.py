@@ -24,8 +24,8 @@ class Config(object):
 
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"Naprzód", u"Do tyłu", u"W prawo", u'W lewo', 
-                           u'Kamera UP', u'Kamera MD', u'Kamera DOWN', u'Zakończ']
+        self.letters[0] = [u"Fwd", u"Back", u"Right", u'Left', 
+                           u'Cam up', u'Cam midd', u'Cam down', u'Finish']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]

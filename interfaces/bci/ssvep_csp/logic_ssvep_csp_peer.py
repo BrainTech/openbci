@@ -95,14 +95,14 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         all_means = cfg['all_means'].split(';')
         ugm_helper.send_config_for(
             self.conn, text_id, 'message',
-            u''.join([u"Czestosci od najlepszej do najgorszej:"# i ich sila:",
+            u''.join([u"Best frequencies:"# i ich sila:",
                      '\n',
                      #' '.join([all_freqs[i]+" ("+all_means[i]+")" for i in range(len(all_freqs))]),
                       ' '.join([all_freqs[i] for i in range(len(all_freqs))]),
                      '\n',
-                     u'Proponowany rozmiar bufora: '+str(cfg['buffer'])+" sekund",
+                     u'Suggested buffer length: '+str(cfg['buffer'])+" secs",
                      '\n',
-                     u'Nizej mozesz zmienic proponowane wartosci:'
+                     u'Suggested frequencies:'
                      ])
             )
 
