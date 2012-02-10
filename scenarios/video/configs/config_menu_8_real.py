@@ -6,13 +6,13 @@ class Config(config_menu_8.Config):
         return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
 
     def _robot_scenario(self):
-        return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
-    #return "~/obci/scenarios/video/bci_ssvep_robot.ini"
+        #return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
+        return "~/obci/scenarios/video/bci_ssvep_robot.ini"
 
     def _home_scenario(self):
-        return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
-    #return "~/obci/scenarios/video/bci_ssvep_home.ini"
+        #return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
+        return "~/obci/scenarios/video/bci_ssvep_home.ini"
 
     def _settings_scenario(self):
-        return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
-       #return "~/obci/scenarios/video/bci_ssvep_settings.ini"
+        #return  "~/obci/scenarios/video/bci_ssvep_speller.ini"
+        return "~/obci/scenarios/video/bci_ssvep_settings.ini"

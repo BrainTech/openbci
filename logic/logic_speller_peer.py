@@ -44,7 +44,12 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
         if not msg:
             msg = self._message
         LOGGER.info("TRYING TO SAY: "+msg)
-        self.run_ext(u''.join([u'milena_say ', msg, u" &"]))
+        self.run_ext(u''.join(
+                [#u'milena_say ', msg, u" &"
+                    u'echo "', msg,'" | ',
+                    "festival --tts",
+                    " &"
+                 ]))
 
     def msg(self, p_message):
         """Update stored message."""
