@@ -13,7 +13,7 @@ from common.obci_control_settings import PORT_RANGE
 import common.net_tools as net
 
 
-def update_nearby_servers(srv_data, lock, ctx=None):
+def update_nearby_servers(srv_data, srv_data_lock, ctx=None):
     mtool = OBCIMessageTool(message_templates)
 
     ifname = net.server_ifname()
@@ -39,6 +39,7 @@ def update_nearby_servers(srv_data, lock, ctx=None):
         poller.register(req_s, zmq.POLLIN)
 
     to_send = srv_dict.keys()
+    trials = 5
 
     while True:
         new_srv_data = []
@@ -48,7 +49,7 @@ def update_nearby_servers(srv_data, lock, ctx=None):
         active_sockets = None
         fail_det = None
         try:
-            active_sockets = dict(poller.poll(timeout=2000))
+            active_sockets = dict(poller.poll(timeout=5000))
         except zmq.ZMQError, e:
             fail_det = "obci_client: zmq.poll(): " + e.strerror
             return
@@ -59,8 +60,17 @@ def update_nearby_servers(srv_data, lock, ctx=None):
                     msg = mtool.unpack_msg(recv_msg(sock))
                     to_send.append(sock)
                     new_srv_data.append(srv_dict[sock])
+            # print "--> ",new_srv_data
+            trials -= 1
 
-            with lock:
-                srv_data[0:] = list(new_srv_data)
+
+            if trials == 0:
+                trials = 5
+                with srv_data_lock:
+                    srv_data[0:] = list(new_srv_data)
+            elif trials > 0:
+                with srv_data_lock:
+                    srv_data[0:] = (list(set(srv_data + new_srv_data)))
+
 
         time.sleep(3)

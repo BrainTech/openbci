@@ -57,6 +57,7 @@ class OBCIServer(OBCIControlPeer):
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
 														self._nearby_servers_lock,
+
 														self.ctx])
 		self._nearby_updater.daemon = True
 		self._nearby_updater.start()
@@ -65,6 +66,10 @@ class OBCIServer(OBCIControlPeer):
 	def nearby_server_addrs(self):
 		with self._nearby_servers_lock:
 			return list(self._nearby_servers)
+
+	def set_nearby_server_addrs(self, addr_list):
+		with self._nearby_servers_lock:
+			self._nearby_servers = list(addr_list)
 
 	def peer_type(self):
 		return 'obci_server'
