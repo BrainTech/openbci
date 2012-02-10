@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from launcher.launcher_tools import obci_root
+import os.path
+
 class Config(object):
     def __init__(self):
         self.number_of_decisions = 8
@@ -12,6 +15,7 @@ class Config(object):
         # A list of all configs defined as globals,
         # not assigned to any particular state.
         self.other_configs = []
+        tahoe_path = os.path.join(obci_root(), 'devices', 'tahoe')
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! Only keys defined in states_configs and other_configs
@@ -26,7 +30,7 @@ class Config(object):
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [
             [u"Odkurzacz (OFF)", u"Odkurzacz (ON)"],
-            [u"Wiertarka (OFF)", u"Wiertarka (ON)"], 
+            [u"Wiertarka (OFF)", u"Wiertarka (ON)"],
             [u"Pralka (OFF)", u"Pralka (ON)"],
             '', '', '', '', u'Zakończ']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
@@ -36,9 +40,9 @@ class Config(object):
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions[0] = [
-            ['run_ext(\'tahoe  "power on 1\\n\\r"\')', 'run_ext(\'tahoe  "power off 1\\n\\r"\')'], 
-            ['run_ext(\'tahoe  "power on 2\\n\\r"\')', 'run_ext(\'tahoe  "power off 2\\n\\r"\')'], 
-            ['run_ext(\'tahoe  "power on 3\\n\\r"\')', 'run_ext(\'tahoe  "power off 3\\n\\r"\')'], 
+            ['run_ext(\''+tahoe_path+'  "power on 1\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 1\\n\\r"\')'],
+            ['run_ext(\''+tahoe_path+'  "power on 2\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 2\\n\\r"\')'],
+            ['run_ext(\''+tahoe_path+'  "power on 3\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 3\\n\\r"\')'],
             '', '', '', '', "finish("+self._finish_params()+")"]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
