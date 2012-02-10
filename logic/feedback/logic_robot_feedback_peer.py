@@ -45,10 +45,11 @@ class LogicRobotFeedback(ConfiguredClient):
 
         while True:
             image = self._robot.get_image()
-            with open(imgpath, 'w') as fil:
-                fil.write(image)
-            ugm_helper.send_config_for(self.conn, self.robot_image_id, 'image_path', imgpath)
-            LOGGER.info("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
+            if image is not None:
+                with open(imgpath, 'w') as fil:
+                    fil.write(image)
+                    ugm_helper.send_config_for(self.conn, self.robot_image_id, 'image_path', imgpath)
+                    LOGGER.info("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
             time.sleep(0.3)
             index = int(not index)
             imgpath = self.paths[index]

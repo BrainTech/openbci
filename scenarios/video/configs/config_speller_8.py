@@ -29,14 +29,14 @@ class Config(object):
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"a b c d e f",u"g h i j k l",u"m n o p r s",u"t u w y z ż",u"ą ć ę ł ń ó ś", u"Znaki", u"Akcje", u"Zakończ"]
-        self.letters[1] = ["a","b","c","d","e","f","Skasuj", u"Wróć"]
-        self.letters[2] = ["g","h","i","j","k","l","Skasuj", u"Wróć"]
-        self.letters[3] = ["m","n","o","p","r","s","Skasuj", u"Wróć"]
-        self.letters[4] = ["t","u","w","y","z", u"ż","Skasuj", u"Wróć"]
-        self.letters[5] = [u"ą", u"ć", u"ę", u"ł", u"ń", u"ś", u"ó", u"Wróć"]
-        self.letters[6] = ["_",",",".",";","?","!","Skasuj",u"Wróć"]
-        self.letters[7] = [u"Mów!",u"Wyczyść", u"Skasuj", "", "", "", "", u"Wróć"]
+        self.letters[0] = [u"a b c d e f",u"g h i j k l",u"m n o p r s",u"t u w y z ż",u"ą ć ę ł ń ó ś", u"Chars", u"Actions", u"End"]
+        self.letters[1] = ["a","b","c","d","e","f","Del", u"Back"]
+        self.letters[2] = ["g","h","i","j","k","l","Del", u"Back"]
+        self.letters[3] = ["m","n","o","p","r","s","Del", u"Back"]
+        self.letters[4] = ["t","u","w","y","z", u"ż","Del", u"Back"]
+        self.letters[5] = [u"ą", u"ć", u"ę", u"ł", u"ń", u"ś", u"ó", u"Back"]
+        self.letters[6] = ["_",",",".",";","?","!","Del",u"Back"]
+        self.letters[7] = [u"Say!",u"Clear", u"Del", "", "", "", "", u"Back"]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 

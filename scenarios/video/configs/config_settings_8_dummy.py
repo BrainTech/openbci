@@ -4,7 +4,7 @@ from scenarios.video.configs import config_settings_8
 class Config(config_settings_8.Config):
     def __init__(self):
         self._scenarios = [
-            "~/obci/scenarios/video/bci_ssvep_menu_dummy.ini",
+            "~/obci/scenarios/video/bci_p300_menu_dummy.ini",
             "~/obci/scenarios/video/calibration_ssvep_dummy.ini",
             #"~/obci/scenarios/video/bci_p300_menu_dummy.ini",
             "~/obci/scenarios/video/bci_ssvep_menu_dummy.ini",
