@@ -7,7 +7,7 @@ class Config(config_settings_8.Config):
             "~/obci/scenarios/video/bci_ssvep_menu_dummy.ini",
             "~/obci/scenarios/video/calibration_ssvep_dummy.ini",
             "~/obci/scenarios/video/bci_p300_menu_dummy.ini",
-            "~/obci/scenarios/video/calibration_p300_dummy.ini",
+            "~/obci/scenarios/video/calibration_ssvep_dummy.ini",
             "~/obci/scenarios/video/bci_ssvep_menu_dummy_c1.ini",
             "~/obci/scenarios/video/bci_ssvep_menu_dummy_c2.ini",
             "~/obci/scenarios/video/bci_ssvep_menu_dummy_c3.ini",

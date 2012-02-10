@@ -3,11 +3,6 @@
 
 class Config(object):
     def __init__(self):
-        self._speller_scenario = ""
-        self._robot_scenario = ""
-        self._home_scenario = ""
-        self._settings_scenario = ""
-
         self.number_of_decisions = 8
         self.number_of_states = 1
 
@@ -34,9 +29,22 @@ class Config(object):
 
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["finish('restart_scenario', '"+self._speller_scenario+"')", 
-                           "finish('restart_scenario', '"+self._robot_scenario+"')", 
-                           "finish('restart_scenario', '"+self._home_scenario+"')", 
-                           "finish('restart_scenario', '"+self._settings_scenario+"')", 
+        self.actions[0] = ["finish('restart_scenario', '"+self._speller_scenario()+"')", 
+                           "finish('restart_scenario', '"+self._robot_scenario()+"')", 
+                           "finish('restart_scenario', '"+self._home_scenario()+"')", 
+                           "finish('restart_scenario', '"+self._settings_scenario()+"')", 
                            "", "", "", ""]		       
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
+
+    def _speller_scenario(self):
+        return  ""
+
+    def _robot_scenario(self):
+        return ""
+
+    def _home_scenario(self):
+        return ""
+
+    def _settings_scenario(self):
+        return ""
+
