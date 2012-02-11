@@ -98,11 +98,11 @@ def cmd_config(args):
 			external_params=args.external_params,
 			launch_dependencies=args.launch_dependencies,
 			config_sources=args.config_sources)
-	
+
 	response = client.configure_peer(args.experiment, args.peer_id, ovr,
 							args.config_file)
 	disp.view(response)
-	
+
 
 def cmd_info(args):
 	client = client_server_prep()
@@ -324,7 +324,7 @@ def client_server_prep(cmdargs=None):
 	disp.view("OBCI server launched. PID: {0}".format(success.pid))
 
 
-	res = client.retry_ping(timeout=800)
+	res = client.retry_ping(timeout=2200)
 
 	if res is None:
 		disp.view("Could not connect to OBCI Server")
