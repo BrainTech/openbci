@@ -25,7 +25,7 @@ class Config(object):
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [u"P300",u'Calibration', U'Font colour', u'Font colour',
-                           u"", u'', u'Auditory\nfeedback', u'  Visual\nfeedback']
+                           u"", u'', u'  Visual\nfeedback', u'Auditory\nfeedback']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
