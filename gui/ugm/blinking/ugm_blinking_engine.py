@@ -66,7 +66,11 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._curr_blink_ugm = self.ugm_mgr.get_blink_ugm(self._curr_blink_id)
         self._curr_unblink_ugm = self.ugm_mgr.get_unblink_ugm(self._curr_blink_id)
         curr_time = self.time_mgr.get_time()
-        self._blink_timer.start(1000*(curr_time - (time.time()-start_time)))
+        t = 1000*(curr_time - (time.time()-start_time))
+        if t < 0:
+            t = 0.0
+            print("BLINKER WARNING: time between blinks to short for that computer ...")
+        self._blink_timer.start(t)
 
     def stop_blinking(self):
         self.STOP = True
@@ -78,7 +82,12 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         if self._blinks_count >= 0:
             self._blinks_count -= 1
         self.connection.send_blink(self._curr_blink_id, update_time)
-        self._unblink_timer.start(1000*(self._blink_duration - (time.time() - start_time)))
+        t = 1000*(self._blink_duration - (time.time() - start_time))
+        if t < 0:
+            t = 0.0
+            print("BLINKER WARNING: blink duration to short for that computer ...")
+        self._unblink_timer.start(t)
+
 
     def _unblink(self):
         start_time = time.time()

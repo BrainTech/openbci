@@ -16,8 +16,10 @@ from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_csp import bci_p300_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
+from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_p300_csp")
+LOGGER = logger.get_logger("bci_p300_csp", "info")
+DEBUG = False
 
 
 class BCIP300Csp(ConfiguredMultiplexerServer):
@@ -33,7 +35,6 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         #Create a helper object to get configuration from the system
         super(BCIP300Csp, self).__init__(addresses=addresses,
                                           type=peers.P300_ANALYSIS)
-
         #get stats from file
         cfg = self._get_csp_config()
         montage_matrix = self._get_montage_matrix(cfg)
@@ -58,11 +59,27 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             )
         
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
+        if DEBUG:
+            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
+                                               LOGGER,
+                                               int(self.config.get_param('samples_per_packet')))
+                                                   
         self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
+        #always buffer signal
+        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
+	    l_msg = variables_pb2.SampleVector()
+            l_msg.ParseFromString(mxmsg.message)
+            #Supply buffer with sample data, the buffer will fire its
+            #ret_func (that we defined as self.analysis.analyse) every 'every' samples
+            self.buffer.handle_sample_vect(l_msg)
+            if DEBUG:
+                self.debug.next_sample()
+
+        #process blinks only when hold_time passed
         if self._last_dec_time > 0:
             t = time.time() - self._last_dec_time
             if t > self.hold_after_dec:
@@ -71,13 +88,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                 self.no_response()
                 return
 
-        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.SampleVector()
-            l_msg.ParseFromString(mxmsg.message)
-            #Supply buffer with sample data, the buffer will fire its
-            #ret_func (that we defined as self.analysis.analyse) every 'every' samples
-            self.buffer.handle_sample_vect(l_msg)
-        elif mxmsg.type == types.BLINK_MESSAGE:
+        if mxmsg.type == types.BLINK_MESSAGE:
 	    l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
             self.buffer.handle_blink(l_msg)

@@ -16,8 +16,10 @@ from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
+from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_ssve_csp")
+LOGGER = logger.get_logger("bci_ssve_csp", "info")
+DEBUG = False
 
 
 class BCISsvepCsp(ConfiguredMultiplexerServer):
@@ -63,6 +65,10 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             )
         
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
+        if DEBUG:
+            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
+                                               LOGGER,
+                                               int(self.config.get_param('samples_per_packet')))
         self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
         self.ready()
         appliance_helper.send_freqs(self.conn, str_freqs)
@@ -74,6 +80,8 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             if t > self.hold_after_dec:
                 self._last_dec_time = 0
             else:
+                if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and DEBUG:
+                    self.debug.next_sample()
                 self.no_response()
                 return
 
@@ -83,6 +91,8 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             #Supply buffer with sample data, the buffer will fire its
             #ret_func (that we defined as self.analysis.analyse) every 'every' samples
             self.buffer.handle_sample_vect(l_msg)
+            if DEBUG:
+                self.debug.next_sample()
         self.no_response()
 
     def _get_analysis(self, send_func, freqs, cfg, montage_matrix):

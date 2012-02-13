@@ -42,10 +42,10 @@ class Config(object):
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions[0] = [
-            ['run_ext(\''+tahoe_path+'  "on 1"\')', 'run_ext(\''+tahoe_path+'  "off 1"\')'],
-            ['run_ext(\''+tahoe_path+'  "on 2"\')', 'run_ext(\''+tahoe_path+'  "off 2"\')'],
+            ['run_ext(\''+tahoe_path+'  on 1\')', 'run_ext(\''+tahoe_path+'  off 1\')'],
+            ['run_ext(\''+tahoe_path+'  on 2\')', 'run_ext(\''+tahoe_path+'  off 2\')'],
             '', '',
-            '', '', '', '']#"finish("+self._finish_params()+")"]
+            '', '', '', "finish("+self._finish_params()+")"]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
         self.actions_solver[0] = [

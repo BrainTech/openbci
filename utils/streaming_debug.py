@@ -30,22 +30,25 @@ See signal_streamer_no_filter.py for sample use.
 """
 import time
 class Debug(object):
-    def __init__(self, p_sampling, logger):
+    def __init__(self, p_sampling, logger, per=1):
         """By now init externally given logger 
         (python standar logger object) and sampling."""
         self.num_of_samples = 0
         self.sampling = p_sampling
         self.logger = logger
-
+        self.per = per
+        
     def next_sample(self):
         """Called after every new sample received.
         Aftet sel.sampling sample print stats info."""
         if self.num_of_samples == 0:
             self.start_time = time.time()
+            self.last_pack_first_sample_ts = time.time()
 
-        self.num_of_samples += 1
+        pre_rest = self.num_of_samples % self.sampling 
+        self.num_of_samples += self.per
         rest = self.num_of_samples % self.sampling 
-        if rest == 0:
+        if pre_rest > rest:
             self.logger.info(''.join(
                     ["Time of last ",
                      str(self.sampling),
@@ -53,7 +56,6 @@ class Debug(object):
                      str(time.time() - self.last_pack_first_sample_ts),
                      ' / ', 
                      str(self.sampling*(time.time() - self.start_time)/float(self.num_of_samples))]))
-        elif rest == 1:
             self.last_pack_first_sample_ts = time.time()
 
     def next_sample_timestamp(self, sample_timestamp):

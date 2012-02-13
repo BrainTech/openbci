@@ -62,7 +62,7 @@ class BCIP300CspAnalysis(object):
 
         #3 Klasyfikacja: indeks pola albo 0, gdy nie ma detekcji
         ix = self.analyze.analyze(sig, blink.index, tr=0.05)
-        if ix > 0:
+        if ix >= 0:
             self.send_func(ix)
         else:
-            LOGGER.info("Got 0 ind- no decision")
+            LOGGER.info("Got -1 ind- no decision")
