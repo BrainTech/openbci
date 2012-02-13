@@ -327,7 +327,11 @@ probably a server is already working"
 		match = self._handle_match_name(message, sock, this_machine=True)
 
 		if match:
-			if not message.force:
+			if match.kill_timer is not None:
+				send_msg(sock, self.mtool.fill_msg("rq_error", err_code="already_killed",
+									details="Experiment already shutting down"))
+
+			elif not message.force:
 				print "{0} [{1}] - sending kill to experiment {2} ({3})".format(
 									self.name, self.peer_type(),match.uuid, match.name)
 				send_msg(self.exp_pub,

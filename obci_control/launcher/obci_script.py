@@ -34,6 +34,11 @@ def cmd_srv(args):
 	client_server_prep(args)
 
 def cmd_srv_kill(args):
+	running, pid = server_process_running()
+	if not running:
+		disp.view("Server was not running...")
+		return
+
 	client = client_server_prep()
 	client.srv_kill()
 	running, pid = server_process_running()
@@ -44,7 +49,7 @@ def cmd_srv_kill(args):
 		except OSError, e:
 			disp.view("srv_kill: something went wrong... {0}".format(e))
 	else:
-		disp.view("Server is not running")
+		disp.view("Server process terminated.")
 
 
 def cmd_launch(args):
@@ -324,7 +329,7 @@ def client_server_prep(cmdargs=None):
 	disp.view("OBCI server launched. PID: {0}".format(success.pid))
 
 
-	res = client.retry_ping(timeout=2200)
+	res = client.retry_ping(timeout=4000)
 
 	if res is None:
 		disp.view("Could not connect to OBCI Server")

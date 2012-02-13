@@ -48,18 +48,17 @@ _DEFAULT_TIMEOUT_MS=6000
 
 class SubprocessMonitor(object):
 	def __init__(self, zmq_ctx, uuid):
-		self.processes = {}
+		self._processes = {}
 		self._ctx = zmq_ctx
 		self.uuid = uuid
 		self._mtool = OBCIMessageTool(message_templates)
-		self.monitor_ticker = threading.Timer(None, None, None)
 		self.poller = PollingObject()
 		self._proc_lock = threading.RLock()
 
 	def not_running_processes(self):
 		status = {}
 		with self._proc_lock:
-			for key, proc in self.processes.iteritems():
+			for key, proc in self._processes.iteritems():
 				st = proc.status()
 				if st[0] in [FINISHED, FAILED, TERMINATED] and not proc.marked_delete():
 					status[key] = st
@@ -68,26 +67,29 @@ class SubprocessMonitor(object):
 
 	def unknown_status_processes(self):
 		with self._proc_lock:
-			return [proc for proc in self.processes.values()\
+			return [proc for proc in self._processes.values()\
 							if proc.status()[0] == UNKNOWN]
 
 	def process(self, machine_ip, pid):
-		return self.processes.get((machine_ip, pid), None)
+		with self._proc_lock:
+			return self._processes.get((machine_ip, pid), None)
 
 	def killall(self):
-		for proc in self.processes.values():
-			if proc.status()[0] not in [FINISHED, FAILED, TERMINATED]:
-				proc.kill()
-			#del proc
+		with self._proc_lock:
+			for proc in self._processes.values():
+				if proc.status()[0] not in [FINISHED, FAILED, TERMINATED]:
+					proc.kill()
+				#del proc
 
 	def delete_all(self):
-		for proc in self.processes.values():
-			del proc
-		self.processes = {}
+		with self._proc_lock:
+			for proc in self._processes.values():
+				del proc
+			self._processes = {}
 
 	def stop_monitoring(self):
 		with self._proc_lock:
-			for proc in self.processes.values():
+			for proc in self._processes.values():
 				proc.stop_monitoring()
 
 	def new_local_process(self, path, args, proc_type='', name='',
@@ -173,7 +175,8 @@ class SubprocessMonitor(object):
 			if monitoring_optflags & PING:
 				new_proc._ctx = self._ctx
 
-			self.processes[(machine, popen_obj.pid)] = new_proc
+			with self._proc_lock:
+				self._processes[(machine, popen_obj.pid)] = new_proc
 
 			new_proc.start_monitoring()
 
@@ -247,7 +250,8 @@ class SubprocessMonitor(object):
 			if monitoring_optflags & PING:
 				new_proc._ctx = self._ctx
 
-			self.processes[(result.machine, result.pid)] = new_proc
+			with self._proc_lock:
+				self._processes[(result.machine, result.pid)] = new_proc
 
 			new_proc.start_monitoring()
 
@@ -513,7 +517,15 @@ class LocalProcess(Process):
 						self._status_detals = self.tail_stdout(15)
 				break
 			elif self.status()[0] == NON_RESPONSIVE:
-				self.kill()
+				"[subprocess_monitor]",self.proc_type,"process", self.name,\
+										 "pid", self.pid, "is NON_RESPONSIVE"
+
+				with self._status_lock:
+					self.popen_obj.poll()
+					if self.popen_obj.returncode is None:
+						self.popen_obj.terminate()
+						self._status = TERMINATED
+					self.popen_obj.wait()
 			else:
 				time.sleep(0.5)
 		#print "[subprocess_monitor]",self.proc_type,self.name, self.pid,\
