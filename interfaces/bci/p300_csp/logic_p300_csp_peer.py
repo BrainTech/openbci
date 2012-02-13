@@ -99,14 +99,13 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         mean[:left] = 0
         mean[right:] = 0
         sr = 5 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
-        targets = np.zeros(len(new_tags))
-        non_targets = np.zeros(len(not_idx_tags))
+        targets = np.zeros([sr, len(new_tags)])
+        non_targets = np.zeros([sr, len(not_idx_tags)])
         mu = np.zeros(sr)
         sigma = np.zeros(sr)
         for i in xrange(1, sr + 1):
-            targets[i - 1, :], non_targets[i - 1, :],\
-                mu[i - 1], sigma[i - 1] = data.get_n_mean(i, new_tags, [0.1, 0.5], 0.05)
-
+            x = data.get_n_mean(i, new_tags, [0.1, 0.5], 0.05)
+            targets[i - 1, :], non_targets[i - 1, :], mu[i - 1], sigma[i - 1] = x            
         q = data
         cfg = {
              'mu': mu,
