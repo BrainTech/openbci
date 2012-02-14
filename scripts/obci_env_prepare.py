@@ -64,11 +64,11 @@ if __name__ == '__main__':
 	with open('/etc/environment', 'r') as env:
 		lines = env.readlines()
 		isset = [line for line in lines if line.startswith('OBCI_INSTALL_DIR') or\
-						line.startswith('LD_CONFIG_PATH')]
+						line.startswith('LD_LIBRARY_PATH')]
 	print 'env:', isset
 	if len(isset) < 2:
 		with open('/etc/environment', 'a') as env:
-			env.write('LD_CONFIG_PATH="/usr/local/lib\n')
+			env.write('LD_LIBRARY_PATH="/usr/local/lib"\n')
 			env.write('OBCI_INSTALL_DIR="' + obci_dir + '"\n')
 
 	if not os.path.exists('/usr/bin/obci'):
