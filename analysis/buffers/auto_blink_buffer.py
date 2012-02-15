@@ -43,10 +43,13 @@ class AutoBlinkBuffer(object):
 
     def clear(self):
         self.count = 0
-        self.blinks_count = 0
         self.is_full = False
         self.buffer.clear()
         self.times.clear()
+        self.clear_blinks()
+
+    def clear_blinks(self):
+        self.blinks_count = 0
         self.blinks.clear()
 
     def handle_blink(self, blink):

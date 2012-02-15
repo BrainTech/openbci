@@ -86,23 +86,25 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 				pass
 
         LOGGER.info("USE CHANNELS: "+str(self.use_channels))
+        csp_time=[0.2,0.4]
         data = p300.p300_train(
             in_file+'.obci',
-            self.use_channels, fs, self.montage_channels, self.montage, idx=1)#idx oznacza indeks na który
+            self.use_channels, fs, self.montage_channels, self.montage, idx=1, csp_time=csp_time)#idx oznacza indeks na który
         new_tags = data.wyr()
         not_idx_tags = data.data.get_p300_tags(idx=-1, samples=False)#Tutaj idx musi być -idx z linijki 11
                                                             #Tagi pozostałych przypadków
-        mean, left, right = data.get_mean(new_tags, m_time=[0, 0.5])
-        buffer = 0.5
+        mean, left, right = data.get_mean(new_tags, m_time=csp_time)
+        buffer = len(mean)
+        LOGGER.info("Computer buffer len: "+str(buffer))
         mean[:left] = 0
         mean[right:] = 0
-        sr = 5 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
+        sr = 12 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
         targets = np.zeros([sr, len(new_tags)])
         non_targets = np.zeros([sr, len(not_idx_tags)])
         mu = np.zeros(sr)
         sigma = np.zeros(sr)
         for i in xrange(1, sr + 1):
-            x = data.get_n_mean(i, new_tags, [0.1, 0.5], 0.05)
+            x = data.get_n_mean(i, new_tags, csp_time, 0.05)
             targets[i - 1, :], non_targets[i - 1, :], mu[i - 1], sigma[i - 1] = x            
         q = data
         cfg = {

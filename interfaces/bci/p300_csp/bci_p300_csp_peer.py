@@ -19,7 +19,7 @@ from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
-DEBUG = False
+DEBUG = True
 
 
 class BCIP300Csp(ConfiguredMultiplexerServer):
@@ -29,6 +29,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         LOGGER.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
+        self.buffer.clear_blinks()
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
     def __init__(self, addresses):
@@ -37,6 +38,8 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
+        tr = float(self.config.get_param('analysis_treshold'))
+        cfg['treshold'] = tr
         montage_matrix = self._get_montage_matrix(cfg)
             
         #dec_count = int(self.config.get_param('dec_count'))
@@ -50,7 +53,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         channels_count = len(self.config.get_param('channel_names').split(';'))
         self.buffer = auto_blink_buffer.AutoBlinkBuffer(
             from_blink=0,
-            samples_count=int(float(cfg['buffer'])*sampling),
+            samples_count=int(float(cfg['buffer'])),
             sampling=sampling,
             num_of_channels=channels_count,
             ret_func=self.analysis.analyse,

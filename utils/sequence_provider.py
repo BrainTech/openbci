@@ -48,7 +48,8 @@ class RandomSequentialMgr(object):
     def __init__(self, start, count):
         self.sequence = range(start, start+count)
         self.count = count
-        self.index = -1
+        self.index = 0
+        random.shuffle(self.sequence)
 
     def get_value(self):
         self.index = (self.index + 1) % self.count

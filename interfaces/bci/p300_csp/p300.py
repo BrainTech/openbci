@@ -29,7 +29,7 @@ class p300_train(object):
             tmp = filtfilt(b,a,signal[e, :])
             signal2[e, :] = filtfilt(b_l, a_l, tmp)
         self.signal_original = signal2
-        self.t1, self.t2 = self.show_mean([0.1, 0.5], 'Cz', dont_plot=False)
+        self.t1, self.t2 = self.show_mean(csp_time, 'Cz', dont_plot=False)
         P, vals = self.train_csp(signal2, [self.t1, self.t2])
         self.P = P
         self.signal = np.dot(P[:, 0], signal2)
@@ -86,6 +86,7 @@ class p300_train(object):
             plt.plot(t_vec, to_draw2, 'b-',[0, 0],[max(to_draw1),min(to_draw1)], 'r-', t_vec, to_draw1, 'g-')
         else:
             plt.plot(t_vec, to_draw1, 'g-', [0, 0], [max(to_draw1), min(to_draw1)],'b-')
+            plt.plot(t_vec, to_draw2, 'b-',[0, 0],[max(to_draw1),min(to_draw1)], 'r-', t_vec, to_draw1, 'g-')
             if suggest:
                 plt.plot([sug1, sug1], [max(to_draw1), min(to_draw1)], 'r-', [sug2, sug2], [max(to_draw1), min(to_draw1)], 'r-',\
                     [t_vec[mx_idx], t_vec[mx_idx]],[min(to_draw1), max(to_draw1)], 'b-')
