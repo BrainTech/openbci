@@ -33,6 +33,8 @@ class BCISsvepCspAnalysis(object):
         self.mu = cfg['mu']
         self.sigma = cfg['sigma']
         self.q = cfg['q']
+        self.out_top = cfg['out_top']
+        self.out_bottom = cfg['out_bottom']
 
     def analyse(self, data):
         """Fired as often as defined in hashtable configuration:
@@ -102,8 +104,11 @@ class BCISsvepCspAnalysis(object):
         if there was successful detection, selected frequency will be returned.
         In other case, 0 is returned.
         """
-        fs, freqs, value, mu, sigma = self.fs, self.freqs, self.value, self.mu, self.sigma
+        fs, freqs, value, mu, sigma, out_top, out_bottom = self.fs, self.freqs, self.value, self.mu, self.sigma, self.out_top, out_bottom
         N = len(signal)
+        if sig.min() < out_bottom or sig.max() > out_top:
+            return 0, []
+
         T = N / float(fs)
         t_vec = np.linspace(0, T, N)
         max_lag = int(0.1 * fs)
@@ -121,5 +126,16 @@ class BCISsvepCspAnalysis(object):
                 if mx > mx_old:
                     result = f
                     mx_old = mx
+        if result > 0:
+            zscores.sort()
+            q1 = zscores[1]
+            q2 = (zscore[3] + zscores[4])*0.5
+            q3 = zscores[5]
+            iqr = abs(q1 - q3)
+            idx = freqs.index(result)
+            if mx_old > q2 + 1.5*iqr:
+                result = f
+            else:
+                result = 0
         return result, zscores
                     

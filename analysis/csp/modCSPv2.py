@@ -323,6 +323,11 @@ class modCSP(object):
         """Calculates variance and mean"""        
         signal = np.dot(self.P[:,0], self.parsed_data.prep_signal(to_freq, self.electrodes,\
                                     montage=self.montage, montage_channels=self.montage_channels))
+        signal -= signal.mean()
+        q1, q2, q3 = quantile(signal, [.25, .50, .75])
+        iqr = abs(q1 - q3)
+        out_top = q2 + 1.5*iqr
+        out_bottom = q2 - 1.5*iqr
         t_vec = np.linspace(0, signal_time - 0.5, (signal_time - 0.5)*to_freq)
         max_lag = int(0.1*to_freq)
         this_cors = [[] for i in range(len(self.frequencies))]
@@ -345,6 +350,11 @@ class modCSP(object):
         oc = np.array([x for y in other_cors for x in y]) #flattening a list
         mu, sigma = oc.mean(), oc.std()
         oc = (oc - mu)/sigma
+        #new_oc = []
+        #for i in xrange(1000):
+            #np.random.shuffle(oc)
+            #new_oc.append(np.max(oc[:8]))
+        #treshold = quantile(np.array(new_oc), [tr])
         treshold = quantile(oc, [tr])
         means = []
         stds = []
@@ -381,7 +391,7 @@ class modCSP(object):
             ylabel('Distribution of z-scores')
             show()
             #savefig(self.name + '_' + str(signal_time)+'.png')
-        return treshold, mu, sigma, means, stds
+        return treshold, mu, sigma, means, stds, out_top, out_bottom
         #return this_cors, other_cors
         
     def time_frequency_selection(self, to_frequency, tags, time=[1, 1.5, 2, 2.5, 3, 3.5, 4], frequency_no=8, tr=0.95, plt=False):
@@ -390,7 +400,7 @@ class modCSP(object):
         ok_no = []
         std_ok = []
         for i, tm in enumerate(time):
-            value, mu, sigma, means, stds = self.count_stats(tm, to_frequency, tags, plt=False, tr=tr)
+            value, mu, sigma, means, stds, o1, o2 = self.count_stats(tm, to_frequency, tags, plt=False, tr=tr)
             ok_no.append(len([x for x in means if x > value]))
             std_ok.append(len([means[j] for j in xrange(len(means)) if means[j]-stds[j] > value]))
         if plt:
