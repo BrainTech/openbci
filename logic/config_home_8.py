@@ -15,7 +15,7 @@ class Config(object):
         # A list of all configs defined as globals,
         # not assigned to any particular state.
         self.other_configs = []
-        tahoe_path = os.path.join(obci_root(), 'devices', 'tahoe')
+        tahoe_path = os.path.join(obci_root(), 'devices', 'tahoe_http.py')
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! Only keys defined in states_configs and other_configs
@@ -29,25 +29,29 @@ class Config(object):
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [
-            [u"Odkurzacz (OFF)", u"Odkurzacz (ON)"],
-            [u"Wiertarka (OFF)", u"Wiertarka (ON)"],
-            [u"Pralka (OFF)", u"Pralka (ON)"],
-            '', '', '', '', u'Zakończ']
+            [u"Lamp(off)", u"Lampa(on)"],
+            [u"Muzyka(off)", u"Muzyka(on)"],
+            '', '',
+            '', '', '', u'Koniec']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
-                                  '', '', '', '']
+        self.letters_solver[0] = [
+            'solve(0)', 'solve(1)',
+            '', '',
+            '', '', '', '']
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions[0] = [
-            ['run_ext(\''+tahoe_path+'  "power on 1\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 1\\n\\r"\')'],
-            ['run_ext(\''+tahoe_path+'  "power on 2\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 2\\n\\r"\')'],
-            ['run_ext(\''+tahoe_path+'  "power on 3\\n\\r"\')', 'run_ext(\''+tahoe_path+'  "power off 3\\n\\r"\')'],
-            '', '', '', '', "finish("+self._finish_params()+")"]
+            ['run_ext(\''+tahoe_path+'  on 1\')', 'run_ext(\''+tahoe_path+'  off 1\')'],
+            ['run_ext(\''+tahoe_path+'  on 2\')', 'run_ext(\''+tahoe_path+'  off 2\')'],
+            '', '',
+            '', '', '', "finish("+self._finish_params()+")"]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions_solver[0] = ['solve(0)', 'solve(1)', 'solve(2)', '',
-                                  '', '', '', '']
+        self.actions_solver[0] = [
+            'solve(0)', 'solve(1)',
+            '', '',
+            '', '', '', '']
 
 
     def _finish_params(self):

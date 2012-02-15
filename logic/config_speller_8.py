@@ -4,7 +4,7 @@
 class Config(object):
     def __init__(self):
         self.number_of_decisions = 8
-        self.number_of_states = 9
+        self.number_of_states = 8
         # A list of all configs defined for every single state.
         self.states_configs = ['state', 'letters', 'actions', 'letters_solver', 'actions_solver']
         # A list of all configs defined as globals, 
@@ -55,7 +55,6 @@ class Config(object):
         self.actions[5] = [u"msg(u'ą')", u"msg(u'ć')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", ""]
         self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
         self.actions[7] = ["say()", "clear()", "backspace()", "", "", "", "", ""]
-        self.actions[8] = ["close_dasher()", "", "", "", "", "", "", ""]
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 

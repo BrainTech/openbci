@@ -28,7 +28,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         dec is of integer type."""
         LOGGER.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
-        self.buffer.clear()
+        #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
     def __init__(self, addresses):
