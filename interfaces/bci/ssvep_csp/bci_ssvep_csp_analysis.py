@@ -69,7 +69,7 @@ class BCISsvepCspAnalysis(object):
         freq, feeds = self._analyse(csp_sig)
         LOGGER.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
         if DEBUG:
-            if random.random() > 0.7:
+            if random.random() > 0.5:
                 freq = random.choice(self.indexMap.keys())
         if freq > 0:
             self.send_func(self.indexMap[freq])
