@@ -48,18 +48,23 @@ void AmplifierDriver::stop_sampling_handler(int sig) {
 }
 uint64_t AmplifierDriver::next_samples() {
 	uint64_t wait = last_sample + 1000000 / sampling_rate;
-//	uint64_t this_sample = 0;
 	last_sample =get_time();
 	cur_sample++;
 	if (last_sample>wait)
 		return last_sample;
 	struct timespec slptm;
-	slptm.tv_sec = 0;
-	slptm.tv_nsec = (wait-last_sample-500)*1000;      //1000 ns = 1 us
-	if (slptm.tv_nsec>0)
+	slptm.tv_sec = (wait-last_sample)/1000000;
+	slptm.tv_nsec = ((wait-last_sample)%1000000)*1000;      //1000 ns = 1 us
+//	printf("last_sample: %lld ,wait: %lld, ",last_sample,wait);
+	if (slptm.tv_sec>0 || slptm.tv_nsec>500000)
+//	{
+//		printf("sleep: %ld,",slptm.tv_nsec/1000);
 		nanosleep(&slptm,NULL);
-//	this_sample =boost::posix_time::microsec_clock::local_time().time_of_day().total_microseconds();
-//	printf(" realwait %lld-%lld, should wait %lld\n",this_sample,this_sample-last_sample,wait-last_sample);
+//	}
+	else while (last_sample<wait)
+		last_sample=get_time();
+//	uint64_t tmp=get_time();
+//	printf (" last sample: %lld, late: %lld \n",tmp,tmp-wait);
 	last_sample = wait;
 	return last_sample;
 }
