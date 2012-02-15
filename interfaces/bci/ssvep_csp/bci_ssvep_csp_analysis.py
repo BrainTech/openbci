@@ -104,7 +104,8 @@ class BCISsvepCspAnalysis(object):
         if there was successful detection, selected frequency will be returned.
         In other case, 0 is returned.
         """
-        fs, freqs, value, mu, sigma, out_top, out_bottom = self.fs, self.freqs, self.value, self.mu, self.sigma, self.out_top, out_bottom
+        sig = signal
+        fs, freqs, value, mu, sigma, out_top, out_bottom = self.fs, self.freqs, self.value, self.mu, self.sigma, self.out_top, self.out_bottom
         N = len(signal)
         if sig.min() < out_bottom or sig.max() > out_top:
             return 0, []
@@ -129,7 +130,7 @@ class BCISsvepCspAnalysis(object):
         if result > 0:
             zscores.sort()
             q1 = zscores[1]
-            q2 = (zscore[3] + zscores[4])*0.5
+            q2 = (zscores[3] + zscores[4])*0.5
             q3 = zscores[5]
             iqr = abs(q1 - q3)
             idx = freqs.index(result)
