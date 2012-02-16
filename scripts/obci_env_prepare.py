@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+	#!/usr/bin/env python
 
 import os
 import shutil
 import argparse
 import ConfigParser
+import subprocess
 from pwd import getpwnam  
 
 
@@ -60,6 +61,12 @@ if __name__ == '__main__':
 			for fil in files:
 
 				os.system("ls -l " + os.path.join(dr, fil))
+		
+		bashrc = os.path.join(base, direc, '.bashrc')
+		if not "LD_LIBRARY_PATH" in subprocess.check_output(["cat", bashrc]):
+			print "adding LD_LIBRARY_PATH to ", bashrc
+			os.system("echo 'export LD_LIBRARY_PATH=" + '"/usr/local/lib"' + "'" + " >> " + bashrc )
+			os.system("cat " + bashrc)
 
 	with open('/etc/environment', 'r') as env:
 		lines = env.readlines()
@@ -67,11 +74,13 @@ if __name__ == '__main__':
 						line.startswith('LD_LIBRARY_PATH')]
 	print 'env:', isset
 	if len(isset) < 2:
+		print "updating /etc/environment"
 		with open('/etc/environment', 'a') as env:
 			env.write('LD_LIBRARY_PATH="/usr/local/lib"\n')
 			env.write('OBCI_INSTALL_DIR="' + obci_dir + '"\n')
 
 	if not os.path.exists('/usr/bin/obci'):
+		print "linking obci command"
 		os.symlink(os.path.join(obci_dir, 'obci_control', 'launcher', 'obci'),
 				'/usr/bin/obci')
 
