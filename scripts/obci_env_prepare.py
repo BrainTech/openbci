@@ -22,14 +22,14 @@ def get_args():
 	return parser.parse_args()
 
 if __name__ == '__main__':
-	args = get_args()
+	#args = get_args()
 
 	base = '/home'
 	
-	main_account = args.admin_account_name
+	main_account = 'administrator' #args.admin_account_name
 	print 'main_account:', main_account 
 	
-	obci_dir = args.obci_dir
+	obci_dir = '/home/administrator/obci' #args.obci_dir
 	print 'obci_dir:', obci_dir
 
 	admin_main = os.path.join(base, main_account, '.obci', 'main_config.ini')
