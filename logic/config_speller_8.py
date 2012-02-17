@@ -57,4 +57,4 @@ class Config(object):
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
     def _finish_params(self):
-        return "x, x"
+        return "'x', 'x'"
