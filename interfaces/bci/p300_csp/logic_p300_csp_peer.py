@@ -86,14 +86,14 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 				pass
 
         LOGGER.info("USE CHANNELS: "+str(self.use_channels))
-        csp_time=[0.2,0.4]
+        csp_time=[0.0,0.7]
         data = p300.p300_train(
             in_file+'.obci',
             self.use_channels, fs, self.montage_channels, self.montage, idx=1, csp_time=csp_time)#idx oznacza indeks na który
         new_tags = data.wyr()
         not_idx_tags = data.data.get_p300_tags(idx=-1, samples=False)#Tutaj idx musi być -idx z linijki 11
                                                             #Tagi pozostałych przypadków
-        mean, left, right = data.get_mean(new_tags, m_time=csp_time)
+        mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
         buffer = len(mean)
         LOGGER.info("Computer buffer len: "+str(buffer))
         mean[:left] = 0

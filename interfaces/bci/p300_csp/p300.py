@@ -72,8 +72,14 @@ class p300_train(object):
                 x2 = np.where(t_vec < 0.4)[0][-1]
                 mx_idx = to_draw1[x1 : x2].argmax() + x1
                 plus = int(0.1 * self.fs)
-                sug1 = t_vec[mx_idx - plus]
-                sug2 = t_vec[mx_idx + plus]
+                if mx_idx - plus < 0:
+                    pass
+                else:
+                    sug1 = t_vec[mx_idx - plus]
+                if mx_idx + plus >= len(t_vec):
+                    sug2 = t_vec[-1]
+                else:
+                    sug2 = t_vec[mx_idx + plus]
         else: 
             to_draw1 = sigs_trg.T
             to_draw2 = sigs.T
@@ -256,7 +262,7 @@ class p300_train(object):
                 go = False
         return new_tags
                 
-    def get_mean(self, tags, m_time=[0.1, 0.5]):
+    def get_mean(self, tags, m_time=[0.1, 0.5], plot_mean=False):
         mean = np.zeros(sum(m_time) * self.fs)
         for i in self.tags:
             beg = (i - m_time[0]) * self.fs
@@ -269,14 +275,21 @@ class p300_train(object):
             tmp_mean = -mean
         else:
             tmp_mean = mean
-        while tmp_mean[left - 1] - tmp_mean[left] < 0:
+        while left > 0 and tmp_mean[left - 1] - tmp_mean[left] < 0:
             left -= 1
-        while tmp_mean[right + 1] - tmp_mean[right] < 0:
+        while right < len(tmp_mean)-1 and tmp_mean[right + 1] - tmp_mean[right] < 0:
             right += 1
-        while tmp_mean[left - 1] - tmp_mean[left] > 0:
+        while left > 0 and tmp_mean[left - 1] - tmp_mean[left] > 0:
             left -= 1
-        while tmp_mean[right + 1] - tmp_mean[right] > 0:
+        while right < len(tmp_mean)-1 and tmp_mean[right + 1] - tmp_mean[right] > 0:
             right += 1
+        print left, right
+        if plot_mean:
+            plt.plot(mean, 'r-')
+            plt.plot([left, left], [min(mean), max(mean)])
+            plt.plot([right, right], [min(mean), max(mean)])
+            plt.show()
+          
         return mean/len(tags), left, right
     
     def __get_filter(self, c_max, c_min):
