@@ -5,6 +5,7 @@ import random, time, pickle, os.path
 from interfaces import interfaces_logging as logger
 import numpy as np
 from scipy.signal import hamming
+import scipy.stats as st
 
 LOGGER = logger.get_logger("bci_ssvep_csp_analysis", "info")
 DEBUG = False
@@ -128,15 +129,12 @@ class BCISsvepCspAnalysis(object):
                     result = f
                     mx_old = mx
         if result > 0:
-            zscores.sort()
-            q1 = zscores[1]
-            q2 = (zscores[3] + zscores[4])*0.5
-            q3 = zscores[5]
+            q1 = st.scoreatpercentile(zscores, 25)
+            q2 = st.scoreatpercentile(zscores, 50)
+            q3 = st.scoreatpercentile(zscores, 75)
             iqr = abs(q1 - q3)
-            idx = freqs.index(result)
-            if mx_old > q2 + 1.5*iqr:
-                result = f
-            else:
+            if mx_old <= q2 + 1.5*iqr:
                 result = 0
+
         return result, zscores
                     
