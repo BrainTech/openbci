@@ -55,4 +55,4 @@ class Config(object):
 
 
     def _finish_params(self):
-        return "x, x"
+        return "'x', 'x'"
