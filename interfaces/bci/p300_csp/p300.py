@@ -264,7 +264,7 @@ class p300_train(object):
                 
     def get_mean(self, tags, m_time=[0.1, 0.5], plot_mean=False):
         mean = np.zeros(sum(m_time) * self.fs)
-        for i in self.tags:
+        for i in tags:
             beg = (i - m_time[0]) * self.fs
             mean += self.signal[beg:beg + len(mean)]
         mean /= len(tags)
