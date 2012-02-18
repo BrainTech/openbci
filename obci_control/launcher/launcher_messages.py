@@ -50,7 +50,7 @@ message_templates = {
 	"process_supervisor_registered" : dict(machine_ip=''),
 
 	"kill_experiment" : dict(strname='', force=''),
-	"kill_sent" : dict(),
+	"kill_sent" : dict(experiment_id=''),
 
 	"start_mx" : dict(args=''),
 	"start_peers" : dict(mx_data=''),

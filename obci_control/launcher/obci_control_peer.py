@@ -239,7 +239,7 @@ class OBCIControlPeer(object):
 		self._all_sockets.append(self.source_req_socket)
 		self._set_poll_sockets()
 
-	def _init_socket(self, addrs, zmq_type, create_ipc=True):
+	def _init_socket(self, addrs, zmq_type, create_ipc=False):
 		basic_addrs = [ "tcp://"+net.ext_ip(ifname='lo'),
 						"tcp://"+net.ext_ip(ifname=net.server_ifname())]
 		ipc_name=''

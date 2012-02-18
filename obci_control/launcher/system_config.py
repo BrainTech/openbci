@@ -43,6 +43,9 @@ class OBCIExperimentConfig(object):
 	def peer_machine(self, peer_id):
 		return self.peers[peer_id].machine
 
+	def update_peer_machine(self, peer_id, machine_ip):
+		self.peers[peer_id].machine = machine_ip
+
 	def add_peer(self, peer_id):
 		self.peers[peer_id] = PeerConfigDescription(peer_id, self.uuid)
 
@@ -89,6 +92,9 @@ class OBCIExperimentConfig(object):
 		for key in not_fresh:
 			vals[key] = self._param_value(peer_id, key, config)
 		return vals
+
+	def local_params(self, peer_id):
+		return self.peers[peer_id].config.local_params
 	
 	def param_value(self, peer_id, param_name):
 		if peer_id not in self.peers:

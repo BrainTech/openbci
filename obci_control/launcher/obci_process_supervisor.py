@@ -114,10 +114,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		if self.source_pub_addresses:
 			for addr in self.source_pub_addresses:
 				self.source_sub_socket.connect(addr)
-		self.cs_addr = 'ipc://config_server_' + self.uuid + '.ipc'
-		self.config_server_socket.bind(self.cs_addr)
 
-
+		(self.config_server_socket, self.cs_addresses) = self._init_socket([], zmq.SUB)
+		self.cs_addr = net.choose_not_local(self.cs_addresses)
+		if not self.cs_addr:
+			self.cs_addr = net.choose_local(self.cs_addresses)[0]
+		else:
+			self.cs_addr = self.cs_addr[0]
+		
 		super(OBCIProcessSupervisor, self).net_init()
 
 	def params_for_registration(self):

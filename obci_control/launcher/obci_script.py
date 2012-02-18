@@ -255,10 +255,10 @@ a few first letters of its UUID or of its name \
 
 ###############################################################################
 
-def connect_client(addresses, client=None):
+def connect_client(addresses, client=None, client_class=obci_client.OBCIClient):
 	if client is None:
 		ctx = zmq.Context()
-		client = obci_client.OBCIClient(addresses, ctx)
+		client = client_class(addresses, ctx)
 	result = client.ping_server(timeout=200)
 	return result, client
 
@@ -299,7 +299,7 @@ def server_process_running():
 		os.remove(fpath)
 	return running, pid
 
-def client_server_prep(cmdargs=None):
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
 		print "obci directory not found: {0}".format(directory)
@@ -312,7 +312,7 @@ def client_server_prep(cmdargs=None):
 	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
 	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
 	#print rep_addrs, pub_addrs
-	res, client = connect_client(rep_addrs)
+	res, client = connect_client(rep_addrs, client_class=client_class)
 
 	if res is not None:
 		return client

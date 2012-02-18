@@ -78,9 +78,9 @@ class OBCIServer(OBCIControlPeer):
 	def net_init(self):
 
 		(self.exp_rep, self.exp_rep_addrs) = self._init_socket(
-												['ipc://rep_server_exp.ipc'], zmq.REP)
+												[], zmq.REP)
 		(self.exp_pub, self.exp_pub_addrs) = self._init_socket(
-												['ipc://pub_server_exp.ipc'], zmq.PUB)
+												[], zmq.PUB)
 		self.exp_pub.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.exp_rep)
 		self._all_sockets.append(self.exp_pub)
@@ -128,9 +128,10 @@ probably a server is already working"
 		args += self.exp_rep_addrs
 		args.append('--sv-pub-addresses')
 		if local:
-			addrs = [pub for pub in self.exp_pub_addrs if pub.startswith('ipc://')]
+			addrs = net.choose_local(self.exp_pub_addrs)
 		else:
-			addrs = [pub for pub in self.exp_pub_addrs if pub.startswith('tcp://')]
+			addrs = net.choose_not_local(self.exp_pub_addrs)
+
 		args += [addrs.pop()]
 		exp_name = name if name else os.path.basename(launch_file)
 		args += [
@@ -155,6 +156,7 @@ probably a server is already working"
 	def handle_register_experiment(self, message, sock):
 		machine, pid = message.other_params['origin_machine'], message.other_params['pid']
 		status, det = message.other_params['status_name'], message.other_params['details']
+		launch_file = message.other_params['launch_file_path']
 
 		exp_proc = self.subprocess_mgr.process(machine, pid)
 
@@ -170,23 +172,27 @@ probably a server is already working"
 															machine,
 															pid,
 															status,
-															det)
+															det,
+															launch_file)
 
 		exp_proc.registered(info)
+
+		info_msg = self.mtool.fill_msg("experiment_created",
+												uuid=info.uuid,
+												name=info.name,
+												rep_addrs=info.rep_addrs,
+												pub_addrs=info.pub_addrs,
+												machine=info.origin_machine)
 
 		if self.client_rq:
 			msg_type = self.client_rq[0].type
 			rq_sock = self.client_rq[1]
 			if msg_type == "create_experiment":
 				self.client_rq = None
-				send_msg(rq_sock, self.mtool.fill_msg("experiment_created",
-												uuid=info.uuid,
-												name=info.name,
-												rep_addrs=info.rep_addrs,
-												pub_addrs=info.pub_addrs,
-												machine=info.origin_machine))
+				send_msg(rq_sock, info_msg)
 
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
+		send_msg(self._publish_socket, info_msg)
 
 	def _handle_register_experiment_timeout(self, exp):
 		print """New experiment process failed to register before timeout""", exp
@@ -299,6 +305,8 @@ probably a server is already working"
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
 			print "%%%%%%%%"
 			send_msg(sock, self.mtool.fill_msg('rq_ok'))
+			
+		send_msg(self._publish_socket, message.SerializeToString())
 
 	def exp_matching(self, strname):
 		"""Match *strname* against all created experiment IDs and
@@ -337,7 +345,7 @@ probably a server is already working"
 				send_msg(self.exp_pub,
 						self.mtool.fill_msg("kill", receiver=match.uuid))
 
-				send_msg(sock, self.mtool.fill_msg("kill_sent"))
+				send_msg(sock, self.mtool.fill_msg("kill_sent", experiment_id=match.uuid))
 				pid = match.experiment_pid
 				uid = match.uuid
 				print "{0} [{1}]  Waiting for experiment process {2} to terminate".format(
@@ -345,6 +353,10 @@ probably a server is already working"
 				match.kill_timer = threading.Timer(1.1,
 									self._handle_killing_exp, args=[pid, uid])
 				match.kill_timer.start()
+				send_msg(self._publish_socket, self.mtool.fill_msg('kill_sent',
+					experiment_id=match.uuid
+					))
+
 
 
 	def _handle_killing_exp(self, pid, uid):
@@ -355,6 +367,7 @@ probably a server is already working"
 									self.name, self.peer_type(), uid)
 		proc.delete = True
 		del self.experiments[uid]
+
 		return proc.popen_obj.returncode
 
 
@@ -425,7 +438,8 @@ probably a server is already working"
 
 class ExperimentInfo(object):
 	def __init__(self, uuid, name, rep_addrs, pub_addrs, registration_time,
-							origin_machine, pid, status_name=None, details=None):
+							origin_machine, pid, status_name=None, details=None,
+							launch_file_path=None):
 		self.uuid = uuid
 		self.name = name
 		self.rep_addrs = rep_addrs
@@ -436,11 +450,16 @@ class ExperimentInfo(object):
 		self.kill_timer = None
 		self.status_name = status_name
 		self.details = details
+		self.launch_file_path = launch_file_path
 
 	def from_dict(dic):
 		try:
-			return ExperimentInfo(dic['uuid'], dic['rep_addrs'], dic['pub_addrs'],
-					dic['registration_time'], dic['origin_machine'], dic['pid']), None
+			exp = ExperimentInfo(dic['uuid'], dic['rep_addrs'], dic['pub_addrs'],
+					dic['registration_time'], dic['origin_machine'], dic['pid'])
+			exp.status_name = dic.get('status_name', None)
+			exp.details = dic.get('details', None)
+			exp.launch_file_path = dic.get('launch_file_path', None)
+			return exp, None
 		except KeyError as e:
 			return None, e.args
 
@@ -461,7 +480,8 @@ class ExperimentInfo(object):
 				origin_machine=self.origin_machine,
 				experiment_pid=self.experiment_pid,
 				status_name=self.status_name,
-				details=self.details)
+				details=self.details,
+				launch_file_path=self.launch_file_path)
 
 		return d
 
