@@ -5,6 +5,7 @@ import random, time, pickle, os.path
 from interfaces import interfaces_logging as logger
 import numpy as np
 from scipy.signal import hamming
+import scipy.stats as st
 
 LOGGER = logger.get_logger("bci_ssvep_csp_analysis", "info")
 DEBUG = False
@@ -33,6 +34,8 @@ class BCISsvepCspAnalysis(object):
         self.mu = cfg['mu']
         self.sigma = cfg['sigma']
         self.q = cfg['q']
+        self.out_top = cfg['out_top']
+        self.out_bottom = cfg['out_bottom']
 
     def analyse(self, data):
         """Fired as often as defined in hashtable configuration:
@@ -69,7 +72,7 @@ class BCISsvepCspAnalysis(object):
         freq, feeds = self._analyse(csp_sig)
         LOGGER.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
         if DEBUG:
-            if random.random() > 0.7:
+            if random.random() > 0.5:
                 freq = random.choice(self.indexMap.keys())
         if freq > 0:
             self.send_func(self.indexMap[freq])
@@ -102,8 +105,12 @@ class BCISsvepCspAnalysis(object):
         if there was successful detection, selected frequency will be returned.
         In other case, 0 is returned.
         """
-        fs, freqs, value, mu, sigma = self.fs, self.freqs, self.value, self.mu, self.sigma
+        sig = signal
+        fs, freqs, value, mu, sigma, out_top, out_bottom = self.fs, self.freqs, self.value, self.mu, self.sigma, self.out_top, self.out_bottom
         N = len(signal)
+        if sig.min() < out_bottom or sig.max() > out_top:
+            return 0, []
+
         T = N / float(fs)
         t_vec = np.linspace(0, T, N)
         max_lag = int(0.1 * fs)
@@ -121,5 +128,13 @@ class BCISsvepCspAnalysis(object):
                 if mx > mx_old:
                     result = f
                     mx_old = mx
+        if result > 0:
+            q1 = st.scoreatpercentile(zscores, 25)
+            q2 = st.scoreatpercentile(zscores, 50)
+            q3 = st.scoreatpercentile(zscores, 75)
+            iqr = abs(q1 - q3)
+            if mx_old <= q2 + 1.5*iqr:
+                result = 0
+
         return result, zscores
                     

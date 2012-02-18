@@ -83,7 +83,7 @@ def get_montage_matrix(all_channels, use_channels, montage, montage_channels):
 
 def edit_csp_configs(buf_time, freqs):
     """
-    >>> a,b = nedit_csp_configs(1.0, [1,2,3,4,5,6,7,8])
+    >>> a,b = edit_csp_configs(1.0, [1,2,3,4,5,6,7,8])
 
     """
     from PyQt4.QtGui import QDialog, QApplication

@@ -44,7 +44,7 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels):
         t1, t2 = q.time_frequency_selection(to_frequency, train_tags, time=time, frequency_no=dec_count, plt=False)
 
         LOGGER.info("Got times t1: "+str(t1)+ " and t2: "+str(t2))
-        value, mu, sigma, means, stds = q.count_stats(to_signal, to_frequency, train_tags, plt=True)#Liczenie statystyk
+        value, mu, sigma, means, stds, out_top, out_bottom = q.count_stats(to_signal, to_frequency, train_tags, plt=True)#Liczenie statystyk
         LOGGER.info("For freqs: "+str(freqs))
         LOGGER.info("Got means: "+str(means))
         
@@ -70,6 +70,8 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels):
 	     'buffer':t2,
 	     'use_channels':';'.join(use_channels),
 	     'montage':montage,
-	     'montage_channels':';'.join(montage_channels)
+	     'montage_channels':';'.join(montage_channels),
+	     'out_top':out_top,
+	     'out_bottom':out_bottom
              }
 	return d

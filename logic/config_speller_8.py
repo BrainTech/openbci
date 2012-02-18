@@ -4,7 +4,7 @@
 class Config(object):
     def __init__(self):
         self.number_of_decisions = 8
-        self.number_of_states = 9
+        self.number_of_states = 8
         # A list of all configs defined for every single state.
         self.states_configs = ['state', 'letters', 'actions', 'letters_solver', 'actions_solver']
         # A list of all configs defined as globals, 
@@ -26,7 +26,6 @@ class Config(object):
         self.state[5] = [5, 5, 5, 5, 5, 5, 5, 0]
         self.state[6] = [6, 6, 6, 6, 6, 6, 6, 0]
         self.state[7] = [7, 7, 7, 1, 7, 7, 7, 0]
-        self.state[8] = [0, 8, 8, 8, 8, 8, 8, 8]
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
@@ -38,7 +37,6 @@ class Config(object):
         self.letters[5] = [u"ą", u"ć", u"ę", u"ł", u"ń", u"ś", u"ó", u"Wróć"]
         self.letters[6] = ["_",",",".",";","?","!","Skasuj",u"Wróć"]
         self.letters[7] = [u"Mów!",u"Wyczyść", u"Skasuj", u"Wróć", "", "", "", u"Menu"]
-        self.letters[8] = [u"Wróć", "", "",  "",  "",  "",  "",  ""] 
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
@@ -55,9 +53,8 @@ class Config(object):
         self.actions[5] = [u"msg(u'ą')", u"msg(u'ć')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", ""]
         self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
         self.actions[7] = ["say()", "clear()", "backspace()", "", "", "", "", ""]
-        self.actions[8] = ["close_dasher()", "", "", "", "", "", "", ""]
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
     def _finish_params(self):
-        return "x, x"
+        return "'x', 'x'"
