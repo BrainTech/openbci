@@ -20,6 +20,7 @@ from eeg_experiment_finder import find_eeg_experiments_and_push_results
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
 import common.net_tools as net
+from peer import peer_cmd
 
 import obci_experiment
 import obci_process_supervisor
@@ -119,10 +120,12 @@ probably a server is already working"
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self.exp_pub,
 						self.mtool.fill_msg("kill", receiver=""))
+		send_msg(self._publish_socket, self.mtool.fill_msg("launcher_shutdown",
+						sender=self.uuid))
 		print '{0} [{1}] -- sent KILL to experiments'.format(self.name, self.peer_type())
 
 
-	def _args_for_experiment(self, sandbox_dir, launch_file, local=False, name=None):
+	def _args_for_experiment(self, sandbox_dir, launch_file, local=False, name=None, overwrites=None):
 
 		args = ['--sv-addresses']
 		args += self.exp_rep_addrs
@@ -139,13 +142,16 @@ probably a server is already working"
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
 					'--name', exp_name]
+		if overwrites is not None:
+			args += peer_cmd.peer_overwrites_cmd(overwrites)
 		# print '{0} [{1}] -- experiment args: {2}'.format(self.name, self.peer_type(), args)
 		return args
 
-	def start_experiment_process(self, sandbox_dir, launch_file, name=None):
+	def start_experiment_process(self, sandbox_dir, launch_file, name=None, overwrites=None):
 		path = module_path(obci_experiment)
 
-		args = self._args_for_experiment(sandbox_dir, launch_file, local=True, name=name)
+		args = self._args_for_experiment(sandbox_dir, launch_file, 
+										local=True, name=name, overwrites=overwrites)
 
 		return self.subprocess_mgr.new_local_process(path, args,
 											proc_type='obci_experiment',
@@ -182,7 +188,10 @@ probably a server is already working"
 												name=info.name,
 												rep_addrs=info.rep_addrs,
 												pub_addrs=info.pub_addrs,
-												machine=info.origin_machine)
+												origin_machine=info.origin_machine,
+												status_name=status,
+												details=det,
+												launch_file_path=launch_file)
 
 		if self.client_rq:
 			msg_type = self.client_rq[0].type
@@ -225,10 +234,11 @@ probably a server is already working"
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
 		name = message.name
+		overwrites = message.overwrites
 
 		sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
 
-		exp, details = self.start_experiment_process(sandbox, launch_file, name)
+		exp, details = self.start_experiment_process(sandbox, launch_file, name, overwrites)
 
 		if exp is None:
 			print "failed to launch experiment process"
@@ -289,7 +299,9 @@ probably a server is already working"
 												name=info.name,
 												rep_addrs=info.rep_addrs,
 												pub_addrs=info.pub_addrs,
-												machine=info.origin_machine))
+												machine=info.origin_machine,
+												status_name=info.status_name,
+												details=info.details))
 
 
 	@msg_handlers.handler("experiment_status_change")

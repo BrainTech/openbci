@@ -27,12 +27,11 @@
        <item>
         <widget class="QTableWidget" name="scenarios">
          <property name="columnCount">
-          <number>3</number>
+          <number>2</number>
          </property>
          <attribute name="horizontalHeaderVisible">
           <bool>false</bool>
          </attribute>
-         <column/>
          <column/>
          <column/>
         </widget>
@@ -84,7 +83,7 @@
          <item>
           <widget class="QPushButton" name="reset_button">
            <property name="text">
-            <string>Hard Reset</string>
+            <string>Restart launcher</string>
            </property>
           </widget>
          </item>

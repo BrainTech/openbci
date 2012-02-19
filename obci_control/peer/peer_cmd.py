@@ -8,6 +8,9 @@ from common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
 							PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES, CS, LP, LD, EP
 
 import common.obci_control_settings
+import peer_config_parser
+import peer_config_serializer
+import peer_config
 
 
 class PeerCmd(object):
@@ -46,8 +49,9 @@ class PeerCmd(object):
 		# parser.add_argument('--wait-ready-signal', action='store_true',
 		# 							help="Wait for init configuration message.")
 
-	def parse_cmd(self):
-		args = self.parser.parse_args()
+	def parse_cmd(self, some_args=None):
+
+		args = self.parser.parse_args(some_args)
 
 		config_overrides = {}
 		other_params = {}
@@ -57,7 +61,9 @@ class PeerCmd(object):
 				config_overrides[attr] = val if val is not None else {}
 			else:
 				other_params[attr] = val
-
+		if other_params['config_file']:
+			for f in other_params['config_file']:
+				f = os.path.abspath(f)
 		return config_overrides, other_params
 
 class PeerParamAction(argparse.Action):
@@ -83,6 +89,50 @@ def path_to_file(string):
 		msg = "{} -- path not found!".format(string)
 		raise argparse.ArgumentTypeError(msg)
 	return string
+
+# -----------------------------------------------------------------------------
+
+def peer_overwrites_pack(args):
+	ov_list = _peer_ovr_list(args)
+	packed = [peer_args(ov) for ov in ov_list]
+	return packed
+
+def peer_overwrites_cmd(pack):
+	args = ['--ovr']
+	for [ovr, other] in pack:
+		conf = peer_config.PeerConfig(peer_id=other['peer_id'])
+		cfg_parser = peer_config_parser.parser('python')
+		cfg_parser.parse(ovr, conf)
+		args += ['--peer', other['peer_id']]
+		ser = peer_config_serializer.PeerConfigSerializerCmd()
+		ser.serialize(conf, args)
+		if other['config_file']:
+			for f in other['config_file']:
+				args +=  ['-f', f]
+	return args
+
+
+def _peer_ovr_list(args):
+	indices = [i for i, x in enumerate(args) if x == '-peer' or x == '--peer']
+	if not indices:
+		return []
+	prev = indices[0]
+	groupped = []
+	for ind in indices[1:]:
+		groupped.append(list(args[prev+1:ind]))
+		prev = ind
+	groupped.append(list(args[prev+1:]))
+	return groupped
+
+def peer_args(vals):
+	print 'got', vals
+	pcmd = PeerCmd(add_help=False)
+	ovr, other = pcmd.parse_cmd(vals)
+	print ovr, other
+	return [ovr, other]
+
+
+
 
 if __name__ == "__main__":
 	print PeerCmd().parse_cmd()

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'obci_launcher.ui'
 #
-# Created: Thu Feb 16 11:30:38 2012
+# Created: Sun Feb 19 17:43:43 2012
 #      by: pyside-uic 0.2.11 running on PySide 1.0.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,9 +23,9 @@ class Ui_ObciLauncher(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName("verticalLayout")
         self.scenarios = QtGui.QTableWidget(self.groupBox)
-        self.scenarios.setColumnCount(3)
+        self.scenarios.setColumnCount(2)
         self.scenarios.setObjectName("scenarios")
-        self.scenarios.setColumnCount(3)
+        self.scenarios.setColumnCount(2)
         self.scenarios.setRowCount(0)
         self.scenarios.horizontalHeader().setVisible(False)
         self.verticalLayout.addWidget(self.scenarios)
@@ -72,6 +72,6 @@ class Ui_ObciLauncher(object):
         self.info.setText(QtGui.QApplication.translate("ObciLauncher", "asjdn asjklndjk naskljdh jkashdjk ashdkjhas kjashd akljshdk jlasd kjahdkjashd kjahsdjk hasdjlhasdklj hadkljashd lashd kjash djkashdkj ahsd lash", None, QtGui.QApplication.UnicodeUTF8))
         self.start_button.setText(QtGui.QApplication.translate("ObciLauncher", "Start", None, QtGui.QApplication.UnicodeUTF8))
         self.stop_button.setText(QtGui.QApplication.translate("ObciLauncher", "Stop", None, QtGui.QApplication.UnicodeUTF8))
-        self.reset_button.setText(QtGui.QApplication.translate("ObciLauncher", "Hard Reset", None, QtGui.QApplication.UnicodeUTF8))
+        self.reset_button.setText(QtGui.QApplication.translate("ObciLauncher", "Restart launcher", None, QtGui.QApplication.UnicodeUTF8))
         self.parameters_of.setTitle(QtGui.QApplication.translate("ObciLauncher", "Parameters", None, QtGui.QApplication.UnicodeUTF8))
 

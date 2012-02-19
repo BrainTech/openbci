@@ -105,11 +105,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.source_sub_socket = self.ctx.socket(zmq.SUB)
 		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
 
-		self.config_server_socket = self.ctx.socket(zmq.SUB)
-		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
-
 		self._all_sockets.append(self.source_sub_socket)
-		self._all_sockets.append(self.config_server_socket)
 
 		if self.source_pub_addresses:
 			for addr in self.source_pub_addresses:
@@ -121,6 +117,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			self.cs_addr = net.choose_local(self.cs_addresses)[0]
 		else:
 			self.cs_addr = self.cs_addr[0]
+		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
+		self._all_sockets.append(self.config_server_socket)
 		
 		super(OBCIProcessSupervisor, self).net_init()
 
