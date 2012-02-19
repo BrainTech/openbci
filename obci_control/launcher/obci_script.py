@@ -322,8 +322,8 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
 
 	ifname = cmdargs.ifname if cmdargs else None
 
-	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
-	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
+	rep_addrs = [net.server_address('rep', local=False, ifname=ifname), net.server_address('rep', ifname='lo')]
+	pub_addrs = [net.server_address('pub', local=False, ifname=ifname), net.server_address('pub', ifname='lo')]
 	#print rep_addrs, pub_addrs
 	res, client = connect_client(rep_addrs, client_class=client_class)
 

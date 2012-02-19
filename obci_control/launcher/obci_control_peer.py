@@ -259,7 +259,6 @@ class OBCIControlPeer(object):
 			if not [addr for addr in addresses if net.is_net_addr(addr)]:
 				addresses += basic_addrs
 				random_port = True
-
 		return net.public_socket(addresses, zmq_type, self.ctx,
 								ipc_core_name=ipc_name,
 								random_port=random_port)
