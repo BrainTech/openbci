@@ -358,10 +358,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 		result, details = self._make_config()
 
 		self.status.details = details
-		for par in self.public_params:
-			if len(par.split('.')) == 2:
-				[peer, param] = par.split('.')
-				self.exp_config.peers[peer].public_params.append(param)
+		self._set_public_params()
 
 
 	def setup_from_launcher(self, launcher_data, preset=False):
@@ -388,6 +385,13 @@ class ExperimentEngineInfo(QtCore.QObject):
 
 		self.status.set_status(launcher_data['status_name'], details=launcher_data['details'])
 		self._get_experiment_details()
+		self._set_public_params()
+
+	def _set_public_params(self):
+		for par in self.public_params:
+			if len(par.split('.')) == 2:
+				[peer, param] = par.split('.')
+				self.exp_config.peers[peer].public_params.append(param)
 
 	def _make_config(self):
 
