@@ -22,6 +22,10 @@ import peer.peer_cmd as peer_cmd
 
 
 PRESETS = 'obci_control/gui/presets.ini'
+MODE_BASIC = 'basic'
+MODE_ADVANCED = 'advanced'
+MODE_EXPERT = 'expert'
+MODES = [MODE_BASIC, MODE_ADVANCED, MODE_EXPERT]
 
 class OBCILauncherEngine(QtCore.QObject):
 	update_ui = QtCore.Signal(object)
@@ -30,6 +34,7 @@ class OBCILauncherEngine(QtCore.QObject):
 	internal_msg_templates = {
 		'_launcher_engine_msg' : dict(task='', pub_addr='')
 	}
+	mode = MODE_BASIC
 
 	def __init__(self, obci_client):
 		super(OBCILauncherEngine, self).__init__()
@@ -57,7 +62,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
 		self.obci_state_change.connect(self.handle_obci_state_change)
 
-		for exp in self.experiments.values():
+		for exp in self.experiments:
 			if exp.launcher_data is not None:
 				self._exp_connect(exp.launcher_data)
 
@@ -70,17 +75,30 @@ class OBCILauncherEngine(QtCore.QObject):
 		#			update params and data from peer_info (params, machine, status)
 		#		subscribe to experiment PUB
 
+	def exp_ids(self):
+		ids = {}
+		for i, e in enumerate(self.experiments):
+			ids[e.uuid] = i
+		print "----------------------", ids
+		return ids
+
+	def index_of(self, exp_uuid):
+		if exp_uuid in self.exp_ids():
+			return self.exp_ids()[exp_uuid]
+		else:
+			return None
+
 	def prepare_experiments(self):
-		experiments = {}
+		experiments = []
 		presets = self._parse_presets(self.preset_path)
 		for preset in presets:
 			exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
-			experiments[exp.uuid] = exp
+			experiments.append(exp)
 
 		running = self._list_experiments()
 		for exp in running:
 			exp = ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx)
-			experiments[exp.uuid] = exp
+			experiments.append(exp)
 		return experiments
 
 	def _exp_connect(self, exp_data):
@@ -161,46 +179,51 @@ class OBCILauncherEngine(QtCore.QObject):
 		print "----engine signalled", type_
 
 	def _handle_experiment_created(self, msg):
-		matches = [e for e in self.experiments.values() if\
+		matches = [(i, e) for i, e in enumerate(self.experiments) if\
 						e.name == msg.name and e.preset_data is not None]
+		print "exp cr :::: ", [e.name for e in self.experiments], "msg.name:  ", msg.name, msg.uuid
 		if matches:
 			print "--- exp created ", msg.name, "MATCHES -- ", matches
-			exp = matches.pop()
+			index, exp = matches.pop()
 
 			exp.setup_from_launcher(msg.dict(), preset=True)
-			self.experiments[msg.uuid] = exp
-			del self.experiments[exp.old_uid]
+			print "new uuid", exp.uuid, "old:", exp.old_uid
+			# self.experiments[msg.uuid] = exp
+			# del self.experiments[exp.old_uid]
 		else:
-			self.experiments[msg.uuid] = ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx)
+			self.experiments.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
 		self._exp_connect(msg.dict())
 
 
 	def _handle_launcher_shutdown(self, msg):
-		self.experiments = {}
+		self.experiments = []
 		presets = self._parse_presets(self.preset_path)
 		for preset in presets:
 			exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
-			self.experiments[exp.uuid] = exp
+			self.experiments.append(exp)
 
 	def _handle_kill_sent(self, msg):
 		uid = msg.experiment_id
-		if uid in self.experiments:
-			exp = self.experiments[uid]
+		index = self.index_of(uid)
+		if index is not None:
+			exp = self.experiments[index]
+		
 			if exp.preset_data:
 				exp.setup_from_preset(exp.preset_data)
 				exp.launcher_data = None
-				self.experiments[exp.old_uid] = exp
-			del self.experiments[uid]
-			
+			else:
+				del exp
 
 	def _handle_kill(self, msg):
 		pass
 
 	def _handle_obci_control_message(self, msg):
 		uid = msg.sender
-		if uid in self.experiments:
-			exp = self.experiments[uid]
+		index = self.index_of(uid)
+		if index is not None:
+			exp = self.experiments[index]
+		
 			if msg.msg_code in ["obci_peer_registered", "obci_peer_params_changed"]:
 				for par, val in msg.launcher_message['params'].iteritems():
 					exp.update_peer_param(msg.launcher_message['peer_id'], 
@@ -210,8 +233,9 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def _handle_experiment_status_change(self, msg):
 		uid = msg.uuid
-		if uid in self.experiments:
-			exp = self.experiments[uid]
+		index = self.index_of(uid)
+		if index is not None:
+			exp = self.experiments[index]
 			exp.status.set_status(msg.status_name, msg.details)
 			if msg.peers:
 				for peer, status in msg.peers.iteritems():
@@ -219,14 +243,18 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def _handle_obci_peer_dead(self, msg):
 		uid = msg.experiment_id
-		if uid in self.experiments:
+		index = self.index_of(uid)
+		if index is not None:
+			print "&&&&&&&&&&&&&&&&  obci peer dead"
+			exp = self.experiments[index]
+		
 			status_name = msg.status[0]
 			details = msg.status[1]
-			st = self.experiments[uid].status
+			st = exp.status
 			st.peer_status(msg.peer_id).set_status(status_name, details)
 
 	def list_experiments(self):
-		return self.experiments.values()
+		return self.experiments
 
 	def _list_experiments(self):
 		exp_list = self.client.send_list_experiments()
@@ -253,10 +281,11 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def stop_experiment(self, msg):
 		uid = msg
-		if uid not in self.experiments:
+		index = self.index_of(uid)
+		if index is None:
 			print "experiment uuid not found: ", uid
 			return
-		exp = self.experiments[uid]
+		exp = self.experiments[index]
 		if not exp.launcher_data:
 			print "this exp is not running...", uid
 			return
@@ -266,10 +295,11 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def start_experiment(self, msg):
 		uid = msg
-		if uid not in self.experiments:
+		index = self.index_of(uid)
+		if index is None:
 			print "experiment uuid not found: ", uid
 			return
-		exp = self.experiments[uid]
+		exp = self.experiments[index]
 		if exp.launcher_data:
 			print "already running"
 			return

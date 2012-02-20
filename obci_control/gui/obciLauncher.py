@@ -182,7 +182,14 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
     def update_user_interface(self, update_msg):
         print "-----updating user interface  / ", update_msg if not update_msg else update_msg.type
         scenarios = self.engine.list_experiments()
+        current_sc = self.scenarios.currentRow()
+        print "CURRENT SCENARIO", current_sc
+        if current_sc == -1:
+            current_sc = 0
+
+
         self.setScenarios(scenarios)
+        self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
         # refresh experiments & params
         # refresh actions
             # editable fields = running / not
@@ -198,6 +205,4 @@ if __name__ == '__main__':
     dialog.start.connect(lambda name:sys.stderr.write('Start %s \n' % name))
     dialog.stop.connect(lambda name:sys.stderr.write('Stop %s \n' % name))
     
-
-
     dialog.exec_()
