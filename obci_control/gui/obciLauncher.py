@@ -117,7 +117,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             parent = QTreeWidgetItem([peer_id, st])
-            # parent.setFirstColumnSpanned(True)
+            parent.setFirstColumnSpanned(True)
             parent.setBackground(0, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
             parent.setBackground(1, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
 
