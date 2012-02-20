@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export PYTHONPATH=`python ../launcher/launcher_tools.py`
+
+python obciLauncher.py
