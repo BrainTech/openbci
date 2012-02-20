@@ -25,7 +25,8 @@ import common.net_tools as net
 import view
 from common.config_helpers import OBCISystemError
 from peer.peer_cmd import PeerCmd
-from peer import peer_config_parser
+import peer.peer_cmd as peer_cmd
+
 
 disp = view.OBCIViewText()
 
@@ -53,10 +54,20 @@ def cmd_srv_kill(args):
 
 
 def cmd_launch(args):
+	print args
 	launch_f = os.path.abspath(args.launch_file)
+	overwrites = args.ovr
+	if overwrites:
+		pack = peer_cmd.peer_overwrites_pack(overwrites)
+		print pack
+	else:
+		pack = None
+	
 	client = client_server_prep()
-	response = client.launch(launch_f, args.sandbox_dir, args.name)
+	response = client.launch(launch_f, args.sandbox_dir, args.name, pack)
 	disp.view(response)
+
+
 
 def cmd_new(args):
 	if args.launch_file:
@@ -131,6 +142,7 @@ def cmd_tail(args):
 		response = "whyyyy"
 	disp.view(response)
 
+
 ########################################################
 
 
@@ -172,6 +184,7 @@ specified in a launch file or in a newly created Experiment")
 				help="Directory for log file and various temp files storeage.")
 	parser_launch.add_argument('--name',
 				help="A name for experiment")
+	parser_launch.add_argument('--ovr', nargs=argparse.REMAINDER)#, type=peer_args)
 	parser_launch.set_defaults(func=cmd_launch)
 
 
@@ -255,10 +268,10 @@ a few first letters of its UUID or of its name \
 
 ###############################################################################
 
-def connect_client(addresses, client=None):
+def connect_client(addresses, client=None, client_class=obci_client.OBCIClient):
 	if client is None:
 		ctx = zmq.Context()
-		client = obci_client.OBCIClient(addresses, ctx)
+		client = client_class(addresses, ctx)
 	result = client.ping_server(timeout=200)
 	return result, client
 
@@ -299,7 +312,7 @@ def server_process_running():
 		os.remove(fpath)
 	return running, pid
 
-def client_server_prep(cmdargs=None):
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
 		print "obci directory not found: {0}".format(directory)
@@ -309,10 +322,10 @@ def client_server_prep(cmdargs=None):
 
 	ifname = cmdargs.ifname if cmdargs else None
 
-	rep_addrs = [net.server_address('rep', local=False, ifname=ifname)]
-	pub_addrs = [net.server_address('pub', local=False, ifname=ifname)]
+	rep_addrs = [net.server_address('rep', local=False, ifname=ifname), net.server_address('rep', ifname='lo')]
+	pub_addrs = [net.server_address('pub', local=False, ifname=ifname), net.server_address('pub', ifname='lo')]
 	#print rep_addrs, pub_addrs
-	res, client = connect_client(rep_addrs)
+	res, client = connect_client(rep_addrs, client_class=client_class)
 
 	if res is not None:
 		return client

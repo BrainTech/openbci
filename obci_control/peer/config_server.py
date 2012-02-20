@@ -55,7 +55,7 @@ class ConfigServer(BaseMultiplexerServer):
 			else:
 				self.send_message(message=msg, to=int(mxmsg.from_), type=mtype, flush=True)
 		if launcher_msg is not None and self.launcher_sock is not None:
-			print '[config_server]  SENDING msg ', launcher_msg[:40] + '[...]'
+			print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
 			send_msg(self.launcher_sock, launcher_msg)
 
 	def _call_handler(self, mtype, message):

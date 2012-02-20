@@ -37,11 +37,21 @@ class OBCIExperimentConfig(object):
 		dictparser = peer.peer_config_parser.parser('python')
 		return dictparser.parse(config_dict, conf, update=True)
 
+	def file_update_peer_config(self, peer_id, file_path):
+		if peer_id not in self.peers:
+			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
+		parser = peer.peer_config_parser.parser('ini')
+		with open(file_path) as f:
+			return parser.parse(f, self.peers[peer_id].config, update=True)
+
 	def peer_path(self, peer_id):
 		return self.peers[peer_id].path
 
 	def peer_machine(self, peer_id):
 		return self.peers[peer_id].machine
+
+	def update_peer_machine(self, peer_id, machine_ip):
+		self.peers[peer_id].machine = machine_ip
 
 	def add_peer(self, peer_id):
 		self.peers[peer_id] = PeerConfigDescription(peer_id, self.uuid)
@@ -89,6 +99,9 @@ class OBCIExperimentConfig(object):
 		for key in not_fresh:
 			vals[key] = self._param_value(peer_id, key, config)
 		return vals
+
+	def local_params(self, peer_id):
+		return self.peers[peer_id].config.local_params
 	
 	def param_value(self, peer_id, param_name):
 		if peer_id not in self.peers:
@@ -185,6 +198,7 @@ class PeerConfigDescription(object):
 		self.config = config
 		self.path = path
 		self.machine = machine
+		self.public_params = []
 
 	def ready(self, details=None):
 		loc_det = {}

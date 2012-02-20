@@ -32,6 +32,9 @@ class OBCIMessageTool(object):
 		self.errors = common_errors
 		self.errors.append(errors)
 
+	def add_templates(self, msg_templates):
+		self.templates.update(msg_templates)
+
 	def fill_msg(self, msg_type, **kwargs):
 		if msg_type not in self.templates:
 			raise OBCIMessageError()

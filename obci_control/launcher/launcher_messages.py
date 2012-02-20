@@ -6,8 +6,9 @@
 message_templates = {
 	"register_peer" : dict(peer_type='', uuid='', rep_addrs='', pub_addrs='', name='', other_params=''),
 
-	"create_experiment" : dict(launch_file='', sandbox_dir='', name=''),
-	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
+	"create_experiment" : dict(launch_file='', sandbox_dir='', name='', overwrites=''),
+	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='', 
+									status_name='', details='', launch_file_path=''),
 	"list_experiments" : dict(),
 	"running_experiments" : dict(exp_data=''),
 
@@ -30,10 +31,10 @@ message_templates = {
 
     "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='',
     							launcher_message='', params='', details=''),
-    "experiment_status_change" : dict(uuid='', status_name='', details=''),
+    "experiment_status_change" : dict(uuid='', status_name='', details='', peers=''),
 
 	"get_experiment_contact" : dict(strname=''),
-	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine=''),
+	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine='', status_name='', details=''),
 
 	"launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
 									capture_io='', stdout_log='', stderr_log=''),
@@ -50,13 +51,13 @@ message_templates = {
 	"process_supervisor_registered" : dict(machine_ip=''),
 
 	"kill_experiment" : dict(strname='', force=''),
-	"kill_sent" : dict(),
+	"kill_sent" : dict(experiment_id=''),
 
 	"start_mx" : dict(args=''),
 	"start_peers" : dict(mx_data=''),
 	"dead_process" : dict(machine='', pid='', status=''),
 
-	"obci_peer_dead" : dict(path='', peer_id='', status=''),
+	"obci_peer_dead" : dict(path='', peer_id='', status='', experiment_id=''),
 	"stop_all" : dict(),
 
 	"get_tail" : dict(peer_id='', len=''),
@@ -75,7 +76,8 @@ message_templates = {
 	"save_scenario" : dict(file_name='', force=''),
 
 	"find_eeg_experiments" : dict(client_push_address='', checked_srvs=''),
-	"eeg_experiments" : dict(experiment_list='')
+	"eeg_experiments" : dict(experiment_list=''),
+	"launcher_shutdown" : dict()
 
 
 }

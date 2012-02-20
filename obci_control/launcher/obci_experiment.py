@@ -26,6 +26,8 @@ import launcher_tools
 import system_config
 import obci_process_supervisor
 
+import peer.peer_cmd as peer_cmd
+
 REGISTER_TIMEOUT = 25
 
 class OBCIExperiment(OBCIControlPeer):
@@ -38,13 +40,15 @@ class OBCIExperiment(OBCIControlPeer):
 										rep_addresses=None,
 										pub_addresses=None,
 										name='obci_experiment',
-										launch=False):
+										launch=False,
+										overwrites=None):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
 		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
 		self.poller = PollingObject()
+		self.launch_file = launch_file
 		super(OBCIExperiment, self).__init__(obci_install_dir,
 											source_addresses,
 											rep_addresses,
@@ -52,7 +56,6 @@ class OBCIExperiment(OBCIControlPeer):
 											name)
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 
-		self.launch_file = launch_file
 		self.supervisors = {} #machine -> supervisor contact/other info
 		self._wait_register = 0
 		self.sv_processes = {} # machine -> Process objects)
@@ -67,6 +70,16 @@ class OBCIExperiment(OBCIControlPeer):
 		self.exp_config.launch_file_path = self.launch_file
 
 		result, details = self.make_experiment_config()
+		if overwrites:
+			try:
+				for [ovr, other] in overwrites:
+					self.exp_config.update_peer_config(other['peer_id'], ovr)
+					if other['config_file']:
+						for f in other['config_file']:
+							self.exp_config.file_update_peer_config(other['peer_id'], f)
+			except Exception, e:
+				details = str(e)
+
 		self.exp_config.status(self.status)
 		self.status.details = details
 		self.status_changed(self.status.status_name, self.status.details)
@@ -90,7 +103,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self._all_sockets.append(self.source_sub_socket)
 
 		(self.supervisors_rep, self.supervisors_rep_addrs) = self._init_socket(
-									['ipc://rep_experiment_supervisors-'+self.uuid +'.ipc'],
+									[],
 									zmq.REP)
 		(self.supervisors_sub, self.supervisors_sub_addrs) = (self.ctx.socket(zmq.SUB), [])
 
@@ -101,7 +114,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def params_for_registration(self):
 		return dict(pid=os.getpid(), origin_machine=self.origin_machine,
-				status_name='', details='')
+				status_name='', details='', launch_file_path=self.launch_file)
 
 	def custom_sockets(self):
 		return [self.source_sub_socket, self.supervisors_sub, self.supervisors_rep]
@@ -215,13 +228,15 @@ class OBCIExperiment(OBCIControlPeer):
 
 		return True, None
 
-	def status_changed(self, status_name, details):
+	def status_changed(self, status_name, details, peers=None):
 		send_msg(self.source_req_socket, self.mtool.fill_msg('experiment_status_change',
-				status_name=status_name, details=details, uuid=self.uuid))
+				status_name=status_name, details=details, uuid=self.uuid, peers=peers))
 		self.poller.poll_recv(self.source_req_socket, timeout=8000)
+
 
 	def peer_type(self):
 		return 'obci_experiment'
+
 
 	@msg_handlers.handler('register_peer')
 	def handle_register_peer(self, message, sock):
@@ -297,6 +312,8 @@ class OBCIExperiment(OBCIControlPeer):
 			pass
 		self.status.peer_status(message.name).set_status(
 											launcher_tools.RUNNING)
+		self.status_changed(self.status.status_name, self.status.details,
+			peers={message.name : self.status.peer_status(message.name).status_name})
 
 
 	@msg_handlers.handler("all_peers_launched")
@@ -328,7 +345,7 @@ class OBCIExperiment(OBCIControlPeer):
 		# exp_info['unsupervised_peers'] = self.unsupervised_peers
 
 
-
+		send_msg(self._publish_socket, self.mtool.fill_msg('rq_ok'))
 		send_msg(sock, self.mtool.fill_msg('experiment_info',
 											experiment_status=self.status.as_dict(),
 											unsupervised_peers=self.unsupervised_peers,
@@ -448,6 +465,13 @@ class OBCIExperiment(OBCIControlPeer):
 								self.name, self.peer_type(), peer_id,
 								message.params, str(e))
 
+			send_msg(self._publish_socket, self.mtool.fill_msg('obci_control_message', 
+										severity='info', msg_code='obci_peer_params_changed',
+										launcher_message=message.dict(),
+										sender=self.uuid, peer_name=self.name, peer_type=self.peer_type(),
+										sender_ip=self.origin_machine))
+			
+
 
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
@@ -477,6 +501,8 @@ class OBCIExperiment(OBCIControlPeer):
 		elif not self.status.peer_status_exists(launcher_tools.RUNNING) and\
 				self.status.status_name != launcher_tools.FAILED:
 			self.status.set_status(status)
+		message.experiment_id = self.uuid
+		send_msg(self._publish_socket, message.SerializeToString())
 		self.status_changed(self.status.status_name, self.status.details)
 
 
@@ -509,7 +535,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self._publish_socket,
-						self.mtool.fill_msg("kill", receiver=""))
+						self.mtool.fill_msg("kill", receiver="", sender=self.uuid))
 		print '{0} [{1}] -- sent KILL to supervisors'.format(self.name, self.peer_type())
 
 	def clean_up(self):
@@ -564,6 +590,7 @@ def experiment_arg_parser():
 					help='Human readable name of this process')
 	parser.add_argument('--launch', default=False,
 	                   help='Launch the experiment specified in launch file')
+	parser.add_argument('--ovr', nargs=argparse.REMAINDER)
 
 
 	return parser
@@ -571,11 +598,13 @@ def experiment_arg_parser():
 if __name__ == '__main__':
 
 	args = experiment_arg_parser().parse_args()
-
-
+	print args
+	pack = None
+	if args.ovr is not None:
+		pack = peer_cmd.peer_overwrites_pack(args.ovr)
 	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
-							args.launch)
+							args.launch, overwrites=pack)
 
 	exp.run()
