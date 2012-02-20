@@ -16,10 +16,11 @@ from PySide.QtCore import *
 import PySide.QtGui
 from obci_launcher import Ui_ObciLauncher
 
-from obci_launcher_engine import OBCILauncherEngine
+from obci_launcher_engine import OBCILauncherEngine, MODE_BASIC,MODE_ADVANCED,MODES
 import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
+from common.message import LauncherMessage
 
 class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
     '''
@@ -31,13 +32,14 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
     
     status_colors = {
         NOT_READY : 'dimgrey',
-        READY_TO_LAUNCH : 'lightgrey',
+        READY_TO_LAUNCH : 'bisque',
         LAUNCHING : 'lightseagreen',
         FAILED_LAUNCH : 'red',
         RUNNING : 'lightgreen',
         FINISHED : 'lightblue',
         FAILED : 'red',
-        TERMINATED : 'darkyellow'}
+        TERMINATED : 'khaki'
+    }
 
 
     def __init__(self, parent=None):
@@ -71,11 +73,13 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self._params = []
         self._scenarios = []
 
+        self.details_mode.addItems(MODES)
 
         self.engine.update_ui.connect(self.update_user_interface)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
         self.stop.connect(self.engine.stop_experiment)
+        self.details_mode.currentIndexChanged.connect(self.update_user_interface)
 
         self.update_user_interface(None)
 
@@ -123,7 +127,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
                 parent.setToolTip(0, peer.path)
 
-            for param, value in experiment.exp_config.local_params(peer_id).iteritems():
+            params = experiment.parameters(peer_id, self.details_mode.currentText())
+            for param, value in params.iteritems():
                 child = QTreeWidgetItem([param, str(value)])                
                 parent.addChild(child)
                 
@@ -180,7 +185,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.reset.emit(self._scenarios[self.scenarios.currentRow()].uuid)
 
     def update_user_interface(self, update_msg):
-        print "-----updating user interface  / ", update_msg if not update_msg else update_msg.type
+        print "-----updating user interface  / ", update_msg if \
+                    not isinstance(update_msg, LauncherMessage) else update_msg.type
         scenarios = self.engine.list_experiments()
         current_sc = self.scenarios.currentRow()
         print "CURRENT SCENARIO", current_sc
@@ -190,6 +196,11 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
         self.setScenarios(scenarios)
         self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
+
+        mode = self.details_mode.currentText()
+        if mode not in MODES:
+            mode = MODE_ADVANCED
+        self.engine.details_mode = mode
         # refresh experiments & params
         # refresh actions
             # editable fields = running / not

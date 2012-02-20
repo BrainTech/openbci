@@ -25,7 +25,7 @@ PRESETS = 'obci_control/gui/presets.ini'
 MODE_BASIC = 'basic'
 MODE_ADVANCED = 'advanced'
 MODE_EXPERT = 'expert'
-MODES = [MODE_BASIC, MODE_ADVANCED, MODE_EXPERT]
+MODES = [MODE_BASIC, MODE_ADVANCED]#, MODE_EXPERT]
 
 class OBCILauncherEngine(QtCore.QObject):
 	update_ui = QtCore.Signal(object)
@@ -34,7 +34,7 @@ class OBCILauncherEngine(QtCore.QObject):
 	internal_msg_templates = {
 		'_launcher_engine_msg' : dict(task='', pub_addr='')
 	}
-	mode = MODE_BASIC
+	
 
 	def __init__(self, obci_client):
 		super(OBCILauncherEngine, self).__init__()
@@ -65,6 +65,8 @@ class OBCILauncherEngine(QtCore.QObject):
 		for exp in self.experiments:
 			if exp.launcher_data is not None:
 				self._exp_connect(exp.launcher_data)
+
+		self.details_mode = MODE_ADVANCED
 
 		# server req -- list_experiments
 		# subscribe to server PUB
@@ -457,6 +459,16 @@ class ExperimentEngineInfo(QtCore.QObject):
 											status['status_name'],
 											details=status['details'])
 
+	def parameters(self, peer_id, mode):
+
+		params = {}
+		peer = self.exp_config.peers[peer_id]
+		if mode == MODE_BASIC:
+			for par in peer.public_params:
+				params[par] = peer.config.param_values[par]
+		else:
+			params = peer.config.local_params
+		return params
 
 
 	def comm_exp(self, msg):

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'obci_launcher.ui'
 #
-# Created: Sun Feb 19 17:43:43 2012
+# Created: Mon Feb 20 17:55:45 2012
 #      by: pyside-uic 0.2.11 running on PySide 1.0.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -60,6 +60,20 @@ class Ui_ObciLauncher(object):
         self.parameters.setObjectName("parameters")
         self.parameters.headerItem().setText(0, "1")
         self.gridLayout_3.addWidget(self.parameters, 0, 0, 1, 1)
+        self.horizontalLayout_4 = QtGui.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+        self.details_label = QtGui.QLabel(self.parameters_of)
+        self.details_label.setObjectName("details_label")
+        self.horizontalLayout_4.addWidget(self.details_label)
+        self.details_mode = QtGui.QComboBox(self.parameters_of)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.details_mode.sizePolicy().hasHeightForWidth())
+        self.details_mode.setSizePolicy(sizePolicy)
+        self.details_mode.setObjectName("details_mode")
+        self.horizontalLayout_4.addWidget(self.details_mode)
+        self.gridLayout_3.addLayout(self.horizontalLayout_4, 1, 0, 1, 1)
         self.gridLayout.addWidget(self.splitter, 0, 0, 1, 1)
 
         self.retranslateUi(ObciLauncher)
@@ -74,4 +88,5 @@ class Ui_ObciLauncher(object):
         self.stop_button.setText(QtGui.QApplication.translate("ObciLauncher", "Stop", None, QtGui.QApplication.UnicodeUTF8))
         self.reset_button.setText(QtGui.QApplication.translate("ObciLauncher", "Restart launcher", None, QtGui.QApplication.UnicodeUTF8))
         self.parameters_of.setTitle(QtGui.QApplication.translate("ObciLauncher", "Parameters", None, QtGui.QApplication.UnicodeUTF8))
+        self.details_label.setText(QtGui.QApplication.translate("ObciLauncher", "Details mode:", None, QtGui.QApplication.UnicodeUTF8))
 
