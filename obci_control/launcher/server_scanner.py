@@ -34,10 +34,10 @@ def update_nearby_servers(srv_data, srv_data_lock, ctx=None):
     srv_dict = {}
     for ip in ip_range:
         pass
-        req_s = ctx.socket(zmq.REQ)
-        req_s.connect('tcp://' + ip + ':' + str(srv_port))
-        srv_dict[req_s] =  ip
-        poller.register(req_s, zmq.POLLIN)
+        #req_s = ctx.socket(zmq.REQ)
+        #req_s.connect('tcp://' + ip + ':' + str(srv_port))
+        #srv_dict[req_s] =  ip
+        #poller.register(req_s, zmq.POLLIN)
 
     to_send = srv_dict.keys()
     trials = 5
