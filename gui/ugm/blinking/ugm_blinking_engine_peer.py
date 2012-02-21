@@ -28,13 +28,14 @@ class UgmBlinkingEnginePeer(ConfiguredClient):
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
             connection)
         ENG.set_configs(DummyClient(self.config.param_values()))
+        srv = ugm_internal_server.UdpServer(
+            ENG, 
+            self.config.get_param('internal_ip'),
+            int(self.config.get_param('use_tagger'))
+            )
+        self.set_param('internal_port', str(srv.socket.getsockname()[1]))
         thread.start_new_thread(
-                ugm_internal_server.UdpServer(
-                    ENG, 
-                    self.config.get_param('internal_ip'),
-                    int(self.config.get_param('internal_port')),
-                    int(self.config.get_param('use_tagger'))
-                    ).run, 
+                srv.run, 
                 ()
                 )
         self.ready()

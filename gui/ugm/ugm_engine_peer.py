@@ -19,20 +19,21 @@ class UgmEnginePeer(ConfiguredClient):
 
         ENG = ugm_engine.UgmEngine(
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')))
+        srv = ugm_internal_server.UdpServer(
+            ENG, 
+            self.get_param('internal_ip'),
+            int(self.get_param('use_tagger'))
+            )
+        self.set_param('internal_port', str(srv.socket.getsockname()[1]))
         thread.start_new_thread(
-                ugm_internal_server.UdpServer(
-                    ENG, 
-                    self.config.get_param('internal_ip'),
-                    int(self.config.get_param('internal_port')),
-                    int(self.config.get_param('use_tagger'))
-                    ).run, 
+                srv.run, 
                 ()
                 )
         self.ready()
         ENG.run()
             
 if __name__ == "__main__":
-    UgmEnginePeer(settings.MULTIPLEXER_ADDRESSES).run()
+    UgmEnginePeer(settings.MULTIPLEXER_ADDRESSES)
 
 
 

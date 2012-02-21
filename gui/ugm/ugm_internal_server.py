@@ -22,7 +22,7 @@ class UdpServer(object):
     then multiplexer won`t work ... To solve this i fire ugm_engine in the 
     main thread, fire multiplexer in separate PROCESS and create TcpServer
     to convey data from multiplexer to ugm_engine."""
-    def __init__(self, p_ugm_engine, p_ip, p_port, p_use_tagger):
+    def __init__(self, p_ugm_engine, p_ip, p_use_tagger):
         """Init server and store ugm engine."""
         self._ugm_engine = p_ugm_engine
         self._use_tagger = p_use_tagger
@@ -30,7 +30,7 @@ class UdpServer(object):
             self._tagger = tagger.get_tagger()
 
         self.socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-        self.socket.bind((p_ip, p_port))
+        self.socket.bind((p_ip, 0))
 
     def run(self):
         """Do forever:
