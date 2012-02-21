@@ -81,6 +81,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.stop.connect(self.engine.stop_experiment)
         self.details_mode.currentIndexChanged.connect(self.update_user_interface)
 
+        self.exp_states = []
         self.update_user_interface(None)
 
     def setScenarios(self, scenarios):
@@ -108,21 +109,23 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         return self._scenarios
 
     def _setParams(self, experiment):
-        expanded = set()
-        for i in range(self.parameters.topLevelItemCount()):
-            item = self.parameters.topLevelItem(i)
-            if item.isExpanded(): expanded.add(item.text(0))
+        expanded = self.exp_states[self._index_of(experiment)].expanded_peers
+        # for i in range(self.parameters.topLevelItemCount()):
+        #     item = self.parameters.topLevelItem(i)
+        #     if item.isExpanded(): expanded.add(item.text(0))
+
         self.parameters.clear()
         self._params = experiment
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             parent = QTreeWidgetItem([peer_id, st])
-            # parent.setFirstColumnSpanned(True)
+            parent.setFirstColumnSpanned(True)
             parent.setBackground(0, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
             parent.setBackground(1, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
 
             self.parameters.addTopLevelItem(parent)
-            if unicode(parent.text(0)) in expanded:
+
+            if parent.text(0) in expanded:
                 parent.setExpanded(True)
 
                 parent.setToolTip(0, peer.path)
@@ -136,12 +139,16 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
                 child.setToolTip(1, child.toolTip(0))
 
     def _getParams(self):
+        state = self.exp_states[self._index_of(self._params)]
+        expanded = set()
         for i, peer in enumerate(self._params.exp_config.peers.values()):
             parent = self.parameters.topLevelItem(i)
+            if parent.isExpanded(): expanded.add(parent.text(0))
+
             for j, param in enumerate(peer.config.local_params.keys()):
                 child = parent.child(j)
                 # peer.config.update_local_param(param, child.text(1))
-                
+        state.expanded_peers = expanded        
         return self._params
 
     def _itemClicked(self, item, column):
@@ -184,29 +191,56 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
     def _reset(self):
         self.reset.emit(self._scenarios[self.scenarios.currentRow()].uuid)
 
+    def _index_of(self, exp):
+        uids = {}
+        for i, st in enumerate(self.exp_states):
+            uids[st.exp.uuid] = i
+
+        if exp.uuid in uids:
+            return uids[exp.uuid]
+        else: return None
+
     def update_user_interface(self, update_msg):
         print "-----updating user interface  / ", update_msg if \
                     not isinstance(update_msg, LauncherMessage) else update_msg.type
         scenarios = self.engine.list_experiments()
+
         current_sc = self.scenarios.currentRow()
+
+        new_states = []
+        for i, exp in enumerate(scenarios):
+            index = self._index_of(exp)
+            if index is None:
+                new_states.append(ExperimentGuiState(exp))
+            else:
+                new_states.append(self.exp_states[index])
+
+        self.exp_states = new_states
+
         print "CURRENT SCENARIO", current_sc
         if current_sc == -1:
             current_sc = 0
-
-
-        self.setScenarios(scenarios)
-        self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
-
+            
         mode = self.details_mode.currentText()
         if mode not in MODES:
             mode = MODE_ADVANCED
         self.engine.details_mode = mode
+
+        self.setScenarios(scenarios)
+        self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
+
+
         # refresh experiments & params
         # refresh actions
             # editable fields = running / not
             # stop = running
             # start = not_running
         
+class ExperimentGuiState(object):
+    def __init__(self, engine_experiment):
+        self.exp = engine_experiment
+        self.expanded_peers = set()
+
 
 if __name__ == '__main__':
     app = QApplication([])

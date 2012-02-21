@@ -6,20 +6,50 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>761</width>
-    <height>455</height>
+    <width>777</width>
+    <height>452</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
   <property name="windowTitle">
-   <string>Obci Launcher</string>
+   <string>OBCI Launcher</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="0" column="1">
     <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
+     <property name="opaqueResize">
+      <bool>true</bool>
+     </property>
      <widget class="QGroupBox" name="groupBox">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>40</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="title">
        <string>Experiment scenarios</string>
       </property>
@@ -38,6 +68,12 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_3">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -68,6 +104,12 @@
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QPushButton" name="start_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Start</string>
            </property>
@@ -75,6 +117,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="stop_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Stop</string>
            </property>
@@ -82,8 +130,14 @@
          </item>
          <item>
           <widget class="QPushButton" name="reset_button">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
-            <string>Restart launcher</string>
+            <string>Reset all</string>
            </property>
           </widget>
          </item>
@@ -92,12 +146,36 @@
       </layout>
      </widget>
      <widget class="QGroupBox" name="parameters_of">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <horstretch>2</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="title">
        <string>Parameters</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
         <widget class="QTreeWidget" name="parameters">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>390</width>
+           <height>1</height>
+          </size>
+         </property>
          <column>
           <property name="text">
            <string notr="true">1</string>
