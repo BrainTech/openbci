@@ -33,6 +33,7 @@ import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
 from obci.configs import variables_pb2
+from obci.configs import settings
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""
@@ -147,7 +148,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     
     def loadConfig(self):
         """Loads config from file and rebuilds whole tree"""
-        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(), "Pliki UGMa (*.ugm)")
+        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(settings.module_abs_path()), "Pliki UGMa (*.ugm)")
         if l_fileName == "": 
             return    
         self.fileName = unicode(l_fileName)
@@ -171,7 +172,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         
     def saveConfigAs(self):
         """Saves config to specified file"""
-        l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."), QtCore.QString(), "Plik UGMa (*.ugm)")
+        l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."), QtCore.QString(settings.module_abs_path()), "Plik UGMa (*.ugm)")
         if l_fileName == "": 
             return
         self.fileName = l_fileName

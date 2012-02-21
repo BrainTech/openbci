@@ -1,24 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 """This moduel defines abstract class for ugm stimulus and concrete classes
@@ -31,6 +13,7 @@ Wanna define a new type of stimulus??
 - use new stimulus in ugm config (as described in ugm_config_manager)
 """
 from PyQt4 import QtGui, QtCore
+import os.path
 
 
 # --------------------------------------------------------------------------
@@ -329,20 +312,21 @@ class UgmImageStimulus(UgmStimulus, UgmRectConfig):
         If first, p_image_path is sth like ugm.resources.file.png
         and we return system-path-to-resources-module + file.png
         """
-        if p_image_path.startswith('ugm.resources.'):
+        if p_image_path.startswith('gui.ugm.resources.'):
             # p_image_path is a path like ugm.resources.file.png
             # determine resources/__init__.py path
-            l_mod_file = __import__('ugm.resources', 
+            l_mod_file = __import__('gui.ugm.resources', 
                                     fromlist=['ugm']).__file__
         # determine resources/ dir path
             l_mod_file = l_mod_file[:-len('__init__.pyc')] 
         # determine full file.png path
             l_mod_file = ''.join([l_mod_file,
-                                  p_image_path[len('ugm.resources.'):]])
-            return l_mod_file
+                                  p_image_path[len('gui.ugm.resources.'):]])
+            l_file = l_mod_file
         else:
             # p_image_path is just a path
-            return p_image_path
+            l_file = p_image_path
+        return os.path.expanduser(l_file)
 
     def paintEvent(self, event):
         """Draw image from self._image."""

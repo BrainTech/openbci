@@ -29,6 +29,7 @@ from modules.exp.test import Ui_Form
 import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
+from obci.configs import settings
 import variables_pb2
 import ConfigParser
 import string
@@ -67,7 +68,7 @@ class EXPModuleDockWidget(QtGui.QDockWidget):
          
     def loadConfig(self):
         """Loads config from file and rebuilds whole tree"""
-        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(), "*")
+        l_fileName = QtGui.QFileDialog().getOpenFileName(self, self.tr(u"Otwórz"), QtCore.QString(settings.module_abs_path()), "*")
         if l_fileName == "": 
             return    
         self.fileName = unicode(l_fileName)
