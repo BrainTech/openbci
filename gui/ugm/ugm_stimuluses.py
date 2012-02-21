@@ -312,17 +312,15 @@ class UgmImageStimulus(UgmStimulus, UgmRectConfig):
         If first, p_image_path is sth like ugm.resources.file.png
         and we return system-path-to-resources-module + file.png
         """
-        if p_image_path.startswith('gui.ugm.resources.'):
+        prefix = 'gui.ugm.resources.'
+        if p_image_path.startswith(prefix):
             # p_image_path is a path like ugm.resources.file.png
             # determine resources/__init__.py path
-            l_mod_file = __import__('gui.ugm.resources', 
-                                    fromlist=['ugm']).__file__
-        # determine resources/ dir path
-            l_mod_file = l_mod_file[:-len('__init__.pyc')] 
-        # determine full file.png path
-            l_mod_file = ''.join([l_mod_file,
-                                  p_image_path[len('gui.ugm.resources.'):]])
-            l_file = l_mod_file
+            m = __import__(prefix,
+                           fromlist=['ugm']).__file__
+            m_file = os.path.abspath(m[:m.rfind('/')])
+            l_file = os.path.join(m_file, p_image_path[len(prefix):])
+
         else:
             # p_image_path is just a path
             l_file = p_image_path
