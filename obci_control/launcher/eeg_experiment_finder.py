@@ -4,6 +4,7 @@
 import json
 import zmq
 import time
+import socket
 
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
@@ -165,6 +166,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     other_exps_pull = ctx.socket(zmq.PULL)
     # ifname = net.server_ifname()
     # my_addr = net.ext_ip(ifname=ifname)
+    my_addr = socket.gethostname()
     port = other_exps_pull.bind_to_random_port('tcp://*',
                                             min_port=PORT_RANGE[0],
                                             max_port=PORT_RANGE[1], max_tries=500)
@@ -177,6 +179,10 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     nearby_servers = [ip for ip in nearby_servers if ip not in checked]
 
     for srv_ip in nearby_servers:
+        if socket.gethostbyaddr(srv_ip)[0] == socket.gethostname() or\
+                socket.gethostbyaddr(srv_ip)[0].startswith(socket.gethostname() + '.'):  #w/ domain
+            print "own addr"
+            continue
         addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
         req = ctx.socket(zmq.REQ)
         req.connect(addr)

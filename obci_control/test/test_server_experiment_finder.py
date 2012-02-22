@@ -4,6 +4,7 @@
 import json
 import zmq
 import sys
+import socket
 
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
@@ -15,17 +16,17 @@ if __name__ == '__main__':
     mtool = OBCIMessageTool(message_templates)
     pl = PollingObject()
 
-    ifname = net.server_ifname()
-    my_addr = 'tcp://' + net.ext_ip(ifname=ifname)
+    # ifname = net.server_ifname()
+    my_addr = 'tcp://' + 'localhost'
 
     ctx = zmq.Context()
 
     server_req = ctx.socket(zmq.REQ)
-    server_req.connect(net.server_address(ifname=ifname))
+    server_req.connect(my_addr + ':' + net.server_rep_port())
 
     exp_info_pull = ctx.socket(zmq.PULL)
 
-    port = exp_info_pull.bind_to_random_port(my_addr,
+    port = exp_info_pull.bind_to_random_port('tcp://*',
                                             min_port=PORT_RANGE[0],
                                             max_port=PORT_RANGE[1], max_tries=500)
 
