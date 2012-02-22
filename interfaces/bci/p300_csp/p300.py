@@ -320,7 +320,7 @@ class p300_train(object):
         return P, vals[vals_idx]
 
 class p300analysis(object):
-    def __init__(self, z_trg, z_no_trg, mean, mu, sigma, no_fields=8):
+    def __init__(self, z_trg, z_no_trg, mean, mu, sigma, left, right, no_fields=8):
         """Parameters:
            -----------
            z_trg : 2darray
@@ -339,7 +339,10 @@ class p300analysis(object):
         self.no_trg.sort()
         self.mu, self.sigma = mu, sigma
         self.mean = mean / np.sqrt(np.dot(mean, mean))
-    
+        self.signal_len = len(mean)
+        self.left = left
+        self.right = right
+        
     def __get_feature(self, arr, xc_points=20):
         """
         Parameters:
@@ -365,10 +368,28 @@ class p300analysis(object):
         P_xn = len(np.where(Xn > feature)[0]) / float(len(Xn))
         return P_xt * P_t / (P_xt * P_t + P_xn * P_n)
             
+    def woody(self, sig, xc_points=25):
+        xcor = np.correlate(self.mean, sig, 'full')[self.signal_len - xc_points : self.signal_len + xc_points]
+        max_idx = xcor.argmax()
+        sig = sig / np.sqrt(np.dot(sig,sig))
+        cor = len(xcor)/2 - max_idx
+        new_sig = np.zeros(sig.shape)
+        if self.left + cor <= 0:
+            cor = -self.left
+        if self.right + cor >= len(sig):
+            cor = len(sig) - self.right - 1
+        new_sig[self.left:self.right] = np.copy(sig[self.left+cor:self.right+cor])
+        #plt.plot(self.mean, 'r-')
+        #plt.plot(sig,'g-')
+        #plt.plot(new_sig,'b-')
+        #plt.show()
+        return new_sig
+    
     def analyze(self, signal, index, tr=0.80):
         I, N, J = self.buffer.shape
+        sig = self.woody(signal)
         tmp = np.delete(self.buffer[index,...], N - 1, 0)
-        tmp = np.insert(tmp, 0, signal, axis=0)
+        tmp = np.insert(tmp, 0, sig, axis=0)
         self.buffer[index,...] = np.copy(tmp)
         for i in xrange(N):
             feature = self.__get_feature(tmp[:i + 1])
