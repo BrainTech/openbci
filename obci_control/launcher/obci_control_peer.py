@@ -83,9 +83,7 @@ class OBCIControlPeer(object):
 	msg_handlers = HandlerCollection()
 
 	def __init__(self, source_addresses=None,
-										rep_addresses=None,
-										pub_addresses=None,
-										name='obci_control_peer'):
+					rep_addresses=None, pub_addresses=None, name='obci_control_peer'):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!

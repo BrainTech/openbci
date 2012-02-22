@@ -8,6 +8,7 @@ import subprocess
 import argparse
 
 import zmq
+import socket
 
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
@@ -64,7 +65,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		src = src_[0]
 		src = src[6:].split(':')[0]
 
-		if src == self.ip:
+		if src == socket.gethostname():
 			sock = self.ctx.socket(zmq.REP)
 			port = str(sock.bind_to_random_port("tcp://" + self.ip,
 											min_port=settings.PORT_RANGE[0],

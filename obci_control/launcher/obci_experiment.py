@@ -7,6 +7,7 @@ import uuid
 import argparse
 import subprocess
 import threading
+import socket
 
 import zmq
 
@@ -121,17 +122,24 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
-		if not sv_rep_ or local:
-			sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
+		a = self.supervisors_rep_addrs[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
+		# sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
+		# if not sv_rep_ or local:
+		# 	sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
 
-		args += sv_rep_[:1]
+		args.append(addr_to_pass) # += sv_rep_[:1]
 		args.append('--sv-pub-addresses')
-		pub_addrs = net.choose_not_local(self.pub_addresses)
-		if not pub_addrs or local:
-			pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+		a = self.pub_addresses[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
 
-		args += pub_addrs[:1] #self.pub_addresses
+		# pub_addrs = net.choose_not_local(self.pub_addresses)
+		# if not pub_addrs or local:
+		# 	pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+
+		args.append(addr_to_pass) # += pub_addrs[:1] #self.pub_addresses
 		args += [
 					'--sandbox-dir', str(self.sandbox_dir),
 					'--name', os.path.basename(self.launch_file) +\

@@ -132,7 +132,7 @@ probably a server is already working"
 		# 	addrs = net.choose_not_local(self.exp_pub_addrs)
 		addrs = self.exp_pub_addrs
 
-		args += [addrs.pop()]
+		args += addrs
 		exp_name = name if name else os.path.basename(launch_file)
 		args += [
 					'--sandbox-dir', str(sandbox_dir),
