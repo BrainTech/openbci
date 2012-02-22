@@ -82,11 +82,10 @@ class OBCIControlPeer(object):
 
 	msg_handlers = HandlerCollection()
 
-	def __init__(self, obci_install_dir, source_addresses=None,
+	def __init__(self, source_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
-										name='obci_control_peer',
-										ifname=None):
+										name='obci_control_peer'):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
@@ -94,7 +93,6 @@ class OBCIControlPeer(object):
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses
 		self._all_sockets = []
-		self.obci_dir = obci_install_dir
 		self._pull_addr = 'inproc://publisher_msg'
 		self._push_addr = 'inproc://publisher'
 		self._subpr_push_addr = 'inproc://subprocess_info'
@@ -170,7 +168,7 @@ class OBCIControlPeer(object):
 		while not self._stop_monitoring:
 			dead = self.subprocess_mgr.not_running_processes()
 			if dead:
-				print "DEADDD" , dead
+				print "DEAD  process" , dead
 				for key, status in dead.iteritems():
 					send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
 														pid=key[1], status=status))
@@ -240,8 +238,8 @@ class OBCIControlPeer(object):
 		self._set_poll_sockets()
 
 	def _init_socket(self, addrs, zmq_type, create_ipc=False):
-		basic_addrs = [ "tcp://"+net.ext_ip(ifname='lo'),
-						"tcp://"+net.ext_ip(ifname=net.server_ifname())]
+		basic_addrs = ['tcp://*']#[ "tcp://"+net.ext_ip(ifname='lo'),
+						#"tcp://"+net.ext_ip(ifname=net.server_ifname())]
 		ipc_name=''
 		if not addrs:
 			#addresses = [addr for addr in self.source_addresses \
@@ -478,10 +476,6 @@ def basic_arg_parser():
 						help='REP Addresses of the peer.')
 	parser.add_argument('--pub-addresses', nargs='+',
 						help='PUB Addresses of the peer.')
-	parser.add_argument('--obci-dir', default=settings.INSTALL_DIR,
-						help='Main OpenBCI installation directory')
-	parser.add_argument('--ifname', help='Name of the network interface in which this\
-peer will be listening for requests.')
 
 	return parser
 
@@ -499,7 +493,7 @@ if __name__ == '__main__':
 	                   help='Human readable name of this process')
 	args = parser.parse_args()
 	print vars(args)
-	peer = OBCIControlPeer(args.obci_dir, args.sv_addresses,
-							args.rep_addresses, args.pub_addresses, args.name, args.ifname)
+	peer = OBCIControlPeer(args.sv_addresses,
+							args.rep_addresses, args.pub_addresses, args.name)
 	print peer.msg_handlers.handlers["register_peer"]
 	peer.run()

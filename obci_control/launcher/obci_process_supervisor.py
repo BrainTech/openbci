@@ -26,7 +26,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, sandbox_dir,
+	def __init__(self, sandbox_dir,
 										source_addresses=None,
 										source_pub_addresses=None,
 										rep_addresses=None,
@@ -44,7 +44,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.launch_data = []
 		self.processes = {}
 
-		super(OBCIProcessSupervisor, self).__init__(obci_install_dir,
+		super(OBCIProcessSupervisor, self).__init__(
 											source_addresses=source_addresses,
 											rep_addresses=rep_addresses,
 											pub_addresses=pub_addresses,
@@ -284,7 +284,7 @@ if __name__ == '__main__':
 	parser = process_supervisor_arg_parser()
 	args = parser.parse_args()
 
-	process_sv = OBCIProcessSupervisor(args.obci_dir, args.sandbox_dir,
+	process_sv = OBCIProcessSupervisor(args.sandbox_dir,
 							source_addresses=args.sv_addresses,
 							source_pub_addresses=args.sv_pub_addresses,
 							rep_addresses=args.rep_addresses,

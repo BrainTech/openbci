@@ -23,6 +23,7 @@ class OBCIClient(object):
 		self.ctx = zmq_context if zmq_context else zmq.Context()
 
 		self.server_req_socket = self.ctx.socket(zmq.REQ)
+		self.server_addresses = server_addresses
 		for addr in server_addresses:
 			self.server_req_socket.connect(addr)
 
@@ -73,6 +74,7 @@ class OBCIClient(object):
 	def ping_server(self, timeout=50):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("ping"))
 		response, details = self.poll_recv(self.server_req_socket, timeout)
+		print details
 		return response
 
 	def retry_ping(self, timeout=50):
@@ -91,7 +93,7 @@ class OBCIClient(object):
 	def send_list_experiments(self):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("list_experiments"))
 
-		response, details = self.poll_recv(self.server_req_socket, 2000)
+		response, details = self.poll_recv(self.server_req_socket, 4000)
 		return response
 
 	def get_experiment_details(self, strname, peer_id=None):

@@ -36,18 +36,14 @@ class OBCIServer(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, other_srv_ips,
-												rep_addresses=None,
-												pub_addresses=None,
-												name='obci_server'):
-		self.other_addrs = other_srv_ips
+	def __init__(self, 	rep_addresses=None, pub_addresses=None, name='obci_server'):
 
 		self.experiments = {}
 		self.exp_process_supervisors = {}
 
 		self.machine = net.ext_ip(ifname=net.server_ifname())
 
-		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
+		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
 														  name)
 
@@ -130,15 +126,15 @@ probably a server is already working"
 		args = ['--sv-addresses']
 		args += self.exp_rep_addrs
 		args.append('--sv-pub-addresses')
-		if local:
-			addrs = net.choose_local(self.exp_pub_addrs)
-		else:
-			addrs = net.choose_not_local(self.exp_pub_addrs)
+		# if local:
+		# 	addrs = net.choose_local(self.exp_pub_addrs)
+		# else:
+		# 	addrs = net.choose_not_local(self.exp_pub_addrs)
+		addrs = self.exp_pub_addrs
 
 		args += [addrs.pop()]
 		exp_name = name if name else os.path.basename(launch_file)
 		args += [
-					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
 					'--name', exp_name]
@@ -502,8 +498,7 @@ def server_arg_parser(add_help=False):
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
 							description="OBCI Server : manage OBCI experiments.",
 							add_help=add_help)
-	parser.add_argument('--other-srv-ips', nargs='+',
-	                   help='IP addresses of OBCI servers on other machines')
+
 	parser.add_argument('--name', default='obci_server',
 	                   help='Human readable name of this process')
 	return parser
@@ -514,7 +509,6 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	srv = OBCIServer(args.obci_dir, args.other_srv_ips,
-							args.rep_addresses, args.pub_addresses, args.name)
+	srv = OBCIServer(args.rep_addresses, args.pub_addresses, args.name)
 
 	srv.run()

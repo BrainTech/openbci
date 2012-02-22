@@ -272,7 +272,9 @@ def connect_client(addresses, client=None, client_class=obci_client.OBCIClient):
 	if client is None:
 		ctx = zmq.Context()
 		client = client_class(addresses, ctx)
-	result = client.ping_server(timeout=200)
+	# result = client.ping_server(timeout=9000)
+	result = client.send_list_experiments()
+	print result
 	return result, client
 
 
@@ -312,7 +314,7 @@ def server_process_running():
 		os.remove(fpath)
 	return running, pid
 
-def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None):
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
 		print "obci directory not found: {0}".format(directory)
@@ -320,29 +322,35 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
 
 	os.chdir(directory)
 
-	ifname = cmdargs.ifname if cmdargs else None
-
-	rep_addrs = [net.server_address('rep', local=False, ifname=ifname), net.server_address('rep', ifname='lo')]
-	pub_addrs = [net.server_address('pub', local=False, ifname=ifname), net.server_address('pub', ifname='lo')]
-	#print rep_addrs, pub_addrs
+	if server_ip:
+		rep_addrs = ['tcp://'+server_ip+':'+net.server_rep_port()]
+		pub_addrs = ['tcp://'+server_ip+':'+net.server_pub_port()]
+	else:	
+		rep_addrs = ['tcp://*:' + net.server_rep_port()] #[net.server_address('rep', local=False, ifname=ifname), 
+					#	net.server_address('rep', ifname='lo'), 'tcp://127.0.1.1'+':'+net.server_rep_port()]
+		pub_addrs = ['tcp://*:' + net.server_pub_port()]#[net.server_address('pub', local=False, ifname=ifname), 
+					#	net.server_address('pub', ifname='lo'), 'tcp://127.0.1.1'+':'+net.server_pub_port()]
+	print rep_addrs, pub_addrs
 	res, client = connect_client(rep_addrs, client_class=client_class)
 
+	print "no response, will retry"
 	if res is not None:
 		return client
 
-	if server_process_running()[0]:
-		cmd_srv_kill(None)
-		disp.view("Restarting OBCI Server...")
-	args = argv() if cmdargs else []
-	success = launch_obci_server(args+['--rep-addresses']+rep_addrs +\
-										['--pub-addresses']+pub_addrs)
-	if not success:
-		disp.view("Could not launch OBCI Server")
-		sys.exit(1)
-	disp.view("OBCI server launched. PID: {0}".format(success.pid))
+	if not server_ip:
+		if server_process_running()[0]:
+			cmd_srv_kill(None)
+			disp.view("Restarting OBCI Server...")
+		args = argv() if cmdargs else []
+		success = launch_obci_server(args+['--rep-addresses']+rep_addrs +\
+											['--pub-addresses']+pub_addrs)
+		if not success:
+			disp.view("Could not launch OBCI Server")
+			sys.exit(1)
+		disp.view("OBCI server launched. PID: {0}".format(success.pid))
 
 
-	res = client.retry_ping(timeout=4000)
+	# res = client.retry_ping(timeout=4000)
 
 	if res is None:
 		disp.view("Could not connect to OBCI Server")

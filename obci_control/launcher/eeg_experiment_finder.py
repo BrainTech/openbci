@@ -216,7 +216,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
 
 
 if __name__ == '__main__':
-    finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context())
+    finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context(), 'tcp://127.0.0.1:12345', [])
     exps = finder.find_amplified_experiments()
     desc = json.dumps(exps, indent=4)
     print desc

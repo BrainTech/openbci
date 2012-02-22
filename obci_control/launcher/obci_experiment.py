@@ -34,7 +34,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, sandbox_dir, launch_file=None,
+	def __init__(self, sandbox_dir, launch_file=None,
 										source_addresses=None,
 										source_pub_addresses=None,
 										rep_addresses=None,
@@ -49,7 +49,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
 		self.poller = PollingObject()
 		self.launch_file = launch_file
-		super(OBCIExperiment, self).__init__(obci_install_dir,
+		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
 											pub_addresses,
@@ -133,7 +133,6 @@ class OBCIExperiment(OBCIControlPeer):
 
 		args += pub_addrs[:1] #self.pub_addresses
 		args += [
-					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),
 					'--name', os.path.basename(self.launch_file) +\
 							 '-' + self.uuid.split('-',1)[0] + \
@@ -602,7 +601,7 @@ if __name__ == '__main__':
 	pack = None
 	if args.ovr is not None:
 		pack = peer_cmd.peer_overwrites_pack(args.ovr)
-	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
+	exp = OBCIExperiment(args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch, overwrites=pack)
