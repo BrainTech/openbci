@@ -67,11 +67,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 		if src == socket.gethostname():
 			sock = self.ctx.socket(zmq.REP)
-			port = str(sock.bind_to_random_port("tcp://" + self.ip,
+			port = str(sock.bind_to_random_port("tcp://127.0.0.1", #+ src,#+ self.ip,
 											min_port=settings.PORT_RANGE[0],
 											max_port=settings.PORT_RANGE[1]))
 			sock.close()
-			return (self.ip, port), "" #empty passwd
+			return ('0.0.0.0', port), "" #empty passwd
 		else:
 			return None, None
 
@@ -92,7 +92,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		addr, port = mx_data[0]
 
 		_env = {
-			"MULTIPLEXER_ADDRESSES": str(addr) + ':' + str(port),
+			"MULTIPLEXER_ADDRESSES": socket.gethostname() + ':' + str(port),
 			"MULTIPLEXER_PASSWORD": mx_data[1],
 			"MULTIPLEXER_RULES": launcher_tools.mx_rules_path()
 		}

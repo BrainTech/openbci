@@ -87,31 +87,8 @@ class OBCIServer(OBCIControlPeer):
 	def custom_sockets(self):
 		return [self.exp_rep]#, self.srv_rep, self.srv_pub]
 
-
-	def pre_run(self):
-		"""
-		Subclassed from OBCIControlPeer. Create a file in temp directory with
-		self's PID.
-		"""
-		directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
-		if not os.path.exists(directory):
-			os.mkdir(directory)
-
-		filename = settings.SERVER_CONTACT_NAME
-		self.fpath = os.path.join(directory, filename)
-		if os.path.exists(self.fpath):
-			print "\nOBCIServer contact file exists, \
-probably a server is already working"
-			print "Abort.\n"
-			sys.exit(2)
-
-		with open(self.fpath, 'w') as f:
-			f.write(str(os.getpid()))
-			#json.dump(self.rep_addresses, f)
-
-
 	def clean_up(self):
-		os.remove(self.fpath)
+		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self.exp_pub,

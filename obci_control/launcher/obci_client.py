@@ -74,7 +74,7 @@ class OBCIClient(object):
 	def ping_server(self, timeout=50):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("ping"))
 		response, details = self.poll_recv(self.server_req_socket, timeout)
-		print details
+
 		return response
 
 	def retry_ping(self, timeout=50):
