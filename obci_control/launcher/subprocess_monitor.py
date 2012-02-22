@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os
 import time
+import socket
 
 import zmq
 
@@ -106,7 +107,7 @@ class SubprocessMonitor(object):
 		else:
 			launch_args = [path] + args
 		print "[subprocess monitor]",proc_type," local path:  ", path
-		machine = machine_ip if machine_ip else net.ext_ip(ifname=net.server_ifname())
+		machine = machine_ip if machine_ip else socket.gethostname()
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
 		if capture_io & STDERR:

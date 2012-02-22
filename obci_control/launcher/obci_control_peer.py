@@ -88,6 +88,7 @@ class OBCIControlPeer(object):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
+		self.hostname = socket.gethostname()
 		self.source_addresses = source_addresses if source_addresses else []
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses

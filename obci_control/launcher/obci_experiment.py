@@ -47,7 +47,7 @@ class OBCIExperiment(OBCIControlPeer):
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
-		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
+		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
 		self.launch_file = launch_file
 		super(OBCIExperiment, self).__init__(
@@ -140,9 +140,11 @@ class OBCIExperiment(OBCIControlPeer):
 		# 	pub_addrs = net.choose_local(self.pub_addresses, ip=True)
 
 		args.append(addr_to_pass) # += pub_addrs[:1] #self.pub_addresses
+		name = self.name if self.name and self.name != 'obci_experiment' else\
+					os.path.basename(self.launch_file)
 		args += [
 					'--sandbox-dir', str(self.sandbox_dir),
-					'--name', os.path.basename(self.launch_file) +\
+					'--name', name +\
 							 '-' + self.uuid.split('-',1)[0] + \
 							'-' + machine
 					]

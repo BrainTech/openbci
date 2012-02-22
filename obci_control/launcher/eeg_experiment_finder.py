@@ -163,9 +163,9 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     mpoller = PollingObject()
 
     other_exps_pull = ctx.socket(zmq.PULL)
-    ifname = net.server_ifname()
-    my_addr = net.ext_ip(ifname=ifname)
-    port = other_exps_pull.bind_to_random_port('tcp://' + my_addr,
+    # ifname = net.server_ifname()
+    # my_addr = net.ext_ip(ifname=ifname)
+    port = other_exps_pull.bind_to_random_port('tcp://*',
                                             min_port=PORT_RANGE[0],
                                             max_port=PORT_RANGE[1], max_tries=500)
     my_push_addr = my_addr + ':' + str(port)

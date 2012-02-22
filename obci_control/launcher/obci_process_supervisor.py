@@ -37,7 +37,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.peers = {}
 		self.status = launcher_tools.ExperimentStatus()
 		self.source_pub_addresses = source_pub_addresses
-		self.ip = net.ext_ip(ifname=net.server_ifname())
+		self.machine = socket.gethostname()
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 		self.ctx = zmq.Context()
 		self.mx_data = self.set_mx_data()
@@ -67,7 +67,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 		if src == socket.gethostname():
 			sock = self.ctx.socket(zmq.REP)
-			port = str(sock.bind_to_random_port("tcp://127.0.0.1", #+ src,#+ self.ip,
+			port = str(sock.bind_to_random_port("tcp://127.0.0.1", 
 											min_port=settings.PORT_RANGE[0],
 											max_port=settings.PORT_RANGE[1]))
 			sock.close()
@@ -124,7 +124,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		super(OBCIProcessSupervisor, self).net_init()
 
 	def params_for_registration(self):
-		return dict(pid=os.getpid(), machine=self.ip,
+		return dict(pid=os.getpid(), machine=self.machine,
 					mx_data=[self.mx_addr_str(self.mx_data), self.mx_data[1]])
 
 	def custom_sockets(self):
@@ -138,7 +138,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			if message.args:
 				args = message.args
 			else:
-				args = ['run_multiplexer', self.mx_addr_str(self.mx_data),
+				args = ['run_multiplexer', self.mx_addr_str(
+									(('0.0.0.0', self.mx_data[0][1]), self.mx_data[1])),
 						'--multiplexer-password', self.mxdata[1],
 						'--rules', launcher_tools.mx_rules_path()]
 			proc, details = self._launch_process(path, args, 'multiplexer', 'mx',
@@ -178,11 +179,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 				break
 		if success:
 			send_msg(self._publish_socket, self.mtool.fill_msg("all_peers_launched",
-													machine=self.ip))
+													machine=self.machine))
 		else:
 			print self.name,'[', self.type, ']', "OBCI LAUNCH FAILED"
 			send_msg(self._publish_socket, self.mtool.fill_msg("obci_launch_failed",
-													machine=self.ip, path=path,
+													machine=self.machine, path=path,
 													args=args, details=details))
 			self.processes = {}
 			self.subprocess_mgr.killall()
@@ -200,13 +201,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			print self.name,'[', self.type, ']', "process launch FAILED:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
 											sender=self.uuid,
-											details=dict(machine=self.ip, path=path, args=args,
+											details=dict(machine=self.machine, path=path, args=args,
 														error=details)))
 		else:
 			print self.name,'[', self.type, ']', "process launch success:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
 											sender=self.uuid,
-											machine=self.ip,
+											machine=self.machine,
 											pid=proc.pid,
 											proc_type=proc_type, name=name,
 											path=path,
@@ -239,7 +240,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			if proc.proc_type == 'obci_peer' or proc.proc_type == 'multiplexer':
 				send_msg(self._publish_socket, self.mtool.fill_msg("obci_peer_dead",
 												sender=self.uuid,
-												sender_ip=self.ip,
+												sender_ip=self.machine,
 												peer_id=proc.name,
 												path=proc.path,
 												status=proc.status()
@@ -256,6 +257,16 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
 		send_msg(self._publish_socket, message.SerializeToString())
+
+	@msg_handlers.handler("obci_control_message")
+	def handle_obci_control_message(self, message, sock):
+		# ignore :)
+		pass
+
+	@msg_handlers.handler("obci_peer_registered")
+	def handle_obci_peer_registered(self, message, sock):
+		# ignore!
+		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}

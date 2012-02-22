@@ -18,7 +18,7 @@ def is_net_addr(addr):
 			and not addr.startswith('inproc')
 
 def addr_is_local(addr):
-	return addr.startswith('tcp://'+ext_ip(ifname='lo')) or\
+	return addr.startswith('tcp://localhost') or\
 					addr.startswith('tcp://0.0.0.0') or\
 					addr.startswith('tcp://127.0.0.1')
 
@@ -39,51 +39,35 @@ def choose_not_local(addrs):
 def lo_ip():
 	return '127.0.0.1'
 
-def ext_ip(peer_ip=None, ifname=None):
+def ext_ip(peer_ip=None):
 	s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	client_ip = ''
-	if ifname:
-		try:
-			client_ip = str(socket.inet_ntoa(fcntl.ioctl(
-												s.fileno(),
-												0x8915,  # SIOCGIFADDR
-												struct.pack('256s', ifname[:15])
-										)[20:24]))
-		except IOError as e:
-			print "ext_ip(ifname:  {0}): {1}".format(ifname, e)
-			if ifname != 'lo':
 
-				client_ip = ext_ip(peer_ip, ifname='lo')
-	else:
-		peer_ip = peer_ip if peer_ip else 'google.com'
-		try:
-			s.connect((peer_ip, 9))
-			client_ip = s.getsockname()[0]
-		except socket.error as e:
-			print "ext_ip(peer_ip: {0}):  {1}".format(peer_ip, e)
-			client_ip = lo_ip()
+	peer_ip = peer_ip if peer_ip else 'google.com'
+	try:
+		s.connect((peer_ip, 9))
+		client_ip = s.getsockname()[0]
+	except socket.error as e:
+		print "ext_ip(peer_ip: {0}):  {1}".format(peer_ip, e)
+		client_ip = lo_ip()
 
 	del s
 	return client_ip
 
 
 
-def server_address(sock_type='rep', local=False, ifname=None, peer_ip=None):
+def server_address(sock_type='rep', local=False, peer_ip=None):
 	parser = __parser_main_config_file()
 
 	if sock_type == 'rep':
 		port = parser.get('server', 'port')
 	else:
 		port = parser.get('server', 'pub_port')
-	if not ifname and not peer_ip:
-		ifname = parser.get('server', 'ifname')
 
-	ip = lo_ip() if local else ext_ip(ifname=ifname, peer_ip=peer_ip)
+
+	ip = lo_ip() if local else ext_ip(peer_ip=peer_ip)
 	return 'tcp://' + ip + ':' + port
 
-def server_ifname():
-	parser = __parser_main_config_file()
-	return parser.get('server', 'ifname')
 
 def __parser_main_config_file():
 	directory = os.path.abspath(OBCI_HOME_DIR)

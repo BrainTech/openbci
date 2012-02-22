@@ -41,12 +41,10 @@ class OBCIServer(OBCIControlPeer):
 		self.experiments = {}
 		self.exp_process_supervisors = {}
 
-		self.machine = net.ext_ip(ifname=net.server_ifname())
-
 		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
 														  name)
-
+		self.machine = self.hostname
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
 		self._nearby_servers = []
@@ -54,7 +52,6 @@ class OBCIServer(OBCIControlPeer):
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
 														self._nearby_servers_lock,
-
 														self.ctx])
 		self._nearby_updater.daemon = True
 		self._nearby_updater.start()
