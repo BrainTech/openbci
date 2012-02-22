@@ -95,6 +95,15 @@ def server_rep_port():
 	port = parser.get('server', 'port')
 	return port
 
+def server_bcast_port():
+	parser = __parser_main_config_file()
+	try:
+		port = parser.get('server', 'bcast_port')
+	except Exception, e:
+		print "[ WARNING! WARNING! ] Config file is not up to date. Taking default bcast_port value!"
+		port = '23123'
+	return port
+
 if __name__ == '__main__':
 	#print ext_ip()
 	print __file__

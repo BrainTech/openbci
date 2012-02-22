@@ -28,7 +28,7 @@ import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
-from server_scanner import update_nearby_servers
+from server_scanner import update_nearby_servers, broadcast_server
 
 REGISTER_TIMEOUT = 6
 
@@ -47,19 +47,31 @@ class OBCIServer(OBCIControlPeer):
 		self.machine = self.hostname
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-		self._nearby_servers = []
+		rep_port = int(net.server_rep_port())
+		pub_port = int(net.server_pub_port())
+		bcast_port = int(net.server_bcast_port())
+
+		self._bcast_server = threading.Thread(target=broadcast_server,
+												args=[self.uuid,
+													rep_port, pub_port, bcast_port])
+		self._bcast_server.daemon = True
+		self._bcast_server.start()
+
+		self._nearby_servers = {}
 		self._nearby_servers_lock = threading.RLock()
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
 														self._nearby_servers_lock,
+														bcast_port,
 														self.ctx])
+
 		self._nearby_updater.daemon = True
 		self._nearby_updater.start()
 
 
 	def nearby_server_addrs(self):
 		with self._nearby_servers_lock:
-			return list(self._nearby_servers)
+			return dict(self._nearby_servers)
 
 	def set_nearby_server_addrs(self, addr_list):
 		with self._nearby_servers_lock:
