@@ -99,8 +99,15 @@ class OBCILauncherEngine(QtCore.QObject):
 
 		running = self._list_experiments()
 		for exp in running:
-			exp = ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx)
-			experiments.append(exp)
+			matches = [(i, e) for i, e in enumerate(experiments) if\
+						e.name == exp['name'] and e.preset_data is not None]
+			if matches:
+				index, preset = matches.pop()
+				preset.setup_from_launcher(exp, preset=True)
+			else:
+				experiments.append(ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx))
+			# exp = ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx)
+			# experiments.append(exp)
 		return experiments
 
 	def _exp_connect(self, exp_data):
@@ -180,10 +187,12 @@ class OBCILauncherEngine(QtCore.QObject):
 		self.update_ui.emit(launcher_message)
 		print "----engine signalled", type_
 
-	def _handle_experiment_created(self, msg):
-		matches = [(i, e) for i, e in enumerate(self.experiments) if\
+	def _handle_experiment_created(self, msg, exp_list=None):
+		exps = exp_list if exp_list else self.experiments
+
+		matches = [(i, e) for i, e in enumerate(exps) if\
 						e.name == msg.name and e.preset_data is not None]
-		print "exp cr :::: ", [e.name for e in self.experiments], "msg.name:  ", msg.name, msg.uuid
+		print "exp cr :::: ", [e.name for e in exps], "msg.name:  ", msg.name, msg.uuid
 		if matches:
 			print "--- exp created ", msg.name, "MATCHES -- ", matches
 			index, exp = matches.pop()
@@ -193,7 +202,7 @@ class OBCILauncherEngine(QtCore.QObject):
 			# self.experiments[msg.uuid] = exp
 			# del self.experiments[exp.old_uid]
 		else:
-			self.experiments.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
+			exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
 		self._exp_connect(msg.dict())
 
@@ -443,7 +452,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self.origin_machine = exp_msg.origin_machine
 
 		for peer, short_info in exp_msg.peers.iteritems():
-			self.exp_config.set_peer_machine(peer, short_info['machine'])
+			# self.exp_config.set_peer_machine(peer, short_info['machine'])
 
 			msg = self.comm_exp(self.mtool.fill_msg("get_peer_info",
 										peer_id=peer))
@@ -469,9 +478,13 @@ class ExperimentEngineInfo(QtCore.QObject):
 		peer = self.exp_config.peers[peer_id]
 		if mode == MODE_BASIC:
 			for par in peer.public_params:
-				params[par] = peer.config.param_values[par]
+				params[par] = (self.exp_config.param_value(peer_id, par), None)
 		else:
 			params = peer.config.local_params
+			for param in peer.config.local_params:
+				params[param] = (self.exp_config.param_value(peer_id, param), None)
+			for param, defi in peer.config.ext_param_defs.iteritems():
+				params[param] = (self.exp_config.param_value(peer_id, param), defi[0]+'.'+defi[1])
 		return params
 
 
