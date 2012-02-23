@@ -80,7 +80,7 @@ double AmplifierDriver::next_samples() {
 }
 void AmplifierDriver::set_active_channels(std::vector<std::string> &channels) {
 	active_channels.clear();
-	if (!description)0.00
+	if (!description)
 		return;
 	for (uint i = 0; i < channels.size(); i++) {
 		if (channels[i] == "*") {

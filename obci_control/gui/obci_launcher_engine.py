@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PySide import QtCore
+from PyQt4 import QtCore
 import zmq
 import threading
 import ConfigParser
@@ -28,8 +28,8 @@ MODE_EXPERT = 'expert'
 MODES = [MODE_BASIC, MODE_ADVANCED]#, MODE_EXPERT]
 
 class OBCILauncherEngine(QtCore.QObject):
-	update_ui = QtCore.Signal(object)
-	obci_state_change = QtCore.Signal(object)
+	update_ui = QtCore.pyqtSignal(object)
+	obci_state_change = QtCore.pyqtSignal(object)
 
 	internal_msg_templates = {
 		'_launcher_engine_msg' : dict(task='', pub_addr='')
