@@ -303,6 +303,7 @@ def server_process_running(expected_dead=False):
 	"""
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	running = False
+
 	for i in range(5):
 		try:
 			sock.connect((socket.gethostname(), int(net.server_rep_port())))
@@ -327,6 +328,7 @@ def server_process_running(expected_dead=False):
 
 
 def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None):
+
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
 		print "obci directory not found: {0}".format(directory)

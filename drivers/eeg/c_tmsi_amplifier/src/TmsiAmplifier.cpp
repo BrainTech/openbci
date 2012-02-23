@@ -338,7 +338,7 @@ void TmsiAmplifier::stop_sampling(bool disconnecting) {
     logger.info()<<"Stop sampling succeeded after "<<retry<<" messages!\n";
     if (mode==IP_AMPLIFIER&& disconnecting) 	disconnect_mobita();
 }
-uint64_t TmsiAmplifier::next_samples() {
+double TmsiAmplifier::next_samples() {
     channel_data_index++;
     if (channel_data_index >= channel_data[0].ns)
 		while (sampling) {
@@ -349,7 +349,6 @@ uint64_t TmsiAmplifier::next_samples() {
 				continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
-				uint64_t result=AmplifierDriver::next_samples();
 				tms_get_data(msg, br, &dev, channel_data);
 				channel_data_index = 0;
 				debug("Channel data received...\n");
@@ -359,7 +358,7 @@ uint64_t TmsiAmplifier::next_samples() {
 					logger.info()<<"Sending keep_alive\n";
 					tms_snd_keepalive(fd);
 				}
-				return result;
+				break;
 			}
 		}
 	return AmplifierDriver::next_samples();
