@@ -61,7 +61,7 @@ public:
     uint get_base_sample_rate(){
     	return fei.basesamplerate;
     }
-    uint64_t next_samples();
+    double next_samples();
     int number_of_channels() {
         return fei.nrofswchannels;
     }
