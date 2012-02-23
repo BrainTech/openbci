@@ -31,7 +31,8 @@ def choose_local(addrs, ip=False):
 	return result
 
 def choose_not_local(addrs):
-	result = [a for a in addrs if a.startswith('tcp://') and not a.startswith('tcp://'+lo_ip())]
+	result = [a for a in addrs if a.startswith('tcp://') and not a.startswith('tcp://'+lo_ip()) and not\
+							a.startswith('tcp://localhost')]
 	#if not result:
 	#	result += [a for a in addrs if a.startswith('tcp://')]
 	return result
