@@ -163,15 +163,11 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
 
-    other_exps_pull = ctx.socket(zmq.PULL)
+    
     # ifname = net.server_ifname()
     # my_addr = net.ext_ip(ifname=ifname)
     my_addr = socket.gethostname()
-    port = other_exps_pull.bind_to_random_port('tcp://*',
-                                            min_port=PORT_RANGE[0],
-                                            max_port=PORT_RANGE[1], max_tries=500)
-    my_push_addr = my_addr + ':' + str(port)
-    print "my exp_data pull: ", my_push_addr
+
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
@@ -180,12 +176,20 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
 
     if not checked:
         print "checking other servers"
+        other_exps_pull = ctx.socket(zmq.PULL)
+        port = other_exps_pull.bind_to_random_port('tcp://*',
+                                                min_port=PORT_RANGE[0],
+                                                max_port=PORT_RANGE[1], max_tries=500)
+
+        my_push_addr = my_addr + ':' + str(port)
+        print "my exp_data pull: ", my_push_addr
+        
         checked.append(my_addr)
         harvester = zmq.Poller()
         to_check = [srv_ip for srv_ip in nearby_servers if \
-                            socket.gethostbyaddr(srv_ip)[0] != socket.gethostname() and\
-                            not socket.gethostbyaddr(srv_ip)[0].startswith(socket.gethostname() + '.')]
-        reqs = []
+                            socket.gethostbyaddr(srv_ip)[0] != my_addr and\
+                            not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
+        reqs = {}
         for srv_ip in to_check:
             
             addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
@@ -195,20 +199,19 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
                                             client_push_address='tcp://'+my_push_addr,
                                             checked_srvs=checked))
             harvester.register(req, zmq.POLLIN)
-            reqs.append(req)
+            reqs[req] = addr
 
-        socks = harvester.poll(timeout=7000)
+        socks = dict(harvester.poll(timeout=7000))
+        print socks
         for s in reqs:
             harvester.unregister(s)
 
         for req in socks:
             msg = recv_msg(req)
-            if not msg:
-                req.close()
-                continue
             
             msg = finder.mtool.unpack_msg(msg)
             if msg.type == 'rq_ok':
+                print "waiting for server:", reqs[req]
                 result, details = mpoller.poll_recv(other_exps_pull, 10000)
                 if not result:
                     req.close()
