@@ -17,10 +17,10 @@ from common.obci_control_settings import PORT_RANGE
 import common.net_tools as net
 
 
-UPDATE_INTERVAL = 6
+UPDATE_INTERVAL = 8
 _LOOPS = 3
 
-ALLOWED_SILENCE = 16
+ALLOWED_SILENCE = 25
 
 def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
     mtool = OBCIMessageTool(message_templates)
@@ -66,7 +66,7 @@ def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
                 timestamp, srv = servers[ip]
                 check_time = time.time()
                 if timestamp + ALLOWED_SILENCE < check_time:
-                    print "[obci_server] obci_server on", ip, "is most probably down."
+                    print "[obci_server] obci_server on", ip, ',', servers[ip][1].sender_ip, "is most probably down."
                     del servers[ip]
         
             with srv_data_lock:

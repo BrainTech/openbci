@@ -239,8 +239,14 @@ class OBCIServer(OBCIControlPeer):
 		for exp_id in self.experiments:
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
-		print "{0} [{1}] -- nearby servers:  {2}".format(
-										self.name, self.peer_type(), self.nearby_server_addrs())
+		nearby = self.nearby_server_addrs()
+		info = '\n{'
+		for srv in nearby:
+			info += '\n' + srv + ' : ' + nearby[srv][1].sender_ip + ','
+		info += '}'
+		print "{0} [{1}] -- nearby servers:  count: {2}, {3}".format(
+										self.name, self.peer_type(), len(nearby),
+										info)
 
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
 												exp_data=exp_data))
