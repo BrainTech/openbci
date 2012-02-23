@@ -120,14 +120,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			self.cs_addr = net.choose_local(self.cs_addresses)[0]
 		else:
 			self.cs_addr = self.cs_addr[0]
-		print self.cs_addr, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
+
 		self._all_sockets.append(self.config_server_socket)
 		
 		super(OBCIProcessSupervisor, self).net_init()
 
 	def params_for_registration(self):
 		return dict(pid=os.getpid(), machine=self.machine,
-					mx_data=[self.mx_addr_str(self.mx_data), self.mx_data[1]])
+					mx_data=[self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]])
 
 	def custom_sockets(self):
 		return [self.source_sub_socket, self.config_server_socket]
@@ -137,13 +137,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		if 'mx' in self.launch_data and self.mx_data[0] is not None:
 			print self.name,'[', self.type, ']', "..starting multiplexer"
 			path = launcher_tools.mx_path()
-			if message.args:
-				args = message.args
-			else:
-				args = ['run_multiplexer', self.mx_addr_str(
-									(('0.0.0.0', self.mx_data[0][1]), self.mx_data[1])),
-						'--multiplexer-password', self.mxdata[1],
-						'--rules', launcher_tools.mx_rules_path()]
+
+			args = ['run_multiplexer', self.mx_addr_str(
+								(('0.0.0.0', self.mx_data[0][1]), self.mx_data[1])),
+					'--multiplexer-password', self.mx_data[1],
+					'--rules', launcher_tools.mx_rules_path()]
 			proc, details = self._launch_process(path, args, 'multiplexer', 'mx',
 												env=self.env)
 			self.processes['mx'] = proc
@@ -240,6 +238,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		if proc is not None:
 			proc.mark_delete()
 			if proc.proc_type == 'obci_peer' or proc.proc_type == 'multiplexer':
+				print "KILLLLLING     and sending obci_peer_dead", proc.name
 				send_msg(self._publish_socket, self.mtool.fill_msg("obci_peer_dead",
 												sender=self.uuid,
 												sender_ip=self.machine,
@@ -265,12 +264,18 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		# ignore :)
 		pass
 
+	@msg_handlers.handler("obci_peer_dead")
+	def handle_obci_control_message(self, message, sock):
+		# ignore :)
+		pass
+
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}
 		#self.subprocess_mgr.killall()
 
 	def clean_up(self):
 		print self.name,'[', self.type, ']',  "cleaning up"
+
 		self.processes = {}
 		self.subprocess_mgr.killall()
 		self.subprocess_mgr.delete_all()

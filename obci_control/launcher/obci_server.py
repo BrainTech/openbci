@@ -297,13 +297,11 @@ class OBCIServer(OBCIControlPeer):
 		exp = self.experiments.get(message.uuid, None)
 		if not exp:
 			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
-				print '##########'
 				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
 			return
 		exp.status_name = message.status_name
 		exp.details = message.details
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
-			print "%%%%%%%%"
 			send_msg(sock, self.mtool.fill_msg('rq_ok'))
 			
 		send_msg(self._publish_socket, message.SerializeToString())

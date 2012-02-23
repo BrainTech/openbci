@@ -35,9 +35,10 @@ if __name__ == '__main__':
 
     send_msg(server_req, mtool.fill_msg('find_eeg_experiments',
                                     client_push_address=client_push_addr))
-    msg,details = pl.poll_recv(server_req, 2000)
+    msg,details = pl.poll_recv(server_req, 5000)
     if not msg:
         print "srv request timeout!"
+        server_req.close()
         sys.exit(1)
 
     response = mtool.unpack_msg(msg)
@@ -53,4 +54,4 @@ if __name__ == '__main__':
     else:
         exp_info = mtool.unpack_msg(msg)
         sss = json.dumps(exp_info.experiment_list, indent=4)
-        print sss[:300]
+        print sss
