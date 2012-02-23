@@ -84,7 +84,7 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
     msg = mtool.fill_msg("server_broadcast", sender_ip=gethostname(), sender=server_uuid,
                                 rep_port=rep_port, pub_port=pub_port)
     msg += u'\n'
-    str_msg = msg.encode(encoding='utf-8')
+    str_msg = msg.encode('utf-8')
 
     s = socket(AF_INET, SOCK_DGRAM)
     s.bind(('', 0))
