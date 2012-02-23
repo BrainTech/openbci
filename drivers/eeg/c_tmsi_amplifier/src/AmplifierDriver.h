@@ -18,31 +18,44 @@
 #include "Logger.h"
 using namespace std;
 #include <boost/program_options.hpp>
-#include <sys/time.h>
+#include <sys/timeb.h>
 #include <time.h>
 
 class AmplifierDriver {
+private:
+	double sleep_res;
+	double get_time_res;
+	double get_sleep_resolution(){
+		double start=get_time();
+		struct timespec slptm;
+		slptm.tv_nsec = 1;
+		slptm.tv_sec = 0;
+		nanosleep(&slptm,NULL);
+		return get_time()-start;
+	}
 protected:
 	bool sampling;
 
 	uint sampling_rate,sampling_rate_;
 	string active_channels_str;
 	std::vector<Channel *> active_channels;
-	uint64_t last_sample;
+	double last_sample;
+	double sampling_start_time;
 	AmplifierDescription * description;
 	static AmplifierDriver * signal_handler;
 	Logger logger;
-	uint64_t get_time(){
+	double get_time(){
 		struct timeval tv;
 		struct timezone tz;
 		gettimeofday(&tv,&tz);
-		return ((uint64_t)time(NULL))*1000000+tv.tv_usec;
+		return tv.tv_sec+tv.tv_usec/1000000.0;
 	}
 public:
 	uint cur_sample;
 	AmplifierDriver():logger(128,"AmplifierDriver"){
 		description=NULL;
 		sampling_rate=sampling_rate_=128;
+		sleep_res=get_sleep_resolution();
 	}
 
 	void set_description(AmplifierDescription * description){
@@ -113,9 +126,9 @@ public:
 	}
 	virtual boost::program_options::options_description get_options();
 	virtual void init(boost::program_options::variables_map &vm);
-	virtual uint64_t next_samples();
+	virtual double next_samples();
 	inline double get_sample_timestamp(){
-		return last_sample/1000000.0;
+		return last_sample;
 	}
 };
 
