@@ -175,41 +175,55 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
-    checked.append(my_addr)
+    
     nearby_servers = [ip for ip in nearby_servers if ip not in checked]
 
-    for srv_ip in nearby_servers:
-        if socket.gethostbyaddr(srv_ip)[0] == socket.gethostname() or\
-                socket.gethostbyaddr(srv_ip)[0].startswith(socket.gethostname() + '.'):  #w/ domain
-            print "own addr"
-            continue
-        addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
-        req = ctx.socket(zmq.REQ)
-        req.connect(addr)
-        send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
-                                        client_push_address='tcp://'+my_push_addr,
-                                        checked_srvs=checked))
-        checked.append(srv_ip)
-        msg, details = mpoller.poll_recv(req, 5000)
-        if not msg:
+    if not checked:
+        print "checking other servers"
+        checked.append(my_addr)
+        harvester = zmq.Poller()
+        to_check = [srv_ip for srv_ip in nearby_servers if \
+                            socket.gethostbyaddr(srv_ip)[0] != socket.gethostname() and\
+                            not socket.gethostbyaddr(srv_ip)[0].startswith(socket.gethostname() + '.')]
+        reqs = []
+        for srv_ip in to_check:
+            
+            addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
+            req = ctx.socket(zmq.REQ)
+            req.connect(addr)
+            send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
+                                            client_push_address='tcp://'+my_push_addr,
+                                            checked_srvs=checked))
+            harvester.register(req, zmq.POLLIN)
+            reqs.append(req)
+
+        socks = harvester.poll(timeout=7000)
+        for s in reqs:
+            harvester.unregister(s)
+
+        for req in socks:
+            msg = recv_msg(req)
+            if not msg:
+                req.close()
+                continue
+            
+            msg = finder.mtool.unpack_msg(msg)
+            if msg.type == 'rq_ok':
+                result, details = mpoller.poll_recv(other_exps_pull, 10000)
+                if not result:
+                    req.close()
+                    continue
+                result = finder.mtool.unpack_msg(result)
+                if not result:
+                    print "ble, ", srv_ip
+                    req.close()
+                    continue
+                if result.type == 'eeg_experiments':
+                    print "GOT EXPERIMENTS from", srv_ip
+                    exps += result.experiment_list
             req.close()
-            continue
-        print msg
-        msg = finder.mtool.unpack_msg(msg)
-        if msg.type == 'rq_ok':
-            result, details = mpoller.poll_recv(other_exps_pull, 10000)
-            if not result:
-                req.close()
-                continue
-            result = finder.mtool.unpack_msg(result)
-            if not result:
-                print "ble, ", srv_ip
-                req.close()
-                continue
-            if result.type == 'eeg_experiments':
-                print "GOT EXPERIMENTS from", srv_ip
-                exps += result.experiment_list
-        req.close()
+    else:
+        print "not checking other servers"
 
     print "return to:  ", rq_message.client_push_address
     to_client = ctx.socket(zmq.PUSH)
