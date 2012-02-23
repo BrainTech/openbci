@@ -291,7 +291,7 @@ class OBCILauncherEngine(QtCore.QObject):
 		self.experiments = self.prepare_experiments()
 
 	def stop_experiment(self, msg):
-		uid = msg
+		uid = str(msg)
 		index = self.index_of(uid)
 		if index is None:
 			print "experiment uuid not found: ", uid
@@ -305,7 +305,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
 
 	def start_experiment(self, msg):
-		uid = msg
+		uid = str(msg)
 		index = self.index_of(uid)
 		if index is None:
 			print "experiment uuid not found: ", uid

@@ -113,12 +113,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 				self.source_sub_socket.connect(addr)
 
 		(self.config_server_socket, self.cs_addresses) = self._init_socket([], zmq.SUB)
+		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
+
 		self.cs_addr = net.choose_not_local(self.cs_addresses)
 		if not self.cs_addr:
 			self.cs_addr = net.choose_local(self.cs_addresses)[0]
 		else:
 			self.cs_addr = self.cs_addr[0]
-		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
+		print self.cs_addr, "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
 		self._all_sockets.append(self.config_server_socket)
 		
 		super(OBCIProcessSupervisor, self).net_init()
@@ -261,11 +263,6 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	@msg_handlers.handler("obci_control_message")
 	def handle_obci_control_message(self, message, sock):
 		# ignore :)
-		pass
-
-	@msg_handlers.handler("obci_peer_registered")
-	def handle_obci_peer_registered(self, message, sock):
-		# ignore!
 		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):

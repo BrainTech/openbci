@@ -61,7 +61,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         if self.server_ip:
             self.setWindowTitle(self.windowTitle() + ' - ' + 'REMOTE CONNECTION TO ' + str(self.server_ip))
             
-        self.scenarios.horizontalHeader().setResizeMode (QHeaderView.ResizeMode.Stretch)
+        self.scenarios.horizontalHeader().setResizeMode (QHeaderView.Stretch)
 
         self.scenarios.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.scenarios.setColumnCount(2)
@@ -75,7 +75,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.parameters.itemChanged.connect(self._itemChanged)
         self.parameters.setColumnWidth(0, 200)
 
-        # print PySide.QtGui.QColor.colorNames()
+        # print PyQt4.QtGui.QColor.colorNames()
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
         self.reset_button.clicked.connect(self._reset)
@@ -128,8 +128,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
 
-            parent.setBackground(0, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
-            parent.setBackground(1, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
+            parent.setBackground(0, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
+            parent.setBackground(1, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
             parent.setToolTip(0, peer.path)
 
 
@@ -146,8 +146,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
                 child = QTreeWidgetItem([param, val ])                
                 if src:
-                    # child.setBackground(0, PySide.QtGui.QBrush(PySide.QtGui.QColor('#dddddd')))
-                    # child.setBackground(1, PySide.QtGui.QBrush(PySide.QtGui.QColor('#dddddd')))
+                    # child.setBackground(0, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor('#dddddd')))
+                    # child.setBackground(1, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor('#dddddd')))
                     child.setDisabled(True)
                 parent.addChild(child)
                 
@@ -185,12 +185,15 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         if item.parent() is None:
             return
         exp = self._params
-        peer_id = item.parent().text(0)
-        old_val = exp.exp_config.param_value(peer_id, item.text(0))
+        peer_id = str(item.parent().text(0))
+        param = str(item.text(0))
+        val = str(item.text(1))
+        
+        old_val = exp.exp_config.param_value(peer_id, param)
         if old_val != item.text(1):
             # exp.exp_config.update_local_param(peer_id, item.text(0), item.text(1))
-            exp.update_peer_param(peer_id, item.text(0), item.text(1))
-            print "item changed", peer_id, item.text(0), item.text(1), "old val:", old_val
+            exp.update_peer_param(peer_id, param, val)
+            print "item changed", peer_id, param, val, "old val:", old_val
 
 
     
@@ -207,11 +210,11 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self._manage_actions(curRow)
     
     def _start(self):
-        self.start.emit(self._scenarios[self.scenarios.currentRow()].uuid)
+        self.start.emit(str(self._scenarios[self.scenarios.currentRow()].uuid))
     def _stop(self):
-        self.stop.emit(self._scenarios[self.scenarios.currentRow()].uuid)
+        self.stop.emit(str(self._scenarios[self.scenarios.currentRow()].uuid))
     def _reset(self):
-        self.reset.emit(self.server_ip)
+        self.reset.emit(str(self.server_ip))
 
     def _index_of(self, exp):
         uids = {}
