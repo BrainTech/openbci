@@ -49,7 +49,6 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         Constructor
         '''
         super(ObciLauncherDialog, self).__init__(parent)
-        print "WINDOW TITLE" ,self.windowTitle()
         
         self.server_ip = sys.argv[1] if len(sys.argv) == 2 else None
 
@@ -101,8 +100,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         for i, s in enumerate(scenarios):
             name = QTableWidgetItem(s.name)
             self.scenarios.setItem(i, 0, name)
-            # path = QTableWidgetItem(s['path'])
-            # self.scenarios.setItem(i, 1, path)            
+      
             status = QTableWidgetItem(s.status.status_name)
             self.scenarios.setItem(i, 1, status)
             
@@ -115,7 +113,6 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
             status.setToolTip(s.launch_file)
     
     def getScenarios(self):
-        # self._scenarios[self.scenarios.currentRow()]['params'] = self._getParams()
         return self._scenarios
 
     def _setParams(self, experiment):
@@ -125,6 +122,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self._params = experiment
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
+
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
 
@@ -146,8 +144,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
                 child = QTreeWidgetItem([param, val ])                
                 if src:
-                    # child.setBackground(0, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor('#dddddd')))
-                    # child.setBackground(1, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor('#dddddd')))
+
                     child.setDisabled(True)
                 parent.addChild(child)
                 
@@ -163,12 +160,12 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
             for j, param in enumerate(peer.config.local_params.keys()):
                 child = parent.child(j)
-                # peer.config.update_local_param(param, child.text(1))
+
         state.expanded_peers = expanded        
         return self._params
 
     def _itemClicked(self, item, column):
-        # print "item clicked", item, column
+
         if item.columnCount() > 1 and column > 0:
             if not item.isDisabled():
                 item.setFlags(item.flags() | Qt.ItemIsEditable)
@@ -191,14 +188,10 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         
         old_val = exp.exp_config.param_value(peer_id, param)
         if old_val != item.text(1):
-            # exp.exp_config.update_local_param(peer_id, item.text(0), item.text(1))
             exp.update_peer_param(peer_id, param, val)
-            print "item changed", peer_id, param, val, "old val:", old_val
 
-
-    
     def _setInfo(self, curRow, curCol, lastRow, lastCol):
-        print curRow, lastRow
+
         if curRow == lastRow:
             return
         self.info.setText(self._scenarios[curRow].info)
@@ -226,8 +219,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         else: return None
 
     def update_user_interface(self, update_msg):
-        print "-----updating user interface  / ", update_msg if \
-                    not isinstance(update_msg, LauncherMessage) else update_msg.type
+
         scenarios = self.engine.list_experiments()
 
         current_sc = self.scenarios.currentRow()
@@ -254,11 +246,6 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
 
         self._manage_actions(current_sc)
-        # refresh experiments & params
-        # refresh actions
-            # editable fields = running / not
-            # stop = running
-            # start = not_running
 
     def _manage_actions(self, current_sc):
         current_exp = self._scenarios[current_sc]

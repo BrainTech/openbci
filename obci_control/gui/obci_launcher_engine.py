@@ -81,7 +81,6 @@ class OBCILauncherEngine(QtCore.QObject):
 		ids = {}
 		for i, e in enumerate(self.experiments):
 			ids[e.uuid] = i
-		print "----------------------", ids
 		return ids
 
 	def index_of(self, exp_uuid):
@@ -106,13 +105,11 @@ class OBCILauncherEngine(QtCore.QObject):
 				preset.setup_from_launcher(exp, preset=True)
 			else:
 				experiments.append(ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx))
-			# exp = ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx)
-			# experiments.append(exp)
+
 		return experiments
 
 	def _exp_connect(self, exp_data):
 		for addr in exp_data['pub_addrs']:
-			# print "       *******************     ", addr
 			send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
 												task='connect', pub_addr=addr))		
 
@@ -158,7 +155,6 @@ class OBCILauncherEngine(QtCore.QObject):
 			for socket in socks:
 				if  socks[socket] == zmq.POLLIN:
 					msg = self.mtool.unpack_msg(recv_msg(socket))
-					print "\n\nengine!!! got: ", msg.type, '\n\n'
 					handle_msg(msg)
 
 	def handle_obci_state_change(self, launcher_message):
@@ -192,15 +188,10 @@ class OBCILauncherEngine(QtCore.QObject):
 
 		matches = [(i, e) for i, e in enumerate(exps) if\
 						e.name == msg.name and e.preset_data is not None]
-		print "exp cr :::: ", [e.name for e in exps], "msg.name:  ", msg.name, msg.uuid
-		if matches:
-			print "--- exp created ", msg.name, "MATCHES -- ", matches
-			index, exp = matches.pop()
 
+		if matches:
+			index, exp = matches.pop()
 			exp.setup_from_launcher(msg.dict(), preset=True)
-			print "new uuid", exp.uuid, "old:", exp.old_uid
-			# self.experiments[msg.uuid] = exp
-			# del self.experiments[exp.old_uid]
 		else:
 			exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
@@ -277,15 +268,9 @@ class OBCILauncherEngine(QtCore.QObject):
 	def reset_launcher(self, msg):
 
 		self.client.srv_kill()
-		running, pid = obci_script.server_process_running()
+		running = obci_script.server_process_running()
 		if running:
-			try:
-				os.kill(pid, signal.SIGTERM)
-				#os.waitpid(pid, 0)
-			except OSError, e:
-				print("srv_kill: something went wrong... {0}".format(e))
-		else:
-			print("Server process terminated.")
+			print "reset_launcher: something went wrong... SERVER STILL RUNNIN"
 
 		self.client = obci_script.client_server_prep()
 		self.experiments = self.prepare_experiments()
@@ -336,12 +321,6 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self.exp_req = None
 		self.mtool = OBCIMessageTool(message_templates)
 		self.poller = PollingObject()
-
-		# self.status = launcher_tools.ExperimentStatus()
-		# self.exp_config = system_config.OBCIExperimentConfig()
-
-		# self.overwrites = {}
-		# self.runtime_changes = {}
 
 		if preset_data is not None:
 			self.setup_from_preset(preset_data)
@@ -425,14 +404,12 @@ class ExperimentEngineInfo(QtCore.QObject):
 
 		try:
 			with open(self.launch_file) as f:
-				print "launch file opened -- ", self.launch_file
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
 			print "config errror   ", str(e)
 			return False, str(e)
 
-		#print self.exp_config
 		rd, details = self.exp_config.config_ready()
 		if rd:
 			self.status.set_status(launcher_tools.READY_TO_LAUNCH)
