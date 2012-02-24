@@ -152,6 +152,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
                 child.setToolTip(1, child.toolTip(0))
 
     def _getParams(self):
+        if self._index_of(self._params) is None:
+            print "stale experiment descriptor"
+            return self._params
         state = self.exp_states[self._index_of(self._params)]
         expanded = set()
         for i, peer in enumerate(self._params.exp_config.peers.values()):
@@ -195,8 +198,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         if curRow == lastRow:
             return
         self.info.setText(self._scenarios[curRow].info)
-        if lastRow >= 0:
-            self._getParams()
+
             
         self._setParams(self._scenarios[curRow])
         self.parameters_of.setTitle("Parameters of " + self._scenarios[curRow].name)

@@ -66,6 +66,16 @@ def obci_root():
 	path = os.path.split(path)[0]
 	return path
 
+def obci_root_relative(path):
+	_path = path
+	if path:
+		print "---- ", path
+		root = obci_root()
+		if os.path.commonprefix([path, root]).startswith(root):
+			_path = path[len(root):]
+			if _path.startswith('/'):
+				_path = _path[1:]
+	return _path
 
 def obci_pythonpath():
 	root = obci_root()
