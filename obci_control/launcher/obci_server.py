@@ -28,7 +28,7 @@ import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
-from server_scanner import update_nearby_servers
+from server_scanner import update_nearby_servers, broadcast_server
 
 REGISTER_TIMEOUT = 6
 
@@ -36,37 +36,42 @@ class OBCIServer(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, other_srv_ips,
-												rep_addresses=None,
-												pub_addresses=None,
-												name='obci_server'):
-		self.other_addrs = other_srv_ips
+	def __init__(self, 	rep_addresses=None, pub_addresses=None, name='obci_server'):
 
 		self.experiments = {}
 		self.exp_process_supervisors = {}
 
-		self.machine = net.ext_ip(ifname=net.server_ifname())
-
-		super(OBCIServer, self).__init__(obci_install_dir, None, rep_addresses,
+		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
 														  name)
-
+		self.machine = self.hostname
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-		self._nearby_servers = []
+		rep_port = int(net.server_rep_port())
+		pub_port = int(net.server_pub_port())
+		bcast_port = int(net.server_bcast_port())
+
+		self._bcast_server = threading.Thread(target=broadcast_server,
+												args=[self.uuid,
+													rep_port, pub_port, bcast_port])
+		self._bcast_server.daemon = True
+		self._bcast_server.start()
+
+		self._nearby_servers = {}
 		self._nearby_servers_lock = threading.RLock()
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
 														self._nearby_servers_lock,
-
+														bcast_port,
 														self.ctx])
+
 		self._nearby_updater.daemon = True
 		self._nearby_updater.start()
 
 
 	def nearby_server_addrs(self):
 		with self._nearby_servers_lock:
-			return list(self._nearby_servers)
+			return dict(self._nearby_servers)
 
 	def set_nearby_server_addrs(self, addr_list):
 		with self._nearby_servers_lock:
@@ -91,31 +96,8 @@ class OBCIServer(OBCIControlPeer):
 	def custom_sockets(self):
 		return [self.exp_rep]#, self.srv_rep, self.srv_pub]
 
-
-	def pre_run(self):
-		"""
-		Subclassed from OBCIControlPeer. Create a file in temp directory with
-		self's PID.
-		"""
-		directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
-		if not os.path.exists(directory):
-			os.mkdir(directory)
-
-		filename = settings.SERVER_CONTACT_NAME
-		self.fpath = os.path.join(directory, filename)
-		if os.path.exists(self.fpath):
-			print "\nOBCIServer contact file exists, \
-probably a server is already working"
-			print "Abort.\n"
-			sys.exit(2)
-
-		with open(self.fpath, 'w') as f:
-			f.write(str(os.getpid()))
-			#json.dump(self.rep_addresses, f)
-
-
 	def clean_up(self):
-		os.remove(self.fpath)
+		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self.exp_pub,
@@ -130,15 +112,15 @@ probably a server is already working"
 		args = ['--sv-addresses']
 		args += self.exp_rep_addrs
 		args.append('--sv-pub-addresses')
-		if local:
-			addrs = net.choose_local(self.exp_pub_addrs)
-		else:
-			addrs = net.choose_not_local(self.exp_pub_addrs)
+		# if local:
+		# 	addrs = net.choose_local(self.exp_pub_addrs)
+		# else:
+		# 	addrs = net.choose_not_local(self.exp_pub_addrs)
+		addrs = self.exp_pub_addrs
 
-		args += [addrs.pop()]
+		args += addrs
 		exp_name = name if name else os.path.basename(launch_file)
 		args += [
-					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
 					'--name', exp_name]
@@ -257,8 +239,14 @@ probably a server is already working"
 		for exp_id in self.experiments:
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
-		print "{0} [{1}] -- nearby servers:  {2}".format(
-										self.name, self.peer_type(), self.nearby_server_addrs())
+		nearby = self.nearby_server_addrs()
+		info = '\n{'
+		for srv in nearby:
+			info += '\n' + srv + ' : ' + nearby[srv][1].sender_ip + ','
+		info += '}'
+		print "{0} [{1}] -- nearby servers:  count: {2}, {3}".format(
+										self.name, self.peer_type(), len(nearby),
+										info)
 
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
 												exp_data=exp_data))
@@ -309,13 +297,11 @@ probably a server is already working"
 		exp = self.experiments.get(message.uuid, None)
 		if not exp:
 			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
-				print '##########'
 				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
 			return
 		exp.status_name = message.status_name
 		exp.details = message.details
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
-			print "%%%%%%%%"
 			send_msg(sock, self.mtool.fill_msg('rq_ok'))
 			
 		send_msg(self._publish_socket, message.SerializeToString())
@@ -502,8 +488,7 @@ def server_arg_parser(add_help=False):
 	parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
 							description="OBCI Server : manage OBCI experiments.",
 							add_help=add_help)
-	parser.add_argument('--other-srv-ips', nargs='+',
-	                   help='IP addresses of OBCI servers on other machines')
+
 	parser.add_argument('--name', default='obci_server',
 	                   help='Human readable name of this process')
 	return parser
@@ -514,7 +499,6 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	srv = OBCIServer(args.obci_dir, args.other_srv_ips,
-							args.rep_addresses, args.pub_addresses, args.name)
+	srv = OBCIServer(args.rep_addresses, args.pub_addresses, args.name)
 
 	srv.run()

@@ -7,6 +7,7 @@ import uuid
 import argparse
 import subprocess
 import threading
+import socket
 
 import zmq
 
@@ -34,7 +35,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, sandbox_dir, launch_file=None,
+	def __init__(self, sandbox_dir, launch_file=None,
 										source_addresses=None,
 										source_pub_addresses=None,
 										rep_addresses=None,
@@ -46,10 +47,10 @@ class OBCIExperiment(OBCIControlPeer):
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
-		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
+		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
 		self.launch_file = launch_file
-		super(OBCIExperiment, self).__init__(obci_install_dir,
+		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
 											pub_addresses,
@@ -121,21 +122,29 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
-		if not sv_rep_ or local:
-			sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
+		a = self.supervisors_rep_addrs[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
+		# sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
+		# if not sv_rep_ or local:
+		# 	sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
 
-		args += sv_rep_[:1]
+		args.append(addr_to_pass) # += sv_rep_[:1]
 		args.append('--sv-pub-addresses')
-		pub_addrs = net.choose_not_local(self.pub_addresses)
-		if not pub_addrs or local:
-			pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+		a = self.pub_addresses[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
 
-		args += pub_addrs[:1] #self.pub_addresses
+		# pub_addrs = net.choose_not_local(self.pub_addresses)
+		# if not pub_addrs or local:
+		# 	pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+
+		args.append(addr_to_pass) # += pub_addrs[:1] #self.pub_addresses
+		name = self.name if self.name and self.name != 'obci_experiment' else\
+					os.path.basename(self.launch_file)
 		args += [
-					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),
-					'--name', os.path.basename(self.launch_file) +\
+					'--name', name +\
 							 '-' + self.uuid.split('-',1)[0] + \
 							'-' + machine
 					]
@@ -602,7 +611,7 @@ if __name__ == '__main__':
 	pack = None
 	if args.ovr is not None:
 		pack = peer_cmd.peer_overwrites_pack(args.ovr)
-	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
+	exp = OBCIExperiment(args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch, overwrites=pack)
