@@ -302,12 +302,12 @@ def server_process_running():
 	if pid:
 		pid = int(pid)
 	#Check whether pid exists in the current process table.
-	try:
-		os.kill(pid, 0)
-	except OSError, e:
-		running = e.errno == errno.EPERM
-	else:
-		running = True
+		try:
+			os.kill(pid, 0)
+		except OSError, e:
+			running = e.errno == errno.EPERM
+		else:
+			running = True
 	if not running and opened_file:
 		os.remove(fpath)
 	return running, pid

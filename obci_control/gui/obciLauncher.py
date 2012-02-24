@@ -11,9 +11,9 @@ try:
 except:
     pass
 
-from PySide.QtGui import *
-from PySide.QtCore import *
-import PySide.QtGui
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+import PyQt4.QtGui
 from obci_launcher import Ui_ObciLauncher
 
 from obci_launcher_engine import OBCILauncherEngine, MODE_BASIC,MODE_ADVANCED,MODES
@@ -26,9 +26,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
     '''
     classdocs
     '''
-    start = Signal(str)
-    stop = Signal(str)
-    reset = Signal(str)
+    start = pyqtSignal(str)
+    stop = pyqtSignal(str)
+    reset = pyqtSignal(str)
     
     status_colors = {
         NOT_READY : 'dimgrey',
@@ -52,7 +52,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.engine = OBCILauncherEngine(client)
 
         self.setupUi(self)
-        self.scenarios.horizontalHeader().setResizeMode (QHeaderView.ResizeMode.Stretch)
+        self.scenarios.horizontalHeader().setResizeMode(QHeaderView.Stretch)
         self.scenarios.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.scenarios.setColumnCount(2)
         self.scenarios.setHorizontalHeaderLabels(["Scenario", "Status"])
@@ -120,8 +120,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
             st = experiment.status.peer_status(peer_id).status_name
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
-            parent.setBackground(0, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
-            parent.setBackground(1, PySide.QtGui.QBrush(PySide.QtGui.QColor(self.status_colors[st])))
+            parent.setBackground(0, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
+            parent.setBackground(1, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
 
             self.parameters.addTopLevelItem(parent)
 

@@ -21,13 +21,16 @@ namespace po=boost::program_options;
 int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	int length;
 	int saw;
+	double time_diff;
+	Channel * ampSaw,*driverSaw;
 	po::options_description options("Program Options");
 
 	options.add_options()
 			("length,l",po::value<int>(&length)->default_value(5),"Length of the test in seconds")
 			("help,h","Show help")
 			("start","Start sampling")
-			("saw",po::value<int>(&saw)->default_value(0),"Set expected Saw difference. If set driver will monitor samples lost");
+			("saw",po::value<int>(&saw)->default_value(0),"Set expected Saw difference. If set driver will monitor samples lost")
+			("time",po::value<double>(&time_diff)->default_value(0.0),"Monitor time difference. Display error, when difference between expected timestamps is bigger then give value");
 	options.add(amp->get_options());
 	cout << options <<"\n";
 
@@ -38,36 +41,39 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 
 	cout << amp->get_description()->get_json()<<"\n";
 	int sample_rate = amp->get_sampling_rate();
-	if (saw)
-		amp->set_active_channels_string("Saw;Driver_Saw");
+	ampSaw=amp->get_description()->find_channel("Saw");
+	driverSaw=amp->get_description()->find_channel("Driver_Saw");
 	vector<Channel *> channels = amp->get_active_channels();
 	if (!vm.count("start"))
 		return 0;
 	amp->start_sampling();
 	ptime start=microsec_clock::local_time();
-	uint last_saw=0;
+
 	printf("SAMPLING STARTED at %s  and will stop after %d (%d)samples\n",to_simple_string(start).c_str(),length*sample_rate,length);
-	cout.precision(20);
+	cout.precision(3);
 	uint lost_samples=0;
 	int i=0;
+	double last_sample_time=amp->get_sample_timestamp();
+	uint last_saw=ampSaw->get_raw_sample();
 	while ((i++ < length * sample_rate) & amp->is_sampling()) {
-		amp->next_samples();
-		if (!saw) {
+		double cur_sample=amp->next_samples();
+		if (channels.size()>0){
 			printf("[%15s] S %d, timestamp: %.20f\n",
-					to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,amp->get_sample_timestamp());
+					to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,cur_sample);
 			for (uint j = 0; j < channels.size(); j++)
 				printf("%12s: %f %x\n", channels[j]->name.c_str(),
 						channels[j]->get_sample(),
 						channels[j]->get_raw_sample());
-		} else {
-			uint new_saw = channels[0]->get_raw_sample();
+		}
+		if (saw) {
+			uint new_saw = ampSaw->get_raw_sample();
 			if (new_saw < last_saw) {
 				printf(
 						"[%15s] S %d: Saw Jump. Saw  %d ->%d",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						channels[1]->get_raw_sample(), last_saw,new_saw);
+						driverSaw->get_raw_sample(), last_saw,new_saw);
 				if (new_saw != 0)
-					printf(" ERROR samples lost: %d\n", new_saw);
+					printf(" ERROR samples lost: %d\n", new_saw/saw);
 				else
 					printf("\n");
 				lost_samples += new_saw;
@@ -75,11 +81,18 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 				printf(
 						"[%15s] S %d: ERROR!!! %d Samples lost. Saw %d->%d\n",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						channels[1]->get_raw_sample(), new_saw - saw - last_saw,
+						driverSaw->get_raw_sample(), (new_saw - last_saw)/saw -1,
 						last_saw,new_saw);
-				lost_samples += new_saw - saw - last_saw;
+				lost_samples += (new_saw - last_saw)/saw -1;
 			}						
 			last_saw=new_saw;
+		}
+		if (time_diff>0){
+			double expected_sample=last_sample_time+1.0/amp->get_sampling_rate();
+			if (abs(expected_sample-cur_sample)>time_diff)
+				printf("[%15s] S %d: ERROR!!! Has different timestamp than expected: (exp: %f,got: %f,diff: %f)\n",
+						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),driverSaw->get_raw_sample(),expected_sample,cur_sample,cur_sample-expected_sample);
+			last_sample_time=cur_sample;
 		}
 	}
 	ptime end=microsec_clock::local_time();
