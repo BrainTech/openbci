@@ -3,6 +3,8 @@
 
 
 import warnings
+import os
+
 from common.config_helpers import *
 import launcher_tools
 from peer.peer_config_serializer import PeerConfigSerializerCmd
@@ -12,10 +14,23 @@ class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
 		self.uuid = uuid
 		self.launch_file_path = launch_file_path
+		
+
 		self.origin_machine = origin_machine if origin_machine else ''
 		self.scenario_dir = ''
 		self.mx = 0
 		self.peers = {}
+
+	@property
+	def launch_file_path(self):
+		return self._launch_file_path
+
+	@launch_file_path.setter
+	def launch_file_path(self, path):
+		self._launch_file_path = path
+		if path:
+			self._launch_file_path = launcher_tools.obci_root_relative(path)
+
 
 	def peer_config(self, peer_id):
 		return self.peers[peer_id].config

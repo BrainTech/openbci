@@ -49,12 +49,14 @@ class OBCIExperiment(OBCIControlPeer):
 		self.source_pub_addresses = source_pub_addresses
 		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
-		self.launch_file = launch_file
+		self.launch_file = launcher_tools.obci_root_relative(launch_file)
 		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
 											pub_addresses,
 											name)
+		if self.name:
+			self.name = self.name + ' on ' + socket.gethostname()
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 
 		self.supervisors = {} #machine -> supervisor contact/other info
@@ -220,7 +222,7 @@ class OBCIExperiment(OBCIControlPeer):
 		if not self.launch_file:
 			return False, "Empty scenario."
 		try:
-			with open(self.launch_file) as f:
+			with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
 				print "launch file opened"
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
