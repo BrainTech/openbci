@@ -97,11 +97,11 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
         buffer_start = int(-csp_time[0]*fs)
         buffer_len = len(mean)
-        LOGGER.info("Computer buffer len: "+str(buffer))
+        LOGGER.info("Computer buffer start / len: "+str(buffer_start)+" / "+str(buffer_len))
         mean[:left] = 0
         mean[right:] = 0
-	data.show_mean_CSP(csp_time, new_tags)
-	plt.plot(mean, 'r-')
+	t_vec = data.show_mean_CSP(csp_time, new_tags)
+	plt.plot(t_vec, mean, 'r-')
 	plt.show()
         sr = 12 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
         targets = np.zeros([sr, len(new_tags)])
