@@ -399,11 +399,9 @@ class ExperimentEngineInfo(QtCore.QObject):
 							launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
 		if not self.launch_file:
 			return False, "Empty scenario."
-		if not os.path.isabs(self.launch_file):
-			self.launch_file = os.path.join(launcher_tools.obci_root(), self.launch_file)
 
 		try:
-			with open(self.launch_file) as f:
+			with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
