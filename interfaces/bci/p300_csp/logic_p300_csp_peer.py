@@ -16,6 +16,7 @@ from gui.ugm import ugm_helper
 #from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 import p300
+import matplotlib.pyplot as plt
 from logic import logic_helper
 
 from logic import logic_logging as logger
@@ -98,6 +99,9 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         LOGGER.info("Computer buffer len: "+str(buffer))
         mean[:left] = 0
         mean[right:] = 0
+	data.show_mean_CSP(csp_time, new_tags)
+	plt.plot(mean, 'r-')
+	plt.show()
         sr = 12 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
         targets = np.zeros([sr, len(new_tags)])
         non_targets = np.zeros([sr, len(not_idx_tags)])
