@@ -132,6 +132,7 @@ class p300_train(object):
         plt.figure(1)
         plt.plot(t_vec, sigs.T,'b-', t_vec, sigs_trg.T, 'g-')
         plt.title('CSP')
+        return t_vec
         #plt.show()
         
     def get_n_perms(self, n, m, rg):
@@ -290,7 +291,7 @@ class p300_train(object):
             plt.plot([right, right], [min(mean), max(mean)])
             plt.show()
           
-        return mean/len(tags), left, right
+        return mean, left, right
     
     def __get_filter(self, c_max, c_min):
         """This retzurns CSP filters
