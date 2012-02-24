@@ -25,7 +25,7 @@ PRESETS = 'obci_control/gui/presets.ini'
 MODE_BASIC = 'basic'
 MODE_ADVANCED = 'advanced'
 MODE_EXPERT = 'expert'
-MODES = [MODE_BASIC, MODE_ADVANCED]#, MODE_EXPERT]
+MODES = [MODE_ADVANCED, MODE_BASIC]#, MODE_EXPERT]
 
 class OBCILauncherEngine(QtCore.QObject):
 	update_ui = QtCore.pyqtSignal(object)

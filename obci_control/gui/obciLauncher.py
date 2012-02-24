@@ -85,6 +85,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
         self.details_mode.addItems(MODES)
 
+
         self.engine.update_ui.connect(self.update_user_interface)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
@@ -153,7 +154,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
                 parent.addChild(child)
                 
                 child.setToolTip(0, 'Local parameter')
-                child.setToolTip(1, child.toolTip(0))
+                child.setToolTip(1, 'Local parameter')
 
     def _getParams(self):
         if self._index_of(self._params) is None:
@@ -163,6 +164,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         expanded = set()
         for i, peer in enumerate(self._params.exp_config.peers.values()):
             parent = self.parameters.topLevelItem(i)
+            if parent is None:
+                print "*****   _getParams:   ", i, peer, "parent none"
+                continue
             if parent.isExpanded(): expanded.add(parent.text(0))
 
             for j, param in enumerate(peer.config.local_params.keys()):
