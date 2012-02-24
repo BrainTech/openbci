@@ -149,12 +149,11 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
                 src = src if src else ''
                 child = QTreeWidgetItem([param, val, src ])                
                 if src:
-
                     child.setDisabled(True)
                 parent.addChild(child)
                 
-                child.setToolTip(0, 'Local parameter')
-                child.setToolTip(1, 'Local parameter')
+                #child.setToolTip(0, 'Local parameter')
+                #child.setToolTip(1, 'Local parameter')
 
     def _getParams(self):
         if self._index_of(self._params) is None:
