@@ -20,7 +20,7 @@ import common.net_tools as net
 UPDATE_INTERVAL = 8
 _LOOPS = 3
 
-ALLOWED_SILENCE = 25
+ALLOWED_SILENCE = 45
 
 def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
     mtool = OBCIMessageTool(message_templates)

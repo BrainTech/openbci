@@ -52,8 +52,8 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         sampling = int(self.config.get_param('sampling_rate'))
         channels_count = len(self.config.get_param('channel_names').split(';'))
         self.buffer = auto_blink_buffer.AutoBlinkBuffer(
-            from_blink=0,
-            samples_count=int(float(cfg['buffer'])),
+            from_blink=int(cfg['buffer_start']),
+            samples_count=int(float(cfg['buffer_len'])),
             sampling=sampling,
             num_of_channels=channels_count,
             ret_func=self.analysis.analyse,
