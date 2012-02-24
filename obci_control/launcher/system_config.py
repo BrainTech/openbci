@@ -113,8 +113,8 @@ class OBCIExperimentConfig(object):
 	def _param_value(self, peer_id, param_name, config):
 		if param_name in config.local_params:
 			return config.local_params[param_name]
-		elif param_name in config.external_param_defs:
-			peer, param = config.external_param_defs[param_name]
+		elif param_name in config.ext_param_defs:
+			peer, param = config.ext_param_defs[param_name]
 			return self.param_value(peer, param)
 		else:
 			raise OBCISystemConfigError("Param {0} does not exist in {1}".format(param_name, peer_id))

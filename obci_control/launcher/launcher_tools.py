@@ -106,17 +106,3 @@ def module_path(module):
 
 if __name__=='__main__':
 	print obci_pythonpath()
-
-# env = os.environ.copy()
-
-# _env = {
-#         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
-#         "MULTIPLEXER_PASSWORD": "",
-#         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-#         "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":" + obci_path + "../obci_control/:"
-# }
-# print _env["PYTHONPATH"]
-# env.update(_env)
-
-# for x in env["PYTHONPATH"].split(":"):
-#     sys.path.insert(1, x)

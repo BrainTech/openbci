@@ -5,6 +5,10 @@ import json
 import zmq
 import sys
 import time
+from socket import *
+import Queue
+import select
+import threading
 
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
@@ -13,65 +17,85 @@ from common.obci_control_settings import PORT_RANGE
 import common.net_tools as net
 
 
-def update_nearby_servers(srv_data, srv_data_lock, ctx=None):
+UPDATE_INTERVAL = 8
+_LOOPS = 3
+
+ALLOWED_SILENCE = 25
+
+def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
     mtool = OBCIMessageTool(message_templates)
 
-    ifname = net.server_ifname()
-    my_addr = net.ext_ip(ifname=ifname)
+    loops_to_update = _LOOPS
+    servers = {}
 
-    [subnet, my] = my_addr.rsplit('.', 1)
-    router = 100
+    s = socket(AF_INET, SOCK_DGRAM)
+    s.bind(('', bcast_port))
 
-    ip_range = [subnet + '.' + str(i) for i in range(256)\
-                                        if i not in [int(my), router]]
-    srv_port = net.server_rep_port()
+    update_timeout = False
+    def timer_end():
+        update_timeout = True
 
-    poller = zmq.Poller()
-
-    if ctx is None:
-        ctx = zmq.Context()
-
-    srv_dict = {}
-    for ip in ip_range:
-        pass
-        #req_s = ctx.socket(zmq.REQ)
-        #req_s.connect('tcp://' + ip + ':' + str(srv_port))
-        #srv_dict[req_s] =  ip
-        #poller.register(req_s, zmq.POLLIN)
-
-    to_send = srv_dict.keys()
-    trials = 5
-
-    while True:
-        new_srv_data = []
-        for sock in to_send:
-            send_msg(sock, mtool.fill_msg('ping'))
-
-        active_sockets = None
-        fail_det = None
+    while 1:
         try:
-            active_sockets = dict(poller.poll(timeout=5000))
-        except zmq.ZMQError, e:
-            fail_det = "obci_client: zmq.poll(): " + e.strerror
+            inp, out, exc = select.select([s], [], [], UPDATE_INTERVAL / _LOOPS)
+        except Exception, e:
+            print "nearby_servers_update - exception:", str(e)
+            print "nearby_servers_update - aborting."
             return
+
+        if s in inp:
+            data, wherefrom = s.recvfrom(1500, 0)
+            # sys.stderr.write(repr(wherefrom) + '\n')
+            # sys.stdout.write(data)
+            msg = unicode(data, encoding='utf-8')
+            msg = msg[:-1]
+            message = mtool.unpack_msg(msg)
+            servers[wherefrom[0]] = (time.time(), message)
+
         else:
-            to_send = []
-            for sock in active_sockets:
-                if active_sockets[sock] == zmq.POLLIN:
-                    msg = mtool.unpack_msg(recv_msg(sock))
-                    to_send.append(sock)
-                    new_srv_data.append(srv_dict[sock])
-            # print "--> ",new_srv_data
-            trials -= 1
+            # print "no data"
+            pass
+        
+        loops_to_update -= 1
 
+        if loops_to_update == 0:
+            loops_to_update = _LOOPS
+        
+            keys = servers.keys()
+            for ip in keys:
+                timestamp, srv = servers[ip]
+                check_time = time.time()
+                if timestamp + ALLOWED_SILENCE < check_time:
+                    print "[obci_server] obci_server on", ip, ',', servers[ip][1].sender_ip, "is most probably down."
+                    del servers[ip]
+        
+            with srv_data_lock:
+                srv_data.update(servers)
+                keys = srv_data.keys()
+                for ip in keys:
+                    if ip not in servers:
+                        del srv_data[ip]
 
-            if trials == 0:
-                trials = 5
-                with srv_data_lock:
-                    srv_data[0:] = list(new_srv_data)
-            elif trials > 0:
-                with srv_data_lock:
-                    srv_data[0:] = (list(set(srv_data + new_srv_data)))
+    s.close()
 
+def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
+    mtool = OBCIMessageTool(message_templates)
 
-        time.sleep(3)
+    msg = mtool.fill_msg("server_broadcast", sender_ip=gethostname(), sender=server_uuid,
+                                rep_port=rep_port, pub_port=pub_port)
+    msg += u'\n'
+    str_msg = msg.encode('utf-8')
+
+    s = socket(AF_INET, SOCK_DGRAM)
+    s.bind(('', 0))
+    s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
+
+    while 1:
+        try:
+            s.sendto(str_msg, ('<broadcast>', bcast_port))
+        except error, e:
+            print "[obci_server] Cannot broadcast obci_server, will try again in 1min:", str(e)
+            time.sleep(53)
+        time.sleep(7)
+
+    s.close()
