@@ -49,14 +49,16 @@ class p300_train(object):
         sigs = np.zeros([len(tags2), len(to_see)])
         for j, i in enumerate(self.tags):
             if (i + post) * self.fs < self.data.sample_count:
-                sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)])
-                sig = filtfilt(b_l, a_l, sig)
+                #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)])
+                #sig = filtfilt(b_l, a_l, sig)
+                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)]
                 sigs_trg[j, :] = sig   
                 to_see += sig - sig.mean()
         for j, i in enumerate(tags2):
             if (i + post) * self.fs < self.data.sample_count:
-                sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)])
-                sig = filtfilt(b_l, a_l, sig)
+                #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)])
+                #sig = filtfilt(b_l, a_l, sig)
+                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i- pre)* self.fs + len(other)]
                 sigs[j, :] = sig
                 other += sig - sig.mean()
         to_see /= len(self.tags)
