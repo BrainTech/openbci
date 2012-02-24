@@ -94,7 +94,8 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         not_idx_tags = data.data.get_p300_tags(idx=-1, samples=False)#Tutaj idx musi być -idx z linijki 11
                                                             #Tagi pozostałych przypadków
         mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
-        buffer = right
+        buffer_start = int(-csp_time[0]*fs)
+        buffer_len = len(mean)
         LOGGER.info("Computer buffer len: "+str(buffer))
         mean[:left] = 0
         mean[right:] = 0
@@ -114,7 +115,8 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
              'targets':targets,
              'non_targets':non_targets,
              'q' : q,
-             'buffer':buffer,
+             'buffer_len':buffer_len,
+             'buffer_start':buffer_start,
 	     'use_channels':';'.join(self.use_channels),
 	     'montage':self.montage,
 	     'montage_channels':';'.join(self.montage_channels),
