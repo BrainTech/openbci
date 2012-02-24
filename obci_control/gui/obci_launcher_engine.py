@@ -36,9 +36,10 @@ class OBCILauncherEngine(QtCore.QObject):
 	}
 	
 
-	def __init__(self, obci_client):
+	def __init__(self, obci_client, server_ip=None):
 		super(OBCILauncherEngine, self).__init__()
 
+		self.server_ip = server_ip
 		self.client = obci_client
 		self.ctx = obci_client.ctx
 
@@ -55,8 +56,10 @@ class OBCILauncherEngine(QtCore.QObject):
 		self.monitor_push.bind(self.monitor_addr)
 
 		self._stop_monitoring = False
+		srv_addr = 'tcp://'+server_ip+':'+net.server_pub_port() if server_ip else None
 		self.obci_monitor_thr = threading.Thread(target=self.obci_monitor, 
-												args=[self.ctx, self.monitor_addr])
+												args=[self.ctx, self.monitor_addr, 
+												srv_addr])
 		self.obci_monitor_thr.daemon = True
 		self.obci_monitor_thr.start()
 
@@ -110,7 +113,8 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def _exp_connect(self, exp_data):
 		for addr in exp_data['pub_addrs']:
-			send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
+			if not addr.startswith('tcp://localhost'):
+				send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
 												task='connect', pub_addr=addr))		
 
 	def _parse_presets(self, preset_path):
@@ -126,7 +130,7 @@ class OBCILauncherEngine(QtCore.QObject):
 		return presets
 
 
-	def obci_monitor(self, ctx, pull_addr):
+	def obci_monitor(self, ctx, pull_addr, server_ip=None):
 		pull = ctx.socket(zmq.PULL)
 		pull.connect(pull_addr)
 
@@ -137,7 +141,11 @@ class OBCILauncherEngine(QtCore.QObject):
 		poller.register(pull, zmq.POLLIN)
 		poller.register(subscriber, zmq.POLLIN)
 
-		subscriber.connect(net.server_address(sock_type='pub'))
+		if server_ip:
+			addr = server_ip
+		else:
+			addr = net.server_address(sock_type='pub')
+		subscriber.connect(addr)
 
 		def handle_msg(msg):
 			if msg.type == '_launcher_engine_msg':
@@ -247,7 +255,6 @@ class OBCILauncherEngine(QtCore.QObject):
 		uid = msg.experiment_id
 		index = self.index_of(uid)
 		if index is not None:
-			print "&&&&&&&&&&&&&&&&  obci peer dead"
 			exp = self.experiments[index]
 		
 			status_name = msg.status[0]
