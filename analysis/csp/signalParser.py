@@ -344,8 +344,8 @@ class signalParser(object):
                 #tmp = self.extract_channel([e], self.ident)
                 #while dec_no > 1:
                 #    dec_no /= 2
-                if not Fs == float(to_frequency):
-                    tmp = decimate(tmp, dec_no)
+                #if not Fs == float(to_frequency):
+                #    tmp = decimate(tmp, dec_no)
                 signal[i,:] = tmp[0:M]
             return signal
         else:
