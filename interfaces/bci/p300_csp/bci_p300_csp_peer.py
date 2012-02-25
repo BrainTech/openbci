@@ -18,7 +18,7 @@ from interfaces.bci.p300_csp import bci_p300_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_p300_csp", "info")
+LOGGER = logger.get_logger("bci_p300_csp", "debug")
 DEBUG = True
 
 
@@ -94,6 +94,8 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         if mxmsg.type == types.BLINK_MESSAGE:
 	    l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
+            blink = l_msg
+            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
             self.buffer.handle_blink(l_msg)
             
         self.no_response()

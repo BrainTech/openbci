@@ -398,13 +398,13 @@ class p300analysis(object):
             feature = self.__get_feature(tmp[:i + 1])
             prob = self.__get_prob(feature, i)
             if prob >= tr:
-                self.buffer = np.zeros(self.buffer.shape)
                 plt.figure()
                 for k in xrange(I):
                     plt.subplot(2, 4, k+1)
                     plt.plot(self.mean, 'r-')
                     plt.plot(self.buffer[k,...].T, 'g-')
                 plt.show()
+                self.buffer = np.zeros(self.buffer.shape)
                 return index
         if index == 1:
             print i
