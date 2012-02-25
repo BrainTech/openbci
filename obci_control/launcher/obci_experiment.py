@@ -61,6 +61,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 		self.supervisors = {} #machine -> supervisor contact/other info
 		self._wait_register = 0
+		self._ready_register = 0
 		self.sv_processes = {} # machine -> Process objects)
 		self.unsupervised_peers = {}
 
@@ -317,12 +318,17 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_launched_process_info(self, message, sock):
 		if message.proc_type == 'multiplexer':
 			self._wait_register = len(self.exp_config.peer_machines())
+			self.status.peer_status(message.name).set_status(
+											launcher_tools.RUNNING)
 			send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
 											mx_data=self.mx_args()))
-		elif message.proc_type == 'obci_peer':
-			pass
-		self.status.peer_status(message.name).set_status(
+		elif message.name == 'config_server':
+			self.status.peer_status(message.name).set_status(
 											launcher_tools.RUNNING)
+		elif message.proc_type == 'obci_peer':
+			
+			self.status.peer_status(message.name).set_status(
+											launcher_tools.LAUNCHING)
 		self.status_changed(self.status.status_name, self.status.details,
 			peers={message.name : self.status.peer_status(message.name).status_name})
 
@@ -333,8 +339,9 @@ class OBCIExperiment(OBCIControlPeer):
 		self._wait_register -= 1
 		print self.name,'[', self.type, ']',  message, self._wait_register
 		if self._wait_register == 0:
-				self.status.set_status(launcher_tools.RUNNING)
+				self.status.set_status(launcher_tools.LAUNCHING)
 				self.status_changed(self.status.status_name, self.status.details)
+		self._ready_register = len(self.exp_config.peers) - 2 #without mx and config_server, for now default is 1 mx
 
 	def _choose_process_address(self, proc, addresses):
 		print self.name,'[', self.type, ']', "(exp) choosing sv address:", addresses
@@ -486,7 +493,19 @@ class OBCIExperiment(OBCIControlPeer):
 
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
-		pass
+		peer_id = message.peer_id
+		self.status.peer_status(peer_id).set_status(
+											launcher_tools.RUNNING)
+		self._ready_register -= 1
+		print "{0} [{1}], {2} peer ready! {3} to go".format(
+								self.name, self.peer_type(), peer_id,
+								self._ready_register)
+		if self._ready_register == 0:
+			self.status.set_status(launcher_tools.RUNNING)
+		self.status_changed(self.status.status_name, self.status.details,
+			peers={peer_id : self.status.peer_status(peer_id).status_name})
+
+
 
 
 # {"status": ["failed", null],

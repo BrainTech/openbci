@@ -53,7 +53,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.server_ip = sys.argv[1] if len(sys.argv) == 2 else None
 
         client = obci_script.client_server_prep(server_ip=self.server_ip)
-        self.engine = OBCILauncherEngine(client)
+        self.engine = OBCILauncherEngine(client, self.server_ip)
 
         self.setupUi(self)
 
@@ -69,10 +69,11 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
         self.scenarios.currentCellChanged.connect(self._setInfo)
 
-        self.parameters.setHeaderLabels(["Name", 'Value'])
+        self.parameters.setHeaderLabels(["Name", 'Value', 'Info'])
         self.parameters.itemClicked.connect(self._itemClicked)
         self.parameters.itemChanged.connect(self._itemChanged)
         self.parameters.setColumnWidth(0, 200)
+        self.parameters.setColumnWidth(1, 200)
 
         # print PyQt4.QtGui.QColor.colorNames()
         self.start_button.clicked.connect(self._start)
@@ -83,6 +84,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self._scenarios = []
 
         self.details_mode.addItems(MODES)
+
 
         self.engine.update_ui.connect(self.update_user_interface)
         self.reset.connect(self.engine.reset_launcher)
@@ -117,7 +119,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
     def _setParams(self, experiment):
         expanded = self.exp_states[self._index_of(experiment)].expanded_peers
-
+        # print "expanded: ", expanded
+        # if expanded:
+        #     print "exxx", list(expanded)[0].__class__
         self.parameters.clear()
         self._params = experiment
         for peer_id, peer in experiment.exp_config.peers.iteritems():
@@ -128,6 +132,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
             parent.setBackground(0, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
             parent.setBackground(1, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
+            parent.setBackground(2, PyQt4.QtGui.QBrush(PyQt4.QtGui.QColor(self.status_colors[st])))
             parent.setToolTip(0, peer.path)
 
 
@@ -140,16 +145,15 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
             params = experiment.parameters(peer_id, self.details_mode.currentText())
             for param, (value, src) in params.iteritems():
-                val = str(value) if not src else value + "  ["+src + ']'
-
-                child = QTreeWidgetItem([param, val ])                
+                val = str(value) #if not src else value + "  ["+src + ']'
+                src = src if src else ''
+                child = QTreeWidgetItem([param, val, src ])                
                 if src:
-
                     child.setDisabled(True)
                 parent.addChild(child)
                 
-                child.setToolTip(0, 'Local parameter')
-                child.setToolTip(1, child.toolTip(0))
+                #child.setToolTip(0, 'Local parameter')
+                #child.setToolTip(1, 'Local parameter')
 
     def _getParams(self):
         if self._index_of(self._params) is None:
@@ -159,6 +163,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         expanded = set()
         for i, peer in enumerate(self._params.exp_config.peers.values()):
             parent = self.parameters.topLevelItem(i)
+            if parent is None:
+                print "*****   _getParams:   ", i, peer, "parent none"
+                continue
             if parent.isExpanded(): expanded.add(parent.text(0))
 
             for j, param in enumerate(peer.config.local_params.keys()):
@@ -192,6 +199,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         old_val = exp.exp_config.param_value(peer_id, param)
         if old_val != item.text(1):
             exp.update_peer_param(peer_id, param, val)
+            self._getParams()
+            self._setParams(self._params)
+
 
     def _setInfo(self, curRow, curCol, lastRow, lastCol):
 
@@ -199,7 +209,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
             return
         self.info.setText(self._scenarios[curRow].info)
 
-            
+        if self._params:
+            self._getParams()
         self._setParams(self._scenarios[curRow])
         self.parameters_of.setTitle("Parameters of " + self._scenarios[curRow].name)
         self._manage_actions(curRow)
@@ -216,6 +227,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         for i, st in enumerate(self.exp_states):
             uids[st.exp.uuid] = i
 
+        # print "_index_of ",uids, exp.uuid, exp.uuid.__class__
         if exp.uuid in uids:
             return uids[exp.uuid]
         else: return None
