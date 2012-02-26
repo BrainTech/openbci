@@ -40,8 +40,8 @@ class p300_train(object):
     def show_mean(self, time, channel, dont_plot=True, plt_all=False, mean_only=True, suggest=True):
         pre = time[0]
         post = time[1]
-        b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
-        b_l,a_l = ss.butter(3, 2*20.0/self.fs, btype = 'low')
+        #b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
+        #b_l,a_l = ss.butter(3, 2*20.0/self.fs, btype = 'low')
         to_see = np.zeros((post + pre) * self.fs)
         other = np.zeros((post + pre) * self.fs)
         tags2 = self.data.get_p300_tags(idx=-self.idx, samples=False)
@@ -51,14 +51,14 @@ class p300_train(object):
             if (i + post) * self.fs < self.data.sample_count:
                 #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)])
                 #sig = filtfilt(b_l, a_l, sig)
-                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)]
-                sigs_trg[j, :] = sig   
+                sig =  self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)]
+                sigs_trg[j, :] = sig
                 to_see += sig - sig.mean()
         for j, i in enumerate(tags2):
             if (i + post) * self.fs < self.data.sample_count:
                 #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)])
                 #sig = filtfilt(b_l, a_l, sig)
-                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i- pre)* self.fs + len(other)]
+                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)]
                 sigs[j, :] = sig
                 other += sig - sig.mean()
         to_see /= len(self.tags)
@@ -322,6 +322,7 @@ class p300_train(object):
             P[:,i] = vects[:,vals_idx[i]] / np.sqrt(vals[vals_idx[i]])
         return P, vals[vals_idx]
 
+
 class p300analysis(object):
     def __init__(self, z_trg, z_no_trg, mean, mu, sigma, left, right, no_fields=8):
         """Parameters:
@@ -346,7 +347,7 @@ class p300analysis(object):
         self.left = left
         self.right = right
         
-    def __get_feature(self, arr, xc_points=20):
+    def __get_array_feature(self, arr, xc_points=20):
         """
         Parameters:
         -----------
@@ -358,10 +359,57 @@ class p300analysis(object):
         N = arr.shape[0]
         mean = arr.sum(0)
         mean /= np.sqrt(np.dot(mean, mean))
-        xcor = np.correlate(mean, self.mean, 'full')[len(mean) - xc_points:len(mean) + xc_points]
-        return (xcor.max() - self.mu[N-1]) / self.sigma[N-1]
+        return self.__get_feature(mean, idx = N - 1, xc_points = xc_points)
     
+    def __get_feature(self, signal, idx=0, xc_points=20):
+        """This returns a xcorrelation of a given signal with the mean signal
+        
+        Parameters:
+        ===========
+        signal : 1darray
+            signal to be analyzed
+        xc_points : int
+            how many points to consider in xcorrelation
+        idx [= 0] : int
+            which mean is being considered
+            
+        Returns:
+        ========
+        zscore : float
+            a Z-score of a given signal
+        """
+        N = len(signal)
+        xcor = np.correlate(signal, self.mean, 'full')[N - xc_points : N + xc_points]
+        zscore = (xcor.max() - self.mu[idx]) / self.sigma[idx]
+        return zscore
+    
+    def safety(func):
+        def wrapper(self, *args):
+            try:
+                return func(self, *args)
+            except ZeroDivisionError:
+                print 'WARNING! ZeroDivision occured!',
+                Xt = self.trg[arg[1], :]
+                Xn = self.no_trg[arg[1], :]
+                print args[0], Xt.max(), Xt.mean(), Xn.min(), Xn.min()
+                raise ZeroDivisionError('Oops!')
+        return wrapper
+    
+    @safety
     def __get_prob(self, feature, no):
+        """Returns the Bayes probability of a given feature.
+        
+        Parameters:
+        ===========
+        feature : float
+            a feature to consider
+        no : int
+            which mean to consider
+        
+        Returns:
+        ========
+        probability : Bayes probability
+        """
         Xt = self.trg[no, :]
         Xn = self.no_trg[no, :]
         N = len(Xt) + len(Xn)
@@ -370,8 +418,9 @@ class p300analysis(object):
         P_xt = len(np.where(Xt < feature)[0]) / float(len(Xt))
         P_xn = len(np.where(Xn > feature)[0]) / float(len(Xn))
         return P_xt * P_t / (P_xt * P_t + P_xn * P_n)
-            
+    
     def woody(self, sig, xc_points=25):
+        """Making the sig aligned to the mean"""
         xcor = np.correlate(self.mean, sig, 'full')[self.signal_len - xc_points : self.signal_len + xc_points]
         max_idx = xcor.argmax()
         sig = sig / np.sqrt(np.dot(sig,sig))
@@ -388,14 +437,34 @@ class p300analysis(object):
         #plt.show()
         return new_sig
     
-    def analyze(self, signal, index, tr=0.80):
+    def analyze(self, signal, index, tr=0.05):
+        """The main classifier
+        
+        Parameters:
+        ===========
+        signal : 1darray
+            a signal to analyze
+        index : int
+            the index of the field that signal corresponds to
+        tr [=0.05] : float
+            a threshold of probability above which the decision is made
+        
+        Returns:
+        ========
+        indx : idx
+            the index of field that corresponds to a signal positively calssified
+        """
         I, N, J = self.buffer.shape
         sig = self.woody(signal)
+        feature = self.__get_feature(sig)
+        prob = self.__get_prob(feature, 0)
+        if prob >= tr:
+            return index
         tmp = np.delete(self.buffer[index,...], N - 1, 0)
         tmp = np.insert(tmp, 0, sig, axis=0)
         self.buffer[index,...] = np.copy(tmp)
         for i in xrange(N):
-            feature = self.__get_feature(tmp[:i + 1])
+            feature = self.__get_array_feature(tmp[:i + 1])
             prob = self.__get_prob(feature, i)
             if prob >= tr:
                 plt.figure()
