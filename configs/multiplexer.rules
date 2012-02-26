@@ -197,7 +197,7 @@ peer {
 
 peer {
      type: 137
-     name: "ETR_SERVER"
+     name: "ETR_ANALYSIS"
      queue_size: 32768
 }
 
@@ -798,7 +798,7 @@ type {
     type: 209
     name: "ETR_SIGNAL_MESSAGE"
     to {
-       peer: "ETR_SERVER"
+       peer: "ETR_ANALYSIS"
        whom: ALL
 	report_delivery_error: false
        }

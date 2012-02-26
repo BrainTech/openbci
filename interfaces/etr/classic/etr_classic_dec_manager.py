@@ -10,8 +10,119 @@ TEST_MODE_TIME = None
 FRACTION_WAIT_COUNT = 10
 
 class EtrDecManager(object):
-    def __init__(self):
-        self.configs = {
+    def __init__(self, dec_type, push_dec_count, push_feed_count, buffer_size, 
+                 ignore_missed, speller_area_count, dec_break):
+
+        self.ignore_missed = int(ignore_missed)
+        self.buffer_size = float(buffer_size)
+        self.dec_type = dec_type
+        if dec_type == 'count':
+            self.push_feed_count = int(push_feed_count)
+            self.push_dec_count = int(push_dec_count)
+        elif dec_type == 'fraction':
+            self.push_feed_count = float(push_feed_count)
+            self.push_dec_count = float(push_dec_count)
+        else:
+            raise Exception("Unrecognised ETR_DEC_TYPE = "+dec_type)
+        assert(self.push_dec_count > 0)
+        assert(self.push_feed_count < self.push_dec_count)
+        self.speller_area_count = int(speller_area_count)
+        assert(self.speller_area_count > 0)
+        self.dec_break = float(dec_break)
+
+
+        self.last_tss = []
+        self.last_dec = 0
+        for i in range(self.speller_area_count+1):
+            self.last_tss.append(deque())
+
+    def area_pushed(self, area_id, msg):
+        """Fired every 'tick'.
+        area_id is either -1 (no are is being pushed)
+        or 0 < area_id < self.configs['SPELLER_AREA_COUNT'].
+        Update internal data structures with area_id and current time.
+        """
+        if time.time() - self.last_dec < self.dec_break:
+            return
+        if area_id >= 0:
+            self.last_tss[area_id].appendleft(msg.timestamp)
+        else:
+            self.last_tss[self.speller_area_count].appendleft(msg.timestamp)
+
+        self._update_tick()
+
+    def _update_tick(self):
+        """Fired every tick.
+        Remove all 'outdated' timestamps for every area regarding ETR_BUFFER_SIZE."""
+        if TEST_MODE:
+            t = TEST_MODE_TIME
+        else:
+            t = time.time()
+
+        brink_t = t - self.buffer_size
+        for tss in self.last_tss:
+            while True:
+                try:
+                    v = tss.pop()
+                    #print("v < brink_t? = "+str(v)+" < "+str(brink_t))
+                    if  v >= brink_t:
+                        tss.append(v)
+                        break
+                    # else v timestamp is too old - throw it away
+                except IndexError:
+                    break
+
+    def _reset_tss(self):
+        self.last_dec = time.time()
+        for q in self.last_tss:
+            q.clear()
+        
+    def get_feedbacks(self):
+        dec = -1
+        feeds = [0]*self.speller_area_count
+        if time.time() - self.last_dec < self.dec_break:
+            return dec, [0.01]*self.speller_area_count
+
+        feed_scale = float(self.push_dec_count - self.push_feed_count)
+        #print('feed_scale: '+str(feed_scale))
+
+        if self.dec_type == 'count':
+            for i in range(len(feeds)):
+                count = len(self.last_tss[i])
+                #print("Tss count for "+str(i)+" = "+str(count))
+                if count >= self.push_dec_count:
+                    feeds[i] = 1.0
+                    dec = i
+                    break
+                elif count > self.push_feed_count:
+                    feeds[i] = (count - self.push_feed_count)/feed_scale
+                else:
+                    feeds[i] = 0.0
+        else: # == 'FRACTION'
+            x = 0
+            if self.ignore_missed:
+               x = 1
+            all_count = sum([len(self.last_tss[i]) for i in range(len(self.last_tss)-x)])
+            for i in range(len(feeds)):
+                if all_count < FRACTION_WAIT_COUNT:
+                    fract = 0
+                else:
+                    fract = len(self.last_tss[i])/float(all_count)
+                if fract >= self.push_dec_count:
+                    feeds[i] = 1.0
+                    dec = i
+                    break
+                elif fract > self.push_feed_count:
+                    feeds[i] = (fract - self.push_feed_count)/feed_scale
+                else:
+                    feeds[i] = 0.0
+
+        if dec >= 0:
+            self._reset_tss()
+        return dec, feeds
+
+
+        """self.configs = {
             # enumerator {'COUNT', 'FRACTION'}:
             # - COUNT means that decision is made by considering 'how many times the area has been pushed'
             # - FRACTION means that decision is made by considering 'what is the fraction of a number times given ara has been pushed 
@@ -45,127 +156,4 @@ class EtrDecManager(object):
 
             'ETR_DEC_BREAK':None,
 
-            }
-    def get_requested_configs(self):
-        return self.configs.keys()
-
-    def set_configs(self, configs):
-        for k in self.configs.keys():
-            self.configs[k] = configs[k] #assumed all keys in self.configs are in configs
-        self._assert_configs()
-        self._init_configs()
-
-    def _assert_configs(self):
-        """Fired after setting configs from system settings.
-        Assure configs are correct, change config type if needed 
-        (system setting are always as strings)."""
-        self.configs['ETR_IGNORE_MISSED'] = int(self.configs['ETR_IGNORE_MISSED'])
-        self.configs['ETR_BUFFER_SIZE'] = float(self.configs['ETR_BUFFER_SIZE'])
-        if self.configs['ETR_DEC_TYPE'] == 'COUNT':
-            self.configs['ETR_PUSH_FEED_COUNT'] = int(self.configs['ETR_PUSH_FEED_COUNT'])
-            self.configs['ETR_PUSH_DEC_COUNT'] = int(self.configs['ETR_PUSH_DEC_COUNT'])
-        elif self.configs['ETR_DEC_TYPE'] == 'FRACTION':
-            self.configs['ETR_PUSH_FEED_COUNT'] = float(self.configs['ETR_PUSH_FEED_COUNT'])
-            self.configs['ETR_PUSH_DEC_COUNT'] = float(self.configs['ETR_PUSH_DEC_COUNT'])
-        else:
-            raise Exception("Unrecognised ETR_DEC_TYPE = "+self.configs['ETR_DEC_TYPE'])
-        assert(self.configs['ETR_PUSH_FEED_COUNT'] > 0)
-        assert(self.configs['ETR_PUSH_FEED_COUNT'] < self.configs['ETR_PUSH_DEC_COUNT'])
-
-        self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
-        assert(self.configs['SPELLER_AREA_COUNT'] > 0)
-
-        self.configs['ETR_DEC_BREAK'] = float(self.configs['ETR_DEC_BREAK'])
-
-    def _init_configs(self):
-        """Fired after set_configs,
-        init all needed data structures."""
-        self.last_tss = []
-        self.last_dec = 0
-        for i in range(self.configs['SPELLER_AREA_COUNT']+1):
-            self.last_tss.append(deque())
-
-    def area_pushed(self, area_id, msg):
-        """Fired every 'tick'.
-        area_id is either -1 (no are is being pushed)
-        or 0 < area_id < self.configs['SPELLER_AREA_COUNT'].
-        Update internal data structures with area_id and current time.
-        """
-        if time.time() - self.last_dec < self.configs['ETR_DEC_BREAK']:
-            return
-        if area_id >= 0:
-            self.last_tss[area_id].appendleft(msg.timestamp)
-        else:
-            self.last_tss[self.configs['SPELLER_AREA_COUNT']].appendleft(msg.timestamp)
-
-        self._update_tick()
-
-    def _update_tick(self):
-        """Fired every tick.
-        Remove all 'outdated' timestamps for every area regarding ETR_BUFFER_SIZE."""
-        if TEST_MODE:
-            t = TEST_MODE_TIME
-        else:
-            t = time.time()
-
-        brink_t = t - self.configs['ETR_BUFFER_SIZE']
-        for tss in self.last_tss:
-            while True:
-                try:
-                    v = tss.pop()
-                    #print("v < brink_t? = "+str(v)+" < "+str(brink_t))
-                    if  v >= brink_t:
-                        tss.append(v)
-                        break
-                    # else v timestamp is too old - throw it away
-                except IndexError:
-                    break
-
-    def _reset_tss(self):
-        self.last_dec = time.time()
-        for q in self.last_tss:
-            q.clear()
-        
-    def get_feedbacks(self):
-        dec = -1
-        feeds = [0]*self.configs['SPELLER_AREA_COUNT']
-        if time.time() - self.last_dec < self.configs['ETR_DEC_BREAK']:
-            return dec, [0.01]*self.configs['SPELLER_AREA_COUNT']
-
-        feed_scale = float(self.configs['ETR_PUSH_DEC_COUNT'] - self.configs['ETR_PUSH_FEED_COUNT'])
-        print('feed_scale: '+str(feed_scale))
-
-        if self.configs['ETR_DEC_TYPE'] == 'COUNT':
-            for i in range(len(feeds)):
-                count = len(self.last_tss[i])
-                print("Tss count for "+str(i)+" = "+str(count))
-                if count >= self.configs['ETR_PUSH_DEC_COUNT']:
-                    feeds[i] = 1.0
-                    dec = i
-                    break
-                elif count > self.configs['ETR_PUSH_FEED_COUNT']:
-                    feeds[i] = (count - self.configs['ETR_PUSH_FEED_COUNT'])/feed_scale
-                else:
-                    feeds[i] = 0.0
-        else: # == 'FRACTION'
-            x = 0
-            if self.configs['ETR_IGNORE_MISSED']:
-               x = 1
-            all_count = sum([len(self.last_tss[i]) for i in range(len(self.last_tss)-x)])
-            for i in range(len(feeds)):
-                if all_count < FRACTION_WAIT_COUNT:
-                    fract = 0
-                else:
-                    fract = len(self.last_tss[i])/float(all_count)
-                if fract >= self.configs['ETR_PUSH_DEC_COUNT']:
-                    feeds[i] = 1.0
-                    dec = i
-                    break
-                elif fract > self.configs['ETR_PUSH_FEED_COUNT']:
-                    feeds[i] = (fract - self.configs['ETR_PUSH_FEED_COUNT'])/feed_scale
-                else:
-                    feeds[i] = 0.0
-
-        if dec >= 0:
-            self._reset_tss()
-        return dec, feeds
+            }"""
