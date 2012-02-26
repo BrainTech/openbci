@@ -705,6 +705,11 @@ type {
 	report_delivery_error: false
      }
 
+     to {
+     	peer: "SWITCH_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
 }
 
 type {
