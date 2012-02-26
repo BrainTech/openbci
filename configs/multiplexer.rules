@@ -284,6 +284,16 @@ peer {
     name: "LOGIC_P300_CSP"
 }
 
+peer {
+    type: 154
+    name: "SWITCH_AMPLIFIER"
+}
+
+peer {
+    type: 155
+    name: "SWITCH_ANALYSIS"
+}
+
 
 
 
@@ -813,6 +823,11 @@ type {
      	peer: "LOGIC_P300_CALIBRATION"
 	whom: ALL
 	}	
+     to {
+     	peer: "SWITCH_AMPLIFIER"
+	whom: ALL
+        report_delivery_error: false
+	}	
 }
 
 type {
@@ -948,3 +963,13 @@ type {
 	}
 }
 
+
+type {
+    type: 227
+    name: "SWITCH_MESSAGE"
+    to {
+        peer: "SWITCH_ANALYSIS"
+        whom: ALL
+	report_delivery_error: false
+    }
+}
