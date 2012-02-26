@@ -49,14 +49,16 @@ class p300_train(object):
         sigs = np.zeros([len(tags2), len(to_see)])
         for j, i in enumerate(self.tags):
             if (i + post) * self.fs < self.data.sample_count:
-                sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)])
-                sig = filtfilt(b_l, a_l, sig)
+                #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)])
+                #sig = filtfilt(b_l, a_l, sig)
+                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(to_see)]
                 sigs_trg[j, :] = sig   
                 to_see += sig - sig.mean()
         for j, i in enumerate(tags2):
             if (i + post) * self.fs < self.data.sample_count:
-                sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)])
-                sig = filtfilt(b_l, a_l, sig)
+                #sig = filtfilt(b,a, self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i - pre) * self.fs + len(other)])
+                #sig = filtfilt(b_l, a_l, sig)
+                sig = self.signal_original[self.__c2n(channel), (i - pre) * self.fs : (i- pre)* self.fs + len(other)]
                 sigs[j, :] = sig
                 other += sig - sig.mean()
         to_see /= len(self.tags)
@@ -132,6 +134,7 @@ class p300_train(object):
         plt.figure(1)
         plt.plot(t_vec, sigs.T,'b-', t_vec, sigs_trg.T, 'g-')
         plt.title('CSP')
+        return t_vec
         #plt.show()
         
     def get_n_perms(self, n, m, rg):
@@ -290,7 +293,7 @@ class p300_train(object):
             plt.plot([right, right], [min(mean), max(mean)])
             plt.show()
           
-        return mean/len(tags), left, right
+        return mean, left, right
     
     def __get_filter(self, c_max, c_min):
         """This retzurns CSP filters
@@ -395,13 +398,13 @@ class p300analysis(object):
             feature = self.__get_feature(tmp[:i + 1])
             prob = self.__get_prob(feature, i)
             if prob >= tr:
-                self.buffer = np.zeros(self.buffer.shape)
                 plt.figure()
                 for k in xrange(I):
                     plt.subplot(2, 4, k+1)
                     plt.plot(self.mean, 'r-')
                     plt.plot(self.buffer[k,...].T, 'g-')
                 plt.show()
+                self.buffer = np.zeros(self.buffer.shape)
                 return index
         if index == 1:
             print i

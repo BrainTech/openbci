@@ -66,6 +66,16 @@ def obci_root():
 	path = os.path.split(path)[0]
 	return path
 
+def obci_root_relative(path):
+	_path = path
+	if path:
+		print "---- ", path
+		root = obci_root()
+		if os.path.commonprefix([path, root]).startswith(root):
+			_path = path[len(root):]
+			if _path.startswith('/'):
+				_path = _path[1:]
+	return _path
 
 def obci_pythonpath():
 	root = obci_root()
@@ -106,17 +116,3 @@ def module_path(module):
 
 if __name__=='__main__':
 	print obci_pythonpath()
-
-# env = os.environ.copy()
-
-# _env = {
-#         "MULTIPLEXER_ADDRESSES": "0.0.0.0:31889",
-#         "MULTIPLEXER_PASSWORD": "",
-#         "MULTIPLEXER_RULES": os.path.join(home, 'multiplexer.rules'),
-#         "PYTHONPATH": obci_path + ":" + obci_path + "../:"+ mx_python_path+":" + obci_path + "../obci_control/:"
-# }
-# print _env["PYTHONPATH"]
-# env.update(_env)
-
-# for x in env["PYTHONPATH"].split(":"):
-#     sys.path.insert(1, x)

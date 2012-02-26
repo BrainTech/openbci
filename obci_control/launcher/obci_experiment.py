@@ -7,6 +7,7 @@ import uuid
 import argparse
 import subprocess
 import threading
+import socket
 
 import zmq
 
@@ -34,7 +35,7 @@ class OBCIExperiment(OBCIControlPeer):
 
 	msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-	def __init__(self, obci_install_dir, sandbox_dir, launch_file=None,
+	def __init__(self, sandbox_dir, launch_file=None,
 										source_addresses=None,
 										source_pub_addresses=None,
 										rep_addresses=None,
@@ -46,18 +47,21 @@ class OBCIExperiment(OBCIControlPeer):
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
 		self.source_pub_addresses = source_pub_addresses
-		self.origin_machine = net.ext_ip(ifname=net.server_ifname())
+		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
-		self.launch_file = launch_file
-		super(OBCIExperiment, self).__init__(obci_install_dir,
+		self.launch_file = launcher_tools.obci_root_relative(launch_file)
+		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
 											pub_addresses,
 											name)
+		if self.name:
+			self.name = self.name + ' on ' + socket.gethostname()
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 
 		self.supervisors = {} #machine -> supervisor contact/other info
 		self._wait_register = 0
+		self._ready_register = 0
 		self.sv_processes = {} # machine -> Process objects)
 		self.unsupervised_peers = {}
 
@@ -121,21 +125,29 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
-		if not sv_rep_ or local:
-			sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
+		a = self.supervisors_rep_addrs[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
+		# sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
+		# if not sv_rep_ or local:
+		# 	sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
 
-		args += sv_rep_[:1]
+		args.append(addr_to_pass) # += sv_rep_[:1]
 		args.append('--sv-pub-addresses')
-		pub_addrs = net.choose_not_local(self.pub_addresses)
-		if not pub_addrs or local:
-			pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+		a = self.pub_addresses[0]
+		port = a.rsplit(':', 1)[1]
+		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
 
-		args += pub_addrs[:1] #self.pub_addresses
+		# pub_addrs = net.choose_not_local(self.pub_addresses)
+		# if not pub_addrs or local:
+		# 	pub_addrs = net.choose_local(self.pub_addresses, ip=True)
+
+		args.append(addr_to_pass) # += pub_addrs[:1] #self.pub_addresses
+		name = self.name if self.name and self.name != 'obci_experiment' else\
+					os.path.basename(self.launch_file)
 		args += [
-					'--obci-dir', self.obci_dir,
 					'--sandbox-dir', str(self.sandbox_dir),
-					'--name', os.path.basename(self.launch_file) +\
+					'--name', name +\
 							 '-' + self.uuid.split('-',1)[0] + \
 							'-' + machine
 					]
@@ -211,7 +223,7 @@ class OBCIExperiment(OBCIControlPeer):
 		if not self.launch_file:
 			return False, "Empty scenario."
 		try:
-			with open(self.launch_file) as f:
+			with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
 				print "launch file opened"
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
@@ -306,12 +318,17 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_launched_process_info(self, message, sock):
 		if message.proc_type == 'multiplexer':
 			self._wait_register = len(self.exp_config.peer_machines())
+			self.status.peer_status(message.name).set_status(
+											launcher_tools.RUNNING)
 			send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
 											mx_data=self.mx_args()))
-		elif message.proc_type == 'obci_peer':
-			pass
-		self.status.peer_status(message.name).set_status(
+		elif message.name == 'config_server':
+			self.status.peer_status(message.name).set_status(
 											launcher_tools.RUNNING)
+		elif message.proc_type == 'obci_peer':
+			
+			self.status.peer_status(message.name).set_status(
+											launcher_tools.LAUNCHING)
 		self.status_changed(self.status.status_name, self.status.details,
 			peers={message.name : self.status.peer_status(message.name).status_name})
 
@@ -322,8 +339,9 @@ class OBCIExperiment(OBCIControlPeer):
 		self._wait_register -= 1
 		print self.name,'[', self.type, ']',  message, self._wait_register
 		if self._wait_register == 0:
-				self.status.set_status(launcher_tools.RUNNING)
+				self.status.set_status(launcher_tools.LAUNCHING)
 				self.status_changed(self.status.status_name, self.status.details)
+		self._ready_register = len(self.exp_config.peers) - 2 #without mx and config_server, for now default is 1 mx
 
 	def _choose_process_address(self, proc, addresses):
 		print self.name,'[', self.type, ']', "(exp) choosing sv address:", addresses
@@ -475,7 +493,19 @@ class OBCIExperiment(OBCIControlPeer):
 
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
-		pass
+		peer_id = message.peer_id
+		self.status.peer_status(peer_id).set_status(
+											launcher_tools.RUNNING)
+		self._ready_register -= 1
+		print "{0} [{1}], {2} peer ready! {3} to go".format(
+								self.name, self.peer_type(), peer_id,
+								self._ready_register)
+		if self._ready_register == 0:
+			self.status.set_status(launcher_tools.RUNNING)
+		self.status_changed(self.status.status_name, self.status.details,
+			peers={peer_id : self.status.peer_status(peer_id).status_name})
+
+
 
 
 # {"status": ["failed", null],
@@ -602,7 +632,7 @@ if __name__ == '__main__':
 	pack = None
 	if args.ovr is not None:
 		pack = peer_cmd.peer_overwrites_pack(args.ovr)
-	exp = OBCIExperiment(args.obci_dir, args.sandbox_dir,
+	exp = OBCIExperiment(args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
 							args.launch, overwrites=pack)

@@ -6,6 +6,7 @@ import os.path
 import subprocess
 import signal
 import time
+import socket
 
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -74,7 +75,8 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         return handler
 
     def run_driver(self):
-        args=self.get_run_args(self._mx_addresses[0])
+        args=self.get_run_args((socket.gethostbyname(
+                                self._mx_addresses[0][0]), self._mx_addresses[0][1]))
         LOGGER.info("Executing: "+' '.join(args))
 
         return Popen(args,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
@@ -135,6 +137,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
     def get_run_args(self,multiplexer_address):
 
         host,port=multiplexer_address
+
         exe=self.config.get_param('driver_executable')
         exe=os.path.join(obci_root(), exe)
         v=self.config.get_param('samples_per_packet')
