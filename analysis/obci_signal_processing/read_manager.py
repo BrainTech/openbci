@@ -122,7 +122,7 @@ class ReadManager(object):
         return self.get_samples(p_from, p_len)[ch_ind]
         
     def get_channels_samples(self, p_ch_names, p_from=None, p_len=None):
-		assert(len(p_ch_names) > 0)
+	assert(len(p_ch_names) > 0)
         s = self.get_channel_samples(p_ch_names[0], p_from, p_len)
         for ch in p_ch_names[1:]:
             s = numpy.vstack((s, self.get_channel_samples(ch, p_from, p_len))) 
