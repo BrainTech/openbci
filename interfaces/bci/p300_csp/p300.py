@@ -18,18 +18,23 @@ class p300_train(object):
     def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3]):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
+        
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
         signal2 = np.zeros(signal.shape)
+        
         self.fs = to_freq
         self.channels = channels
         self.idx = idx
+        
         b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
         b_l, a_l = ss.butter(3, 20.0*2/self.fs, btype = 'low')
         for e in xrange(len(self.channels)):
             tmp = filtfilt(b,a,signal[e, :])
             signal2[e, :] = filtfilt(b_l, a_l, tmp)
         self.signal_original = signal2
+        
         self.t1, self.t2 = self.show_mean(csp_time, 'Cz', dont_plot=False)
+        
         P, vals = self.train_csp(signal2, [self.t1, self.t2])
         self.P = P
         self.signal = np.dot(P[:, 0], signal2)
