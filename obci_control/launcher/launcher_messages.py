@@ -77,7 +77,9 @@ message_templates = {
 
 	"find_eeg_experiments" : dict(client_push_address='', checked_srvs=''),
 	"eeg_experiments" : dict(experiment_list=''),
-	"launcher_shutdown" : dict()
+	"launcher_shutdown" : dict(),
+
+	"server_broadcast" : dict(rep_port='', pub_port='')
 
 
 }

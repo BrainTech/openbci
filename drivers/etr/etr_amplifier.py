@@ -9,7 +9,7 @@ from obci_control.peer.configured_client import ConfiguredClient
 from configs import settings, variables_pb2
 from drivers import drivers_logging as logger
 
-LOGGER = logger.get_logger("etr_amplifier", "debug")
+LOGGER = logger.get_logger("etr_amplifier", "info")
 
 class EtrAmplifier(ConfiguredClient):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)

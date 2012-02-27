@@ -1,6 +1,6 @@
 	#!/usr/bin/env python
 
-import os
+import os, sys
 import shutil
 import argparse
 import ConfigParser
@@ -22,14 +22,13 @@ def get_args():
 	return parser.parse_args()
 
 if __name__ == '__main__':
-	#args = get_args()
-
+	print("Run for instance: python obci_env_prepare.py /home/mati/obci mati")
+	args = get_args()
 	base = '/home'
-	
-	main_account = 'administrator' #args.admin_account_name
+	main_account = args.admin_account_name#'administrator' #
 	print 'main_account:', main_account 
 	
-	obci_dir = '/home/administrator/obci' #args.obci_dir
+	obci_dir = args.obci_dir#'/home/administrator/obci' #
 	print 'obci_dir:', obci_dir
 
 	admin_main = os.path.join(base, main_account, '.obci', 'main_config.ini')
@@ -63,7 +62,7 @@ if __name__ == '__main__':
 				os.system("ls -l " + os.path.join(dr, fil))
 		
 		bashrc = os.path.join(base, direc, '.bashrc')
-		if not "LD_LIBRARY_PATH" in subprocess.check_output(["cat", bashrc]):
+		if not "LD_LIBRARY_PATH" in  subprocess.Popen(['cat', bashrc], stdout=subprocess.PIPE).communicate()[0]:
 			print "adding LD_LIBRARY_PATH to ", bashrc
 			os.system("echo 'export LD_LIBRARY_PATH=" + '"/usr/local/lib"' + "'" + " >> " + bashrc )
 			os.system("cat " + bashrc)
@@ -83,5 +82,10 @@ if __name__ == '__main__':
 		print "linking obci command"
 		os.symlink(os.path.join(obci_dir, 'obci_control', 'launcher', 'obci'),
 				'/usr/bin/obci')
+	if not os.path.exists('/usr/bin/obci_gui'):
+		print "linking obci_gum command"
+		os.symlink(os.path.join(obci_dir, 'obci_control', 'gui', 'obci_gui'),
+				'/usr/bin/obci_gui')
+
 
 		

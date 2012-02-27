@@ -1,14 +1,11 @@
 #include "AmplifierDriver.h"
 #include <stdio.h>
 using namespace std;
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/date_time/posix_time/posix_time_types.hpp>
 #include <boost/program_options.hpp>
 #include <boost/bind.hpp>
 #include <errno.h>
 #include <time.h>
 namespace po = boost::program_options;
-using namespace boost::posix_time;
 
 po::options_description AmplifierDriver::get_options() {
 	po::options_description options("Amplifier Options");
@@ -38,7 +35,11 @@ void AmplifierDriver::start_sampling() {
 	logger.sampling=sampling_rate;
 	logger.info()<<" Sampling started with sampling rate "
 			<<sampling_rate<<"\nActive Channels: " << get_active_channels_string() <<"\n";
-	last_sample =get_time();
+	sleep_res=get_sleep_resolution();
+	double start=get_time();
+	get_time_res=(get_time()-start)*2;
+	logger.info()<<"Sleep resolution: "<<sleep_res<<" get_time resolution:"<<get_time_res <<"\n";
+	sampling_start_time=last_sample =get_time();
 }
 void AmplifierDriver::stop_sampling_handler(int sig) {
 	signal(sig, SIG_DFL);
@@ -46,25 +47,34 @@ void AmplifierDriver::stop_sampling_handler(int sig) {
 			strsignal(sig));
 	AmplifierDriver::signal_handler->stop_sampling(true);
 }
-uint64_t AmplifierDriver::next_samples() {
-	uint64_t wait = last_sample + 1000000 / sampling_rate;
-	last_sample =get_time();
+double AmplifierDriver::next_samples() {
 	cur_sample++;
-	if (last_sample>wait)
+	double wait = last_sample + 1.0 / sampling_rate;
+	double diff,seconds;
+	last_sample =get_time();
+	diff=wait-last_sample;
+//	fprintf(stderr,"Sample %d, Computed timestamp: %f, relative to previous:%f,current timestamp %f; sleep_res:%f;",cur_sample,sampling_start_time+cur_sample/(float)sampling_rate,wait,last_sample,sleep_res); diff=wait-get_time();
+	if (diff<0){
+//fprintf(stderr,"is late by %f\n",-diff);
 		return last_sample;
-	struct timespec slptm;
-	slptm.tv_sec = (wait-last_sample)/1000000;
-	slptm.tv_nsec = ((wait-last_sample)%1000000)*1000;      //1000 ns = 1 us
-//	printf("last_sample: %lld ,wait: %lld, ",last_sample,wait);
-	if (slptm.tv_sec>0 || slptm.tv_nsec>500000)
-//	{
-//		printf("sleep: %ld,",slptm.tv_nsec/1000);
-		nanosleep(&slptm,NULL);
-//	}
-	else while (last_sample<wait)
+	}
+	if (diff>sleep_res){
+		struct timespec slptm;
+//		fprintf(stderr," sleep for %f s",diff);diff=wait-get_time();
+		diff-=sleep_res;
+		slptm.tv_nsec = modf(diff,&seconds)*1000000000;
+		slptm.tv_sec = seconds;
+//		if (diff>0)
+			nanosleep(&slptm,NULL);
 		last_sample=get_time();
-//	uint64_t tmp=get_time();
-//	printf (" last sample: %lld, late: %lld \n",tmp,tmp-wait);
+	}
+	//if (last_sample+get_time_res<wait){
+		//fprintf(stderr,"active wait for %f; ",wait-last_sample);last_sample=get_time();
+		while (last_sample+get_time_res<wait)
+			last_sample=get_time();
+//	}
+//	double tmp=get_time();
+//	fprintf(stderr,"finished waiting at %f, should finish at %f, late by %f\n",tmp,wait,tmp-wait);
 	last_sample = wait;
 	return last_sample;
 }

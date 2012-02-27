@@ -9,7 +9,7 @@ from scipy.signal import hamming
 from analysis.csp.filtfilt import filtfilt
 import p300
 
-LOGGER = logger.get_logger("bci_p300_csp_analysis", "info")
+LOGGER = logger.get_logger("bci_p300_csp_analysis", "debug")
 DEBUG = False
 
 class BCIP300CspAnalysis(object):
@@ -50,9 +50,12 @@ class BCIP300CspAnalysis(object):
         """
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        LOGGER.debug("DATA SIZE: "+str(data.shape))
+        LOGGER.debug("BLINK index / ts / real_ts: "+str(blink.index)+" / "+str(blink.timestamp)+" / "+str(time.time()))
         self.last_time = time.time()
         #Wszystko dalej powinno się robić dla każdego nowego sygnału
         signal = np.dot(self.montage_matrix.T, data)                      
+        LOGGER.debug("AFTER MONTAGE SIGNAL SIZE: "+str(signal.shape))
         tmp_sig = np.zeros(signal.shape)
         for e in xrange(len(self.montage_matrix.T)):
             tmp = filtfilt(self.b,self.a, signal[e, :])

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from ugm import ugm_config_manager
+from gui.ugm import ugm_config_manager
 
 class AreaConfig(object):
     def __init__(self, ugm_config):
@@ -58,38 +58,19 @@ class FixConfig(object):
         return self.config
 
 class EtrUgmManager(object):
-    def __init__(self):
-        self.configs = {
-            'UGM_CONFIG': None,
-            'SPELLER_AREA_COUNT': None,
-            'ETR_START_AREA_ID': None,
-            'ETR_FIX_ID': None
-            }
-
-    def get_requested_configs(self):
-        return self.configs.keys()
-
-    def set_configs(self, configs):
-        for k in self.configs.keys():
-            self.configs[k] = configs[k] #assumed all keys in self.configs are in configs
-        self._assert_configs()
-        self._init_configs()
-
-    def _assert_configs(self):
-        self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
-        self.configs['ETR_START_AREA_ID'] = int(self.configs['ETR_START_AREA_ID'])
-        self.configs['ETR_FIX_ID'] = int(self.configs['ETR_FIX_ID'])
-        assert(self.configs['SPELLER_AREA_COUNT'] > 0)
-
-    def _init_configs(self):
-        mgr = ugm_config_manager.UgmConfigManager(self.configs['UGM_CONFIG'])
-
+    def __init__(self, ugm_config, speller_area_count, start_area_id, fix_id):
+        self.speller_area_count = int(speller_area_count)
+        self.start_area_id = int(start_area_id)
+        self.fix_id = int(fix_id)
+        assert(self.speller_area_count > 0)
+        mgr = ugm_config_manager.UgmConfigManager(ugm_config)
         self.area_configs = []
-        count = self.configs['ETR_START_AREA_ID']
-        for i in range(self.configs['SPELLER_AREA_COUNT']):
+        count = self.start_area_id
+        for i in range(self.speller_area_count):
+            print("GOOOO: "+str(count+i))
             self.area_configs.append(AreaConfig(mgr.get_config_for(count+i)))
 
-        self.fix_config = FixConfig(mgr.get_config_for(self.configs['ETR_FIX_ID']))
+        self.fix_config = FixConfig(mgr.get_config_for(self.fix_id))
                                     
 
     def get_pushed_area_id(self, msg):

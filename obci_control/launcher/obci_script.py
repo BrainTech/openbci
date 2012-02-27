@@ -11,6 +11,7 @@ import sys
 import ConfigParser
 import signal
 import errno
+import socket
 
 import zmq
 
@@ -31,24 +32,22 @@ import peer.peer_cmd as peer_cmd
 disp = view.OBCIViewText()
 
 def cmd_srv(args):
-	print "(main config) INTERFACE: ", net.server_ifname(), "PORT:  ", net.server_rep_port()
 	client_server_prep(args)
 
 def cmd_srv_kill(args):
-	running, pid = server_process_running()
+	running = server_process_running(expected_dead=True)
 	if not running:
 		disp.view("Server was not running...")
 		return
 
 	client = client_server_prep()
+	if not client:
+		print "srv_kill unsuccessful (client creation error)"
+		sys.exit(1)
 	client.srv_kill()
-	running, pid = server_process_running()
-	if running:
-		try:
-			os.kill(pid, signal.SIGTERM)
-			#os.waitpid(pid, 0)
-		except OSError, e:
-			disp.view("srv_kill: something went wrong... {0}".format(e))
+
+	if server_process_running(expected_dead=True):
+		disp.view('obci server kill signal unsuccesful, try killing the process')
 	else:
 		disp.view("Server process terminated.")
 
@@ -64,6 +63,9 @@ def cmd_launch(args):
 		pack = None
 	
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
+
 	response = client.launch(launch_f, args.sandbox_dir, args.name, pack)
 	disp.view(response)
 
@@ -75,16 +77,22 @@ def cmd_new(args):
 	else:
 		launch_f = ''
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	response = client.send_create_experiment(launch_f, args.sandbox_dir, args.name)
 	disp.view(response)
 
 def cmd_start(args):
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	response = client.start_chosen_experiment(args.experiment)
 	disp.view(response)
 
 def cmd_join(args):
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	response = client.join_experiment(args.id, args.peer_id, args.peer_path)
 	if response.type == 'rq_ok':
 		pass
@@ -92,6 +100,8 @@ def cmd_join(args):
 
 def cmd_kill(args):
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	response = client.kill_exp(args.id)
 	disp.view(response)
 
@@ -109,7 +119,8 @@ def cmd_log(args):
 
 def cmd_config(args):
 	client = client_server_prep()
-
+	if not client:
+		sys.exit(1)
 	ovr = dict(local_params=args.local_params,
 			external_params=args.external_params,
 			launch_dependencies=args.launch_dependencies,
@@ -122,6 +133,8 @@ def cmd_config(args):
 
 def cmd_info(args):
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	if not args.e:
 		response = client.send_list_experiments()
 	else:
@@ -132,6 +145,8 @@ def cmd_info(args):
 
 def cmd_tail(args):
 	client = client_server_prep()
+	if not client:
+		sys.exit(1)
 	if not args.e:
 		response = client.send_list_experiments()
 	elif not args.p:
@@ -271,89 +286,95 @@ a few first letters of its UUID or of its name \
 def connect_client(addresses, client=None, client_class=obci_client.OBCIClient):
 	if client is None:
 		ctx = zmq.Context()
-		client = client_class(addresses, ctx)
-	result = client.ping_server(timeout=200)
+		try:
+			client = client_class(addresses, ctx)
+		except Exception, e:
+			print "client creation error: ", str(e)
+			return None, None
+	result = client.ping_server(timeout=9000)
+
 	return result, client
 
 
 
-def server_process_running():
+def server_process_running(expected_dead=False):
 	"""
 	Return true if there is an obci_server process running
 	"""
-	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
-	if not os.path.exists(directory):
-		print "obci directory not found: {0}".format(directory)
-		raise OBCISystemError()
-
-	filename = settings.SERVER_CONTACT_NAME
-	fpath = os.path.join(directory, filename)
-
-	if not os.path.exists(fpath):
-		return False, None
-
-	pid = None
-	opened_file = False
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	running = False
-	with open(fpath) as f:
-		pid = f.readline()
-		opened_file = True
 
-	if pid:
-		pid = int(pid)
-	#Check whether pid exists in the current process table.
-	try:
-		os.kill(pid, 0)
-	except OSError, e:
-		running = e.errno == errno.EPERM
-	else:
-		running = True
-	if not running and opened_file:
-		os.remove(fpath)
-	return running, pid
+	for i in range(5):
+		try:
+			sock.connect((socket.gethostname(), int(net.server_rep_port())))
+		except socket.error, e:
+			if e.errno == errno.ECONNREFUSED:
+				running = False
+				if expected_dead:
+					break
+			elif e.errno == errno.EISCONN:
+				running = True
+				break
+			else:
+				print str(e)
+		else:
+			running = True
+			break
 
-def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient):
+		time.sleep(0.3)
+		
+	sock.close()
+	return running
+
+
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None):
+
 	directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
 	if not os.path.exists(directory):
 		print "obci directory not found: {0}".format(directory)
 		raise OBCISystemError()
+
+	client = None
+	srv = None
 
 	os.chdir(directory)
 
-	ifname = cmdargs.ifname if cmdargs else None
+	srv_rep_port = net.server_rep_port()
+	srv_pub_port = net.server_pub_port()
+	if server_ip:
+		rep_addrs = ['tcp://'+server_ip+':'+srv_rep_port]
+		pub_addrs = ['tcp://'+server_ip+':'+srv_pub_port]
+	else:	
+		rep_addrs = ['tcp://*:' + srv_rep_port] 
+		pub_addrs = ['tcp://*:' + srv_pub_port]
 
-	rep_addrs = [net.server_address('rep', local=False, ifname=ifname), net.server_address('rep', ifname='lo')]
-	pub_addrs = [net.server_address('pub', local=False, ifname=ifname), net.server_address('pub', ifname='lo')]
-	#print rep_addrs, pub_addrs
+	if not server_process_running():
+		args = argv() if cmdargs else []
+		if rep_addrs and pub_addrs:
+			args += ['--rep-addresses'] + rep_addrs + ['--pub-addresses'] + pub_addrs
+		srv = launch_obci_server(args)
+		if not srv:
+			disp.view("Could not launch OBCI Server")
+			return None
+		disp.view("OBCI server launched. PID: {0}".format(srv.pid))
+
 	res, client = connect_client(rep_addrs, client_class=client_class)
-
-	if res is not None:
-		return client
-
-	if server_process_running()[0]:
-		cmd_srv_kill(None)
-		disp.view("Restarting OBCI Server...")
-	args = argv() if cmdargs else []
-	success = launch_obci_server(args+['--rep-addresses']+rep_addrs +\
-										['--pub-addresses']+pub_addrs)
-	if not success:
-		disp.view("Could not launch OBCI Server")
-		sys.exit(1)
-	disp.view("OBCI server launched. PID: {0}".format(success.pid))
-
-
-	res = client.retry_ping(timeout=4000)
-
+	
 	if res is None:
 		disp.view("Could not connect to OBCI Server")
-		sys.exit(1)
-	else:
-		return client
+		client = None
+
+	return client
+
 
 def launch_obci_server(args=[]):
 	path = obci_server.__file__
 	path = '.'.join([path.rsplit('.', 1)[0], 'py'])
-	srv = subprocess.Popen(['python', path] + list(args))
+	try:
+		srv = subprocess.Popen(['python', path] + list(args))
+	except Exception, e:
+		print 'Server launch error:', str(e)
+		return None
 	return srv
 
 def path_to_file(string):

@@ -2,12 +2,12 @@
 
 # Form implementation generated from reading ui file 'obci_launcher.ui'
 #
-# Created: Mon Feb 20 20:08:08 2012
+# Created: Tue Feb 21 14:18:01 2012
 #      by: pyside-uic 0.2.11 running on PySide 1.0.6
 #
 # WARNING! All changes made in this file will be lost!
 
-from PySide import QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 
 class Ui_ObciLauncher(object):
     def setupUi(self, ObciLauncher):
@@ -41,6 +41,8 @@ class Ui_ObciLauncher(object):
         self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName("verticalLayout")
         self.scenarios = QtGui.QTableWidget(self.groupBox)
+        self.scenarios.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.scenarios.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.scenarios.setColumnCount(2)
         self.scenarios.setObjectName("scenarios")
         self.scenarios.setColumnCount(2)

@@ -16,6 +16,7 @@ from gui.ugm import ugm_helper
 #from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 import p300
+import matplotlib.pyplot as plt
 from logic import logic_helper
 
 from logic import logic_logging as logger
@@ -94,10 +95,14 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         not_idx_tags = data.data.get_p300_tags(idx=-1, samples=False)#Tutaj idx musi być -idx z linijki 11
                                                             #Tagi pozostałych przypadków
         mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
-        buffer = right
-        LOGGER.info("Computer buffer len: "+str(buffer))
+        buffer_start = int(-csp_time[0]*fs)
+        buffer_len = len(mean)
+        LOGGER.info("Computer buffer start / len: "+str(buffer_start)+" / "+str(buffer_len))
         mean[:left] = 0
         mean[right:] = 0
+	t_vec = data.show_mean_CSP(csp_time, new_tags)
+	plt.plot(t_vec, mean, 'r-')
+	plt.show()
         sr = 12 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
         targets = np.zeros([sr, len(new_tags)])
         non_targets = np.zeros([sr, len(not_idx_tags)])
@@ -114,7 +119,8 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
              'targets':targets,
              'non_targets':non_targets,
              'q' : q,
-             'buffer':buffer,
+             'buffer_len':buffer_len,
+             'buffer_start':buffer_start,
 	     'use_channels':';'.join(self.use_channels),
 	     'montage':self.montage,
 	     'montage_channels':';'.join(self.montage_channels),
