@@ -81,11 +81,11 @@ class PollingObject(object):
 			return None, "No data"
 
 
-def send_msg(sock, message):
-	return sock.send_unicode(message)
+def send_msg(sock, message, flags=0):
+	return sock.send_unicode(message, flags=flags)
 
-def recv_msg(sock):
-	return sock.recv_unicode()
+def recv_msg(sock, flags=0):
+	return sock.recv_unicode(flags=flags)
 
 class LauncherMessage(object):
 	def SerializeToString(self):
