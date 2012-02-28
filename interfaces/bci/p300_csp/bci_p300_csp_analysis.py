@@ -7,6 +7,7 @@ import numpy as np
 import scipy.signal as ss
 from scipy.signal import hamming
 from analysis.csp.filtfilt import filtfilt
+from analysis.csp.artifactClassifier import artifactClasifier
 import p300
 
 LOGGER = logger.get_logger("bci_p300_csp_analysis", "debug")
@@ -60,13 +61,16 @@ class BCIP300CspAnalysis(object):
         for e in xrange(len(self.montage_matrix.T)):
             tmp = filtfilt(self.b,self.a, signal[e, :])
             tmp_sig[e, :] = filtfilt(self.b_l, self.a_l, tmp)
+        
+        if artifactClasifier(tmp_sig, cfg['a_features'], cfg['bands'], self.fs):
+            #2 Montujemy CSP
+            sig = np.dot(self.q.P[:, 0], tmp_sig)
 
-         #2 Montujemy CSP
-        sig = np.dot(self.q.P[:, 0], tmp_sig)
-
-        #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-        ix = self.analyze.analyze(sig, blink.index, tr=self.treshold)
-        if ix >= 0:
-            self.send_func(ix)
+            #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
+            ix = self.analyze.analyze(sig, blink.index, tr=self.treshold)
+            if ix >= 0:
+                self.send_func(ix)
+            else:
+                LOGGER.info("Got -1 ind- no decision")
         else:
             LOGGER.info("Got -1 ind- no decision")

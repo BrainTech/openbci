@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.linalg import eig
 import scipy.signal as ss
 from analysis.csp.filtfilt import filtfilt
+from analysis.csp.artifactClassifier import artifactCalibration
 
 
 class p300_train(object):
@@ -19,8 +20,12 @@ class p300_train(object):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
-        signal2 = np.zeros(signal.shape)
         self.fs = to_freq
+        signal2 = np.zeros(signal.shape)
+        artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
+        for i,p in enumerate(self.tags):
+            artifacts_data[...,i] = signal[:, p:p+p*self.fs]
+        self.a_features, self.bands = artifactCalibration(artifacts_data, self.fs)
         self.channels = channels
         self.idx = idx
         b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
