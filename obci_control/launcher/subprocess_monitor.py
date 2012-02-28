@@ -292,6 +292,7 @@ class Process(object):
 
 		self._stop_monitoring = False
 		self._ping_thread = None
+		self._ping_retries = 8
 		self._returncode_thread = None
 		self._mtool = OBCIMessageTool(message_templates)
 		self._ctx = None
@@ -406,7 +407,9 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=5000)
+				result = None
+				while self._ping_retries and not result and not self._stop_monitoring:
+					result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
 				if not result and not self._stop_monitoring:
 					print "[subprocess_monitor] for", self.proc_type, self.name, "NO RESPONSE TO PING!",
 					with self._status_lock:
@@ -518,7 +521,7 @@ class LocalProcess(Process):
 						self._status_detals = self.tail_stdout(15)
 				break
 			elif self.status()[0] == NON_RESPONSIVE:
-				"[subprocess_monitor]",self.proc_type,"process", self.name,\
+				print "[subprocess_monitor]",self.proc_type,"process", self.name,\
 										 "pid", self.pid, "is NON_RESPONSIVE"
 
 				with self._status_lock:
