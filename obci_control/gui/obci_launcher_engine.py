@@ -217,13 +217,15 @@ class OBCILauncherEngine(QtCore.QObject):
 		uid = msg.experiment_id
 		index = self.index_of(uid)
 		if index is not None:
+			print "msg", msg, "uid", uid, "index", index
 			exp = self.experiments[index]
 		
 			if exp.preset_data:
 				exp.setup_from_preset(exp.preset_data)
 				exp.launcher_data = None
 			else:
-				del exp
+				del self.experiments[index]
+		
 
 	def _handle_kill(self, msg):
 		pass
@@ -455,7 +457,10 @@ class ExperimentEngineInfo(QtCore.QObject):
 											details=status['details'])
 
 	def parameters(self, peer_id, mode):
-
+		# try:
+		self.exp_config._topo_sort('list_launch_deps')
+		# except Exception, e:
+		# 	print "^^^^", str(e)
 		params = {}
 		peer = self.exp_config.peers[peer_id]
 		if mode == MODE_BASIC:
