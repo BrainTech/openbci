@@ -42,4 +42,6 @@ class UgmBlinkingEnginePeer(ConfiguredClient):
         ENG.run()
             
 if __name__ == "__main__":
-    UgmBlinkingEnginePeer(settings.MULTIPLEXER_ADDRESSES).run()
+    UgmBlinkingEnginePeer(settings.MULTIPLEXER_ADDRESSES)
+    #assume closing ugm should stop all other peers...
+    sys.exit(1)

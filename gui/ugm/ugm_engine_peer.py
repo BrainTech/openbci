@@ -34,6 +34,7 @@ class UgmEnginePeer(ConfiguredClient):
             
 if __name__ == "__main__":
     UgmEnginePeer(settings.MULTIPLEXER_ADDRESSES)
-
+    #assume closing ugm should stop all other peers...
+    sys.exit(1)
 
 

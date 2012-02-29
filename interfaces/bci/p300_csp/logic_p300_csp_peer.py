@@ -92,7 +92,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
             in_file+'.obci',
             self.use_channels, fs, self.montage_channels, self.montage, idx=1, csp_time=csp_time)#idx oznacza indeks na który
         new_tags = data.wyr()
-        not_idx_tags = data.data.get_p300_tags(idx=-1, samples=False)#Tutaj idx musi być -idx z linijki 11
+        not_idx_tags = data.data.get_p300_tags(idx=1, rest=True, samples=False)#Tutaj idx musi być -idx z linijki 11
                                                             #Tagi pozostałych przypadków
         mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
         buffer_start = int(-csp_time[0]*fs)
@@ -104,13 +104,14 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 	plt.plot(t_vec, mean, 'r-')
 	plt.show()
         sr = 12 #Maksymalna liczba odcinków do uśrednienia; gdzieś do parametryzacji
-        targets = np.zeros([sr, len(new_tags)])
-        non_targets = np.zeros([sr, len(not_idx_tags)])
-        mu = np.zeros(sr)
-        sigma = np.zeros(sr)
-        for i in xrange(1, sr + 1):
-            x = data.get_n_mean(i, new_tags, csp_time, 0.05)
-            targets[i - 1, :], non_targets[i - 1, :], mu[i - 1], sigma[i - 1] = x            
+        #targets = np.zeros([sr, len(new_tags)])
+        #non_targets = np.zeros([sr, len(not_idx_tags)])
+        #mu = np.zeros(sr)
+        #sigma = np.zeros(sr)
+        #for i in xrange(1, sr + 1):
+            #x = data.get_n_mean(i, new_tags, csp_time, 0.05)
+            #targets[i - 1, :], non_targets[i - 1, :], mu[i - 1], sigma[i - 1] = x
+	cl, mu, sigma, mean, left, right = data.prep_classifier(sr, P_vectore=2, reg=1)
         q = data
         cfg = {
              'mu': mu,
@@ -126,8 +127,9 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 	     'montage_channels':';'.join(self.montage_channels),
 	     'left' : left,
 	     'right' : right,
-	     'a_features' : data.a_features,
-	     'bands' : data.bands
+	     'cl' : cl
+	     #'a_features' : data.a_features,
+	     #'bands' : data.bands
              }
 
         f_name = self.config.get_param("csp_file_name")

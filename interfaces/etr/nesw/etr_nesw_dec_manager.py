@@ -4,8 +4,8 @@ import time, os
 import numpy as np
 
 class EtrDecManager(object):
-    def __init__(self):
-        self.configs = {
+    def __init__(self, speller_area_count, buffer_size, ratio, stack, delay, dec_count, feed_fade):
+        """self.configs = {
             'SPELLER_AREA_COUNT': None,
             
             # Samples buffer size. Should be large int value. 
@@ -35,44 +35,25 @@ class EtrDecManager(object):
             # in how many sample_counts will the block gradually 
             # dim.
             'ETR_NESW_FEED_FADE': None
-            }
+            }"""
+        self.speller_area_count = int(speller_area_count)
+        assert(self.speller_area_count > 0)
         
-    def get_requested_configs(self):
-        return self.configs.keys()
+        self.ratio = float(ratio)
+        assert( 0 < self.ratio < 1 )
+        
+        self.stack = int(stack)
+        assert( self.stack > 0 )
 
-    def set_configs(self, configs):
-        for k in self.configs.keys():
-            self.configs[k] = configs[k] #assumed all keys in self.configs are in configs
-        self._assert_configs()
-        self._init_configs()
-
-    def _assert_configs(self):
-        """Fired after setting configs from system settings.
-        Assure configs are correct, change config type if needed 
-        (system setting are always as strings)."""
+        self.dec_count = int(dec_count)
+        assert( self.dec_count > 0)
+        assert( self.dec_count < self.stack )
         
-        self.configs['SPELLER_AREA_COUNT'] = int(self.configs['SPELLER_AREA_COUNT'])
-        assert(self.configs['SPELLER_AREA_COUNT'] > 0)
+        self.delay = int(delay)
+        assert( self.delay > 0 )
         
-        self.configs['ETR_NESW_RATIO'] = float(self.configs['ETR_NESW_RATIO'])
-        assert( 0 < self.configs['ETR_NESW_RATIO'] < 1)
-        
-        self.configs['ETR_NESW_STACK'] = int(self.configs['ETR_NESW_STACK'])
-        assert( self.configs['ETR_NESW_STACK'] > 0 )
-
-        self.configs['ETR_NESW_DEC_COUNT'] = int(self.configs['ETR_NESW_DEC_COUNT'])
-        assert( self.configs['ETR_NESW_DEC_COUNT'] > 0)
-        assert( self.configs['ETR_NESW_DEC_COUNT'] < self.configs['ETR_NESW_STACK'] )
-        
-        self.configs['ETR_NESW_DELAY'] = int(self.configs['ETR_NESW_DELAY'])
-        assert( self.configs['ETR_NESW_DELAY'] > 0 )
-        
-        self.configs['ETR_NESW_FEED_FADE'] = int(self.configs['ETR_NESW_FEED_FADE'])
-        assert(self.configs['ETR_NESW_FEED_FADE'] > 0)
-        
-    def _init_configs(self):
-        """Fired after set_configs,
-        init all needed data structures."""
+        self.feed_fade = int(feed_fade)
+        assert(self.feed_fade > 0)
 
         # Radius treshold
         self.rMin = np.zeros(4)
@@ -80,23 +61,23 @@ class EtrDecManager(object):
         self.xMax, self.yMax = -100,-100 # Random small value
         
         # threshold ratio value
-        self.st = self.configs['ETR_NESW_RATIO']
+        self.st = self.ratio
 
         # Array's length
-        self.nStackLength = self.configs['ETR_NESW_STACK']
-        self.nLastCorr = self.configs['ETR_NESW_DEC_COUNT']
-        self.nFeedback = self.configs['ETR_NESW_FEED_FADE']
+        self.nStackLength = self.stack
+        self.nLastCorr = self.dec_count
+        self.nFeedback = self.feed_fade
 
         self.stack = np.zeros((2,self.nStackLength))
         
 
         # Feeds
         self.fading = 1./self.nFeedback
-        self.feeds = [0]*self.configs['SPELLER_AREA_COUNT']        
+        self.feeds = [0]*self.speller_area_count
 
         # Decision
         self.decFlag = True
-        self.decNDelay = self.configs['ETR_NESW_DELAY']
+        self.decNDelay = self.delay
         
         self.nCount = 0
 

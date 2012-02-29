@@ -149,6 +149,13 @@ class UgmEngine(QtCore.QObject):
         self.update_gui_timer.connect(self.update_gui_timer,QtCore.SIGNAL("timeout()"),self.timer_update_gui)
         self.update_gui_timer.start(10)
 
+        # Well, as for below ... qtwindow.showFullScreen() is somehow broken (see documentation)
+        # It doesn`t set window as active and keyEvent don`t work, needed dirty hack as below...:(
+        self.tmp_timer = QtCore.QTimer()
+        self.tmp_timer.connect(self.tmp_timer, QtCore.SIGNAL("timeout()"), self._window.activateWindow)
+        self.tmp_timer.setSingleShot(True)
+        self.tmp_timer.start(2000)
+
 
     def timer_update_gui(self):
         """Fired very often - clear self.queue and update gui with those messages."""
@@ -187,6 +194,8 @@ class UgmEngine(QtCore.QObject):
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
         self._window.showFullScreen()
+        #self._window.show()
+        #self._window.showMaximized()
         self._timer_on_run()
         self._window.keyPressSignal.connect(self.keyPressEvent)
         self._window.mousePressSignal.connect(self.mousePressEvent)
