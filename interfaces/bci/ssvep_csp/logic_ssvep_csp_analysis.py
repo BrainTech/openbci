@@ -13,7 +13,7 @@ from analysis.csp import signalParser as sp
 from interfaces import interfaces_logging as logger
 LOGGER = logger.get_logger("csp_analysis", 'info')
 
-def run(in_file, use_channels, ignore_channels, montage, montage_channels):
+def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_stats=True):
     
 	mgr = read_manager.ReadManager(
 		in_file+'.obci.xml',
@@ -44,7 +44,7 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels):
         t1, t2 = q.time_frequency_selection(to_frequency, train_tags, time=time, frequency_no=dec_count, plt=False)
 
         LOGGER.info("Got times t1: "+str(t1)+ " and t2: "+str(t2))
-        value, mu, sigma, means, stds, out_top, out_bottom = q.count_stats(to_signal, to_frequency, train_tags, plt=True)#Liczenie statystyk
+        value, mu, sigma, means, stds, out_top, out_bottom = q.count_stats(to_signal, to_frequency, train_tags, plt=plot_stats)#Liczenie statystyk
         LOGGER.info("For freqs: "+str(freqs))
         LOGGER.info("Got means: "+str(means))
         

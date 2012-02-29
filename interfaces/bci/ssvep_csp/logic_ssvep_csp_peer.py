@@ -41,10 +41,11 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         else:
             self.montage_channels = []
 
-        self.run_offline = int(self.config.get_param("run_offline"))
+        self.mode = self.config.get_param("mode")
+        self.failure_treshold = float(self.config.get_param("failure_treshold"))
         self.ready()
         
-        if self.run_offline:
+        if self.mode == 'offline':
             self.run()
         else:
             self._data_finished = False
@@ -76,20 +77,53 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.use_channels,
             self.ignore_channels,
             self.montage,
-            self.montage_channels)
-
-        if not self.run_offline:
-            self._show_configs(cfg)
-            self._edit_configs(cfg)
-
+            self.montage_channels,
+            self.mode in ['offline', 'manual'])
+        self.finish(cfg)
+    def finish(self, cfg):
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
-        ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
 
-        if not self.run_offline:
+        if self.mode == 'offline':
+            ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+        elif self.mode == 'manual':
+            self._show_configs(cfg, suffix=u'Suggested frequencies:')
+            self._edit_configs(cfg)
+            ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
+        elif self.mode == 'retry_on_failure':
+            if self._determine_means(cfg):
+                self._show_configs(cfg, suffix=u'Calibration passed, wait to start BCI app...')
+                time.sleep(5)
+                ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+                self._run_next_scenario()
+            else:
+                self._show_configs(cfg, suffix=u'Calibration FAILED, Try again with another freqs...')
+                time.sleep(5)
+                self._run_prev_scenario()
+        elif self.mode == 'abort_on_failure':
+            if self._determine_means(cfg):            
+                self._show_configs(cfg, suffix=u'Calibration passed, wait to start BCI app...')
+                time.sleep(5)
+                ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+                self._run_next_scenario()
+            else:
+                self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
+                time.sleep(5)
+                sys.exit(1)
+        else:
+            LOGGER.warning("Unrecognised mode: "+self.mode)
+                
+    def _determine_means(self, cfg):
+        """Return true if means are ok"""
+        all_means = [float(i) for i in cfg['all_means'].split(';')]
+        ret = all_means[-1] >= self.failure_treshold
 
-    def _show_configs(self, cfg):
+        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(self.failure_treshold))
+        LOGGER.info("Is smallest mean bigger than treshold?: "+str(ret))
+        return ret
+
+    def _show_configs(self, cfg, suffix=u""):
         text_id = int(self.config.get_param('ugm_text_id'))
         all_freqs = cfg['all_freqs'].split(';')
         all_means = cfg['all_means'].split(';')
@@ -102,7 +136,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                      '\n',
                      u'Suggested buffer length: '+str(cfg['buffer'])+" secs",
                      '\n',
-                     u'Suggested frequencies:'
+                     suffix
                      ])
             )
 
@@ -119,12 +153,19 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
 
     def _run_next_scenario(self):
-        path = self.config.get_param('next_scenario_path')
+        self._run_scenario(self.config.get_param('next_scenario_path'))
+        
+    def _run_prev_scenario(self):
+        self._run_scenario(self.config.get_param('prev_scenario_path'))
+
+    def _run_scenario(self, path):
         if len(path) > 0:
             logic_helper.restart_scenario(path)
         else:
             LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
+
+        
 
 if __name__ == "__main__":
     LogicSsvepCsp(settings.MULTIPLEXER_ADDRESSES).loop()

@@ -83,7 +83,7 @@ class UGMPropertiesModel(QtCore.QAbstractItemModel):
             elif l_value == 'color':
                 l_default = '#000000'
             elif l_value == 'font':
-                l_default = 'serif'
+                l_default = 'Liberation Mono'
             elif l_value == 'string':
                 l_default = ''
             else:
