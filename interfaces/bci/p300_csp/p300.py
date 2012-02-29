@@ -16,7 +16,7 @@ from analysis.csp.artifactClassifier import artifactsCalibration
 
 
 class p300_train(object):
-    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3]):
+    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3], a_time=0.5):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
@@ -79,7 +79,7 @@ class p300_train(object):
             to_draw1 = to_see
             to_draw2 = other
             if suggest:
-                x1 = np.where(t_vec > 0.0)[0][0]
+                x1 = np.where(t_vec > 0.2)[0][0]
                 x2 = np.where(t_vec < 0.4)[0][-1]
                 mx_idx = to_draw1[x1 : x2].argmax() + x1
                 plus = int(0.1 * self.fs)
@@ -269,7 +269,10 @@ class p300_train(object):
         go = True
         max_cor = 0
         t_vec = np.linspace(-time[0], time[1], sum(time) * self.fs)
-        while go:
+        max_iter = 100
+        iters = 1
+        while go and iters < max_iter:
+            iters  += 1
             mean, l, r = self.get_mean(new_tags, m_time=time)
             max_cor = 0
             for j, i in enumerate(new_tags):
@@ -286,7 +289,7 @@ class p300_train(object):
                     #plt.title(str(cor))
                     #plt.show()
             #print max_cor
-            if max_cor < 2:
+            if max_cor < 5:
                 go = False
         return new_tags
                 
@@ -340,7 +343,7 @@ class p300_train(object):
             left -= 1
         while right < len(tmp_mean)-1 and tmp_mean[right + 1] - tmp_mean[right] > 0:
             right += 1
-        print left, right
+        print "TUTAJ:", left, right
         if plot_mean:
             plt.plot(mean, 'r-')
             plt.plot([left, left], [min(mean), max(mean)])
