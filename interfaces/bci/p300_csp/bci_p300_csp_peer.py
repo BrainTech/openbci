@@ -67,7 +67,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                                LOGGER,
                                                int(self.config.get_param('samples_per_packet')))
                                                    
-        self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
+        self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
