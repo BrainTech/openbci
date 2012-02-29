@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import zmq
+import time
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
@@ -28,7 +29,7 @@ class ConfigServer(BaseMultiplexerServer):
 		addr = params['local_params'].get('launcher_socket_addr', '')
 		if addr != '':
 			self.ctx = zmq.Context()
-			self.launcher_sock = self.ctx.socket(zmq.PUB)
+			self.launcher_sock = self.ctx.socket(zmq.PUSH)
 			try:
 				self.launcher_sock.connect(addr)
 			except Exception, e:
@@ -57,6 +58,7 @@ class ConfigServer(BaseMultiplexerServer):
 		if launcher_msg is not None and self.launcher_sock is not None:
 			print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
 			send_msg(self.launcher_sock, launcher_msg)
+
 
 	def _call_handler(self, mtype, message):
 		if mtype == types.GET_CONFIG_PARAMS:

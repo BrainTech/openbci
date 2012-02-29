@@ -12,23 +12,24 @@ import matplotlib.pyplot as plt
 from scipy.linalg import eig
 import scipy.signal as ss
 from analysis.csp.filtfilt import filtfilt
-from analysis.csp.artifactsClassifier import artifactCalibration
+from analysis.csp.artifactClassifier import artifactsCalibration
 
 
 class p300_train(object):
-    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3]):
+    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3], a_time=0.5):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
-        
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
         signal2 = np.zeros(signal.shape)
         self.fs = to_freq
         signal2 = np.zeros(signal.shape)
         self.wrong_tags = self.data.get_p300_tags(idx=idx, rest=True, samples=False)
-        #artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
-        #for i,p in enumerate(self.tags):
-            #artifacts_data[...,i] = signal[:, p:p+p*self.fs]
-        #self.a_features, self.bands = artifactCalibration(artifacts_data, self.fs)
+        artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
+        for i,p in enumerate(self.tags):
+            artifacts_data[...,i] = signal[:, p*self.data.sampling_frequency:(p+a_time)*self.data.sampling_frequency]
+        self.a_features, self.bands = artifactsCalibration(artifacts_data, self.data.sampling_frequency)
+        signal2 = np.zeros(signal.shape)
+        self.fs = to_freq
         self.channels = channels
         self.idx = idx
         b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
@@ -78,7 +79,7 @@ class p300_train(object):
             to_draw1 = to_see
             to_draw2 = other
             if suggest:
-                x1 = np.where(t_vec > 0.0)[0][0]
+                x1 = np.where(t_vec > 0.2)[0][0]
                 x2 = np.where(t_vec < 0.4)[0][-1]
                 mx_idx = to_draw1[x1 : x2].argmax() + x1
                 plus = int(0.1 * self.fs)
@@ -268,7 +269,10 @@ class p300_train(object):
         go = True
         max_cor = 0
         t_vec = np.linspace(-time[0], time[1], sum(time) * self.fs)
-        while go:
+        max_iter = 100
+        iters = 1
+        while go and iters < max_iter:
+            iters  += 1
             mean, l, r = self.get_mean(new_tags, m_time=time)
             max_cor = 0
             for j, i in enumerate(new_tags):
@@ -285,7 +289,7 @@ class p300_train(object):
                     #plt.title(str(cor))
                     #plt.show()
             #print max_cor
-            if max_cor < 2:
+            if max_cor < 5:
                 go = False
         return new_tags
                 
@@ -339,7 +343,7 @@ class p300_train(object):
             left -= 1
         while right < len(tmp_mean)-1 and tmp_mean[right + 1] - tmp_mean[right] > 0:
             right += 1
-        print left, right
+        print "TUTAJ:", left, right
         if plot_mean:
             plt.plot(mean, 'r-')
             plt.plot([left, left], [min(mean), max(mean)])

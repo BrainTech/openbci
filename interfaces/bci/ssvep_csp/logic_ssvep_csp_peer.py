@@ -116,9 +116,9 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def _determine_means(self, cfg):
         """Return true if means are ok"""
         all_means = [float(i) for i in cfg['all_means'].split(';')]
-        ret = all_means[-1] >= cfg['value']
+        ret = all_means[cfg['dec_count']-1] >= cfg['value'][0]
 
-        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value']))
+        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value'][0]))
         LOGGER.info("Is smallest mean bigger than treshold?: "+str(ret))
         return ret
 
