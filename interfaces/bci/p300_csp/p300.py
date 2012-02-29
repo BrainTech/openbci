@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.linalg import eig
 import scipy.signal as ss
 from analysis.csp.filtfilt import filtfilt
-from analysis.csp.artifactsClassifier import artifactCalibration
+from analysis.csp.artifactClassifier import artifactCalibration
 
 
 class p300_train(object):

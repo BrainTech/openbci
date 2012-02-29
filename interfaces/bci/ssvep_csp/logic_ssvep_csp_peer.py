@@ -42,7 +42,6 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.montage_channels = []
 
         self.mode = self.config.get_param("mode")
-        self.failure_treshold = float(self.config.get_param("failure_treshold"))
         self.ready()
         
         if self.mode == 'offline':
@@ -117,9 +116,9 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def _determine_means(self, cfg):
         """Return true if means are ok"""
         all_means = [float(i) for i in cfg['all_means'].split(';')]
-        ret = all_means[-1] >= self.failure_treshold
+        ret = all_means[-1] >= cfg['value']
 
-        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(self.failure_treshold))
+        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value']))
         LOGGER.info("Is smallest mean bigger than treshold?: "+str(ret))
         return ret
 
