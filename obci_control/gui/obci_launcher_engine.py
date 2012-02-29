@@ -188,6 +188,9 @@ class OBCILauncherEngine(QtCore.QObject):
 		elif type_ == 'obci_peer_dead':
 			self._handle_obci_peer_dead(launcher_message)
 
+		elif type_ == 'experiment_transformation':
+			self._handle_experiment_transformation(launcher_message)
+
 		self.update_ui.emit(launcher_message)
 		print "----engine signalled", type_
 
@@ -195,7 +198,8 @@ class OBCILauncherEngine(QtCore.QObject):
 		exps = exp_list if exp_list else self.experiments
 
 		matches = [(i, e) for i, e in enumerate(exps) if\
-						e.name == msg.name and e.preset_data is not None]
+						(e.name == msg.name or e.launch_file == msg.launch_file_path) and\
+							e.preset_data is not None]
 
 		if matches:
 			index, exp = matches.pop()
@@ -204,6 +208,49 @@ class OBCILauncherEngine(QtCore.QObject):
 			exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
 		self._exp_connect(msg.dict())
+
+	def _handle_experiment_transformation(self, msg):
+		exps = self.experiments
+		old_index, old_exp = None, None
+		new_index, new_exp = None, None
+		print msg
+
+		old_matches = [(i, e) for i, e in enumerate(exps) if\
+				(e.launch_file == msg.old_launch_file) ]#and\
+				#	e.preset_data is not None]
+
+		print "old_matches", old_matches
+		
+		if old_matches:
+			old_index, old_exp = old_matches.pop()
+
+		new_matches = [(i, e) for i, e in enumerate(exps) if\
+				(e.name == msg.name or e.launch_file == msg.launch_file) and\
+					e.preset_data is not None and e.status.status_name != launcher_tools.RUNNING]
+		print "new matches", new_matches
+
+		if new_matches:
+			new_index, new_exp = new_matches.pop()
+
+		if old_index is not None:
+			print "old match", old_index, old_exp.preset_data
+			exp = ExperimentEngineInfo(preset_data=old_exp.preset_data, ctx=self.ctx)
+			self.experiments[old_index] = exp
+
+		old_exp.launch_file = msg.launch_file
+		old_exp.name = msg.name 
+		result, details = old_exp._make_config()
+		old_exp.status.set_status(msg.status_name, details=msg.details)
+		old_exp._get_experiment_details()
+		old_exp._set_public_params()
+
+		if new_index:
+			old_exp.name = msg.name if msg.name else self.experiments[new_index].name
+			old_exp.preset_data = self.experiments[new_index].preset_data
+			self.experiments[new_index] = old_exp
+		elif not old_index:
+			old_exp.preset_data = None
+			self.experiments.append(old_exp)
 
 
 	def _handle_launcher_shutdown(self, msg):

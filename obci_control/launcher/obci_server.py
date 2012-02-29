@@ -306,6 +306,21 @@ class OBCIServer(OBCIControlPeer):
 			
 		send_msg(self._publish_socket, message.SerializeToString())
 
+	@msg_handlers.handler("experiment_transformation")
+	def handle_experiment_transformation(self, message, sock):
+		exp = self.experiments.get(message.uuid, None)
+		if not exp:
+			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
+			return
+		exp.status_name = message.status_name
+		exp.details = message.details
+		exp.launch_file_path = message.launch_file
+		exp.name = message.name
+		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			send_msg(sock, self.mtool.fill_msg('rq_ok'))
+		send_msg(self._publish_socket, message.SerializeToString())
+
 	def exp_matching(self, strname):
 		"""Match *strname* against all created experiment IDs and
 		names. Return those experiment descriptions which name
@@ -378,7 +393,7 @@ class OBCIServer(OBCIControlPeer):
 	def _handle_launch_process_supervisor(self, message, sock):
 		sv_obj, details = self._start_obci_supervisor_process( message)
 
-		print "LAUNCH PROCESS SV   ", sv_obj, details
+		print "[obci_server] LAUNCH PROCESS SV   ", sv_obj, details
 		if sv_obj:
 			self.exp_process_supervisors[message.sender] = sv_obj
 			send_msg(sock,
@@ -387,25 +402,41 @@ class OBCIServer(OBCIControlPeer):
 											pid=sv_obj.pid, proc_type=sv_obj.proc_type,
 											name=sv_obj.name,
 											path=sv_obj.path))
-			print "CONFIRMED LAUNCH"
+			print "[obci_server] CONFIRMED LAUNCH"
 		else:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 												err_code="launch_error",
 												details=details))
-			print "LAUNCH FAILURE"
+			print "[obci_server] PROCESS SUPERVISOR LAUNCH FAILURE"
 
 
-	@msg_handlers.handler("kill_process_supervisor")
+	@msg_handlers.handler("kill_process")
 	def handle_kill_process_supervisor(self, message, sock):
-		proc = self.exp_process_supervisors.get(message.sender, None)
+		proc = self.subprocess_mgr.process(message.machine, message.pid)
 		if not proc:
-			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="experiment_not_found"))
+			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="process_not_found"))
 		else:
 			#TODO
+			name = proc.name
 			proc.kill()
-
+			proc.mark_delete()
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
-			del self.exp_process_supervisors[message.sender]
+			del self.exp_process_supervisors[proc.name]
+
+
+	@msg_handlers.handler("dead_process")
+	def handle_dead_process(self, message, sock):
+		proc = self.subprocess_mgr.process(message.machine, message.pid)
+		if proc is not None:
+			proc.mark_delete()
+			status, details = proc.status()
+			print "[obci_server]", proc.proc_type, "dead:", status, details, proc.name, proc.pid
+			if proc.proc_type == 'obci_process_supervisor':
+				pass
+			elif proc.proc_type == 'obci_experiment':
+				pass
+			if status == subprocess_monitor.FAILED:
+				pass
 
 
 	@msg_handlers.handler("find_eeg_experiments")
@@ -426,6 +457,7 @@ class OBCIServer(OBCIControlPeer):
 		start_params['path'] = path
 		del start_params['type']
 		del start_params['sender']
+		del start_params['sender_ip']
 		del start_params['receiver']
 		sv_obj, details = self.subprocess_mgr.new_local_process(**start_params)
 		if sv_obj is None:

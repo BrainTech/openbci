@@ -544,6 +544,7 @@ class RemoteProcess(Process):
 								monitoring_optflags=PING):
 
 		self.rq_address = rq_address
+		self._ctx = None
 		# returncode monitoring is not supported in remote processes..
 		monitoring_optflags = monitoring_optflags & ~(1 << RETURNCODE)
 		super(RemoteProcess, self).__init__(proc_description,
@@ -567,7 +568,22 @@ class RemoteProcess(Process):
 
 	def kill(self):
 		#send "kill" to the process or kill request to its supervisor?
-		pass
+		self.stop_monitoring()
+		if not self._ctx:
+			self._ctx = zmq.Context()
+		rq_sock = self._ctx.socket(zmq.REQ)
+		rq_sock.connect(self.rq_address)
+		mtool = OBCIMessageTool(message_templates)
+		poller = PollingObject()
+		send_msg(rq_sock, self.mtool.fill_msg("kill_process", pid=self.pid, machine=self.machine_ip))
+		res, det = poller.poll_recv(sock, timeout=5000)
+		if res:
+			res = mtool.unpack_msg(res)
+			print "Response to kill request: ", res
+
+			with self._status_lock:
+				self._status = TERMINATED
+			pass
 
 class ProcessDescription(object):
 	def __init__(self, proc_type, name, path, args, machine_ip, pid=None):

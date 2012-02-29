@@ -122,6 +122,8 @@ class OBCIControlPeer(object):
 
 	def signal_handler(self):
 		def handler(signum, frame):
+			print "[!!!!]", self.name, "got signal", signum, frame
+			print frame.f_back, frame.f_code, frame.f_lasti
 			self.interrupted = True
 		return handler
 
@@ -328,17 +330,28 @@ class OBCIControlPeer(object):
 				#print self.name + ' ['+self.peer_type() + ']' + 'listening'
 				socks = dict(poller.poll())
 			except zmq.ZMQError, e:
-				print self.name + ' ['+self.peer_type() + ']' +": zmq.poll(): " + e.strerror
+				print str(self.name) + ' ['+str(self.peer_type()) + ']' +": zmq.poll(): " +str(	e.strerror)
 
 			for sock in socks:
 				if socks[sock] == zmq.POLLIN:
-					msg = recv_msg(sock)
-					self.handle_message(msg, sock)
+					more = True
+					while more:
+						try:
+							msg = recv_msg(sock, flags=zmq.NOBLOCK)
+						except zmq.ZMQError, e:
+
+							if e.errno == zmq.EAGAIN:
+								more = False
+							else:
+								print "error:", str(e)
+								break
+						else:
+							self.handle_message(msg, sock)
 
 			if self.interrupted:
 				break
 
-			self._update_poller(poller, poll_sockets)
+			# self._update_poller(poller, poll_sockets)
 
 		self._clean_up()
 
@@ -375,6 +388,7 @@ class OBCIControlPeer(object):
 		self.clean_up()
 
 	def clean_up(self):
+
 		print "{0} [{1}], Cleaning up".format(self.name, self.peer_type())
 
 

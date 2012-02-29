@@ -43,6 +43,23 @@ class OBCIClient(object):
 
 		return self.send_start_experiment(result.rep_addrs)
 
+	def morph(self, exp_strname, launch_file, name=None, overwrites=None, leave_on=None):
+		response = self.get_experiment_contact(exp_strname)
+		exp_sock = self.ctx.socket(zmq.REQ)
+		if response.type == "rq_error":
+			return response
+		for addr in response.rep_addrs:
+			exp_sock.connect(addr)
+
+
+		msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
+								name=name, overwrites=overwrites, leave_on=leave_on)
+		send_msg(exp_sock, msg)
+
+		response, details = self.poll_recv(exp_sock, 6000)
+		return response
+
+
 	def start_chosen_experiment(self, exp_strname):
 		response = self.get_experiment_contact(exp_strname)
 
