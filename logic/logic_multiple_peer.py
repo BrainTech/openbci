@@ -8,16 +8,18 @@ from multiplexer.multiplexer_constants import peers, types
 from logic import logic_helper
 from logic.logic_decision_peer import LogicDecision
 from logic.speller_engine import SpellerEngine
+from logic.robot_engine import RobotEngine
 
 from configs import settings, variables_pb2
 from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_speller", "info")
+LOGGER = logger.get_logger("logic_multiple", "info")
 
-class LogicSpeller(LogicDecision, SpellerEngine):
+class LogicMultiple(LogicDecision, SpellerEngine, RobotEngine):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
         LogicDecision.__init__(self, addresses=addresses)
         SpellerEngine.__init__(self, self.config.param_values())
+        RobotEngine.__init__(self, self.config.param_values())
         self.ready()
         self._update_letters()
 
@@ -25,5 +27,5 @@ class LogicSpeller(LogicDecision, SpellerEngine):
         self._update_letters()
 
 if __name__ == "__main__":
-    LogicSpeller(settings.MULTIPLEXER_ADDRESSES).loop()
+    LogicMultiple(settings.MULTIPLEXER_ADDRESSES).loop()
 

@@ -62,6 +62,11 @@ class LogicDecision(ConfiguredMultiplexerServer):
         except Exception, e:
             LOGGER.error("Couldnt run external "+p_program_string+" with error:")
             LOGGER.error(str(e))
+
+    def finish(self):
+        LOGGER.info("Finish LOGIC")
+        sys.exit(1)
+
             
     # ------------------ actions available in config ---------------------------
     # --------------------------------------------------------------------------

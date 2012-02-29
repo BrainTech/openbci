@@ -25,7 +25,7 @@ class Config(object):
         self.state[4] = [4, 4, 4, 4, 4, 4, 4, 0]
         self.state[5] = [5, 5, 5, 5, 5, 5, 5, 0]
         self.state[6] = [6, 6, 6, 6, 6, 6, 6, 0]
-        self.state[7] = [7, 7, 7, 1, 7, 7, 7, 0]
+        self.state[7] = [7, 7, 7, 0, 7, 7, 7, 7]
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
@@ -36,16 +36,16 @@ class Config(object):
         self.letters[4] = ["t","u","w","y","z", u"ż","Skasuj", u"Wróć"]
         self.letters[5] = [u"ą", u"ć", u"ę", u"ł", u"ń", u"ś", u"ó", u"Wróć"]
         self.letters[6] = ["_",",",".",";","?","!","Skasuj",u"Wróć"]
-        self.letters[7] = [u"Mów!",u"Wyczyść", u"Skasuj", u"Wróć", "", "", "", u"Menu"]
+        self.letters[7] = [u"Mów!",u"Wyczyść", u"Skasuj", u"Wróć", "", "", "", ""]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
-
+        
         # actions[i][j] will be performed in state i when person is looking on square j
         # If you wish no action - leave it empty.
         # If you have a 'dynamic' state and you want the program to be chosen at runtime, set here a collection of programs - 
         # thanks to corresponding values from actions_solver obci will decide which program to use.
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["", "", "", "", "", "", "", "finish("+self._finish_params()+")"] 
+        self.actions[0] = ["", "", "", "", "", "", "", self._finish_action()] 
         self.actions[1] = ["msg('a')", "msg('b')","msg('c')", "msg('d')", "msg('e')", "msg('f')", "backspace()", ""] 
         self.actions[2] = ["msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", "msg('l')", "backspace()", ""] 
         self.actions[3] = ["msg('m')", "msg('n')", "msg('o')", "msg('p')", "msg('r')", "msg('s')", "backspace()", ""] 
@@ -56,5 +56,5 @@ class Config(object):
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
-    def _finish_params(self):
-        return "'x', 'x'"
+    def _finish_action(self):
+        return "finish()"

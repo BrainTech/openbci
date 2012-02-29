@@ -44,16 +44,22 @@ class LogicRobotFeedback(ConfiguredClient):
         imgpath = self.paths[index]
 
         while True:
-            image = self._robot.get_image()
-            if image is not None:
-                with open(imgpath, 'w') as fil:
-                    fil.write(image)
-                    ugm_helper.send_config_for(self.conn, self.robot_image_id, 'image_path', imgpath)
-                    LOGGER.info("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
-            time.sleep(0.3)
-            index = int(not index)
-            imgpath = self.paths[index]
-
+            try:
+                image = self._robot.get_image()
+            except:
+                LOGGER.error("Could not connect to ROBOT. Feedback is OFF!")
+            else:
+                try:
+                    with open(imgpath, 'w') as fil:
+                        fil.write(image)
+                        fil.close()
+                        ugm_helper.send_config_for(self.conn, self.robot_image_id, 'image_path', imgpath)
+                        LOGGER.debug("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
+                        index = int(not index)
+                        imgpath = self.paths[index]
+                except:
+                    LOGGER.error("An error occured while writing image to file!")
+                time.sleep(0.3)
 
 if __name__ == "__main__":
     LogicRobotFeedback(settings.MULTIPLEXER_ADDRESSES).run()

@@ -45,7 +45,7 @@ class Config(object):
             ['run_ext(\''+tahoe_path+'  on 1\')', 'run_ext(\''+tahoe_path+'  off 1\')'],
             ['run_ext(\''+tahoe_path+'  on 2\')', 'run_ext(\''+tahoe_path+'  off 2\')'],
             '', '',
-            '', '', '', "finish("+self._finish_params()+")"]
+            '', '', '', self._finish_action()]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
         self.actions_solver[0] = [
@@ -54,5 +54,5 @@ class Config(object):
             '', '', '', '']
 
 
-    def _finish_params(self):
-        return "'x', 'x'"
+    def _finish_action(self):
+        return "finish()"

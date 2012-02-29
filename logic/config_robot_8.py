@@ -31,9 +31,9 @@ class Config(object):
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
         self.actions[0] = ["robot('forward')", "robot('backward')", "robot('right')", "robot('left')", 
                       "robot('camera_up')", "robot('camera_middle')", "robot('camera_down')", 
-                      "finish("+self._finish_params()+")"] 
+                      self._finish_action()] 
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
-    def _finish_params(self):
-        return "'x', 'x'"
+    def _finish_action(self):
+        return "finish()"
