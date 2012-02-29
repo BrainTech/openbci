@@ -77,7 +77,8 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.use_channels,
             self.ignore_channels,
             self.montage,
-            self.montage_channels)
+            self.montage_channels,
+            self.mode in ['offline', 'manual'])
         self.finish(cfg)
     def finish(self, cfg):
         f_name = self.config.get_param("csp_file_name")
@@ -110,6 +111,8 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
                 time.sleep(5)
                 sys.exit(1)
+        else:
+            LOGGER.warning("Unrecognised mode: "+self.mode)
                 
     def _determine_means(self, cfg):
         """Return true if means are ok"""
