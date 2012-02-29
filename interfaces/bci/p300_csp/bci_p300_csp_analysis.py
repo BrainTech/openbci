@@ -63,15 +63,15 @@ class BCIP300CspAnalysis(object):
             tmp = filtfilt(self.b,self.a, signal[e, :])
             tmp_sig[e, :] = filtfilt(self.b_l, self.a_l, tmp)
         
-        #if artifactClasifier(tmp_sig, cfg['a_features'], cfg['bands'], self.fs):
+        if artifactClasifier(tmp_sig, cfg['a_features'], cfg['bands'], self.fs):
             #2 Montujemy CSP
-        #sig = np.dot(self.q.P[:, 0], tmp_sig)
+            #sig = np.dot(self.q.P[:, 0], tmp_sig)
 
             #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-        ix = self.analyze.analyze(tmp_sig, blink.index, tr=self.treshold)
-        if ix >= 0:
-            self.send_func(ix)
+            ix = self.analyze.analyze(tmp_sig, blink.index, tr=self.treshold)
+            if ix >= 0:
+                self.send_func(ix)
+            else:
+                LOGGER.info("Got -1 ind- no decision")
         else:
             LOGGER.info("Got -1 ind- no decision")
-        #else:
-            #LOGGER.info("Got -1 ind- no decision")

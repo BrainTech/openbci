@@ -127,9 +127,9 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 	     'montage_channels':';'.join(self.montage_channels),
 	     'left' : left,
 	     'right' : right,
-	     'cl' : cl
-	     #'a_features' : data.a_features,
-	     #'bands' : data.bands
+	     'cl' : cl,
+	     'a_features' : data.a_features,
+	     'bands' : data.bands
              }
 
         f_name = self.config.get_param("csp_file_name")

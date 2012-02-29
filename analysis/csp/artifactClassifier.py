@@ -7,7 +7,7 @@ from numpy.fft import fft,fftshift,fftfreq
 from scipy.stats import chi2
 from numpy import matrix, linalg
 from signalParser import signalParser    
-from Filtr import Filtr
+from scipy.signal import filtfilt, butter
 import sys
 
 def periodogram(s):
@@ -87,64 +87,126 @@ def isVectorCloseToSet(vectorSet, vector):
        
    
             
-def artifactsCalibration(eegSignal,samplingFrequency):
-
-    numberOfFrequencyBands = 3
-    frequencyBands = np.zeros([numberOfFrequencyBands, 2])
-    frequencyBands[0] = np.array([1, 7]) # poczatek i koniec dane poasma w Hz
-    frequencyBands[1] = np.array([7, 14]) # poczatek i koniec dane poasma w Hz
-    frequencyBands[2] = np.array([15, 45]) # poczatek i koniec dane poasma w Hz
-    
-    numberOfChannels, numberOfSamples, numberOfTrials = eegSignal.shape
-    dF = (1.0*samplingFrequency)/numberOfSamples
-
-    # Averaging over all chanells
-    meanSignal = np.mean(eegSignal,axis = 0)
-    
-    # Filter
-    for i in range(meanSignal.shape[1]):
-        meanSignal[:,i] = filtr.filtrHigh(meanSignal[:,i])
-    
-    bufforLength = int(0.5*samplingFrequency)
-    lagOfBuffor  = int(bufforLength/2.0)
-    numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
-
-    estimateFeaturesSet = np.zeros([numberOfInternalWindows,numberOfFrequencyBands]);
-
-    for windowNumber in range(numberOfInternalWindows):
-        powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength,:])
-        tmpEstimateFeaturesSet = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
-        if windowNumber==0:
-            estimateFeaturesSet = tmpEstimateFeaturesSet
-        else:
-            estimateFeaturesSet = np.concatenate((estimateFeaturesSet,tmpEstimateFeaturesSet),0)
-        
-
+#def artifactsCalibration(eegSignal,samplingFrequency):
+#
+#    numberOfFrequencyBands = 3
+#    frequencyBands = np.zeros([numberOfFrequencyBands, 2])
+#    frequencyBands[0] = np.array([1, 7]) # poczatek i koniec dane poasma w Hz
+#    frequencyBands[1] = np.array([7, 14]) # poczatek i koniec dane poasma w Hz
+#    frequencyBands[2] = np.array([15, 45]) # poczatek i koniec dane poasma w Hz
+#    
+#    numberOfChannels, numberOfSamples, numberOfTrials = eegSignal.shape
+#    dF = (1.0*samplingFrequency)/numberOfSamples
+#
+#    # Averaging over all chanells
+#    meanSignal = np.mean(eegSignal,axis = 0)
+#    
+#    # Filter
+#    for i in range(meanSignal.shape[1]):
+#        meanSignal[:,i] = filtr.filtrHigh(meanSignal[:,i])
+#    
+#    bufforLength = int(0.5*samplingFrequency)
+#    lagOfBuffor  = int(bufforLength/2.0)
+#    numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
+#
+#    estimateFeaturesSet = np.zeros([numberOfInternalWindows,numberOfFrequencyBands]);
+#
+#    for windowNumber in range(numberOfInternalWindows):
+#        powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength,:])
+#        tmpEstimateFeaturesSet = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
+#        if windowNumber==0:
+#            estimateFeaturesSet = tmpEstimateFeaturesSet
+#        else:
+#            estimateFeaturesSet = np.concatenate((estimateFeaturesSet,tmpEstimateFeaturesSet),0)
+#        
+#
     return estimateFeaturesSet, frequencyBands
     
+def artifactsCalibration(eegSignal,samplingFrequency):
+
+   numberOfFrequencyBands = 3
+   frequencyBands = np.zeros([numberOfFrequencyBands, 2])
+   frequencyBands[0] = np.array([1, 7]) # poczatek i koniec dane poasma w Hz
+   frequencyBands[1] = np.array([7, 14]) # poczatek i koniec dane poasma w Hz
+   frequencyBands[2] = np.array([15, 45]) # poczatek i koniec dane poasma w Hz
+
+   numberOfChannels, numberOfSamples, numberOfTrials = eegSignal.shape
+   dF = (1.0*samplingFrequency)/numberOfSamples
+
+   # Averaging over all chanells
+   meanSignal = np.mean(eegSignal,axis = 0)
+
+   [b,a] = butter(3,2.0/(samplingFrequency/2.0),btype='highpass')
+
+   # Filter
+   for i in range(meanSignal.shape[1]):
+       meanSignal[:,i] = filtfilt(b,a,meanSignal[:,i])
+
+   bufforLength = int(0.5*samplingFrequency)
+   lagOfBuffor  = int(bufforLength/2.0)
+   numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
+
+   estimateFeaturesSet = np.zeros([numberOfInternalWindows,numberOfFrequencyBands]);
+
+   for windowNumber in range(numberOfInternalWindows):
+       powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength,:])
+       tmpEstimateFeaturesSet = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
+       if windowNumber==0:
+           estimateFeaturesSet = tmpEstimateFeaturesSet
+       else:
+           estimateFeaturesSet = np.concatenate((estimateFeaturesSet,tmpEstimateFeaturesSet),0)
+
+   return estimateFeaturesSet, frequencyBands
+ 
+    
+#def artifactsClasifier(eegSignal, estimateFeaturesSet, frequencyBands, samplingFrequency):
+#    
+#    
+#    numberOfChannels, numberOfSamples = eegSignal.shape
+#    dF = (1.0*samplingFrequency)/numberOfSamples
+#   
+#
+#    # Averaging over all chanells
+#    meanSignal = np.mean(eegSignal,axis = 0)
+#
+#    meanSignal = filtr.filtrHigh(meanSignal)
+#       
+#    bufforLength = int(0.5*samplingFrequency)    
+#    lagOfBuffor  = int(bufforLength/2.0)
+#    numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
+#       
+#    for windowNumber in range(numberOfInternalWindows):        
+#        powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength])
+#        estimateFeaturesVector = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
+#        if(isVectorCloseToSet(estimateFeaturesSet,estimateFeaturesVector)==False):
+#            return False
+#        
+    #return True
+
 def artifactsClasifier(eegSignal, estimateFeaturesSet, frequencyBands, samplingFrequency):
-    
-    
-    numberOfChannels, numberOfSamples = eegSignal.shape
-    dF = (1.0*samplingFrequency)/numberOfSamples
-   
 
-    # Averaging over all chanells
-    meanSignal = np.mean(eegSignal,axis = 0)
 
-    meanSignal = filtr.filtrHigh(meanSignal)
-       
-    bufforLength = int(0.5*samplingFrequency)    
-    lagOfBuffor  = int(bufforLength/2.0)
-    numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
-       
-    for windowNumber in range(numberOfInternalWindows):        
-        powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength])
-        estimateFeaturesVector = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
-        if(isVectorCloseToSet(estimateFeaturesSet,estimateFeaturesVector)==False):
-            return False
-        
-    return True
+   numberOfChannels, numberOfSamples = eegSignal.shape
+   dF = (1.0*samplingFrequency)/numberOfSamples
+
+
+   # Averaging over all chanells
+   meanSignal = np.mean(eegSignal,axis = 0)
+
+   [b,a] = butter(3,2.0/(samplingFrequency/2.0),btype='highpass')
+   meanSignal = filtfilt(b,a,meanSignal)
+
+   bufforLength = int(0.5*samplingFrequency)
+   lagOfBuffor  = int(bufforLength/2.0)
+   numberOfInternalWindows = (int)((1.0*(numberOfSamples - bufforLength))/lagOfBuffor)
+
+   for windowNumber in range(numberOfInternalWindows):
+       powerSpectrumDensity = periodogram(meanSignal[windowNumber*lagOfBuffor  : windowNumber*lagOfBuffor + bufforLength])
+       estimateFeaturesVector = integratePowerSpectrumDensity(powerSpectrumDensity,frequencyBands,dF)
+       if(isVectorCloseToSet(estimateFeaturesSet,estimateFeaturesVector)==False):
+           return False
+
+   return True
 
 def sin(f = 1, T = 1, Fs = 128, phi =0 ):
     '''sin o zadanej czÄstoÅci (w Hz), dÅugoÅci, fazie i czÄstoÅci prÃ³bkowania

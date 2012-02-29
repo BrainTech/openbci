@@ -19,16 +19,17 @@ class p300_train(object):
     def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3]):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
-        
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
         signal2 = np.zeros(signal.shape)
         self.fs = to_freq
         signal2 = np.zeros(signal.shape)
         self.wrong_tags = self.data.get_p300_tags(idx=idx, rest=True, samples=False)
-        #artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
-        #for i,p in enumerate(self.tags):
-            #artifacts_data[...,i] = signal[:, p:p+p*self.fs]
-        #self.a_features, self.bands = artifactCalibration(artifacts_data, self.fs)
+        artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
+        for i,p in enumerate(self.tags):
+            artifacts_data[...,i] = signal[:, p*self.data.sampling_frequency:(p+a_time)*self.data.sampling_frequency]
+        self.a_features, self.bands = artifactsCalibration(artifacts_data, self.data.sampling_frequency)
+        signal2 = np.zeros(signal.shape)
+        self.fs = to_freq
         self.channels = channels
         self.idx = idx
         b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
