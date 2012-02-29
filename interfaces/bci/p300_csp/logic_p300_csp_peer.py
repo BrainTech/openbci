@@ -111,14 +111,14 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         #for i in xrange(1, sr + 1):
             #x = data.get_n_mean(i, new_tags, csp_time, 0.05)
             #targets[i - 1, :], non_targets[i - 1, :], mu[i - 1], sigma[i - 1] = x
-	cl, mu, sigma, mean, left, right = data.prep_classifier(sr, P_vectors=2, reg=1)
+	cl, mu, sigma, mean, left, right = data.prep_classifier(sr, P_vectors=2, reg=1, mean_time=csp_time)
         q = data
         cfg = {
              'mu': mu,
              'sigma': sigma,
              'mean':mean,
-             'targets':targets,
-             'non_targets':non_targets,
+             #'targets':targets,
+             #'non_targets':non_targets,
              'q' : q,
              'buffer_len':buffer_len,
              'buffer_start':buffer_start,
