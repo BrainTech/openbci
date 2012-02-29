@@ -66,7 +66,7 @@ class UGMProperty(UGMTreeElement):
         elif self.type == 'color':
             self.value = '#000000'
         elif self.type == 'font':
-            self.value = 'serif'
+            self.value = 'Liberation Mono'
         elif self.type == 'enumerated':
             self.value = self.typeParameters['values'][0]
         else:

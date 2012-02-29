@@ -12,29 +12,33 @@ import matplotlib.pyplot as plt
 from scipy.linalg import eig
 import scipy.signal as ss
 from analysis.csp.filtfilt import filtfilt
+from analysis.csp.artifactClassifier import artifactsCalibration
 
 
 class p300_train(object):
-    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3]):
+    def __init__(self, fn, channels, to_freq, montage_channels, montage, idx=1, csp_time=[0, 0.3], a_time=0.5):
         self.data = sp.signalParser(fn)
         self.tags = self.data.get_p300_tags(idx=idx, samples=False)
-        
         signal = self.data.prep_signal(to_freq, channels, montage_channels, montage)
         signal2 = np.zeros(signal.shape)
-        
+        self.fs = to_freq
+        signal2 = np.zeros(signal.shape)
+        self.wrong_tags = self.data.get_p300_tags(idx=idx, rest=True, samples=False)
+        artifacts_data = np.zeros([len(channels), self.fs*a_time, len(self.tags)])
+        for i,p in enumerate(self.tags):
+            artifacts_data[...,i] = signal[:, p*self.data.sampling_frequency:(p+a_time)*self.data.sampling_frequency]
+        self.a_features, self.bands = artifactsCalibration(artifacts_data, self.data.sampling_frequency)
+        signal2 = np.zeros(signal.shape)
         self.fs = to_freq
         self.channels = channels
         self.idx = idx
-        
         b,a = ss.butter(3, 2*1.0/self.fs, btype = 'high')
         b_l, a_l = ss.butter(3, 20.0*2/self.fs, btype = 'low')
         for e in xrange(len(self.channels)):
             tmp = filtfilt(b,a,signal[e, :])
             signal2[e, :] = filtfilt(b_l, a_l, tmp)
         self.signal_original = signal2
-        
         self.t1, self.t2 = self.show_mean(csp_time, 'Cz', dont_plot=False)
-        
         P, vals = self.train_csp(signal2, [self.t1, self.t2])
         self.P = P
         self.signal = np.dot(P[:, 0], signal2)
@@ -49,7 +53,7 @@ class p300_train(object):
         #b_l,a_l = ss.butter(3, 2*20.0/self.fs, btype = 'low')
         to_see = np.zeros((post + pre) * self.fs)
         other = np.zeros((post + pre) * self.fs)
-        tags2 = self.data.get_p300_tags(idx=-self.idx, samples=False)
+        tags2 = self.data.get_p300_tags(idx=self.idx, rest=True, samples=False)
         sigs_trg = np.zeros([len(self.tags), len(to_see)])
         sigs = np.zeros([len(tags2), len(to_see)])
         for j, i in enumerate(self.tags):
@@ -75,7 +79,7 @@ class p300_train(object):
             to_draw1 = to_see
             to_draw2 = other
             if suggest:
-                x1 = np.where(t_vec > 0.0)[0][0]
+                x1 = np.where(t_vec > 0.2)[0][0]
                 x2 = np.where(t_vec < 0.4)[0][-1]
                 mx_idx = to_draw1[x1 : x2].argmax() + x1
                 plus = int(0.1 * self.fs)
@@ -117,7 +121,7 @@ class p300_train(object):
         chNo, smpl = signal.shape
         cov_trg = np.zeros([len(self.channels), len(self.channels)])
         cov = np.zeros([len(self.channels), len(self.channels)])
-        tags2 = self.data.get_p300_tags(idx=-self.idx, samples=False)
+        tags2 = self.data.get_p300_tags(idx=self.idx,rest=True, samples=False)
         for i in self.tags:
             if (i + post) * self.fs < self.data.sample_count:
                 A = np.matrix(signal[:, (i - pre) * self.fs : (i - pre) * self.fs + N])
@@ -159,9 +163,9 @@ class p300_train(object):
             
     def get_n_mean(self, n, tags, time, xc_time):
         sign_trg, sigs = self.__get_data(time, tags)
-        tags2 = self.data.get_p300_tags(idx=-self.idx, samples=False)
+        tags2 = self.data.get_p300_tags(idx=self.idx,rest=True, samples=False)
         mean, l, r = self.get_mean(tags, time)
-        mean /= np.sqrt(np.dot(mean, mean))
+        #mean /= np.sqrt(np.dot(mean, mean))
         mean[:l] = 0
         mean[r:] = 0
         trg = []
@@ -178,7 +182,9 @@ class p300_train(object):
                 for j in xrange(n):
                     tmp_sig += sign_trg[i[j], :]
                 tmp_sig /= n
-                tmp_sig /= np.sqrt(np.dot(tmp_sig, tmp_sig))
+                tmp_sig[:l] = 0
+                tmp_sig[r:] = 0
+                #tmp_sig /= np.sqrt(np.dot(tmp_sig, tmp_sig))
                 xcor = np.correlate(tmp_sig, mean, 'full')[s_l - xc_time * self.fs : s_l + xc_time * self.fs]
                 trg.append(xcor.max())
             for i in no_target_sets:
@@ -186,7 +192,9 @@ class p300_train(object):
                 for j in xrange(n):
                     tmp_sig += sigs[i[j], :]
                 tmp_sig /= n
-                tmp_sig /= np.sqrt(np.dot(tmp_sig, tmp_sig))
+                #tmp_sig /= np.sqrt(np.dot(tmp_sig, tmp_sig))
+                tmp_sig[:l] = 0
+                tmp_sig[r:] = 0
                 xcor = np.correlate(tmp_sig, mean, 'full')[s_l2 - xc_time * self.fs : s_l2 + xc_time * self.fs]
                 no_trg.append(xcor.max())
             trg = np.array(trg)
@@ -197,12 +205,13 @@ class p300_train(object):
         return z_trg, z_no_trg, mu, sigma
                     
     
-    def __get_data(self, time, tags):
+    def __get_data(self, time, tags, tags2=None):
         pre = time[0]
         post = time[1]
         sl = (post + pre) * self.fs
         sigs_trg = np.zeros([len(tags), sl])
-        tags2 = self.data.get_p300_tags(idx=-self.idx, samples=False)
+        if tags2 is None:
+            tags2 = self.data.get_p300_tags(idx=self.idx,rest=True, samples=False)
         sigs =  np.zeros([len(tags2), sl])
         for j, i in enumerate(tags):
             if (i + post) * self.fs < self.data.sample_count:
@@ -223,15 +232,23 @@ class p300_train(object):
         trg = []
         non_trg = []
         for i in sigs_trg:
-            #i_norm = i / np.sqrt(np.dot(i, i))
+            #i = i / np.sqrt(np.dot(i, i))
+            i -= i.mean()
+            i[:l] = 0
+            i[r:] = 0
             sl = len(i)
             xcor = np.correlate(i, mean, 'full')[sl - xc_time*self.fs:sl + xc_time*self.fs]
             trg.append(xcor.max())
+            #trg.append(i.var())
         for i in sigs:
-            #i_norm = i / np.sqrt(np.dot(i, i))
+            #i = i / np.sqrt(np.dot(i, i))
+            i -= i.mean()
+            i[:l] = 0
+            i[r:] = 0
             sl = len(i)
             xcor = np.correlate(i, mean, 'full')[sl - xc_time*self.fs:sl + xc_time*self.fs]
             non_trg.append(xcor.max())
+            #non_trg.append(i.var())
         trg = np.array(trg)
         non_trg = np.array(non_trg)
         z_trg = (trg - non_trg.mean())/non_trg.std()
@@ -244,12 +261,18 @@ class p300_train(object):
             plt.show()
         return z_trg, z_non_trg, non_trg.mean(), non_trg.std()
     
-    def wyr(self, time=[0.1, 0.5], its=10, xc_time=0.1):
-        new_tags = self.tags[:]
+    def wyr(self, tags=None, time=[0.1, 0.5], its=10, xc_time=0.1):
+        if tags is None:
+            new_tags = self.tags[:]
+        else:
+            new_tags = tags[:]
         go = True
         max_cor = 0
         t_vec = np.linspace(-time[0], time[1], sum(time) * self.fs)
-        while go:
+        max_iter = 100
+        iters = 1
+        while go and iters < max_iter:
+            iters  += 1
             mean, l, r = self.get_mean(new_tags, m_time=time)
             max_cor = 0
             for j, i in enumerate(new_tags):
@@ -266,9 +289,38 @@ class p300_train(object):
                     #plt.title(str(cor))
                     #plt.show()
             #print max_cor
-            if max_cor < 2:
+            if max_cor < 5:
                 go = False
         return new_tags
+                
+    def prep_classifier(self, sr, P_vectors=3, mean_time=[0, 0.5], xc_time=0.05, reg=1):
+        trg = np.zeros([P_vectors, sr, len(self.tags)])
+        non_trg = np.zeros([P_vectors, sr, len(self.wrong_tags)])
+        mu = np.zeros([P_vectors, sr])
+        sigma = np.zeros([P_vectors, sr])
+        classifiers = []
+        mean = np.zeros([P_vectors, sum(mean_time)*self.fs])
+        left = np.zeros(P_vectors)
+        right = np.zeros(P_vectors)
+        for v in xrange(P_vectors):
+            self.signal = np.dot(self.P[:, v], self.signal_original)
+            nt = self.wyr()
+            mean[v, :], left[v], right[v] = self.get_mean(nt, mean_time)
+            for n in xrange(1, sr+1):
+                z1, z2, me, s = self.get_n_mean(n, nt, mean_time, xc_time)
+                trg[v, n-1, :] = z1
+                non_trg[v, n-1, :] = z2
+                mu[v, n-1] = me
+                sigma[v, n-1] = s
+        for i in xrange(sr):
+            data = np.vstack((trg[:, i, :].T, non_trg[:, i, :].T))
+            classes = np.hstack((np.zeros(trg.shape[2]), np.ones(non_trg.shape[2])))
+            cl = logit(data, classes, ['target', 'non target'])
+            cl.fit(100, reg=reg)
+            classifiers.append(cl)
+        self.signal = np.dot(self.P[:, 0], self.signal_original)
+        return classifiers, mu, sigma, mean, left, right
+            
                 
     def get_mean(self, tags, m_time=[0.1, 0.5], plot_mean=False):
         mean = np.zeros(sum(m_time) * self.fs)
@@ -291,7 +343,7 @@ class p300_train(object):
             left -= 1
         while right < len(tmp_mean)-1 and tmp_mean[right + 1] - tmp_mean[right] > 0:
             right += 1
-        print left, right
+        print "TUTAJ:", left, right
         if plot_mean:
             plt.plot(mean, 'r-')
             plt.plot([left, left], [min(mean), max(mean)])
@@ -327,7 +379,6 @@ class p300_train(object):
             P[:,i] = vects[:,vals_idx[i]] / np.sqrt(vals[vals_idx[i]])
         return P, vals[vals_idx]
 
-
 class p300analysis(object):
     def __init__(self, z_trg, z_no_trg, mean, mu, sigma, left, right, no_fields=8):
         """Parameters:
@@ -347,11 +398,11 @@ class p300analysis(object):
         self.trg.sort()
         self.no_trg.sort()
         self.mu, self.sigma = mu, sigma
-        self.mean = mean / np.sqrt(np.dot(mean, mean))
+        self.mean = mean# / np.sqrt(np.dot(mean, mean))
         self.signal_len = len(mean)
         self.left = left
         self.right = right
-        
+    
     def __get_array_feature(self, arr, xc_points=20):
         """
         Parameters:
@@ -424,18 +475,24 @@ class p300analysis(object):
         P_xn = len(np.where(Xn > feature)[0]) / float(len(Xn))
         return P_xt * P_t / (P_xt * P_t + P_xn * P_n)
     
-    def woody(self, sig, xc_points=25):
-        """Making the sig aligned to the mean"""
-        xcor = np.correlate(self.mean, sig, 'full')[self.signal_len - xc_points : self.signal_len + xc_points]
+    def woody(self, sig, xc_points=10, left=None, right=None, mean=None):
+        if mean is None:
+            mean = self.mean
+        xcor = np.correlate(mean, sig, 'full')[self.signal_len - xc_points : self.signal_len + xc_points]
         max_idx = xcor.argmax()
-        sig = sig / np.sqrt(np.dot(sig,sig))
+        #sig = sig / np.sqrt(np.dot(sig,sig))
+        sig -= sig.mean()
         cor = len(xcor)/2 - max_idx
         new_sig = np.zeros(sig.shape)
-        if self.left + cor <= 0:
-            cor = -self.left
-        if self.right + cor >= len(sig):
-            cor = len(sig) - self.right - 1
-        new_sig[self.left:self.right] = np.copy(sig[self.left+cor:self.right+cor])
+        if left is None:
+            left = self.left
+        if right is None:
+            right = self.right
+        if left + cor <= 0:
+            cor = -left
+        if right + cor >= len(sig):
+            cor = len(sig) - right - 1
+        new_sig[left:right] = np.copy(sig[left+cor:right+cor])
         #plt.plot(self.mean, 'r-')
         #plt.plot(sig,'g-')
         #plt.plot(new_sig,'b-')
@@ -481,5 +538,50 @@ class p300analysis(object):
                 self.buffer = np.zeros(self.buffer.shape)
                 return index
         if index == 1:
-            print i
+            print i + 1
+        return -1
+    
+class p300analysis2(p300analysis):
+    def __init__(self, classifiers, P, P_vect, mean, mu, sigma, left, right, no_fields=8):
+        self.classifiers = classifiers
+        self.P = P
+        self.P_vect = P_vect
+        self.mu, self.sigma, self.left, self.right, self.mean = mu, sigma, left, right, mean
+        self.buffer = np.zeros([no_fields, mu.shape[1], mean.shape[1], P_vect])
+        self.signal_len = mean.shape[1]
+        
+    def __get_feature(self, arr, xc_points=6):
+        N, M, K = arr.shape
+        tmp = np.zeros(M)
+        zscores = np.zeros(K)
+        for i in xrange(K):
+            for j in xrange(N):
+                tmp += arr[j,:,i] - arr[j,:, i].mean()
+            tmp /= N
+            #tmp /= np.sqrt(np.dot(tmp,tmp))p
+            xcor = np.correlate(tmp, self.mean[i], 'full')[M - xc_points:M+xc_points]
+            zscores[i] = (xcor.max() - self.mu[i, N - 1])/self.sigma[i, N - 1]
+        return zscores
+            
+    def analyze(self, signal, index, tr=0.05):
+        I, N, J, PV = self.buffer.shape
+        
+        feature = np.zeros([self.P_vect, N])
+        for k in xrange(PV):
+            sig = np.dot(self.P[:, k], signal)
+            sig = self.woody(sig, left=self.left[k], right=self.right[k], mean=self.mean[k])
+            tmp = np.delete(self.buffer[index,...,k], N-1, 0)
+            tmp = np.insert(tmp, 0, sig, axis=0)
+            self.buffer[index,...,k] = np.copy(tmp)
+        
+        for j in xrange(1, N+1):
+            zscores = self.__get_feature(self.buffer[index,:j,...])
+            prob = self.classifiers[j-1].predict(zscores)
+            if j==1:
+                if index==1:
+                    plt.plot(zscores[0], zscores[1],'ro')
+                else:
+                    plt.plot(zscores[0], zscores[1], 'go')
+            if prob <= tr:
+                return index
         return -1
