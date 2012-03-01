@@ -66,7 +66,7 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
 
     def finish(self, action, param):
         if action == 'restart_scenario':
-            logic_helper.restart_scenario(param)
+            logic_helper.restart_scenario(self.conn, param)
 
     # --------------------------------------------------------------------------
     # ---------- methods for config updates and other updates  -----------------

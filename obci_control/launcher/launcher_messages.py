@@ -10,7 +10,7 @@ message_templates = {
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='', 
 									status_name='', details='', launch_file_path=''),
 	"list_experiments" : dict(),
-	"running_experiments" : dict(exp_data=''),
+	"running_experiments" : dict(exp_data='', nearby_machines=''),
 
 	"get_experiment_info" : dict(),
 	"experiment_info" : dict(experiment_status='', launch_file_path='', scenario_dir='',
@@ -86,7 +86,9 @@ message_templates = {
 	"server_broadcast" : dict(rep_port='', pub_port=''),
 
 	"experiment_finished" : dict(details=''),
-	"morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on='')
+	"morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on=''),
+	"list_nearby_machines" : dict(),
+	"nearby_machines" : dict(nearby_machines='')
 
 
 }

@@ -42,6 +42,7 @@ class OBCIExperiment(OBCIControlPeer):
 										rep_addresses=None,
 										pub_addresses=None,
 										name='obci_experiment',
+										current_ip=None,
 										launch=False,
 										overwrites=None):
 
@@ -51,6 +52,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
 		self.launch_file = launcher_tools.obci_root_relative(launch_file)
+		self.current_ip = current_ip
 		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
@@ -130,7 +132,8 @@ class OBCIExperiment(OBCIControlPeer):
 					'--sandbox-dir', str(self.sandbox_dir),
 					'--name', name +\
 							 '-' + self.uuid.split('-',1)[0] + \
-							'-' + machine
+							'-' + machine,
+					'--experiment-uuid', self.uuid
 					]
 		return args
 
@@ -810,6 +813,7 @@ def experiment_arg_parser():
 					help='Human readable name of this process')
 	parser.add_argument('--launch', default=False,
 	                   help='Launch the experiment specified in launch file')
+	parser.add_argument('--current-ip', help='IP addr of host machine')
 	parser.add_argument('--ovr', nargs=argparse.REMAINDER)
 
 
@@ -825,6 +829,6 @@ if __name__ == '__main__':
 	exp = OBCIExperiment(args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
-							args.launch, overwrites=pack)
+							args.current_ip, args.launch, overwrites=pack)
 
 	exp.run()
