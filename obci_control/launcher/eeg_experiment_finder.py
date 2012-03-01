@@ -11,6 +11,7 @@ from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
+import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
@@ -37,7 +38,8 @@ class EEGExperimentFinder(object):
         exps = exp_list.exp_data
         running = []
         for exp in exps.values():
-            if exp['status_name'] == 'running':
+            if exp['status_name'] == launcher.launcher_tools.RUNNING or \
+                    exp['status_name'] == launcher.launcher_tools.LAUNCHING:
                 running.append(exp)
         return running
 
