@@ -1,0 +1,523 @@
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   amplifier /home/lis/dev/openbci/drivers/eeg/amplifier_virtual.ini
+parsing default config for peer   signal_saver /home/lis/dev/openbci/acquisition/signal_saver_peer.ini
+parsing default config for peer   info_saver /home/lis/dev/openbci/acquisition/info_saver_peer.ini
+parsing default config for peer   saver_control /home/lis/dev/openbci/acquisition/saver_control_peer.ini
+parsing default config for peer   tag_saver /home/lis/dev/openbci/acquisition/tag_saver_peer.ini
+parsing default config for peer   tag_generator /home/lis/dev/openbci/acquisition/tests/test_auto_tags_sending.ini
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+       *******************      tcp://127.0.0.1:35323
+
+
+engine!!! got:  {'task': u'connect', 'sender': u'', 'pub_addr': u'tcp://127.0.0.1:35323', 'receiver': u'', 'sender_ip': u'', 'type': u'_launcher_engine_msg'} 
+
+
+!!!!!!!updating user interface None
+0 -1
+2 0
+item changed driver_discovery available_drivers [{u'channels_info': {u'channels': [{u'name': u'Sinus[128]84Volt-3', u'idle': 2147483648, u'gain': 1.9116473575122654, u'offset': -256492965.0625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[128]36Volt-3', u'idle': 2147483648, u'gain': 0.5539699555374682, u'offset': -304.9750061035156, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Modulo[128]63Volt-3', u'idle': 2147483648, u'gain': 1.9522297247312963, u'offset': -130948919.09375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[128]27Volt-3', u'idle': 2147483648, u'gain': 1.6069688759744167, u'offset': -1685001.99609375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Sinus[256]12Volt-3', u'idle': 2147483648, u'gain': 0.15667908918112516, u'offset': 11994865.939605713, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Cos[256]31Volt-3', u'idle': 2147483648, u'gain': 1.218256905209273, u'offset': -2585186783.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[256]30Volt-3', u'idle': 2147483648, u'gain': 0.6375522674061358, u'offset': -668492.0063476562, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[256]68Volt-3', u'idle': 2147483648, u'gain': 1.7713576974347234, u'offset': -396350.7922363281, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Sinus[512]30Volt-3', u'idle': 2147483648, u'gain': 2.283314745873213, u'offset': -76615299.375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[512]38Volt-3', u'idle': 2147483648, u'gain': 2.9493270749226213, u'offset': -3128815833.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[512]14Volt-3', u'idle': 2147483648, u'gain': 2.890232602134347, u'offset': -24231028.328125, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[512]74Volt-3', u'idle': 2147483648, u'gain': 1.0630958382971585, u'offset': 2656845.96875, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Sinus[1024]6Volt-3', u'idle': 2147483648, u'gain': 0.2666657492518425, u'offset': -4363.0516357421875, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[1024]6Volt-3', u'idle': 1, u'gain': 1.6677237604744732, u'offset': -13983880.87890625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Modulo[1024]25Volt-3', u'idle': 2147483648, u'gain': 0.9308097949251533, u'offset': -999449382.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[1024]68Volt-3', u'idle': 256, u'gain': 0.35404867958277464, u'offset': 67998549.81660843, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Sinus[1024]88Volt-3', u'idle': 2147483648, u'gain': 2.829201092943549, u'offset': -46265.63070678711, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[1024]85Volt-3', u'idle': 2147483648, u'gain': 2.6866699079982936, u'offset': -5769579610.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Modulo[1024]33Volt-3', u'idle': 2147483648, u'gain': 0.43955991929396987, u'offset': -471973836.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[1024]13Volt-3', u'idle': 262144, u'gain': 0.9109720303677022, u'offset': -978135769.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Sinus[2048]96Volt-3', u'idle': 4096, u'gain': 1.1476600146852434, u'offset': -204852.18688964844, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[2048]2Volt-3', u'idle': 2147483648, u'gain': 0.28105941228568554, u'offset': -73446311.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[2048]53Volt-3', u'idle': 2147483648, u'gain': 2.18753310944885, u'offset': -4644691582.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Random[2048]42Volt-3', u'idle': 2147483648, u'gain': 1.9068039334379137, u'offset': -4094830225.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Sinus[4096]41Volt-3', u'idle': 32, u'gain': 1.9847516645677388, u'offset': -66597173.765625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[4096]72Volt-3', u'idle': 2147483648, u'gain': 0.3686635415069759, u'offset': -3092501.93359375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Modulo[4096]68Volt-3', u'idle': 2147483648, u'gain': 0.15238979179412127, u'offset': -251584.556640625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[4096]66Volt-3', u'idle': 2147483648, u'gain': 2.7450713887810707, u'offset': 43512.37518310547, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'temp2', u'idle': -2147483648, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Unknown'}, {u'name': u'Driver_Saw', u'idle': 2147483648, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'ZAAG', u'unit': u'Integer'}, {u'name': u'Trigger', u'idle': 1, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'Boolean', u'unit': u'Bit'}], u'sampling_rates': [128, 256, 2048], u'physical_channels': 0, u'name': u'Dummy Amplifier'}}] old val: [{u'channels_info': {u'channels': [{u'name': u'Sinus[128]84Volt-3', u'idle': 2147483648, u'gain': 1.9116473575122654, u'offset': -256492965.0625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[128]36Volt-3', u'idle': 2147483648, u'gain': 0.5539699555374682, u'offset': -304.9750061035156, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Modulo[128]63Volt-3', u'idle': 2147483648, u'gain': 1.9522297247312963, u'offset': -130948919.09375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[128]27Volt-3', u'idle': 2147483648, u'gain': 1.6069688759744167, u'offset': -1685001.99609375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Sinus[256]12Volt-3', u'idle': 2147483648, u'gain': 0.15667908918112516, u'offset': 11994865.939605713, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Cos[256]31Volt-3', u'idle': 2147483648, u'gain': 1.218256905209273, u'offset': -2585186783.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[256]30Volt-3', u'idle': 2147483648, u'gain': 0.6375522674061358, u'offset': -668492.0063476562, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[256]68Volt-3', u'idle': 2147483648, u'gain': 1.7713576974347234, u'offset': -396350.7922363281, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Sinus[512]30Volt-3', u'idle': 2147483648, u'gain': 2.283314745873213, u'offset': -76615299.375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[512]38Volt-3', u'idle': 2147483648, u'gain': 2.9493270749226213, u'offset': -3128815833.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[512]14Volt-3', u'idle': 2147483648, u'gain': 2.890232602134347, u'offset': -24231028.328125, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[512]74Volt-3', u'idle': 2147483648, u'gain': 1.0630958382971585, u'offset': 2656845.96875, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Sinus[1024]6Volt-3', u'idle': 2147483648, u'gain': 0.2666657492518425, u'offset': -4363.0516357421875, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[1024]6Volt-3', u'idle': 1, u'gain': 1.6677237604744732, u'offset': -13983880.87890625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Modulo[1024]25Volt-3', u'idle': 2147483648, u'gain': 0.9308097949251533, u'offset': -999449382.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[1024]68Volt-3', u'idle': 256, u'gain': 0.35404867958277464, u'offset': 67998549.81660843, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Sinus[1024]88Volt-3', u'idle': 2147483648, u'gain': 2.829201092943549, u'offset': -46265.63070678711, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[1024]85Volt-3', u'idle': 2147483648, u'gain': 2.6866699079982936, u'offset': -5769579610.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Modulo[1024]33Volt-3', u'idle': 2147483648, u'gain': 0.43955991929396987, u'offset': -471973836.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Random[1024]13Volt-3', u'idle': 262144, u'gain': 0.9109720303677022, u'offset': -978135769.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Sinus[2048]96Volt-3', u'idle': 4096, u'gain': 1.1476600146852434, u'offset': -204852.18688964844, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[2048]2Volt-3', u'idle': 2147483648, u'gain': 0.28105941228568554, u'offset': -73446311.5, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Modulo[2048]53Volt-3', u'idle': 2147483648, u'gain': 2.18753310944885, u'offset': -4644691582.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -9'}, {u'name': u'Random[2048]42Volt-3', u'idle': 2147483648, u'gain': 1.9068039334379137, u'offset': -4094830225.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Sinus[4096]41Volt-3', u'idle': 32, u'gain': 1.9847516645677388, u'offset': -66597173.765625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Cos[4096]72Volt-3', u'idle': 2147483648, u'gain': 0.3686635415069759, u'offset': -3092501.93359375, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -3'}, {u'name': u'Modulo[4096]68Volt-3', u'idle': 2147483648, u'gain': 0.15238979179412127, u'offset': -251584.556640625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Random[4096]66Volt-3', u'idle': 2147483648, u'gain': 2.7450713887810707, u'offset': 43512.37518310547, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'temp2', u'idle': -2147483648, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Unknown'}, {u'name': u'Driver_Saw', u'idle': 2147483648, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'ZAAG', u'unit': u'Integer'}, {u'name': u'Trigger', u'idle': 1, u'gain': 1.0, u'offset': 0.0, u'other_params': [], u'type': u'Boolean', u'unit': u'Bit'}], u'sampling_rates': [128, 256, 2048], u'physical_channels': 0, u'name': u'Dummy Amplifier'}}]
+
+
+engine!!! got:  {'sender_ip': u'', 'type': u'kill', 'sender': u'742ed398-e8b9-474f-b50f-850399e147e8', 'receiver': u''} 
+
+
+
+
+engine!!! got:  {'sender_ip': u'', 'type': u'kill_sent', 'sender': u'', 'experiment_id': u'742ed398-e8b9-474f-b50f-850399e147e8', 'receiver': u''} 
+
+
+handled:  kill
+!!!!!!!updating user interface {'sender_ip': u'', 'type': u'kill', 'sender': u'742ed398-e8b9-474f-b50f-850399e147e8', 'receiver': u''}
+-1 2
+engine signallllllllled kill
+handled:  kill_sent
+!!!!!!!updating user interface {'sender_ip': u'', 'type': u'kill_sent', 'sender': u'', 'experiment_id': u'742ed398-e8b9-474f-b50f-850399e147e8', 'receiver': u''}
+engine signallllllllled kill_sent
+1 -1
+
+
+engine!!! got:  {'launch_file_path': u'/home/lis/dev/openbci/scenarios/run_driver_discovery.ini', 'sender': u'', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'status_name': u'', 'pub_addrs': [u'tcp://127.0.0.1:52112'], 'origin_machine': u'127.0.0.1', 'details': u'', 'receiver': u'', 'sender_ip': u'', 'rep_addrs': [u'tcp://127.0.0.1:31455'], 'type': u'experiment_created', 'name': u'Driver Discovery'} 
+
+
+
+
+engine!!! got:  {'sender': u'', 'status_name': u'ready_to_launch', 'details': None, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'} 
+
+
+MATCHES
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+
+
+engine!!! got:  {'sender': u'', 'status_name': u'launching', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'} 
+
+
+
+
+engine!!! got:  {'sender': u'', 'status_name': u'launching', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'} 
+
+
+       *******************      tcp://127.0.0.1:52112
+
+
+engine!!! got:  {'task': u'connect', 'sender': u'', 'pub_addr': u'tcp://127.0.0.1:52112', 'receiver': u'', 'sender_ip': u'', 'type': u'_launcher_engine_msg'} 
+
+
+handled:  experiment_created
+!!!!!!!updating user interface {'launch_file_path': u'/home/lis/dev/openbci/scenarios/run_driver_discovery.ini', 'sender': u'', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'status_name': u'', 'pub_addrs': [u'tcp://127.0.0.1:52112'], 'origin_machine': u'127.0.0.1', 'details': u'', 'receiver': u'', 'sender_ip': u'', 'rep_addrs': [u'tcp://127.0.0.1:31455'], 'type': u'experiment_created', 'name': u'Driver Discovery'}
+-1 1
+engine signallllllllled experiment_created
+handled:  experiment_status_change
+!!!!!!!updating user interface {'sender': u'', 'status_name': u'ready_to_launch', 'details': None, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'}
+engine signallllllllled experiment_status_change
+handled:  experiment_status_change
+!!!!!!!updating user interface {'sender': u'', 'status_name': u'launching', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'}
+engine signallllllllled experiment_status_change
+handled:  experiment_status_change
+!!!!!!!updating user interface {'sender': u'', 'status_name': u'launching', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'}
+engine signallllllllled experiment_status_change
+
+
+engine!!! got:  {'sender_ip': u'', 'machine_ip': u'127.0.0.1', 'type': u'process_supervisor_registered', 'sender': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'receiver': u''} 
+
+
+!!!!!!!updating user interface {'sender_ip': u'', 'machine_ip': u'127.0.0.1', 'type': u'process_supervisor_registered', 'sender': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'receiver': u''}
+engine signallllllllled process_supervisor_registered
+
+
+engine!!! got:  {'sender_ip': u'', 'args': [u'run_multiplexer', u'127.0.0.1:52649', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules'], 'type': u'start_mx', 'sender': u'', 'receiver': u''} 
+
+
+!!!!!!!updating user interface {'sender_ip': u'', 'args': [u'run_multiplexer', u'127.0.0.1:52649', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules'], 'type': u'start_mx', 'sender': u'', 'receiver': u''}
+engine signallllllllled start_mx
+
+
+engine!!! got:  {'sender_ip': u'', 'mx_data': [u'run_multiplexer', u'127.0.0.1:52649', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules'], 'type': u'start_peers', 'sender': u'', 'receiver': u''} 
+
+
+!!!!!!!updating user interface {'sender_ip': u'', 'mx_data': [u'run_multiplexer', u'127.0.0.1:52649', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules'], 'type': u'start_peers', 'sender': u'', 'receiver': u''}
+engine signallllllllled start_peers
+
+
+engine!!! got:  {'sender': u'', 'status_name': u'running', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'} 
+
+
+handled:  experiment_status_change
+!!!!!!!updating user interface {'sender': u'', 'status_name': u'running', 'details': {}, 'receiver': u'', 'sender_ip': u'', 'type': u'experiment_status_change', 'uuid': u'9e74c61f-1384-44b7-b81f-925a09fac379'}
+engine signallllllllled experiment_status_change
+9e74c61f-1384-44b7-b81f-925a09fac379
+
+
+engine!!! got:  {'sender_ip': u'', 'type': u'launcher_shutdown', 'sender': u'd9c0971c-0542-4381-afb9-a9c7084f4c94', 'receiver': u''} 
+
+
+
+
+engine!!! got:  {'sender_ip': u'', 'type': u'kill', 'sender': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'receiver': u''} 
+
+
+Server process terminated.
+OBCI server launched. PID: 9379
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   amplifier /home/lis/dev/openbci/drivers/eeg/amplifier_virtual.ini
+parsing default config for peer   signal_saver /home/lis/dev/openbci/acquisition/signal_saver_peer.ini
+parsing default config for peer   info_saver /home/lis/dev/openbci/acquisition/info_saver_peer.ini
+parsing default config for peer   saver_control /home/lis/dev/openbci/acquisition/saver_control_peer.ini
+parsing default config for peer   tag_saver /home/lis/dev/openbci/acquisition/tag_saver_peer.ini
+parsing default config for peer   tag_generator /home/lis/dev/openbci/acquisition/tests/test_auto_tags_sending.ini
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+launch file opened
+parsing default config for peer   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   amplifier /home/lis/dev/openbci/drivers/eeg/amplifier_virtual.ini
+parsing default config for peer   signal_saver /home/lis/dev/openbci/acquisition/signal_saver_peer.ini
+parsing default config for peer   info_saver /home/lis/dev/openbci/acquisition/info_saver_peer.ini
+parsing default config for peer   saver_control /home/lis/dev/openbci/acquisition/saver_control_peer.ini
+parsing default config for peer   tag_saver /home/lis/dev/openbci/acquisition/tag_saver_peer.ini
+parsing default config for peer   tag_generator /home/lis/dev/openbci/acquisition/tests/test_auto_tags_sending.ini
+handled:  launcher_shutdown
+!!!!!!!updating user interface {'sender_ip': u'', 'type': u'launcher_shutdown', 'sender': u'd9c0971c-0542-4381-afb9-a9c7084f4c94', 'receiver': u''}
+engine signallllllllled launcher_shutdown
+handled:  kill
+!!!!!!!updating user interface {'sender_ip': u'', 'type': u'kill', 'sender': u'9e74c61f-1384-44b7-b81f-925a09fac379', 'receiver': u''}
+engine signallllllllled kill
+0 -1
+1 0
+0 1
+Namespace(ifname=None, launch=False, launch_file='/home/lis/dev/openbci/scenarios/run_driver_discovery.ini', name='Driver Discovery', obci_dir='/home/lis/dev/openbci/', ovr=[], pub_addresses=None, rep_addresses=None, sandbox_dir='/home/lis/.obci/sandbox', sv_addresses=['tcp://127.0.0.1:30305'], sv_pub_addresses=['tcp://127.0.0.1:37985'])
+
+	name: Driver Discovery
+	peer_type: obci_experiment
+	uuid: eb06dd14-e25f-4c98-b697-5d35c0f8f747
+
+rep: ['tcp://127.0.0.1:42637']
+pub: ['tcp://127.0.0.1:38178']
+
+Driver Discovery [ obci_experiment ] {"pub_addrs": ["tcp://127.0.0.1:38178"], "sender": "", "uuid": "eb06dd14-e25f-4c98-b697-5d35c0f8f747", "rep_addrs": ["tcp://127.0.0.1:42637"], "sender_ip": "", "peer_type": "obci_experiment", "other_params": {"launch_file_path": "/home/lis/dev/openbci/scenarios/run_driver_discovery.ini", "origin_machine": "127.0.0.1", "pid": 9420, "details": "", "status_name": ""}, "type": "register_peer", "receiver": "", "name": "Driver Discovery"}
+launch file opened
+parsing default config for pee
+	name: run_driver_discovery.ini-eb06dd14-127.0.0.1
+	peer_type: obci_process_supervisor
+	uuid: 873def7a-31b0-4e9c-b2cd-6b48e0c1a7df
+
+rep: ['tcp://127.0.0.1:55375']
+pub: ['tcp://127.0.0.1:52889']
+
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] mx addr str 127.0.0.1:55213
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] {"pub_addrs": ["tcp://127.0.0.1:52889"], "sender": "", "uuid": "873def7a-31b0-4e9c-b2cd-6b48e0c1a7df", "rep_addrs": ["tcp://127.0.0.1:55375"], "sender_ip": "", "peer_type": "obci_process_supervisor", "other_params": {"machine": "127.0.0.1", "pid": 9439, "mx_data": ["127.0.0.1:55213", ""]}, "type": "register_peer", "receiver": "", "name": "run_driver_discovery.ini-eb06dd14-127.0.0.1"}
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] RECEIVED LAUNCH DATA:  {u'driver_discovery': {u'peer_type': u'obci_peer', u'args': [u'driver_discovery', u'-p', u'available_drivers', u''], u'machine': u'', u'experiment_id': u'eb06dd14-e25f-4c98-b697-5d35c0f8f747', u'path': u'drivers/eeg/driver_discovery/driver_discovery.py', u'peer_id': u'driver_discovery'}, u'mx': {u'peer_type': u'multiplexer', u'args': [u'mx'], u'machine': u'', u'experiment_id': u'eb06dd14-e25f-4c98-b697-5d35c0f8f747', u'path': u'multiplexer-install/bin/mxcontrol', u'peer_id': u'mx'}, u'config_server': {u'peer_type': u'obci_peer', u'args': [u'config_server', u'-p', u'launcher_socket_addr', u''], u'machine': u'', u'experiment_id': u'eb06dd14-e25f-4c98-b697-5d35c0f8f747', u'path': u'obci_control/peer/config_server.py', u'peer_id': u'config_server'}}
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: process_supervisor_registered
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], Unknown message type: process_supervisor_registered
+--
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: start_mx
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] ..starting multiplexer
+[subprocess mor   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+Driver Discovery [obci_experiment], got message: start_experiment
+[subprocess monitor] obci_process_supervisor  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_process_supervisor.py
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: register_peer
+[subprocess_monitor] obci_process_supervisor.py [obci_process_supervisor]  REGISTERED!!! 127.0.0.1
+Driver Discovery [ obci_experiment ] (exp) choosing sv address: [u'tcp://127.0.0.1:52889']
+Driver Discovery [obci_experiment], Connecting to supervisor pub address tcp://127.0.0.1:52889
+Driver Discovery [obcinitor] multiplexer  local path:   /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol [u'run_multiplexer', u'127.0.0.1:55213', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules']
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: start_peers
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/obci_control/peer/config_server.py
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/obci_control/peer/config_server.py [u'config_server', u'-p', u'launcher_socket_addr', u'', '-p', 'launcher_socket_addr', 'tcp://127.0.0.1:50322']
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_superv
+	name: obci_server
+	peer_type: obci_server
+	uuid: 4375e8d6-3cbb-4549-819b-b5e7a6993c92
+
+rep: ['tcp://127.0.0.1:54654']
+pub: ['tcp://127.0.0.1:34234']
+
+obci_server [obci_server], got message: list_experiments
+obci_server [obci_server] -- nearby servers:  []
+obci_server [obci_server], got message: list_experiments
+obci_server [obci_server] -- nearby servers:  []
+obci_server [obci_server], got message: create_experiment
+[subprocess monitor] obci_experiment  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_experiment.py
+obci_server [obci_server] -- experiment process launched:  9420
+obci_server [obci_server], got message: register_peer
+[subprocess_monitor] obci_experiment.py [obci_experiment]  REGISTERED!!! 127.0.0.1
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change[config_server] {'launch_dependencies': {}, 'local_params': {'launcher_socket_addr': 'tcp://127.0.0.1:50322'}, 'config_sources': {}, 'external_params': {}} {'peer_id': 'config_server', 'config_file': None}
+[config_server] OK OK OK OK OK OK tcp://127.0.0.1:50322
+_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: all_peers_launched
+Driver Discovery [ obci_experiment ] {'machine': u'127.0.0.1', 'sender_ip': u'', 'type': u'all_peers_launched', 'sender': u'', 'receiver': u''} 0
+Driver Discovery [obci_experiment], got message: obci_peer_registered
+Driver Discovery [obci_experiment], Peer registered!!! driver_discovery
+Driver Discovery [obci_experiment], got message: obci_peer_ready
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: kill
+Driver Discovery [obci_experiment] -- sent KILL to supervisors
+Driver Discovery [ obci_experiment ] isor ] process launch success: /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py [u'driver_discovery', u'-p', u'available_drivers', u'']
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: obci_peer_registered
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: obci_control_message
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], Unknown message type: obci_control_message
+--
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: obci_peer_ready
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: rq_ok
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], Unknown message type: rq_ok
+--
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor], got message: kill
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [ obci_process_supervisor ] close  sock  None <zmq.core.socket.Socket object at 0x2806290>
+run_driver_discovery.in[ driver_discovery ] requesting external parameters
+[ driver_discovery ] External parameters initialised. [ (True, {'config_sources': [], 'ext_params': [], 'launch_deps': []}) ]
+[ driver_discovery ] *VALIDATE PARAMS, {'available_drivers': ''}
+Found bluetooth devices:  []
+Found USB devices:  []
+[ driver_discovery ] param update ( available_drivers [{'channels_info': {u'channels': [{u'name': u'Sinus[128]84Volt-3', u'idle': 2147483648, u'gain': 1.9116473575122654, u'offset': -256492965.0625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[128]36Volt-3', u'idle': 2147483648, u'gain': 0.5539699555374682, u'offset':[...] )   id: 3320495923115258716
+from: 30633336217527040
+to: 3511726886473932298
+type: 224
+message: "\022\036Peer unknown: driver_discovery"
+references: 662883208814285688
+workflow: ""
+
+[ driver_discovery ] sending ready signal.
+[ driver_discovery ] waiting for other peers:  []
+[ driver_discovery ] Dependencies are ready, I can start working
+[config_server]  SENDING msg  {"params": {"available_drivers": [{"channels_info": {"channels": [{"name": "Sinus[128]84Volt-3", "id[...]
+[config_server]  SENDING msg  {"sender_ip": "", "peer_id": "driver_discovery", "type": "obci_peer_ready", "sender": "", "receiver"[...]
+i-eb06dd14-127.0.0.1 [ obci_process_supervisor ] cleaning up
+[subprocess_monitor] multiplexer mx joining returncode thread
+[subprocess_monitor] monitor for:  multiplexer mx   ...monitoring threads stopped.
+[subprocess_monitor] obci_peer driver_discovery joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer driver_discovery   ...monitoring threads stopped.
+[subprocess_monitor] obci_peer config_server joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer config_server   ...monitoring threads stopped.
+run_driver_discovery.ini-eb06dd14-127.0.0.1 [obci_process_supervisor] -- IS SHUTTING DOWN
+Namespace(ifname=None, launch=False, launch_file='/home/lis/dev/openbci/scenarios/run_driver_discovery.ini', name='Driver Discovery', obci_dir='/home/lis/dev/openbci/', ovr=[], pub_addresses=None, rep_addresses=None, sandbox_dir='/home/lis/.obci/sandbox', sv_addresses=['tcp://127.0.0.1:30305'], sv_pub_addresses=['tcp://127.0.0.1:37985'])
+
+	name: Driver Discovery
+	peer_type: obci_experiment
+	uuid: 88f4a396-4658-4c51-8948-def703097583
+
+rep: ['tcp://127.0.0.1:42568']
+pub: ['tcp://127.0.0.1:44943']
+
+Driver Discovery [ obci_experiment ] {"pub_addrs": ["tcp://127.0.0.1:44943"], "sender": "", "uuid": "88f4a396-4658-4c51-8948-def703097583", "rep_addrs": ["tcp://127.0.0.1:42568"], "sender_ip": "", "peer_type": "obci_experiment", "other_params": {"launch_file_path": "/home/lis/dev/openbci/scenarios/run_driver_discovery.ini", "origin_machine": "127.0.0.1", "pid": 9489, "details": "", "status_name": ""}, "type": "register_peer", "receiver": "", "name": "Driver Discovery"}
+launch file opened
+parsing default config for pee
+%%%%%%%%
+obci_server [obci_server], got message: list_experiments
+obci_server [obci_server] -- nearby servers:  []
+obci_server [obci_server], got message: kill_experiment
+obci_server [obci_server] - sending kill to experiment eb06dd14-e25f-4c98-b697-5d35c0f8f747 (Driver Discovery)
+obci_server [obci_server]  Waiting for experiment process eb06dd14-e25f-4c98-b697-5d35c0f8f747 to terminate
+[subprocess_monitor] obci_experiment obci_experiment.py Joining ping thread
+obci_server [obci_server], got message: create_experiment
+[subprocess monitor] obci_experiment  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_experiment.py
+obci_server [obci_server] -- experiment process launched:  9489
+obci_server [obci_server], got message: register_peer
+[subprocess_monitor] obci_experiment.py [obci_experiment]  REGISTERED!!! 127.0.0.1
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got mess
+	name: run_driver_discovery.ini-88f4a396-127.0.0.1
+	peer_type: obci_process_supervisor
+	uuid: fdc0f215-c281-4735-bc0b-257ea5903bb1
+
+rep: ['tcp://127.0.0.1:44046']
+pub: ['tcp://127.0.0.1:32339']
+
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] mx addr str 127.0.0.1:56271
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] {"pub_addrs": ["tcp://127.0.0.1:32339"], "sender": "", "uuid": "fdc0f215-c281-4735-bc0b-257ea5903bb1", "rep_addrs": ["tcp://127.0.0.1:44046"], "sender_ip": "", "peer_type": "obci_process_supervisor", "other_params": {"machine": "127.0.0.1", "pid": 9508, "mx_data": ["127.0.0.1:56271", ""]}, "type": "register_peer", "receiver": "", "name": "run_driver_discovery.ini-88f4a396-127.0.0.1"}
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] RECEIVED LAUNCH DATA:  {u'driver_discovery': {u'peer_type': u'obci_peer', u'args': [u'driver_discovery', u'-p', u'available_drivers', u''], u'machine': u'', u'experiment_id': u'88f4a396-4658-4c51-8948-def703097583', u'path': u'drivers/eeg/driver_discovery/driver_discovery.py', u'peer_id': u'driver_discovery'}, u'mx': {u'peer_type': u'multiplexer', u'args': [u'mx'], u'machine': u'', u'experiment_id': u'88f4a396-4658-4c51-8948-def703097583', u'path': u'multiplexer-install/bin/mxcontrol', u'peer_id': u'mx'}, u'config_server': {u'peer_type': u'obci_peer', u'args': [u'config_server', u'-p', u'launcher_socket_addr', u''], u'machine': u'', u'experiment_id': u'88f4a396-4658-4c51-8948-def703097583', u'path': u'obci_control/peer/config_server.py', u'peer_id': u'config_server'}}
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: process_supervisor_registered
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], Unknown message type: process_supervisor_registered
+--
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: start_mx
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] ..starting multiplexer
+[subprocess mor   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+Driver Discovery [obci_experiment], got message: start_experiment
+[subprocess monitor] obci_process_supervisor  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_process_supervisor.py
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: register_peer
+[subprocess_monitor] obci_process_supervisor.py [obci_process_supervisor]  REGISTERED!!! 127.0.0.1
+Driver Discovery [ obci_experiment ] (exp) choosing sv address: [u'tcp://127.0.0.1:32339']
+Driver Discovery [obci_experiment], Connecting to supervisor pub address tcp://127.0.0.1:32339
+Driver Discovery [obcinitor] multiplexer  local path:   /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol [u'run_multiplexer', u'127.0.0.1:56271', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules']
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: start_peers
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/obci_control/peer/config_server.py
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/obci_control/peer/config_server.py [u'config_server', u'-p', u'launcher_socket_addr', u'', '-p', 'launcher_socket_addr', 'tcp://127.0.0.1:59083']
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_superv[config_server] {'launch_dependencies': {}, 'local_params': {'launcher_socket_addr': 'tcp://127.0.0.1:59083'}, 'config_sources': {}, 'external_params': {}} {'peer_id': 'config_server', 'config_file': None}
+[config_server] OK OK OK OK OK OK tcp://127.0.0.1:59083
+close  sock  None <zmq.core.socket.Socket object at 0x24e4650>
+Driver Discovery [ obci_experiment ] exp cleaning up
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py Joining ping thread
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_process_supervisor obci_process_supervisor.py   ...monitoring threads stopped.
+Driver Discovery [obci_experiment] -- IS SHUTTING DOWN
+age: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+[subprocess_monitor] obci_experiment obci_experiment.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_experiment obci_experiment.py   ...monitoring threads stopped.
+obci_server [obci_server] - experiment eb06dd14-e25f-4c98-b697-5d35c0f8f747 FINISHED
+obci_server [obci_server], got message: list_experiments
+obci_server [obci_server] -- nearby servers:  []
+obci_server [obci_server], got message: get_experiment_contact
+##### rq contact for:  Dri
+obci_server [obci_server], got message: get_experiment_contact
+##### rq contact for:  Dri
+obci_server [obci_server], got message: list_experiments
+obci_server [obci_server] -- nearby servers:  []
+obci_server [obci_server], got message: kill_experiment
+obci_server [obci_server] - sending kill to experiment 88f4a396-4658-4c51-8948-def703097583 (Driver Discovery)
+obci_server [obci_server]  Waiting for experiment process 88f4a396-4658-4c51-8948-_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: all_peers_launched
+Driver Discovery [ obci_experiment ] {'machine': u'127.0.0.1', 'sender_ip': u'', 'type': u'all_peers_launched', 'sender': u'', 'receiver': u''} 0
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: kill
+Driver Discovery [obci_experiment] -- sent KILL to supervisors
+Driver Discovery [ obci_experiment ] close  sock  None <zmq.core.socket.Socket object at 0x137f650>
+Driver Discoisor ] process launch success: /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py [u'driver_discovery', u'-p', u'available_drivers', u'']
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: rq_ok
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], Unknown message type: rq_ok
+--
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: rq_ok
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], Unknown message type: rq_ok
+--
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor], got message: kill
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] close  sock  None <zmq.core.socket.Socket object at 0x29a3290>
+run_driver_discovery.ini-88f4a396-127.0.0.1 [ obci_process_supervisor ] cleaning up
+[subprocess_monitor] obci_peer driver_discovery joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer driver_discovery   ...monitoring threads stopped.
+[subprocess_monitor] obci_peer config_server joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer config_server   ...monitoring threads stopped.
+[subprocess_monitor] multiplexer mx joining returncode thread
+[subprocess_monitor] monitor for:  multiplexer mx   ...monitoring threads stopped.
+run_driver_discovery.ini-88f4a396-127.0.0.1 [obci_process_supervisor] -- IS SHUTTING DOWN
+Namespace(ifname=None, launch=False, launch_file='/home/lis/dev/openbci/scenarios/run_driver_discovery.ini', name='Driver Discovery', obci_dir='/home/lis/dev/openbci/', ovr=[], pub_addresses=None, rep_addresses=None, sandbox_dir='/home/lis/.obci/sandbox', sv_addresses=['tcp://127.0.0.1:30305'], sv_pub_addresses=['tcp://127.0.0.1:37985'])
+
+	name: Driver Discovery
+	peer_type: obci_experiment
+	uuid: 35cdc2ef-71fa-4890-89ed-392160b65515
+
+rep: ['tcp://127.0.0.1:35126']
+pub: ['tcp://127.0.0.1:44762']
+
+Driver Discovery [ obci_experiment ] {"pub_addrs": ["tcp://127.0.0.1:44762"], "sender": "", "uuid": "35cdc2ef-71fa-4890-89ed-392160b65515", "rep_addrs": ["tcp://127.0.0.1:35126"], "sender_ip": "", "peer_type": "obci_experiment", "other_params": {"launch_file_path": "/home/lis/dev/openbci/scenarios/run_driver_discovery.ini", "origin_machine": "127.0.0.1", "pid": 9604, "details": "", "status_name": ""}, "type": "register_peer", "receiver": "", "name": "Driver Discovery"}
+launch file opened
+parsing default config for pee
+	name: run_driver_discovery.ini-35cdc2ef-127.0.0.1
+	peer_type: obci_process_supervisor
+	uuid: a4458814-276b-4c93-b083-76a443f89e84
+
+rep: ['tcp://127.0.0.1:30327']
+pub: ['tcp://127.0.0.1:52607']
+
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] mx addr str 127.0.0.1:36226
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] {"pub_addrs": ["tcp://127.0.0.1:52607"], "sender": "", "uuid": "a4458814-276b-4c93-b083-76a443f89e84", "rep_addrs": ["tcp://127.0.0.1:30327"], "sender_ip": "", "peer_type": "obci_process_supervisor", "other_params": {"machine": "127.0.0.1", "pid": 9623, "mx_data": ["127.0.0.1:36226", ""]}, "type": "register_peer", "receiver": "", "name": "run_driver_discovery.ini-35cdc2ef-127.0.0.1"}
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] RECEIVED LAUNCH DATA:  {u'driver_discovery': {u'peer_type': u'obci_peer', u'args': [u'driver_discovery', u'-p', u'available_drivers', u''], u'machine': u'', u'experiment_id': u'35cdc2ef-71fa-4890-89ed-392160b65515', u'path': u'drivers/eeg/driver_discovery/driver_discovery.py', u'peer_id': u'driver_discovery'}, u'mx': {u'peer_type': u'multiplexer', u'args': [u'mx'], u'machine': u'', u'experiment_id': u'35cdc2ef-71fa-4890-89ed-392160b65515', u'path': u'multiplexer-install/bin/mxcontrol', u'peer_id': u'mx'}, u'config_server': {u'peer_type': u'obci_peer', u'args': [u'config_server', u'-p', u'launcher_socket_addr', u''], u'machine': u'', u'experiment_id': u'35cdc2ef-71fa-4890-89ed-392160b65515', u'path': u'obci_control/peer/config_server.py', u'peer_id': u'config_server'}}
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor], got message: process_supervisor_registered
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor], Unknown message type: process_supervisor_registered
+--
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor], got message: start_mx
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] ..starting multiplexer
+[subprocess mor   config_server /home/lis/dev/openbci/obci_control/peer/config_server.ini
+parsing default config for peer   driver_discovery /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.ini
+Driver Discovery [obci_experiment], got message: start_experiment
+[subprocess monitor] obci_process_supervisor  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_process_supervisor.py
+Driver Discovery [obci_experiment], got message: get_experiment_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: register_peer
+[subprocess_monitor] obci_process_supervisor.py [obci_process_supervisor]  REGISTERED!!! 127.0.0.1
+Driver Discovery [ obci_experiment ] (exp) choosing sv address: [u'tcp://127.0.0.1:52607']
+Driver Discovery [obci_experiment], Connecting to supervisor pub address tcp://127.0.0.1:52607
+Driver Discovery [obcinitor] multiplexer  local path:   /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/multiplexer-install/bin/mxcontrol [u'run_multiplexer', u'127.0.0.1:36226', u'--multiplexer-password', u'', u'--rules', u'/home/lis/dev/openbci/configs/multiplexer.rules']
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor], got message: start_peers
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/obci_control/peer/config_server.py
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] process launch success: /home/lis/dev/openbci/obci_control/peer/config_server.py [u'config_server', u'-p', u'launcher_socket_addr', u'', '-p', 'launcher_socket_addr', 'tcp://127.0.0.1:47103']
+[subprocess monitor] obci_peer  local path:   /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_superv[config_server] {'launch_dependencies': {}, 'local_params': {'launcher_socket_addr': 'tcp://127.0.0.1:47103'}, 'config_sources': {}, 'external_params': {}} {'peer_id': 'config_server', 'config_file': None}
+[config_server] OK OK OK OK OK OK tcp://127.0.0.1:47103
+very [ obci_experiment ] exp cleaning up
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py Joining ping thread
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_process_supervisor obci_process_supervisor.py   ...monitoring threads stopped.
+Driver Discovery [obci_experiment] -- IS SHUTTING DOWN
+def703097583 to terminate
+[subprocess_monitor] obci_experiment obci_experiment.py Joining ping thread
+obci_server [obci_server], got message: create_experiment
+[subprocess monitor] obci_experiment  local path:   /home/lis/dev/openbci/obci_control/launcher/obci_experiment.py
+obci_server [obci_server] -- experiment process launched:  9604
+obci_server [obci_server], got message: register_peer
+[subprocess_monitor] obci_experiment.py [obci_experiment]  REGISTERED!!! 127.0.0.1
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+obci_server [obci_server], got message: experiment_status_change
+%%%%%%%%
+[subprocess_monitor] obci_experiment obci_experiment.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_experiment obci_experiment.py   ...monitoring threads stopped.
+obci_server [obci_server] - experiment 88f4a396-4658-4c51-8948-def7[config_server]  SENDING msg  {"params": {"available_drivers": [{"channels_info": {"channels": [{"name": "Sinus[128]84Volt-3", "id[...]
+[config_server]  SENDING msg  {"sender_ip": "", "peer_id": "driver_discovery", "type": "obci_peer_ready", "sender": "", "receiver"[...]
+[ driver_discovery ] requesting external parameters
+[ driver_discovery ] External parameters initialised. [ (True, {'config_sources': [], 'ext_params': [], 'launch_deps': []}) ]
+[ driver_discovery ] *VALIDATE PARAMS, {'available_drivers': ''}
+Found bluetooth devices:  []
+Found USB devices:  []
+[ driver_discovery ] param update ( available_drivers [{'channels_info': {u'channels': [{u'name': u'Sinus[128]84Volt-3', u'idle': 2147483648, u'gain': 1.9116473575122654, u'offset': -256492965.0625, u'other_params': [], u'type': u'UNKNOWN', u'unit': u'Volt -6'}, {u'name': u'Cos[128]36Volt-3', u'idle': 2147483648, u'gain': 0.5539699555374682, u'offset':[...] )   id: 9184321747640386653
+from: 2160762192417711407
+to: 3675550747797687520
+type: 224
+message: "\022\036Peer unknown: driver_discovery"
+references: 490047071977693260
+workflow: ""
+
+[ driver_discovery ] sending ready signal.
+[ driver_discovery ] waiting for other peers:  []
+[ driver_discovery ] Dependencies are ready, I can start working
+isor ] process launch success: /home/lis/dev/openbci/drivers/eeg/driver_discovery/driver_discovery.py [u'driver_discovery', u'-p', u'available_drivers', u'']
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor], got message: kill
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] close  sock  None <zmq.core.socket.Socket object at 0x18b2290>
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [ obci_process_supervisor ] cleaning up
+[subprocess_monitor] multiplexer mx joining returncode thread
+[subprocess_monitor] monitor for:  multiplexer mx   ...monitoring threads stopped.
+[subprocess_monitor] obci_peer driver_discovery joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer driver_discovery   ...monitoring threads stopped.
+[subprocess_monitor] obci_peer config_server joining returncode thread
+[subprocess_monitor] monitor for:  obci_peer config_server   ...monitoring threads stopped.
+run_driver_discovery.ini-35cdc2ef-127.0.0.1 [obci_process_supervisor] -- IS SHUTTING DOWN
+_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: launched_process_info
+Driver Discovery [obci_experiment], got message: all_peers_launched
+Driver Discovery [ obci_experiment ] {'machine': u'127.0.0.1', 'sender_ip': u'', 'type': u'all_peers_launched', 'sender': u'', 'receiver': u''} 0
+Driver Discovery [obci_experiment], got message: get_peer_info
+Driver Discovery [obci_experiment], got message: kill
+Driver Discovery [obci_experiment] -- sent KILL to supervisors
+Driver Discovery [ obci_experiment ] close  sock  None <zmq.core.socket.Socket object at 0x2bf0650>
+Driver Discovery [ obci_experiment ] exp cleaning up
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py Joining ping thread
+[subprocess_monitor] obci_process_supervisor obci_process_supervisor.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_process_supervisor obci_process_supervisor.py   ...monitoring threads stopped.
+Driver Discovery [obci_experiment] -- IS SHUTTING DOWN
+03097583 FINISHED
+obci_server [obci_server], got message: get_experiment_contact
+##### rq contact for:  Dri
+obci_server [obci_server], got message: kill_experiment
+obci_server [obci_server] - sending kill to experiment 35cdc2ef-71fa-4890-89ed-392160b65515 (Driver Discovery)
+obci_server [obci_server]  Waiting for experiment process 35cdc2ef-71fa-4890-89ed-392160b65515 to terminate
+[subprocess_monitor] obci_experiment obci_experiment.py Joining ping thread
+[subprocess_monitor] obci_experiment obci_experiment.py joining returncode thread
+[subprocess_monitor] monitor for:  obci_experiment obci_experiment.py   ...monitoring threads stopped.
+obci_server [obci_server] - experiment 35cdc2ef-71fa-4890-89ed-392160b65515 FINISHED
+obci_server [obci_server], got message: kill
+obci_server [obci_server] -- sent KILL to experiments
+obci_server [ obci_server ] close  sock  ['tcp://127.0.0.1:34234'] <zmq.core.socket.Socket object at 0x2ce7a10>
+obci_server [obci_server] -- IS SHUTTING DOWN

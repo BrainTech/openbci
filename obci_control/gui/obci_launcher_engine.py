@@ -518,7 +518,10 @@ class ExperimentEngineInfo(QtCore.QObject):
 			for param in peer.config.local_params:
 				params[param] = (self.exp_config.param_value(peer_id, param), None)
 			for param, defi in peer.config.ext_param_defs.iteritems():
-				params[param] = (self.exp_config.param_value(peer_id, param), defi[0]+'.'+defi[1])
+				source_symbol = defi[0]
+				source = peer.config.config_sources[source_symbol]
+				print source, source_symbol
+				params[param] = (self.exp_config.param_value(peer_id, param), source+'.'+defi[1])
 		return params
 
 

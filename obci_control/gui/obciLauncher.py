@@ -269,7 +269,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
             self.stop_button.setEnabled(True)
             self.parameters.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
-            self.start_button.setEnabled(True)
+            enable = (current_exp.status.status_name == READY_TO_LAUNCH)
+            self.start_button.setEnabled(enable)
             self.stop_button.setEnabled(False)
             self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
                                          QAbstractItemView.EditKeyPressed)
