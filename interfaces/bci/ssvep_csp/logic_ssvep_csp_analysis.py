@@ -67,6 +67,7 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
 	     'freqs':';'.join([str(i) for i in best[:dec_count]]),
 	     'all_freqs':';'.join([str(i) for i in best]),
 	     'all_means':';'.join([str(i) for i in best_means]),
+	     'dec_count':dec_count,
 	     'buffer':t2,
 	     'use_channels':';'.join(use_channels),
 	     'montage':montage,

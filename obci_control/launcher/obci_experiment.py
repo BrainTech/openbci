@@ -28,6 +28,7 @@ import system_config
 import obci_process_supervisor
 
 import peer.peer_cmd as peer_cmd
+from peer.peer_config import PeerConfig
 
 REGISTER_TIMEOUT = 25
 
@@ -41,6 +42,7 @@ class OBCIExperiment(OBCIControlPeer):
 										rep_addresses=None,
 										pub_addresses=None,
 										name='obci_experiment',
+										current_ip=None,
 										launch=False,
 										overwrites=None):
 
@@ -50,6 +52,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.origin_machine = socket.gethostname()
 		self.poller = PollingObject()
 		self.launch_file = launcher_tools.obci_root_relative(launch_file)
+		self.current_ip = current_ip
 		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
@@ -62,35 +65,15 @@ class OBCIExperiment(OBCIControlPeer):
 		self.supervisors = {} #machine -> supervisor contact/other info
 		self._wait_register = 0
 		self._ready_register = 0
+		self._kill_and_launch = None
 		self.sv_processes = {} # machine -> Process objects)
 		self.unsupervised_peers = {}
 
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-		self.status = launcher_tools.ExperimentStatus()
+		self.exp_config, self.status = self._initialize_experiment_config(self.launch_file, overwrites)
 
-		self.exp_config = system_config.OBCIExperimentConfig(uuid=self.uuid)
-		self.exp_config.origin_machine = self.origin_machine
-		self.exp_config.launch_file_path = self.launch_file
-
-		result, details = self.make_experiment_config()
-		if overwrites:
-			try:
-				for [ovr, other] in overwrites:
-					self.exp_config.update_peer_config(other['peer_id'], ovr)
-					if other['config_file']:
-						for f in other['config_file']:
-							self.exp_config.file_update_peer_config(other['peer_id'], f)
-			except Exception, e:
-				details = str(e)
-
-		self.exp_config.status(self.status)
-		self.status.details = details
 		self.status_changed(self.status.status_name, self.status.details)
-		if not result and self.launch_file:
-			print "- - - - - - -  LAUNCH FILE INVALID!!!  - - - - - - - "
-			print "status:", self.status.as_dict(), details
-
 
 
 		self.mx_addr = None
@@ -149,7 +132,8 @@ class OBCIExperiment(OBCIControlPeer):
 					'--sandbox-dir', str(self.sandbox_dir),
 					'--name', name +\
 							 '-' + self.uuid.split('-',1)[0] + \
-							'-' + machine
+							'-' + machine,
+					'--experiment-uuid', self.uuid
 					]
 		return args
 
@@ -181,11 +165,11 @@ class OBCIExperiment(OBCIControlPeer):
 		self.sv_processes[machine_addr] = sv_obj
 		return sv_obj, None
 
-	def _start_all_obci_process_supervisors(self):
-		self._wait_register = len(self.exp_config.peer_machines())
+	def _start_obci_process_supervisors(self, peer_machines):
+		self._wait_register = len(peer_machines)
 		details = None
 
-		for machine in self.exp_config.peer_machines():
+		for machine in peer_machines:
 			result, details = self._start_obci_process_supervisor(machine)
 
 			if not result:
@@ -208,7 +192,7 @@ class OBCIExperiment(OBCIControlPeer):
 		START EXPERIMENT!!!!
 		##################################################################
 		"""
-		result, details = self._start_all_obci_process_supervisors()
+		result, details = self._start_obci_process_supervisors(self.exp_config.peer_machines())
 		if not result:
 			send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
 												sender=self.uuid, details=details,
@@ -217,30 +201,57 @@ class OBCIExperiment(OBCIControlPeer):
 
 		return result, details
 
-	def make_experiment_config(self):
+	def _initialize_experiment_config(self, launch_file, overwrites=None):
+		status = launcher_tools.ExperimentStatus()
+
+		exp_config = system_config.OBCIExperimentConfig(uuid=self.uuid)
+		exp_config.origin_machine = self.origin_machine
+		exp_config.launch_file_path = launch_file
+
+		result, details = self.make_experiment_config(exp_config, launch_file, status)
+		if overwrites:
+			try:
+				for [ovr, other] in overwrites:
+					exp_config.update_peer_config(other['peer_id'], ovr)
+					if other['config_file']:
+						for f in other['config_file']:
+							exp_config.file_update_peer_config(other['peer_id'], f)
+			except Exception, e:
+				details = str(e)
+
+		exp_config.status(status)
+		status.details = details
+		# status_changed(status.status_name, status.details)
+		if not result:
+			print "- - - - - - - NEW LAUNCH FILE INVALID!!!  - - - - - - - "
+			print "status:", status.as_dict(), details
+		return exp_config, status
+
+	def make_experiment_config(self, exp_config, launch_file, status):
 		launch_parser = launch_file_parser.LaunchFileParser(
 							launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
-		if not self.launch_file:
+		if not launch_file:
 			return False, "Empty scenario."
 		try:
-			with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
+			with open(os.path.join(launcher_tools.obci_root(), launch_file)) as f:
 				print "launch file opened"
-				launch_parser.parse(f, self.exp_config)
+				launch_parser.parse(f, exp_config)
 		except Exception as e:
-			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
+			status.set_status(launcher_tools.NOT_READY, details=str(e))
 
 			return False, str(e)
 
 		#print self.exp_config
-		rd, details = self.exp_config.config_ready()
+		rd, details = exp_config.config_ready()
 		if rd:
-			self.status.set_status(launcher_tools.READY_TO_LAUNCH)
+			status.set_status(launcher_tools.READY_TO_LAUNCH)
 		else:
-			self.status.set_status(launcher_tools.NOT_READY, details=details)
+			status.set_status(launcher_tools.NOT_READY, details=details)
 
 		return True, None
 
 	def status_changed(self, status_name, details, peers=None):
+		# TODO use PUB/SUB pattern
 		send_msg(self.source_req_socket, self.mtool.fill_msg('experiment_status_change',
 				status_name=status_name, details=details, uuid=self.uuid, peers=peers))
 		self.poller.poll_recv(self.source_req_socket, timeout=8000)
@@ -296,8 +307,10 @@ class OBCIExperiment(OBCIControlPeer):
 								self.name, self.peer_type(), a)
 
 			launch_data = self.exp_config.launch_data(machine)
+			order = self.exp_config.peer_order()
 
-			send_msg(sock, self.mtool.fill_msg("rq_ok", params=launch_data))
+			send_msg(sock, self.mtool.fill_msg("rq_ok", params=dict(launch_data=launch_data,
+																		peer_order=order)))
 
 			# inform observers
 			send_msg(self._publish_socket, self.mtool.fill_msg("process_supervisor_registered",
@@ -306,8 +319,16 @@ class OBCIExperiment(OBCIControlPeer):
 
 			self._wait_register -= 1
 			if self._wait_register == 0:
-				send_msg(self._publish_socket, self.mtool.fill_msg("start_mx",
-										args=self.mx_args()))
+				if self._kill_and_launch:
+					kill, launch = self._kill_and_launch
+					to_launch = launch[machine]
+					to_kill = kill.get(machine, [])
+					send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
+													kill_peers=to_kill, start_peers_data=to_launch,
+													receiver=desc.uuid))
+				else:
+					send_msg(self._publish_socket, self.mtool.fill_msg("start_mx",
+															args=self.mx_args()))
 
 	def mx_args(self):
 		return ["run_multiplexer", self.mx_addr,
@@ -341,7 +362,8 @@ class OBCIExperiment(OBCIControlPeer):
 		if self._wait_register == 0:
 				self.status.set_status(launcher_tools.LAUNCHING)
 				self.status_changed(self.status.status_name, self.status.details)
-		self._ready_register = len(self.exp_config.peers) - 2 #without mx and config_server, for now default is 1 mx
+		if not self._kill_and_launch: # if kill/launch, this variable was set in _kill_and_launch_peers()
+			self._ready_register = len(self.exp_config.peers) - 2 #without mx and config_server, for now default is 1 mx
 
 	def _choose_process_address(self, proc, addresses):
 		print self.name,'[', self.type, ']', "(exp) choosing sv address:", addresses
@@ -357,12 +379,6 @@ class OBCIExperiment(OBCIControlPeer):
 
 	@msg_handlers.handler('get_experiment_info')
 	def handle_get_experiment_info(self, message, sock):
-		## a not-launched version
-		# exp_info = self.exp_config.info()
-		# exp_info['experiment_status'] = self.status.as_dict()
-		# exp_info['unsupervised_peers'] = self.unsupervised_peers
-
-
 		send_msg(self._publish_socket, self.mtool.fill_msg('rq_ok'))
 		send_msg(sock, self.mtool.fill_msg('experiment_info',
 											experiment_status=self.status.as_dict(),
@@ -563,6 +579,183 @@ class OBCIExperiment(OBCIControlPeer):
 	def handle_save_scenario(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('rq_error', err_code='action_not_supported'))
 
+
+	@msg_handlers.handler("experiment_finished")
+	def handle_experiment_finished(self, message, sock):
+		# [make mx_messsage]
+		# [handler in config_server]
+		# stop_all
+		# status - finished
+		pass
+
+	@msg_handlers.handler("morph_to_new_scenario")
+	def handle_morph(self, message, sock):
+		if self.status.status_name != launcher_tools.RUNNING:
+			if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
+				send_msg(sock, self.mtool.fill_msg('rq_error',
+														err_code='experiment_not_running', 
+														details=self.status.details))
+			return
+
+		new_launch_file = launcher_tools.obci_root_relative(message.launch_file)
+		exp_config, status = self._initialize_experiment_config(new_launch_file,
+															message.overwrites)
+		
+		if status.status_name != launcher_tools.READY_TO_LAUNCH:
+			if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
+				send_msg(sock, self.mtool.fill_msg('rq_error',
+														err_code='launch_file_invalid', 
+														details=dict(status_name=status.status_name,
+																		details=status.details)))
+			return
+
+		valid, details = self._validate_morph_leave_on(self.exp_config, exp_config, message.leave_on)
+		print "morph valid:", valid, details
+
+		if not valid:
+			if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
+				send_msg(sock, self.mtool.fill_msg('rq_error', 
+													err_code='leave_on_peers_invalid',
+													details=details))
+			return	
+
+		kill_list, launch_list = self._diff_scenarios(self.exp_config, 
+														exp_config, message.leave_on)
+
+		for peer in status.peers_status:
+			if peer not in launch_list and peer not in kill_list:
+				status.peer_status(peer).set_status(self.status.peer_status(peer).status_name,
+												self.status.peer_status(peer).details)
+
+		print "KILL_LIST ", kill_list
+		print "LAUNCH_LIST", launch_list
+
+		old_name = self.name
+		old_status = self.status
+		self.name = message.name if message.name is not None else ""
+		self.launch_file = new_launch_file
+		self.status = status
+
+		old_config = self.exp_config
+		self.exp_config = exp_config
+
+		if sock.getsockopt(zmq.TYPE) in [zmq.REP, zmq.ROUTER]:
+			send_msg(sock, self.mtool.fill_msg('starting_experiment'))
+			self.status.set_status(launcher_tools.LAUNCHING)
+			send_msg(self.source_req_socket, self.mtool.fill_msg('experiment_transformation',
+							status_name=self.status.status_name, details=self.status.details, 
+							uuid=self.uuid, name=self.name, launch_file=new_launch_file,
+							old_name=old_name, old_launch_file=old_config.launch_file_path))
+			self.poller.poll_recv(self.source_req_socket, timeout=8000)
+
+
+
+		#TODO -- notice obci_server of name/config change
+
+		self._kill_and_launch_peers(kill_list, launch_list, self.exp_config, old_config)
+		self._kill_unused_supervisors()
+
+		# list: to kill, to restart (unless in leave-on)
+		# start supervisors if new machnes specified
+		# send launch_data to all
+		# start
+		# deregister / register in obci_server
+
+	def _kill_and_launch_peers(self, kill_list, launch_list, new_config, old_config):
+		kill_data = {}
+		for peer in kill_list:
+			machine = old_config.peers[peer].machine
+			if not machine in kill_data:
+				kill_data[machine] = []
+			kill_data[machine].append(peer)
+
+		launch_data = {}
+		self._ready_register = 0
+
+		for machine in new_config.peer_machines():
+			ldata = new_config.launch_data(machine)
+			peers = ldata.keys()
+			for peer in peers:
+				if peer in launch_list:
+					if not machine in launch_data:
+						launch_data[machine] = {}
+					launch_data[machine][peer] = ldata[peer]
+					self._ready_register += 1
+		
+		self._kill_and_launch = (kill_data, launch_data)
+		
+		new_supervisors = []
+		for machine in launch_data:
+			if machine not in old_config.peer_machines():
+				new_supervisors.append(machine)
+		if new_supervisors:
+			self._wait_register = len(new_supervisors)
+
+			self._start_obci_process_supervisors(new_supervisors)
+#--------------------------------------------------------------------------------------
+		for machine in kill_data:
+			to_kill = kill_data[machine]
+			if machine in launch_data:
+				to_launch = launch_data[machine]
+			else:
+				to_launch = {}
+			send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
+												kill_peers=to_kill, start_peers_data=to_launch,
+												receiver=self.supervisors[machine].uuid))
+		for machine in launch_data:
+			if machine not in kill_data and machine not in new_supervisors:
+				to_kill = []
+				to_launch = launch_data[machine]
+				send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
+												kill_peers=to_kill, start_peers_data=to_launch,
+												receiver=self.supervisors[machine].uuid))
+
+
+	def _kill_unused_supervisors(self):
+		pass
+
+	def _diff_scenarios(self, old_config, new_config, leave_on):
+		kill_list = []
+		for peer in old_config.peers:
+			if peer not in new_config.peers:
+				kill_list.append(peer)
+		launch_list = []
+		for peer in new_config.peers:
+			if peer not in old_config.peers:
+				launch_list.append(peer)
+		
+		for peer in new_config.peers:
+			if peer in old_config.peers and not peer in leave_on and \
+										not peer in ['mx', 'config_server']:
+				kill_list.append(peer)
+				launch_list.append(peer)
+		return kill_list, launch_list
+
+
+	def _validate_morph_leave_on(self, old_config, new_config, leave_on):
+
+		for peer_id in leave_on:
+
+			old_p = old_config.peers.get(peer_id, None)
+			new_p = new_config.peers.get(peer_id, None)
+			if old_p is None or new_p is None:
+				return False, "Peer id " + peer_id + 'present old config: ' \
+									+ str(old_p is not None) + ', present in new config: ' +\
+									+ str(new_p is not None)
+			if old_p.path != new_p.path:
+				return False, "Peer ids [" + peer_id + "] point to different programs: " +\
+									"old: " + old_p.path + ', new: ' + new_p.path
+
+			old_machine = old_p.machine if old_p.machine else socket.gethostname() 
+			new_machine = new_p.machine if new_p.machine else socket.gethostname()
+
+			if old_machine != new_machine:
+				return False, "Peer id " + peer_id + 'is to be launched on a different machine: ' +\
+								"old: " + old_machine + ', new:' + new_machine
+			else:
+				return True, ""
+
+
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self._publish_socket,
 						self.mtool.fill_msg("kill", receiver="", sender=self.uuid))
@@ -620,6 +813,7 @@ def experiment_arg_parser():
 					help='Human readable name of this process')
 	parser.add_argument('--launch', default=False,
 	                   help='Launch the experiment specified in launch file')
+	parser.add_argument('--current-ip', help='IP addr of host machine')
 	parser.add_argument('--ovr', nargs=argparse.REMAINDER)
 
 
@@ -635,6 +829,6 @@ if __name__ == '__main__':
 	exp = OBCIExperiment(args.sandbox_dir,
 							args.launch_file, args.sv_addresses, args.sv_pub_addresses,
 							args.rep_addresses, args.pub_addresses, args.name,
-							args.launch, overwrites=pack)
+							args.current_ip, args.launch, overwrites=pack)
 
 	exp.run()

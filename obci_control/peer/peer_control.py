@@ -195,7 +195,7 @@ class PeerControl(object):
 			 						types.UPDATE_PARAMS)
 			#self.connection.send_message(message=msg, type=types.UPDATE_PARAMS)
 			val_short = str(p_value)[:300] + '[...]'
-			print '[', self.peer_id,  '] param update (', p_name, val_short,')  ',  reply
+			print '[', self.peer_id,  '] param update (', p_name, val_short,')  '#,  reply
 		else:
 			print '[', self.peer_id,  '] param updated locally (', p_name, val_short,')', result
 

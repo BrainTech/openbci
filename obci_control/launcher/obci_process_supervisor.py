@@ -6,6 +6,7 @@ import sys
 import uuid
 import subprocess
 import argparse
+import time
 
 import zmq
 import socket
@@ -32,10 +33,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 										source_pub_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
+										experiment_uuid='',
 										name='obci_process_supervisor'):
 
 		self.peers = {}
-		self.status = launcher_tools.ExperimentStatus()
+		self.status = launcher_tools.READY_TO_LAUNCH
 		self.source_pub_addresses = source_pub_addresses
 		self.machine = socket.gethostname()
 		self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
@@ -43,6 +45,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.mx_data = self.set_mx_data()
 		self.env = self.peer_env(self.mx_data)
 		self.launch_data = []
+		self.peer_order = []
+		self._running_peer_order = []
+		self._current_part = None
+		self.experiment_uuid = experiment_uuid
+		self.peers_to_launch = []
 		self.processes = {}
 
 		super(OBCIProcessSupervisor, self).__init__(
@@ -52,8 +59,47 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 											name=name)
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
+
+	def peer_type(self):
+		return "obci_process_supervisor"
+
+	def net_init(self):
+		self.source_sub_socket = self.ctx.socket(zmq.SUB)
+		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
+
+		self._all_sockets.append(self.source_sub_socket)
+
+		if self.source_pub_addresses:
+			for addr in self.source_pub_addresses:
+				self.source_sub_socket.connect(addr)
+
+		(self.config_server_socket, self.cs_addresses) = self._init_socket([], zmq.PULL)
+		# self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
+
+		self.cs_addr = net.choose_not_local(self.cs_addresses)
+		if not self.cs_addr:
+			self.cs_addr = net.choose_local(self.cs_addresses)[0]
+		else:
+			self.cs_addr = self.cs_addr[0]
+
+		self._all_sockets.append(self.config_server_socket)
+		
+		super(OBCIProcessSupervisor, self).net_init()
+
+	def params_for_registration(self):
+		return dict(pid=os.getpid(), machine=self.machine,
+					mx_data=[self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]])
+
+	def custom_sockets(self):
+		return [self.source_sub_socket, self.config_server_socket]
+
+
 	def _handle_registration_response(self, response):
-		self.launch_data = response.params
+		self.launch_data = response.params['launch_data']
+		self.peers_to_launch = list(self.launch_data.keys())
+		self.peer_order = response.params['peer_order']
+		for part in self.peer_order:
+			self._running_peer_order.append(list(part))
 		print self.name,'[', self.type, ']',  "RECEIVED LAUNCH DATA: ", self.launch_data
 
 
@@ -99,43 +145,12 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		env.update(_env)
 		return env
 
-	def peer_type(self):
-		return "obci_process_supervisor"
-
-	def net_init(self):
-		self.source_sub_socket = self.ctx.socket(zmq.SUB)
-		self.source_sub_socket.setsockopt(zmq.SUBSCRIBE, "")
-
-		self._all_sockets.append(self.source_sub_socket)
-
-		if self.source_pub_addresses:
-			for addr in self.source_pub_addresses:
-				self.source_sub_socket.connect(addr)
-
-		(self.config_server_socket, self.cs_addresses) = self._init_socket([], zmq.SUB)
-		self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
-
-		self.cs_addr = net.choose_not_local(self.cs_addresses)
-		if not self.cs_addr:
-			self.cs_addr = net.choose_local(self.cs_addresses)[0]
-		else:
-			self.cs_addr = self.cs_addr[0]
-
-		self._all_sockets.append(self.config_server_socket)
-		
-		super(OBCIProcessSupervisor, self).net_init()
-
-	def params_for_registration(self):
-		return dict(pid=os.getpid(), machine=self.machine,
-					mx_data=[self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]])
-
-	def custom_sockets(self):
-		return [self.source_sub_socket, self.config_server_socket]
-
 	@msg_handlers.handler("start_mx")
 	def handle_start_mx(self, message, sock):
 		if 'mx' in self.launch_data and self.mx_data[0] is not None:
 			print self.name,'[', self.type, ']', "..starting multiplexer"
+			self.peer_order.remove(['mx'])
+			self.peers_to_launch.remove('mx')
 			path = launcher_tools.mx_path()
 
 			args = ['run_multiplexer', self.mx_addr_str(
@@ -151,25 +166,53 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	@msg_handlers.handler("start_peers")
 	def handle_start_peers(self, message, sock):
+		self._launch_processes(self.launch_data)
+
+
+	@msg_handlers.handler("manage_peers")
+	def handle_manage_peers(self, message, sock):
+		if not message.receiver == self.uuid:
+			return
+		for peer in message.kill_peers:
+			proc = self.processes.get(peer, None)
+			if not proc:
+				print self.name,'[', self.type, ']', "peer to kill not found:", peer
+				continue
+			proc.kill()
+			del self.processes[peer]
+			del self.launch_data[peer]
+
+		for peer, data in message.start_peers_data.iteritems():
+			self.launch_data[peer] = data
+		self._launch_processes(message.start_peers_data)
+
+
+	def _launch_processes(self, launch_data):
 		proc, details = None, None
 		success = True
 		path, args = None, None
 
+		self.status = launcher_tools.LAUNCHING
+
 		ldata = []
-		ldata.append(('config_server', self.launch_data['config_server']))
-		if 'amplifier' in self.launch_data:
-			ldata.append(('amplifier', self.launch_data['amplifier']))
-		for peer, data in self.launch_data.iteritems():
+		if 'config_server' in launch_data:
+			ldata.append(('config_server', launch_data['config_server']))
+		if 'amplifier' in launch_data:
+			ldata.append(('amplifier', launch_data['amplifier']))
+		for peer, data in launch_data.iteritems():
 			if (peer, data) not in ldata:
 				ldata.append((peer, data))
 
 		for peer, data in ldata:#self.launch_data.iteritems():
+			wait = 0
 			if peer.startswith('mx'):
 				continue
 			path = os.path.join(launcher_tools.obci_root(), data['path'])
 			args = data['args']
 			if peer.startswith('config_server'):
 				args += ['-p', 'launcher_socket_addr', self.cs_addr]
+				args += ['-p', 'experiment_uuid', self.experiment_uuid]
+				wait = 0.4
 			proc, details = self._launch_process(path, args, data['peer_type'],
 														peer, env=self.env, capture_io=NO_STDIO)
 			if proc is not None:
@@ -177,6 +220,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			else:
 				success = False
 				break
+			time.sleep(wait)
 		if success:
 			send_msg(self._publish_socket, self.mtool.fill_msg("all_peers_launched",
 													machine=self.machine))
@@ -227,6 +271,15 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 													experiment_id=experiment_id,
 												peer_id=peer))
 
+
+	@msg_handlers.handler("experiment_finished")
+	def handle_experiment_finished(self, message, sock):
+		pass
+
+	@msg_handlers.handler("morph_to_new_scenario")
+	def handle_morph(self, message, sock):
+		pass
+
 	@msg_handlers.handler("stop_all")
 	def handle_stop_all(self, message, sock):
 
@@ -257,7 +310,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	@msg_handlers.handler("obci_peer_ready")
 	def handle_obci_peer_ready(self, message, sock):
+		print self.name , "got!", message.type
 		send_msg(self._publish_socket, message.SerializeToString())
+
 
 	@msg_handlers.handler("obci_control_message")
 	def handle_obci_control_message(self, message, sock):
@@ -267,6 +322,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	@msg_handlers.handler("obci_peer_dead")
 	def handle_obci_control_message(self, message, sock):
 		# ignore :)
+		pass
+
+	@msg_handlers.handler("process_supervisor_registered")
+	def handle_supervisor_registered(self, messsage, sock):
+		# also ignore
 		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
@@ -291,6 +351,7 @@ def process_supervisor_arg_parser():
 
 	parser.add_argument('--name', default='obci_process_supervisor',
 					help='Human readable name of this process')
+	parser.add_argument('--experiment-uuid', help='UUID of the parent obci_experiment')
 	return parser
 
 
@@ -303,5 +364,6 @@ if __name__ == '__main__':
 							source_pub_addresses=args.sv_pub_addresses,
 							rep_addresses=args.rep_addresses,
 							pub_addresses=args.pub_addresses,
+							experiment_uuid=args.experiment_uuid,
 							name=args.name)
 	process_sv.run()

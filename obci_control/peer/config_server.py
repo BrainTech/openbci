@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import zmq
+import time
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
@@ -25,17 +26,18 @@ class ConfigServer(BaseMultiplexerServer):
 		self.launcher_sock = None
 		params, other_params = PeerCmd().parse_cmd()
 		print '[config_server]', params, other_params
-		addr = params['local_params'].get('launcher_socket_addr', '')
-		if addr != '':
+		self.addr = params['local_params'].get('launcher_socket_addr', '')
+		self.exp_uuid = params['local_params'].get('experiment_uuid', '')
+		if self.addr != '':
 			self.ctx = zmq.Context()
-			self.launcher_sock = self.ctx.socket(zmq.PUB)
+			self.launcher_sock = self.ctx.socket(zmq.PUSH)
 			try:
-				self.launcher_sock.connect(addr)
+				self.launcher_sock.connect(self.addr)
 			except Exception, e:
-				print "[config_server] -- failed to connect to address", addr, "!!!"
+				print "[config_server] -- failed to connect to address", self.addr, "!!!"
 				self.launcher_sock = None
 			else:
-				print "[config_server] OK OK OK OK OK OK", addr
+				print "[config_server] OK OK OK OK OK OK", self.addr
 		super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
 
 
@@ -58,6 +60,7 @@ class ConfigServer(BaseMultiplexerServer):
 			print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
 			send_msg(self.launcher_sock, launcher_msg)
 
+
 	def _call_handler(self, mtype, message):
 		if mtype == types.GET_CONFIG_PARAMS:
 			return self.handle_get_config_params(message)
@@ -74,20 +77,25 @@ class ConfigServer(BaseMultiplexerServer):
 			return self.handle_peer_ready(message)
 		elif mtype == types.PEERS_READY_QUERY:
 			return self.handle_peers_ready_query(message)
+		elif mtype == types.LAUNCHER_COMMAND:
+			return self.handle_launcher_command(message)
 		else:
 			return None, None, None
 
 	def handle_get_config_params(self, message_obj):
 		param_owner = message_obj.receiver
 		names = message_obj.param_names
-		if param_owner not in self._configs:
-			return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
+		if param_owner == 'config_server':
+			params = dict(experiment_uuid=self.exp_uuid)
 
-		#TODO error when param_name does not exist?
-		params = {}
-		for name in names:
-			if name in self._configs[param_owner]:
-				params[name] = self._configs[param_owner][name]
+		elif param_owner not in self._configs:
+			return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
+		else:
+			#TODO error when param_name does not exist?
+			params = {}
+			for name in names:
+				if name in self._configs[param_owner]:
+					params[name] = self._configs[param_owner][name]
 
 		mtype = types.CONFIG_PARAMS
 		msg = cmsg.fill_msg(mtype, sender=param_owner)
@@ -162,6 +170,9 @@ class ConfigServer(BaseMultiplexerServer):
 
 		return cmsg.fill_msg(types.READY_STATUS,
 							receiver=peer_id, peers_ready=green_light), types.READY_STATUS, None
+
+	def handle_launcher_command(self, message_obj):
+		return None, None, message_obj.serialized_msg
 
 
 

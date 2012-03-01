@@ -9,6 +9,7 @@ import os.path
 import sys
 import json
 import time
+import socket
 
 import zmq
 
@@ -44,16 +45,17 @@ class OBCIServer(OBCIControlPeer):
 		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
 														  name)
-		self.machine = self.hostname
+		self.machine = socket.gethostname()
+
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-		rep_port = int(net.server_rep_port())
-		pub_port = int(net.server_pub_port())
+		self.rep_port = int(net.server_rep_port())
+		self.pub_port = int(net.server_pub_port())
 		bcast_port = int(net.server_bcast_port())
 
 		self._bcast_server = threading.Thread(target=broadcast_server,
 												args=[self.uuid,
-													rep_port, pub_port, bcast_port])
+													self.rep_port, self.pub_port, bcast_port])
 		self._bcast_server.daemon = True
 		self._bcast_server.start()
 
@@ -76,6 +78,38 @@ class OBCIServer(OBCIControlPeer):
 	def set_nearby_server_addrs(self, addr_list):
 		with self._nearby_servers_lock:
 			self._nearby_servers = list(addr_list)
+
+	def my_ip(self):
+		d = self.nearby_server_addrs()
+		ips, names = d.keys(), [val[1].sender_ip for val in d.values()]
+		print ips, names
+		if self.machine not in names:
+			return None
+		return ips[names.index(self.machine)]
+
+	def handle_socket_read_error(self, socket, error):
+		if socket == self.rep_socket:
+			print "[obci_server] reinitialising REP socket" 
+			self._all_sockets.remove(self.rep_socket)
+			if socket in self.client_rq:
+				self.client_rq = None
+			self.rep_socket.close()
+			self.rep_socket = None
+			time.sleep(0.2)
+			(self.rep_socket, self.rep_addresses) = self._init_socket(
+										['tcp://*:' + str(self.rep_port)], zmq.REP)
+			self.rep_socket.setsockopt(zmq.LINGER, 0)
+			self._all_sockets.append(self.rep_socket)
+			print "[obci_server]", self.rep_addresses
+		elif socket == self.exp_rep:
+			print "[obci_server] reinitialising EXPERIMENT REP socket" 
+			self.exp_rep.close()
+			
+			(self.exp_rep, self.exp_rep_addrs) = self._init_socket(
+										self.exp_rep_addrs, zmq.REP)
+			self.exp_rep.setsockopt(zmq.LINGER, 0)
+			self._all_sockets.append(self.exp_rep)
+
 
 	def peer_type(self):
 		return 'obci_server'
@@ -123,7 +157,8 @@ class OBCIServer(OBCIControlPeer):
 		args += [
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
-					'--name', exp_name]
+					'--name', exp_name,
+					'--current-ip', self.my_ip()]
 		if overwrites is not None:
 			args += peer_cmd.peer_overwrites_cmd(overwrites)
 		# print '{0} [{1}] -- experiment args: {2}'.format(self.name, self.peer_type(), args)
@@ -213,6 +248,11 @@ class OBCIServer(OBCIControlPeer):
 	@msg_handlers.handler("create_experiment")
 	def handle_create_experiment(self, message, sock):
 
+		# if not self.my_ip():
+		# 	send_msg(sock, self.mtool.fill_msg("rq_error",
+		# 						err_code='server_network_not_ready'))
+		# 	return
+
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
 		name = message.name
@@ -240,16 +280,20 @@ class OBCIServer(OBCIControlPeer):
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
 		nearby = self.nearby_server_addrs()
-		info = '\n{'
+		nearby_dict = {}
 		for srv in nearby:
-			info += '\n' + srv + ' : ' + nearby[srv][1].sender_ip + ','
+			nearby_dict[srv] = nearby[srv][1].sender_ip
+		info = '\n{'
+		for srv in nearby_dict:
+			info += '\n' + srv + ' : ' + nearby_dict[srv] + ','
 		info += '}'
 		print "{0} [{1}] -- nearby servers:  count: {2}, {3}".format(
 										self.name, self.peer_type(), len(nearby),
 										info)
 
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
-												exp_data=exp_data))
+												exp_data=exp_data,
+												nearby_machines=nearby_dict))
 
 
 	def _handle_match_name(self, message, sock, this_machine=False):
@@ -304,6 +348,21 @@ class OBCIServer(OBCIControlPeer):
 		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
 			send_msg(sock, self.mtool.fill_msg('rq_ok'))
 			
+		send_msg(self._publish_socket, message.SerializeToString())
+
+	@msg_handlers.handler("experiment_transformation")
+	def handle_experiment_transformation(self, message, sock):
+		exp = self.experiments.get(message.uuid, None)
+		if not exp:
+			if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+				send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
+			return
+		exp.status_name = message.status_name
+		exp.details = message.details
+		exp.launch_file_path = message.launch_file
+		exp.name = message.name
+		if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+			send_msg(sock, self.mtool.fill_msg('rq_ok'))
 		send_msg(self._publish_socket, message.SerializeToString())
 
 	def exp_matching(self, strname):
@@ -378,7 +437,7 @@ class OBCIServer(OBCIControlPeer):
 	def _handle_launch_process_supervisor(self, message, sock):
 		sv_obj, details = self._start_obci_supervisor_process( message)
 
-		print "LAUNCH PROCESS SV   ", sv_obj, details
+		print "[obci_server] LAUNCH PROCESS SV   ", sv_obj, details
 		if sv_obj:
 			self.exp_process_supervisors[message.sender] = sv_obj
 			send_msg(sock,
@@ -387,25 +446,41 @@ class OBCIServer(OBCIControlPeer):
 											pid=sv_obj.pid, proc_type=sv_obj.proc_type,
 											name=sv_obj.name,
 											path=sv_obj.path))
-			print "CONFIRMED LAUNCH"
+			print "[obci_server] CONFIRMED LAUNCH"
 		else:
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 												err_code="launch_error",
 												details=details))
-			print "LAUNCH FAILURE"
+			print "[obci_server] PROCESS SUPERVISOR LAUNCH FAILURE"
 
 
-	@msg_handlers.handler("kill_process_supervisor")
+	@msg_handlers.handler("kill_process")
 	def handle_kill_process_supervisor(self, message, sock):
-		proc = self.exp_process_supervisors.get(message.sender, None)
+		proc = self.subprocess_mgr.process(message.machine, message.pid)
 		if not proc:
-			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="experiment_not_found"))
+			send_msg(sock, self.mtool.fill_msg("rq_error", err_code="process_not_found"))
 		else:
 			#TODO
+			name = proc.name
 			proc.kill()
-
+			proc.mark_delete()
 			send_msg(sock, self.mtool.fill_msg("rq_ok"))
-			del self.exp_process_supervisors[message.sender]
+			del self.exp_process_supervisors[proc.name]
+
+
+	@msg_handlers.handler("dead_process")
+	def handle_dead_process(self, message, sock):
+		proc = self.subprocess_mgr.process(message.machine, message.pid)
+		if proc is not None:
+			proc.mark_delete()
+			status, details = proc.status()
+			print "[obci_server]", proc.proc_type, "dead:", status, details, proc.name, proc.pid
+			if proc.proc_type == 'obci_process_supervisor':
+				pass
+			elif proc.proc_type == 'obci_experiment':
+				pass
+			if status == subprocess_monitor.FAILED:
+				pass
 
 
 	@msg_handlers.handler("find_eeg_experiments")
@@ -426,6 +501,7 @@ class OBCIServer(OBCIControlPeer):
 		start_params['path'] = path
 		del start_params['type']
 		del start_params['sender']
+		del start_params['sender_ip']
 		del start_params['receiver']
 		sv_obj, details = self.subprocess_mgr.new_local_process(**start_params)
 		if sv_obj is None:

@@ -9,6 +9,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from logic import state_machine
+from logic import logic_helper
 #from import speller_graphics_manager as sgm
 from configs import settings, variables_pb2
 from logic import logic_logging as logger
@@ -66,6 +67,9 @@ class LogicDecision(ConfiguredMultiplexerServer):
     def finish(self):
         LOGGER.info("Finish LOGIC")
         sys.exit(1)
+
+    def transform_scenario(self, param):
+        logic_helper.restart_scenario(self.conn, param)
 
             
     # ------------------ actions available in config ---------------------------

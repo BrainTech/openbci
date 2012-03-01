@@ -968,9 +968,18 @@ type {
 	}
 }
 
-
+# cfg_templates.LauncherCommand
 type {
     type: 227
+    name: "LAUNCHER_COMMAND"
+    to {
+        peer: "CONFIG_SERVER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 228
     name: "SWITCH_MESSAGE"
     to {
         peer: "SWITCH_ANALYSIS"

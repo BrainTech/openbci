@@ -38,3 +38,8 @@ message ConfigError {
     optional string error_str = 2;
     optional string errno = 3;
 }
+
+message LauncherCommand {
+    required string sender = 1;
+    required string serialized_msg = 2; // serialized to json, templates in launcher_messages.py
+}
