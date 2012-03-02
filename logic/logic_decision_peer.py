@@ -68,9 +68,6 @@ class LogicDecision(ConfiguredMultiplexerServer):
         LOGGER.info("Finish LOGIC")
         sys.exit(1)
 
-    def transform_scenario(self, param):
-        logic_helper.restart_scenario(self.conn, param)
-
             
     # ------------------ actions available in config ---------------------------
     # --------------------------------------------------------------------------

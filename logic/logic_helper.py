@@ -16,7 +16,7 @@ from configs import settings
 
 mtool = OBCIMessageTool(message_templates)
 
-def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=None, overwrites=None):
+def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwrites=[]):
 	"""
 	new_scenario: scenario_path relative to obci_root
 	overwrites:   {'peer_id' : ['-p', 'param_name', 'param_value', 
@@ -27,16 +27,15 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=None, overw
 					'and', 'we', 'do','not', 'want', 'them', 'to', 'restart']
 	"""
 
-
 	new_scenario = os.path.join(obci_root(), new_scenario)
 	conf_msg = cmsg.fill_msg(types.GET_CONFIG_PARAMS,
-									sender='',
-									param_names=['experiment_uuid'],
-									receiver='config_server')
+				 sender='',
+				 param_names=['experiment_uuid'],
+				 receiver='config_server')
 
 	try:
 		reply = conn.query(message=conf_msg,
-								type=types.GET_CONFIG_PARAMS)
+				   type=types.GET_CONFIG_PARAMS)
 	except OperationFailed:
 		print "OperationFailed (in restart_scenario) Could not connect to config server"
 		reply = None
