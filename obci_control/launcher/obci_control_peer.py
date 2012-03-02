@@ -224,6 +224,7 @@ class OBCIControlPeer(object):
 
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
+		self.rep_socket.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.rep_socket)
 
 		print "\n\tname: {0}\n\tpeer_type: {1}\n\tuuid: {2}\n".format(
@@ -340,10 +341,16 @@ class OBCIControlPeer(object):
 							msg = recv_msg(sock, flags=zmq.NOBLOCK)
 						except zmq.ZMQError, e:
 
-							if e.errno == zmq.EAGAIN:
+							if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
 								more = False
 							else:
-								print "error:", str(e)
+								print str(self.name) + ' ['+str(self.peer_type()) + ']', "error:", str(e)
+								print str(self.name) + ' ['+str(self.peer_type()) + ']',\
+														"handling socket read error: ", sock, e.errno
+								poller.unregister(sock)
+								if sock in poll_sockets:
+									poll_sockets.remove(sock)
+								self.handle_socket_read_error(sock, e)
 								break
 						else:
 							self.handle_message(msg, sock)
@@ -351,12 +358,13 @@ class OBCIControlPeer(object):
 			if self.interrupted:
 				break
 
-			# self._update_poller(poller, poll_sockets)
+			self._update_poller(poller, poll_sockets)
 
 		self._clean_up()
 
 
 	def _update_poller(self, poller, curr_sockets):
+		self._set_poll_sockets()
 		new_sockets = list(self._poll_sockets)
 
 		for sock in new_sockets:
@@ -364,8 +372,11 @@ class OBCIControlPeer(object):
 				poller.register(sock, zmq.POLLIN)
 		for sock in curr_sockets:
 			if not sock in new_sockets:
-				poller.deregister(sock)
+				poller.unregister(sock)
 		curr_sockets = new_sockets
+
+	def handle_socket_read_error(self, socket, error):
+		pass
 
 
 	def pre_run(self):

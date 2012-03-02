@@ -11,6 +11,7 @@ from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
+import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
@@ -37,7 +38,8 @@ class EEGExperimentFinder(object):
         exps = exp_list.exp_data
         running = []
         for exp in exps.values():
-            if exp['status_name'] == 'running':
+            if exp['status_name'] == launcher.launcher_tools.RUNNING or \
+                    exp['status_name'] == launcher.launcher_tools.LAUNCHING:
                 running.append(exp)
         return running
 
@@ -172,13 +174,18 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     if not isinstance(checked, list):
         checked = []
     
-    nearby_servers = [ip for ip in nearby_servers if ip not in checked]
+    nrb = {}
+    for ip in nearby_servers:
+        if ip not in checked:
+            nrb[ip] = nearby_servers[ip]
 
     if not checked:
         LOGGER.info("checking other servers")
-        to_check = [srv_ip for srv_ip in nearby_servers if \
-                            socket.gethostbyaddr(srv_ip)[0] != my_addr and\
-                            not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
+        print nrb
+
+        to_check = [srv_ip for srv_ip in nrb if \
+                            nrb[srv_ip] != my_addr] #and\
+                            #not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
         LOGGER.info("number of servers to query: " + str(len(to_check)))
         if to_check:
 

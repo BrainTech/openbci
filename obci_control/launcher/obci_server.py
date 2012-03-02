@@ -9,6 +9,7 @@ import os.path
 import sys
 import json
 import time
+import socket
 
 import zmq
 
@@ -44,16 +45,17 @@ class OBCIServer(OBCIControlPeer):
 		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
 														  name)
-		self.machine = self.hostname
+		self.machine = socket.gethostname()
+
 		self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-		rep_port = int(net.server_rep_port())
-		pub_port = int(net.server_pub_port())
+		self.rep_port = int(net.server_rep_port())
+		self.pub_port = int(net.server_pub_port())
 		bcast_port = int(net.server_bcast_port())
 
 		self._bcast_server = threading.Thread(target=broadcast_server,
 												args=[self.uuid,
-													rep_port, pub_port, bcast_port])
+													self.rep_port, self.pub_port, bcast_port])
 		self._bcast_server.daemon = True
 		self._bcast_server.start()
 
@@ -76,6 +78,38 @@ class OBCIServer(OBCIControlPeer):
 	def set_nearby_server_addrs(self, addr_list):
 		with self._nearby_servers_lock:
 			self._nearby_servers = list(addr_list)
+
+	def my_ip(self):
+		d = self.nearby_server_addrs()
+		ips, names = d.keys(), [val[1].sender_ip for val in d.values()]
+		print ips, names
+		if self.machine not in names:
+			return None
+		return ips[names.index(self.machine)]
+
+	def handle_socket_read_error(self, socket, error):
+		if socket == self.rep_socket:
+			print "[obci_server] reinitialising REP socket" 
+			self._all_sockets.remove(self.rep_socket)
+			if socket in self.client_rq:
+				self.client_rq = None
+			self.rep_socket.close()
+			self.rep_socket = None
+			time.sleep(0.2)
+			(self.rep_socket, self.rep_addresses) = self._init_socket(
+										['tcp://*:' + str(self.rep_port)], zmq.REP)
+			self.rep_socket.setsockopt(zmq.LINGER, 0)
+			self._all_sockets.append(self.rep_socket)
+			print "[obci_server]", self.rep_addresses
+		elif socket == self.exp_rep:
+			print "[obci_server] reinitialising EXPERIMENT REP socket" 
+			self.exp_rep.close()
+			
+			(self.exp_rep, self.exp_rep_addrs) = self._init_socket(
+										self.exp_rep_addrs, zmq.REP)
+			self.exp_rep.setsockopt(zmq.LINGER, 0)
+			self._all_sockets.append(self.exp_rep)
+
 
 	def peer_type(self):
 		return 'obci_server'
@@ -123,7 +157,8 @@ class OBCIServer(OBCIControlPeer):
 		args += [
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
-					'--name', exp_name]
+					'--name', exp_name,
+					'--current-ip', self.my_ip()]
 		if overwrites is not None:
 			args += peer_cmd.peer_overwrites_cmd(overwrites)
 		# print '{0} [{1}] -- experiment args: {2}'.format(self.name, self.peer_type(), args)
@@ -213,6 +248,11 @@ class OBCIServer(OBCIControlPeer):
 	@msg_handlers.handler("create_experiment")
 	def handle_create_experiment(self, message, sock):
 
+		# if not self.my_ip():
+		# 	send_msg(sock, self.mtool.fill_msg("rq_error",
+		# 						err_code='server_network_not_ready'))
+		# 	return
+
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
 		name = message.name
@@ -240,16 +280,20 @@ class OBCIServer(OBCIControlPeer):
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
 		nearby = self.nearby_server_addrs()
-		info = '\n{'
+		nearby_dict = {}
 		for srv in nearby:
-			info += '\n' + srv + ' : ' + nearby[srv][1].sender_ip + ','
+			nearby_dict[srv] = nearby[srv][1].sender_ip
+		info = '\n{'
+		for srv in nearby_dict:
+			info += '\n' + srv + ' : ' + nearby_dict[srv] + ','
 		info += '}'
 		print "{0} [{1}] -- nearby servers:  count: {2}, {3}".format(
 										self.name, self.peer_type(), len(nearby),
 										info)
 
 		send_msg(sock, self.mtool.fill_msg("running_experiments",
-												exp_data=exp_data))
+												exp_data=exp_data,
+												nearby_machines=nearby_dict))
 
 
 	def _handle_match_name(self, message, sock, this_machine=False):

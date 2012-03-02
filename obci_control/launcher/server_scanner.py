@@ -90,6 +90,14 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
     s.bind(('', 0))
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
+    for i in range(10):
+        try:
+            s.sendto(str_msg, ('<broadcast>', bcast_port))
+        except error, e:
+            pass
+        time.sleep(0.3)
+
+
     while 1:
         try:
             s.sendto(str_msg, ('<broadcast>', bcast_port))
@@ -99,3 +107,4 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
         time.sleep(7)
 
     s.close()
+
