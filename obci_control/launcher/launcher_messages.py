@@ -90,7 +90,6 @@ message_templates = {
 	"list_nearby_machines" : dict(),
 	"nearby_machines" : dict(nearby_machines='')
 
-
 }
 
 error_codes = ["invalid_supervisor_data",

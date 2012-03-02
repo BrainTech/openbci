@@ -3,6 +3,12 @@
 
 import zmq
 import time
+import json
+import signal
+import ConfigParser
+import inspect
+import os
+
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
@@ -12,6 +18,7 @@ from configs import settings
 
 import common.config_message as cmsg
 from launcher.launcher_messages import message_templates
+from launcher.launcher_tools import obci_root
 from common.message import OBCIMessageTool, send_msg, recv_msg
 
 
@@ -25,9 +32,19 @@ class ConfigServer(BaseMultiplexerServer):
 		self.mtool = OBCIMessageTool(message_templates)
 		self.launcher_sock = None
 		params, other_params = PeerCmd().parse_cmd()
-		print '[config_server]', params, other_params
+		
 		self.addr = params['local_params'].get('launcher_socket_addr', '')
+		
 		self.exp_uuid = params['local_params'].get('experiment_uuid', '')
+
+		self._old_configs = self._stored_config()
+		self._restore_peers = params['local_params'].get('restore_peers', '').split()
+		
+		for peer in self._restore_peers:
+			if peer in self._old_configs:
+				self._configs[peer] = dict(self._old_configs[peer])
+				self._ready_peers.append(peer)
+
 		if self.addr != '':
 			self.ctx = zmq.Context()
 			self.launcher_sock = self.ctx.socket(zmq.PUSH)
@@ -38,10 +55,45 @@ class ConfigServer(BaseMultiplexerServer):
 				self.launcher_sock = None
 			else:
 				print "[config_server] OK OK OK OK OK OK", self.addr
+
+
 		super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
 
+	def _config_path(self):
+		peer_file = inspect.getfile(self.__init__)
+		base_name = peer_file.rsplit('.', 1)[0]
+		base_config_path = '.'.join([base_name, 'ini'])
+		return os.path.join(obci_root(), base_config_path)
+
+	def _stored_config(self):
+		parser = ConfigParser.RawConfigParser()
+		stored = {}
+		with open(self._config_path(), 'r') as f:
+			parser.readfp(f)
+			stored = parser.get('local_params', 'stored_config')
+			if stored == '':
+				stored = '{}'
+		return json.loads(stored)
+	
+	def _save_config(self):
+		base_config_path = self._config_path()
+		parser = ConfigParser.RawConfigParser()
+		# print "CONFIG_SERVER save path", base_config_path
+		with open(base_config_path, 'r') as f:
+			parser.readfp(f)
+
+		parser.set('local_params', 'stored_config', json.dumps(self._configs))
+		parser.set('local_params', 'launcher_socket_addr', '')
+		parser.set('local_params', 'experiment_uuid', '')
+		parser.set('local_params', 'restore_peers', '')
+
+		with open(base_config_path, 'w') as f:
+			parser.write(f)			
+		print "CONFIG_SERVER stored configs"
+		
 
 	def handle_message(self, mxmsg):
+
 		message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)
 
 		msg, mtype, launcher_msg = self._call_handler(mxmsg.type, message)
@@ -59,6 +111,8 @@ class ConfigServer(BaseMultiplexerServer):
 		if launcher_msg is not None and self.launcher_sock is not None:
 			print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
 			send_msg(self.launcher_sock, launcher_msg)
+		self._save_config()
+		
 
 
 	def _call_handler(self, mtype, message):
@@ -107,15 +161,15 @@ class ConfigServer(BaseMultiplexerServer):
 		peer_id = message_obj.sender
 		launcher_msg = None
 
-		# if peer_id in self._configs:
-		# 	mtype = types.CONFIG_ERROR
-		# 	msg = cmsg.fill_msg(mtype)
-		# else:
-		self._configs[peer_id] = params
-		mtype = types.PEER_REGISTERED
-		msg = cmsg.fill_msg(mtype, peer_id=peer_id)
-		launcher_msg = self.mtool.fill_msg('obci_peer_registered',
-										peer_id=peer_id, params=params)
+		if peer_id in self._configs:
+			mtype = types.CONFIG_ERROR
+			msg = cmsg.fill_msg(mtype)
+		else:
+			self._configs[peer_id] = params
+			mtype = types.PEER_REGISTERED
+			msg = cmsg.fill_msg(mtype, peer_id=peer_id)
+			launcher_msg = self.mtool.fill_msg('obci_peer_registered',
+											peer_id=peer_id, params=params)
 		return msg, mtype, launcher_msg
 
 

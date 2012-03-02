@@ -84,7 +84,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			self.cs_addr = self.cs_addr[0]
 
 		self._all_sockets.append(self.config_server_socket)
-		
+
 		super(OBCIProcessSupervisor, self).net_init()
 
 	def params_for_registration(self):
@@ -174,22 +174,29 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def handle_manage_peers(self, message, sock):
 		if not message.receiver == self.uuid:
 			return
+		message.kill_peers.append('config_server')
+		
+		message.start_peers_data['config_server'] = dict(self.launch_data['config_server'])
+		restore_config = [peer for peer in self.processes if peer not in message.kill_peers]
 		for peer in message.kill_peers:
 			proc = self.processes.get(peer, None)
 			if not proc:
 				print self.name,'[', self.type, ']', "peer to kill not found:", peer
 				continue
+			print "MORPH:  KILLING ", peer
 			proc.kill()
+			print "MORPH:  KILLED ", peer
 			del self.processes[peer]
 			del self.launch_data[peer]
 
 		for peer, data in message.start_peers_data.iteritems():
 			self.launch_data[peer] = data
 		self.restarting = [peer for peer in message.start_peers_data if peer in message.kill_peers]
-		self._launch_processes(message.start_peers_data)
+		
+		self._launch_processes(message.start_peers_data, restore_config=restore_config)
 
 
-	def _launch_processes(self, launch_data):
+	def _launch_processes(self, launch_data, restore_config=[]):
 		proc, details = None, None
 		success = True
 		path, args = None, None
@@ -214,6 +221,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			if peer.startswith('config_server'):
 				args += ['-p', 'launcher_socket_addr', self.cs_addr]
 				args += ['-p', 'experiment_uuid', self.experiment_uuid]
+				
+				if restore_config:
+					args += ['-p', 'restore_peers', ' '.join(restore_config)]
 				wait = 0.4
 			proc, details = self._launch_process(path, args, data['peer_type'],
 														peer, env=self.env, capture_io=NO_STDIO)
@@ -250,7 +260,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 											details=dict(machine=self.machine, path=path, args=args,
 														error=details)))
 		else:
-			print self.name,'[', self.type, ']', "process launch success:", path, args
+			print self.name,'[', self.type, ']', "process launch success:", path, args, proc.pid
 			send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
 											sender=self.uuid,
 											machine=self.machine,

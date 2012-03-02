@@ -639,6 +639,9 @@ class OBCIExperiment(OBCIControlPeer):
 		old_config = self.exp_config
 		self.exp_config = exp_config
 
+		for p in message.leave_on:
+			self.exp_config.peers[p] = old_config.peers[p]
+
 		if sock.getsockopt(zmq.TYPE) in [zmq.REP, zmq.ROUTER]:
 			send_msg(sock, self.mtool.fill_msg('starting_experiment'))
 			self.status.set_status(launcher_tools.LAUNCHING)
