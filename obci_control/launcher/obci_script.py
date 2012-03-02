@@ -378,7 +378,7 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
 		rep_addrs = ['tcp://*:' + srv_rep_port] 
 		pub_addrs = ['tcp://*:' + srv_pub_port]
 
-	if not server_process_running():
+	if not server_process_running() and not server_ip:
 		args = argv() if cmdargs else []
 		if rep_addrs and pub_addrs:
 			args += ['--rep-addresses'] + rep_addrs + ['--pub-addresses'] + pub_addrs
@@ -387,6 +387,9 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
 			disp.view("Could not launch OBCI Server")
 			return None
 		disp.view("OBCI server launched. PID: {0}".format(srv.pid))
+
+	if not server_ip:
+		rep_addrs = ['tcp://localhost:'+srv_rep_port]
 
 	res, client = connect_client(rep_addrs, client_class=client_class)
 	
