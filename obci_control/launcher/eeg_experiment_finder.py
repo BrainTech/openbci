@@ -174,13 +174,18 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     if not isinstance(checked, list):
         checked = []
     
-    nearby_servers = [ip for ip in nearby_servers if ip not in checked]
+    nrb = {}
+    for ip in nearby_servers:
+        if ip not in checked:
+            nrb[ip] = nearby_servers[ip]
 
     if not checked:
         LOGGER.info("checking other servers")
-        to_check = [srv_ip for srv_ip in nearby_servers if \
-                            socket.gethostbyaddr(srv_ip)[0] != my_addr and\
-                            not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
+        print nrb
+
+        to_check = [srv_ip for srv_ip in nrb if \
+                            nrb[srv_ip] != my_addr] #and\
+                            #not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
         LOGGER.info("number of servers to query: " + str(len(to_check)))
         if to_check:
 
