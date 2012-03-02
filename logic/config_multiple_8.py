@@ -15,13 +15,13 @@ class Config(object):
         #MENU
         menu_state = 0
         self.letters.append([u"Speller",u"Robot"
-                             ,"", "", #u"High SSVEP",u"Low SSVEP"
+                             ,"Switch", "SSVEP", #u"High SSVEP",u"Low SSVEP"
                              u"", u"", u"", u""])
         self.actions.append([
                 "",
                 "start_robot_feedback()", 
-                "", #restart_scenario('"+self._high_ssvep_scenario()+"')", 
-                "", #restart_scenario('"+self._low_ssvep_scenario()+"')", 
+                "transform_scenario('switch')", #restart_scenario('"+self._high_ssvep_scenario()+"')", 
+                "transform_scenario('ssvep')", #restart_scenario('"+self._low_ssvep_scenario()+"')", 
                 "", "", "", ""])
         self.state.append([0]*self.number_of_decisions)
         self._setup_menu()

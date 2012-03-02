@@ -1,7 +1,6 @@
 from xml.dom import minidom
 import numpy as np
 import os.path as osp
-from scipy.signal import decimate
 
 class signalParser(object):
     """This class can extract some information from signal and it's xml descriptors"""
