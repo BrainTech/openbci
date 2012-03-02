@@ -33,6 +33,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 										source_pub_addresses=None,
 										rep_addresses=None,
 										pub_addresses=None,
+										experiment_uuid='',
 										name='obci_process_supervisor'):
 
 		self.peers = {}
@@ -47,6 +48,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.peer_order = []
 		self._running_peer_order = []
 		self._current_part = None
+		self.experiment_uuid = experiment_uuid
 		self.peers_to_launch = []
 		self.processes = {}
 
@@ -209,6 +211,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			args = data['args']
 			if peer.startswith('config_server'):
 				args += ['-p', 'launcher_socket_addr', self.cs_addr]
+				args += ['-p', 'experiment_uuid', self.experiment_uuid]
 				wait = 0.4
 			proc, details = self._launch_process(path, args, data['peer_type'],
 														peer, env=self.env, capture_io=NO_STDIO)
@@ -348,6 +351,7 @@ def process_supervisor_arg_parser():
 
 	parser.add_argument('--name', default='obci_process_supervisor',
 					help='Human readable name of this process')
+	parser.add_argument('--experiment-uuid', help='UUID of the parent obci_experiment')
 	return parser
 
 
@@ -360,5 +364,6 @@ if __name__ == '__main__':
 							source_pub_addresses=args.sv_pub_addresses,
 							rep_addresses=args.rep_addresses,
 							pub_addresses=args.pub_addresses,
+							experiment_uuid=args.experiment_uuid,
 							name=args.name)
 	process_sv.run()

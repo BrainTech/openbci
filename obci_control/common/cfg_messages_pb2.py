@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='cfg_messages.proto',
   package='cfg_messages',
-  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"L\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\"U\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x01(\t\x12#\n\x06params\x18\x03 \x03(\x0b\x32\x13.cfg_messages.Param\"\x1f\n\x0cPeerIdentity\x12\x0f\n\x07peer_id\x18\x01 \x02(\t\".\n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x0c\n\x04\x64\x65ps\x18\x02 \x03(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08\"@\n\x0b\x43onfigError\x12\x0f\n\x07rq_type\x18\x01 \x01(\t\x12\x11\n\terror_str\x18\x02 \x01(\t\x12\r\n\x05\x65rrno\x18\x03 \x01(\t')
+  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"L\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\"U\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x01(\t\x12#\n\x06params\x18\x03 \x03(\x0b\x32\x13.cfg_messages.Param\"\x1f\n\x0cPeerIdentity\x12\x0f\n\x07peer_id\x18\x01 \x02(\t\".\n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x0c\n\x04\x64\x65ps\x18\x02 \x03(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08\"@\n\x0b\x43onfigError\x12\x0f\n\x07rq_type\x18\x01 \x01(\t\x12\x11\n\terror_str\x18\x02 \x01(\t\x12\r\n\x05\x65rrno\x18\x03 \x01(\t\"9\n\x0fLauncherCommand\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x16\n\x0eserialized_msg\x18\x02 \x02(\t')
 
 
 
@@ -274,6 +274,41 @@ _CONFIGERROR = descriptor.Descriptor(
   serialized_end=442,
 )
 
+
+_LAUNCHERCOMMAND = descriptor.Descriptor(
+  name='LauncherCommand',
+  full_name='cfg_messages.LauncherCommand',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    descriptor.FieldDescriptor(
+      name='sender', full_name='cfg_messages.LauncherCommand.sender', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    descriptor.FieldDescriptor(
+      name='serialized_msg', full_name='cfg_messages.LauncherCommand.serialized_msg', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=unicode("", "utf-8"),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  serialized_start=444,
+  serialized_end=501,
+)
+
 _CONFIGPARAMS.fields_by_name['params'].message_type = _PARAM
 DESCRIPTOR.message_types_by_name['Param'] = _PARAM
 DESCRIPTOR.message_types_by_name['ConfigParamsRequest'] = _CONFIGPARAMSREQUEST
@@ -282,47 +317,54 @@ DESCRIPTOR.message_types_by_name['PeerIdentity'] = _PEERIDENTITY
 DESCRIPTOR.message_types_by_name['PeerReadyQuery'] = _PEERREADYQUERY
 DESCRIPTOR.message_types_by_name['PeerReadyStatus'] = _PEERREADYSTATUS
 DESCRIPTOR.message_types_by_name['ConfigError'] = _CONFIGERROR
+DESCRIPTOR.message_types_by_name['LauncherCommand'] = _LAUNCHERCOMMAND
 
 class Param(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PARAM
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.Param)
 
 class ConfigParamsRequest(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _CONFIGPARAMSREQUEST
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.ConfigParamsRequest)
 
 class ConfigParams(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _CONFIGPARAMS
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.ConfigParams)
 
 class PeerIdentity(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PEERIDENTITY
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.PeerIdentity)
 
 class PeerReadyQuery(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PEERREADYQUERY
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.PeerReadyQuery)
 
 class PeerReadyStatus(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _PEERREADYSTATUS
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.PeerReadyStatus)
 
 class ConfigError(message.Message):
   __metaclass__ = reflection.GeneratedProtocolMessageType
   DESCRIPTOR = _CONFIGERROR
-
+  
   # @@protoc_insertion_point(class_scope:cfg_messages.ConfigError)
+
+class LauncherCommand(message.Message):
+  __metaclass__ = reflection.GeneratedProtocolMessageType
+  DESCRIPTOR = _LAUNCHERCOMMAND
+  
+  # @@protoc_insertion_point(class_scope:cfg_messages.LauncherCommand)
 
 # @@protoc_insertion_point(module_scope)
