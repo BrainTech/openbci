@@ -1,4 +1,0 @@
-[local_params]
-ignore_channels=DriverSaw;AmpSaw;PO7
-montage=diff
-montage_channels=PO7
