@@ -118,6 +118,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         return self._scenarios
 
     def _setParams(self, experiment):
+
         expanded = self.exp_states[self._index_of(experiment)].expanded_peers
         # print "expanded: ", expanded
         # if expanded:

@@ -133,7 +133,8 @@ class OBCIExperimentConfig(object):
 			return config.local_params[param_name]
 		elif param_name in config.ext_param_defs:
 			peer, param = config.ext_param_defs[param_name]
-			return self.param_value(peer, param)
+			source = config.config_sources[peer]
+			return self.param_value(source, param)
 		else:
 			raise OBCISystemConfigError("Param {0} does not exist in {1}".format(param_name, peer_id))
 
@@ -203,6 +204,8 @@ class OBCIExperimentConfig(object):
 			# print "vertices: ", vs
 			meth = getattr(p, neighbours_method)
 			ngs = meth()
+			# print "$$$$$$$$$$$$$$$$$$", p.peer_id, ngs, neighbours_method
+			# print p.config
 			if not p in vs:
 				# print "create vertex for ", p.peer_id,
 				ver_p = Vertex(gr, p)
@@ -297,7 +300,8 @@ class PeerConfigDescription(object):
 		return ready
 
 	def list_config_sources(self):
-		return self.config.config_sources.values()
+		return [val for val in self.config.config_sources.values() if\
+					val in self.config.used_config_sources()]
 
 	def list_launch_deps(self):
 		return self.config.launch_deps.values()

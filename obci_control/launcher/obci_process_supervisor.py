@@ -51,6 +51,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.experiment_uuid = experiment_uuid
 		self.peers_to_launch = []
 		self.processes = {}
+		self.restarting = []
 
 		super(OBCIProcessSupervisor, self).__init__(
 											source_addresses=source_addresses,
@@ -184,6 +185,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 		for peer, data in message.start_peers_data.iteritems():
 			self.launch_data[peer] = data
+		self.restarting = [peer for peer in message.start_peers_data if peer in message.kill_peers]
 		self._launch_processes(message.start_peers_data)
 
 
@@ -290,7 +292,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		proc = self.subprocess_mgr.process(message.machine, message.pid)
 		if proc is not None:
 			proc.mark_delete()
-			if proc.proc_type == 'obci_peer' or proc.proc_type == 'multiplexer':
+			name = proc.name
+			print '~~~~~   ~~~~~   ', name, self.restarting, message.status[0]
+
+			if (proc.proc_type == 'obci_peer' or proc.proc_type == 'multiplexer') and \
+								not (name in self.restarting and message.status[0] == 'terminated'):
 				print "KILLLLLING     and sending obci_peer_dead", proc.name
 				send_msg(self._publish_socket, self.mtool.fill_msg("obci_peer_dead",
 												sender=self.uuid,
@@ -299,6 +305,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 												path=proc.path,
 												status=proc.status()
 												))
+			if name in self.restarting:
+				self.restarting.remove(name)
 
 	@msg_handlers.handler("obci_peer_registered")
 	def handle_obci_peer_registered(self, message, sock):

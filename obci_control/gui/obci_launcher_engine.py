@@ -167,6 +167,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
 	def handle_obci_state_change(self, launcher_message):
 		type_ = launcher_message.type
+		handled = True
 		if type_ == 'experiment_created':
 			self._handle_experiment_created(launcher_message)
 
@@ -190,9 +191,12 @@ class OBCILauncherEngine(QtCore.QObject):
 
 		elif type_ == 'experiment_transformation':
 			self._handle_experiment_transformation(launcher_message)
+		else:
+			handled = False
 
-		self.update_ui.emit(launcher_message)
-		print "----engine signalled", type_
+		if handled:
+			self.update_ui.emit(launcher_message)
+			print "----engine signalled", type_
 
 	def _handle_experiment_created(self, msg, exp_list=None):
 		exps = exp_list if exp_list else self.experiments
@@ -237,18 +241,25 @@ class OBCILauncherEngine(QtCore.QObject):
 			exp = ExperimentEngineInfo(preset_data=old_exp.preset_data, ctx=self.ctx)
 			self.experiments[old_index] = exp
 
-		old_exp.launch_file = msg.launch_file
-		old_exp.name = msg.name 
-		result, details = old_exp._make_config()
-		old_exp.status.set_status(msg.status_name, details=msg.details)
-		old_exp._get_experiment_details()
-		old_exp._set_public_params()
+		old_exp.launcher_data['name'] = msg.name
+		old_exp.launcher_data['launch_file_path'] = msg.launch_file
+		old_exp.launcher_data['status_name'] = msg.status_name
+		old_exp.launcher_data['details'] = msg.details
+		old_exp.setup_from_launcher(old_exp.launcher_data, 
+												preset=(new_index is not None),
+												transform=True)
+		# old_exp.launch_file = msg.launch_file
+		# old_exp.name = msg.name 
+		# result, details = old_exp._make_config()
+		# old_exp.status.set_status(msg.status_name, details=msg.details)
+		# old_exp._get_experiment_details()
+		# old_exp._set_public_params()
 
 		if new_index:
 			old_exp.name = msg.name if msg.name else self.experiments[new_index].name
 			old_exp.preset_data = self.experiments[new_index].preset_data
 			self.experiments[new_index] = old_exp
-		elif not old_index:
+		else:
 			old_exp.preset_data = None
 			self.experiments.append(old_exp)
 
@@ -405,22 +416,25 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self._set_public_params()
 
 
-	def setup_from_launcher(self, launcher_data, preset=False):
+	def setup_from_launcher(self, launcher_data, preset=False, transform=False):
 		self.launcher_data = launcher_data
 		self.runtime_changes = {}
 		if preset:
 			self.old_uid = self.exp_config.uuid
-		else:
+
+		if not preset or transform:
 			self.overwrites = {}
 			self.status = launcher_tools.ExperimentStatus()
 			self.exp_config = system_config.OBCIExperimentConfig()	
 		
 		self.name = launcher_data['name']# if not preset else self.old_uid
 		self.launch_file = launcher_data['launch_file_path']
-		self.ctx = self.ctx if self.ctx is not None else zmq.Context()
-		self.exp_req = self.ctx.socket(zmq.REQ)
-		for addr in launcher_data['rep_addrs']:
-			self.exp_req.connect(addr)
+
+		if not transform:
+			self.ctx = self.ctx if self.ctx is not None else zmq.Context()
+			self.exp_req = self.ctx.socket(zmq.REQ)
+			for addr in launcher_data['rep_addrs']:
+				self.exp_req.connect(addr)
 
 		self.exp_config.uuid = launcher_data['uuid']
 		self.exp_config.origin_machine = launcher_data['origin_machine']
@@ -520,7 +534,6 @@ class ExperimentEngineInfo(QtCore.QObject):
 			for param, defi in peer.config.ext_param_defs.iteritems():
 				source_symbol = defi[0]
 				source = peer.config.config_sources[source_symbol]
-				print source, source_symbol
 				params[param] = (self.exp_config.param_value(peer_id, param), source+'.'+defi[1])
 		return params
 

@@ -31,8 +31,8 @@ class PeerCmd(object):
 
 
 		parser.add_argument(LP, '--'+LOCAL_PARAMS,
-									nargs=2,
-									action=PeerParamAction,
+									nargs='+',
+									action=LocParamAction,
 									help="Local parameter override value: param_name, value.",
 									type=str)
 		parser.add_argument(EP, '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
@@ -69,6 +69,19 @@ class PeerCmd(object):
 class PeerParamAction(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
 		par, value = values[0], values[1]
+		dic = getattr(namespace, self.dest)
+		if dic is None:
+			dic = {}
+		dic[par] = value
+		setattr(namespace, self.dest, dic)
+
+class LocParamAction(PeerParamAction):
+	def __call__(self, parser, namespace, values, option_string=None):
+		if len(values) < 2:
+			raise argparse.ArgumentTypeError("loc_param: Param name and value not specified!" + option_string)
+
+		par = values[0]
+		value = ' '.join(values[1:])
 		dic = getattr(namespace, self.dest)
 		if dic is None:
 			dic = {}
@@ -125,7 +138,7 @@ def _peer_ovr_list(args):
 	return groupped
 
 def peer_args(vals):
-	print 'got', vals
+	print 'cmd got', vals
 	pcmd = PeerCmd(add_help=False)
 	ovr, other = pcmd.parse_cmd(vals)
 	print ovr, other

@@ -10,7 +10,7 @@ print "dupadupadupadupa"
 
 class TestServer(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
-        super(TestServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
+        super(TestServer, self).__init__(addresses=addresses, type=peers.CONFIGURER)
         self.ready()
 
 

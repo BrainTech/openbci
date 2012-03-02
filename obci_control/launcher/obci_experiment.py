@@ -665,6 +665,8 @@ class OBCIExperiment(OBCIControlPeer):
 		kill_data = {}
 		for peer in kill_list:
 			machine = old_config.peers[peer].machine
+			if not machine:
+				machine = self.origin_machine
 			if not machine in kill_data:
 				kill_data[machine] = []
 			kill_data[machine].append(peer)

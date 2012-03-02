@@ -25,6 +25,7 @@ class OBCIClient(object):
 		self.server_req_socket = self.ctx.socket(zmq.REQ)
 		self.server_addresses = server_addresses
 		for addr in server_addresses:
+			print addr
 			self.server_req_socket.connect(addr)
 
 		#self = zmq.Poller()

@@ -105,16 +105,17 @@ class ConfigServer(BaseMultiplexerServer):
 	def handle_register_peer_config(self, message_obj):
 		params = cmsg.params2dict(message_obj)
 		peer_id = message_obj.sender
+		launcher_msg = None
 
-		if peer_id in self._configs:
-			mtype = types.CONFIG_ERROR
-			msg = cmsg.fill_msg(mtype)
-		else:
-			self._configs[peer_id] = params
-			mtype = types.PEER_REGISTERED
-			msg = cmsg.fill_msg(mtype, peer_id=peer_id)
-			launcher_msg = self.mtool.fill_msg('obci_peer_registered',
-											peer_id=peer_id, params=params)
+		# if peer_id in self._configs:
+		# 	mtype = types.CONFIG_ERROR
+		# 	msg = cmsg.fill_msg(mtype)
+		# else:
+		self._configs[peer_id] = params
+		mtype = types.PEER_REGISTERED
+		msg = cmsg.fill_msg(mtype, peer_id=peer_id)
+		launcher_msg = self.mtool.fill_msg('obci_peer_registered',
+										peer_id=peer_id, params=params)
 		return msg, mtype, launcher_msg
 
 
