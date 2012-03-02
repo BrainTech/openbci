@@ -103,6 +103,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 
 
         LOGGER.info("USE CHANNELS: "+str(self.use_channels))
+        LOGGER.info("CHANNELS NAMES: "+str(mgr.get_param('channels_names')))
 
 
         fn = in_file+'.obci'
@@ -143,17 +144,20 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
                 "w":w,
                 "c":c,
                 "montage":self.montage,
-                "montage_channels":';'.join(self.montage_channels)
+                "montage_channels":';'.join(self.montage_channels),
+                "buffer":buffer
                 }
 
-        self.montage_matrix = self._get_montage_matrix(cfg)
-        signal = np.dot(self.montage_matrix.T, raw)
+        self.montage_matrix = self._get_montage_matrix(cfg, mgr.get_param('channels_names'))
+        signal = np.dot(self.montage_matrix, raw)
 
         p300 = P300_train(self.use_channels, fs, avrM, conN, csp_time)
         p300.trainClassifier(signal, trgTags, ntrgTags)
         P, w, c = p300.getPWC()
-
-
+        
+        cfg['P'] = P
+        cfg['w'] = w
+        cfg['c'] = c
 
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
@@ -171,9 +175,9 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
             LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
     
-    def _get_montage_matrix(self, cfg):
+    def _get_montage_matrix(self, cfg, channels_names):
         return ssvep_csp_helper.get_montage_matrix(
-            mgr.get_param('channels_names').split(';'),
+            channels_names,
             cfg['use_channels'].split(';'),
             cfg['montage'],
             cfg['montage_channels'].split(';'))

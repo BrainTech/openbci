@@ -266,7 +266,6 @@ class P300_analysis(object):
         self.filtr = Filtr(self.Fs)
 
     def prepareSignal(self, signal):
-        
         s = np.zeros((self.chL, self.arrL))
         for ch in xrange(self.chL):
             temp = signal[ch]
@@ -300,9 +299,8 @@ class P300_analysis(object):
     def isItEnought(self):
         if (self.flashCount < self.nMin).any():
             return -1
-        
+
         return self.testSignificances()
-        
         
     def testSignificances(self):
         """
@@ -345,7 +343,7 @@ class P300_analysis(object):
             #~ return True
             self.dec = np.arange(8)[w>0]
             print "wybrano -- {0}".format(self.dec)
-            #~ self.dArr = np.zeros(8) # Array4 d val
+
             return int(self.dec[0])
         
         return -1
@@ -370,7 +368,6 @@ class P300_analysis(object):
         # If only one value is significantly distant 
         self.dec = np.arange(w.shape[0])[w==np.max(w)]
         print "self.dec: ", self.dec
-        self.dArr = np.zeros(w.shape[0]) # Array4 d val
 
         return self.dec
         
@@ -384,8 +381,10 @@ class P300_analysis(object):
 
     def newEpoch(self):
         self.flashCount = np.zeros(self.fields)  # Array4 flash counting
-        
+
         for i in range(self.fields): self.dArrTotal[i] = np.array([])
+        self.dArr = np.zeros(w.shape[0]) # Array4 d val
+
          # Array4 d val
     
     def getArrTotalD(self):

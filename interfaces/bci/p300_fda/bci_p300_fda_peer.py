@@ -12,6 +12,7 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
+from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_fda import bci_p300_fda_analysis
@@ -68,7 +69,8 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                                LOGGER,
                                                int(self.config.get_param('samples_per_packet')))
                                                    
-        self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
+        self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
+        ugm_helper.send_stop_blinking(self.conn)
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
@@ -88,6 +90,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             t = time.time() - self._last_dec_time
             if t > self.hold_after_dec:
                 self._last_dec_time = 0
+                ugm_helper.send_start_blinking(self.conn)
             else:
                 self.no_response()
                 return
@@ -119,6 +122,10 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             self.config.get_param('config_file_name'))
 
     def _get_montage_matrix(self, cfg):
+        print "self.config.get_param('channel_names').split(';'): ", self.config.get_param('channel_names').split(';')
+        print "cfg['use_channels'].split(';'): ", cfg['use_channels'].split(';')
+        print "cfg['montage']: ", cfg['montage']
+        print "cfg['montage_channels'].split(';'): ", cfg['montage_channels'].split(';')
         return ssvep_csp_helper.get_montage_matrix(
             self.config.get_param('channel_names').split(';'),
             cfg['use_channels'].split(';'),

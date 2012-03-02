@@ -21,20 +21,18 @@ class BCIP300FdaAnalysis(object):
         self.fs = sampling
         self.montage_matrix = montage_matrix
 
-        # Fields count
         self.nPole = np.zeros(8)
-        self.nMin = 2
-        self.nMax = 5
+        self.nMin = 3
+        self.nMax = 7
 
         csp_time = cfg['csp_time']
         pVal = cfg['pVal']
         use_channels = cfg['use_channels']
 
         nRepeat = cfg['nRepeat']
-        avrM = CFG['avrM']
-        conN = CFG['conN']
+        avrM = cfg['avrM']
+        conN = cfg['conN']
         CONTINUE = True
-
                     
         self.p300 = P300_analysis(sampling, cfg)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
@@ -69,20 +67,19 @@ class BCIP300FdaAnalysis(object):
         
         signal = np.dot(self.montage_matrix.T, data)
 
-        #2 Zlicz pola podswietlone.
         self.nPole[blink.index] += 1
 
         #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-        self.p300.testData(signal, blink.index)
-        dec = -1        
+    	self.p300.testData(signal, blink.index)
+        dec = -1
 
-        if self.p300.isItEnought() != -1:
-            dec = self.p300.getDecision()
-        
-        if self.nPole.min() == self.nMax:
+    	if self.p300.isItEnought() != -1:
+	        dec = self.p300.getDecision()
+        elif self.nPole.min() == self.nMax:
             dec = self.p300.forceDecision()
 
         if dec >= 0:
+            self.p300.newEpoch()
             self.nPole = self.nPole*0
             self.send_func(ix)
         else:
