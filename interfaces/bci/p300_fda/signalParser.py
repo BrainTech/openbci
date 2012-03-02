@@ -29,6 +29,8 @@ class signalParser(object):
         else:
             print "Warning: "+file_prefix+".tag does not exist!"
 
+        self.montage = 0
+
         self.channel_count, self.sample_count, self.sampling_frequency = self.__get_xml_elems()
         self.channel_list = self.__get_channel_list()
 
@@ -48,6 +50,9 @@ class signalParser(object):
                 int(fxml.getElementsByTagName('rs:sampleCount')[0].firstChild.data), \
                 float(fxml.getElementsByTagName('rs:samplingFrequency')[0].firstChild.data)
 
+    def getSamplingFrequency(self):
+        return self.sampling_frequency
+
 
     def __get_channel_list(self):
         """Returns list of channels from .xml file"""
@@ -55,6 +60,8 @@ class signalParser(object):
         fxml = minidom.parse(self.xml_file)
         return [x.firstChild.data for x in fxml.getElementsByTagName('rs:label')]
 
+    def getChannelList(self):
+        return self.__get_channel_list()
             
     def __get_filtered_channels(self, channel_list, filt):
         """Returns channels filtered wit filt function"""
@@ -106,13 +113,40 @@ class signalParser(object):
         else:
             raise ValueError("Channel must be a string or an integer")
 
-    def setMontage(self, montage_channels, montage):
-        self.montage = self.extract_channel(montage_channels).mean()
+    def setMontage(self, montage):
+        self.montage = self.extract_channel(montage).mean()
 
     def getData(self, channels):
         s = self.extract_channel(channels)
         return s - self.montage
-        
+    
+    def getAllTags(self,inSamples=True):
+        ftags = minidom.parse(self.tag_file)
+        tagArray = []
+        for tag in ftags.getElementsByTagName('tag'):
+            tagTime = float(tag.attributes['position'].value)
+            if  tagTime - t > approxTimeDiff:
+                tagArray.append(tagTime)
+        if inSamples:
+            return np.array(tagArray)*self.sampling_frequency
+        else:
+            return np.array(tagArray)
+    
+    def getTrialTags(self, approxTimeDiff=2, inSamples=True):
+        ftags = minidom.parse(self.tag_file)
+        tagArray = []
+        t = 0
+        for tag in ftags.getElementsByTagName('tag'):
+            tagTime = float(tag.attributes['position'].value)
+            if  tagTime - t > approxTimeDiff:
+                tagArray.append(tagTime)
+            t = tagTime
+        if inSamples:
+            return np.array(tagArray)*self.sampling_frequency
+        else:
+            return np.array(tagArray)
+
+    
     def get_train_tags(self, trial_separator_name='trial', screen = False, tag_filter = None, ccof = False ):
         """Extracts positions an stimulation frequencies from .tag file
 
@@ -261,72 +295,3 @@ class signalParser(object):
                 if int(index) !=  abs(idx):
                     exp_list.append(float(e.attributes['position'].value))
         return np.array(exp_list) * fsp 
-
-#######################################################
-
-    def prep_signal(self, to_frequency, channels):
-        """This function preps signal to analysis.
-
-        Function prepers signal for analysis, i.e. extracts indicated data from .raw file
-
-        Parameters:
-        -----------
-        to_frequency : float
-            The frequency to which signal will be resampled
-        channels : array-like
-            The channels to analyze. Can be strings or ints. Must correspond to .xml file
-        Returns:
-        --------
-        signal : np.array
-            An ch x n array where n is length of resampled signal, ch is the number of channels to analyze
-        """
-        
-        Fs = self.sampling_frequency
-        dec_no = Fs / float(to_frequency)
-        if self.__is_int(dec_no / 2.0) or Fs == float(to_frequency):
-            dec_no = int(dec_no)
-            M = int(self.sample_count / dec_no)
-            signal = np.zeros([len(channels), M])
-            M_cmr = np.ones([len(channels), len(channels)]) * (-1.0/len(channels))
-            M_cmr += np.eye(len(channels)) * (1 + 1.0/len(channels))
-            for i,e in enumerate(channels):
-                #tmp = np.zeros(self.sample_count)
-                #tmp = self.extract_channel([e]+['A1','A2'], self.ears)
-                #tmp = self.extract_channel([e]+['P07'], self.diff)
-                tmp = self.extract_channel([e], self.ident)
-                #while dec_no > 1:
-                #    dec_no /= 2
-                if not Fs == float(to_frequency):
-                    tmp = decimate(tmp, dec_no)
-                signal[i,:] = tmp[0:M]
-                
-            return np.dot(M_cmr, signal)
-        else:
-            raise ValueError, 'The new sampling frequency is not even!'
-            return 0
-    
-    def ears(self, ch):
-        """Simple montage - from channel in ch[0] subtracts mean from ears (ch[1] and ch[2])"""
-        e = ch[1] + ch[2]
-        return ch[0] - e / 2.0
-    
-    def ident(self, ch):
-        """Identity montage"""
-        e = ch[0]
-        return e
-    
-    def diff(self, ch):
-        """reference montage"""
-        e = ch[1] - ch[0]
-        return e
-
-    def __is_int(self, x):
-        """Checks if x is an integer"""
-        try:
-            return int(x) == x
-        except:
-            return False
-    def cmr(self, x):
-        mean = sum(x) / len(x)
-        
-   

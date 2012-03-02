@@ -21,6 +21,18 @@ class BCIP300FdaAnalysis(object):
         self.fs = sampling
         self.montage_matrix = montage_matrix
 
+        self.nPole = np.zeros(8)
+        self.nMin = 3
+        self.nMax = 7
+
+        csp_time = cfg['csp_time']
+        pVal = cfg['pVal']
+        use_channels = cfg['use_channels']
+
+        nRepeat = cfg['nRepeat']
+        avrM = cfg['avrM']
+        conN = cfg['conN']
+        CONTINUE = True
                     
         self.p300 = P300_analysis(sampling, cfg)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
@@ -55,9 +67,20 @@ class BCIP300FdaAnalysis(object):
         
         signal = np.dot(self.montage_matrix.T, data)
 
+        self.nPole[blink.index] += 1
+
         #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-        ix = self.p300.testData(signal, blink.index)
-        if ix >= 0:
+    	self.p300.testData(signal, blink.index)
+        dec = -1
+
+    	if self.p300.isItEnought() != -1:
+	        dec = self.p300.getDecision()
+        elif self.nPole.min() == self.nMax:
+            dec = self.p300.forceDecision()
+
+        if dec >= 0:
+            self.p300.newEpoch()
+            self.nPole = self.nPole*0
             self.send_func(ix)
         else:
             LOGGER.info("Got -1 ind- no decision")
