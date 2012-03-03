@@ -446,10 +446,10 @@ class OBCIExperiment(OBCIControlPeer):
 			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
 									err_code='peer_id_in_use'))
 
-		elif self.status.status_name != launcher_tools.RUNNING:
-			send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
-									err_code='exp_status_'+self.status.status_name,
-											details=self.status.details))
+		# elif self.status.status_name != launcher_tools.RUNNING:
+		# 	send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
+		# 							err_code='exp_status_'+self.status.status_name,
+		# 									details=""))
 		else:
 			self.unsupervised_peers[message.peer_id] = dict(peer_type=message.peer_type,
 															path=message.path)
