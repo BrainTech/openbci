@@ -255,7 +255,7 @@ class OBCILauncherEngine(QtCore.QObject):
 		# old_exp._get_experiment_details()
 		# old_exp._set_public_params()
 
-		if new_index:
+		if new_index is not None:
 			old_exp.name = msg.name if msg.name else self.experiments[new_index].name
 			old_exp.preset_data = self.experiments[new_index].preset_data
 			self.experiments[new_index] = old_exp

@@ -21,5 +21,6 @@ class TransformEngine(object):
         if self._current_interface == to_interface:
             return
         else:
+            self._current_interface = to_interface
             logic_helper.restart_scenario(self.conn, self._scens[to_interface],
                                           leave_on=['amplifier'])

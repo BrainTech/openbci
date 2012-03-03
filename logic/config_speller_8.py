@@ -25,7 +25,7 @@ class Config(object):
         self.state[4] = [4, 4, 4, 4, 4, 4, 4, 0]
         self.state[5] = [5, 5, 5, 5, 5, 5, 5, 0]
         self.state[6] = [6, 6, 6, 6, 6, 6, 6, 0]
-        self.state[7] = [7, 7, 7, 0, 7, 7, 7, 7]
+        self.state[7] = [7, 7, 7, 0, 7, 7, 7, 0]
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]

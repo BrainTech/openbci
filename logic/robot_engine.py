@@ -6,6 +6,7 @@
 import os.path, sys, time, os
 from gui.ugm import ugm_helper
 import devices.pyrovio.rovio as rovio
+from multiplexer.multiplexer_constants import peers, types
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("robot_engine", "info")
@@ -53,12 +54,23 @@ class RobotEngine(object):
         except:
             LOGGER.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!!")
             ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
-            time.sleep(2)
+            time.sleep(1)
 
     def start_robot_feedback(self):
         """Called eg. in mult-logic just after starting robot logic."""
-        LOGGER.info("Start robot feed")
+        LOGGER.info("Start robot feed...")
+        self.conn.send_message(
+            message = "start",
+            type=types.ROBOT_FEEDBACK_CONTROL, 
+            flush=True)
 
     def stop_robot_feedback(self):
         """Called eg. in mult-logic just after finishing robot logic."""
-        LOGGER.info("Stop robot feed")
+        LOGGER.info("Stop robot feed...")
+        self.conn.send_message(
+            message = "stop",
+            type=types.ROBOT_FEEDBACK_CONTROL, 
+            flush=True)
+        time.sleep(0.5)#make sure(?) robot feedback will not overwrite below
+        ugm_helper.send_logo(self.conn, 'gui.ugm.resources.bci.png')
+

@@ -159,7 +159,8 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
     def _run_scenario(self, path):
         if len(path) > 0:
-            logic_helper.restart_scenario(path)
+            logic_helper.restart_scenario(self.conn, path,
+                                          leave_on=['amplifier'])
         else:
             LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)

@@ -13,8 +13,6 @@ from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 
 
-from acquisition import acquisition_helper
-
 import devices.pyrovio.rovio as rovio
 from common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
@@ -59,7 +57,7 @@ class LogicRobotFeedback(ConfiguredClient):
                         imgpath = self.paths[index]
                 except:
                     LOGGER.error("An error occured while writing image to file!")
-                time.sleep(0.3)
+                time.sleep(0.05)
 
 if __name__ == "__main__":
     LogicRobotFeedback(settings.MULTIPLEXER_ADDRESSES).run()
