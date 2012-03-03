@@ -10,8 +10,8 @@ LOGGER = logger.get_logger("transform_engine", "info")
 
 
 class TransformEngine(object):
-    def __init__(self, configs, current_interface):
-        self._current_interface = current_interface
+    def __init__(self, configs):
+        self._current_interface = configs['default_mode']
         self._scens = {
             'switch': configs['switch'],
             'ssvep': configs['ssvep']
