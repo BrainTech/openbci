@@ -516,11 +516,13 @@ class OBCIExperiment(OBCIControlPeer):
 		print "{0} [{1}], {2} peer ready! {3} to go".format(
 								self.name, self.peer_type(), peer_id,
 								self._ready_register)
+
 		if self._ready_register == 0:
 			self.status.set_status(launcher_tools.RUNNING)
+			
+
 		self.status_changed(self.status.status_name, self.status.details,
 			peers={peer_id : self.status.peer_status(peer_id).status_name})
-
 
 
 
@@ -622,17 +624,13 @@ class OBCIExperiment(OBCIControlPeer):
 		kill_list, launch_list = self._diff_scenarios(self.exp_config, 
 														exp_config, message.leave_on)
 
-		for peer in status.peers_status:
-			if peer not in launch_list and peer not in kill_list:
-				status.peer_status(peer).set_status(self.status.peer_status(peer).status_name,
-												self.status.peer_status(peer).details)
 
 		print "KILL_LIST ", kill_list
 		print "LAUNCH_LIST", launch_list
 
 		old_name = self.name
 		old_status = self.status
-		self.name = message.name if message.name is not None else ""
+		self.name = message.name if message.name is not None else new_launch_file
 		self.launch_file = new_launch_file
 		self.status = status
 
@@ -657,6 +655,17 @@ class OBCIExperiment(OBCIControlPeer):
 
 		self._kill_and_launch_peers(kill_list, launch_list, self.exp_config, old_config)
 		self._kill_unused_supervisors()
+
+		pst = {}		
+		for peer in self.status.peers_status:
+			if peer not in launch_list and peer not in kill_list:
+				self.status.peer_status(peer).set_status(old_status.peer_status(peer).status_name,
+												old_status.peer_status(peer).details)
+
+				pst[peer] = self.status.peer_status(peer).status_name
+
+		self.status_changed(self.status.status_name, self.status.details,
+						peers=pst)
 
 		# list: to kill, to restart (unless in leave-on)
 		# start supervisors if new machnes specified

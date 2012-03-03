@@ -66,6 +66,8 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.scenarios.setColumnCount(2)
         self.scenarios.setHorizontalHeaderLabels(["Scenario", "Status"])
         self.scenarios.horizontalHeader().setVisible(True)
+        self.scenarios.setColumnWidth(0, 300)
+        #self.scenarios.setColumnWidth(1, 100)
 
         self.scenarios.currentCellChanged.connect(self._setInfo)
 
@@ -73,7 +75,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.parameters.itemClicked.connect(self._itemClicked)
         self.parameters.itemChanged.connect(self._itemChanged)
         self.parameters.setColumnWidth(0, 200)
-        self.parameters.setColumnWidth(1, 200)
+        self.parameters.setColumnWidth(1, 400)
 
         # print PyQt4.QtGui.QColor.colorNames()
         self.start_button.clicked.connect(self._start)
@@ -96,11 +98,17 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.update_user_interface(None)
 
     def setScenarios(self, scenarios):
+        #print("AAAAAAAAAAAAAAAA")
+        #print(scenarios[0].name.__class__)
+        #print(scenarios[0].name > scenarios[1].name)
+        scenarios.sort(cmp=lambda a,b: str(a.name) > str(b.name))
         self._scenarios = scenarios
         self.scenarios.clearContents()
         self.scenarios.setRowCount(len(scenarios))
         for i, s in enumerate(scenarios):
             name = QTableWidgetItem(s.name)
+            #print("NAAAAAAAAME:")
+            #print(s.name)
             self.scenarios.setItem(i, 0, name)
       
             status = QTableWidgetItem(s.status.status_name)
@@ -249,7 +257,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
         self.exp_states = new_states
 
-        if current_sc == -1:
+        if current_sc == -1 or current_sc > len(self._scenarios):
             current_sc = 0
 
         mode = self.details_mode.currentText()
@@ -260,6 +268,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.setScenarios(scenarios)
         self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
 
+	
         self._manage_actions(current_sc)
 
     def _manage_actions(self, current_sc):

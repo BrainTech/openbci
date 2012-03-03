@@ -102,7 +102,8 @@ class OBCILauncherEngine(QtCore.QObject):
 		running = self._list_experiments()
 		for exp in running:
 			matches = [(i, e) for i, e in enumerate(experiments) if\
-						e.name == exp['name'] and e.preset_data is not None]
+						e.launch_file == exp['launch_file_path'] and e.preset_data is not None\
+						and e.status.status_name == launcher_tools.READY_TO_LAUNCH]
 			if matches:
 				index, preset = matches.pop()
 				preset.setup_from_launcher(exp, preset=True)
@@ -445,6 +446,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self._get_experiment_details()
 		self._set_public_params()
 
+	
 	def _set_public_params(self):
 		for par in self.public_params:
 			if len(par.split('.')) == 2:
@@ -542,6 +544,13 @@ class ExperimentEngineInfo(QtCore.QObject):
 		send_msg(self.exp_req, msg)
 		response, _ = self.poller.poll_recv(self.exp_req, timeout=3000)
 		if not response:
+			print "!!!!!!!!!!!!!!!!!!!!!!!!!!!1 no response to ",msg
+			self.exp_req.close()
+			self.exp_req = self.ctx.socket(zmq.REQ)
+			for addr in self.launcher_data['rep_addrs']:
+				self.exp_req.connect(addr)
+
+
 			return None
 		return self.mtool.unpack_msg(response)
 
