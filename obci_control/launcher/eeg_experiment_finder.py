@@ -184,7 +184,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
         print nrb
 
         to_check = [srv_ip for srv_ip in nrb if \
-                            nrb[srv_ip] != my_addr] #and\
+                            nrb[srv_ip][1].sender_ip != my_addr] #and\
                             #not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
         LOGGER.info("number of servers to query: " + str(len(to_check)))
         if to_check:
