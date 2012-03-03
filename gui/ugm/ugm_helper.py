@@ -10,6 +10,7 @@ from gui.ugm import ugm_config_manager
 TEXT_SCREEN_MGR = ugm_config_manager.UgmConfigManager('text_neg')
 TEXT_ID = 101
 STATUS_ID = 54321
+LOGO_ID = 55555
 
 def send_text(conn, text):
   cfg = TEXT_SCREEN_MGR.get_config_for(TEXT_ID)
@@ -19,6 +20,9 @@ def send_text(conn, text):
 
 def send_status(conn, text):
   send_config_for(conn, STATUS_ID, 'message', text)
+
+def send_logo(conn, img):
+  send_config_for(conn, LOGO_ID, 'image_path', img)
 
 def send_config_for(conn, id, key, value):
   config = str([{'id':id,

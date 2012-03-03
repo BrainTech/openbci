@@ -294,6 +294,16 @@ peer {
     name: "SWITCH_ANALYSIS"
 }
 
+peer {
+    type: 156
+    name: "ROBOT_FEEDBACK"
+}
+
+peer {
+    type: 157
+    name: "ROBOT_FEEDBACK_CONTROL"
+}
+
 
 
 
@@ -465,8 +475,11 @@ type {
 	report_delivery_error: false
        }
 
-
-
+    to {
+       peer: "ROBOT_FEEDBACK"
+       whom: ALL
+	report_delivery_error: false
+       }
 }
 
 type {
@@ -985,5 +998,14 @@ type {
         peer: "SWITCH_ANALYSIS"
         whom: ALL
 	report_delivery_error: false
+    }
+}
+
+type {
+    type: 229
+    name: "ROBOT_FEEDBACK_CONTROL"
+    to {
+        peer: "ROBOT_FEEDBACK"
+        whom: ALL
     }
 }

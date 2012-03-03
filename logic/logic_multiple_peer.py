@@ -21,7 +21,7 @@ class LogicMultiple(LogicDecision, SpellerEngine, RobotEngine, TransformEngine):
         LogicDecision.__init__(self, addresses=addresses)
         SpellerEngine.__init__(self, self.config.param_values())
         RobotEngine.__init__(self, self.config.param_values())
-        TransformEngine.__init__(self, self.config.param_values(), 'switch')
+        TransformEngine.__init__(self, self.config.param_values())
         self.ready()
         self._update_letters()
 
