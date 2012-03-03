@@ -1,0 +1,59 @@
+######## cebit demo_129 network #########
+192.168.1.104	pralina
+192.168.1.106	lap7
+192.168.1.108	mati-laptop
+192.168.1.110	appliance3
+192.168.1.112	appliance2	
+192.168.1.114	appliance4
+192.168.1.116	Piotr-Durkas-MacBook-Pro.local
+
+192.168.1.9 	rovio
+#########################################
+
+
+################## MAC addresses  ###########
+pralina	192.168.1.104
+  wifi
+	00-21-00-88-ec-cd 
+  ethernet
+	00-22-64-6b-ed-03 
+
+lap7	192.168.1.106
+  wifi
+	ac-72-89-9e-7d-39 	
+  ethernet
+	18-03-73-8b-63-dc 	
+
+mati-laptop	192.168.1.108
+  wifi
+	00-1b-77-a4-cd-33
+  ethernet
+	00-15-58-cb-2c-a1 	
+
+appliance3	192.168.1.110
+(bialy)
+  wifi
+	74-2f-68-b3-fa-58 	
+  usb ethernet apple
+	d8-30-62-a4-fe-b4 	
+
+appliance2	192.168.1.112
+  external wifi (pentagram)
+    00-b0-8c-03-45-30
+  internal wifi
+    00-1c-bf-ae-f9-25
+
+appliance4	192.168.1.114
+  wifi
+  	74-2f-68-b3-fa-9d
+
+Piotr-Durkas-MacBook-Pro.local	192.168.1.116
+  wifi:
+	60-33-4b-0e-44-af
+  ethernet:
+  	c4-2c-03-2e-0d-f4
+
+
+usb ethernet apple 2 (gumowy supelek)
+    58-55-ca-26-18-30
+
