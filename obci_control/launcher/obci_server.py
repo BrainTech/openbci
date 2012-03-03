@@ -84,7 +84,7 @@ class OBCIServer(OBCIControlPeer):
 		ips, names = d.keys(), [val[1].sender_ip for val in d.values()]
 		print ips, names
 		if self.machine not in names:
-			return None
+			return '127.0.1.1'
 		return ips[names.index(self.machine)]
 
 	def handle_socket_read_error(self, socket, error):
@@ -154,6 +154,7 @@ class OBCIServer(OBCIControlPeer):
 
 		args += addrs
 		exp_name = name if name else os.path.basename(launch_file)
+
 		args += [
 					'--sandbox-dir', str(sandbox_dir),
 					'--launch-file', str(launch_file),
