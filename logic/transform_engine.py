@@ -6,6 +6,7 @@
 #import os.path, sys, time, os
 from logic import logic_logging as logger
 from logic import logic_helper
+from devices import diode_helper
 LOGGER = logger.get_logger("transform_engine", "info")
 
 
@@ -21,6 +22,9 @@ class TransformEngine(object):
         if self._current_interface == to_interface:
             return
         else:
+            if self._current_interface == 'ssvep':
+                diode_helper.diode_stop(self.conn)
+
             self._current_interface = to_interface
             logic_helper.restart_scenario(self.conn, self._scens[to_interface],
                                           leave_on=['amplifier'])

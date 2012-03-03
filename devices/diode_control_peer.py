@@ -43,10 +43,18 @@ class DiodeControl(ConfiguredMultiplexerServer):
 
     def update_freqs(self, freqs_str):
         self.freqs_str = freqs_str
-        self.freqs = [int(i) for i in freqs_str.split(";")]
+        try:
+            self.freqs = [int(i) for i in freqs_str.split(";")]
+        except ValueError: #'' in freqs - means turn diodes on
+            LOGGER.warning("Got nonumeric freqs. Set to -1")
+            self.freqs = [-1 for i in freqs_str.split(";")]
 
     def start_blinking(self):
-        self.blinker.blinkSSVEP(self.freqs, 1, 1)
+        if self.freqs[0] == -1:
+            self.diodes_on()
+        else:
+            self.blinker.blinkSSVEP(self.freqs, 1, 1)
+
         self._send_diode_message(self.freqs_str)
     
     def diodes_on(self):
