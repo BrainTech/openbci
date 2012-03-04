@@ -12,6 +12,7 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
+from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_fda import bci_p300_fda_analysis
@@ -31,6 +32,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         self._last_dec_time = time.time()
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
+        ugm_helper.send_stop_blinking(self.conn)
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
     def __init__(self, addresses):
@@ -68,14 +70,15 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                                LOGGER,
                                                int(self.config.get_param('samples_per_packet')))
                                                    
-        self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
+        self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
+        ugm_helper.send_start_blinking(self.conn)
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         #always buffer signal
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.SampleVector()
+            l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)
             #Supply buffer with sample data, the buffer will fire its
             #ret_func (that we defined as self.analysis.analyse) every 'every' samples
@@ -88,12 +91,13 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             t = time.time() - self._last_dec_time
             if t > self.hold_after_dec:
                 self._last_dec_time = 0
+                ugm_helper.send_start_blinking(self.conn)
             else:
                 self.no_response()
                 return
 
         if mxmsg.type == types.BLINK_MESSAGE:
-	    l_msg = variables_pb2.Blink()
+            l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
             self.buffer.handle_blink(l_msg)
             
@@ -119,6 +123,10 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             self.config.get_param('config_file_name'))
 
     def _get_montage_matrix(self, cfg):
+        print "self.config.get_param('channel_names').split(';'): ", self.config.get_param('channel_names').split(';')
+        print "cfg['use_channels'].split(';'): ", cfg['use_channels'].split(';')
+        print "cfg['montage']: ", cfg['montage']
+        print "cfg['montage_channels'].split(';'): ", cfg['montage_channels'].split(';')
         return ssvep_csp_helper.get_montage_matrix(
             self.config.get_param('channel_names').split(';'),
             cfg['use_channels'].split(';'),

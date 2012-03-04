@@ -1,6 +1,5 @@
-from scipy.signal import filtfilt, butter, buttord
+from scipy.signal import lfilter, filtfilt, butter, buttord
 from scipy.signal import cheb2ord, cheby2
-import numpy as np
 
 
 class Filtr(object):
@@ -14,23 +13,27 @@ class Filtr(object):
         self.set_highPass_filter()
         
         
-    def set_lowPass_filter(self, wp=20., ws=30., gpass=1., gstop=20.):
+    def set_lowPass_filter(self):
         Nq = self.Fs/2.
-        wp, ws = wp/Nq, ws/Nq
+        wp, ws = 20./Nq, 30./Nq
+        gpass, gstop = 1., 20.
         N_filtr, Wn_filtr = buttord(wp, ws, gpass, gstop)
         self.b_L, self.a_L = butter(N_filtr, Wn_filtr, btype='low')
 
-    def set_highPass_filter(self, wp=1., ws=0.1, gpass=1., gstop=10.):
+    def set_highPass_filter(self):
         Nq = self.Fs/2.
-        wp, ws = wp/Nq, ws/Nq
+        wp, ws = 2./Nq, 1./Nq
+        gpass, gstop = 1., 10.
         N_filtr, Wn_filtr = buttord(wp, ws, gpass, gstop)
         self.b_H, self.a_H = butter(N_filtr, Wn_filtr, btype='high')
             
     def filtrLow(self, s):
-        return filtfilt(self.b_L, self.a_L, s)
+        #~ return filtfilt(self.b_L, self.a_L, s)
+        return lfilter(self.b_L, self.a_L, s)
 
-    def filtrHigh(self, s, axis=-1):
-        return filtfilt(self.b_H, self.a_H, s)
+    def filtrHigh(self, s):
+        #~ return filtfilt(self.b_H, self.a_H, s)
+        return lfilter(self.b_H, self.a_H, s)
         
     def movingAvr(s,r):
         temp = s.copy()

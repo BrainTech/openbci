@@ -46,6 +46,13 @@ def send_start_blinking(conn):
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
+def send_stop_blinking(conn):
+    msg = variables_pb2.Variable()
+    msg.key = 'stop_blinking'
+    msg.value = ''
+    conn.send_message(message=msg.SerializeToString(), 
+                      type=types.UGM_CONTROL_MESSAGE,
+                      flush=True)
 
 
 
