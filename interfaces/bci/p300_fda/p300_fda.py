@@ -14,32 +14,32 @@ from scipy.linalg import eig
 
 
 class P300_train:
-    def __init__(self, channels, Fs, csp_time=[0.2, 0.6]):
+    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6]):
 
         
         self.Fs = Fs
         self.t = np.array(csp_time)
         self.channels = channels
-        
-        self.defineConst()
+
+        self.defineConst(avrM, conN)
         self.defineMethods()
         
         
-    def defineConst(self):
-        
-        #~ self.Fs = 128. # Hz
+    def defineConst(self, avrM, conN):
         
         # Define Const
         self.tInit, self.tFin = self.t
         self.iInit, self.iFin = np.floor( self.t*self.Fs)
         
-        self.avrM = 4  # Moving avr window length
-        self.conN = 7  # No. of chan. to concatenate
+        self.avrM = avrM  # Moving avr window length
+        self.conN = conN  # No. of chan. to concatenate
 
         # Target/Non-target arrays
-        self.chL = len(self.channels)
+        self.chL = len((self.channels).split(';'))
         self.arrL = (self.iFin-self.iInit)/self.avrM  # Length of data per channel
 
+        print "self.chL: ", self.chL
+        print "self.arrL: ", self.arrL
         # Data arrays
         totTarget = np.zeros( (self.chL, self.arrL))
         totNontarget = np.zeros((self.chL, self.arrL))
@@ -58,17 +58,16 @@ class P300_train:
     def getTargetNontarget(self, signal, targetTags, nontargetTags):
         target = {}
         trgTags = targetTags
-        print "*"*10
-        print "trgTags: ", trgTags
-        print "*"*10
-        
+
         for tag in trgTags:
+
             index = int(tag)
             s = np.zeros( (self.chL, self.arrL) )
-            print "signal[0].shape: ", signal[0]
             for idx in range(self.chL):
                 temp = signal[idx][index:index+self.Fs]
                 temp = (temp-temp.mean())/temp.std()
+                temp = self.filtr.filtrHigh(temp)
+                temp = self.filtr.filtrLow(temp)
                 temp = temp[self.iInit:self.iFin:self.avrM]
                 s[idx] = temp
             
@@ -82,6 +81,8 @@ class P300_train:
             for idx in range(self.chL):
                 temp = signal[idx][index:index+self.Fs]
                 temp = (temp-temp.mean())/temp.std()
+                temp = self.filtr.filtrHigh(temp)
+                temp = self.filtr.filtrLow(temp)                
                 temp = temp[self.iInit:self.iFin:self.avrM]
                 s[idx] = temp
             
@@ -120,7 +121,10 @@ class P300_train:
         print "len(trgTags): ", len(trgTags)
         covTarget = np.zeros( (self.chL,self.chL) )
         covNontarget = np.zeros( (self.chL,self.chL) )
-        
+
+        print "channels: ", self.channels
+        print "trgTags[0]: ", trgTags[0]
+        print "target.shape: ", len(target)
         print "target[tag].shape: ", target[trgTags[0]].shape
         # Target
         for tag in trgTags:
@@ -204,6 +208,7 @@ class P300_train:
         self.w = np.dot( invertCovariance, meanAnalDiff)
         self.c = np.dot(self.w, meanAnalMean)
 
+        
         #~ print "We've done a research and it turned out that best values for you are: "
         #~ print "w: ", self.w
         #~ print "c: ", self.c
@@ -233,10 +238,10 @@ class P300_analysis(object):
     def defineConst(self, cfg):
 
         # moving avr & resample factor
-        self.avrM = 4  # VAR !
+        self.avrM = int(cfg['avrM'])  # VAR !
         
         # Concatenate No. of signals
-        self.conN = 7  # VAR !
+        self.conN = int(cfg['conN'])  # VAR !
 
         # Define analysis time
         self.t = np.array(cfg['csp_time'])
@@ -246,64 +251,73 @@ class P300_analysis(object):
         self.chL = len(cfg['use_channels'].split(';'))
         self.arrL = np.floor((self.iFin-self.iInit)/self.avrM)
 
+        self.nRepeat = int(cfg['nRepeat'])
+        self.nMin = 3
+        self.nMax = 7
+        
+        self.dec = -1
+
+
         #
         self.dArr = np.zeros(self.fields) # Array4 d val
+        #~ self.dArrTotal = np.zeros((10,self.fields)) # Array4 d val
+        self.dArrTotal = {}
+        for i in range(self.fields): self.dArrTotal[i] = np.array([])
+        
         self.flashCount = np.zeros(self.fields)  # Array4 flash counting
         self.sAnalArr = {}
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
-        p = cfg['pVal']
+        p = float(cfg['pVal'])
+        print "pVal: ", p
         self.z = st.norm.ppf(p)
+        
+        # w - values of diff between dVal and significal d (v)
+        self.diffV = np.zeros(self.fields)
     
     def defineMethods(self):
         self.filtr = Filtr(self.Fs)
 
     def prepareSignal(self, signal):
-        
-        print "*"*40
-
-        
         s = np.zeros((self.chL, self.arrL))
         for ch in xrange(self.chL):
-            print "ch: ", ch
             temp = signal[ch]
             temp = self.filtr.filtrHigh(temp)
             temp = self.filtr.filtrLow(temp)
             temp = (temp - temp.mean())/temp.std()
             temp = temp[self.iInit:self.iFin:self.avrM]
             
-            print "temp: ", temp
-            print "temp.shape: ", temp.shape
-            print "self.arrL: ", self.arrL
-            print "s[ch]: ", s[ch].shape
             s[ch] = temp
         
         sAnal = np.array( [] )
         for idx in range(self.conN):
             sAnal = np.concatenate( (sAnal, np.dot( self.P[:, idx], s)) )
 
-        print "*"*40
-        print "\n"*4
-
-        
         return sAnal
         
     def testData(self, signal, blink):
-        s = self.prepareSignal(signal)
 
+        # Analyze signal when data for that flash is neede
+        s = self.prepareSignal(signal)
+        
+        # Data projection on Fisher's space
         self.d = np.dot(s,self.w) - self.c
         self.dArr[blink] += self.d
+        self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
+        self.dArrTotal[blink] = self.dArrTotal[blink][:self.nMax]
         
-        return self.testIfEnd()
+        self.flashCount[blink] += 1
         
-    def getRecentD(self):
-        return self.d
+        #~ print "self.d: ", self.d
         
-    def getArrD(self):
-        return self.dArr
+    def isItEnought(self):
+        if (self.flashCount < self.nMin).any():
+            return -1
+
+        return self.testSignificances()
         
-    def testIfEnd(self):
+    def testSignificances(self):
         """
         Test significances of d values.
         If one differs MUCH number of it is returned as a P300 target.
@@ -313,29 +327,57 @@ class P300_analysis(object):
         then that's the target.
         """
         
-        dNorm = np.zeros(8)
-        w = np.zeros(8)
-        for sq in range(8):
+        dMean = np.zeros(self.fields)
+        nMin = self.flashCount.min()
+        print "nMin: ", nMin
+        for i in range(self.fields):
+            dMean[i] = self.dArrTotal[i][:nMin].mean()
+        
+        print "nMin = ", nMin
+        print "dMean: ", dMean
+        
+        #~ dMean = self.dArr / self.flashCount
+        self.diffV = self.diffV*0
+        
+        for sq in range(self.fields):
             # Norm distribution
-            tmp = np.delete(self.dArr, sq)
+            tmp = np.delete(dMean, sq)
             mean, std = tmp.mean(), tmp.std()
-            dNorm[sq] = (self.dArr[sq]-mean)/std
             
             # Find right boundry
-            v = mean+self.z*std
-            
+            v = mean + self.z*std
+
             # Calculate distance
-            w[sq] = self.dArr[sq]-v
-        
-        print "w: ", w
+            self.diffV[sq] = dMean[sq]-v
+            
+            
+            print "{0}: (m, std, v) = ({1}, {2}, {3})".format(sq, mean, std, v)
+            print "{0}: (d, w) = ({1}, {2})".format(sq, dMean[sq], self.diffV[sq])
+            
+        print "self.diffV: ", self.diffV
+
         # If only one value is significantly distant
-        if np.sum(w>0) == 1:
-            self.dec = np.arange(8)[w>0]
+        if np.sum(self.diffV>0) == 1:
+            #~ return True
+            self.dec = np.arange(self.diffV.shape[0])[self.diffV>0]
+            self.dec = np.int(self.dec[0])
             print "wybrano -- {0}".format(self.dec)
-            self.dArr = np.zeros(8) # Array4 d val
-            return int(self.dec[0])
+
+            return self.dec
         
-        return -1
+        else:
+            return -1
+
+    def forceDecision(self):
+
+        # If only one value is significantly distant 
+        # Decision is the field with largest w value
+        self.dec = np.arange(self.diffV.shape[0])[self.diffV==np.max(self.diffV)]
+        self.dec = np.int(self.dec[0])
+        print "self.dec: ", self.dec
+
+        # Return int value
+        return self.dec
         
     def setPWC(self, P, w, c):
         self.P = P
@@ -344,3 +386,19 @@ class P300_analysis(object):
 
     def getDecision(self):
         return self.dec
+
+    def newEpoch(self):
+        self.flashCount = self.flashCount*0  # Array4 flash counting
+        self.dArr = self.dArr*0 # Array4 d val
+
+        for i in range(self.fields): self.dArrTotal[i] = np.array([])
+
+    
+    def getArrTotalD(self):
+        return self.dArrTotal
+
+    def getRecentD(self):
+        return self.d
+        
+    def getArrD(self):
+        return self.dArr
