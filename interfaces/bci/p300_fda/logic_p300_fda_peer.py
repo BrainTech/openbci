@@ -19,6 +19,8 @@ from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from interfaces.bci.p300_fda.p300_fda import P300_train
 from logic import logic_helper
 from logic import logic_logging as logger
+from rysuj_p300 import P300_draw
+
 LOGGER = logger.get_logger("p300_fda", 'info')
 
 class LogicP300Csp(ConfiguredMultiplexerServer):
@@ -94,12 +96,17 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
                 except:
                     pass
 
+        self.montage = self.config.get_param("montage")
+        tmp = self.config.get_param("montage_channels")
+        if len(tmp) > 0:
+            self.montage_channels = tmp.split(';')
+        else:
+            self.montage_channels = []
+
+
         LOGGER.info("USE CHANNELS: "+str(self.use_channels))
+        LOGGER.info("CHANNELS NAMES: "+str(mgr.get_param('channels_names')))
 
-
-
-        csp_time=[0.2,0.7]
-        p300 = P300_train(self.use_channels, fs, csp_time=csp_time)#idx oznacza indeks na który
 
         fn = in_file+'.obci'
         raw = mgr.get_channels_samples(self.use_channels)#sp.signalParser(fn)
@@ -115,34 +122,62 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         #~ trgTags = self.data.get_p300_tags()
         #~ ntrgTags = self.data.get_not_p300_tags()        
         #~ signal = self.data.extract_channel(self.use_channels)
-        
-        p300.trainClassifier(raw, trgTags, ntrgTags)
-        P, w, c = p300.getPWC()
-        
+
+        csp_time = [0.25,0.75]
+        pVal = 0.8
+        nRepeat = 3
+        avrM = 2
+        conN = 2
+        P = None
+        w = None
+        c = None
+
         buffer = 1.1*fs
         LOGGER.info("Computer buffer len: "+str(buffer))
 
         
-        #~ q = data
-        cfg = {
-              'P':P,
-              'w':w,
-              'c':c,
-              'csp_time':csp_time,
-             #~ 'targets':targets,
-             #~ 'non_targets':non_targets,
-             #~ 'q' : q,
-             'buffer':buffer,
-             'use_channels':';'.join(self.use_channels),
-             'montage':self.montage,
-             'montage_channels':';'.join(self.montage_channels),
-             #~ 'left' : left,
-             #~ 'right' : right
-             }
+        cfg = {"csp_time":csp_time,
+                "use_channels": ';'.join(self.use_channels),
+                'pVal':pVal,
+                'avrM':avrM,
+                'conN':conN,
+                "nRepeat":nRepeat,
+                "P":P,
+                "w":w,
+                "c":c,
+                "montage":self.montage,
+                "montage_channels":';'.join(self.montage_channels),
+                "buffer":buffer
+                }
+
+        self.montage_matrix = self._get_montage_matrix(cfg, mgr.get_param('channels_names'))
+        signal = np.dot(self.montage_matrix, raw)
+
+        channels = ";".join(self.use_channels)
+        
+        # make sure that:
+        # channels -- is in format like "P07;O1;Oz;O2"
+        # fs -- is a number
+        # avrM -- is a int
+        # conN -- is a int
+        # csp_time -- is a list of two float 0 < x < 1
+        p300 = P300_train(channels, fs, avrM, conN, csp_time)
+        p300.trainClassifier(signal, trgTags, ntrgTags)
+        P, w, c = p300.getPWC()
+        
+        cfg['P'] = P
+        cfg['w'] = w
+        cfg['c'] = c
 
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
         ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+
+        target, nontarget = p300.getTargetNontarget(signal, trgTags, ntrgTags)
+        p300_draw = P300_draw(target, nontarget, trgTags, ntrgTags)
+        p300_draw.setCSP(P=P)
+        p300_draw.setTimeLine(conN, avrM, csp_time)
+        p300_draw.plot()
         
         LOGGER.info("CSP DONE")
         if not self.run_offline:
@@ -155,9 +190,13 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         else:
             LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
+    
+    def _get_montage_matrix(self, cfg, channels_names):
+        return ssvep_csp_helper.get_montage_matrix(
+            channels_names,
+            cfg['use_channels'].split(';'),
+            cfg['montage'],
+            cfg['montage_channels'].split(';'))
 
 if __name__ == "__main__":
     LogicP300Csp(settings.MULTIPLEXER_ADDRESSES).loop()
-
-
-        
