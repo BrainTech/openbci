@@ -47,8 +47,9 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         if len(freqs) != dec_count:
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
 
-        buffer = int(float(cfg['buffer_len'])*sampling)
-        maybe_buffer = self.config.get_param('buffer')
+        sampling = int(self.config.get_param('sampling_rate'))
+        buffer = int(float(cfg['buffer'])*sampling)
+        maybe_buffer = self.config.get_param('buffer_len')
         if len(maybe_buffer) > 0:
             buffer = int(float(maybe_buffer)*sampling)
             
@@ -57,7 +58,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
 
         #Initialise round buffer that will supply analysis with data
         #See auto_ring_buffer documentation
-        sampling = int(self.config.get_param('sampling_rate'))
+
         channels_count = len(self.config.get_param('channel_names').split(';'))
         self.buffer = auto_ring_buffer.AutoRingBuffer(
             from_sample=buffer,
