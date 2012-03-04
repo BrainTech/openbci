@@ -33,7 +33,7 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
         self.robot_image_id = int(self.config.get_param("robot_image_id"))
         self._robot = rovio.Rovio('', self.config.get_param('robot_ip'))
         self.tmp1_path = os.path.join(DEFAULT_SANDBOX_DIR, self.config.get_param('tmp_file1'))
-        self.tmp2_path = os.path.join(DEFAULT_SANDBOX_DIR, self.config.get_param('tmp_file2'))
+        self.tmp2_path = os.path.join(DEFAULT_SANDBOX_DIR, self.config.get_param('tmp_file1'))
         self.paths = [self.tmp1_path, self.tmp2_path]
         self.index = 0
         self.imgpath = self.paths[self.index]
