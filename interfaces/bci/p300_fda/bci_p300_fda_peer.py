@@ -32,6 +32,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         self._last_dec_time = time.time()
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
+        ugm_helper.send_stop_blinking(self.conn)
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
     def __init__(self, addresses):
@@ -70,14 +71,14 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                                int(self.config.get_param('samples_per_packet')))
                                                    
         self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
-        ugm_helper.send_stop_blinking(self.conn)
+        ugm_helper.send_start_blinking(self.conn)
         self.ready()
         LOGGER.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         #always buffer signal
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.SampleVector()
+            l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)
             #Supply buffer with sample data, the buffer will fire its
             #ret_func (that we defined as self.analysis.analyse) every 'every' samples
@@ -96,7 +97,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                 return
 
         if mxmsg.type == types.BLINK_MESSAGE:
-	    l_msg = variables_pb2.Blink()
+            l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
             self.buffer.handle_blink(l_msg)
             

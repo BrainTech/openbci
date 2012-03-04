@@ -23,18 +23,20 @@ class BCIP300FdaAnalysis(object):
 
         self.nPole = np.zeros(8)
         self.nMin = 3
-        self.nMax = 7
+        self.nMax = 5
 
         csp_time = cfg['csp_time']
-        pVal = cfg['pVal']
+        #~ pVal = cfg['pVal']
+        pVal = 0.5
         use_channels = cfg['use_channels']
 
         nRepeat = cfg['nRepeat']
         avrM = cfg['avrM']
         conN = cfg['conN']
         CONTINUE = True
-                    
-        self.p300 = P300_analysis(sampling, cfg)
+        
+        print "cfg['w']: ", cfg['w']
+        self.p300 = P300_analysis(sampling, cfg, fields=8)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
 
@@ -70,17 +72,22 @@ class BCIP300FdaAnalysis(object):
         self.nPole[blink.index] += 1
 
         #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-    	self.p300.testData(signal, blink.index)
+        self.p300.testData(signal, blink.index)
         dec = -1
 
-    	if self.p300.isItEnought() != -1:
-	        dec = self.p300.getDecision()
-        elif self.nPole.min() == self.nMax:
-            dec = self.p300.forceDecision()
+        if self.p300.isItEnought() != -1:
+            dec = self.p300.getDecision()
 
-        if dec >= 0:
+        #~ if (dec == -1) and (self.nPole.min() == self.nMax):
+            #~ dec = self.p300.forceDecision()
+
+        print "dec: ", dec
+        print "type(dec): ", type(dec)
+
+        if dec != -1:
+            LOGGER.info("Decision from P300: " +str(dec) )
             self.p300.newEpoch()
             self.nPole = self.nPole*0
-            self.send_func(ix)
+            self.send_func(dec)
         else:
             LOGGER.info("Got -1 ind- no decision")

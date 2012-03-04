@@ -35,9 +35,11 @@ class P300_train:
         self.conN = conN  # No. of chan. to concatenate
 
         # Target/Non-target arrays
-        self.chL = len(self.channels)
+        self.chL = len((self.channels).split(';'))
         self.arrL = (self.iFin-self.iInit)/self.avrM  # Length of data per channel
 
+        print "self.chL: ", self.chL
+        print "self.arrL: ", self.arrL
         # Data arrays
         totTarget = np.zeros( (self.chL, self.arrL))
         totNontarget = np.zeros((self.chL, self.arrL))
@@ -64,6 +66,8 @@ class P300_train:
             for idx in range(self.chL):
                 temp = signal[idx][index:index+self.Fs]
                 temp = (temp-temp.mean())/temp.std()
+                temp = self.filtr.filtrHigh(temp)
+                temp = self.filtr.filtrLow(temp)
                 temp = temp[self.iInit:self.iFin:self.avrM]
                 s[idx] = temp
             
@@ -77,6 +81,8 @@ class P300_train:
             for idx in range(self.chL):
                 temp = signal[idx][index:index+self.Fs]
                 temp = (temp-temp.mean())/temp.std()
+                temp = self.filtr.filtrHigh(temp)
+                temp = self.filtr.filtrLow(temp)                
                 temp = temp[self.iInit:self.iFin:self.avrM]
                 s[idx] = temp
             
@@ -202,6 +208,7 @@ class P300_train:
         self.w = np.dot( invertCovariance, meanAnalDiff)
         self.c = np.dot(self.w, meanAnalMean)
 
+        
         #~ print "We've done a research and it turned out that best values for you are: "
         #~ print "w: ", self.w
         #~ print "c: ", self.c
@@ -231,22 +238,25 @@ class P300_analysis(object):
     def defineConst(self, cfg):
 
         # moving avr & resample factor
-        self.avrM = cfg['avrM']  # VAR !
+        self.avrM = int(cfg['avrM'])  # VAR !
         
         # Concatenate No. of signals
-        self.conN = cfg['conN']  # VAR !
+        self.conN = int(cfg['conN'])  # VAR !
 
         # Define analysis time
         self.t = np.array(cfg['csp_time'])
         self.tInit, self.tFin = self.t
         self.iInit, self.iFin = np.floor(self.t*self.Fs)
 
-        self.chL = len(cfg['use_channels'])
+        self.chL = len(cfg['use_channels'].split(';'))
         self.arrL = np.floor((self.iFin-self.iInit)/self.avrM)
 
-        self.nRepeat = cfg['nRepeat']
+        self.nRepeat = int(cfg['nRepeat'])
         self.nMin = 3
+        self.nMax = 7
+        
         self.dec = -1
+
 
         #
         self.dArr = np.zeros(self.fields) # Array4 d val
@@ -259,8 +269,12 @@ class P300_analysis(object):
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
-        p = cfg['pVal']
+        p = float(cfg['pVal'])
+        print "pVal: ", p
         self.z = st.norm.ppf(p)
+        
+        # w - values of diff between dVal and significal d (v)
+        self.diffV = np.zeros(self.fields)
     
     def defineMethods(self):
         self.filtr = Filtr(self.Fs)
@@ -290,7 +304,8 @@ class P300_analysis(object):
         # Data projection on Fisher's space
         self.d = np.dot(s,self.w) - self.c
         self.dArr[blink] += self.d
-        self.dArrTotal[blink] = np.append(self.dArrTotal[blink], self.d)
+        self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
+        self.dArrTotal[blink] = self.dArrTotal[blink][:self.nMax]
         
         self.flashCount[blink] += 1
         
@@ -322,7 +337,8 @@ class P300_analysis(object):
         print "dMean: ", dMean
         
         #~ dMean = self.dArr / self.flashCount
-        w = np.zeros(self.fields)
+        self.diffV = self.diffV*0
+        
         for sq in range(self.fields):
             # Norm distribution
             tmp = np.delete(dMean, sq)
@@ -332,43 +348,35 @@ class P300_analysis(object):
             v = mean + self.z*std
 
             # Calculate distance
-            w[sq] = dMean[sq]-v
+            self.diffV[sq] = dMean[sq]-v
+            
             
             print "{0}: (m, std, v) = ({1}, {2}, {3})".format(sq, mean, std, v)
-            print "{0}: (d, w) = ({1}, {2})".format(sq, dMean[sq], w[sq])
+            print "{0}: (d, w) = ({1}, {2})".format(sq, dMean[sq], self.diffV[sq])
             
+        print "self.diffV: ", self.diffV
 
         # If only one value is significantly distant
-        if np.sum(w>0) == 1:
+        if np.sum(self.diffV>0) == 1:
             #~ return True
-            self.dec = np.arange(8)[w>0]
+            self.dec = np.arange(self.diffV.shape[0])[self.diffV>0]
+            self.dec = np.int(self.dec[0])
             print "wybrano -- {0}".format(self.dec)
 
-            return int(self.dec[0])
+            return self.dec
         
-        return -1
+        else:
+            return -1
 
     def forceDecision(self):
 
-        w = np.zeros(self.fields)
-        for sq in range(self.fields):
-            # Norm distribution
-            tmp = np.delete(self.dArr, sq)
-            mean, std = tmp.mean(), tmp.std()
-            
-            # Find right boundry
-            v = mean + self.z*std
-            
-            # Calculate distance
-            w[sq] = self.dArr[sq]-v
-
-            print "{0}: (m, std, v) = ({1}, {2}, {3})".format(sq, mean, std, v)
-            print "     (d, w)      = ({1}, {2})".format(sq, self.dArr[sq], w[sq])   
-
         # If only one value is significantly distant 
-        self.dec = np.arange(w.shape[0])[w==np.max(w)]
+        # Decision is the field with largest w value
+        self.dec = np.arange(self.diffV.shape[0])[self.diffV==np.max(self.diffV)]
+        self.dec = np.int(self.dec[0])
         print "self.dec: ", self.dec
 
+        # Return int value
         return self.dec
         
     def setPWC(self, P, w, c):
@@ -380,12 +388,11 @@ class P300_analysis(object):
         return self.dec
 
     def newEpoch(self):
-        self.flashCount = np.zeros(self.fields)  # Array4 flash counting
+        self.flashCount = self.flashCount*0  # Array4 flash counting
+        self.dArr = self.dArr*0 # Array4 d val
 
         for i in range(self.fields): self.dArrTotal[i] = np.array([])
-        self.dArr = np.zeros(w.shape[0]) # Array4 d val
 
-         # Array4 d val
     
     def getArrTotalD(self):
         return self.dArrTotal

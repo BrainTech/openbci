@@ -1,4 +1,4 @@
-from scipy.signal import filtfilt, butter, buttord
+from scipy.signal import lfilter, filtfilt, butter, buttord
 from scipy.signal import cheb2ord, cheby2
 
 
@@ -22,16 +22,18 @@ class Filtr(object):
 
     def set_highPass_filter(self):
         Nq = self.Fs/2.
-        wp, ws = 1./Nq, 0.1/Nq
+        wp, ws = 2./Nq, 1./Nq
         gpass, gstop = 1., 10.
         N_filtr, Wn_filtr = buttord(wp, ws, gpass, gstop)
         self.b_H, self.a_H = butter(N_filtr, Wn_filtr, btype='high')
             
     def filtrLow(self, s):
-        return filtfilt(self.b_L, self.a_L, s)
+        #~ return filtfilt(self.b_L, self.a_L, s)
+        return lfilter(self.b_L, self.a_L, s)
 
     def filtrHigh(self, s):
-        return filtfilt(self.b_H, self.a_H, s)
+        #~ return filtfilt(self.b_H, self.a_H, s)
+        return lfilter(self.b_H, self.a_H, s)
         
     def movingAvr(s,r):
         temp = s.copy()

@@ -19,6 +19,8 @@ from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from interfaces.bci.p300_fda.p300_fda import P300_train
 from logic import logic_helper
 from logic import logic_logging as logger
+from rysuj_p300 import P300_draw
+
 LOGGER = logger.get_logger("p300_fda", 'info')
 
 class LogicP300Csp(ConfiguredMultiplexerServer):
@@ -122,9 +124,9 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         #~ signal = self.data.extract_channel(self.use_channels)
 
         csp_time = [0.25,0.75]
-        pVal = 0.99
+        pVal = 0.8
         nRepeat = 3
-        avrM = 8
+        avrM = 2
         conN = 2
         P = None
         w = None
@@ -151,7 +153,15 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         self.montage_matrix = self._get_montage_matrix(cfg, mgr.get_param('channels_names'))
         signal = np.dot(self.montage_matrix, raw)
 
-        p300 = P300_train(self.use_channels, fs, avrM, conN, csp_time)
+        channels = ";".join(self.use_channels)
+        
+        # make sure that:
+        # channels -- is in format like "P07;O1;Oz;O2"
+        # fs -- is a number
+        # avrM -- is a int
+        # conN -- is a int
+        # csp_time -- is a list of two float 0 < x < 1
+        p300 = P300_train(channels, fs, avrM, conN, csp_time)
         p300.trainClassifier(signal, trgTags, ntrgTags)
         P, w, c = p300.getPWC()
         
@@ -162,6 +172,12 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
         ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+
+        target, nontarget = p300.getTargetNontarget(signal, trgTags, ntrgTags)
+        p300_draw = P300_draw(target, nontarget, trgTags, ntrgTags)
+        p300_draw.setCSP(P=P)
+        p300_draw.setTimeLine(conN, avrM, csp_time)
+        p300_draw.plot()
         
         LOGGER.info("CSP DONE")
         if not self.run_offline:
