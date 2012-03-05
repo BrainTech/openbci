@@ -17,6 +17,7 @@ from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from utils import streaming_debug
+from utils import tags_helper
 
 LOGGER = logger.get_logger("bci_ssve_csp", "info")
 DEBUG = False
@@ -30,6 +31,12 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         self._last_dec_time = time.time()
         self.buffer.clear()
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+        t = time.time()
+        tags_helper.send_tag(
+            self.conn, t, t, 
+            "decision",
+            {'decision':str(dec)})
+
 
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
