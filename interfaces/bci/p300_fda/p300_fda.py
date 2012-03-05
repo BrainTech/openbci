@@ -161,7 +161,8 @@ class P300_train:
             s = target[tag]
 
             sig = np.array([])
-            for idx in range(self.conN):
+            sig = s.mean(axis=0)
+            for idx in range(self.conN-1):
                 sig = np.concatenate( (sig, np.dot(P[:,idx],s)))
 
             self.good = np.vstack( (self.good, sig))
@@ -171,7 +172,8 @@ class P300_train:
             s = nontarget[tag]
 
             sig = np.array([])
-            for idx in range(self.conN):
+            sig = s.mean(axis=0)
+            for idx in range(self.conN-1):
                 sig = np.concatenate( (sig, np.dot(P[:,idx],s)))
 
             self.bad = np.vstack( (self.bad,sig))
@@ -253,10 +255,9 @@ class P300_analysis(object):
 
         self.nRepeat = int(cfg['nRepeat'])
         self.nMin = 3
-        self.nMax = 7
+        self.nMax = 5
         
         self.dec = -1
-
 
         #
         self.dArr = np.zeros(self.fields) # Array4 d val
@@ -309,8 +310,6 @@ class P300_analysis(object):
         
         self.flashCount[blink] += 1
         
-        #~ print "self.d: ", self.d
-        
     def isItEnought(self):
         if (self.flashCount < self.nMin).any():
             return -1
@@ -330,10 +329,11 @@ class P300_analysis(object):
         dMean = np.zeros(self.fields)
         nMin = self.flashCount.min()
         print "nMin: ", nMin
+        print "self.dArrTotal[0].shape: ", self.dArrTotal[0].shape
         for i in range(self.fields):
             dMean[i] = self.dArrTotal[i][:nMin].mean()
         
-        print "nMin = ", nMin
+        print "self.dArrTotal[0][:nMin].shape: ", self.dArrTotal[0][:nMin].shape
         print "dMean: ", dMean
         
         #~ dMean = self.dArr / self.flashCount

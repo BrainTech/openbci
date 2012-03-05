@@ -8,6 +8,7 @@ import scipy.signal as ss
 from scipy.signal import hamming
 from analysis.csp.filtfilt import filtfilt
 from interfaces.bci.p300_fda.p300_fda import P300_analysis
+from interfaces.bci.p300_fda.p300_draw import P300_draw
 from Filtr import Filtr
 
 LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")
@@ -22,20 +23,23 @@ class BCIP300FdaAnalysis(object):
         self.montage_matrix = montage_matrix
 
         self.nPole = np.zeros(8)
-        self.nMin = 3
-        self.nMax = 5
+        self.nMin = 2
+        self.nMax = 6
 
-        csp_time = cfg['csp_time']
-        #~ pVal = cfg['pVal']
-        pVal = 0.5
         use_channels = cfg['use_channels']
+        csp_time = cfg['csp_time']
+        pVal = cfg['pVal']
+        self.pVal = pVal
+    
+        self.nCount = 0
 
-        nRepeat = cfg['nRepeat']
-        avrM = cfg['avrM']
-        conN = cfg['conN']
+        nRepeat = int(cfg['nRepeat'])
+        avrM = int(cfg['avrM'])
+        conN = int(cfg['conN'])
         CONTINUE = True
         
-        print "cfg['w']: ", cfg['w']
+        self.p300_draw = P300_draw(self.fs)
+        
         self.p300 = P300_analysis(sampling, cfg, fields=8)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
@@ -75,8 +79,13 @@ class BCIP300FdaAnalysis(object):
         self.p300.testData(signal, blink.index)
         dec = -1
 
-        if self.p300.isItEnought() != -1:
-            dec = self.p300.getDecision()
+        if self.nPole.min() == self.nCount:
+            self.nCount += 1
+            if self.p300.isItEnought() != -1:
+                dec = self.p300.getDecision()
+        
+            elif self.nPole.min() >= self.nMax:
+                dec = self.p300.forceDecision()
 
         #~ if (dec == -1) and (self.nPole.min() == self.nMax):
             #~ dec = self.p300.forceDecision()
@@ -86,8 +95,13 @@ class BCIP300FdaAnalysis(object):
 
         if dec != -1:
             LOGGER.info("Decision from P300: " +str(dec) )
+            
+            LOGGER.info("Making plot for online analysis.")
+            self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal)
+
             self.p300.newEpoch()
             self.nPole = self.nPole*0
             self.send_func(dec)
         else:
             LOGGER.info("Got -1 ind- no decision")
+
