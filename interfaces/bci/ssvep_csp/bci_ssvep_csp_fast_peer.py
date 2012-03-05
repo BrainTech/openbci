@@ -18,7 +18,7 @@ from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_ssve_csp", "info")
+LOGGER = logger.get_logger("bci_ssvep_fast_csp", "info")
 DEBUG = False
 
 
@@ -43,9 +43,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
 
         freqs = [int(f) for f in cfg['freqs'].split(';')]
         str_freqs = [str(f) for f in freqs]
-        dec_count = int(self.config.get_param('dec_count'))
-        if len(freqs) != dec_count:
-            raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
+        LOGGER.info("freqs:"+str(freqs))
 
         sampling = int(self.config.get_param('sampling_rate'))
         buffer = int(float(cfg['buffer'])*sampling)

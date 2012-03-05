@@ -19,7 +19,7 @@ from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from interfaces.bci.p300_fda.p300_fda import P300_train
 from logic import logic_helper
 from logic import logic_logging as logger
-from p300_draw import P300_draw
+from rysuj_p300 import P300_draw
 
 LOGGER = logger.get_logger("p300_fda", 'info')
 
@@ -76,7 +76,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 
     def run(self):
         LOGGER.info("START CSP...")
-        print "\n"*5
+
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
         in_file = acquisition_helper.get_file_path(f_dir, f_name)
@@ -123,25 +123,22 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         #~ ntrgTags = self.data.get_not_p300_tags()        
         #~ signal = self.data.extract_channel(self.use_channels)
 
-        #~ csp_time = [0.25,0.75]
-        
-        csp_time = self.config.get_param("csp_time").split(";")
-        conN = int(self.config.get_param("csp_vector_no_concatenate"))
-        
-        nRepeat = int(self.config.get_param("n_repeat"))
-        avrM = int(self.config.get_param("avr_m"))
-        
+        csp_time = [0.25,0.75]
+        pVal = 0.8
+        nRepeat = 3
+        avrM = 2
+        conN = 2
         P = None
         w = None
         c = None
 
         buffer = 1.1*fs
         LOGGER.info("Computer buffer len: "+str(buffer))
-        
-        csp_time = [float(csp_time[0]), float(csp_time[1])]
+
         
         cfg = {"csp_time":csp_time,
                 "use_channels": ';'.join(self.use_channels),
+                'pVal':pVal,
                 'avrM':avrM,
                 'conN':conN,
                 "nRepeat":nRepeat,
@@ -153,7 +150,6 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
                 "buffer":buffer
                 }
 
-        
         self.montage_matrix = self._get_montage_matrix(cfg, mgr.get_param('channels_names'))
         signal = np.dot(self.montage_matrix, raw)
 
@@ -172,28 +168,16 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         cfg['P'] = P
         cfg['w'] = w
         cfg['c'] = c
-        
+
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
         ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
 
-        ##############################
-        # Make plots after calibration
-        #
-        LOGGER.info("Making target/nontarget plots...")
-        # Get target and nontarget data
         target, nontarget = p300.getTargetNontarget(signal, trgTags, ntrgTags)
-        
-        # Initialize drawing class
-        p300_draw = P300_draw(fs)
-        p300_draw.setCalibration(target, nontarget, trgTags, ntrgTags)
+        p300_draw = P300_draw(target, nontarget, trgTags, ntrgTags)
         p300_draw.setCSP(P=P)
         p300_draw.setTimeLine(conN, avrM, csp_time)
-        
-        # Make plots
         p300_draw.plot()
-        LOGGER.info("Target/nontarget plots DONE")
-        ##############################
         
         LOGGER.info("CSP DONE")
         if not self.run_offline:

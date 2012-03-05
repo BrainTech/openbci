@@ -293,7 +293,8 @@ class UgmImageStimulus(UgmStimulus, UgmRectConfig):
             l_msg = ''.join(['Couldn`t find image from path: "',
                              l_image_path,
                              '" defined in config file.'])
-            raise Exception(l_msg)
+            #raise Exception(l_msg)
+            print("EEEEEEEEEEEEEROR:"+l_msg)
 
         # By now we get image`s size from the image
         p_config_dict['width_type'] = 'absolute'

@@ -12,13 +12,14 @@ from configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 
-
+from utils import streaming_debug
 import devices.pyrovio.rovio as rovio
 from common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
 
 from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_robot_feedback2", "debug")
+LOGGER = logger.get_logger("logic_robot_feedback2", "info")
+DEBUG = False
 
 class LogicRobotFeedback2(ConfiguredMultiplexerServer):
     """Use with some signal source ON, that fires often self._Handle_message.
@@ -39,6 +40,10 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
         self.imgpath = self.paths[self.index]
         self._last_time = time.time()
         self.is_on = False
+        if DEBUG:
+            self.debug = streaming_debug.Debug(128,
+                                               LOGGER,
+                                               4)
         self.ready()
 
     def handle_message(self, mxmsg):
@@ -49,17 +54,34 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
             elif mxmsg.message == 'stop':
                 LOGGER.info("Got stop message. Stop robot feedback!!!")
                 self.is_on = False
+                ugm_helper.send_logo(self.conn, 'gui.ugm.resources.bci.png')#todo - CEBIT fix... should be done somewhere in logic, but to ensure that robot feed will not overwrite log do it here...
             else:
                 LOGGER.warning("Unrecognised control message:" + str(mxmsg.message))
 
-        if self.is_on and (time.time() - self._last_time) > 0.05:
+        if DEBUG:
+            self.debug.next_sample()
+        diff = (time.time() - self._last_time)
+        if not self.is_on:
+            self.no_response()
+            return
+        elif diff > 1.0:
+            self._last_time = time.time()
+            LOGGER.error("Last time bigger than 1.0... give it a chance next time. ...")
+            self.no_response()
+            return
+        elif  diff > 0.2:
+            LOGGER.debug("Last time bigger than 0.2... don`t try read image for a while ...")
+            self.no_response()
+            return
+        elif diff > 0.05:
             self._last_time = time.time()
             t = time.time()
             try:
-                image = self._robot.get_image()
+                LOGGER.debug("Start getting image...")
+                image = self._robot.get_image(timeout=0.5)
                 LOGGER.debug("Succesful get_image time:"+str(time.time()-t))
             except:
-                LOGGER.debug("UNSuccesful get_image time:"+str(time.time()-t))
+                LOGGER.error("UNSuccesful get_image time:"+str(time.time()-t))
                 LOGGER.error("Could not connect to ROBOT. Feedback is OFF!")
             else:
                 try:
@@ -73,7 +95,11 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
                 except Exception, e:
                     LOGGER.error("An error occured while writing image to file!")
                     print(repr(e))
-        self.no_response()
+            self.no_response()
+            return
+        else:
+            self.no_response()
+            return
 
 if __name__ == "__main__":
     LogicRobotFeedback2(settings.MULTIPLEXER_ADDRESSES).loop()

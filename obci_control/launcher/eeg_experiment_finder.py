@@ -222,7 +222,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
             #     harvester.unregister(s)
 
             for i in range(len(reqs) * 2):
-                socks = dict(harvester.poll(timeout=700))
+                socks = dict(harvester.poll(timeout=1000))
 
                 for req in socks:
                     msg = recv_msg(req)

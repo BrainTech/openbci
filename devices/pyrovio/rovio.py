@@ -981,7 +981,7 @@ class Rovio:
         """
         return None
 
-    def get_image(self, imgID = None):
+    def get_image(self, imgID = None, timeout=None):
         """
         Acquire an image from the Rovio webcam.
 
@@ -992,9 +992,9 @@ class Rovio:
 
         """
         if imgID is None:
-            return self._get_request_response('Jpeg/CamImg.jpg')
+            return self._get_request_response('Jpeg/CamImg.jpg', timeout)
         else:
-            return self._get_request_response('Jpeg/CamImg%d.jpg' % imgID)
+            return self._get_request_response('Jpeg/CamImg%d.jpg' % imgID, timeout)
 
     def stream_video(self):
         """Streaming video not yet supported."""
@@ -1173,10 +1173,10 @@ class Rovio:
         else:
             page = ('rev.cgi?Cmd=nav&action=%d&drive=%d&speed=%d' %
                     (18, command, speed))
-        r = self._get_request_response(page)
+        r = self._get_request_response(page, timeout=1.0)
         return self._parse_response(r)['responses']
 
-    def _get_request_response(self, page):
+    def _get_request_response(self, page, timeout=None):
         """
         Send a command to the Rovio and return its response.
 
@@ -1193,7 +1193,10 @@ class Rovio:
         req.add_header('User-Agent', USER_AGENT)
         if self._base64string is not None:
             req.add_header("Authorization", "Basic %s" % self._base64string)
-        f = urllib2.urlopen(req)
+        if timeout is not None:
+            f = urllib2.urlopen(req, timeout=timeout)
+        else:
+            f = urllib2.urlopen(req)
         data = f.read()
         return data;
 

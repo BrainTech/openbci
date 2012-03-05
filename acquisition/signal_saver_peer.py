@@ -109,6 +109,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
                 LOGGER.info("Signal saver got finish saving _message.")
                 LOGGER.info("Last sample ts ~ "+repr(time.time()))
                 self._finish_saving_session()
+                sys.exit(0)
             else:
                 LOGGER.warning("Signal saver got unknown control message "+v.key+"!")                
         self.no_response()

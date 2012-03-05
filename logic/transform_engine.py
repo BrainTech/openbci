@@ -17,11 +17,13 @@ class TransformEngine(object):
             'switch': configs['switch'],
             'ssvep': configs['ssvep']
             }
+        self._is_transforming = False
 
     def transform_scenario(self, to_interface):
         if self._current_interface == to_interface:
             return
-        else:
+        elif not self._is_transforming:#can fire only once...
+            self._is_transforming = True
             if self._current_interface == 'ssvep':
                 diode_helper.diode_stop(self.conn)
 

@@ -66,7 +66,7 @@ class LogicDecision(ConfiguredMultiplexerServer):
 
     def finish(self):
         LOGGER.info("Finish LOGIC")
-        sys.exit(1)
+        #sys.exit(1)
 
             
     # ------------------ actions available in config ---------------------------

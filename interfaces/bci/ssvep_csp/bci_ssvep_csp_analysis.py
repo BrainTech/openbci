@@ -19,9 +19,11 @@ class BCISsvepCspAnalysis(object):
         allFreqs = freqs
 
         self.indexMap = {}
+        k = 0
         for i in range(len(allFreqs)):
             if allFreqs[i] != 0:
-                self.indexMap[allFreqs[i]] = i
+                self.indexMap[allFreqs[i]] = k
+                k += 1
         self.freqs = self.indexMap.keys()
 
         LOGGER.info("Have freqs:")

@@ -31,6 +31,7 @@ class RobotEngine(object):
             LOGGER.info(result + "   command: " + command)
 
     def robot(self, command):
+        t = time.time()
         try:
             if command == 'forward':
                 self._robot_cmd(self._robot.forward, command)
@@ -52,9 +53,9 @@ class RobotEngine(object):
             else:
                 LOGGER.error('(rovio handling) Command ' + command + ' not supported.')
         except:
-            LOGGER.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!!")
+            LOGGER.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!! In time: "+str(time.time()-t))
             ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
-            time.sleep(1)
+            time.sleep(0.5)
 
     def start_robot_feedback(self):
         """Called eg. in mult-logic just after starting robot logic."""

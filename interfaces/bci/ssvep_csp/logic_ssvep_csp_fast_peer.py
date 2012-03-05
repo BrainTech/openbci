@@ -11,12 +11,12 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
-from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
+from interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from logic import logic_helper
 
 from logic import logic_logging as logger
-LOGGER = logger.get_logger("ssvep_csp", 'info')
+LOGGER = logger.get_logger("ssvep_fast_csp", 'info')
 
 class LogicSsvepCsp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -71,7 +71,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def run(self):
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
-        cfg = logic_ssvep_csp_analysis.run(
+        cfg = logic_ssvep_csp_fast_analysis.run(
             acquisition_helper.get_file_path(f_dir, f_name),
             self.use_channels,
             self.ignore_channels,
@@ -90,7 +90,9 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         f_dir = self.config.get_param("csp_file_path")
 
         if self.mode == 'offline':
+            self._determine_means(cfg)#just for debug
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+            LOGGER.info("Calibration saved!!!")
         elif self.mode == 'manual':
             self._show_configs(cfg, suffix=u'Suggested frequencies:')
             self._edit_configs(cfg)
@@ -98,9 +100,8 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self._run_next_scenario()
         elif self.mode == 'retry_on_failure':
             if self._determine_means(cfg):
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=u'Calibration passed, wait to start BCI app...')
                 time.sleep(5)
-                self._shuffle_freqs(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
@@ -109,14 +110,13 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 self._run_prev_scenario()
         elif self.mode == 'abort_on_failure':
             if self._determine_means(cfg):            
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=u'Calibration passed, wait to start BCI app...')
                 time.sleep(5)
-                self._shuffle_freqs(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
                 self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
-                time.sleep(5)
+                time.sleep(15)
                 sys.exit(1)
         else:
             LOGGER.warning("Unrecognised mode: "+self.mode)
@@ -125,21 +125,11 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         """Return true if means are ok"""
         all_means = [float(i) for i in cfg['all_means'].split(';')]
         ret = all_means[cfg['dec_count']-1] >= cfg['value'][0]
-
+        LOGGER.info("Freqs and dec count:"+str(cfg['freqs'])+" / "+str(cfg['dec_count']))
         LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value'][0]))
         LOGGER.info("Is smallest mean bigger than treshold?: "+str(ret))
         return ret
 
-    def _shuffle_freqs(self, cfg):
-        """Move second best freq to the last field..."""
-        freqs = [int(i) for i in cfg['freqs'].split(';')]
-        new_freqs = []
-        new_freqs.append(freqs[0])
-        for f in freqs[2:]:
-            new_freqs.append(f)
-        new_freqs.append(freqs[1])
-        cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
-        
     def _show_configs(self, cfg, suffix=u""):
         text_id = int(self.config.get_param('ugm_text_id'))
         all_freqs = cfg['all_freqs'].split(';')
@@ -150,9 +140,9 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                      '\n',
                      #' '.join([all_freqs[i]+" ("+all_means[i]+")" for i in range(len(all_freqs))]),
                       ' '.join([all_freqs[i] for i in range(len(all_freqs))]),
-                     #'\n',
-                     #u'Suggested buffer length: '+str(cfg['buffer'])+" secs",
                      '\n',
+                     #u'Suggested buffer length: '+str(cfg['buffer'])+" secs",
+                     #'\n',
                      suffix
                      ])
             )

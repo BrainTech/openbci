@@ -11,7 +11,7 @@ from analysis.csp import modCSPv2 as csp
 from analysis.csp import signalParser as sp
 
 from interfaces import interfaces_logging as logger
-LOGGER = logger.get_logger("csp_analysis", 'info')
+LOGGER = logger.get_logger("csp_fast_analysis", 'info')
 
 def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_stats=True):
     
@@ -32,7 +32,7 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
 	exp_info = mgr.get_tags('experimentInfo')[0]['desc']
         to_signal = float(exp_info['target_time'])
         freqs = [int(i) for i in exp_info['all_freqs'].split(';')]
-	dec_count = int(exp_info['fields_count'])
+	dec_count = 4
 
 
         data = sp.signalParser(in_file+'.obci')
@@ -44,7 +44,6 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
         t1, t2 = q.time_frequency_selection(to_frequency, train_tags, time=time, frequency_no=dec_count, plt=False)
 
         LOGGER.info("Got times t1: "+str(t1)+ " and t2: "+str(t2))
-	LOGGER.info("Set buffer time:"+str(t2))
         value, mu, sigma, means, stds, out_top, out_bottom = q.count_stats(to_signal, to_frequency, train_tags, plt=plot_stats)#Liczenie statystyk
         LOGGER.info("For freqs: "+str(freqs))
         LOGGER.info("Got means: "+str(means))
@@ -61,11 +60,17 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
         LOGGER.info("And q:")
         LOGGER.info(str(q))
         
+	tmp = best[:dec_count]
+        best_freqs = [tmp[0],0,tmp[1],0,
+		      0,tmp[2],0,tmp[3]]
+	best_freqs = [str(i) for i in best_freqs]
+
+        LOGGER.info("freqs:"+str(freqs))
         d = {'value': value,
              'mu': mu,
              'sigma': sigma,
              'q' : q,
-	     'freqs':';'.join([str(i) for i in best[:dec_count]]),
+	     'freqs':';'.join(best_freqs),
 	     'all_freqs':';'.join([str(i) for i in best]),
 	     'all_means':';'.join([str(i) for i in best_means]),
 	     'dec_count':dec_count,
