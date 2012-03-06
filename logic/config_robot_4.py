@@ -24,11 +24,11 @@ class Config(object):
 
         # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"Fwd", u"Back", u"Right", u'Left']
+        self.letters[0] = [u"Fwd", u"Back", u"Left", u'Right']
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["robot('forward')", "robot('backward')", "robot('right')", "robot('left')"]
+        self.actions[0] = ["robot('forward')", "robot('backward')", "robot('left')", "robot('right')"]
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
     def _finish_action(self):

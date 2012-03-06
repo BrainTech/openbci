@@ -29,14 +29,14 @@ class Config(object):
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"A B C\nD E F",u"G H I\nJ K L",u"M N O\nP R S",u"T U W\nY Z Ż",u"Ą Ć Ę\nŁ Ń Ó Ś", u"_,.;?!", u"AKCJE\nactions", u"ZAKOŃCZ\n finish "]
-        self.letters[1] = ["A","B","C","D","E","F"," SKASUJ \nbackspace", u"WRÓĆ\nback"]
-        self.letters[2] = ["G","H","I","J","K","L"," SKASUJ \nbackspace", u"WRÓĆ\nback"]
-        self.letters[3] = ["M","N","O","P","R","S"," SKASUJ \nbackspace", u"WRÓĆ\nback"]
-        self.letters[4] = ["T","U","W","Y","Z", u"Ż"," SKASUJ \nbackspace", u"WRÓĆ\nback"]
-        self.letters[5] = [u"Ą", u"Ć", u"Ę", u"Ł", u"Ń", u"Ś", u"Ó", u"WRÓĆ\nback"]
-        self.letters[6] = ["_",",",".",";","?","!"," SKASUJ \nbackspace", u"WRÓĆ\nback"]
-        self.letters[7] = [u"MÓW",u"WYCZYŚĆ", u"SKASUJ", u"WRÓĆ", "say", "clear", "backspace", "back"]
+        self.letters[0] = [u"A B C\nD E F",u"G H I\nJ K L",u"M N O\nP R S",u"T U W\nX Y Z",u"Ą Ę Ł\nŃ Ó Ś", u"_,.;?!", u"AKCJE\nactions", u"KONIEC\n  finish  "]
+        self.letters[1] = ["A","B","C","D","E","F","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[2] = ["G","H","I","J","K","L","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[3] = ["M","N","O","P","R","S","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[6] = ["_",",",".",";","?","!","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "backspace", "back"]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
         
@@ -50,7 +50,7 @@ class Config(object):
         self.actions[2] = ["msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", "msg('l')", "backspace()", ""] 
         self.actions[3] = ["msg('m')", "msg('n')", "msg('o')", "msg('p')", "msg('r')", "msg('s')", "backspace()", ""] 
         self.actions[4] = ["msg('t')", "msg('u')", "msg('w')", "msg('y')", "msg('z')", u"msg(u'ż')", "backspace()", ""] 
-        self.actions[5] = [u"msg(u'ą')", u"msg(u'ć')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", ""]
+        self.actions[5] = [u"msg(u'ą')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", "backspace()", ""]
         self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
         self.actions[7] = ["say()", "clear()", "backspace()", "", "say()", "clear()", "backspace()", ""]
         
