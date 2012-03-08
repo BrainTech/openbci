@@ -20,7 +20,8 @@ class HciEtrNESW(hci_etr.HciEtr):
             self.get_param('stack'),
             self.get_param('delay'),
             self.get_param('dec_count'),
-            self.get_param('feed_fade')
+            self.get_param('feed_fade'),
+	    self.get_param('long_dec_delay')
             )
 
         start_id = self.get_param('ugm_field_ids').split(';')[0]

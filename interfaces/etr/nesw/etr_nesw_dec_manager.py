@@ -4,7 +4,7 @@ import time, os
 import numpy as np
 
 class EtrDecManager(object):
-    def __init__(self, speller_area_count, buffer_size, ratio, stack, delay, dec_count, feed_fade):
+    def __init__(self, speller_area_count, buffer_size, ratio, stack, delay, dec_count, feed_fade, long_dec_delay):
         """self.configs = {
             'SPELLER_AREA_COUNT': None,
             
@@ -78,7 +78,7 @@ class EtrDecManager(object):
         # Decision
         self.decFlag = True
         self.decNDelay = self.delay
-        self.longDecNDelay = 40
+        self.longDecNDelay = long_dec_delay
         self.longDecFlag = True
         self.lastDec = -1
         
