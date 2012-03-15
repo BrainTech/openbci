@@ -14,6 +14,7 @@ from gui.ugm import ugm_helper
 from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from logic import logic_helper
+from utils import tags_helper
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("ssvep_csp", 'info')
@@ -94,6 +95,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         elif self.mode == 'manual':
             self._show_configs(cfg, suffix=u'Suggested frequencies:')
             self._edit_configs(cfg)
+            self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
         elif self.mode == 'retry_on_failure':
@@ -101,23 +103,27 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 self._show_configs(cfg, suffix=u'Wait to start BCI app...')
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
+                self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
                 self._show_configs(cfg, suffix=u'Calibration FAILED, Try again with another freqs...')
                 time.sleep(5)
+                self._send_csp_info(cfg)
                 self._run_prev_scenario()
         elif self.mode == 'abort_on_failure':
             if self._determine_means(cfg):            
                 self._show_configs(cfg, suffix=u'Wait to start BCI app...')
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
+                self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
                 self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
                 time.sleep(5)
-                sys.exit(1)
+                self._send_csp_info(cfg)
+                #sys.exit(1)
         else:
             LOGGER.warning("Unrecognised mode: "+self.mode)
                 
@@ -135,9 +141,11 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         freqs = [int(i) for i in cfg['freqs'].split(';')]
         new_freqs = []
         new_freqs.append(freqs[0])
-        for f in freqs[2:]:
+        for f in freqs[3:]:
             new_freqs.append(f)
+        new_freqs.append(freqs[2])
         new_freqs.append(freqs[1])
+
         cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
         
     def _show_configs(self, cfg, suffix=u""):
@@ -168,6 +176,13 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         LOGGER.info("Configs after edit:")
         LOGGER.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
 
+    def _send_csp_info(self, cfg):
+        desc = dict(cfg)
+        t = time.time()
+        tags_helper.send_tag(
+            self.conn, t, t, 
+            "cspInfo",
+            desc)
 
     def _run_next_scenario(self):
         self._run_scenario(self.config.get_param('next_scenario_path'))

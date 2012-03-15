@@ -14,6 +14,14 @@ def send_stop(conn):
                       type=types.DIODE_CONTROL_MESSAGE,
                       flush=True)
 
+def send_start(conn):
+    msg = variables_pb2.Variable()
+    msg.key = 'start'
+    msg.value = ''
+    conn.send_message(message=msg.SerializeToString(), 
+                      type=types.DIODE_CONTROL_MESSAGE,
+                      flush=True)
+
 def send_freqs(conn, freqs):
     msg = variables_pb2.Variable()
     msg.key = 'update'

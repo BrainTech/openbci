@@ -4,7 +4,7 @@ import time, os
 import numpy as np
 
 class EtrDecManager(object):
-    def __init__(self, speller_area_count, buffer_size, ratio, stack, delay, dec_count, feed_fade):
+    def __init__(self, speller_area_count, buffer_size, ratio, stack, delay, dec_count, feed_fade, long_dec_delay):
         """self.configs = {
             'SPELLER_AREA_COUNT': None,
             
@@ -69,7 +69,7 @@ class EtrDecManager(object):
         self.nFeedback = self.feed_fade
 
         self.stack = np.zeros((2,self.nStackLength))
-        
+        self.stack2 = np.zeros((2,self.nStackLength))
 
         # Feeds
         self.fading = 1./self.nFeedback
@@ -78,7 +78,11 @@ class EtrDecManager(object):
         # Decision
         self.decFlag = True
         self.decNDelay = self.delay
+        self.longDecNDelay = long_dec_delay
+        self.longDecFlag = True
+        self.lastDec = -1
         
+        self.longNCount = 0
         self.nCount = 0
 
     def get_feedbacks(self, msg):
@@ -108,15 +112,17 @@ class EtrDecManager(object):
         tmp = np.array([msg.x,msg.y]).reshape(2,1)
         tmp *= -1
         self.stack = np.hstack((self.stack,tmp))[:,1:]
+        if self.longDecFlag:
+            self.stack2 = np.hstack((self.stack2,tmp))[:,1:]
                 
         # Calculate mean values of x and y corrdinate
-        xMean = self.stack[0].mean()
-        yMean = self.stack[1].mean()
+        xMean = self.stack2[0].mean()
+        yMean = self.stack2[1].mean()
         mean = [xMean, yMean]
         print "mean: ", mean
         
 
-        # Start algorith only if buffer data is full.
+        # Start algorithm only if buffer data is full.
         # Otherwise mean values aren't calculated properly
         if self.stack[0][0] == 0:
             if self.stack[0][1] == 0:
@@ -153,9 +159,10 @@ class EtrDecManager(object):
             if self.nCount == self.decNDelay:
                 self.decFlag = True
                 self.nCount = 0
-        
             return dec, feeds
         
+        
+
         # For each direction check if average nLastCorr 
         # x or y samples was greater then threshold for that
         # direction. If so, return that direction in decision. 
@@ -167,8 +174,31 @@ class EtrDecManager(object):
             if (val-self.rMin[i])*(-1)**i < 0: 
                 if dec<0: 
                     dec = i
-                    self.decFlag = False # Sets on delay flag
+                    if self.lastDec == dec:
+                        self.longDecFlag = False # Sets on delay flag
+                    else:
+                        self.longDecFlag = True
+                        self.longNCount = 0
+                        self.lastDec = -1
                     break
+                
+        if dec != -1:
+            self.longNCount +=1
+            print self.longNCount
+            self.lastDec = dec
+            if self.longNCount == self.longDecNDelay:
+                self.longDecFlag = True
+                self.decFlag = False
+                self.longNCount = 0
+            else:
+                dec = -1
+                return dec, feeds
+        else:
+            self.lastDec = -1
+            self.longDecFlag = True
+            self.longNCount = 0
+
+
 
         # If no decision was made (dec == -1)
         if dec < 0:

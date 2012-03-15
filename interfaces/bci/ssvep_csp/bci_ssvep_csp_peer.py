@@ -30,13 +30,13 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         LOGGER.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
         self.buffer.clear()
-        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
         t = time.time()
         tags_helper.send_tag(
             self.conn, t, t, 
             "decision",
             {'decision':str(dec)})
-
+        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+        appliance_helper.send_stop(self.conn)#, self.str_freqs)
 
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
@@ -94,6 +94,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             t = time.time() - self._last_dec_time
             if t > self.hold_after_dec:
                 self._last_dec_time = 0
+                appliance_helper.send_start(self.conn)#, self.str_freqs)
             else:
                 if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and DEBUG:
                     self.debug.next_sample()
