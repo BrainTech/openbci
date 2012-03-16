@@ -7,6 +7,8 @@ import struct
 import fcntl
 import os
 import ConfigParser
+import threading
+import time
 
 from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
 from common.config_helpers import OBCISystemError
@@ -86,6 +88,20 @@ def __parser_main_config_file():
 		raise OBCISystemError()
 	return parser
 
+def port(addr_string):
+	parts = addr_string.rsplit(':', 1)
+
+	if len(parts) < 2:
+		return None
+
+	maybe_port = parts[-1]
+	try:
+		port = int(maybe_port)
+	except ValueError, e:
+		return None
+	else:
+		return port
+
 def server_pub_port():
 	parser = __parser_main_config_file()
 	port = parser.get('server', 'pub_port')
@@ -104,6 +120,131 @@ def server_bcast_port():
 		print "[ WARNING! WARNING! ] Config file is not up to date. Taking default bcast_port value!"
 		port = '23123'
 	return port
+
+class DNS(object):
+	def __init__(self, allowed_silence_time=45):
+		self.__lock = threading.RLock()
+		self.__servers = {}
+
+		self.allowed_silence = allowed_silence_time
+
+
+	def tcp_rep_addr(self, hostname=None, ip=None, uuid=None):
+		srv = self._match_srv(hostname, ip, uuid)
+		return 'tcp://' + srv.ip + ':' + str(srv.rep_port)
+
+	def _match_srv(self, hostname=None, ip=None, uuid=None):
+		matches = []
+		if hostname is not None:
+			matches = self.__query('hostname', hostname)
+		elif ip is not None:
+			matches = self.__query('ip')
+		elif uuid is not None:
+			with self.__lock:
+				matches = [self.__servers[uuid]]
+		if matches == []:
+			raise Exception('Match not found')
+
+		if len(matches) > 1:
+			raise Exception('More than one match for given params:\
+ hostname: {0}, ip: {1},  uuid: {2} --- {3}'.format(hostname, ip, uuid, matches))
+		return matches.pop()
+
+	def __query(self, attribute, value):
+		matches = []
+		with self.__lock:
+			for srv in self.__servers.values():
+				if getattr(srv, 'hostname') == value:
+					matches.append(srv)
+		return matches
+
+
+	def http_addr(self, hostname=None, ip=None, uuid=None):
+		srv = self._match_srv(hostname, ip, uuid)
+		return srv.ip + ':' + srv.http_port
+
+	def hostname(self, ip=None, uuid=None):
+		srv = self._match_srv(ip=ip, uuid=uuid)
+		return srv.hostname
+
+	def ip(self, hostname=None, uuid=None):
+		srv = self._match_srv(hostname=hostname, uuid=uuid)
+		return srv.ip
+
+	def this_addr_local(self):
+		return socket.gethostname()
+
+	def this_addr_network(self):
+		srv = self._match_srv(hostname=socket.gethostname())
+		return srv.ip
+
+	def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
+		with self.__lock:
+			old = self.__servers.get(uuid, None)
+			new = self.__servers[uuid] = PeerNetworkDescriptor(ip, hostname, uuid, 
+															rep_port, pub_port,
+															http_port)
+		changed = old is None
+		if not changed:
+			changed = old.ip != new.ip or old.hostname != new.hostname
+		return changed
+
+	def mass_update(self, server_dict):
+		with self.__lock:
+			self.__servers = {}
+			for uid in server_dict:
+				self.__servers[uid] = PeerNetworkDescriptor(**server_dict[uid])
+
+	def clean_silent(self):
+		changed = False
+		with self.__lock:
+			ids = self.__servers.keys()
+			check_time = time.time()
+			for uid in ids:
+				srv = self.__servers[uid]
+				if srv.timestamp + self.allowed_silence < check_time:
+					changed = True
+					print "[obci_server] obci_server on", srv.ip, ',', srv.hostname, "is most probably down."
+					del self.__servers[uid]
+		return changed
+
+	def snapshot(self):
+		snapshot = {}
+		with self.__lock:
+			for uid in self.__servers.keys():
+				snapshot[uid] = self.__servers[uid]._copy()
+		return snapshot
+
+	def dict_snapshot(self):
+		snapshot = {}
+		with self.__lock:
+			for uid in self.__servers.keys():
+				snapshot[uid] = self.__servers[uid].as_dict()
+		return snapshot
+
+
+
+class PeerNetworkDescriptor(object):
+	def __init__(self, ip, hostname, uuid, rep_port, pub_port, http_port=None, timestamp=None):
+		self.ip = ip
+		self.hostname = hostname
+		self.uuid = uuid
+		self.rep_port = rep_port
+		self.pub_port = pub_port
+		self.http_port = http_port
+		self.timestamp = timestamp if timestamp is not None else time.time()
+
+	def _copy(self):
+		desc =  PeerNetworkDescriptor(self.ip, self.hostname, self.uuid, 
+									self.rep_port, self.pub_port, self.http_port)
+		desc.timestamp = self.timestamp
+		return desc
+
+	def as_dict(self):
+		# dumb
+		return dict(vars(self))
+
+
 
 if __name__ == '__main__':
 	#print ext_ip()

@@ -52,6 +52,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		self.peers_to_launch = []
 		self.processes = {}
 		self.restarting = []
+		self.rqs = 0
+		self._nearby_machines = net.DNS()
 
 		super(OBCIProcessSupervisor, self).__init__(
 											source_addresses=source_addresses,
@@ -77,9 +79,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 		(self.config_server_socket, self.cs_addresses) = self._init_socket([], zmq.PULL)
 		# self.config_server_socket.setsockopt(zmq.SUBSCRIBE, "")
 
-		self.cs_addr = net.choose_not_local(self.cs_addresses)
+		self.cs_addr = net.choose_local(self.cs_addresses)
 		if not self.cs_addr:
-			self.cs_addr = net.choose_local(self.cs_addresses)[0]
+			self.cs_addr = net.choose_not_local(self.cs_addresses)[0]
 		else:
 			self.cs_addr = self.cs_addr[0]
 
@@ -253,6 +255,15 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 														monitoring_optflags=RETURNCODE,
 														capture_io=capture_io,
 														env=env)
+
+		# if path.endswith('.py'):
+		# 	launch_args = ['python'] +[path] + args
+		# else:
+		# 	launch_args = [path] + args
+		# print "----->   ",launch_args
+		# proc = self.proc = subprocess.Popen(launch_args,
+		# 								 env=env)
+		# details = ''
 		if proc is None:
 			print self.name,'[', self.type, ']', "process launch FAILED:", path, args
 			send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
@@ -292,10 +303,25 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 	def handle_morph(self, message, sock):
 		pass
 
+
+	@msg_handlers.handler('nearby_machines')
+	def handle_nearby_machines(self, message, sock):
+		self._nearby_machines.mass_update(message.nearby_machines)
+
+
 	@msg_handlers.handler("stop_all")
 	def handle_stop_all(self, message, sock):
 
 		self.subprocess_mgr.killall()
+
+	@msg_handlers.handler("rq_ok")
+	def handle_rq_ok(self, message, sock):
+		self.rqs += 1
+		# print "--> ", self.rqs
+		if self.rqs == 10000:
+			
+			print self.peer_type(), "GOT", self.rqs, "messages!"
+			self.rqs = 0
 
 	@msg_handlers.handler("dead_process")
 	def handle_dead_process(self, message, sock):
@@ -349,7 +375,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		self.processes = {}
-		#self.subprocess_mgr.killall()
+		self.subprocess_mgr.killall()
 
 	def clean_up(self):
 		print self.name,'[', self.type, ']',  "cleaning up"

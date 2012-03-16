@@ -17,7 +17,7 @@ class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
 		self.uuid = uuid
 		self.launch_file_path = launch_file_path
-		
+
 
 		self.origin_machine = origin_machine if origin_machine else ''
 		self.scenario_dir = ''
@@ -120,7 +120,7 @@ class OBCIExperimentConfig(object):
 
 	def local_params(self, peer_id):
 		return self.peers[peer_id].config.local_params
-	
+
 	def param_value(self, peer_id, param_name):
 		if peer_id not in self.peers:
 			raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
@@ -140,8 +140,8 @@ class OBCIExperimentConfig(object):
 
 	def config_ready(self):
 		details = {}
-		
-		if not self.peers:	
+
+		if not self.peers:
 			return False, details
 
 		for peer_state in self.peers.values():
@@ -153,7 +153,7 @@ class OBCIExperimentConfig(object):
 			return res, det
 		res, det = self.config_sources_graph_ok()
 		if not res:
-			return res, det	
+			return res, det
 
 		return True, {}
 
@@ -244,14 +244,6 @@ class OBCIExperimentConfig(object):
 		return order
 
 
-	def check_dependency_cycles(self):
-		#TODO
-		pass
-
-	def check_config_source_cycles(self):
-		#TODO
-		pass
-
 	def peers_info(self):
 		peers = {}
 		for p in self.peers:
@@ -282,7 +274,7 @@ class PeerConfigDescription(object):
 		self.public_params = []
 
 	def __str__(self):
-		return self.peer_id 
+		return self.peer_id
 
 	def ready(self, details=None):
 		loc_det = {}

@@ -53,6 +53,7 @@ class OBCIExperiment(OBCIControlPeer):
 		self.poller = PollingObject()
 		self.launch_file = launcher_tools.obci_root_relative(launch_file)
 		self.current_ip = current_ip
+		self._nearby_machines = net.DNS()
 		super(OBCIExperiment, self).__init__(
 											source_addresses,
 											rep_addresses,
@@ -580,6 +581,13 @@ class OBCIExperiment(OBCIControlPeer):
 	@msg_handlers.handler('save_scenario')
 	def handle_save_scenario(self, message, sock):
 		send_msg(sock, self.mtool.fill_msg('rq_error', err_code='action_not_supported'))
+
+	@msg_handlers.handler('nearby_machines')
+	def handle_nearby_machines(self, message, sock):
+		self._nearby_machines.mass_update(message.nearby_machines)
+		self.current_ip = self._nearby_machines.ip(hostname=self.origin_machine)
+		
+		send_msg(self._publish_socket, message.SerializeToString())
 
 
 	@msg_handlers.handler("experiment_finished")

@@ -59,33 +59,37 @@ class OBCIServer(OBCIControlPeer):
 		self._bcast_server.daemon = True
 		self._bcast_server.start()
 
-		self._nearby_servers = {}
+		self._nearby_servers = net.DNS()
 		self._nearby_servers_lock = threading.RLock()
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
-														self._nearby_servers_lock,
+														
 														bcast_port,
-														self.ctx])
+														self.ctx,
+														self._push_addr])
 
 		self._nearby_updater.daemon = True
 		self._nearby_updater.start()
 
 
 	def nearby_server_addrs(self):
-		with self._nearby_servers_lock:
-			return dict(self._nearby_servers)
+		snap = self._nearby_servers.snapshot()
+		return [srv.ip for srv in snap.values()]
 
-	def set_nearby_server_addrs(self, addr_list):
-		with self._nearby_servers_lock:
-			self._nearby_servers = list(addr_list)
+	def nearby_servers(self):
+		return self._nearby_servers.snapshot()
+
 
 	def my_ip(self):
-		d = self.nearby_server_addrs()
-		ips, names = d.keys(), [val[1].sender_ip for val in d.values()]
-		print ips, names
-		if self.machine not in names:
-			return '127.0.1.1'
-		return ips[names.index(self.machine)]
+		addr = "127.0.1.1"
+		try:
+			addr = self._nearby_servers.this_addr_network()
+		except Exception, e:
+			print str(e)
+		return addr
+
+	def network_ready(self):
+		return my_ip() != '127.0.1.1'
 
 	def handle_socket_read_error(self, socket, error):
 		if socket == self.rep_socket:
@@ -119,11 +123,11 @@ class OBCIServer(OBCIControlPeer):
 
 		(self.exp_rep, self.exp_rep_addrs) = self._init_socket(
 												[], zmq.REP)
-		(self.exp_pub, self.exp_pub_addrs) = self._init_socket(
-												[], zmq.PUB)
-		self.exp_pub.setsockopt(zmq.LINGER, 0)
+		# (self.exp_pub, self.exp_pub_addrs) = self._init_socket(
+		# 										[], zmq.PUB)
+		# self.exp_pub.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.exp_rep)
-		self._all_sockets.append(self.exp_pub)
+		# self._all_sockets.append(self.exp_pub)
 		super(OBCIServer, self).net_init()
 
 
@@ -134,7 +138,7 @@ class OBCIServer(OBCIControlPeer):
 		pass
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
-		send_msg(self.exp_pub,
+		send_msg(self._publish_socket,#self.exp_pub,
 						self.mtool.fill_msg("kill", receiver=""))
 		send_msg(self._publish_socket, self.mtool.fill_msg("launcher_shutdown",
 						sender=self.uuid))
@@ -150,7 +154,7 @@ class OBCIServer(OBCIControlPeer):
 		# 	addrs = net.choose_local(self.exp_pub_addrs)
 		# else:
 		# 	addrs = net.choose_not_local(self.exp_pub_addrs)
-		addrs = self.exp_pub_addrs
+		addrs = net.choose_local(self.pub_addresses)#self.exp_pub_addrs
 
 		args += addrs
 		exp_name = name if name else os.path.basename(launch_file)
@@ -249,10 +253,10 @@ class OBCIServer(OBCIControlPeer):
 	@msg_handlers.handler("create_experiment")
 	def handle_create_experiment(self, message, sock):
 
-		# if not self.my_ip():
-		# 	send_msg(sock, self.mtool.fill_msg("rq_error",
-		# 						err_code='server_network_not_ready'))
-		# 	return
+		if not self.network_ready():
+			send_msg(sock, self.mtool.fill_msg("rq_error",
+								err_code='server_network_not_ready'))
+			return
 
 		launch_file = message.launch_file
 		sandbox = message.sandbox_dir
@@ -280,10 +284,10 @@ class OBCIServer(OBCIControlPeer):
 		for exp_id in self.experiments:
 			exp_data[exp_id] = self.experiments[exp_id].info()
 
-		nearby = self.nearby_server_addrs()
+		nearby = self.nearby_servers()
 		nearby_dict = {}
-		for srv in nearby:
-			nearby_dict[srv] = nearby[srv][1].sender_ip
+		for srv in nearby.values():
+			nearby_dict[srv.ip] = srv.hostname
 		info = '\n{'
 		for srv in nearby_dict:
 			info += '\n' + srv + ' : ' + nearby_dict[srv] + ','
@@ -400,7 +404,7 @@ class OBCIServer(OBCIControlPeer):
 			elif not message.force:
 				print "{0} [{1}] - sending kill to experiment {2} ({3})".format(
 									self.name, self.peer_type(),match.uuid, match.name)
-				send_msg(self.exp_pub,
+				send_msg(self._publish_socket,#self.exp_pub,
 						self.mtool.fill_msg("kill", receiver=match.uuid))
 
 				send_msg(sock, self.mtool.fill_msg("kill_sent", experiment_id=match.uuid))
@@ -490,7 +494,7 @@ class OBCIServer(OBCIControlPeer):
 		finder_thr = threading.Thread(target=find_eeg_experiments_and_push_results,
 									args=[self.ctx, self.rep_addresses,
 										message,
-										self.nearby_server_addrs()])
+										self.nearby_servers()])
 		finder_thr.daemon = True
 		finder_thr.start()
 

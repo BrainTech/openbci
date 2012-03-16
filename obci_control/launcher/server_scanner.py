@@ -22,20 +22,22 @@ _LOOPS = 3
 
 ALLOWED_SILENCE = 45
 
-def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
+def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None):
     mtool = OBCIMessageTool(message_templates)
 
     loops_to_update = _LOOPS
-    servers = {}
 
     s = socket(AF_INET, SOCK_DGRAM)
     s.bind(('', bcast_port))
 
-    update_timeout = False
-    def timer_end():
-        update_timeout = True
+    notify_sock = None
+    if update_push_addr is not None:
+        ctx = ctx if ctx else zmq.Context()
+        notify_sock = ctx.socket(zmq.PUSH)
+        notify_sock.connect(update_push_addr)
 
     while 1:
+        changed = False
         try:
             inp, out, exc = select.select([s], [], [], UPDATE_INTERVAL / _LOOPS)
         except Exception, e:
@@ -50,7 +52,9 @@ def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
             msg = unicode(data, encoding='utf-8')
             msg = msg[:-1]
             message = mtool.unpack_msg(msg)
-            servers[wherefrom[0]] = (time.time(), message)
+            changed = srv_data.update(ip=wherefrom[0], hostname=message.sender_ip, 
+                                uuid=message.sender, rep_port=message.rep_port,
+                                pub_port=message.pub_port)
 
         else:
             # print "no data"
@@ -60,21 +64,12 @@ def update_nearby_servers(srv_data, srv_data_lock, bcast_port, ctx=None):
 
         if loops_to_update == 0:
             loops_to_update = _LOOPS
-        
-            keys = servers.keys()
-            for ip in keys:
-                timestamp, srv = servers[ip]
-                check_time = time.time()
-                if timestamp + ALLOWED_SILENCE < check_time:
-                    print "[obci_server] obci_server on", ip, ',', servers[ip][1].sender_ip, "is most probably down."
-                    del servers[ip]
-        
-            with srv_data_lock:
-                srv_data.update(servers)
-                keys = srv_data.keys()
-                for ip in keys:
-                    if ip not in servers:
-                        del srv_data[ip]
+            changed = srv_data.clean_silent()
+
+        if changed:
+            print 'dns change'
+            send_msg(notify_sock, mtool.fill_msg('nearby_machines', 
+                                                nearby_machines=srv_data.dict_snapshot()))
 
     s.close()
 
@@ -90,6 +85,7 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
     s.bind(('', 0))
     s.setsockopt(SOL_SOCKET, SO_BROADCAST, 1)
 
+    # introduction
     for i in range(10):
         try:
             s.sendto(str_msg, ('<broadcast>', bcast_port))
@@ -97,7 +93,7 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
             pass
         time.sleep(0.3)
 
-
+    # updates
     while 1:
         try:
             s.sendto(str_msg, ('<broadcast>', bcast_port))
@@ -107,4 +103,3 @@ def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
         time.sleep(7)
 
     s.close()
-

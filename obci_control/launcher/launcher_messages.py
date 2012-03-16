@@ -89,6 +89,7 @@ message_templates = {
 	"morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on=''),
 	"list_nearby_machines" : dict(),
 	"nearby_machines" : dict(nearby_machines='')
+	
 
 }
 

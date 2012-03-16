@@ -122,6 +122,7 @@ class SubprocessMonitor(object):
 		timeout_desc = register_timeout_desc
 
 		ON_POSIX = 'posix' in sys.builtin_module_names
+		
 		try:
 			popen_obj = subprocess.Popen(launch_args,
 										stdout=out, stderr=err, stdin=stdin,

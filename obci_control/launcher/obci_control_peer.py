@@ -153,6 +153,7 @@ class OBCIControlPeer(object):
 				to_publish, det = po.poll_recv(pull_sock, 500)
 
 				if to_publish:
+					print self.peer_type(), "publish!"
 					send_msg(pub_sock, to_publish)
 			except:
 				#print self.name, '.Publisher -- STOP.'
@@ -239,6 +240,7 @@ class OBCIControlPeer(object):
 				self.source_req_socket.connect(addr)
 		self._all_sockets.append(self.source_req_socket)
 		self._set_poll_sockets()
+
 
 	def _init_socket(self, addrs, zmq_type):
 		# print self.peer_type(), "addresses for socket init:", addrs
@@ -411,7 +413,7 @@ class OBCIControlPeer(object):
 
 		try:
 			msg = self.mtool.unpack_msg(message)
-			if msg.type != "ping":
+			if msg.type != "ping" and msg.type != "rq_ok":
 				print "{0} [{1}], got message: {2}".format(
 										self.name, self.peer_type(), msg.type)
 				if msg.type == "get_tail":
@@ -429,8 +431,8 @@ class OBCIControlPeer(object):
 
 			handler = self.msg_handlers.handler_for(msg_type)
 			if handler is None:
-				print "{0} [{1}], Unknown message type: {2}".format(
-										self.name, self.peer_type(),msg_type)
+				# print "{0} [{1}], Unknown message type: {2}".format(
+				# 						self.name, self.peer_type(),msg_type)
 				# print message
 
 				handler = self.msg_handlers.unsupported
@@ -459,7 +461,7 @@ class OBCIControlPeer(object):
 			msg = self.mtool.fill_msg("rq_error",
 					request=vars(message), err_code="unsupported_msg_type", sender=self.uuid)
 			send_msg(sock, msg)
-		print "--"
+		# print "--"
 
 	@msg_handlers.error_handler()
 	def bad_msg_handler(self, message, sock):
