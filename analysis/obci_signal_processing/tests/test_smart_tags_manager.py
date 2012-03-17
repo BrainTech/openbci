@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+#
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#
 
 """
 >>> import os, os.path
@@ -57,26 +63,26 @@ True
 
 >>> px = p.TagsFileWriter('./tescik.obci.tags')
 
->>> px.tag_received({'start_timestamp':1.0, 'end_timestamp':5.0, 'name': 'A', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+>>> px.tag_received({'start_timestamp':1.0, 'end_timestamp':5.0, 'name': 'A', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
 
 
->>> px.tag_received({'start_timestamp':6.0, 'end_timestamp':10.0, 'name': 'A', 'channels':'A B C', 'desc': {'x':1234, 'y':4567, 'z': 789}})
+>>> px.tag_received({'start_timestamp':6.0, 'end_timestamp':10.0, 'name': 'A', 'channels':'', 'desc': {'x':1234, 'y':4567, 'z': 789}})
 
->>> px.tag_received({'start_timestamp':6.1, 'end_timestamp':6.5, 'name': 'B', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+>>> px.tag_received({'start_timestamp':6.1, 'end_timestamp':6.5, 'name': 'B', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
 
->>> px.tag_received({'start_timestamp':7.0, 'end_timestamp':7.0, 'name': 'B', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+>>> px.tag_received({'start_timestamp':7.0, 'end_timestamp':7.0, 'name': 'B', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
 
->>> px.tag_received({'start_timestamp':8.1, 'end_timestamp':8.5, 'name': 'B', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
-
-
->>> px.tag_received({'start_timestamp':9.0, 'end_timestamp':15.0, 'name': 'A', 'channels':'A B C', 'desc': {'x':12345, 'y':45678, 'z': 789}})
-
->>> px.tag_received({'start_timestamp':10.2, 'end_timestamp':11.0, 'name': 'B', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
-
->>> px.tag_received({'start_timestamp':12.0, 'end_timestamp':12.5, 'name': 'B', 'channels':'A B C', 'desc': {'x':123, 'y':456, 'z': 789}})
+>>> px.tag_received({'start_timestamp':7.5, 'end_timestamp':8.7, 'name': 'B', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
 
 
->>> px.tag_received({'start_timestamp':20.0, 'end_timestamp':25.0, 'name': 'A', 'channels':'A B C', 'desc': {'x':12345, 'y':45678, 'z': 789}})
+>>> px.tag_received({'start_timestamp':9.0, 'end_timestamp':15.0, 'name': 'A', 'channels':'', 'desc': {'x':12345, 'y':45678, 'z': 789}})
+
+>>> px.tag_received({'start_timestamp':10.2, 'end_timestamp':11.0, 'name': 'B', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
+
+>>> px.tag_received({'start_timestamp':12.0, 'end_timestamp':12.5, 'name': 'B', 'channels':'', 'desc': {'x':123, 'y':456, 'z': 789}})
+
+
+>>> px.tag_received({'start_timestamp':20.0, 'end_timestamp':25.0, 'name': 'A', 'channels':'', 'desc': {'x':12345, 'y':45678, 'z': 789}})
 
 >>> px.finish_saving(0.0)
 './tescik.obci.tags'
@@ -118,7 +124,7 @@ True
 >>> tss_tags = [t.get_start_tag() for t in tss]
 
 >>> print(tss_tags)
-[{'channels': '', 'start_timestamp': 6.0999999999999996, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 6.5}, {'channels': '', 'start_timestamp': 7.0, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 7.0}, {'channels': '', 'start_timestamp': 8.0999999999999996, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 8.5}]
+[{'channels': '', 'start_timestamp': 6.0999999999999996, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 6.5}, {'channels': '', 'start_timestamp': 7.0, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 7.0}, {'channels': '', 'start_timestamp': 7.5, 'desc': {u'y': u'456', u'x': u'123', u'z': u'789'}, 'name': u'B', 'end_timestamp': 8.6999999999999993}]
 
 
 >>> print(tss[0].get_samples()[0][0])
@@ -221,9 +227,8 @@ def fabricate_info_file(f, ch=23):
     l_signal_params['channels_gains'] = l_ch_gains
     l_signal_params['channels_offsets'] = l_ch_offsets
     l_signal_params['number_of_samples'] = 100
-    l_signal_params['file'] = 'nic'
+    l_signal_params['file'] = 'tescik.obci.dat'
     l_signal_params['first_sample_timestamp'] = 1.0
-    
     p.finish_saving(l_signal_params)
 
 def run():
