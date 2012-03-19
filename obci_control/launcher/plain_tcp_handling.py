@@ -57,7 +57,7 @@ def run_tcp_server(server_class, server_address, handler_class, zmq_ctx, zmq_rep
     # Exit the server thread when the main thread terminates
     server_thread.daemon = True
     server_thread.start()
-    print "Server loop running in thread:", server_thread.name
+    print "Server plain TCP loop running in thread:", server_thread.name
     print "serving on: ", server.server_address
     return server_thread, server.server_address
 

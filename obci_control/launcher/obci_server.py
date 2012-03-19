@@ -42,6 +42,7 @@ class OBCIServer(OBCIControlPeer):
 
 		self.experiments = {}
 		self.exp_process_supervisors = {}
+		self._nearby_servers = net.DNS()
 
 		super(OBCIServer, self).__init__( None, rep_addresses,
 														  pub_addresses,
@@ -60,8 +61,6 @@ class OBCIServer(OBCIControlPeer):
 		self._bcast_server.daemon = True
 		self._bcast_server.start()
 
-		self._nearby_servers = net.DNS()
-		self._nearby_servers_lock = threading.RLock()
 		self._nearby_updater = threading.Thread(target=update_nearby_servers,
 												args=[self._nearby_servers,
 														
