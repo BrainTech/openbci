@@ -197,12 +197,12 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
             msg = mtool.unpack_msg(msg)
 
             if msg.type == 'rq_ok':
-                LOGGER.info("waiting for server:" + str(reqs[req]))
+                LOGGER.info("waiting for experiments from server: " + str(reqs[req]))
                 harvester.unregister(req)
                 req.close()
                 
             elif msg.type == 'eeg_experiments':
-                LOGGER.info("GOT EXPERIMENTS from" + msg.sender_ip)
+                LOGGER.info("GOT EXPERIMENTS from: " + msg.sender_ip)
                 exps += msg.experiment_list
             else:
                 LOGGER.warning('strange msg:  ' + str(msg))
@@ -216,23 +216,23 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
 
-    my_addr = socket.gethostname()
+    my_addr = nearby_servers.ip(hostname=socket.gethostname())
 
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
     
     nrb = {}
-    for uid, srv in nearby_servers.iteritems():
+    for uid, srv in nearby_servers.snapshot().iteritems():
         if srv.ip not in checked:
             nrb[uid] = srv
 
     if not checked:
         LOGGER.info("checking other servers")
-        print nrb
+        print [(srv.hostname, srv.ip) for srv in nrb.values()]
 
         ip_list = [srv.ip for srv in nrb.values() if \
-                            srv.hostname != my_addr] 
+                            srv.ip != my_addr] 
         LOGGER.info("number of servers to query: " + str(len(ip_list)))
 
         exps += _gather_other_server_results(ctx, my_addr, ip_list)
@@ -247,7 +247,7 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     send_msg(to_client, finder.mtool.fill_msg('eeg_experiments', sender_ip=socket.gethostname(),
                                     experiment_list=exps))
     LOGGER.info("sent exp data... "  + str(exps)[:500] + ' [...]')
-    time.sleep(0.2)
+    time.sleep(0.1)
 
 
 if __name__ == '__main__':

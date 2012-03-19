@@ -10,18 +10,19 @@ import time
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 class TestServer2(ConfiguredMultiplexerServer):
+
     def __init__(self, addresses):
         super(TestServer2, self).__init__(addresses=addresses, type=peers.CONFIGURER)
         self.ready()
         print "RRRRRRRRRRRREADY!!!"
         time.sleep(2)
-        logic_helper.restart_scenario(self.conn, "scenarios/morph_test_b.ini", 
-        							leave_on=['peer1', 'amplifier'],
-        							overwrites=dict(
-        											peer2=['-p', 'text', 'dupa dupa dupa',
-        													'-p', 'zzz', '12345'],
-        											peer3=['-f', 'obci_control/test/custom_peer_b.ini']
-        											))
+        logic_helper.restart_scenario(self.conn, "scenarios/morph_test_b.ini",
+                                        leave_on=['peer1', 'amplifier'],
+                                            overwrites=dict(
+                                                peer2=['-p', 'text', 'dupa dupa dupa',
+                                                    '-p', 'zzz', '12345'],
+                                                peer3=['-f', 'obci_control/test/custom_peer_b.ini']
+                                                ))
 
 
     def handle_message(self, mxmsg):

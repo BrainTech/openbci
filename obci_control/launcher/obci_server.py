@@ -30,6 +30,7 @@ from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
 from server_scanner import update_nearby_servers, broadcast_server
+from plain_tcp_handling import run_tcp_obci_server
 
 REGISTER_TIMEOUT = 6
 
@@ -89,7 +90,7 @@ class OBCIServer(OBCIControlPeer):
 		return addr
 
 	def network_ready(self):
-		return my_ip() != '127.0.1.1'
+		return self.my_ip() != '127.0.1.1'
 
 	def handle_socket_read_error(self, socket, error):
 		if socket == self.rep_socket:
@@ -128,6 +129,12 @@ class OBCIServer(OBCIControlPeer):
 		# self.exp_pub.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.exp_rep)
 		# self._all_sockets.append(self.exp_pub)
+		self._tcp_proxy_thr, self._tcp_proxy_addr = run_tcp_obci_server(
+											('0.0.0.0', int(net.server_tcp_proxy_port())),
+											self.ctx,
+											self.rep_addresses[0])
+		self.tcp_addresses = [(self.my_ip(), self._tcp_proxy_addr[1]),
+								(socket.gethostname(), self._tcp_proxy_addr[1])]
 		super(OBCIServer, self).net_init()
 
 
@@ -222,7 +229,7 @@ class OBCIServer(OBCIControlPeer):
 				self.client_rq = None
 				send_msg(rq_sock, info_msg)
 
-		send_msg(sock, self.mtool.fill_msg("rq_ok"))
+		send_msg(sock, self.mtool.fill_msg("rq_ok", params=self._nearby_servers.dict_snapshot()))
 		send_msg(self._publish_socket, info_msg)
 
 	def _handle_register_experiment_timeout(self, exp):
@@ -490,11 +497,17 @@ class OBCIServer(OBCIControlPeer):
 
 	@msg_handlers.handler("find_eeg_experiments")
 	def handle_find_eeg_experiments(self, message, sock):
+
+		if not self.network_ready():
+			send_msg(sock, self.mtool.fill_msg("rq_error",
+								err_code='server_network_not_ready'))
+			return
+
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
 		finder_thr = threading.Thread(target=find_eeg_experiments_and_push_results,
 									args=[self.ctx, self.rep_addresses,
 										message,
-										self.nearby_servers()])
+										self._nearby_servers.copy()])
 		finder_thr.daemon = True
 		finder_thr.start()
 

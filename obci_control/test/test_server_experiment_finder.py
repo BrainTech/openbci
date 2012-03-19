@@ -54,6 +54,6 @@ if __name__ == '__main__':
     else:
         exp_info = mtool.unpack_msg(msg)
         sss = json.dumps(exp_info.experiment_list, indent=4)
-        # print sss
+        #print sss
         print len(sss)
         print [(exp['rep_addr'], exp['experiment_info']['name']) for exp in exp_info.experiment_list]

@@ -39,6 +39,15 @@ def choose_not_local(addrs):
 	#	result += [a for a in addrs if a.startswith('tcp://')]
 	return result
 
+def choose_addr(addr_list):
+	nl = choose_not_local(addr_list)
+	if nl:
+		return nl[0]
+	else:
+		loc = choose_local(addr_list)
+		return loc[0] if loc else None
+
+
 def lo_ip():
 	return '127.0.0.1'
 
@@ -121,6 +130,15 @@ def server_bcast_port():
 		port = '23123'
 	return port
 
+def server_tcp_proxy_port():
+	parser = __parser_main_config_file()
+	try:
+		port = parser.get('server', 'tcp_proxy_port')
+	except Exception, e:
+		print "[ WARNING! WARNING! ] Config file is not up to date. Taking default tcp_proxy_port value!"
+		port = '12012'
+	return port	
+
 class DNS(object):
 	def __init__(self, allowed_silence_time=45):
 		self.__lock = threading.RLock()
@@ -175,8 +193,23 @@ class DNS(object):
 		return socket.gethostname()
 
 	def this_addr_network(self):
-		srv = self._match_srv(hostname=socket.gethostname())
-		return srv.ip
+		try:
+			srv = self._match_srv(hostname=socket.gethostname())
+		except:
+			return socket.gethostname()
+		else:
+			return srv.ip
+
+	def is_this_machine(self, address):
+		addr = address
+		if address.startswith('tcp://'):
+			addr = addr[6:]
+		parts = addr.split(':')
+		if len(parts) > 0:
+			addr = parts[0]
+		print "aaaa",addr
+		print self.__servers
+		return addr == self.this_addr_network() or addr == self.this_addr_local()
 
 	def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
 		with self.__lock:
@@ -222,6 +255,12 @@ class DNS(object):
 				snapshot[uid] = self.__servers[uid].as_dict()
 		return snapshot
 
+	def copy(self):
+		new = DNS()
+		new.allowed_silence = self.allowed_silence
+		new.mass_update(self.dict_snapshot())
+		return new
+
 
 
 class PeerNetworkDescriptor(object):
@@ -233,6 +272,9 @@ class PeerNetworkDescriptor(object):
 		self.pub_port = pub_port
 		self.http_port = http_port
 		self.timestamp = timestamp if timestamp is not None else time.time()
+
+	def __str__(self):
+		return str(self.as_dict())
 
 	def _copy(self):
 		desc =  PeerNetworkDescriptor(self.ip, self.hostname, self.uuid, 

@@ -30,6 +30,8 @@ import obci_process_supervisor
 import peer.peer_cmd as peer_cmd
 from peer.peer_config import PeerConfig
 
+from plain_tcp_handling import run_tcp_obci_experiment
+
 REGISTER_TIMEOUT = 25
 
 class OBCIExperiment(OBCIControlPeer):
@@ -100,33 +102,52 @@ class OBCIExperiment(OBCIControlPeer):
 
 		super(OBCIExperiment, self).net_init()
 
+		self.rep_addresses.append(self._ip_based_addr(net.choose_addr(self.rep_addresses)))
+		self.pub_addresses.append(self._ip_based_addr(net.choose_addr(self.pub_addresses)))
+		self._tcp_proxy_thr, self._tcp_proxy_addr = run_tcp_obci_experiment(
+											('0.0.0.0', 0),
+											self.ctx,
+											self.rep_addresses[0])
+		self.tcp_addresses = [(self.current_ip, self._tcp_proxy_addr[1]),
+								(socket.gethostname(), self._tcp_proxy_addr[1])]
+
+	def _ip_based_addr(self, other_addr):
+		return 'tcp://'+str(self.current_ip)+':'+str(net.port(other_addr))
+
 	def params_for_registration(self):
 		return dict(pid=os.getpid(), origin_machine=self.origin_machine,
 				status_name='', details='', launch_file_path=self.launch_file)
+
+	def _handle_registration_response(self, response):
+		self._nearby_machines.mass_update(response.params)
 
 	def custom_sockets(self):
 		return [self.source_sub_socket, self.supervisors_sub, self.supervisors_rep]
 
 	def args_for_process_sv(self, machine, local=False):
 		args = ['--sv-addresses']
-		a = self.supervisors_rep_addrs[0]
-		port = a.rsplit(':', 1)[1]
-		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
+		local = self._nearby_machines.is_this_machine(machine)
+
+		a = self._ip_based_addr(net.choose_addr(self.supervisors_rep_addrs))
+		if local:
+			port = net.port(a)
+			a = 'tcp://' + socket.gethostname() + ':' + str(port)
 		# sv_rep_ = net.choose_not_local(self.supervisors_rep_addrs)
 		# if not sv_rep_ or local:
 		# 	sv_rep_ = net.choose_local(self.supervisors_rep_addrs)
 
-		args.append(addr_to_pass) # += sv_rep_[:1]
+		args.append(a)#addr_to_pass) # += sv_rep_[:1]
 		args.append('--sv-pub-addresses')
-		a = self.pub_addresses[0]
-		port = a.rsplit(':', 1)[1]
-		addr_to_pass = 'tcp://' + socket.gethostname() + ':' + port
+		a = self._ip_based_addr(net.choose_addr(self.pub_addresses))
+		if local:
+			port = net.port(a)
+			a = 'tcp://' + socket.gethostname() + ':' + str(port)
 
 		# pub_addrs = net.choose_not_local(self.pub_addresses)
 		# if not pub_addrs or local:
 		# 	pub_addrs = net.choose_local(self.pub_addresses, ip=True)
 
-		args.append(addr_to_pass) # += pub_addrs[:1] #self.pub_addresses
+		args.append(a) # += pub_addrs[:1] #self.pub_addresses
 		name = self.name if self.name and self.name != 'obci_experiment' else\
 					os.path.basename(self.launch_file)
 		args += [
@@ -150,7 +171,9 @@ class OBCIExperiment(OBCIControlPeer):
 															proc_type=proc_type,
 															capture_io=NO_STDIO)
 		else:
-			conn_addr = 'tcp://' + machine_addr + ':' + net.server_rep_port()
+			srv_ip = self._nearby_machines.ip(hostname=machine_addr)
+
+			conn_addr = 'tcp://' + srv_ip + ':' + net.server_rep_port()
 			sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
 												args=args, proc_type=proc_type,
 												name=self.uuid, machine_ip=machine_addr,
@@ -585,8 +608,9 @@ class OBCIExperiment(OBCIControlPeer):
 	@msg_handlers.handler('nearby_machines')
 	def handle_nearby_machines(self, message, sock):
 		self._nearby_machines.mass_update(message.nearby_machines)
-		self.current_ip = self._nearby_machines.ip(hostname=self.origin_machine)
-		
+
+		self.current_ip = self._nearby_machines.this_addr_network()
+
 		send_msg(self._publish_socket, message.SerializeToString())
 
 
