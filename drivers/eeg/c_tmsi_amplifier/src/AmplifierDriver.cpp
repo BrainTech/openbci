@@ -6,6 +6,19 @@ using namespace std;
 #include <errno.h>
 #include <time.h>
 namespace po = boost::program_options;
+vector<string> split_string(string str,char separator){
+	uint i=0;
+	vector<string> res;
+	for (;;) {
+		size_t j = str.find(separator, i);
+		if (j == string::npos)
+			break;
+		res.push_back(str.substr(i, j - i));
+		i = j + 1;
+	}
+	res.push_back(str.substr(i));
+	return res;
+}
 
 po::options_description AmplifierDriver::get_options() {
 	po::options_description options("Amplifier Options");
@@ -47,9 +60,12 @@ void AmplifierDriver::stop_sampling_handler(int sig) {
 			strsignal(sig));
 	AmplifierDriver::signal_handler->stop_sampling(true);
 }
+double AmplifierDriver::get_expected_sample_time(){
+	return sampling_start_time+cur_sample/(double)sampling_rate;
+}
 double AmplifierDriver::next_samples() {
 	cur_sample++;
-	double wait = last_sample + 1.0 / sampling_rate;
+	double wait = get_expected_sample_time();
 	double diff,seconds;
 	last_sample =get_time();
 	diff=wait-last_sample;

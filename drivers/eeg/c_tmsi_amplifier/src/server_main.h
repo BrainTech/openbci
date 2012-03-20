@@ -66,6 +66,6 @@ int run(int argc, char**argv,AmplifierDriver * driver)
 		else if (line=="exit") break;
 		cout <<"\n";
 	}
-	cerr <<driver->get_description()->get_name()<< " dmakriver server exit\n";
+	cerr <<driver->get_description()->get_name()<< " driver server exit\n";
 	return 0;
 }
