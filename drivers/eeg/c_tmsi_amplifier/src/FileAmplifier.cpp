@@ -58,9 +58,6 @@ double FileAmplifier::next_samples(){
 	}
 	return AmplifierDriver::next_samples();
 }
-inline char * FileAmplifier::get_channel_data(){
-	return channel_data+channel_data_index*channel_data_len;
-}
 
 FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name){
 	this->offset=offset;
@@ -76,22 +73,6 @@ FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp
 		this->is_signed = false;
 		this->type = UINT32;
 	}
-}
-inline float FileChannel::get_sample(){
-	char * data=amplifier->get_channel_data()+this->offset;
-	switch (this->type){
-	case DOUBLE:
-		return *((double*)data);
-	case FLOAT:
-		return *((float*)data);
-	case INT32:
-		return *((int32_t*)data);
-	case UINT32:
-		return *((uint32_t*)data);
-	}
-}
-inline int FileChannel::get_raw_sample(){
-	return get_sample();
 }
 FileAmplifierDescription::FileAmplifierDescription(string name,FileAmplifier *amp,vector<string> names,vector<string>types):AmplifierDescription(name,amp){
 	if (names.size()>types.size())

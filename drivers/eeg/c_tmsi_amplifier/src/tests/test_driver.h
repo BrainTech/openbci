@@ -65,7 +65,8 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	uint lost_samples=0;
 	int i=0;
 	double last_sample_time=amp->get_sample_timestamp();
-
+	usleep(200000);
+	double stop_time;
 	while ((i < length * sample_rate) & amp->is_sampling()) {
 		double cur_sample=amp->next_samples();
 		if (!amp->is_sampling()) break;
@@ -107,13 +108,15 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 
 		}
 		last_sample_time=cur_sample;
+		stop_time=get_time_as_double();
 		i++;
 	}
 	ptime end=microsec_clock::local_time();
 	printf("Sampling will be stopped at %s after %d samples\n",
 			to_simple_string(end).c_str(), i);
 	printf("Duration: %s\n",to_simple_string(end-start).c_str());
-	printf("Actual frequency: %f\n",i/(last_sample_time-start_time));
+	printf("First TS: %f,last TS: %f, computed_frequency: %f\n",start_time,last_sample_time,i/(last_sample_time-start_time));
+	printf("Actual frequency: %f\n",i/(stop_time-start_time));
 	printf("Lost samples: %d\n",lost_samples);
 
 	amp->stop_sampling();

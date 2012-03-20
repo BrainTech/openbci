@@ -26,7 +26,10 @@ public:
 	virtual boost::program_options::options_description get_options();
 	virtual void init(boost::program_options::variables_map &vm);
 	virtual double next_samples();
-	inline char * get_channel_data();
+	inline char * get_channel_data(){
+		return channel_data+channel_data_index*channel_data_len;
+	}
+
 };
 enum FileChannelType{
 	DOUBLE,FLOAT,INT32,UINT32
@@ -40,8 +43,22 @@ private:
 public:
 	FileChannel(string name,uint offset,string type,FileAmplifier *amp);
 	virtual	~FileChannel(){}
-	inline virtual int get_raw_sample();
-	inline virtual float get_sample();
+	inline int get_raw_sample(){
+		return get_sample();
+	}
+	inline virtual float get_sample(){
+		char * data=amplifier->get_channel_data()+this->offset;
+		switch (this->type){
+		case DOUBLE:
+			return *((double*)data);
+		case FLOAT:
+			return *((float*)data);
+		case INT32:
+			return *((int32_t*)data);
+		case UINT32:
+			return *((uint32_t*)data);
+		}
+	}
 };
 class FileAmplifierDescription:public AmplifierDescription{
 public:

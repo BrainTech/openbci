@@ -21,6 +21,12 @@ using namespace std;
 #include <sys/timeb.h>
 #include <time.h>
 vector<string> split_string(string str,char separator);
+inline double get_time_as_double(){
+	struct timeval tv;
+	struct timezone tz;
+	gettimeofday(&tv,&tz);
+	return tv.tv_sec+tv.tv_usec/1000000.0;
+}
 class AmplifierDriver {
 private:
 	double sleep_res;
@@ -39,15 +45,13 @@ protected:
 	string active_channels_str;
 	std::vector<Channel *> active_channels;
 	double last_sample;
+	double sample_timestamp;
 	double sampling_start_time;
 	AmplifierDescription * description;
 	static AmplifierDriver * signal_handler;
 
-	double get_time(){
-		struct timeval tv;
-		struct timezone tz;
-		gettimeofday(&tv,&tz);
-		return tv.tv_sec+tv.tv_usec/1000000.0;
+	inline double get_time(){
+		return get_time_as_double();
 	}
 	virtual double get_expected_sample_time();
 public:
@@ -130,7 +134,7 @@ public:
 	virtual void init(boost::program_options::variables_map &vm);
 	virtual double next_samples();
 	inline double get_sample_timestamp(){
-		return last_sample;
+		return sample_timestamp;
 	}
 };
 
