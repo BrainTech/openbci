@@ -442,16 +442,16 @@ not declared in configuration!".format(source_name, reference))
 
 
 
-msg_overwrite_ext_to_local = "Changing external parameter '{0}' to Local! \
+msg_overwrite_ext_to_local = u"Changing external parameter '{0}' to Local! \
 New value: {1}."
 
-msg_overwrite_local_to_ext = "Changing local parameter {0} to external! \
+msg_overwrite_local_to_ext = u"Changing local parameter {0} to external! \
 Source: {1}, src_param: {2}."
 
-msg_overwrite_local = "Overwriting local param '{0}'! Old value: {1}, \
+msg_overwrite_local = u"Overwriting local param '{0}'! Old value: {1}, \
 new value: {2}"
 
-msg_overwrite_ext_def = "External parameter definition overwrite! \
+msg_overwrite_ext_def = u"External parameter definition overwrite! \
 Name: {0}, old ref: {1}, new ref: {2}."
 
 

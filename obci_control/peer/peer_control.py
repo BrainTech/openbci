@@ -5,6 +5,7 @@ import warnings
 import time
 import inspect
 import numbers
+import codecs
 
 import peer_config
 import peer_config_parser
@@ -102,7 +103,7 @@ class PeerControl(object):
 
 
 	def _load_config_from_file(self, p_path, p_type, update=False):
-		with open(p_path) as f:
+		with codecs.open(p_path, "r", "utf8") as f:
 			parser = peer_config_parser.parser(p_type)
 			parser.parse(f, self.core)
 

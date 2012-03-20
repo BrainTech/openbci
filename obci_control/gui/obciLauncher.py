@@ -154,7 +154,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
 
             params = experiment.parameters(peer_id, self.details_mode.currentText())
             for param, (value, src) in params.iteritems():
-                val = str(value) #if not src else value + "  ["+src + ']'
+                val = unicode(value) #if not src else value + "  ["+src + ']'
                 src = src if src else ''
                 child = QTreeWidgetItem([param, val, src ])                
                 if src:
@@ -201,9 +201,9 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         if item.parent() is None:
             return
         exp = self._params
-        peer_id = str(item.parent().text(0))
-        param = str(item.text(0))
-        val = str(item.text(1))
+        peer_id = unicode(item.parent().text(0))
+        param = unicode(item.text(0))
+        val = unicode(item.text(1))
         
         old_val = exp.exp_config.param_value(peer_id, param)
         if old_val != item.text(1):

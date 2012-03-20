@@ -4,6 +4,7 @@
 import ConfigParser
 import os
 import warnings
+import codecs
 
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
@@ -140,7 +141,7 @@ class LaunchFileParser(object):
 		conf_path = self.__find_default_config_path(peer_program_path)
 		if conf_path:
 
-			with open(conf_path) as f:
+			with codecs.open(conf_path, "r", "utf8") as f:
 				print "parsing default config for peer  ", peer_id, conf_path
 				peer_parser.parse(f, peer_cfg)
 			#print "Loaded default config {0} for {1}, path: {2}".format(
@@ -156,7 +157,7 @@ class LaunchFileParser(object):
 												peer_id, peer_program_path)
 		#print "Trying to parse {0} for {1}".format(config_path, peer_id)
 		if config_path:
-			with open(config_path) as f:
+			with codecs.open(config_path, "r", "utf8") as f:
 				print "parsing _custom_ config for peer  ", peer_id, config_path
 				peer_parser.parse(f, peer_cfg)
 		self.config.set_peer_config(peer_id, peer_cfg)

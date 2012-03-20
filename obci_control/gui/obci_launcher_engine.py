@@ -329,8 +329,9 @@ class OBCILauncherEngine(QtCore.QObject):
 	def _list_experiments(self):
 		exp_list = self.client.send_list_experiments()
 		exps = []
-		for exp_data in exp_list.exp_data.values():
-			exps.append(exp_data)
+		if exp_list is not None:
+			for exp_data in exp_list.exp_data.values():
+				exps.append(exp_data)
 		return exps
 
 	def reset_launcher(self, msg):

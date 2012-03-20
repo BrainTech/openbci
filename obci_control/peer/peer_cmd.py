@@ -33,8 +33,8 @@ class PeerCmd(object):
 		parser.add_argument(LP, '--'+LOCAL_PARAMS,
 									nargs='+',
 									action=LocParamAction,
-									help="Local parameter override value: param_name, value.",
-									type=str)
+									help="Local parameter override value: param_name, value.")#,
+									#type=unicode)
 		parser.add_argument(EP, '--'+EXT_PARAMS, nargs=2, action=ExtParamAction,
 									help="External parameter override value: param_name value .")
 
@@ -81,7 +81,13 @@ class LocParamAction(PeerParamAction):
 			raise argparse.ArgumentTypeError("loc_param: Param name and value not specified!" + option_string)
 
 		par = values[0]
-		value = ' '.join(values[1:])
+		vals = []
+		for v in values[1:]:
+			print v, v.__class__
+			if not isinstance(v, unicode):
+				v = unicode(v, encoding='utf-8')
+			vals.append(v)
+		value = u' '.join(vals)
 		dic = getattr(namespace, self.dest)
 		if dic is None:
 			dic = {}
