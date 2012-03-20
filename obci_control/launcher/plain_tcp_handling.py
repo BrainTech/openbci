@@ -5,6 +5,7 @@ import SocketServer
 import zmq
 import threading
 import socket
+import time
 
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
@@ -16,6 +17,7 @@ DELIM = chr(ord(':')) #wtf
 END = chr(ord(','))
 
 class OBCIPeerTCP( SocketServer.TCPServer, SocketServer.ThreadingMixIn):
+    allow_reuse_address = True
     def __init__(self, server_address,  bind_and_activate=True, 
                             zmq_ctx=None, zmq_rep_addr=None):
         SocketServer.TCPServer.__init__(self,server_address, OBCIServerRequestHandler, bind_and_activate)
@@ -59,21 +61,34 @@ def run_tcp_server(server_class, server_address, handler_class, zmq_ctx, zmq_rep
     server_thread.start()
     print "Server plain TCP loop running in thread:", server_thread.name
     print "serving on: ", server.server_address
-    return server_thread, server.server_address
+    return server_thread, server, server.server_address
 
 def _recv_netstring_len(request):
     bt = request.recv(1)
     strlen = ''
     while bt != DELIM:
+        print bt,
         strlen += bt
         bt = request.recv(1)
+    print ''
     return int(strlen)
 
 def recv_netstring(request):
     datalen = _recv_netstring_len(request)
     data = request.recv(datalen)
+    got = len(data)
+    do = 100
+    while got < datalen and do:
+        print "got", got, "len", datalen
+        chunk = request.recv(datalen - got)
+        if chunk == '':
+            raise RuntimeError("socket connection broken")
+        data = ''.join([data, chunk])
+        got += len(chunk)
+        do -=1
+
     end = request.recv(1)
-    assert(end == END)
+    assert(end == END and got == datalen)
     return data
 
 def recv_unicode_netstring(request):
@@ -82,11 +97,13 @@ def recv_unicode_netstring(request):
     return msg
 
 def make_unicode_netstring(unicode_str):
+    print 'unicode_len (characters): ', len(unicode_str)
     msg = unicode_str.encode('utf-8')
     return make_netstring(msg)
 
 def make_netstring(bytes):
     datalen = len(bytes)
+    print "encoded DATA LEN (bytes):", datalen
     return str(datalen) + DELIM + bytes + END
 
 
@@ -105,6 +122,7 @@ class OBCIPeerRequestHandler(SocketServer.BaseRequestHandler):
         if not response:
             self.bad_response(self,request, det)
         self.request.sendall(make_unicode_netstring(response))
+        time.sleep(0.5)
 
     def bad_response(self, request, details):
         err = self.server.mtool.fill_msg("rq_error", details=details)
@@ -115,7 +133,9 @@ class OBCIPeerRequestHandler(SocketServer.BaseRequestHandler):
 
 class OBCIServerRequestHandler(OBCIPeerRequestHandler):
     def handle(self):
+        print "SERVER REQUEST"
         message = recv_unicode_netstring(self.request)
+        print message
         parsed = self.server.mtool.unpack_msg(message)
         if parsed.type == 'find_eeg_experiments':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.server.pull_port)
@@ -126,13 +146,27 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
         if not response:
             self.bad_response(self.request, det)
+            return
         
         if parsed.type == 'find_eeg_experiments':
             response, det = self.server.pl.poll_recv(self.server.pull_sock, timeout=7000)
             if not response:
                 self.bad_response(self.request, det)
+                return
 
-        self.request.sendall(make_unicode_netstring(response))
+        data = make_unicode_netstring(response)
+        to_send = len(data)
+        print "TO SEND: ", to_send
+        sent = 0
+        while sent < to_send:
+            out = self.request.send(data[sent:])
+            if out == 0:
+                raise RuntimeError("socket connection broken")
+            print "chunk sent: ", out
+            sent += out
+        result = self.request.sendall(make_unicode_netstring(response))
+        print "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRREsult", result
+        # time.sleep(3)
 
 
 class OBCIExperimentRequestHandler(OBCIPeerRequestHandler):

@@ -104,10 +104,11 @@ class OBCIExperiment(OBCIControlPeer):
 
 		self.rep_addresses.append(self._ip_based_addr(net.choose_addr(self.rep_addresses)))
 		self.pub_addresses.append(self._ip_based_addr(net.choose_addr(self.pub_addresses)))
-		self._tcp_proxy_thr, self._tcp_proxy_addr = run_tcp_obci_experiment(
+		self._tcp_proxy_thr, self._tcp_srv,self._tcp_proxy_addr = run_tcp_obci_experiment(
 											('0.0.0.0', 0),
 											self.ctx,
 											self.rep_addresses[0])
+
 		self.tcp_addresses = [(self.current_ip, self._tcp_proxy_addr[1]),
 								(socket.gethostname(), self._tcp_proxy_addr[1])]
 
@@ -116,7 +117,8 @@ class OBCIExperiment(OBCIControlPeer):
 
 	def params_for_registration(self):
 		return dict(pid=os.getpid(), origin_machine=self.origin_machine,
-				status_name='', details='', launch_file_path=self.launch_file)
+				status_name='', details='', launch_file_path=self.launch_file,
+				tcp_addresses=[])
 
 	def _handle_registration_response(self, response):
 		self._nearby_machines.mass_update(response.params)
@@ -810,6 +812,7 @@ class OBCIExperiment(OBCIControlPeer):
 	def clean_up(self):
 		print self.name,'[', self.type, ']',  "exp cleaning up"
 		self.subprocess_mgr.stop_monitoring()
+		self._tcp_srv.shutdown()
 
 	def _handle_register_sv_timeout(self, sv_process):
 		txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(

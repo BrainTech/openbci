@@ -26,6 +26,8 @@ def get_eeg_experiments(host, port):
 
         # Receive data from the server and shut down
         received = recv_unicode_netstring(sock)
+        print received
+        print received.__class__, received[0], received[-1]
         msg = mtool.unpack_msg(received)
         if msg.type == 'rq_error':
             print 'BLEEEEEEEEE'

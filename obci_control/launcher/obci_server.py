@@ -128,7 +128,7 @@ class OBCIServer(OBCIControlPeer):
 		# self.exp_pub.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.exp_rep)
 		# self._all_sockets.append(self.exp_pub)
-		self._tcp_proxy_thr, self._tcp_proxy_addr = run_tcp_obci_server(
+		self._tcp_proxy_thr, self._tcp_srv, self._tcp_proxy_addr = run_tcp_obci_server(
 											('0.0.0.0', int(net.server_tcp_proxy_port())),
 											self.ctx,
 											self.rep_addresses[0])
@@ -141,7 +141,7 @@ class OBCIServer(OBCIControlPeer):
 		return [self.exp_rep]#, self.srv_rep, self.srv_pub]
 
 	def clean_up(self):
-		pass
+		self._tcp_srv.shutdown()
 
 	def cleanup_before_net_shutdown(self, kill_message, sock=None):
 		send_msg(self._publish_socket,#self.exp_pub,
