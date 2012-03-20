@@ -197,7 +197,7 @@ peer {
 
 peer {
      type: 137
-     name: "ETR_SERVER"
+     name: "ETR_ANALYSIS"
      queue_size: 32768
 }
 
@@ -282,6 +282,16 @@ peer {
 peer {
     type: 153
     name: "LOGIC_P300_CSP"
+}
+
+peer {
+    type: 154
+    name: "SWITCH_AMPLIFIER"
+}
+
+peer {
+    type: 155
+    name: "SWITCH_ANALYSIS"
 }
 
 
@@ -695,6 +705,11 @@ type {
 	report_delivery_error: false
      }
 
+     to {
+     	peer: "SWITCH_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
 }
 
 type {
@@ -783,7 +798,7 @@ type {
     type: 209
     name: "ETR_SIGNAL_MESSAGE"
     to {
-       peer: "ETR_SERVER"
+       peer: "ETR_ANALYSIS"
        whom: ALL
 	report_delivery_error: false
        }
@@ -812,6 +827,11 @@ type {
      to {
      	peer: "LOGIC_P300_CALIBRATION"
 	whom: ALL
+	}	
+     to {
+     	peer: "SWITCH_AMPLIFIER"
+	whom: ALL
+        report_delivery_error: false
 	}	
 }
 
@@ -948,3 +968,22 @@ type {
 	}
 }
 
+# cfg_templates.LauncherCommand
+type {
+    type: 227
+    name: "LAUNCHER_COMMAND"
+    to {
+        peer: "CONFIG_SERVER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 228
+    name: "SWITCH_MESSAGE"
+    to {
+        peer: "SWITCH_ANALYSIS"
+        whom: ALL
+	report_delivery_error: false
+    }
+}

@@ -253,7 +253,7 @@ class signalParser(object):
         else:
             return tag_list
 
-    def get_p300_tags(self, idx=1, samples = True, Fs = None):
+    def get_p300_tags(self, idx=1, rest=False, samples = True, Fs = None):
         """Returns tags with words from different groups
         
         Parameters:
@@ -283,11 +283,11 @@ class signalParser(object):
         else: fsp = 1.0
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
+            if not rest:
                 if int(index) == idx:
                     exp_list.append(float(e.attributes['position'].value))
             else:
-                if int(index) !=  abs(idx):
+                if int(index) !=  idx:
                     exp_list.append(float(e.attributes['position'].value))
         return np.array(exp_list) * fsp 
 
@@ -344,8 +344,8 @@ class signalParser(object):
                 #tmp = self.extract_channel([e], self.ident)
                 #while dec_no > 1:
                 #    dec_no /= 2
-                if not Fs == float(to_frequency):
-                    tmp = decimate(tmp, dec_no)
+                #if not Fs == float(to_frequency):
+                #    tmp = decimate(tmp, dec_no)
                 signal[i,:] = tmp[0:M]
             return signal
         else:

@@ -7,9 +7,10 @@ import numpy as np
 import scipy.signal as ss
 from scipy.signal import hamming
 from analysis.csp.filtfilt import filtfilt
+from analysis.csp.artifactClassifier import artifactsClasifier
 import p300
 
-LOGGER = logger.get_logger("bci_p300_csp_analysis", "info")
+LOGGER = logger.get_logger("bci_p300_csp_analysis", "debug")
 DEBUG = False
 
 class BCIP300CspAnalysis(object):
@@ -21,7 +22,10 @@ class BCIP300CspAnalysis(object):
 
         self.q = cfg['q']
         self.treshold = cfg['treshold']
-        self.analyze = p300.p300analysis(cfg['targets'], cfg['non_targets'], cfg['mean'], cfg['mu'], cfg['sigma'], cfg['left'], cfg['right'])
+        self.a_features = cfg['a_features']
+        self.bands = cfg['bands']
+        #self.analyze = p300.p300analysis(cfg['targets'], cfg['non_targets'], cfg['mean'], cfg['mu'], cfg['sigma'], cfg['left'], cfg['right'])
+        self.analyze = p300.p300analysis2(cfg['cl'], self.q.P, 2, cfg['mean'], cfg['mu'], cfg['sigma'], cfg['left'], cfg['right'])
         self.b, self.a = ss.butter(3, 2*1.0/self.fs, btype='high')
         self.b_l, self.a_l = ss.butter(3, 2*20.0/self.fs, btype='low')
 
@@ -50,20 +54,26 @@ class BCIP300CspAnalysis(object):
         """
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        LOGGER.debug("DATA SIZE: "+str(data.shape))
+        LOGGER.debug("BLINK index / ts / real_ts: "+str(blink.index)+" / "+str(blink.timestamp)+" / "+str(time.time()))
         self.last_time = time.time()
         #Wszystko dalej powinno się robić dla każdego nowego sygnału
         signal = np.dot(self.montage_matrix.T, data)                      
+        LOGGER.debug("AFTER MONTAGE SIGNAL SIZE: "+str(signal.shape))
         tmp_sig = np.zeros(signal.shape)
         for e in xrange(len(self.montage_matrix.T)):
             tmp = filtfilt(self.b,self.a, signal[e, :])
             tmp_sig[e, :] = filtfilt(self.b_l, self.a_l, tmp)
+        
+        if artifactsClasifier(tmp_sig, self.a_features, self.bands, self.fs):
+            #2 Montujemy CSP
+            #sig = np.dot(self.q.P[:, 0], tmp_sig)
 
-         #2 Montujemy CSP
-        sig = np.dot(self.q.P[:, 0], tmp_sig)
-
-        #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
-        ix = self.analyze.analyze(sig, blink.index, tr=self.treshold)
-        if ix >= 0:
-            self.send_func(ix)
+            #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
+            ix = self.analyze.analyze(tmp_sig, blink.index, tr=self.treshold)
+            if ix >= 0:
+                self.send_func(ix)
+            else:
+                LOGGER.info("Got -1 ind- no decision")
         else:
             LOGGER.info("Got -1 ind- no decision")

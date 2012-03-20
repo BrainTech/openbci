@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from PySide import QtCore
+from PyQt4 import QtCore
 import zmq
 import threading
 import ConfigParser
@@ -25,20 +25,21 @@ PRESETS = 'obci_control/gui/presets.ini'
 MODE_BASIC = 'basic'
 MODE_ADVANCED = 'advanced'
 MODE_EXPERT = 'expert'
-MODES = [MODE_BASIC, MODE_ADVANCED]#, MODE_EXPERT]
+MODES = [MODE_ADVANCED, MODE_BASIC]#, MODE_EXPERT]
 
 class OBCILauncherEngine(QtCore.QObject):
-	update_ui = QtCore.Signal(object)
-	obci_state_change = QtCore.Signal(object)
+	update_ui = QtCore.pyqtSignal(object)
+	obci_state_change = QtCore.pyqtSignal(object)
 
 	internal_msg_templates = {
 		'_launcher_engine_msg' : dict(task='', pub_addr='')
 	}
 	
 
-	def __init__(self, obci_client):
+	def __init__(self, obci_client, server_ip=None):
 		super(OBCILauncherEngine, self).__init__()
 
+		self.server_ip = server_ip
 		self.client = obci_client
 		self.ctx = obci_client.ctx
 
@@ -55,8 +56,10 @@ class OBCILauncherEngine(QtCore.QObject):
 		self.monitor_push.bind(self.monitor_addr)
 
 		self._stop_monitoring = False
+		srv_addr = 'tcp://'+server_ip+':'+net.server_pub_port() if server_ip else None
 		self.obci_monitor_thr = threading.Thread(target=self.obci_monitor, 
-												args=[self.ctx, self.monitor_addr])
+												args=[self.ctx, self.monitor_addr, 
+												srv_addr])
 		self.obci_monitor_thr.daemon = True
 		self.obci_monitor_thr.start()
 
@@ -81,7 +84,6 @@ class OBCILauncherEngine(QtCore.QObject):
 		ids = {}
 		for i, e in enumerate(self.experiments):
 			ids[e.uuid] = i
-		print "----------------------", ids
 		return ids
 
 	def index_of(self, exp_uuid):
@@ -99,14 +101,20 @@ class OBCILauncherEngine(QtCore.QObject):
 
 		running = self._list_experiments()
 		for exp in running:
-			exp = ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx)
-			experiments.append(exp)
+			matches = [(i, e) for i, e in enumerate(experiments) if\
+						e.name == exp['name'] and e.preset_data is not None]
+			if matches:
+				index, preset = matches.pop()
+				preset.setup_from_launcher(exp, preset=True)
+			else:
+				experiments.append(ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx))
+
 		return experiments
 
 	def _exp_connect(self, exp_data):
 		for addr in exp_data['pub_addrs']:
-			# print "       *******************     ", addr
-			send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
+			if not addr.startswith('tcp://localhost'):
+				send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
 												task='connect', pub_addr=addr))		
 
 	def _parse_presets(self, preset_path):
@@ -122,7 +130,7 @@ class OBCILauncherEngine(QtCore.QObject):
 		return presets
 
 
-	def obci_monitor(self, ctx, pull_addr):
+	def obci_monitor(self, ctx, pull_addr, server_ip=None):
 		pull = ctx.socket(zmq.PULL)
 		pull.connect(pull_addr)
 
@@ -133,7 +141,11 @@ class OBCILauncherEngine(QtCore.QObject):
 		poller.register(pull, zmq.POLLIN)
 		poller.register(subscriber, zmq.POLLIN)
 
-		subscriber.connect(net.server_address(sock_type='pub'))
+		if server_ip:
+			addr = server_ip
+		else:
+			addr = net.server_address(sock_type='pub')
+		subscriber.connect(addr)
 
 		def handle_msg(msg):
 			if msg.type == '_launcher_engine_msg':
@@ -151,7 +163,6 @@ class OBCILauncherEngine(QtCore.QObject):
 			for socket in socks:
 				if  socks[socket] == zmq.POLLIN:
 					msg = self.mtool.unpack_msg(recv_msg(socket))
-					print "\n\nengine!!! got: ", msg.type, '\n\n'
 					handle_msg(msg)
 
 	def handle_obci_state_change(self, launcher_message):
@@ -177,25 +188,69 @@ class OBCILauncherEngine(QtCore.QObject):
 		elif type_ == 'obci_peer_dead':
 			self._handle_obci_peer_dead(launcher_message)
 
+		elif type_ == 'experiment_transformation':
+			self._handle_experiment_transformation(launcher_message)
+
 		self.update_ui.emit(launcher_message)
 		print "----engine signalled", type_
 
-	def _handle_experiment_created(self, msg):
-		matches = [(i, e) for i, e in enumerate(self.experiments) if\
-						e.name == msg.name and e.preset_data is not None]
-		print "exp cr :::: ", [e.name for e in self.experiments], "msg.name:  ", msg.name, msg.uuid
-		if matches:
-			print "--- exp created ", msg.name, "MATCHES -- ", matches
-			index, exp = matches.pop()
+	def _handle_experiment_created(self, msg, exp_list=None):
+		exps = exp_list if exp_list else self.experiments
 
+		matches = [(i, e) for i, e in enumerate(exps) if\
+						(e.name == msg.name or e.launch_file == msg.launch_file_path) and\
+							e.preset_data is not None]
+
+		if matches:
+			index, exp = matches.pop()
 			exp.setup_from_launcher(msg.dict(), preset=True)
-			print "new uuid", exp.uuid, "old:", exp.old_uid
-			# self.experiments[msg.uuid] = exp
-			# del self.experiments[exp.old_uid]
 		else:
-			self.experiments.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
+			exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
 		self._exp_connect(msg.dict())
+
+	def _handle_experiment_transformation(self, msg):
+		exps = self.experiments
+		old_index, old_exp = None, None
+		new_index, new_exp = None, None
+		print msg
+
+		old_matches = [(i, e) for i, e in enumerate(exps) if\
+				(e.launch_file == msg.old_launch_file) ]#and\
+				#	e.preset_data is not None]
+
+		print "old_matches", old_matches
+		
+		if old_matches:
+			old_index, old_exp = old_matches.pop()
+
+		new_matches = [(i, e) for i, e in enumerate(exps) if\
+				(e.name == msg.name or e.launch_file == msg.launch_file) and\
+					e.preset_data is not None and e.status.status_name != launcher_tools.RUNNING]
+		print "new matches", new_matches
+
+		if new_matches:
+			new_index, new_exp = new_matches.pop()
+
+		if old_index is not None:
+			print "old match", old_index, old_exp.preset_data
+			exp = ExperimentEngineInfo(preset_data=old_exp.preset_data, ctx=self.ctx)
+			self.experiments[old_index] = exp
+
+		old_exp.launch_file = msg.launch_file
+		old_exp.name = msg.name 
+		result, details = old_exp._make_config()
+		old_exp.status.set_status(msg.status_name, details=msg.details)
+		old_exp._get_experiment_details()
+		old_exp._set_public_params()
+
+		if new_index:
+			old_exp.name = msg.name if msg.name else self.experiments[new_index].name
+			old_exp.preset_data = self.experiments[new_index].preset_data
+			self.experiments[new_index] = old_exp
+		elif not old_index:
+			old_exp.preset_data = None
+			self.experiments.append(old_exp)
 
 
 	def _handle_launcher_shutdown(self, msg):
@@ -209,13 +264,15 @@ class OBCILauncherEngine(QtCore.QObject):
 		uid = msg.experiment_id
 		index = self.index_of(uid)
 		if index is not None:
+			print "msg", msg, "uid", uid, "index", index
 			exp = self.experiments[index]
 		
 			if exp.preset_data:
 				exp.setup_from_preset(exp.preset_data)
 				exp.launcher_data = None
 			else:
-				del exp
+				del self.experiments[index]
+		
 
 	def _handle_kill(self, msg):
 		pass
@@ -247,7 +304,6 @@ class OBCILauncherEngine(QtCore.QObject):
 		uid = msg.experiment_id
 		index = self.index_of(uid)
 		if index is not None:
-			print "&&&&&&&&&&&&&&&&  obci peer dead"
 			exp = self.experiments[index]
 		
 			status_name = msg.status[0]
@@ -268,21 +324,15 @@ class OBCILauncherEngine(QtCore.QObject):
 	def reset_launcher(self, msg):
 
 		self.client.srv_kill()
-		running, pid = obci_script.server_process_running()
+		running = obci_script.server_process_running()
 		if running:
-			try:
-				os.kill(pid, signal.SIGTERM)
-				#os.waitpid(pid, 0)
-			except OSError, e:
-				print("srv_kill: something went wrong... {0}".format(e))
-		else:
-			print("Server process terminated.")
+			print "reset_launcher: something went wrong... SERVER STILL RUNNIN"
 
 		self.client = obci_script.client_server_prep()
 		self.experiments = self.prepare_experiments()
 
 	def stop_experiment(self, msg):
-		uid = msg
+		uid = str(msg)
 		index = self.index_of(uid)
 		if index is None:
 			print "experiment uuid not found: ", uid
@@ -296,7 +346,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
 
 	def start_experiment(self, msg):
-		uid = msg
+		uid = str(msg)
 		index = self.index_of(uid)
 		if index is None:
 			print "experiment uuid not found: ", uid
@@ -327,12 +377,6 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self.exp_req = None
 		self.mtool = OBCIMessageTool(message_templates)
 		self.poller = PollingObject()
-
-		# self.status = launcher_tools.ExperimentStatus()
-		# self.exp_config = system_config.OBCIExperimentConfig()
-
-		# self.overwrites = {}
-		# self.runtime_changes = {}
 
 		if preset_data is not None:
 			self.setup_from_preset(preset_data)
@@ -411,19 +455,15 @@ class ExperimentEngineInfo(QtCore.QObject):
 							launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
 		if not self.launch_file:
 			return False, "Empty scenario."
-		if not os.path.isabs(self.launch_file):
-			self.launch_file = os.path.join(launcher_tools.obci_root(), self.launch_file)
 
 		try:
-			with open(self.launch_file) as f:
-				print "launch file opened -- ", self.launch_file
+			with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
 				launch_parser.parse(f, self.exp_config)
 		except Exception as e:
 			self.status.set_status(launcher_tools.NOT_READY, details=str(e))
 			print "config errror   ", str(e)
 			return False, str(e)
 
-		#print self.exp_config
 		rd, details = self.exp_config.config_ready()
 		if rd:
 			self.status.set_status(launcher_tools.READY_TO_LAUNCH)
@@ -443,7 +483,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 		self.origin_machine = exp_msg.origin_machine
 
 		for peer, short_info in exp_msg.peers.iteritems():
-			self.exp_config.set_peer_machine(peer, short_info['machine'])
+			# self.exp_config.set_peer_machine(peer, short_info['machine'])
 
 			msg = self.comm_exp(self.mtool.fill_msg("get_peer_info",
 										peer_id=peer))
@@ -464,14 +504,21 @@ class ExperimentEngineInfo(QtCore.QObject):
 											details=status['details'])
 
 	def parameters(self, peer_id, mode):
-
+		# try:
+		self.exp_config._topo_sort('list_launch_deps')
+		# except Exception, e:
+		# 	print "^^^^", str(e)
 		params = {}
 		peer = self.exp_config.peers[peer_id]
 		if mode == MODE_BASIC:
 			for par in peer.public_params:
-				params[par] = peer.config.param_values[par]
+				params[par] = (self.exp_config.param_value(peer_id, par), None)
 		else:
 			params = peer.config.local_params
+			for param in peer.config.local_params:
+				params[param] = (self.exp_config.param_value(peer_id, param), None)
+			for param, defi in peer.config.ext_param_defs.iteritems():
+				params[param] = (self.exp_config.param_value(peer_id, param), defi[0]+'.'+defi[1])
 		return params
 
 

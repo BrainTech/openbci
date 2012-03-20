@@ -52,7 +52,6 @@ class RandomSequentialMgr(object):
         random.shuffle(self.sequence)
 
     def get_value(self):
-        self.index = (self.index + 1) % self.count
         if self.index == 0:
             if self.count > 1:
                 #make sure old self.sequence[count-1] != new self.sequence[0]
@@ -61,8 +60,11 @@ class RandomSequentialMgr(object):
                 if old_last == self.sequence[0]:
                     self.sequence[0] = self.sequence[self.count-1]
                     self.sequence[self.count-1] = old_last
+        ret = self.sequence[self.index]
+        self.index = (self.index + 1) % self.count
+        return ret
                 
-        return self.sequence[self.index]
+
 
 
 

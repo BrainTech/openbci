@@ -66,7 +66,7 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
 
     def finish(self, action, param):
         if action == 'restart_scenario':
-            logic_helper.restart_scenario(param)
+            logic_helper.restart_scenario(self.conn, param)
 
     # --------------------------------------------------------------------------
     # ---------- methods for config updates and other updates  -----------------
@@ -88,7 +88,7 @@ class LogicSpeller(logic_decision_peer.LogicDecision):
         l_config.append({'id':self.text_id,
                          'message':self._message})
         l_str_config = str(l_config)
-        LOGGER.info("UPDATE: "+l_str_config)
+        LOGGER.debug("UPDATE: "+l_str_config)
         ugm_helper.send_config(self.conn, l_str_config, 1)
             
 

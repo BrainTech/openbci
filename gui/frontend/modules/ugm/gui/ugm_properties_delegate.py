@@ -87,7 +87,8 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
                 p_editor=editor: self._chooseColor(p_lineEdit, p_editor))
             l_horizontalLayout.addWidget(l_toolButton)
         elif l_type == 'font':
-            editor = None
+            editor = QtGui.QLineEdit(parent)
+            self.connect(editor, QtCore.SIGNAL('textChanged(QString)'), self.editorValueChanged)
         else:
             editor = None
         
@@ -111,6 +112,8 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             editor.setValue(l_value)
         elif l_type == 'string':
             editor.setText(QtCore.QString(str(l_value)))
+        elif l_type == 'font':
+            editor.setText(QtCore.QString(str(l_value)))
         elif l_type == 'enumerated':
             editor.setCurrentIndex(editor.findText(l_value))
         elif l_type == 'color':
@@ -126,6 +129,8 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             p_editor.interpretText()
             l_value = p_editor.value()
         elif l_type == 'string':
+            l_value = str(p_editor.text())
+        elif l_type == 'font':
             l_value = str(p_editor.text())
         elif l_type == 'enumerated':
             l_value = str(p_editor.currentText())

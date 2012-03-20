@@ -120,6 +120,13 @@ class ReadManager(object):
         raise ValueError exception if there is channel with that name."""
         ch_ind = self.get_param('channels_names').index(p_ch_name) #TODO error
         return self.get_samples(p_from, p_len)[ch_ind]
+        
+    def get_channels_samples(self, p_ch_names, p_from=None, p_len=None):
+	assert(len(p_ch_names) > 0)
+        s = self.get_channel_samples(p_ch_names[0], p_from, p_len)
+        for ch in p_ch_names[1:]:
+            s = numpy.vstack((s, self.get_channel_samples(ch, p_from, p_len))) 
+        return s
 
     def set_samples(self, p_samples, p_channel_names, p_copy=False):
         try:

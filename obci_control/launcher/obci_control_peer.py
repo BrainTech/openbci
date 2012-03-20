@@ -7,6 +7,7 @@ import signal
 import sys
 import threading
 import time
+import socket
 
 import argparse
 
@@ -82,19 +83,16 @@ class OBCIControlPeer(object):
 
 	msg_handlers = HandlerCollection()
 
-	def __init__(self, obci_install_dir, source_addresses=None,
-										rep_addresses=None,
-										pub_addresses=None,
-										name='obci_control_peer',
-										ifname=None):
+	def __init__(self, source_addresses=None,
+					rep_addresses=None, pub_addresses=None, name='obci_control_peer'):
 
 		###TODO TODO TODO !!!!
 		###cleaner subclassing of obci_control_peer!!!
+		self.hostname = socket.gethostname()
 		self.source_addresses = source_addresses if source_addresses else []
 		self.rep_addresses = rep_addresses
 		self.pub_addresses = pub_addresses
 		self._all_sockets = []
-		self.obci_dir = obci_install_dir
 		self._pull_addr = 'inproc://publisher_msg'
 		self._push_addr = 'inproc://publisher'
 		self._subpr_push_addr = 'inproc://subprocess_info'
@@ -124,6 +122,8 @@ class OBCIControlPeer(object):
 
 	def signal_handler(self):
 		def handler(signum, frame):
+			print "[!!!!]", self.name, "got signal", signum, frame
+			print frame.f_back, frame.f_code, frame.f_lasti
 			self.interrupted = True
 		return handler
 
@@ -170,7 +170,7 @@ class OBCIControlPeer(object):
 		while not self._stop_monitoring:
 			dead = self.subprocess_mgr.not_running_processes()
 			if dead:
-				print "DEADDD" , dead
+				print "DEAD  process" , dead
 				for key, status in dead.iteritems():
 					send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
 														pid=key[1], status=status))
@@ -224,6 +224,7 @@ class OBCIControlPeer(object):
 
 		(self.rep_socket, self.rep_addresses) = self._init_socket(
 												self.rep_addresses, zmq.REP)
+		self.rep_socket.setsockopt(zmq.LINGER, 0)
 		self._all_sockets.append(self.rep_socket)
 
 		print "\n\tname: {0}\n\tpeer_type: {1}\n\tuuid: {2}\n".format(
@@ -239,29 +240,36 @@ class OBCIControlPeer(object):
 		self._all_sockets.append(self.source_req_socket)
 		self._set_poll_sockets()
 
-	def _init_socket(self, addrs, zmq_type, create_ipc=False):
-		basic_addrs = [ "tcp://"+net.ext_ip(ifname='lo'),
-						"tcp://"+net.ext_ip(ifname=net.server_ifname())]
-		ipc_name=''
-		if not addrs:
-			#addresses = [addr for addr in self.source_addresses \
-			#									if net.is_net_addr(addr)]
-			#if not self.source_addresses:
-			addresses = basic_addrs
-			random_port = True
-			if create_ipc:
-				ipc_name=self.name+'.'+self.uuid
-		else:
-			addresses = addrs
-			random_port = False
-			if not [addr for addr in addresses if not net.is_net_addr(addr)] and create_ipc:
-				ipc_name=self.name+'.'+self.uuid
-			if not [addr for addr in addresses if net.is_net_addr(addr)]:
-				addresses += basic_addrs
-				random_port = True
-		return net.public_socket(addresses, zmq_type, self.ctx,
-								ipc_core_name=ipc_name,
-								random_port=random_port)
+	def _init_socket(self, addrs, zmq_type):
+		# print self.peer_type(), "addresses for socket init:", addrs
+		addresses = addrs if addrs else ['tcp://*']
+
+		random_port = True if not addrs else False
+
+		sock = self.ctx.socket(zmq_type)
+		port = None
+		try:
+			for i, addr in enumerate(addresses):
+				if random_port and net.is_net_addr(addr):
+					port = str(sock.bind_to_random_port(addr,
+												min_port=settings.PORT_RANGE[0],
+												max_port=settings.PORT_RANGE[1]))
+					addresses[i] = addr + ':' + str(port)
+				else:
+					sock.bind(addr)
+		except Exception, e:
+			print self.peer_type(), "CRITICAL error: ", str(e)
+			sys.exit(0)
+
+		advertised_addrs = []
+		for addr in addresses:
+			if addr.startswith('tcp://*'):
+				port = addr.rsplit(':', 1)[1] 
+				advertised_addrs.append('tcp://' + socket.gethostname() + ':' +str(port))
+				advertised_addrs.append('tcp://' + 'localhost:' + str(port))
+			else:
+				advertised_addrs.append(addr)
+		return sock, advertised_addrs
 
 
 	def _register(self, rep_addrs, pub_addrs, params):
@@ -323,12 +331,29 @@ class OBCIControlPeer(object):
 				#print self.name + ' ['+self.peer_type() + ']' + 'listening'
 				socks = dict(poller.poll())
 			except zmq.ZMQError, e:
-				print self.name + ' ['+self.peer_type() + ']' +": zmq.poll(): " + e.strerror
+				print str(self.name) + ' ['+str(self.peer_type()) + ']' +": zmq.poll(): " +str(	e.strerror)
 
 			for sock in socks:
 				if socks[sock] == zmq.POLLIN:
-					msg = recv_msg(sock)
-					self.handle_message(msg, sock)
+					more = True
+					while more:
+						try:
+							msg = recv_msg(sock, flags=zmq.NOBLOCK)
+						except zmq.ZMQError, e:
+
+							if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
+								more = False
+							else:
+								print str(self.name) + ' ['+str(self.peer_type()) + ']', "error:", str(e)
+								print str(self.name) + ' ['+str(self.peer_type()) + ']',\
+														"handling socket read error: ", sock, e.errno
+								poller.unregister(sock)
+								if sock in poll_sockets:
+									poll_sockets.remove(sock)
+								self.handle_socket_read_error(sock, e)
+								break
+						else:
+							self.handle_message(msg, sock)
 
 			if self.interrupted:
 				break
@@ -339,6 +364,7 @@ class OBCIControlPeer(object):
 
 
 	def _update_poller(self, poller, curr_sockets):
+		self._set_poll_sockets()
 		new_sockets = list(self._poll_sockets)
 
 		for sock in new_sockets:
@@ -346,8 +372,11 @@ class OBCIControlPeer(object):
 				poller.register(sock, zmq.POLLIN)
 		for sock in curr_sockets:
 			if not sock in new_sockets:
-				poller.deregister(sock)
+				poller.unregister(sock)
 		curr_sockets = new_sockets
+
+	def handle_socket_read_error(self, socket, error):
+		pass
 
 
 	def pre_run(self):
@@ -370,6 +399,7 @@ class OBCIControlPeer(object):
 		self.clean_up()
 
 	def clean_up(self):
+
 		print "{0} [{1}], Cleaning up".format(self.name, self.peer_type())
 
 
@@ -478,10 +508,6 @@ def basic_arg_parser():
 						help='REP Addresses of the peer.')
 	parser.add_argument('--pub-addresses', nargs='+',
 						help='PUB Addresses of the peer.')
-	parser.add_argument('--obci-dir', default=settings.INSTALL_DIR,
-						help='Main OpenBCI installation directory')
-	parser.add_argument('--ifname', help='Name of the network interface in which this\
-peer will be listening for requests.')
 
 	return parser
 
@@ -498,8 +524,8 @@ if __name__ == '__main__':
 	parser.add_argument('--name', default='obci_control_peer',
 	                   help='Human readable name of this process')
 	args = parser.parse_args()
-	print vars(args)
-	peer = OBCIControlPeer(args.obci_dir, args.sv_addresses,
-							args.rep_addresses, args.pub_addresses, args.name, args.ifname)
-	print peer.msg_handlers.handlers["register_peer"]
+
+	peer = OBCIControlPeer(args.sv_addresses,
+							args.rep_addresses, args.pub_addresses, args.name)
+
 	peer.run()

@@ -10,7 +10,7 @@ message_templates = {
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='', 
 									status_name='', details='', launch_file_path=''),
 	"list_experiments" : dict(),
-	"running_experiments" : dict(exp_data=''),
+	"running_experiments" : dict(exp_data='', nearby_machines=''),
 
 	"get_experiment_info" : dict(),
 	"experiment_info" : dict(experiment_status='', launch_file_path='', scenario_dir='',
@@ -33,13 +33,16 @@ message_templates = {
     							launcher_message='', params='', details=''),
     "experiment_status_change" : dict(uuid='', status_name='', details='', peers=''),
 
+    "experiment_transformation" : dict(uuid='', status_name='', details='', name='', 
+    								launch_file='', old_name='', old_launch_file=''),
+
 	"get_experiment_contact" : dict(strname=''),
 	"experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine='', status_name='', details=''),
 
 	"launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
 									capture_io='', stdout_log='', stderr_log=''),
 	"launched_process_info" : dict(machine='', pid='', path='', args='', name='', proc_type='', details=''),
-	"kill_process" : dict(),
+	"kill_process" : dict(machine='', pid=''),
 
 	"launch_error" : dict(err_code='', details=''),
 	"all_peers_launched": dict(machine=''),
@@ -55,6 +58,7 @@ message_templates = {
 
 	"start_mx" : dict(args=''),
 	"start_peers" : dict(mx_data=''),
+	"manage_peers" : dict(kill_peers='', start_peers_data=''),
 	"dead_process" : dict(machine='', pid='', status=''),
 
 	"obci_peer_dead" : dict(path='', peer_id='', status='', experiment_id=''),
@@ -77,7 +81,14 @@ message_templates = {
 
 	"find_eeg_experiments" : dict(client_push_address='', checked_srvs=''),
 	"eeg_experiments" : dict(experiment_list=''),
-	"launcher_shutdown" : dict()
+	"launcher_shutdown" : dict(),
+
+	"server_broadcast" : dict(rep_port='', pub_port=''),
+
+	"experiment_finished" : dict(details=''),
+	"morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on=''),
+	"list_nearby_machines" : dict(),
+	"nearby_machines" : dict(nearby_machines='')
 
 
 }

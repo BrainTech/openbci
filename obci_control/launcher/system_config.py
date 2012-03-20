@@ -3,19 +3,37 @@
 
 
 import warnings
+import os
+
 from common.config_helpers import *
 import launcher_tools
 from peer.peer_config_serializer import PeerConfigSerializerCmd
 import peer.peer_config_parser
+from peer.peer_config import PeerConfig
+
+from common.graph import Graph, Vertex
 
 class OBCIExperimentConfig(object):
 	def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
 		self.uuid = uuid
 		self.launch_file_path = launch_file_path
+		
+
 		self.origin_machine = origin_machine if origin_machine else ''
 		self.scenario_dir = ''
 		self.mx = 0
 		self.peers = {}
+
+	@property
+	def launch_file_path(self):
+		return self._launch_file_path
+
+	@launch_file_path.setter
+	def launch_file_path(self, path):
+		self._launch_file_path = path
+		if path:
+			self._launch_file_path = launcher_tools.obci_root_relative(path)
+
 
 	def peer_config(self, peer_id):
 		return self.peers[peer_id].config
@@ -113,8 +131,8 @@ class OBCIExperimentConfig(object):
 	def _param_value(self, peer_id, param_name, config):
 		if param_name in config.local_params:
 			return config.local_params[param_name]
-		elif param_name in config.external_param_defs:
-			peer, param = config.external_param_defs[param_name]
+		elif param_name in config.ext_param_defs:
+			peer, param = config.ext_param_defs[param_name]
 			return self.param_value(peer, param)
 		else:
 			raise OBCISystemConfigError("Param {0} does not exist in {1}".format(param_name, peer_id))
@@ -129,9 +147,26 @@ class OBCIExperimentConfig(object):
 			if not peer_state.ready(details):
 				return False, details
 
-		# check config graph
+		res, det = self.launch_deps_graph_ok()
+		if not res:
+			return res, det
+		res, det = self.config_sources_graph_ok()
+		if not res:
+			return res, det	
 
 		return True, {}
+
+	def launch_deps_graph_ok(self):
+		gr = self.peer_graph('list_launch_deps')
+		res, order = gr.topo_sort()
+		details = '' if res else {'desc': "Launch dependencies graph contains a cycle!!!"}
+		return res, details
+
+	def config_sources_graph_ok(self):
+		gr = self.peer_graph('list_config_sources')
+		res, order = gr.topo_sort()
+		details = '' if res else {'desc': "Config sources graph contains a cycle!!!"}
+		return res, details
 
 	def status(self, status_obj):
 		ready, details = self.config_ready()
@@ -153,15 +188,58 @@ class OBCIExperimentConfig(object):
 
 	def launch_data(self, peer_machine):
 		ldata = {}
-		# if peer_machine == self.origin_machine and self.mx:
-			# ldata['multiplexer'] = dict(machine=self.origin_machine,
-			# 			peer_id='multiplexer', peer_type='obci_multiplexer',
-			# 			path=launcher_tools.mx_path(), args=[])
+
 		for peer in self.peers.values():
 			machine = peer.machine if peer.machine else self.origin_machine
 			if machine == peer_machine:
 				ldata[peer.peer_id] = peer.launch_data()
 		return ldata
+
+
+	def peer_graph(self, neighbours_method):
+		gr = Graph(bidirectional=False)
+		vs ={}
+		for p in self.peers.values():
+			# print "vertices: ", vs
+			meth = getattr(p, neighbours_method)
+			ngs = meth()
+			if not p in vs:
+				# print "create vertex for ", p.peer_id,
+				ver_p = Vertex(gr, p)
+				vs[p] = ver_p
+				gr.add_vertex(ver_p)
+				# print "vvvv:    ", gr.vertices()
+			for ne in ngs:
+				pr = self.peers[ne]
+				if not pr in vs:
+					# print "create second vertex for", pr.peer_id,
+					ver_ng = Vertex(gr, pr)
+					vs[pr] = ver_ng
+					gr.add_vertex(ver_ng)
+					# print "vvvvvv2  ", gr.vertices()
+				gr.add_edge(vs[p], vs[pr])
+				# print "vvvvv after edge:   ", ver_p, ver_ng, "::::", gr.vertices()
+		return gr
+
+	def _topo_sort(self, neighbours_method):
+		gr = self.peer_graph(neighbours_method)
+		res, order = gr.topo_sort()
+		ret_order = []
+		for part in order:
+			ret_order.append([v._model.peer_id for v in part])
+		return ret_order
+
+	def peer_order(self):
+		order = self._topo_sort('list_launch_deps')
+		if order:
+			part1 = order[0]
+			if 'mx' in part1:
+				part1.remove('mx')
+			if 'config_server' in part1:
+				part1.remove('config_server')
+			order = [['mx'],['config_server']] + order
+		return order
+
 
 	def check_dependency_cycles(self):
 		#TODO
@@ -200,6 +278,9 @@ class PeerConfigDescription(object):
 		self.machine = machine
 		self.public_params = []
 
+	def __str__(self):
+		return self.peer_id 
+
 	def ready(self, details=None):
 		loc_det = {}
 		ready = self.config is not None and \
@@ -214,6 +295,12 @@ class PeerConfigDescription(object):
 		if details is not None:
 			details[self.peer_id] = loc_det
 		return ready
+
+	def list_config_sources(self):
+		return self.config.config_sources.values()
+
+	def list_launch_deps(self):
+		return self.config.launch_deps.values()
 
 	def status(self, peer_status_obj):
 		det = {}

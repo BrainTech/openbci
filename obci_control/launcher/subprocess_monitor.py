@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os
 import time
+import socket
 
 import zmq
 
@@ -106,7 +107,7 @@ class SubprocessMonitor(object):
 		else:
 			launch_args = [path] + args
 		print "[subprocess monitor]",proc_type," local path:  ", path
-		machine = machine_ip if machine_ip else net.ext_ip(ifname=net.server_ifname())
+		machine = machine_ip if machine_ip else socket.gethostname()
 		out = subprocess.PIPE if capture_io & STDOUT else None
 
 		if capture_io & STDERR:
@@ -291,6 +292,7 @@ class Process(object):
 
 		self._stop_monitoring = False
 		self._ping_thread = None
+		self._ping_retries = 8
 		self._returncode_thread = None
 		self._mtool = OBCIMessageTool(message_templates)
 		self._ctx = None
@@ -405,7 +407,9 @@ class Process(object):
 			time.sleep(2)
 			if self.rq_sock is not None:
 				send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-				result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=5000)
+				result = None
+				while self._ping_retries and not result and not self._stop_monitoring:
+					result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
 				if not result and not self._stop_monitoring:
 					print "[subprocess_monitor] for", self.proc_type, self.name, "NO RESPONSE TO PING!",
 					with self._status_lock:
@@ -517,7 +521,7 @@ class LocalProcess(Process):
 						self._status_detals = self.tail_stdout(15)
 				break
 			elif self.status()[0] == NON_RESPONSIVE:
-				"[subprocess_monitor]",self.proc_type,"process", self.name,\
+				print "[subprocess_monitor]",self.proc_type,"process", self.name,\
 										 "pid", self.pid, "is NON_RESPONSIVE"
 
 				with self._status_lock:
@@ -540,6 +544,7 @@ class RemoteProcess(Process):
 								monitoring_optflags=PING):
 
 		self.rq_address = rq_address
+		self._ctx = None
 		# returncode monitoring is not supported in remote processes..
 		monitoring_optflags = monitoring_optflags & ~(1 << RETURNCODE)
 		super(RemoteProcess, self).__init__(proc_description,
@@ -563,7 +568,22 @@ class RemoteProcess(Process):
 
 	def kill(self):
 		#send "kill" to the process or kill request to its supervisor?
-		pass
+		self.stop_monitoring()
+		if not self._ctx:
+			self._ctx = zmq.Context()
+		rq_sock = self._ctx.socket(zmq.REQ)
+		rq_sock.connect(self.rq_address)
+		mtool = OBCIMessageTool(message_templates)
+		poller = PollingObject()
+		send_msg(rq_sock, self.mtool.fill_msg("kill_process", pid=self.pid, machine=self.machine_ip))
+		res, det = poller.poll_recv(sock, timeout=5000)
+		if res:
+			res = mtool.unpack_msg(res)
+			print "Response to kill request: ", res
+
+			with self._status_lock:
+				self._status = TERMINATED
+			pass
 
 class ProcessDescription(object):
 	def __init__(self, proc_type, name, path, args, machine_ip, pid=None):

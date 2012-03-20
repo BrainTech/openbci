@@ -18,7 +18,8 @@ MX_CFG_MESSAGES = {
 	types.PEERS_READY_QUERY : templates.PeerReadyQuery,
 	types.READY_STATUS : templates.PeerReadyStatus,
 	types.CONFIG_ERROR : templates.ConfigError,
-	types.PEER_READY_SIGNAL : templates.PeerIdentity
+	types.PEER_READY_SIGNAL : templates.PeerIdentity,
+	types.LAUNCHER_COMMAND : templates.LauncherCommand
 }
 
 def msg_for_type(mx_type):
@@ -105,6 +106,11 @@ def dict2params(dic, config_params_msg):
 		par_msg = config_params_msg.params.add()
 		par_msg.name = name
 		par_msg.value = val2str(dic[name])
+
+def launcher_cmd(sender_id, encoded_launcher_msg):
+	return fill_and_pack(types.LAUNCHER_COMMAND, sender=sender_id, serialized_msg=encoded_launcher_msg),\
+			types.LAUNCHER_COMMAND
+
 
 
 class ConfigMessageError(Exception):

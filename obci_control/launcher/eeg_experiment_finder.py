@@ -4,12 +4,14 @@
 import json
 import zmq
 import time
+import socket
 
 import common.net_tools as net
 from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
+import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
@@ -36,7 +38,8 @@ class EEGExperimentFinder(object):
         exps = exp_list.exp_data
         running = []
         for exp in exps.values():
-            if exp['status_name'] == 'running':
+            if exp['status_name'] == launcher.launcher_tools.RUNNING or \
+                    exp['status_name'] == launcher.launcher_tools.LAUNCHING:
                 running.append(exp)
         return running
 
@@ -162,61 +165,99 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
 
-    other_exps_pull = ctx.socket(zmq.PULL)
-    ifname = net.server_ifname()
-    my_addr = net.ext_ip(ifname=ifname)
-    port = other_exps_pull.bind_to_random_port('tcp://' + my_addr,
-                                            min_port=PORT_RANGE[0],
-                                            max_port=PORT_RANGE[1], max_tries=500)
-    my_push_addr = my_addr + ':' + str(port)
-    print "my exp_data pull: ", my_push_addr
+    
+    # ifname = net.server_ifname()
+    # my_addr = net.ext_ip(ifname=ifname)
+    my_addr = socket.gethostname()
+
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
-    checked.append(my_addr)
-    nearby_servers = [ip for ip in nearby_servers if ip not in checked]
+    
+    nrb = {}
+    for ip in nearby_servers:
+        if ip not in checked:
+            nrb[ip] = nearby_servers[ip]
 
-    for srv_ip in nearby_servers:
-        addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
-        req = ctx.socket(zmq.REQ)
-        req.connect(addr)
-        send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
-                                        client_push_address='tcp://'+my_push_addr,
-                                        checked_srvs=checked))
-        checked.append(srv_ip)
-        msg, details = mpoller.poll_recv(req, 5000)
-        if not msg:
-            req.close()
-            continue
-        print msg
-        msg = finder.mtool.unpack_msg(msg)
-        if msg.type == 'rq_ok':
-            result, details = mpoller.poll_recv(other_exps_pull, 10000)
-            if not result:
-                req.close()
-                continue
-            result = finder.mtool.unpack_msg(result)
-            if not result:
-                print "ble, ", srv_ip
-                req.close()
-                continue
-            if result.type == 'eeg_experiments':
-                print "GOT EXPERIMENTS from", srv_ip
-                exps += result.experiment_list
-        req.close()
+    if not checked:
+        LOGGER.info("checking other servers")
+        print nrb
 
-    print "return to:  ", rq_message.client_push_address
+        to_check = [srv_ip for srv_ip in nrb if \
+                            nrb[srv_ip] != my_addr] #and\
+                            #not socket.gethostbyaddr(srv_ip)[0].startswith(my_addr + '.')]
+        LOGGER.info("number of servers to query: " + str(len(to_check)))
+        if to_check:
+
+            other_exps_pull = ctx.socket(zmq.PULL)
+            port = other_exps_pull.bind_to_random_port('tcp://*',
+                                                    min_port=PORT_RANGE[0],
+                                                    max_port=PORT_RANGE[1], max_tries=500)
+
+            my_push_addr = my_addr + ':' + str(port)
+            LOGGER.info( "my exp_data pull: " + my_push_addr)
+            
+            checked.append(my_addr)
+            harvester = zmq.Poller()
+
+            harvester.register(other_exps_pull)
+
+            reqs = {}
+            for srv_ip in to_check:
+                
+                addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
+                req = ctx.socket(zmq.REQ)
+                req.connect(addr)
+                send_msg(req, finder.mtool.fill_msg('find_eeg_experiments',
+                                                client_push_address='tcp://'+my_push_addr,
+                                                checked_srvs=checked))
+                harvester.register(req, zmq.POLLIN)
+                reqs[req] = addr
+
+            # socks = {}
+            # for req in reqs:
+            #     socks.update(dict(harvester.poll(timeout=5000)))
+            # LOGGER.info('collected rq_ok:  ' + str(len(socks)) +'  ' + str(socks))
+            # for s in reqs:
+            #     harvester.unregister(s)
+
+            for i in range(len(reqs) * 2):
+                socks = dict(harvester.poll(timeout=700))
+
+                for req in socks:
+                    msg = recv_msg(req)
+                    
+                    msg = finder.mtool.unpack_msg(msg)
+                    if msg.type == 'rq_ok':
+                        LOGGER.info("waiting for server:" + str(reqs[req]))
+                        
+                        harvester.unregister(req)
+                        req.close()
+                            
+                        
+                        
+                    elif msg.type == 'eeg_experiments':
+                        LOGGER.info("GOT EXPERIMENTS from" + msg.sender_ip)
+                        exps += msg.experiment_list
+                    else:
+                        LOGGER.warning('strange msg:  ' + str(msg))
+
+            other_exps_pull.close()
+    else:
+        LOGGER.info("not checking other servers")
+
+    LOGGER.info("return to:  " + rq_message.client_push_address)
     to_client = ctx.socket(zmq.PUSH)
     to_client.connect(rq_message.client_push_address)
 
-    send_msg(to_client, finder.mtool.fill_msg('eeg_experiments',
+    send_msg(to_client, finder.mtool.fill_msg('eeg_experiments', sender_ip=socket.gethostname(),
                                     experiment_list=exps))
-    print "sent exp data...", str(exps)[:500], '[...]'
+    LOGGER.info("sent exp data... "  + str(exps)[:500] + ' [...]')
     time.sleep(0.2)
 
 
 if __name__ == '__main__':
-    finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context())
+    finder = EEGExperimentFinder(['tcp://127.0.0.1:54654'], zmq.Context(), 'tcp://127.0.0.1:12345', [])
     exps = finder.find_amplified_experiments()
     desc = json.dumps(exps, indent=4)
     print desc

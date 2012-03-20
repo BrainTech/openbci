@@ -23,6 +23,7 @@ class OBCIClient(object):
 		self.ctx = zmq_context if zmq_context else zmq.Context()
 
 		self.server_req_socket = self.ctx.socket(zmq.REQ)
+		self.server_addresses = server_addresses
 		for addr in server_addresses:
 			self.server_req_socket.connect(addr)
 
@@ -41,6 +42,23 @@ class OBCIClient(object):
 			return result
 
 		return self.send_start_experiment(result.rep_addrs)
+
+	def morph(self, exp_strname, launch_file, name=None, overwrites=None, leave_on=None):
+		response = self.get_experiment_contact(exp_strname)
+		exp_sock = self.ctx.socket(zmq.REQ)
+		if response.type == "rq_error":
+			return response
+		for addr in response.rep_addrs:
+			exp_sock.connect(addr)
+
+
+		msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
+								name=name, overwrites=overwrites, leave_on=leave_on)
+		send_msg(exp_sock, msg)
+
+		response, details = self.poll_recv(exp_sock, 6000)
+		return response
+
 
 	def start_chosen_experiment(self, exp_strname):
 		response = self.get_experiment_contact(exp_strname)
@@ -73,6 +91,7 @@ class OBCIClient(object):
 	def ping_server(self, timeout=50):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("ping"))
 		response, details = self.poll_recv(self.server_req_socket, timeout)
+
 		return response
 
 	def retry_ping(self, timeout=50):
@@ -91,7 +110,7 @@ class OBCIClient(object):
 	def send_list_experiments(self):
 		send_msg(self.server_req_socket, self.mtool.fill_msg("list_experiments"))
 
-		response, details = self.poll_recv(self.server_req_socket, 2000)
+		response, details = self.poll_recv(self.server_req_socket, 4000)
 		return response
 
 	def get_experiment_details(self, strname, peer_id=None):
