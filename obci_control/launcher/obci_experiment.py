@@ -118,7 +118,7 @@ class OBCIExperiment(OBCIControlPeer):
 	def params_for_registration(self):
 		return dict(pid=os.getpid(), origin_machine=self.origin_machine,
 				status_name='', details='', launch_file_path=self.launch_file,
-				tcp_addresses=[])
+				tcp_addrs=[(self.current_ip, self._tcp_proxy_addr[1])])
 
 	def _handle_registration_response(self, response):
 		self._nearby_machines.mass_update(response.params)

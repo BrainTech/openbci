@@ -8,7 +8,8 @@ message_templates = {
 
 	"create_experiment" : dict(launch_file='', sandbox_dir='', name='', overwrites=''),
 	"experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='', 
-									status_name='', details='', launch_file_path=''),
+									status_name='', details='', launch_file_path='',
+									tcp_addrs=''),
 	"list_experiments" : dict(),
 	"running_experiments" : dict(exp_data='', nearby_machines=''),
 

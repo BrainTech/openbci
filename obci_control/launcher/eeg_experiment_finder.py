@@ -60,7 +60,7 @@ class EEGExperimentFinder(object):
         amp_options = []
         LOGGER.info("Processing experiment "+ str(exp_desc['name']) +\
                                      "w/ addr: " + str(exp_desc['rep_addrs']))
-
+        tcp_addrs = exp_desc['tcp_addrs']
         rep_addrs = net.choose_not_local(exp_desc['rep_addrs'])
 
         if not rep_addrs:
@@ -72,6 +72,7 @@ class EEGExperimentFinder(object):
         if not pub_addrs:
             pub_addrs = net.choose_local(exp_desc['pub_addrs'], ip=True)
         pub_addr = pub_addrs.pop()
+        tcp_addr = tcp_addrs.pop()
 
         LOGGER.info("Chosen experiment addresses: REP -- " + \
                                 str(rep_addr) + ", PUB -- " + str(pub_addr))
@@ -107,7 +108,8 @@ class EEGExperimentFinder(object):
                                 " -- peer " + str(peer) + "is not an amplifier.")
                 continue
             else:
-                exp_data = self._create_exp_data(exp_info, info, params.param_values,rep_addr, pub_addr)
+                exp_data = self._create_exp_data(exp_info, info, params.param_values,
+                                            rep_addr, pub_addr, tcp_addr)
                 amp_options.append(exp_data)
         return amp_options
 
@@ -138,13 +140,14 @@ class EEGExperimentFinder(object):
             return False
         return True
 
-    def _create_exp_data(self, exp_info, peer_info, params, rep_addr, pub_addr):
+    def _create_exp_data(self, exp_info, peer_info, params, rep_addr, pub_addr, tcp_addr):
         data = {}
         data['amplifier_params'] = params
         data['amplifier_peer_info'] = peer_info.dict()
         data['experiment_info'] = exp_info.dict()
         data['rep_addr'] = rep_addr
         data['pub_addr'] = pub_addr
+        data['tcp_addr'] = tcp_addr
         return data
 
     def _has_mx(self, peer_list):

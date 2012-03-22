@@ -89,7 +89,8 @@ class OBCIServer(OBCIControlPeer):
 		return addr
 
 	def network_ready(self):
-		return self.my_ip() != '127.0.1.1'
+		# i know my network IP
+		return self.my_ip() != self.machine
 
 	def handle_socket_read_error(self, socket, error):
 		if socket == self.rep_socket:
@@ -191,6 +192,7 @@ class OBCIServer(OBCIControlPeer):
 		machine, pid = message.other_params['origin_machine'], message.other_params['pid']
 		status, det = message.other_params['status_name'], message.other_params['details']
 		launch_file = message.other_params['launch_file_path']
+		tcp_addr = message.other_params['tcp_addrs']
 
 		exp_proc = self.subprocess_mgr.process(machine, pid)
 
@@ -207,7 +209,8 @@ class OBCIServer(OBCIControlPeer):
 															pid,
 															status,
 															det,
-															launch_file)
+															launch_file,
+															tcp_addr)
 
 		exp_proc.registered(info)
 
@@ -219,7 +222,8 @@ class OBCIServer(OBCIControlPeer):
 												origin_machine=info.origin_machine,
 												status_name=status,
 												details=det,
-												launch_file_path=launch_file)
+												launch_file_path=launch_file,
+												tcp_addrs=tcp_addr)
 
 		if self.client_rq:
 			msg_type = self.client_rq[0].type
@@ -530,7 +534,7 @@ class OBCIServer(OBCIControlPeer):
 class ExperimentInfo(object):
 	def __init__(self, uuid, name, rep_addrs, pub_addrs, registration_time,
 							origin_machine, pid, status_name=None, details=None,
-							launch_file_path=None):
+							launch_file_path=None, tcp_addrs=None):
 		self.uuid = uuid
 		self.name = name
 		self.rep_addrs = rep_addrs
@@ -542,6 +546,7 @@ class ExperimentInfo(object):
 		self.status_name = status_name
 		self.details = details
 		self.launch_file_path = launch_file_path
+		self.tcp_addrs = tcp_addrs
 
 	def from_dict(dic):
 		try:
@@ -550,6 +555,7 @@ class ExperimentInfo(object):
 			exp.status_name = dic.get('status_name', None)
 			exp.details = dic.get('details', None)
 			exp.launch_file_path = dic.get('launch_file_path', None)
+			exp.tcp_addrs = dic.get('tcp_addrs', None)
 			return exp, None
 		except KeyError as e:
 			return None, e.args
@@ -572,7 +578,8 @@ class ExperimentInfo(object):
 				experiment_pid=self.experiment_pid,
 				status_name=self.status_name,
 				details=self.details,
-				launch_file_path=self.launch_file_path)
+				launch_file_path=self.launch_file_path,
+				tcp_addrs=self.tcp_addrs)
 
 		return d
 

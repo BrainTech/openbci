@@ -13,12 +13,10 @@ from launcher.plain_tcp_handling import make_unicode_netstring, recv_unicode_net
 
 mtool = OBCIMessageTool(message_templates)
 
-def get_eeg_experiments(host, port):
-    # Create a socket (SOCK_STREAM means a TCP socket)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    msg = mtool.fill_msg("find_eeg_experiments")
+def send_and_receive(host, port, msg):
     netstr = make_unicode_netstring(msg)
-
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    rec_msg = None
     try:
         # Connect to server and send data
         sock.connect((host, port))
@@ -28,13 +26,29 @@ def get_eeg_experiments(host, port):
         received = recv_unicode_netstring(sock)
         print received
         print received.__class__, received[0], received[-1]
-        msg = mtool.unpack_msg(received)
-        if msg.type == 'rq_error':
-            print 'BLEEEEEEEEE'
-        else:
-            print msg.experiment_list
+        rec_msg = mtool.unpack_msg(received)
+
     finally:
         sock.close()
+    return rec_msg
+
+
+def get_eeg_experiments(host, port):
+    
+    msg = mtool.fill_msg("find_eeg_experiments")
+    response = send_and_receive(host, port, msg)
+
+    if response.type == 'rq_error':
+        print 'BLEEEEEEEEE'
+    else:
+        print response.experiment_list    
+    
+    if response.experiment_list:
+        exp = response.experiment_list[0]
+        host, port = exp['tcp_addr']
+        msg = mtool.fill_msg("join_experiment", peer_id="blebleble")
+        response = send_and_receive(host, port, msg)    
+        print response
 
 if __name__ == '__main__':
     get_eeg_experiments(socket.gethostname(), int(net.server_tcp_proxy_port()))
