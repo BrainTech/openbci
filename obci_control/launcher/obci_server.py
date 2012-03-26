@@ -16,7 +16,8 @@ import zmq
 from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates, error_codes
 from launcher_tools import module_path
-from eeg_experiment_finder import find_eeg_experiments_and_push_results
+from eeg_experiment_finder import find_eeg_experiments_and_push_results,\
+find_new_experiments_and_push_results
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
@@ -511,6 +512,20 @@ class OBCIServer(OBCIControlPeer):
 									args=[self.ctx, self.rep_addresses,
 										message,
 										self._nearby_servers.copy()])
+		finder_thr.daemon = True
+		finder_thr.start()
+
+	@msg_handlers.handler("find_eeg_amplifiers")
+	def handle_find_new_eeg_amplifiers(self, message, sock):
+		if not self.network_ready():
+			send_msg(sock, self.mtool.fill_msg("rq_error",
+								err_code='server_network_not_ready'))
+			return
+
+		send_msg(sock, self.mtool.fill_msg("rq_ok"))
+		finder_thr = threading.Thread(target=find_new_experiments_and_push_results,
+									args=[self.ctx,
+										message])
 		finder_thr.daemon = True
 		finder_thr.start()
 

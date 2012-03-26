@@ -16,8 +16,6 @@ import peer_config
 class PeerCmd(object):
 	def __init__(self, add_help=True):
 		
-		
-
 		self.conf_parser = argparse.ArgumentParser(add_help=False)
 		self.configure_argparser(self.conf_parser)
 
@@ -61,6 +59,8 @@ class PeerCmd(object):
 				config_overrides[attr] = val if val is not None else {}
 			else:
 				other_params[attr] = val
+		if other_params['config_file'] is None:
+			other_params['config_file'] = []
 		if other_params['config_file']:
 			for f in other_params['config_file']:
 				f = os.path.abspath(f)

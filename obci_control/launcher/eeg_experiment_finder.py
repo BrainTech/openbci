@@ -14,6 +14,8 @@ import launcher.launcher_logging as logger
 import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
+from drivers.eeg.driver_discovery.driver_discovery import find_drivers
+
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
 class EEGExperimentFinder(object):
@@ -250,6 +252,18 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     send_msg(to_client, finder.mtool.fill_msg('eeg_experiments', sender_ip=socket.gethostname(),
                                     experiment_list=exps))
     LOGGER.info("sent exp data... "  + str(exps)[:500] + ' [...]')
+    time.sleep(0.1)
+
+def find_new_experiments_and_push_results(ctx, rq_message):
+    driv = find_drivers()
+    LOGGER.info("amplifiers! return to:  " + rq_message.client_push_address)
+    mtool = OBCIMessageTool(message_templates)
+    to_client = ctx.socket(zmq.PUSH)
+    to_client.connect(rq_message.client_push_address)
+
+    send_msg(to_client, mtool.fill_msg('eeg_amplifiers', sender_ip=socket.gethostname(),
+                                    amplifier_list=driv))
+    LOGGER.info("sent amplifier data... "  + str(driv)[:500] + ' [...]')
     time.sleep(0.1)
 
 

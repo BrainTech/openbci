@@ -57,3 +57,20 @@ if __name__ == '__main__':
         #print sss
         print len(sss)
         print [(exp['rep_addr'], exp['experiment_info']['name']) for exp in exp_info.experiment_list]
+
+    send_msg(server_req, mtool.fill_msg('find_eeg_amplifiers',
+                                    client_push_address=client_push_addr))
+    msg,details = pl.poll_recv(server_req, 5000)
+    if not msg:
+        print "srv request timeout!"
+        server_req.close()
+        sys.exit(1)
+    response = mtool.unpack_msg(msg)
+
+    if not response.type == 'rq_ok':
+        print response
+        print "whaaa?"
+        sys.exit(1)
+
+    msg, details = pl.poll_recv(exp_info_pull, 20000)
+    print msg

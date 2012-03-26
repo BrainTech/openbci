@@ -16,10 +16,12 @@ _BT_DESCS = {
                 'Mobi5' : 'amplifier_mobi5.json'
             }
 _USB_DESCS = { 'Porti7' : 'amplifier_porti7_usb.json'}
+_AMP_PEER = 'drivers/eeg/c_tmsi_amplifier/amplifier_tmsi.py'
+_SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 def _find_bluetooth_amps():
     try:
-        nearby_devices = bluetooth.discover_devices(lookup_names = True)
+        nearby_devices = bluetooth.discover_devices(duration=4, lookup_names = True)
     except bluetooth.BluetoothError, e:
         print "ERROR:  ", str(e)
         nearby_devices = []
@@ -67,16 +69,25 @@ def driver_descriptions():
     descriptions = []
     bt = _find_bluetooth_amps()
     usb = _find_usb_amps()
-
+    desc = {
+                'recommended_scenario' : _SCENARIO,
+                'amplifier_peer_path' : _AMP_PEER,
+                'amplifier_params' : {
+                                        'usb_device' : '',
+                                        'bluetooth_device' : '',
+                                        'active_channels' : '',
+                                        'channel_names' : '',
+                                        'sampling_rate' : ''},
+                }   
     for amp in bt:
-        desc = dict(usb_device='', bluetooth_device=amp[0], amplifier_type=amp[2])
+        desc['amplifier_params']['bluetooth_device'] = amp[0] 
         with open(os.path.join(_DESC_BASE_PATH, _BT_DESCS[amp[2]])) as f:
             desc['channels_info'] = json.load(f)
             desc['channels_info']['name'] = amp[1]
         descriptions.append(desc)
 
     for amp in usb:
-        desc = dict(usb_device=amp[0], bluetooth_device='', amplifier_type=amp[2])
+        desc['amplifier_params']['usb_device'] = amp[0] 
         with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
             desc['channels_info'] = json.load(f)
         descriptions.append(desc)

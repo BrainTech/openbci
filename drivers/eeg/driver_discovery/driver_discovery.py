@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 from multiplexer.multiplexer_constants import peers, types
 from drivers import drivers_logging as logger
 from configs import settings
@@ -13,10 +14,18 @@ DISCOVERY_MODULE_NAMES = ['amplifier_virtual_discovery', 'amplifier_tmsi_discove
 discovery_modules = []
 
 for mod_name in DISCOVERY_MODULE_NAMES:
-    mod = __import__(mod_name)
-    discovery_modules.append(mod)
+    name = 'drivers.eeg.driver_discovery.' + mod_name
+    __import__(name)
+    discovery_modules.append(sys.modules[name])
 
 LOGGER = logger.get_logger("DriverDiscovery", "info")
+
+def find_drivers():
+    descriptions = []
+    for mod in discovery_modules:
+        descriptions += mod.driver_descriptions()
+    return descriptions
+
 
 class DriverDiscovery(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -24,17 +33,10 @@ class DriverDiscovery(ConfiguredMultiplexerServer):
 
         self._mx_addresses = addresses
 
-        self.drivers = self.find_drivers()
+        self.drivers = find_drivers()
         self.serialize_drivers_info(self.drivers)
 
         self.ready()
-
-
-    def find_drivers(self):
-        descriptions = []
-        for mod in discovery_modules:
-            descriptions += mod.driver_descriptions()
-        return descriptions
 
         # 00:A0:96:1B:48:4B       Mobi5 0925100001
         # 00:A0:96:1B:42:DC       MobiMini 0931080004
