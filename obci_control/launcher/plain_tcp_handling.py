@@ -125,6 +125,7 @@ class OBCIPeerRequestHandler(SocketServer.BaseRequestHandler):
         time.sleep(0.5)
 
     def bad_response(self, request, details):
+        print "baaaad", request, details
         err = self.server.mtool.fill_msg("rq_error", details=details)
         request.sendall(make_unicode_netstring(err))
 
@@ -137,22 +138,24 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         message = recv_unicode_netstring(self.request)
         print message
         parsed = self.server.mtool.unpack_msg(message)
-        if parsed.type == 'find_eeg_experiments':
+        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.server.pull_port)
             parsed.client_push_address = pull_addr
         srv_sock = self.make_srv_sock()
         send_msg(srv_sock, parsed.SerializeToString())
         
         response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
+        print "passed msg and got result:  ", response
         if not response:
             self.bad_response(self.request, det)
             return
         
-        if parsed.type == 'find_eeg_experiments':
-            response, det = self.server.pl.poll_recv(self.server.pull_sock, timeout=7000)
+        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
+            response, det = self.server.pl.poll_recv(self.server.pull_sock, timeout=20000)
             if not response:
                 self.bad_response(self.request, det)
                 return
+            print "RQQQ  ", response, parsed.type
 
         data = make_unicode_netstring(response)
         to_send = len(data)

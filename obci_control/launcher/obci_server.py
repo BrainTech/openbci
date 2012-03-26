@@ -523,11 +523,11 @@ class OBCIServer(OBCIControlPeer):
 			return
 
 		send_msg(sock, self.mtool.fill_msg("rq_ok"))
-		finder_thr = threading.Thread(target=find_new_experiments_and_push_results,
+		amp_thr = threading.Thread(target=find_new_experiments_and_push_results,
 									args=[self.ctx,
 										message])
-		finder_thr.daemon = True
-		finder_thr.start()
+		amp_thr.daemon = True
+		amp_thr.start()
 
 
 	def _start_obci_supervisor_process(self, rq_message):

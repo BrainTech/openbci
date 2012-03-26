@@ -21,7 +21,7 @@ _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 def _find_bluetooth_amps():
     try:
-        nearby_devices = bluetooth.discover_devices(duration=4, lookup_names = True)
+        nearby_devices = bluetooth.discover_devices(duration=3, lookup_names = True)
     except bluetooth.BluetoothError, e:
         print "ERROR:  ", str(e)
         nearby_devices = []
