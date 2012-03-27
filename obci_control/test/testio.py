@@ -9,16 +9,16 @@ from threading  import Thread
 import time
 
 try:
-	from Queue import Queue, Empty
+    from Queue import Queue, Empty
 except ImportError:
-	from queue import Queue, Empty  # python 3.x
+    from queue import Queue, Empty  # python 3.x
 
 ON_POSIX = 'posix' in sys.builtin_module_names
 
 def enqueue_output(out, queue):
-	for line in iter(out.readline, ''):
-		queue.put(line)
-	out.close()
+    for line in iter(out.readline, ''):
+        queue.put(line)
+    out.close()
 
 p = Popen(['python', 'infinite_print.py', 'asdfjkl;'], stdout=PIPE, bufsize=1, close_fds=ON_POSIX)
 q = Queue()
@@ -29,10 +29,10 @@ t.start()
 # ... do other things here
 
 for i in range(10):
-	# read line without blocking
-	try:  line = q.get_nowait() # or q.get(timeout=.1)
-	except Empty:
-		print('no output yet')
-		time.sleep(0.5)
-	else: # got line
-		print(line, end='')
+    # read line without blocking
+    try:  line = q.get_nowait() # or q.get(timeout=.1)
+    except Empty:
+        print('no output yet')
+        time.sleep(0.5)
+    else: # got line
+        print(line, end='')

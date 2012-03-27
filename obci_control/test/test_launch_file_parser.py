@@ -6,8 +6,8 @@ from launcher import system_config, launch_file_parser
 
 class TestLaunchFileParser(object):
 
-	def setup(self):
-		self.txt = """
+    def setup(self):
+        self.txt = """
 [peers]
 
 ; costam costam
@@ -31,9 +31,9 @@ config=obci_control/test/peer_b.ini
 [peers.p_b.config_sources]
 peer1=p_a
 """
-		self.cf = system_config.OBCISystemConfig()
-		self.pr = launch_file_parser.LaunchFileParser("/host/dev/openbci", "~/.obci/scenarios")
+        self.cf = system_config.OBCISystemConfig()
+        self.pr = launch_file_parser.LaunchFileParser("/host/dev/openbci", "~/.obci/scenarios")
 
-	def test_sth(self):
-		self.pr.parse(io.BytesIO(self.txt), self.cf)
-		assert 0
+    def test_sth(self):
+        self.pr.parse(io.BytesIO(self.txt), self.cf)
+        assert 0

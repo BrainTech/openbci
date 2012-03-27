@@ -268,7 +268,7 @@ class ObciLauncherDialog(QDialog, Ui_ObciLauncher):
         self.setScenarios(scenarios)
         self.scenarios.setCurrentItem(self.scenarios.item(current_sc, 0))
 
-	
+    
         self._manage_actions(current_sc)
 
     def _manage_actions(self, current_sc):
