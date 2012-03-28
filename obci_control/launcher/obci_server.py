@@ -264,7 +264,7 @@ class OBCIServer(OBCIControlPeer):
     @msg_handlers.handler("create_experiment")
     def handle_create_experiment(self, message, sock):
 
-        if not self.network_ready():
+        if not self.network_ready() and self._nearby_servers.dict_snapshot():
             send_msg(sock, self.mtool.fill_msg("rq_error",
                                 err_code='server_network_not_ready'))
             return
@@ -517,7 +517,7 @@ class OBCIServer(OBCIControlPeer):
 
     @msg_handlers.handler("find_eeg_amplifiers")
     def handle_find_new_eeg_amplifiers(self, message, sock):
-        if not self.network_ready():
+        if not self.network_ready() and self._nearby_servers.dict_snapshot():
             send_msg(sock, self.mtool.fill_msg("rq_error",
                                 err_code='server_network_not_ready'))
             return
