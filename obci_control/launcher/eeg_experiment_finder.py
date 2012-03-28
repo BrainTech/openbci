@@ -7,7 +7,7 @@ import time
 import socket
 
 import common.net_tools as net
-from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
+from common.message import OBCIMessageTool, send_msg, recfind_eeg_expev_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
@@ -178,13 +178,13 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
 
     my_push_addr = this_addr + ':' + str(port)
     LOGGER.info( "my exp_data pull: " + my_push_addr)
-    
+
     harvester = zmq.Poller()
     harvester.register(other_exps_pull)
 
     reqs = {}
     for srv_ip in ip_list:
-        
+
         addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
         req = ctx.socket(zmq.REQ)
         req.connect(addr)
@@ -205,7 +205,7 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
                 LOGGER.info("waiting for experiments from server: " + str(reqs[req]))
                 harvester.unregister(req)
                 req.close()
-                
+
             elif msg.type == 'eeg_experiments':
                 LOGGER.info("GOT EXPERIMENTS from: " + msg.sender_ip)
                 exps += msg.experiment_list
@@ -221,23 +221,24 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
 
-    my_addr = nearby_servers.ip(hostname=socket.gethostname())
+
 
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
-    
+
     nrb = {}
     for uid, srv in nearby_servers.snapshot().iteritems():
         if srv.ip not in checked:
             nrb[uid] = srv
 
-    if not checked:
+    if not checked and nearby_servers.dict_snapshot():
+        my_addr = nearby_servers.ip(hostname=socket.gethostname())
         LOGGER.info("checking other servers")
         print [(srv.hostname, srv.ip) for srv in nrb.values()]
 
         ip_list = [srv.ip for srv in nrb.values() if \
-                            srv.ip != my_addr] 
+                            srv.ip != my_addr]
         LOGGER.info("number of servers to query: " + str(len(ip_list)))
 
         exps += _gather_other_server_results(ctx, my_addr, ip_list)

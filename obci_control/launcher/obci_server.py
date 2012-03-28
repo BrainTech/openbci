@@ -64,7 +64,7 @@ class OBCIServer(OBCIControlPeer):
 
         self._nearby_updater = threading.Thread(target=update_nearby_servers,
                                                 args=[self._nearby_servers,
-                                                        
+
                                                         bcast_port,
                                                         self.ctx,
                                                         self._push_addr])
@@ -95,7 +95,7 @@ class OBCIServer(OBCIControlPeer):
 
     def handle_socket_read_error(self, socket, error):
         if socket == self.rep_socket:
-            print "[obci_server] reinitialising REP socket" 
+            print "[obci_server] reinitialising REP socket"
             self._all_sockets.remove(self.rep_socket)
             if socket in self.client_rq:
                 self.client_rq = None
@@ -108,9 +108,9 @@ class OBCIServer(OBCIControlPeer):
             self._all_sockets.append(self.rep_socket)
             print "[obci_server]", self.rep_addresses
         elif socket == self.exp_rep:
-            print "[obci_server] reinitialising EXPERIMENT REP socket" 
+            print "[obci_server] reinitialising EXPERIMENT REP socket"
             self.exp_rep.close()
-            
+
             (self.exp_rep, self.exp_rep_addrs) = self._init_socket(
                                         self.exp_rep_addrs, zmq.REP)
             self.exp_rep.setsockopt(zmq.LINGER, 0)
@@ -180,7 +180,7 @@ class OBCIServer(OBCIControlPeer):
     def start_experiment_process(self, sandbox_dir, launch_file, name=None, overwrites=None):
         path = module_path(obci_experiment)
 
-        args = self._args_for_experiment(sandbox_dir, launch_file, 
+        args = self._args_for_experiment(sandbox_dir, launch_file,
                                         local=True, name=name, overwrites=overwrites)
 
         return self.subprocess_mgr.new_local_process(path, args,
@@ -363,7 +363,7 @@ class OBCIServer(OBCIControlPeer):
         exp.details = message.details
         if sock.socket_type in [zmq.REP, zmq.ROUTER]:
             send_msg(sock, self.mtool.fill_msg('rq_ok'))
-            
+
         send_msg(self._publish_socket, message.SerializeToString())
 
     @msg_handlers.handler("experiment_transformation")
@@ -502,7 +502,7 @@ class OBCIServer(OBCIControlPeer):
     @msg_handlers.handler("find_eeg_experiments")
     def handle_find_eeg_experiments(self, message, sock):
 
-        if not self.network_ready():
+        if not self.network_ready() and self._nearby_servers.dict_snapshot():
             send_msg(sock, self.mtool.fill_msg("rq_error",
                                 err_code='server_network_not_ready'))
             return
