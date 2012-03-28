@@ -7,7 +7,7 @@ import time
 import socket
 
 import common.net_tools as net
-from common.message import OBCIMessageTool, send_msg, recfind_eeg_expev_msg, PollingObject
+from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 
 import launcher.launcher_logging as logger
