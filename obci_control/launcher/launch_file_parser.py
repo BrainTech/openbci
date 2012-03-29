@@ -128,10 +128,14 @@ class LaunchFileParser(object):
 	def __path(self, path, base_dir=None):
 		if base_dir is None:
 			base_dir = self.base_dir
-		if not path or os.path.isabs(path):
+		if not path:
 			return path
+
+		p = os.path.expanduser(path)
+		if os.path.isabs(p):
+			return p
 		else:
-			return os.path.join(base_dir, path)
+			return os.path.realpath(os.path.join(base_dir, p))
 
 	def __parse_peer_default_config(self, peer_id, peer_program_path):
 		#print "Trying to find default config for {0}, path: {1}".format(

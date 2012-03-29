@@ -305,6 +305,23 @@ peer {
 }
 
 
+peer {
+     type: 158
+     name: "WII_BOARD_AMPLIFIER"
+}
+
+peer {
+     type: 159
+     name: "WII_BOARD_ANALYSIS"
+     queue_size: 32768
+}
+
+peer {
+     type: 160
+     name: "WII_BOARD_SAVER"
+}
+
+
 
 
 
@@ -1008,4 +1025,21 @@ type {
         peer: "ROBOT_FEEDBACK"
         whom: ALL
     }
+}
+
+
+type {
+    type: 230
+    name: "WII_BOARD_SIGNAL_MESSAGE"
+    to {
+       peer: "WII_BOARD_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "WII_BOARD_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
 }

@@ -218,7 +218,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 			wait = 0
 			if peer.startswith('mx'):
 				continue
-			path = os.path.join(launcher_tools.obci_root(), data['path'])
+			p = os.path.expanduser(data['path'])
+			if not os.path.isabs(p):
+				path = os.path.join(launcher_tools.obci_root(), p)
+			else:
+				path = os.path.realpath(p)
 			args = data['args']
 			if peer.startswith('config_server'):
 				args += ['-p', 'launcher_socket_addr', self.cs_addr]
