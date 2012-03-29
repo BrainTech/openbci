@@ -41,14 +41,27 @@ def get_eeg_experiments(host, port):
     if response.type == 'rq_error':
         print 'BLEEEEEEEEE'
     else:
-        print response.experiment_list    
+        print ':-))))'
     
-    if response.experiment_list:
-        exp = response.experiment_list[0]
-        host, port = exp['tcp_addr']
-        msg = mtool.fill_msg("join_experiment", peer_id="blebleble")
-        response = send_and_receive(host, port, msg)    
-        print response
+    # if response.experiment_list:
+    #     exp = response.experiment_list[0]
+    #     print exp
+    #     host, port = exp['tcp_addr']
+    #     msg = mtool.fill_msg("join_experiment", peer_id="blebleble")
+    #     response = send_and_receive(host, port, msg)    
+    #     print ':-('
+        
+
+    msg = mtool.fill_msg("find_eeg_amplifiers")
+    response = send_and_receive(host, port, msg)
+
+    if response.type == 'rq_error':
+        print 'BLEEEEEEEEE2', response
+    else:
+        print '\n\n****************************************************************\n\n'
+            
+    
+    
 
 if __name__ == '__main__':
     get_eeg_experiments(socket.gethostname(), int(net.server_tcp_proxy_port()))

@@ -6,4 +6,4 @@ import ConfigParser
 from peer import peer_config_serializer
 
 class TestPeerConfigSerializer(object):
-	pass
+    pass

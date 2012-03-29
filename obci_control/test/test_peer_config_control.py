@@ -8,5 +8,5 @@ from peer import peer_config
 
 class TestPeerConfigControl(object):
 
-	def setup(self):
-		pass
+    def setup(self):
+        pass

@@ -14,6 +14,8 @@ import launcher.launcher_logging as logger
 import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
+from drivers.eeg.driver_discovery.driver_discovery import find_drivers
+
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
 class EEGExperimentFinder(object):
@@ -176,13 +178,13 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
 
     my_push_addr = this_addr + ':' + str(port)
     LOGGER.info( "my exp_data pull: " + my_push_addr)
-    
+
     harvester = zmq.Poller()
     harvester.register(other_exps_pull)
 
     reqs = {}
     for srv_ip in ip_list:
-        
+
         addr  = 'tcp://' + srv_ip + ':' + net.server_rep_port()
         req = ctx.socket(zmq.REQ)
         req.connect(addr)
@@ -203,7 +205,7 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
                 LOGGER.info("waiting for experiments from server: " + str(reqs[req]))
                 harvester.unregister(req)
                 req.close()
-                
+
             elif msg.type == 'eeg_experiments':
                 LOGGER.info("GOT EXPERIMENTS from: " + msg.sender_ip)
                 exps += msg.experiment_list
@@ -219,23 +221,24 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
 
-    my_addr = nearby_servers.ip(hostname=socket.gethostname())
+
 
     checked = rq_message.checked_srvs
     if not isinstance(checked, list):
         checked = []
-    
+
     nrb = {}
     for uid, srv in nearby_servers.snapshot().iteritems():
         if srv.ip not in checked:
             nrb[uid] = srv
 
-    if not checked:
+    if not checked and nearby_servers.dict_snapshot():
+        my_addr = nearby_servers.ip(hostname=socket.gethostname())
         LOGGER.info("checking other servers")
         print [(srv.hostname, srv.ip) for srv in nrb.values()]
 
         ip_list = [srv.ip for srv in nrb.values() if \
-                            srv.ip != my_addr] 
+                            srv.ip != my_addr]
         LOGGER.info("number of servers to query: " + str(len(ip_list)))
 
         exps += _gather_other_server_results(ctx, my_addr, ip_list)
@@ -250,6 +253,18 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     send_msg(to_client, finder.mtool.fill_msg('eeg_experiments', sender_ip=socket.gethostname(),
                                     experiment_list=exps))
     LOGGER.info("sent exp data... "  + str(exps)[:500] + ' [...]')
+    time.sleep(0.1)
+
+def find_new_experiments_and_push_results(ctx, rq_message):
+    driv = find_drivers()
+    LOGGER.info("amplifiers! return to:  " + rq_message.client_push_address)
+    mtool = OBCIMessageTool(message_templates)
+    to_client = ctx.socket(zmq.PUSH)
+    to_client.connect(rq_message.client_push_address)
+
+    send_msg(to_client, mtool.fill_msg('eeg_amplifiers', sender_ip=socket.gethostname(),
+                                    amplifier_list=driv))
+    LOGGER.info("sent amplifier data... "  + str(driv)[:500] + ' [...]')
     time.sleep(0.1)
 
 
