@@ -14,7 +14,7 @@ from acquisition import acquisition_logging as logger
 
 LOGGER = logger.get_logger("etr_saver", 'info')
 
-DATA_FILE_EXTENSION = '.etr.dat'
+DATA_FILE_EXTENSION = '.etr.raw'
 
 class EtrSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
