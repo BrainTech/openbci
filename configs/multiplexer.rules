@@ -321,7 +321,10 @@ peer {
      name: "WII_BOARD_SAVER"
 }
 
-
+peer {
+     type: 161
+     name: "EXTERNAL_SWITCH_AMPLIFIER"
+}
 
 
 
