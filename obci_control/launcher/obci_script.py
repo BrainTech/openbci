@@ -60,8 +60,8 @@ def cmd_launch(args):
         print pack
     else:
         pack = None
-    
-    client = client_server_prep()
+
+    client = client_server_prep(start_srv=False)
     if not client:
         sys.exit(1)
 
@@ -78,7 +78,7 @@ def cmd_morph(args):
         print pack
     else:
         pack = None
-    
+
     client = client_server_prep()
     if not client:
         sys.exit(1)
@@ -352,12 +352,12 @@ def server_process_running(expected_dead=False):
             break
 
         time.sleep(0.3)
-        
+
     sock.close()
     return running
 
 
-def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None):
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None, start_srv=True):
 
     directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
     if not os.path.exists(directory):
@@ -374,11 +374,15 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
     if server_ip:
         rep_addrs = ['tcp://'+server_ip+':'+srv_rep_port]
         pub_addrs = ['tcp://'+server_ip+':'+srv_pub_port]
-    else:    
-        rep_addrs = ['tcp://*:' + srv_rep_port] 
+    else:
+        rep_addrs = ['tcp://*:' + srv_rep_port]
         pub_addrs = ['tcp://*:' + srv_pub_port]
 
-    if not server_process_running() and not server_ip:
+    if not server_process_running() and not start_srv:
+        disp.view("Start obci_server (command: obci srv) before performing other tasks")
+        return None
+
+    if not server_process_running() and not server_ip and start_srv:
         args = argv() if cmdargs else []
         if rep_addrs and pub_addrs:
             args += ['--rep-addresses'] + rep_addrs + ['--pub-addresses'] + pub_addrs
@@ -388,11 +392,12 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
             return None
         disp.view("OBCI server launched. PID: {0}".format(srv.pid))
 
+
     if not server_ip:
         rep_addrs = ['tcp://localhost:'+srv_rep_port]
 
     res, client = connect_client(rep_addrs, client_class=client_class)
-    
+
     if res is None:
         disp.view("Could not connect to OBCI Server")
         client = None
