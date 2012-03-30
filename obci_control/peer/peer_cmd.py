@@ -15,7 +15,7 @@ import peer_config
 
 class PeerCmd(object):
     def __init__(self, add_help=True):
-        
+
         self.conf_parser = argparse.ArgumentParser(add_help=False)
         self.configure_argparser(self.conf_parser)
 
@@ -83,7 +83,6 @@ class LocParamAction(PeerParamAction):
         par = values[0]
         vals = []
         for v in values[1:]:
-            print v, v.__class__
             if not isinstance(v, unicode):
                 v = unicode(v, encoding='utf-8')
             vals.append(v)

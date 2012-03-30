@@ -105,7 +105,7 @@ class OBCIControlPeer(object):
 
         if not hasattr(self, "ctx"):
             self.ctx = zmq.Context()
-        
+
         self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
         self.net_init()
 
@@ -117,7 +117,7 @@ class OBCIControlPeer(object):
         self.interrupted = False
         signal.signal(signal.SIGTERM, self.signal_handler())
         signal.signal(signal.SIGINT, self.signal_handler())
-        
+
 
 
     def signal_handler(self):
@@ -153,7 +153,6 @@ class OBCIControlPeer(object):
                 to_publish, det = po.poll_recv(pull_sock, 500)
 
                 if to_publish:
-                    print self.peer_type(), "publish!"
                     send_msg(pub_sock, to_publish)
             except:
                 #print self.name, '.Publisher -- STOP.'
@@ -175,7 +174,7 @@ class OBCIControlPeer(object):
                 for key, status in dead.iteritems():
                     send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
                                                         pid=key[1], status=status))
-                
+
             time.sleep(1)
         push_sock.close()
 
@@ -266,7 +265,7 @@ class OBCIControlPeer(object):
         advertised_addrs = []
         for addr in addresses:
             if addr.startswith('tcp://*'):
-                port = addr.rsplit(':', 1)[1] 
+                port = addr.rsplit(':', 1)[1]
                 advertised_addrs.append('tcp://' + socket.gethostname() + ':' +str(port))
                 advertised_addrs.append('tcp://' + 'localhost:' + str(port))
             else:

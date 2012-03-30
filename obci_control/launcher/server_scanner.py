@@ -52,14 +52,14 @@ def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None)
             msg = unicode(data, encoding='utf-8')
             msg = msg[:-1]
             message = mtool.unpack_msg(msg)
-            changed = srv_data.update(ip=wherefrom[0], hostname=message.sender_ip, 
+            changed = srv_data.update(ip=wherefrom[0], hostname=message.sender_ip,
                                 uuid=message.sender, rep_port=message.rep_port,
                                 pub_port=message.pub_port)
 
         else:
             # print "no data"
             pass
-        
+
         loops_to_update -= 1
 
         if loops_to_update == 0:
@@ -67,8 +67,7 @@ def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None)
             changed = srv_data.clean_silent()
 
         if changed:
-            print 'dns change'
-            send_msg(notify_sock, mtool.fill_msg('nearby_machines', 
+            send_msg(notify_sock, mtool.fill_msg('nearby_machines',
                                                 nearby_machines=srv_data.dict_snapshot()))
 
     s.close()

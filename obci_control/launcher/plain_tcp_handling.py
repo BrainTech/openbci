@@ -18,7 +18,7 @@ END = chr(ord(','))
 
 class OBCIPeerTCP( SocketServer.TCPServer, SocketServer.ThreadingMixIn):
     allow_reuse_address = True
-    def __init__(self, server_address,  bind_and_activate=True, 
+    def __init__(self, server_address,  bind_and_activate=True,
                             zmq_ctx=None, zmq_rep_addr=None):
         SocketServer.TCPServer.__init__(self,server_address, OBCIServerRequestHandler, bind_and_activate)
         self.mtool = OBCIMessageTool(message_templates)
@@ -28,7 +28,7 @@ class OBCIPeerTCP( SocketServer.TCPServer, SocketServer.ThreadingMixIn):
 
 
 class OBCIServerTCP(OBCIPeerTCP):
-    def __init__(self, server_address,  bind_and_activate=True, 
+    def __init__(self, server_address,  bind_and_activate=True,
                             zmq_ctx=None, zmq_rep_addr=None):
         # print server_address, requestHandlerClass
         OBCIPeerTCP.__init__(self,server_address,  bind_and_activate,
@@ -43,15 +43,15 @@ class OBCIExperimentTCP(OBCIPeerTCP):
     pass
 
 def run_tcp_obci_server(server_address, zmq_ctx, zmq_rep_addr):
-    return run_tcp_server(OBCIServerTCP, server_address, OBCIServerRequestHandler, 
+    return run_tcp_server(OBCIServerTCP, server_address, OBCIServerRequestHandler,
                             zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
 
 def run_tcp_obci_experiment(server_address, zmq_ctx, zmq_rep_addr):
-    return run_tcp_server(OBCIExperimentTCP, server_address, OBCIExperimentRequestHandler, 
+    return run_tcp_server(OBCIExperimentTCP, server_address, OBCIExperimentRequestHandler,
                             zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
 
 def run_tcp_server(server_class, server_address, handler_class, zmq_ctx, zmq_rep_addr):
-    server = server_class(server_address, handler_class, 
+    server = server_class(server_address, handler_class,
                             zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
     # Start a thread with the server -- that thread will then start one
     # more thread for each request
@@ -117,7 +117,7 @@ class OBCIPeerRequestHandler(SocketServer.BaseRequestHandler):
         message = recv_unicode_netstring(self.request)
         srv_sock = self.make_srv_sock()
         send_msg(srv_sock, message)
-        
+
         response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
         if not response:
             self.bad_response(self,request, det)
@@ -134,7 +134,8 @@ class OBCIPeerRequestHandler(SocketServer.BaseRequestHandler):
 
 class OBCIServerRequestHandler(OBCIPeerRequestHandler):
     def handle(self):
-        print "SERVER REQUEST"
+        print "SERVER REQUEST", self.__class__
+        print "FROM :", self.request.getpeername()
         message = recv_unicode_netstring(self.request)
         print message
         parsed = self.server.mtool.unpack_msg(message)
@@ -143,19 +144,18 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
             parsed.client_push_address = pull_addr
         srv_sock = self.make_srv_sock()
         send_msg(srv_sock, parsed.SerializeToString())
-        
+
         response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
         print "passed msg and got result:  ", response
         if not response:
             self.bad_response(self.request, det)
             return
-        
+
         if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
             response, det = self.server.pl.poll_recv(self.server.pull_sock, timeout=20000)
             if not response:
                 self.bad_response(self.request, det)
                 return
-            print "RQQQ  ", response, parsed.type
 
         data = make_unicode_netstring(response)
         to_send = len(data)
@@ -167,11 +167,14 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
                 raise RuntimeError("socket connection broken")
             print "chunk sent: ", out
             sent += out
-        result = self.request.sendall(make_unicode_netstring(response))
-        print "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRREsult", result
+        # result = self.request.sendall(make_unicode_netstring(response))
+        print "REsult", result
         # time.sleep(3)
 
 
 class OBCIExperimentRequestHandler(OBCIPeerRequestHandler):
-    pass
-        
+    def handle(self):
+        print "(exp) FROM : ", self.request.getpeername()
+        print "(exp) ME: ", self.request.getsockname()
+        super(OBCIExperimentRequestHandler, self).handle()
+
