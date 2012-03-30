@@ -14,7 +14,7 @@ import launcher.launcher_logging as logger
 import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
-from drivers.eeg.driver_discovery.driver_discovery import find_drivers
+#from drivers.eeg.driver_discovery.driver_discovery import find_drivers
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
