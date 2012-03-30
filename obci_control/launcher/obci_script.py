@@ -404,7 +404,6 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
 
     return client
 
-
 def launch_obci_server(args=[]):
     path = obci_server.__file__
     path = '.'.join([path.rsplit('.', 1)[0], 'py'])

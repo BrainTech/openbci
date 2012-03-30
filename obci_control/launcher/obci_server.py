@@ -211,9 +211,14 @@ class OBCIServer(OBCIControlPeer):
                                                             status,
                                                             det,
                                                             launch_file,
-                                                            tcp_addr)
+                                                            tcp_addr,
+                                                            self._nearby_servers.this_addr_network())
 
         exp_proc.registered(info)
+        for addrs in [info.rep_addrs, info.pub_addrs]:
+            one = addrs[0]
+            port = net.port(one)
+            addrs = [self._nearby_servers.this_addr_network() + ':' + str(port)] + addrs
 
         info_msg = self.mtool.fill_msg("experiment_created",
                                                 uuid=info.uuid,
@@ -549,7 +554,7 @@ class OBCIServer(OBCIControlPeer):
 class ExperimentInfo(object):
     def __init__(self, uuid, name, rep_addrs, pub_addrs, registration_time,
                             origin_machine, pid, status_name=None, details=None,
-                            launch_file_path=None, tcp_addrs=None):
+                            launch_file_path=None, tcp_addrs=None, ip=None):
         self.uuid = uuid
         self.name = name
         self.rep_addrs = rep_addrs
@@ -562,6 +567,7 @@ class ExperimentInfo(object):
         self.details = details
         self.launch_file_path = launch_file_path
         self.tcp_addrs = tcp_addrs
+        self.ip = ip
 
     def from_dict(dic):
         try:
@@ -571,6 +577,7 @@ class ExperimentInfo(object):
             exp.details = dic.get('details', None)
             exp.launch_file_path = dic.get('launch_file_path', None)
             exp.tcp_addrs = dic.get('tcp_addrs', None)
+            exp.ip = dic.get('ip', None)
             return exp, None
         except KeyError as e:
             return None, e.args
@@ -594,7 +601,8 @@ class ExperimentInfo(object):
                 status_name=self.status_name,
                 details=self.details,
                 launch_file_path=self.launch_file_path,
-                tcp_addrs=self.tcp_addrs)
+                tcp_addrs=self.tcp_addrs,
+                ip=self.ip)
 
         return d
 

@@ -7,9 +7,9 @@ message_templates = {
     "register_peer" : dict(peer_type='', uuid='', rep_addrs='', pub_addrs='', name='', other_params=''),
 
     "create_experiment" : dict(launch_file='', sandbox_dir='', name='', overwrites=''),
-    "experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='', 
+    "experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='',
                                     status_name='', details='', launch_file_path='',
-                                    tcp_addrs=''),
+                                    tcp_addrs='', ip=''),
     "list_experiments" : dict(),
     "running_experiments" : dict(exp_data='', nearby_machines=''),
 
@@ -34,7 +34,7 @@ message_templates = {
                                 launcher_message='', params='', details=''),
     "experiment_status_change" : dict(uuid='', status_name='', details='', peers=''),
 
-    "experiment_transformation" : dict(uuid='', status_name='', details='', name='', 
+    "experiment_transformation" : dict(uuid='', status_name='', details='', name='',
                                     launch_file='', old_name='', old_launch_file=''),
 
     "get_experiment_contact" : dict(strname=''),
@@ -92,7 +92,7 @@ message_templates = {
     "morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on=''),
     "list_nearby_machines" : dict(),
     "nearby_machines" : dict(nearby_machines='')
-    
+
 
 }
 

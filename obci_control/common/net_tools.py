@@ -111,6 +111,25 @@ def port(addr_string):
     else:
         return port
 
+def is_ip(addr_string):
+    parts = addr_string.rsplit(':', 1)
+    if len(parts) < 2:
+        return False
+    nums = parts[0].split('.')
+    start = nums[0]
+    ind = nums[0].find('://')
+    if ind > -1:
+        start = start[ind+3:]
+        nums[0] = start
+    if len(nums) < 4:
+        return False
+    for p in nums:
+        try:
+            n = int(p)
+        except Exception, e:
+            return False
+    return True
+
 def server_pub_port():
     parser = __parser_main_config_file()
     port = parser.get('server', 'pub_port')
@@ -137,7 +156,7 @@ def server_tcp_proxy_port():
     except Exception, e:
         print "[ WARNING! WARNING! ] Config file is not up to date. Taking default tcp_proxy_port value!"
         port = '12012'
-    return port    
+    return port
 
 class DNS(object):
     def __init__(self, allowed_silence_time=45):
@@ -214,7 +233,7 @@ class DNS(object):
     def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
         with self.__lock:
             old = self.__servers.get(uuid, None)
-            new = self.__servers[uuid] = PeerNetworkDescriptor(ip, hostname, uuid, 
+            new = self.__servers[uuid] = PeerNetworkDescriptor(ip, hostname, uuid,
                                                             rep_port, pub_port,
                                                             http_port)
         changed = old is None
@@ -277,7 +296,7 @@ class PeerNetworkDescriptor(object):
         return str(self.as_dict())
 
     def _copy(self):
-        desc =  PeerNetworkDescriptor(self.ip, self.hostname, self.uuid, 
+        desc =  PeerNetworkDescriptor(self.ip, self.hostname, self.uuid,
                                     self.rep_port, self.pub_port, self.http_port)
         desc.timestamp = self.timestamp
         return desc
