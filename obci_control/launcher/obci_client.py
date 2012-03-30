@@ -14,6 +14,7 @@ from obci_control_peer import OBCIControlPeer, basic_arg_parser
 from peer import peer_config_parser
 
 import common.obci_control_settings as settings
+import common.net_tools as net
 
 class OBCIClient(object):
 
@@ -37,10 +38,14 @@ class OBCIClient(object):
 
     def launch(self, launch_file=None, sandbox_dir=None, name=None, overwrites=None):
         result = self.send_create_experiment(launch_file, sandbox_dir, name, overwrites)
+        print "create result:", result
         if not result:
             return result
         if result.type != "experiment_created":
             return result
+        print result
+        machine = result.origin_machine
+        addrs = [addr for addr in result.rep_addrs if self._addr_connectable(addr, machine)]
 
         return self.send_start_experiment(result.rep_addrs)
 
@@ -60,6 +65,9 @@ class OBCIClient(object):
         response, details = self.poll_recv(exp_sock, 6000)
         return response
 
+    def _addr_connectable(self, addr, machine):
+        return machine == socket.gethostname() or \
+                    (net.is_ip(addr) and not net.addr_is_local(addr))
 
     def start_chosen_experiment(self, exp_strname):
         response = self.get_experiment_contact(exp_strname)
@@ -76,7 +84,7 @@ class OBCIClient(object):
 
         send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
         reply, details =  self.poll_recv(exp_sock, 20000)
-
+        print reply
         return reply
 
     def force_kill_experiment(self, strname):
@@ -137,7 +145,7 @@ class OBCIClient(object):
 
         if response.type == "rq_error":
             return response
-        
+
 
         sock = self.ctx.socket(zmq.REQ)
         for addr in response.rep_addrs:
@@ -148,7 +156,7 @@ class OBCIClient(object):
             response, details = self.poll_recv(sock, 2000)
             if response.type is 'rq_error':
                 return response
-            
+
         msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
                                                                 **config_overrides)
 
@@ -157,7 +165,7 @@ class OBCIClient(object):
         response, details = self.poll_recv(sock, 2000)
         return response
 
-            # "update_peer_config" : dict(peer_id='', local_params='', 
+            # "update_peer_config" : dict(peer_id='', local_params='',
             #                 external_params='', launch_dependencies='', config_sources=''),
 
 
@@ -182,7 +190,7 @@ class OBCIClient(object):
         for addr in response.rep_addrs:
             sock.connect(addr)
 
-        send_msg(sock, self.mtool.fill_msg("join_experiment", 
+        send_msg(sock, self.mtool.fill_msg("join_experiment",
                                         peer_id=peer_id, path=path, peer_type='obci_peer'))
         response, details = self.poll_recv(sock, 4000)
         return response
@@ -207,5 +215,5 @@ class OBCIClient(object):
         result, details = self.poller.poll_recv(socket, timeout)
         if result:
             result = self.mtool.unpack_msg(result)
-        
+
         return result, details
