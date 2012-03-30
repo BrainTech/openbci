@@ -47,7 +47,7 @@ class OBCIClient(object):
         machine = result.origin_machine
         addrs = [addr for addr in result.rep_addrs if self._addr_connectable(addr, machine)]
 
-        return self.send_start_experiment(result.rep_addrs)
+        return self.send_start_experiment(addrs)
 
     def morph(self, exp_strname, launch_file, name=None, overwrites=None, leave_on=None):
         response = self.get_experiment_contact(exp_strname)
