@@ -222,7 +222,8 @@ class ExperimentEngineInfo(QtCore.QObject):
             self.exp_req.close()
             self.exp_req = self.ctx.socket(zmq.REQ)
             for addr in self.launcher_data['rep_addrs']:
-                self.exp_req.connect(addr)
+                if self._addr_connectable(addr, self.launcher_data['origin_machine']):
+                    self.exp_req.connect(addr)
             return None
         return self.mtool.unpack_msg(response)
 
