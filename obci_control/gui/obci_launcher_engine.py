@@ -95,7 +95,7 @@ class OBCILauncherEngine(QtCore.QObject):
     def prepare_experiments(self):
         experiments = []
         presets = self._parse_presets(self.preset_path)
-        presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
+#        presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
 
         for preset in presets:
             exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
@@ -376,5 +376,6 @@ class OBCILauncherEngine(QtCore.QObject):
             return
 
         args = exp.get_launch_args()
+	print "launch_rgs", args
         self.client.launch(**args)
 

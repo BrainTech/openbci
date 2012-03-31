@@ -16,7 +16,8 @@ from PyQt4.QtCore import *
 import PyQt4.QtGui
 from obci_launcher import Ui_ObciLauncher
 
-from obci_launcher_engine import OBCILauncherEngine, MODE_BASIC,MODE_ADVANCED,MODES
+from obci_launcher_engine import OBCILauncherEngine
+from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
 import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED

@@ -5,6 +5,7 @@ import argparse
 import os
 import sys
 import json
+import socket
 
 import zmq
 
