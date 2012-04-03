@@ -12,7 +12,7 @@ from configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 from devices import appliance_helper
-#from utils import keystroke
+from utils import keystroke
 from utils import tags_helper
 from utils import sequence_provider
 
@@ -117,9 +117,11 @@ class LogicSSVEPCalibration(ConfiguredClient):
         
     def run(self):
         #process intro
-        #ugm_helper.send_text(self.conn, self.hi_text)
+        ugm_helper.send_text(self.conn, self.hi_text)
+        keystroke.wait([" "])
+
         ugm_helper.send_config(self.conn, self.ugm)
-        ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.hi_text)
+
         time.sleep(3)
         """
         #keystroke.wait([" "])
