@@ -72,5 +72,5 @@ def get_eeg_experiments(host, port):
 
 
 if __name__ == '__main__':
-    get_eeg_experiments('172.16.53.135', int(net.server_tcp_proxy_port()))
+    get_eeg_experiments('localhost', int(net.server_tcp_proxy_port()))
     #59336
