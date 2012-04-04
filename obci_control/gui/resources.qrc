@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="/">
+    <file>stock_delete.png</file>
+    <file>fileopen.png</file>
+    <file>filesave.png</file>
+    <file>filesaveas.png</file>
+    <file>stock_add-bookmark.png</file>
+    <file>stock_exit.png</file>
+  </qresource>
+</RCC>

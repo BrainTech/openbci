@@ -47,6 +47,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         elif launcher_data is not None:
             self.setup_from_launcher(launcher_data)
+        super(ExperimentEngineInfo, self).__init__()
 
 
     def setup_from_preset(self, preset_data, launcher=False):

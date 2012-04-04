@@ -221,6 +221,7 @@ class OBCILauncherEngine(QtCore.QObject):
         if matches:
             index, exp = matches.pop()
             exp.setup_from_launcher(msg.dict(), preset=True)
+            print "^^^^^^^^  ", exp.exp_config.uuid
         else:
             exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
