@@ -31,7 +31,8 @@ from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
 from server_scanner import update_nearby_servers, broadcast_server
-from plain_tcp_handling import run_tcp_obci_server
+
+import twisted_tcp_handling
 
 REGISTER_TIMEOUT = 6
 
@@ -130,12 +131,15 @@ class OBCIServer(OBCIControlPeer):
         # self.exp_pub.setsockopt(zmq.LINGER, 0)
         self._all_sockets.append(self.exp_rep)
         # self._all_sockets.append(self.exp_pub)
-        self._tcp_proxy_thr, self._tcp_srv, self._tcp_proxy_addr = run_tcp_obci_server(
-                                            ('0.0.0.0', int(net.server_tcp_proxy_port())),
+        tcp_port = int(net.server_tcp_proxy_port())
+
+        self._tcp_proxy_thr, tcp_port = twisted_tcp_handling.run_twisted_server(
+                                                ('0.0.0.0', tcp_port),
                                             self.ctx,
                                             self.rep_addresses[0])
-        self.tcp_addresses = [(self.my_ip(), self._tcp_proxy_addr[1]),
-                                (socket.gethostname(), self._tcp_proxy_addr[1])]
+
+        self.tcp_addresses = [(self.my_ip(), tcp_port),
+                                (socket.gethostname(), tcp_port)]
         super(OBCIServer, self).net_init()
 
 
@@ -143,7 +147,8 @@ class OBCIServer(OBCIControlPeer):
         return [self.exp_rep]#, self.srv_rep, self.srv_pub]
 
     def clean_up(self):
-        self._tcp_srv.shutdown()
+        #self._tcp_srv.shutdown()
+        pass
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
         send_msg(self._publish_socket,#self.exp_pub,

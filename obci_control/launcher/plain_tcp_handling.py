@@ -16,7 +16,7 @@ import common.net_tools as net
 DELIM = chr(ord(':')) #wtf
 END = chr(ord(','))
 
-class OBCIPeerTCP( SocketServer.TCPServer, SocketServer.ThreadingMixIn):
+class OBCIPeerTCP( SocketServer.TCPServer):#, SocketServer.ThreadingMixIn):
     allow_reuse_address = True
     def __init__(self, server_address, handler_class, bind_and_activate=True,
                             zmq_ctx=None, zmq_rep_addr=None):
@@ -80,7 +80,6 @@ def _recv_netstring_len(rstream):
         print bt,
         if bt == '':
             raise RuntimeError("socket connection broken")
-
         strlen += bt
         bt = rstream.read(1)
     print ''
@@ -121,6 +120,7 @@ def make_netstring(bytes):
 
 
 class OBCIPeerRequestHandler(SocketServer.StreamRequestHandler):
+
     def make_srv_sock(self):
         sock = self.server.ctx.socket(zmq.REQ)
         sock.connect(self.server.rep_addr)
@@ -130,8 +130,8 @@ class OBCIPeerRequestHandler(SocketServer.StreamRequestHandler):
         message = recv_unicode_netstring(self.rfile)
         srv_sock = self.make_srv_sock()
         send_msg(srv_sock, message)
-
-        response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
+        pl = PollingObject()
+        response, det = pl.poll_recv(srv_sock, timeout=5000)
         if not response:
             self.bad_response(self.wfile, det)
         self.rfile.write(make_unicode_netstring(response))
@@ -148,6 +148,7 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         print "FROM :", self.request.getpeername()
         message = recv_unicode_netstring(self.rfile)
         print message
+        pl = PollingObject()
         parsed = self.server.mtool.unpack_msg(message)
         if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.server.pull_port)
@@ -155,14 +156,14 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         srv_sock = self.make_srv_sock()
         send_msg(srv_sock, parsed.SerializeToString())
 
-        response, det = self.server.pl.poll_recv(srv_sock, timeout=5000)
+        response, det = pl.poll_recv(srv_sock, timeout=5000)
         print "passed msg and got result:  ", response
         if not response:
             self.bad_response(self.wfile, det)
             return
 
         if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
-            response, det = self.server.pl.poll_recv(self.server.pull_sock, timeout=20000)
+            response, det = pl.poll_recv(self.server.pull_sock, timeout=20000)
             if not response:
                 self.bad_response(self.wfile, det)
                 return
