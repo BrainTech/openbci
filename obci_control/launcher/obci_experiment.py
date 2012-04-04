@@ -30,7 +30,7 @@ import obci_process_supervisor
 import peer.peer_cmd as peer_cmd
 from peer.peer_config import PeerConfig
 
-from plain_tcp_handling import run_tcp_obci_experiment
+import twisted_tcp_handling
 
 REGISTER_TIMEOUT = 25
 
@@ -75,9 +75,9 @@ class OBCIExperiment(OBCIControlPeer):
         self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
         self.exp_config, self.status = self._initialize_experiment_config(self.launch_file, overwrites)
-
+        print "initialised config"
         self.status_changed(self.status.status_name, self.status.details)
-
+        print "status changed!!!"
 
         self.mx_addr = None
         self.mx_pass = None
@@ -104,13 +104,19 @@ class OBCIExperiment(OBCIControlPeer):
 
         self.rep_addresses.append(self._ip_based_addr(net.choose_addr(self.rep_addresses)))
         self.pub_addresses.append(self._ip_based_addr(net.choose_addr(self.pub_addresses)))
-        self._tcp_proxy_thr, self._tcp_srv,self._tcp_proxy_addr = run_tcp_obci_experiment(
-                                            ('0.0.0.0', 0),
+
+        tcp_port = 0
+
+
+        self._tcp_proxy_thr, tcp_port = twisted_tcp_handling.run_twisted_server(
+                                                ('0.0.0.0', tcp_port),
                                             self.ctx,
                                             self.rep_addresses[0])
 
-        self.tcp_addresses = [(self.current_ip, self._tcp_proxy_addr[1]),
-                                (socket.gethostname(), self._tcp_proxy_addr[1])]
+
+        self.tcp_addresses = [(self.current_ip, tcp_port),
+                                (socket.gethostname(), tcp_port)]
+
 
     def _ip_based_addr(self, other_addr):
         return 'tcp://'+str(self.current_ip)+':'+str(net.port(other_addr))
@@ -118,7 +124,7 @@ class OBCIExperiment(OBCIControlPeer):
     def params_for_registration(self):
         return dict(pid=os.getpid(), origin_machine=self.origin_machine,
                 status_name='', details='', launch_file_path=self.launch_file,
-                tcp_addrs=[(self.current_ip, self._tcp_proxy_addr[1])])
+                tcp_addrs=[self.tcp_addresses[0]])
 
     def _handle_registration_response(self, response):
         self._nearby_machines.mass_update(response.params)
@@ -815,7 +821,7 @@ class OBCIExperiment(OBCIControlPeer):
     def clean_up(self):
         print self.name,'[', self.type, ']',  "exp cleaning up"
         self.subprocess_mgr.stop_monitoring()
-        self._tcp_srv.shutdown()
+        #self._tcp_srv.shutdown()
 
     def _handle_register_sv_timeout(self, sv_process):
         txt = "Supervisor for machine {0} FAILED TO REGISTER before timeout".format(
