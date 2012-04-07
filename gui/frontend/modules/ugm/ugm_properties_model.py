@@ -25,9 +25,9 @@
 """Defines model of UGM properties"""
 
 from PyQt4 import QtCore
-from modules.ugm.gui.ugm_tree_element import NAME, VALUE
-from modules.ugm.gui.ugm_properties_root import UGMPropertiesRoot
-from modules.ugm.gui.ugm_property import UGMProperty
+from gui.frontend.modules.ugm.ugm_tree_element import NAME, VALUE
+from gui.frontend.modules.ugm.ugm_properties_root import UGMPropertiesRoot
+from gui.frontend.modules.ugm.ugm_property import UGMProperty
 
 class UGMPropertiesModel(QtCore.QAbstractItemModel):
     """Defines model of UGM properties"""

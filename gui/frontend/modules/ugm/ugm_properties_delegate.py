@@ -1,24 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #      Łukasz Polak <l.polak@gmail.com>
 #
@@ -111,7 +93,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
         if l_type == 'int' or l_type == 'float':
             editor.setValue(l_value)
         elif l_type == 'string':
-            editor.setText(QtCore.QString(str(l_value)))
+            editor.setText(QtCore.QString(unicode(l_value)))
         elif l_type == 'font':
             editor.setText(QtCore.QString(str(l_value)))
         elif l_type == 'enumerated':
@@ -129,7 +111,7 @@ class UGMPropertiesDelegate(QtGui.QItemDelegate):
             p_editor.interpretText()
             l_value = p_editor.value()
         elif l_type == 'string':
-            l_value = str(p_editor.text())
+            l_value = unicode(p_editor.text())
         elif l_type == 'font':
             l_value = str(p_editor.text())
         elif l_type == 'enumerated':
