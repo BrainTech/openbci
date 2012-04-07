@@ -1,99 +1,25 @@
 #!/usr/bin/env python
 #
 # Author:
-#      Mateusz Kruszynski <mateusz.kruszynski@gmail.com>
+#      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
-
 from multiplexer.multiplexer_constants import peers, types
-from multiplexer.clients import BaseMultiplexerServer, connect_client
-from configs import variables_pb2
+from obci_control.peer.configured_client import ConfiguredClient
+from configs import variables_pb2, settings
 
-from analysis.obci_signal_processing import types_utils
+from utils import tags_helper
 
-from utils import openbci_logging as logger
-LOGGER = logger.get_logger('tagger', 'info')
-
-class Tagger(object):
-    def __init__(self):
-        """Initialize mx connection."""
-        self._connection = connect_client(type = peers.TAGS_SENDER)
-
-    def pack_tag(self, p_start_timestamp, p_end_timestamp, 
-                 p_tag_name, p_tag_desc={}, p_tag_channels=""):
-        """Return tag with given values. 
-        Returned tag is serialised to string.
-        Parameters:
-        - p_start_timestamp - float 
-        - p_end_timestamp - float
-        - p_tag_name - string
-        - p_tag_desc - dictionary
-        - p_tag_channels - string like "0 6 7" - numbers of channels
-        """
-        l_tag = variables_pb2.Tag()
-        l_tag.start_timestamp = p_start_timestamp
-        l_tag.end_timestamp = p_end_timestamp
-        l_tag.name = p_tag_name
-        l_tag.channels = p_tag_channels
-        for i_key, i_value in p_tag_desc.iteritems():
-            l_new_var = l_tag.desc.variables.add()
-            l_new_var.key = i_key
-            l_new_var.value = types_utils.to_string(i_value)
-        return l_tag.SerializeToString()
-        
-    def unpack_tag(self, p_tag_msg):
-        """For given tag serialised to string, return tag as a dict with fields:
-        - 'start_timestamp' - float
-        - 'end_timestamp' - float
-        - 'name' - string
-        - 'desc' - dictionary
-        """
-        l_tag = variables_pb2.Tag()
-        l_tag.ParseFromString(p_tag_msg)
-        l_tag_dict = dict()
-        l_tag_dict['start_timestamp'] = l_tag.start_timestamp
-        l_tag_dict['end_timestamp'] = l_tag.end_timestamp
-        l_tag_dict['name'] = l_tag.name
-        l_tag_dict['channels'] = l_tag.channels
-        l_tag_desc = dict()
-        for i_var in l_tag.desc.variables:
-            l_tag_desc[i_var.key] = i_var.value
-        l_tag_dict['desc'] = l_tag_desc
-        return l_tag_dict
+class Tagger(ConfiguredClient):
+    def __init__(self, addresses):
+        super(Tagger, self).__init__(addresses=addresses,
+                                     type=peers.TAGS_SENDER)
+        self.ready()
 
     def send_tag(self, p_start_timestamp, p_end_timestamp, 
                  p_tag_name, p_tag_desc={}, p_tag_channels=""):
-        """For given parameters create tag and send it to mx.
-        Parameters:
-        - p_start_timestamp - float 
-        - p_end_timestamp - float
-        - p_tag_name - string
-        - p_tag_desc - dictionary
-        - p_tag_channels - string like "0 6 7" - numbers of channels
-        """
-        l_info_desc = ''.join(
-            ["Sending tag:\n",
-             "start:", repr(p_start_timestamp),
-             ", end:", repr(p_end_timestamp),
-             ", name:", p_tag_name,
-             ", channels:", p_tag_channels])
-        LOGGER.debug(l_info_desc)
-        LOGGER.debug(l_info_desc + "DESC: "+str(p_tag_desc))
-        l_tag_msg = self.pack_tag(p_start_timestamp, p_end_timestamp,
-                             p_tag_name, p_tag_desc, p_tag_channels)
-        self._connection.send_message(
-            message = l_tag_msg, 
-            type=types.TAG, flush=True)
+        tags_helper.send_tag(self.conn, p_start_timestamp, p_end_timestamp,
+                 p_tag_name, p_tag_desc, p_tag_channels)
 
-    def send_unpacked_tag(self, p_tag_dict):
-        """A helper method to send tag in dictionary format."""
-        self.send_tag(p_tag_dict['start_timestamp'],
-                      p_tag_dict['end_timestamp'],
-                      p_tag_dict['name'],
-                      p_tag_dict.get('desc', {}),
-                      p_tag_dict.get('channels', ''))
 def get_tagger():
-    return Tagger()
-#def send_start_half_tag(p_timestamp, p_tag_name, p_tag_desc)
-#    return id
-#def send_end_half_tag(p_timestamp, p_tag_id, p_tag_desc)
-#
+    return Tagger(settings.MULTIPLEXER_ADDRESSES)
+

@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 #
 # Author:
-#      Mateusz Kruszynski <mateusz.kruszynski@gmail.com>
+#      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
 
 from multiplexer.multiplexer_constants import peers, types
+from analysis.obci_signal_processing import types_utils
 
 from configs import variables_pb2
-from analysis.obci_signal_processing import types_utils
 from utils import openbci_logging as logger
 
 LOGGER = logger.get_logger('tags_helper', 'info')
+
+
+
 
 def pack_tag(p_start_timestamp, p_end_timestamp, 
              p_tag_name, p_tag_desc={}, p_tag_channels=""):
