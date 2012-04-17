@@ -113,6 +113,28 @@ def module_path(module):
     path = '.'.join([path.rsplit('.', 1)[0], 'py'])
     return os.path.normpath(path)
 
+def default_config_path(peer_program_path):
+    file_endings = ['py', 'java', 'jar', 'class', 'exe', 'sh', 'bin']
+    base = peer_program_path
+    sp = peer_program_path.rsplit('.', 1)
+    if len(sp) > 1:
+        if len(sp[1]) < 3 or sp[1] in file_endings:
+            base = sp[0]
+    conf_path = expand_path(base + '.ini')
+    if os.path.exists(conf_path):
+        return conf_path
+    else: return ''
+
+def expand_path(program_path, base_dir=None):
+    if base_dir is None:
+        base_dir = obci_root()
+    if not program_path:
+        return program_path
+    p = os.path.expanduser(program_path)
+    if os.path.isabs(p):
+        return p
+    else:
+        return os.path.realpath(os.path.join(base_dir, p))
 
 if __name__=='__main__':
     print obci_pythonpath()
