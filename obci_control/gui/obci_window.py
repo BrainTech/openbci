@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'obci_window.ui'
 #
-# Created: Wed Apr  4 19:07:42 2012
+# Created: Tue Apr 17 15:03:39 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -172,7 +172,7 @@ class Ui_OBCILauncher(object):
         icon2 = QtGui.QIcon()
         icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/fileopen.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionOpen.setIcon(icon2)
-        self.actionOpen.setText(QtGui.QApplication.translate("OBCILauncher", "Open...", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOpen.setText(QtGui.QApplication.translate("OBCILauncher", "Import...", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setShortcut(QtGui.QApplication.translate("OBCILauncher", "Ctrl+O", None, QtGui.QApplication.UnicodeUTF8))
         self.actionOpen.setIconVisibleInMenu(True)
         self.actionOpen.setObjectName(_fromUtf8("actionOpen"))
@@ -200,12 +200,20 @@ class Ui_OBCILauncher(object):
         self.actionRemove_from_sidebar.setShortcut(QtGui.QApplication.translate("OBCILauncher", "Ctrl+Shift+D", None, QtGui.QApplication.UnicodeUTF8))
         self.actionRemove_from_sidebar.setIconVisibleInMenu(True)
         self.actionRemove_from_sidebar.setObjectName(_fromUtf8("actionRemove_from_sidebar"))
+        self.actionConnect = QtGui.QAction(OBCILauncher)
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap(_fromUtf8(":/connect.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionConnect.setIcon(icon6)
+        self.actionConnect.setText(QtGui.QApplication.translate("OBCILauncher", "Connect...", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionConnect.setToolTip(QtGui.QApplication.translate("OBCILauncher", "Connect to another machine", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionConnect.setShortcut(QtGui.QApplication.translate("OBCILauncher", "Ctrl+Shift+C", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionConnect.setObjectName(_fromUtf8("actionConnect"))
         self.menubar.addAction(self.menuMenu.menuAction())
         self.toolBar.addAction(self.actionOpen)
-        self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionSave_as)
-        self.toolBar.addAction(self.actionAdd_to_sidebar)
         self.toolBar.addAction(self.actionRemove_from_sidebar)
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actionConnect)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionExit)
 

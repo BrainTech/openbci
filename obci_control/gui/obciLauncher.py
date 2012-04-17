@@ -15,14 +15,20 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import PyQt4.QtGui
 
+import socket
+
 from obci_window import Ui_OBCILauncher
+from connect_dialog import Ui_ConnectToMachine
 
 from obci_launcher_engine import OBCILauncherEngine
 from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
 import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
+from launcher.launch_file_serializer import LaunchFileSerializerINI
 from common.message import LauncherMessage
+import common.net_tools as net
+import codecs
 
 import sys
 
@@ -33,6 +39,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     start = pyqtSignal(str)
     stop = pyqtSignal(str)
     reset = pyqtSignal(str)
+
+    engine_reinit = pyqtSignal(object)
 
     status_colors = {
         NOT_READY : 'dimgrey',
@@ -46,31 +54,25 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     }
 
 
-    def __init__(self, parent=None):
+    def __init__(self):
         '''
         Constructor
         '''
-        super(ObciLauncherWindow, self).__init__(parent)
-
-        self.server_ip = sys.argv[1] if len(sys.argv) == 2 else None
-
-        client = obci_script.client_server_prep(server_ip=self.server_ip)
-        self.engine = OBCILauncherEngine(client, self.server_ip)
+        QMainWindow.__init__(self)
 
         self.setupUi(self)
+        self.basic_title = self.windowTitle()
 
-        if self.server_ip:
-            self.setWindowTitle(self.windowTitle() + ' - ' + 'REMOTE CONNECTION TO ' + str(self.server_ip))
+        self.exp_states = {}
+        self.exp_widgets = {}
+        self.engine_server_setup()
 
-        # self.scenarios.horizontalHeader().setResizeMode (QHeaderView.Stretch)
+        self._nearby_machines = self.engine.nearby_machines()
 
         self.scenarios.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.scenarios.setColumnCount(2)
-        # self.scenarios.setHorizontalHeaderLabels(["Scenario", "Status"])
         self.scenarios.setHeaderLabels(["Scenario", "Status"])
-        # self.scenarios.horizontalHeader().setVisible(True)
         self.scenarios.setColumnWidth(0, 300)
-        #self.scenarios.setColumnWidth(1, 100)
 
         self.scenarios.itemClicked.connect(self._setInfo)
         self.scenarios.currentItemChanged.connect(self._setInfo)
@@ -81,7 +83,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.setColumnWidth(0, 200)
         self.parameters.setColumnWidth(1, 400)
 
-        # print PyQt4.QtGui.QColor.colorNames()
+        self.machines_dialog = ConnectToMachine(self)
+
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
         self.reset_button.clicked.connect(self._reset)
@@ -91,33 +94,84 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.details_mode.addItems(MODES)
 
-
-        self.engine.update_ui.connect(self.update_user_interface)
-        self.reset.connect(self.engine.reset_launcher)
-        self.start.connect(self.engine.start_experiment)
-        self.stop.connect(self.engine.stop_experiment)
-        self.details_mode.currentIndexChanged.connect(self.update_user_interface)
-
-        self.exp_states = {}
-        self.exp_widgets = {}
+        self.engine_reinit.connect(self.engine_server_setup)
 
         self.setupMenus()
         self.setupActions()
         self.update_user_interface(None)
         self.show()
 
+    def engine_server_setup(self, server_ip_host=None):
+        server_ip, server_name = server_ip_host or (None, None)
+        old_ip = None
+        old_hostname = None
+        if hasattr(self, 'server_ip'):
+            old_ip = self.server_ip
+            old_hostname = self.server_hostname
+
+        self.server_ip = str(server_ip)
+        self.server_hostname = str(server_name)
+        ctx = None
+        if server_ip is None:
+            self.server_ip = '127.0.0.1'
+            self.server_hostname = socket.gethostname()
+
+        if hasattr(self, 'engine'):
+            client = self.engine.client
+            ctx = client.ctx
+        else:
+            self.engine = None
+
+        if old_ip != self.server_ip and old_hostname != self.server_hostname:
+
+            if self.engine is not None:
+                self.engine.cleanup()
+                self.engine.update_ui.disconnect()
+                self.engine.obci_state_change.disconnect()
+                self.reset.disconnect()
+                self.start.disconnect()
+                self.stop.disconnect()
+                self.engine.deleteLater()
+
+            client = obci_script.client_server_prep(server_ip=self.server_ip,
+                                                    zmq_ctx=ctx,
+                                                    start_srv=True)
+            if client is None:
+                self.quit()
+            self.engine = OBCILauncherEngine(client, self.server_ip)
+            self.engine.update_ui.connect(self.update_user_interface)
+            self.reset.connect(self.engine.reset_launcher)
+            self.start.connect(self.engine.start_experiment)
+            self.stop.connect(self.engine.stop_experiment)
+            self.details_mode.currentIndexChanged.connect(self.update_user_interface)
+
+
+        if self.server_ip and self.server_hostname != socket.gethostname():
+            self.setWindowTitle(self.basic_title + ' - ' + 'remote connection ' + \
+                                ' (' +self.server_ip + ' - ' + self.server_hostname + ')')
+        else:
+            self.setWindowTitle(self.basic_title + ' - ' + 'local connection (' +\
+                                                self.server_hostname + ')')
+
+        if old_ip is not None:
+            self.engine.update_ui.emit(None)
+
     def setupMenus(self):
         self.menuMenu.addAction(self.actionOpen)
-        self.menuMenu.addAction(self.actionSave)
         self.menuMenu.addAction(self.actionSave_as)
-        self.menuMenu.addAction(self.actionAdd_to_sidebar)
+        # self.menuMenu.addAction(self.actionAdd_to_sidebar)
         self.menuMenu.addAction(self.actionRemove_from_sidebar)
+        self.menuMenu.addSeparator()
+        self.menuMenu.addAction(self.actionConnect)
         self.menuMenu.addSeparator()
         self.menuMenu.addAction(self.actionExit)
 
 
     def setupActions(self):
         self.actionExit.triggered.connect(PyQt4.QtGui.qApp.quit)
+        self.actionConnect.triggered.connect(self._connect_to_machine)
+        self.actionSave_as.triggered.connect(self._save_current_as)
+
 
     def setScenarios(self, scenarios):
         scenarios.sort(cmp=lambda a,b: str(a.name) > str(b.name))
@@ -152,7 +206,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             treecat.addChild(name)
             name.setToolTip(0, QString(s.launch_file))
         self.scenarios.sortItems(0, Qt.AscendingOrder)
-        print "SCENARIOS SET"
 
     def getScenarios(self):
         return self._scenarios
@@ -196,10 +249,15 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 #child.setToolTip(1, 'Local parameter')
 
     def _getParams(self):
-        if self._params.exp.uuid not in self.exp_states:
+        uid = self._params.exp.exp_config.uuid
+        old_uid = self._params.exp.old_uid
+        if uid not in self.exp_states and old_uid not in self.exp_states:
             print "stale experiment descriptor"
             return self._params
-        state = self.exp_states[self._params.exp.uuid]
+        state = self.exp_states.get(uid, self.exp_states.get(old_uid, None))
+        if state is None:
+            print "_getParams - experiment not found"
+            return self._params
         expanded = set()
         for i, peer in enumerate(self._params.exp.exp_config.peers.values()):
             parent = self.parameters.topLevelItem(i)
@@ -231,21 +289,20 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _itemChanged(self, item, column):
         if item.parent() is None:
             return
-        exp = self._params
+        exp_state = self._params
         peer_id = unicode(item.parent().text(0))
         param = unicode(item.text(0))
         val = unicode(item.text(1))
 
-        old_val = exp.exp_config.param_value(peer_id, param)
+        old_val = exp_state.exp.exp_config.param_value(peer_id, param)
         if old_val != unicode(item.text(1)):
-            exp.update_peer_param(peer_id, param, val)
+            exp_state.exp.update_peer_param(peer_id, param, val)
             self._getParams()
             self._setParams(self._params)
 
     def _setInfo(self, scenario_item, column):
         if scenario_item is None:
-            print "scenario_item NONE"
-
+            pass
         elif scenario_item.uuid not in self.exp_states:
             self._params = None
             self.parameters.clear()
@@ -260,29 +317,38 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self._manage_actions(scenario_item)
 
     def _start(self):
-
         self.start.emit(str(self.scenarios.currentItem().uuid))
+
     def _stop(self):
         self.stop.emit(str(self.scenarios.currentItem().uuid))
+
     def _reset(self):
         self.reset.emit(str(self.server_ip))
 
-    def _index_of(self, exp):
-        uids = {}
-        for i, st in enumerate(self.exp_states):
-            uids[st.exp.uuid] = i
+    def _connect_to_machine(self):
+        self.machines_dialog.set_nearby_machines(self._nearby_machines,
+                                    self.server_hostname, self.server_ip)
+        if self.machines_dialog.exec_():
+            new_ip, new_name = self.machines_dialog.chosen_machine
+            self.engine_reinit.emit((new_ip, new_name))
+            self.update_user_interface(None)
 
-        # print "_index_of ",uids, exp.uuid, exp.uuid.__class__
-        if exp.uuid in uids:
-            return uids[exp.uuid]
-        else: return None
+    def _save_current_as(self):
+        uid = self.scenarios.currentItem().uuid
+        exp = self.exp_states[uid].exp
+        ser = LaunchFileSerializerINI()
+        with codecs.open("/home/lis/bleeee.ini", "w", "utf-8") as f:
+            ser.serialize(exp.exp_config, "/home/lis/bleeee_configs", f)
+
 
     def exp_destroyed(self, *args, **kwargs):
-        print args
-        print kwargs
+        print args, kwargs
         print "DESTROYED"
 
     def update_user_interface(self, update_msg):
+        if update_msg is not None and not isinstance(update_msg, int) and \
+                                        update_msg.type == 'nearby_machines':
+            self._nearby_machines = self.engine.nearby_machines()
 
         scenarios = self.engine.list_experiments()
 
@@ -293,7 +359,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if curr_exp is not None:
             if curr_exp in scenarios:
                 curr_uid = curr_exp.exp_config.uuid
-                print "ccccuuurrr uid", curr_uid
         else:
             print "not found", curr_uid, curr_exp
 
@@ -314,37 +379,31 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.engine.details_mode = mode
 
         self.setScenarios(scenarios)
-        #
-        # current_sc = self.scenarios.currentRow()
-
 
         if current_sc is None:
-            print "current sc None!"
             current_sc = self._first_exp(self.scenarios)
         else:
-            current_sc = self.exp_widgets[curr_uid]
+            uid = curr_exp.exp_config.uuid
+            old_uid = curr_exp.old_uid
+            current_sc = self.exp_widgets.get(uid,
+                            self.exp_widgets.get(old_uid, self._first_exp(self.scenarios)))
 
         self.scenarios.setCurrentItem(current_sc)
         self._manage_actions(current_sc)
 
     def _first_exp(self, scenarios):
         exp = None
-        print "toplev", scenarios.topLevelItemCount()
         for index in range(scenarios.topLevelItemCount()):
             item = scenarios.topLevelItem(index)
-            print "exps: ", item.childCount()
             for ich in range(item.childCount()):
                 exp = item.child(ich)
                 break
             if exp:
-                print "..."
                 break
-        print "exp", exp
         return exp
 
     def _manage_actions(self, current_sc):
         if current_sc is None:
-            print "_manage_actions current_sc NONE!!!"
             self.start_button.setEnabled(False)
             self.stop_button.setEnabled(False)
             return
@@ -369,11 +428,12 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self.reset_button.setEnabled(False)
 
         self.actionOpen.setEnabled(False)
-        self.actionSave.setEnabled(False)
-        self.actionSave_as.setEnabled(False)
+        self.actionSave_as.setEnabled(True)
         self.actionAdd_to_sidebar.setEnabled(False)
         self.actionRemove_from_sidebar.setEnabled(False)
         self.actionExit.setEnabled(True)
+
+        self.actionConnect.setEnabled(self._nearby_machines != {})
 
 class ObciTreeWidgetItem(QTreeWidgetItem):
     def __init__(self, header_list, experiment_id):
@@ -385,6 +445,62 @@ class ExperimentGuiState(object):
 
         self.exp = engine_experiment
         self.expanded_peers = set()
+
+
+class ConnectToMachine(QDialog, Ui_ConnectToMachine):
+    def __init__(self, parent):
+        super(ConnectToMachine, self).__init__(parent)
+        self.setupUi(self)
+        self.nearby_machines.horizontalHeader().setResizeMode (QHeaderView.Stretch)
+
+        self.nearby_machines.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.nearby_machines.setColumnCount(3)
+        self.nearby_machines.setHorizontalHeaderLabels(["IP", "Hostname", "Status"])
+        self.nearby_machines.horizontalHeader().setVisible(True)
+        self.nearby_machines.setColumnWidth(0, 200)
+        self.nearby_machines.itemDoubleClicked.connect(self.accept)
+
+        self.chosen_machine = None
+
+
+    def set_nearby_machines(self, machines, current_hostname, current_ip):
+        self.nearby_machines.clearContents()
+        self.nearby_machines.setRowCount(len(machines))
+        for i, (ip, hostname) in enumerate(list(machines.iteritems())):
+            ip_w = QTableWidgetItem(ip)
+            ip_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.nearby_machines.setItem(i, 0, ip_w)
+
+            hn_w = QTableWidgetItem(hostname)
+            hn_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.nearby_machines.setItem(i, 1, hn_w)
+
+            st_w = QTableWidgetItem()
+            st_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            if (str(ip) == str(current_ip) or str(current_ip) == net.lo_ip())\
+                                 and str(hostname) == str(current_hostname):
+                font = QFont()
+                font.setWeight(QFont.Black)
+                hn_w.setFont(font)
+                ip_w.setFont(font)
+                st_w.setText('Connected')
+                st_w.setFont(font)
+            self.nearby_machines.setItem(i, 2, st_w)
+
+
+
+        if machines:
+            self.nearby_machines.setCurrentItem(self.nearby_machines.item(0,0))
+        else:
+            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+
+    def accept(self):
+        row = self.nearby_machines.currentRow()
+        cur_ip = self.nearby_machines.item(row, 0)
+        cur_host = self.nearby_machines.item(row, 1)
+        self.chosen_machine = (cur_ip.text(), cur_host.text())
+        super(ConnectToMachine, self).accept()
+
 
 
 if __name__ == '__main__':

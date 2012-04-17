@@ -100,7 +100,7 @@ class OBCIServer(OBCIControlPeer):
             self._all_sockets.remove(self.rep_socket)
             if socket in self.client_rq:
                 self.client_rq = None
-            self.rep_socket.close()
+            self.rep_socket.close()#linger=0)
             self.rep_socket = None
             time.sleep(0.2)
             (self.rep_socket, self.rep_addresses) = self._init_socket(
@@ -110,7 +110,7 @@ class OBCIServer(OBCIControlPeer):
             print "[obci_server]", self.rep_addresses
         elif socket == self.exp_rep:
             print "[obci_server] reinitialising EXPERIMENT REP socket"
-            self.exp_rep.close()
+            self.exp_rep.close()#linger=0)
 
             (self.exp_rep, self.exp_rep_addrs) = self._init_socket(
                                         self.exp_rep_addrs, zmq.REP)
@@ -321,6 +321,10 @@ class OBCIServer(OBCIControlPeer):
                                                 exp_data=exp_data,
                                                 nearby_machines=nearby_dict))
 
+    @msg_handlers.handler("list_nearby_machines")
+    def handle_list_nearby_machines(self, message, sock):
+        send_msg(sock, self.mtool.fill_msg('nearby_machines',
+                                nearby_machines=self._nearby_servers.dict_snapshot()))
 
     def _handle_match_name(self, message, sock, this_machine=False):
         matches = self.exp_matching(message.strname)

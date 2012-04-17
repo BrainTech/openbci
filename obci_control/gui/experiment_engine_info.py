@@ -49,6 +49,9 @@ class ExperimentEngineInfo(QtCore.QObject):
             self.setup_from_launcher(launcher_data)
         super(ExperimentEngineInfo, self).__init__()
 
+    def cleanup(self):
+        if self.exp_req:
+            self.exp_req.close()#linger=0)
 
     def setup_from_preset(self, preset_data, launcher=False):
         self.preset_data = preset_data
@@ -98,12 +101,10 @@ class ExperimentEngineInfo(QtCore.QObject):
             for addr in launcher_data['rep_addrs']:
                 if self._addr_connectable(addr, machine):
                     try:
-                        print "ADDDDRRR", addr
                         self.exp_req.connect(addr)
                     except Exception, e:
                         print addr, False
                     else:
-                        print addr, "success"
                         connected = True
             if not connected:
                 print "Connection to experiment ", self.name, "UNSUCCESFUL!!!!!!"
@@ -195,10 +196,6 @@ class ExperimentEngineInfo(QtCore.QObject):
                                             details=status['details'])
 
     def parameters(self, peer_id, mode):
-        # try:
-        self.exp_config._topo_sort('list_launch_deps')
-        # except Exception, e:
-        #     print "^^^^", str(e)
         params = {}
         peer = self.exp_config.peers[peer_id]
         if mode == MODE_BASIC:

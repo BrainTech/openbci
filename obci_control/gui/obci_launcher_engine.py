@@ -8,6 +8,7 @@ import ConfigParser
 import codecs
 import os
 import socket
+import uuid
 
 import common.net_tools as net
 from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
@@ -44,6 +45,8 @@ class OBCILauncherEngine(QtCore.QObject):
         self.mtool = self.client.mtool
         self.mtool.add_templates(self.internal_msg_templates)
 
+        self._cached_nearby_machines = {}
+
         self.preset_path = os.path.join(launcher_tools.obci_root(), PRESETS)
         self.user_preset_path = USER_PRESETS
 
@@ -52,7 +55,7 @@ class OBCILauncherEngine(QtCore.QObject):
         self.obci_poller = zmq.Poller()
 
         self.monitor_push = self.ctx.socket(zmq.PUSH)
-        self.monitor_addr = 'inproc://obci_monitor'
+        self.monitor_addr = 'inproc://obci_monitor' + str(uuid.uuid4())[:4]
         self.monitor_push.bind(self.monitor_addr)
 
         self._stop_monitoring = False
@@ -71,14 +74,15 @@ class OBCILauncherEngine(QtCore.QObject):
 
         self.details_mode = MODE_ADVANCED
 
-        # server req -- list_experiments
-        # subscribe to server PUB
-        # for each exp --
-        #        req - detailed info
-        #        initialise from launcher_info
-        #        for each peer:
-        #            update params and data from peer_info (params, machine, status)
-        #        subscribe to experiment PUB
+    def cleanup(self):
+        print "CLEANUP!!!!"
+        self._stop_monitoring = True
+
+        self.monitor_push.close()#linger=0)
+        for exp in self.experiments:
+            exp.cleanup()
+        self.experiments = []
+        self.obci_monitor_thr.join()
 
     def exp_ids(self):
         ids = {}
@@ -153,6 +157,8 @@ class OBCILauncherEngine(QtCore.QObject):
         poller.register(pull, zmq.POLLIN)
         poller.register(subscriber, zmq.POLLIN)
 
+        _all = [pull, subscriber]
+
         if server_ip:
             addr = server_ip
         else:
@@ -176,7 +182,12 @@ class OBCILauncherEngine(QtCore.QObject):
             for socket in socks:
                 if  socks[socket] == zmq.POLLIN:
                     msg = self.mtool.unpack_msg(recv_msg(socket))
-                    handle_msg(msg)
+                    if not self._stop_monitoring:
+                        handle_msg(msg)
+
+        for sock in _all:
+            sock.close()#linger=0)
+        print "monitoring thr finished!"
 
     def handle_obci_state_change(self, launcher_message):
         type_ = launcher_message.type
@@ -204,6 +215,8 @@ class OBCILauncherEngine(QtCore.QObject):
 
         elif type_ == 'experiment_transformation':
             self._handle_experiment_transformation(launcher_message)
+        elif type_ == 'nearby_machines':
+            self._handle_nearby_machines(launcher_message)
         else:
             handled = False
 
@@ -221,7 +234,7 @@ class OBCILauncherEngine(QtCore.QObject):
         if matches:
             index, exp = matches.pop()
             exp.setup_from_launcher(msg.dict(), preset=True)
-            print "^^^^^^^^  ", exp.exp_config.uuid
+            print "^^^^^^^^  created exp, UUID:", exp.exp_config.uuid
         else:
             exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
 
@@ -330,6 +343,9 @@ class OBCILauncherEngine(QtCore.QObject):
             st = exp.status
             st.peer_status(msg.peer_id).set_status(status_name, details)
 
+    def _handle_nearby_machines(self, msg):
+        self._cached_nearby_machines = msg.nearby_machines
+
     def list_experiments(self):
         return self.experiments
 
@@ -346,7 +362,7 @@ class OBCILauncherEngine(QtCore.QObject):
         self.client.srv_kill()
         running = obci_script.server_process_running()
         if running:
-            print "reset_launcher: something went wrong... SERVER STILL RUNNIN"
+            print "reset_launcher: something went wrong... SERVER STILL RUNNING"
 
         self.client = obci_script.client_server_prep()
         self.experiments = self.prepare_experiments()
@@ -366,6 +382,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
 
     def start_experiment(self, msg):
+        print "START EXPERIMENT!!!!"
         uid = str(msg)
         index = self.index_of(uid)
         if index is None:
@@ -377,6 +394,15 @@ class OBCILauncherEngine(QtCore.QObject):
             return
 
         args = exp.get_launch_args()
-	print "launch_rgs", args
+        print "launch_args", args
         self.client.launch(**args)
 
+    def nearby_machines(self):
+        nearby_machines = {}
+        if not self._cached_nearby_machines:
+            res = self.client.send_list_nearby_machines()
+            if res is not None:
+                self._cached_nearby_machines = res.nearby_machines
+        for mach in self._cached_nearby_machines.values():
+            nearby_machines[mach["ip"]] = mach["hostname"]
+        return nearby_machines
