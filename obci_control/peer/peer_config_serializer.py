@@ -39,13 +39,16 @@ class PeerConfigSerializer(object):
         self._serialize_ext_params(p_config.param_values,
                                     p_config.ext_param_defs)
 
-
-    def _do_serialize_diff(self, p_base_config, p_config):
+    def difference(self, p_base_config, p_config):
         sources = {}
         for src, val in p_config.config_sources.iteritems():
             if src not in p_base_config.config_sources:
                 sources[src] = val
-        self._serialize_config_sources(sources)
+
+        deps = {}
+        for dep, val in p_config.launch_deps.iteritems():
+            if dep not in p_base_config.launch_deps:
+                deps[dep] = val
 
         params = {}
         for par, val in p_config.param_values.iteritems():
@@ -53,6 +56,14 @@ class PeerConfigSerializer(object):
                 params[par] = val
             elif val != p_base_config.param_values[par]:
                 params[par] = val
+        return sources, deps, params
+
+    def _do_serialize_diff(self, p_base_config, p_config):
+        sources, deps, params = self.difference(p_base_config, p_config)
+        self._serialize_config_sources(sources)
+
+        self._serialize_launch_deps(deps)
+
         self._serialize_local_params(params, p_config.ext_param_defs)
         self._serialize_ext_params(params, p_config.ext_param_defs)
 
