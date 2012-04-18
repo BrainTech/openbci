@@ -72,6 +72,8 @@ class LaunchFileSerializerINI(LaunchFileSerializer):
             peer_file_name = self._dump_peer(descriptor, dump_file, dump_dir)
 
             if peer_file_name is not None:
+                if peer_file_name.startswith(os.environ['HOME']):
+                    peer_file_name = peer_file_name.replace(os.environ['HOME'], '~')
                 self.parser.set(peer_section, "config", peer_file_name)
 
             self._dump_peer_config_sources(peer, descriptor.config.config_sources)

@@ -16,21 +16,24 @@ from PyQt4.QtCore import *
 import PyQt4.QtGui
 
 import socket
+import codecs
+import json
+import sys
+import os
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
 
-from obci_launcher_engine import OBCILauncherEngine
+from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
 import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
-from launcher.launch_file_serializer import LaunchFileSerializerINI
+
+import common.obci_control_settings as settings
 from common.message import LauncherMessage
 import common.net_tools as net
-import codecs
 
-import sys
 
 class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
@@ -39,6 +42,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     start = pyqtSignal(str)
     stop = pyqtSignal(str)
     reset = pyqtSignal(str)
+
+    save_as = pyqtSignal(object)
+    remove_user_preset = pyqtSignal(object)
+    import_scenario = pyqtSignal(str)
 
     engine_reinit = pyqtSignal(object)
 
@@ -76,6 +83,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.scenarios.itemClicked.connect(self._setInfo)
         self.scenarios.currentItemChanged.connect(self._setInfo)
+
+        self.details_mode.currentIndexChanged.connect(self.update_user_interface)
 
         self.parameters.setHeaderLabels(["Name", 'Value', 'Info'])
         self.parameters.itemClicked.connect(self._itemClicked)
@@ -126,11 +135,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
             if self.engine is not None:
                 self.engine.cleanup()
-                self.engine.update_ui.disconnect()
-                self.engine.obci_state_change.disconnect()
-                self.reset.disconnect()
-                self.start.disconnect()
-                self.stop.disconnect()
+                self._disconnect_signals()
                 self.engine.deleteLater()
 
             client = obci_script.client_server_prep(server_ip=self.server_ip,
@@ -139,12 +144,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if client is None:
                 self.quit()
             self.engine = OBCILauncherEngine(client, self.server_ip)
-            self.engine.update_ui.connect(self.update_user_interface)
-            self.reset.connect(self.engine.reset_launcher)
-            self.start.connect(self.engine.start_experiment)
-            self.stop.connect(self.engine.stop_experiment)
-            self.details_mode.currentIndexChanged.connect(self.update_user_interface)
-
+            self._connect_signals()
 
         if self.server_ip and self.server_hostname != socket.gethostname():
             self.setWindowTitle(self.basic_title + ' - ' + 'remote connection ' + \
@@ -156,10 +156,30 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if old_ip is not None:
             self.engine.update_ui.emit(None)
 
+    def _connect_signals(self):
+        self.engine.update_ui.connect(self.update_user_interface)
+        self.engine.rq_error.connect(self.launcher_error)
+        self.reset.connect(self.engine.reset_launcher)
+        self.start.connect(self.engine.start_experiment)
+        self.stop.connect(self.engine.stop_experiment)
+        self.save_as.connect(self.engine.save_scenario_as)
+        self.import_scenario.connect(self.engine.import_scenario)
+        self.remove_user_preset.connect(self.engine.remove_preset)
+
+    def _disconnect_signals(self):
+        self.engine.update_ui.disconnect()
+        self.engine.rq_error.disconnect()
+        self.engine.obci_state_change.disconnect()
+        self.reset.disconnect()
+        self.start.disconnect()
+        self.stop.disconnect()
+        self.save_as.disconnect()
+        self.import_scenario.disconnect()
+        self.remove_user_preset.disconnect()
+
     def setupMenus(self):
         self.menuMenu.addAction(self.actionOpen)
         self.menuMenu.addAction(self.actionSave_as)
-        # self.menuMenu.addAction(self.actionAdd_to_sidebar)
         self.menuMenu.addAction(self.actionRemove_from_sidebar)
         self.menuMenu.addSeparator()
         self.menuMenu.addAction(self.actionConnect)
@@ -171,6 +191,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.actionExit.triggered.connect(PyQt4.QtGui.qApp.quit)
         self.actionConnect.triggered.connect(self._connect_to_machine)
         self.actionSave_as.triggered.connect(self._save_current_as)
+        self.actionOpen.triggered.connect(self._import)
+        self.actionRemove_from_sidebar.triggered.connect(self._remove_from_sidebar)
 
 
     def setScenarios(self, scenarios):
@@ -178,8 +200,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self._scenarios = scenarios
         self.scenarios.setSortingEnabled(True)
         self.scenarios.clear()
-
-        # self.scenarios.setRowCount(len(scenarios))
 
         self.categories = []
         self.exp_widgets = {}
@@ -228,12 +248,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent.setBackground(2, QBrush(QColor(self.status_colors[st])))
             parent.setToolTip(0, peer.path)
 
-
             self.parameters.addTopLevelItem(parent)
 
             if parent.text(0) in expanded:
                 parent.setExpanded(True)
-
                 parent.setToolTip(0, peer.path)
 
             params = experiment.parameters(peer_id, self.details_mode.currentText())
@@ -244,9 +262,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 if src:
                     child.setDisabled(True)
                 parent.addChild(child)
-
-                #child.setToolTip(0, 'Local parameter')
-                #child.setToolTip(1, 'Local parameter')
 
     def _getParams(self):
         uid = self._params.exp.exp_config.uuid
@@ -273,7 +288,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         return self._params
 
     def _itemClicked(self, item, column):
-
         if item.columnCount() > 1 and column > 0:
             if not item.isDisabled():
                 item.setFlags(item.flags() | Qt.ItemIsEditable)
@@ -284,7 +298,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             else:
                 item.setFlags(Qt.ItemIsSelectable)
-
 
     def _itemChanged(self, item, column):
         if item.parent() is None:
@@ -309,7 +322,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self.parameters_of.setTitle("Parameters")
         else:
             self.info.setText(self.exp_states[scenario_item.uuid].exp.info)
-
             if self._params:
                 self._getParams()
             self._setParams(self.exp_states[scenario_item.uuid])
@@ -334,21 +346,49 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self.update_user_interface(None)
 
     def _save_current_as(self):
+        filename = QFileDialog.getSaveFileName(self, "Save scenario as..,",
+                            os.path.join(settings.DEFAULT_SCENARIO_DIR),
+                            'INI files (*.ini)')
+        filename = str(filename)
+        if not filename.endswith('.ini'):
+            filename += '.ini'
+
         uid = self.scenarios.currentItem().uuid
         exp = self.exp_states[uid].exp
-        ser = LaunchFileSerializerINI()
-        with codecs.open("/home/lis/bleeee.ini", "w", "utf-8") as f:
-            ser.serialize(exp.exp_config, "/home/lis/bleeee_configs", f)
+        self.save_as.emit((filename, exp))
 
+
+    def _import(self):
+        filename = QFileDialog.getOpenFileName(self, "Import scenario...",
+                            os.path.join(settings.DEFAULT_SCENARIO_DIR),
+                            'INI files (*.ini)')
+        self.import_scenario.emit(filename)
+
+    def _remove_from_sidebar(self):
+        uid = self.scenarios.currentItem().uuid
+        exp = self.exp_states[uid].exp
+        self.remove_user_preset.emit(exp)
 
     def exp_destroyed(self, *args, **kwargs):
         print args, kwargs
         print "DESTROYED"
 
+    def launcher_error(self, error_msg):
+        if isinstance(error_msg.details, dict):
+            str_details = str(json.dumps(error_msg.details, sort_keys=True, indent=4))
+        else:
+            str_details = str(error_msg.details)
+        QMessageBox.critical(self, "Request error", "Error: " +str(error_msg.err_code) +\
+                                    "\nDetails: " + str_details,
+                                    QMessageBox.Ok)
+
     def update_user_interface(self, update_msg):
-        if update_msg is not None and not isinstance(update_msg, int) and \
-                                        update_msg.type == 'nearby_machines':
-            self._nearby_machines = self.engine.nearby_machines()
+        user_imported_uuid = None
+        if isinstance(update_msg, LauncherMessage):
+            if update_msg.type == 'nearby_machines':
+                self._nearby_machines = self.engine.nearby_machines()
+            elif update_msg.type == '_user_set_scenario':
+                user_imported_uuid = update_msg.uuid
 
         scenarios = self.engine.list_experiments()
 
@@ -380,7 +420,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.setScenarios(scenarios)
 
-        if current_sc is None:
+        if user_imported_uuid is not None:
+            current_sc = self.exp_widgets.get(user_imported_uuid,
+                            self._first_exp(self.scenarios))
+        elif current_sc is None:
             current_sc = self._first_exp(self.scenarios)
         else:
             uid = curr_exp.exp_config.uuid
@@ -427,10 +470,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if self.server_ip is not None:
             self.reset_button.setEnabled(False)
 
-        self.actionOpen.setEnabled(False)
+        self.actionOpen.setEnabled(True)
         self.actionSave_as.setEnabled(True)
-        self.actionAdd_to_sidebar.setEnabled(False)
-        self.actionRemove_from_sidebar.setEnabled(False)
+        if current_exp.preset_data is not None:
+            remove_enabled = current_exp.preset_data["category"] == USER_CATEGORY
+            self.actionRemove_from_sidebar.setEnabled(remove_enabled)
         self.actionExit.setEnabled(True)
 
         self.actionConnect.setEnabled(self._nearby_machines != {})

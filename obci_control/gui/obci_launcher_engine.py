@@ -16,6 +16,7 @@ from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from launcher.launcher_messages import message_templates
 import launcher.obci_script as obci_script
 import launcher.launcher_tools as launcher_tools
+from launcher.launch_file_serializer import LaunchFileSerializerINI
 
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
 DEFAULT_CATEGORY, USER_CATEGORY
@@ -29,9 +30,11 @@ USER_PRESETS = os.path.join(settings.OBCI_HOME_DIR, 'user_presets.ini')
 class OBCILauncherEngine(QtCore.QObject):
     update_ui = QtCore.pyqtSignal(object)
     obci_state_change = QtCore.pyqtSignal(object)
+    rq_error = QtCore.pyqtSignal(object)
 
     internal_msg_templates = {
-        '_launcher_engine_msg' : dict(task='', pub_addr='')
+        '_launcher_engine_msg' : dict(task='', pub_addr=''),
+        '_user_set_scenario' : dict(uuid='')
     }
 
 
@@ -99,7 +102,8 @@ class OBCILauncherEngine(QtCore.QObject):
     def prepare_experiments(self):
         experiments = []
         presets = self._parse_presets(self.preset_path)
-#        presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
+        if os.path.exists(self.user_preset_path):
+            presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
 
         for preset in presets:
             exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
@@ -377,9 +381,7 @@ class OBCILauncherEngine(QtCore.QObject):
         if not exp.launcher_data:
             print "this exp is not running...", uid
             return
-
-        self.client.kill_exp(exp.uuid)
-
+        self._process_response(self.client.kill_exp(exp.uuid))
 
     def start_experiment(self, msg):
         print "START EXPERIMENT!!!!"
@@ -395,7 +397,9 @@ class OBCILauncherEngine(QtCore.QObject):
 
         args = exp.get_launch_args()
         print "launch_args", args
-        self.client.launch(**args)
+        result = self.client.launch(**args)
+
+        self._process_response(result)
 
     def nearby_machines(self):
         nearby_machines = {}
@@ -406,3 +410,81 @@ class OBCILauncherEngine(QtCore.QObject):
         for mach in self._cached_nearby_machines.values():
             nearby_machines[mach["ip"]] = mach["hostname"]
         return nearby_machines
+
+    def save_scenario_as(self, filename_and_experiment):
+        filename, exp = filename_and_experiment
+        filename = str(filename)
+        confdir = os.path.splitext(filename)[0] + "_configs"
+        ser = LaunchFileSerializerINI()
+        with codecs.open(filename, "w", "utf-8") as f:
+            ser.serialize(exp.exp_config, confdir, f)
+        new_exp = self._update_experiments(filename, replace=True)
+        strmsg = self.mtool.fill_msg("_user_set_scenario", uuid=new_exp.exp_config.uuid)
+        self.update_ui.emit(self.mtool.unpack_msg(strmsg))
+
+    def _update_experiments(self, scenario_path, replace=False):
+        scenario_path = str(scenario_path)
+        preset_data = self._create_preset_data(scenario_path)
+        dup = self._find_duplicate(preset_data)
+        if dup is not None:
+            if not replace:
+                preset_data["name"] += "_*"
+            else:
+                self.experiments.remove(dup)
+        exp = ExperimentEngineInfo(preset_data=preset_data, ctx=self.ctx)
+        self.experiments.append(exp)
+        self._update_user_presets()
+        return exp
+
+    def _find_duplicate(self, preset_data):
+        dup = None
+        for exp in self.experiments:
+            if exp.preset_data["name"] == preset_data["name"] and\
+                    exp.preset_data["launch_file"] == preset_data["launch_file"] and\
+                    exp.preset_data["category"] == preset_data["category"]:
+                dup = exp
+                break
+        return dup
+
+    def _create_preset_data(self, scenario_path):
+        name = os.path.basename(scenario_path)
+        name = os.path.splitext(name)[0].replace("_", " ")
+        data = {"name" : name}
+        data["info"] = "User preset"
+        if scenario_path.startswith(os.environ['HOME']):
+            scenario_path = scenario_path.replace(os.environ['HOME'], '~')
+        data["launch_file"] = scenario_path
+        data["public_params"] = ""
+        data["category"] = USER_CATEGORY
+        return data
+
+    def remove_preset(self, experiment):
+        self.experiments.remove(experiment)
+        self._update_user_presets()
+        self.update_ui.emit(None)
+
+    def import_scenario(self, filename):
+        new_exp = self._update_experiments(filename)
+        strmsg = self.mtool.fill_msg("_user_set_scenario", uuid=new_exp.exp_config.uuid)
+        self.update_ui.emit(self.mtool.unpack_msg(strmsg))
+
+    def _update_user_presets(self):
+        user_presets = []
+        for exp in self.experiments:
+            if exp.preset_data is not None:
+                if exp.preset_data['category'] == USER_CATEGORY:
+                    user_presets.append(exp.preset_data)
+        self._save_presets(user_presets, self.user_preset_path)
+
+    def _save_presets(self, preset_list, preset_path):
+        parser = ConfigParser.RawConfigParser()
+        for pre in preset_list:
+            parser.add_section(pre["name"])
+            for key in ["info", "launch_file", "public_params", "category"]:
+                parser.set(pre["name"], key, pre[key])
+        with codecs.open(preset_path, "w", "utf-8") as f:
+            parser.write(f)
+
+    def _process_response(self, response):
+        if response.type == "rq_error":
+            self.rq_error.emit(response)

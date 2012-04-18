@@ -149,7 +149,7 @@ class ExperimentEngineInfo(QtCore.QObject):
             return False, "Empty scenario."
 
         try:
-            with open(os.path.join(launcher_tools.obci_root(), self.launch_file)) as f:
+            with open(launcher_tools.expand_path(self.launch_file)) as f:
                 launch_parser.parse(f, self.exp_config)
         except Exception as e:
             self.status.set_status(launcher_tools.NOT_READY, details=str(e))
