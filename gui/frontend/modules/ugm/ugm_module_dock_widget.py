@@ -1,39 +1,20 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #      Łukasz Polak <l.polak@gmail.com>
 #
 """Dock widget for configuring UGM"""
 
 from PyQt4 import QtCore, QtGui
-from modules.ugm.gui.UGMMain import Ui_UGMMainWidget
-from modules.ugm.gui.ugm_properties_model import UGMPropertiesModel
-from modules.ugm.gui.ugm_properties_delegate import UGMPropertiesDelegate
-from obci.gui.ugm.ugm_config_manager import UgmConfigManager
+from gui.frontend.modules.ugm.UGMMain import Ui_UGMMainWidget
+from gui.frontend.modules.ugm.ugm_properties_model import UGMPropertiesModel
+from gui.frontend.modules.ugm.ugm_properties_delegate import UGMPropertiesDelegate
+from gui.ugm.ugm_config_manager import UgmConfigManager
 import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
-from obci.configs import variables_pb2
-from obci.configs import settings
+from configs import variables_pb2
+from configs import settings
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""
@@ -173,8 +154,12 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
     def saveConfigAs(self):
         """Saves config to specified file"""
         l_fileName = QtGui.QFileDialog().getSaveFileName(self, self.tr("Zapisz jako..."), QtCore.QString(settings.module_abs_path()), "Plik UGMa (*.ugm)")
+
         if l_fileName == "": 
             return
+        elif not unicode(l_fileName).endswith('.ugm'):
+            l_fileName += '.ugm'
+
         self.fileName = l_fileName
         
         self.saveConfig()
