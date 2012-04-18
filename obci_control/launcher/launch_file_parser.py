@@ -9,6 +9,7 @@ import codecs
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
 from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
+from launcher_tools import expand_path, default_config_path
 
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"
@@ -62,7 +63,7 @@ class LaunchFileParser(object):
 
         if self.parser.has_option(PEERS, 'scenario_dir'):
             self.config.scenario_dir = self.parser.get(PEERS, 'scenario_dir')
-            self.config.scenario_dir = self.__path(self.config.scenario_dir, base_dir=self.scenario_dir)
+            self.config.scenario_dir = expand_path(self.config.scenario_dir, base_dir=self.scenario_dir)
             #print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
 
     def _load_peer_ids(self, peer_sections):
@@ -77,6 +78,8 @@ class LaunchFileParser(object):
 
 
     def _load_peer(self, peer_section):
+        #FIXME rewrite cleaner
+
         peer_id = self.__peer_id(peer_section)
         items = self.parser.items(peer_section)
         machine_set= False
@@ -87,12 +90,15 @@ class LaunchFileParser(object):
             if param == "path":
                 self.config.set_peer_path(peer_id, value)
                 peer_path = self.config.peers[peer_id].path
-
+                full = expand_path(peer_path)
+                if not os.path.exists(full):
+                    raise OBCISystemConfigError("Path to peer executable not found! Path defined: " +\
+                            value + "   full path:  " + expand_path(peer_path))
             elif param == "config":
                 if self.config.scenario_dir:
                     warnings.warn("Choosing {0} for {1} config\
  instead of a file in scenario dir {2}!!!".format(value, peer_id, self.config.scenario_dir))
-                peer_config_file = self.__path(value)
+                peer_config_file = expand_path(value)
             elif param == "machine":
                 machine_set = True
                 self._set_peer_machine(peer_id, value)
@@ -110,55 +116,12 @@ class LaunchFileParser(object):
         if not peer_path:
             raise OBCISystemConfigError("No program path defined for peer_id {0}".format(peer_id))
 
-
-
         self._parse_peer_config(peer_id, peer_config_file, peer_path)
 
-    def __find_default_config_path(self, peer_program_path):
-        #TODO move to ? obci main_config
-        file_endings = ['py', 'java', 'jar', 'class', 'exe', 'sh', 'bin']
-        base = peer_program_path
-        sp = peer_program_path.rsplit('.', 1)
-        if len(sp) > 1:
-            if len(sp[1]) < 3 or sp[1] in file_endings:
-                base = sp[0]
-        conf_path = self.__path(base + '.ini')
-        if os.path.exists(conf_path):
-            return conf_path
-        else: return ''
 
-    def __path(self, path, base_dir=None):
-        if base_dir is None:
-            base_dir = self.base_dir
-        if not path:
-            return path
-        p = os.path.expanduser(path)
-        if os.path.isabs(p):
-            return p
-        else:
-            return os.path.realpath(os.path.join(base_dir, p))
-
-    def __parse_peer_default_config(self, peer_id, peer_program_path):
-        #print "Trying to find default config for {0}, path: {1}".format(
-        #                                            peer_id, peer_program_path)
-        peer_parser = peer_config_parser.parser("ini")
-        peer_cfg = peer_config.PeerConfig(peer_id)
-        conf_path = self.__find_default_config_path(peer_program_path)
-        if conf_path:
-
-            with codecs.open(conf_path, "r", "utf8") as f:
-                print "parsing default config for peer  ", peer_id, conf_path
-                peer_parser.parse(f, peer_cfg)
-            #print "Loaded default config {0} for {1}, path: {2}".format(
-            #                            conf_path, peer_id, peer_program_path)
-        else:
-            #print "No default config found for {1}, prog.path: {1}".format(
-            #                                        peer_id, peer_program_path)
-            pass
-        return peer_cfg, peer_parser
 
     def _parse_peer_config(self, peer_id, config_path, peer_program_path):
-        peer_cfg, peer_parser = self.__parse_peer_default_config(
+        peer_cfg, peer_parser = parse_peer_default_config(
                                                 peer_id, peer_program_path)
         #print "Trying to parse {0} for {1}".format(config_path, peer_id)
         if config_path:
@@ -205,3 +168,23 @@ class LaunchFileParser(object):
         return [sec for sec in self.parser.sections() if
                                 sec.startswith(PEERS + '.') and \
                                 sec.endswith(LAUNCH_DEPS)]
+
+
+def parse_peer_default_config(peer_id, peer_program_path):
+    #print "Trying to find default config for {0}, path: {1}".format(
+    #                                            peer_id, peer_program_path)
+    peer_parser = peer_config_parser.parser("ini")
+    peer_cfg = peer_config.PeerConfig(peer_id)
+    conf_path = default_config_path(peer_program_path)
+    if conf_path:
+
+        with codecs.open(conf_path, "r", "utf8") as f:
+            print "parsing default config for peer  ", peer_id, conf_path
+            peer_parser.parse(f, peer_cfg)
+        #print "Loaded default config {0} for {1}, path: {2}".format(
+        #                            conf_path, peer_id, peer_program_path)
+    else:
+        #print "No default config found for {1}, prog.path: {1}".format(
+        #                                        peer_id, peer_program_path)
+        pass
+    return peer_cfg, peer_parser

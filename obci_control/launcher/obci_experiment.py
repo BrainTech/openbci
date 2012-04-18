@@ -265,7 +265,7 @@ class OBCIExperiment(OBCIControlPeer):
         if not launch_file:
             return False, "Empty scenario."
         try:
-            with open(os.path.join(launcher_tools.obci_root(), launch_file)) as f:
+            with open(launcher_tools.expand_path(launch_file)) as f:
                 print "launch file opened"
                 launch_parser.parse(f, exp_config)
         except Exception as e:

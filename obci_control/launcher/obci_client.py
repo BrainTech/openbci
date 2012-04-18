@@ -123,6 +123,12 @@ class OBCIClient(object):
         response, details = self.poll_recv(self.server_req_socket, 4000)
         return response
 
+    def send_list_nearby_machines(self):
+        send_msg(self.server_req_socket, self.mtool.fill_msg("list_nearby_machines"))
+        response, details = self.poll_recv(self.server_req_socket, 4000)
+        return response
+
+
     def get_experiment_details(self, strname, peer_id=None):
         response = self.get_experiment_contact(strname)
 

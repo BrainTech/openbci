@@ -313,9 +313,9 @@ a few first letters of its UUID or of its name \
 
 ###############################################################################
 
-def connect_client(addresses, client=None, client_class=obci_client.OBCIClient):
+def connect_client(addresses, client=None, client_class=obci_client.OBCIClient, zmq_ctx=None):
     if client is None:
-        ctx = zmq.Context()
+        ctx = zmq_ctx or zmq.Context()
         try:
             client = client_class(addresses, ctx)
         except Exception, e:
@@ -357,7 +357,7 @@ def server_process_running(expected_dead=False):
     return running
 
 
-def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None, start_srv=True):
+def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None, start_srv=True, zmq_ctx=None):
 
     directory = os.path.abspath(settings.DEFAULT_SANDBOX_DIR)
     if not os.path.exists(directory):
@@ -382,7 +382,10 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
         disp.view("Start obci_server (command: obci srv) before performing other tasks")
         return None
 
-    if not server_process_running() and not server_ip and start_srv:
+    if not server_process_running() and\
+            (not server_ip or server_ip == net.lo_ip())\
+            and start_srv:
+        print "will launch server"
         args = argv() if cmdargs else []
         if rep_addrs and pub_addrs:
             args += ['--rep-addresses'] + rep_addrs + ['--pub-addresses'] + pub_addrs
@@ -396,7 +399,7 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
     if not server_ip:
         rep_addrs = ['tcp://localhost:'+srv_rep_port]
 
-    res, client = connect_client(rep_addrs, client_class=client_class)
+    res, client = connect_client(rep_addrs, client_class=client_class, zmq_ctx=zmq_ctx)
 
     if res is None:
         disp.view("Could not connect to OBCI Server")
