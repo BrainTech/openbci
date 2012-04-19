@@ -18,6 +18,7 @@ from launcher_messages import message_templates, error_codes
 from launcher_tools import module_path
 from eeg_experiment_finder import find_eeg_experiments_and_push_results,\
 find_new_experiments_and_push_results
+from start_eeg_signal import start_eeg_signal_experiment
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import common.obci_control_settings as settings
@@ -361,6 +362,7 @@ class OBCIServer(OBCIControlPeer):
                                                 name=info.name,
                                                 rep_addrs=info.rep_addrs,
                                                 pub_addrs=info.pub_addrs,
+                                                tcp_addrs=info.tcp_addrs,
                                                 machine=info.origin_machine,
                                                 status_name=info.status_name,
                                                 details=info.details))
@@ -443,7 +445,6 @@ class OBCIServer(OBCIControlPeer):
                 send_msg(self._publish_socket, self.mtool.fill_msg('kill_sent',
                     experiment_id=match.uuid
                     ))
-
 
 
     def _handle_killing_exp(self, pid, uid):
@@ -543,6 +544,18 @@ class OBCIServer(OBCIControlPeer):
         amp_thr.daemon = True
         amp_thr.start()
 
+    @msg_handlers.handler("start_eeg_signal")
+    def handle_start_eeg_signal(self, message, sock):
+        if not self.network_ready() and self._nearby_servers.dict_snapshot():
+            send_msg(sock, self.mtool.fill_msg("rq_error",
+                                err_code='server_network_not_ready'))
+            return
+        send_msg(sock, self.mtool.fill_msg("rq_ok"))
+        start_thr = threading.Thread(target=start_eeg_signal_experiment,
+                                        args=[self.ctx, self.rep_addresses,
+                                        message])
+        start_thr.daemon = True
+        start_thr.start()
 
     def _start_obci_supervisor_process(self, rq_message):
         path = obci_process_supervisor.__file__

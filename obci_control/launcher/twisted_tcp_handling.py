@@ -24,7 +24,8 @@ class OBCIProxy(NetstringReceiver):
         print "twisted got:", req
 
         parsed = self.factory.mtool.unpack_msg(req)
-        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
+        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers'\
+            or parsed.type == 'start_eeg_signal':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.factory.pull_port)
             parsed.client_push_address = pull_addr
 
@@ -35,7 +36,8 @@ class OBCIProxy(NetstringReceiver):
         if not msg:
             msg = self.factory.mtool.fill_msg("rq_error", details=det)
 
-        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
+        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers'\
+            or parsed.type == 'start_eeg_signal':
             msg, det = pl.poll_recv(self.factory.pull_sock, timeout=20000)
             if not msg:
                 msg = self.factory.mtool.fill_msg("rq_error", details=det)

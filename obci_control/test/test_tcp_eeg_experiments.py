@@ -67,8 +67,19 @@ def get_eeg_experiments(host, port):
 
     if response.type == 'rq_error':
         print 'BLEEEEEEEEE2', response
-    else:
+    elif response is not None:
         print '\n\n****************************************************************\n\n'
+        amp =  response.amplifier_list
+        if amp:
+            exp = amp[0]
+            params = exp['amplifier_params']
+            params['sampling_rate'] = '128'
+            params['active_channels'] = '1;2;3;4'
+            params['channel_names'] = 'aaa;bbb;xxx;fff'
+            msg = mtool.fill_msg('start_eeg_signal', amplifier_params=params, name='HELL YEAH',
+                                launch_file=exp['recommended_scenario'], client_push_address='')
+            response= send_and_receive(host, port, msg)
+
 
 
 if __name__ == '__main__':
