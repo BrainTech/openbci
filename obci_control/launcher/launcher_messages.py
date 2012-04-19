@@ -38,7 +38,7 @@ message_templates = {
                                     launch_file='', old_name='', old_launch_file=''),
 
     "get_experiment_contact" : dict(strname=''),
-    "experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', machine='', status_name='', details=''),
+    "experiment_contact" : dict(name='', uuid='', rep_addrs='', pub_addrs='', tcp_addrs='', machine='', status_name='', details=''),
 
     "launch_process" : dict(proc_type='', name='', path='', args='', machine_ip='',
                                     capture_io='', stdout_log='', stderr_log=''),
@@ -84,6 +84,7 @@ message_templates = {
     "eeg_experiments" : dict(experiment_list=''),
     "find_eeg_amplifiers" : dict(client_push_address='', amplifier_type=''),
     "eeg_amplifiers" : dict(amplifier_list=''),
+    "start_eeg_signal" : dict(client_push_address='', amplifier_params='', launch_file='', name=''),
     "launcher_shutdown" : dict(),
 
     "server_broadcast" : dict(rep_port='', pub_port=''),
@@ -92,6 +93,7 @@ message_templates = {
     "morph_to_new_scenario" : dict(launch_file='', name='', overwrites='', leave_on=''),
     "list_nearby_machines" : dict(),
     "nearby_machines" : dict(nearby_machines='')
+
 
 
 }
