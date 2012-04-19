@@ -82,7 +82,7 @@ message_templates = {
 
     "find_eeg_experiments" : dict(client_push_address='', checked_srvs=''),
     "eeg_experiments" : dict(experiment_list=''),
-    "find_eeg_amplifiers" : dict(client_push_address=''),
+    "find_eeg_amplifiers" : dict(client_push_address='', amplifier_type=''),
     "eeg_amplifiers" : dict(amplifier_list=''),
     "launcher_shutdown" : dict(),
 
