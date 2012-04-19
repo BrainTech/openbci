@@ -79,10 +79,10 @@ test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o 
 test_file_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_file_driver.o  $(FILE_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
-tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o)
+tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o) src/server_main.h
 	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
 
-file_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(FILE_DRIVER) file_driver_server.o )
+file_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(FILE_DRIVER)  TagAmplifierServer.o file_driver_server.o ) src/server_main.h
 	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
 
 dummy_receiver: $(BUILD)/DummyReceiver.o

@@ -22,8 +22,9 @@
 int main(int argc, char**argv)
 {
 	TmsiAmplifier driver;
+	AmplifierServer server(&driver);
 	try{
-	run(argc,argv,&driver);
+	run(argc,argv,&server);
 	}
 	catch (exception &e){
 		cerr << "Exception: "<<e.what();
