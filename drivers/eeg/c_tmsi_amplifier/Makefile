@@ -45,11 +45,12 @@ BUILD = build
 
 LIBRARIES	:= -L$(AZOUKDIR)/lib -lmultiplexer
 
-TARGETS = tmsi_driver_server signal_receiver dummy_tmsi_driver_server
-TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver
+TARGETS = tmsi_driver_server signal_receiver dummy_tmsi_driver_server file_driver_server
+TESTS=  test_server test_tmsi_driver test_dummy_driver  test_logger  dummy_receiver test_file_driver
 AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
 AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
 TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o
+FILE_DRIVER = $(AMPLIFIER_DRIVER) FileAmplifier.o
 
 all: $(TARGETS)
 
@@ -73,9 +74,15 @@ test_tmsi_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_tmsi_drive
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
 test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o  $(AMPLIFIER_DRIVER))
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST)
+
+test_file_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_file_driver.o  $(FILE_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
 
-tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o)
+tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o) src/server_main.h
+	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
+
+file_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(FILE_DRIVER)  TagAmplifierServer.o file_driver_server.o ) src/server_main.h
 	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
 
 dummy_receiver: $(BUILD)/DummyReceiver.o
@@ -114,7 +121,7 @@ $(BUILD)/%.o :  src/tests/%.cpp src/tests/%.h
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
 
 
-$(BUILD)/%.o :  src/tests/%.cpp
+$(BUILD)/%.o :  src/tests/%.cpp src/tests/test_driver.h
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -I src/ -c $< -o $@
 

@@ -20,7 +20,13 @@ using namespace std;
 #include <boost/program_options.hpp>
 #include <sys/timeb.h>
 #include <time.h>
-
+vector<string> split_string(string str,char separator);
+inline double get_time_as_double(){
+	struct timeval tv;
+	struct timezone tz;
+	gettimeofday(&tv,&tz);
+	return tv.tv_sec+tv.tv_usec/1000000.0;
+}
 class AmplifierDriver {
 private:
 	double sleep_res;
@@ -35,22 +41,21 @@ private:
 	}
 protected:
 	bool sampling;
-
 	uint sampling_rate,sampling_rate_;
 	string active_channels_str;
 	std::vector<Channel *> active_channels;
 	double last_sample;
+	double sample_timestamp;
 	double sampling_start_time;
 	AmplifierDescription * description;
 	static AmplifierDriver * signal_handler;
-	Logger logger;
-	double get_time(){
-		struct timeval tv;
-		struct timezone tz;
-		gettimeofday(&tv,&tz);
-		return tv.tv_sec+tv.tv_usec/1000000.0;
+
+	inline double get_time(){
+		return get_time_as_double();
 	}
+	virtual double get_expected_sample_time();
 public:
+	Logger logger;
 	uint cur_sample;
 	AmplifierDriver():logger(128,"AmplifierDriver"){
 		description=NULL;
@@ -67,6 +72,7 @@ public:
 		logger.info()<<"Destructor\n";
 		if (description)
 			delete description;
+		description=NULL;
 	}
 	void setup_handler();
 	virtual void start_sampling();
@@ -128,7 +134,7 @@ public:
 	virtual void init(boost::program_options::variables_map &vm);
 	virtual double next_samples();
 	inline double get_sample_timestamp(){
-		return last_sample;
+		return sample_timestamp;
 	}
 };
 

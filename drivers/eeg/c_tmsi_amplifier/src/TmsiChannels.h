@@ -43,6 +43,8 @@ public:
         unitId=t_chan.Type.UnitId;
         this->amplifier=amplifier;
         this->index=index;
+        if (get_main_type()=="ZAAG")
+        	name="Saw";
     }
     virtual string get_main_type(){
     	switch (type) {

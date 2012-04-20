@@ -52,6 +52,8 @@ private:
     int keep_alive;
     int read_errors;
     uint mode;
+protected:
+    virtual double get_expected_sample_time();
 public:
     TmsiAmplifier();
     uint get_digi(uint index);
@@ -86,7 +88,7 @@ public:
         return sampling_rate;
     }
 
-    void set_sampling_rate_div(int sampling_rate_div) {
+    void set_sampling_rate_div(uint sampling_rate_div) {
         sample_rate_div = sampling_rate_div;
         sampling_rate = fei.basesamplerate >> sample_rate_div;
     }
@@ -124,7 +126,7 @@ private:
 
     void refreshFrontEndInfo() {
         while (!_refreshInfo(TMSFRONTENDINFO));
-        set_sampling_rate_div(fei.currentsampleratesetting);
+        set_sampling_rate_div((uint)fei.currentsampleratesetting);
         sampling = true;
         stop_sampling();
     }
