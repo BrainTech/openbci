@@ -78,7 +78,7 @@ class EtrDecManager(object):
         # Decision
         self.decFlag = True
         self.decNDelay = self.delay
-        self.longDecNDelay = long_dec_delay
+        self.longDecNDelay = int(long_dec_delay)
         self.longDecFlag = True
         self.lastDec = -1
         
