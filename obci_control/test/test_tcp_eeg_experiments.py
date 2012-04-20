@@ -62,15 +62,26 @@ def get_eeg_experiments(host, port):
         print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
 
-    # msg = mtool.fill_msg("find_eeg_amplifiers")
-    # response = send_and_receive(host, port, msg)
+    msg = mtool.fill_msg("find_eeg_amplifiers", amplifier_type='virtual')
+    response = send_and_receive(host, port, msg)
 
-    # if response.type == 'rq_error':
-        # print 'BLEEEEEEEEE2', response
-    # else:
-        # print '\n\n****************************************************************\n\n'
+    if response.type == 'rq_error':
+        print 'BLEEEEEEEEE2', response
+    elif response is not None:
+        print '\n\n****************************************************************\n\n'
+        amp =  response.amplifier_list
+        if amp:
+            exp = amp[0]
+            params = exp['amplifier_params']
+            params['sampling_rate'] = '128'
+            params['active_channels'] = '1;2;3;4'
+            params['channel_names'] = 'aaa;bbb;xxx;fff'
+            msg = mtool.fill_msg('start_eeg_signal', amplifier_params=params, name='HELL YEAH',
+                                launch_file=exp['recommended_scenario'], client_push_address='')
+            response= send_and_receive(host, port, msg)
+
 
 
 if __name__ == '__main__':
-    get_eeg_experiments('localhost', int(net.server_tcp_proxy_port()))
+    get_eeg_experiments('127.0.0.1', int(net.server_tcp_proxy_port()))#'172.16.53.135'
     #59336

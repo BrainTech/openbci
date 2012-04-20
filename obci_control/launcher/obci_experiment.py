@@ -480,6 +480,9 @@ class OBCIExperiment(OBCIControlPeer):
             message.peer_id in self.unsupervised_peers:
             send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
                                     err_code='peer_id_in_use'))
+        elif self.mx_addr is None and 'mx' in self.exp_config.peers:
+            send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
+                                    err_code='mx_not_running'))
 
         # elif self.status.status_name != launcher_tools.RUNNING:
         #     send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),

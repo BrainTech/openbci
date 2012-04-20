@@ -14,7 +14,8 @@ import launcher.launcher_logging as logger
 import launcher.launcher_tools
 from common.obci_control_settings import PORT_RANGE
 
-#from drivers.eeg.driver_discovery.driver_discovery import find_drivers
+from drivers.eeg.driver_discovery.driver_discovery import find_drivers, \
+find_bluetooth_amps, find_virtual_amps, find_usb_amps
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
 
@@ -256,7 +257,15 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     time.sleep(0.1)
 
 def find_new_experiments_and_push_results(ctx, rq_message):
-    driv = find_drivers()
+
+    if rq_message.type == 'bt' or rq_message == 'bluetooth':
+        driv = find_bluetooth_amps()
+    elif rq_message == 'usb':
+        driv = find_usb_amps()
+    elif rq_message == 'virtual':
+        driv = find_virtual_amps()
+    else:
+        driv = find_drivers()
     LOGGER.info("amplifiers! return to:  " + rq_message.client_push_address)
     mtool = OBCIMessageTool(message_templates)
     to_client = ctx.socket(zmq.PUSH)
