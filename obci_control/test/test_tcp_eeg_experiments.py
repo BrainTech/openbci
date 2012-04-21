@@ -70,7 +70,7 @@ def get_eeg_experiments(host, port):
 
 
 def get_eeg_amplifiers(host, port):
-    msg = mtool.fill_msg("find_eeg_amplifiers", amplifier_type='')
+    msg = mtool.fill_msg("find_eeg_amplifiers", amplifier_types=['bt', 'usb', 'virtual'])
     response = send_and_receive(host, port, msg)
 
     if response is None:

@@ -218,6 +218,7 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
 
 
 def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_servers):
+    LOGGER = logger.get_logger("eeg_experiment_finder", "info")
     finder = EEGExperimentFinder(srv_addrs, ctx, rq_message.client_push_address, nearby_servers)
     exps = finder.find_amplified_experiments()
     mpoller = PollingObject()
@@ -257,13 +258,21 @@ def find_eeg_experiments_and_push_results(ctx, srv_addrs, rq_message, nearby_ser
     time.sleep(0.1)
 
 def find_new_experiments_and_push_results(ctx, rq_message):
+    LOGGER = logger.get_logger("eeg_AMPLIFIER_finder", "info")
 
-    if rq_message.type == 'bt' or rq_message == 'bluetooth':
-        driv = find_bluetooth_amps()
-    elif rq_message == 'usb':
-        driv = find_usb_amps()
+    if not rq_message.amplifier_types:
+        LOGGER.info("AMPLIFIER TYPES NOT SET, FINDING ALL...")
+        driv = find_drivers()
     else:
-        driv = find_virtual_amps()
+        driv = []
+        for amptype in rq_message.amplifier_types:
+
+            if amptype == 'bt' or amptype == 'bluetooth':
+                driv += find_bluetooth_amps()
+            elif amptype == 'usb':
+                driv += find_usb_amps()
+            elif amptype == 'virtual':
+                driv += find_virtual_amps()
 
     LOGGER.info("amplifiers! return to:  " + rq_message.client_push_address)
     mtool = OBCIMessageTool(message_templates)
