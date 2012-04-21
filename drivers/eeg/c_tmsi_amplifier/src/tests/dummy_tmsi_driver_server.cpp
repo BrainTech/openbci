@@ -22,6 +22,7 @@
 int main(int argc, char**argv)
 {
 	DummyTmsiAmplifier driver;
-	int res = run(argc,argv,&driver);
+	AmplifierServer server(&driver);
+	int res = run(argc,argv,&server);
 	return res;
 }
