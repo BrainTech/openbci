@@ -3,6 +3,8 @@
 
 import json
 import socket
+import time
+
 from common.message import OBCIMessageTool
 import common.net_tools as net
 
@@ -47,6 +49,10 @@ def get_eeg_experiments(host, port):
     msg = mtool.fill_msg("find_eeg_experiments")
     response = send_and_receive(host, port, msg)
 
+    if response is None:
+        print "FAIL."
+        return
+
     if response.type == 'rq_error':
         print 'BLEEEEEEEEE'
     else:
@@ -62,26 +68,77 @@ def get_eeg_experiments(host, port):
         print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
 
 
-    msg = mtool.fill_msg("find_eeg_amplifiers", amplifier_type='virtual')
+
+def get_eeg_amplifiers(host, port):
+    msg = mtool.fill_msg("find_eeg_amplifiers", amplifier_type='')
     response = send_and_receive(host, port, msg)
+
+    if response is None:
+        print "FAIL."
+        return
 
     if response.type == 'rq_error':
         print 'BLEEEEEEEEE2', response
-    elif response is not None:
+    else:
         print '\n\n****************************************************************\n\n'
         amp =  response.amplifier_list
         if amp:
+            # first from the amplifier list
             exp = amp[0]
+            # fill amplifier params
             params = exp['amplifier_params']
             params['sampling_rate'] = '128'
             params['active_channels'] = '1;2;3;4'
             params['channel_names'] = 'aaa;bbb;xxx;fff'
+
+            # request for experiment launch
             msg = mtool.fill_msg('start_eeg_signal', amplifier_params=params, name='HELL YEAH',
                                 launch_file=exp['recommended_scenario'], client_push_address='')
             response= send_and_receive(host, port, msg)
+
+            if response is None:
+                print "start eeg signal failed :-("
+
+            elif response.type == "starting_experiment":
+                msg = mtool.fill_msg("get_experiment_contact", strname=response.sender)
+                contact = send_and_receive(host, port, msg)
+
+                if contact is None:
+                    print "could not contact experment :/"
+                    return
+                elif contact.type == "experiment_contact":
+                    # now we can try to join experiment
+                    ip, port = contact.tcp_addrs[0]
+                    _try_join_experiment(ip, port, "lame_test_script")
+
+
+
+def _try_join_experiment(host, port, peer_id):
+    trials = 5
+    msg = mtool.fill_msg("join_experiment", peer_id=peer_id)
+    success = False
+    while not success and trials > 0:
+        result = send_and_receive(host, port, msg)
+        if result is None:
+            print "damn this network, could not contact experiment"
+
+        elif result.type == "rq_error":
+            if result.err_code == "mx_not_running":
+                print "Multiplexer has not yet started!"
+            elif result.err_code == "peer_id_in_use":
+                print "PEER ID already exists."
+                break
+        else:
+            print "SUCCESS"
+            success = True
+        time.sleep(0.3)
+        trials -= 1
+
+
 
 
 
 if __name__ == '__main__':
     get_eeg_experiments('127.0.0.1', int(net.server_tcp_proxy_port()))#'172.16.53.135'
+    get_eeg_amplifiers('127.0.0.1', int(net.server_tcp_proxy_port()))#'172.16.53.135'
     #59336
