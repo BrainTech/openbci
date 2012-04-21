@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 #ifdef BLUETOOTH
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
@@ -337,6 +338,9 @@ void TmsiAmplifier::stop_sampling(bool disconnecting) {
     }
     logger.info()<<"Stop sampling succeeded after "<<retry<<" messages!\n";
     if (mode==IP_AMPLIFIER&& disconnecting) 	disconnect_mobita();
+}
+double TmsiAmplifier::get_expected_sample_time(){
+	return last_sample+1.0/sampling_rate;
 }
 double TmsiAmplifier::next_samples() {
     channel_data_index++;

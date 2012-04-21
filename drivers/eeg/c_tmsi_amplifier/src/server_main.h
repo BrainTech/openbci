@@ -25,47 +25,35 @@ namespace po= boost::program_options;
 #include "AmplifierDriver.h"
 #include "Logger.h"
 
-int run(int argc, char**argv,AmplifierDriver * driver)
+int run(int argc, char**argv,AmplifierServer * server)
 {
 	string line;
-	AmplifierServer server(driver);
+	AmplifierDriver *driver=server->get_driver();
 	Logger log(128,"Amplifier Server");
-	server.set_logger(&log);
+	server->set_logger(&log);
 	po::options_description options("Program Options");
 	options.add_options()
 			("help,H","Show program options and help");
-	options.add(driver->get_options()).add(server.get_options());
+	options.add(driver->get_options()).add(server->get_options());
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc,argv,options),vm);
 	po::notify(vm);
 	if (vm.count("help"))
 		cout << "This program connects to amplifier and prints its description in JSON, including name, available sampling rates "\
-				" and available channels. \n After initialization it waits on stdin for parameters: sampling_rate <value>, active_channels <coma_separeted_channel_names>"\
-				" or start\n Command line options:\n" << options;
+				" and available channels. \n After initialization it waits on stdin for parameters:\n"<<server->get_commands()<<"\nCommand line options:\n" << options;
 	driver->init(vm);
 	cout <<driver->get_description()->get_json() <<"\n\n";
-	server.init(vm);
+	server->init(vm);
 	while (!(cin>>line).fail()){
-		if (line=="start"){
-			cout << "\n";
-			cout.flush();
-			server.start_sampling();
-			continue;
+		if (server->do_command(line,cin))
+			cout <<line<<" OK\n";
+		else if (line=="exit"){
+			cout <<line<<" OK\n";
+			break;
 		}
-		else if (line=="stop")
-			server.stop_sampling();
-		else if (line=="sampling_rate"){
-			uint s_r;
-			cin>>s_r;
-			driver->set_sampling_rate_(s_r);
-		}
-		else if (line=="active_channels"){
-			cin>>line;
-			driver->set_active_channels_string(line);
-		}
-		else if (line=="exit") break;
-		cout <<"\n";
+		else
+			cout <<line<<" Error\n";
 	}
-	cerr <<driver->get_description()->get_name()<< " dmakriver server exit\n";
+	cerr <<driver->get_description()->get_name()<< " driver server exit\n";
 	return 0;
 }

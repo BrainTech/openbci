@@ -12,8 +12,9 @@ from utils import openbci_logging as logger
 
 LOGGER = logger.get_logger('tags_helper', 'info')
 
-
-
+def pack_tag_from_tag(tag_dict):
+    return pack_tag(tag_dict['start_timestamp'], tag_dict['end_timestamp'],
+                    tag_dict['name'], tag_dict['desc'], tag_dict['channels'])
 
 def pack_tag(p_start_timestamp, p_end_timestamp, 
              p_tag_name, p_tag_desc={}, p_tag_channels=""):

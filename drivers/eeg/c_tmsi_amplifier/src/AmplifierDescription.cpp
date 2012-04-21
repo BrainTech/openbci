@@ -25,10 +25,7 @@ vector<Channel*> AmplifierDescription::get_channels() {
 AmplifierDescription::~AmplifierDescription() {
 	clear_channels();
 }
-AmplifierDescription::AmplifierDescription(string name,AmplifierDriver *driver) {
-	this->name = name;
-	this->driver=driver;
-}
+AmplifierDescription::AmplifierDescription(string name,AmplifierDriver *driver):name(name),physical_channels(0),driver(driver) {}
 vector<uint> AmplifierDescription::get_sampling_rates() {
 	return sampling_rates;
 }
@@ -84,7 +81,7 @@ string Channel::get_json() {
 	return out.str();
 }
 Channel::Channel(string name) :
-		name(name), gain(1.0), offset(0){
+		name(name), gain(1.0), offset(0),is_signed(true),bit_length(32){
 }
 string Channel::get_idle() {
 	ostringstream out;

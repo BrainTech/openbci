@@ -7,7 +7,6 @@
 
 #ifndef AMPLIFIERSERVER_H
 #define	AMPLIFIERSERVER_H
-#define BOOST
 #include "boost.h"
 #include "multiplexer/backend/BaseMultiplexerServer.h"
 #include "variables.pb.h"
@@ -44,6 +43,11 @@ public:
         logger=log;
     }
     void connect(string host,uint port);
+    virtual bool do_command(string command,istream& cin);
+    virtual string get_commands();
+    AmplifierDriver *get_driver(){
+    	return driver;
+    }
 #ifdef BOOST
     virtual boost::program_options::options_description  get_options();
     void init(boost::program_options::variables_map vm);
@@ -54,6 +58,7 @@ protected:
     pthread_t sampling_thread,receiving_thread;
     AmplifierDriver * driver;
     Logger *logger;
+    virtual bool fetch_samples();
 };
 
 #endif	/* AMPLIFIERSERVER_H */

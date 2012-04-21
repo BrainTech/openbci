@@ -44,19 +44,32 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 	ampSaw=amp->get_description()->find_channel("Saw");
 	driverSaw=amp->get_description()->find_channel("Driver_Saw");
 	vector<Channel *> channels = amp->get_active_channels();
+	uint last_saw;
+
 	if (!vm.count("start"))
 		return 0;
+	if (saw){
+		if (!ampSaw || !driverSaw){
+			cerr<< "Driver has no 'Saw' or 'DriverSaw' channel which are required for 'saw' option";
+			return -1;
+		}
+		else
+			last_saw=ampSaw->get_raw_sample();
+	}
 	amp->start_sampling();
 	ptime start=microsec_clock::local_time();
+	double start_time=amp->get_sample_timestamp();
 
 	printf("SAMPLING STARTED at %s  and will stop after %d (%d)samples\n",to_simple_string(start).c_str(),length*sample_rate,length);
 	cout.precision(3);
 	uint lost_samples=0;
 	int i=0;
 	double last_sample_time=amp->get_sample_timestamp();
-	uint last_saw=ampSaw->get_raw_sample();
-	while ((i++ < length * sample_rate) & amp->is_sampling()) {
+	usleep(200000);
+	double stop_time;
+	while ((i < length * sample_rate) & amp->is_sampling()) {
 		double cur_sample=amp->next_samples();
+		if (!amp->is_sampling()) break;
 		if (channels.size()>0){
 			printf("[%15s] S %d, timestamp: %.20f\n",
 					to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,cur_sample);
@@ -91,15 +104,19 @@ int test_driver(int argc, char ** argv, AmplifierDriver *amp){
 			double expected_sample=last_sample_time+1.0/amp->get_sampling_rate();
 			if (abs(expected_sample-cur_sample)>time_diff)
 				printf("[%15s] S %d: ERROR!!! Has different timestamp than expected: (exp: %f,got: %f,diff: %f)\n",
-						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),driverSaw->get_raw_sample(),expected_sample,cur_sample,cur_sample-expected_sample);
-			last_sample_time=cur_sample;
+						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,expected_sample,cur_sample,cur_sample-expected_sample);
+
 		}
+		last_sample_time=cur_sample;
+		stop_time=get_time_as_double();
+		i++;
 	}
 	ptime end=microsec_clock::local_time();
 	printf("Sampling will be stopped at %s after %d samples\n",
 			to_simple_string(end).c_str(), i);
 	printf("Duration: %s\n",to_simple_string(end-start).c_str());
-	printf("Actual frequency: %f\n",i/(double)(end-start).total_microseconds()*1000000);
+	printf("First TS: %f,last TS: %f, computed_frequency: %f\n",start_time,last_sample_time,i/(last_sample_time-start_time));
+	printf("Actual frequency: %f\n",i/(stop_time-start_time));
 	printf("Lost samples: %d\n",lost_samples);
 
 	amp->stop_sampling();

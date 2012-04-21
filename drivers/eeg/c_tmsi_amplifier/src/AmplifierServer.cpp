@@ -58,7 +58,10 @@ AmplifierServer::~AmplifierServer() {
     stop_sampling();
     pthread_kill(receiving_thread, 0);
 }
-
+bool AmplifierServer::fetch_samples(){
+	driver->next_samples();
+	return driver->is_sampling();
+}
 void AmplifierServer::do_sampling(void * ptr = NULL) {
     MultiplexerMessage msg;
 	msg.set_from(conn->instance_id());
@@ -73,8 +76,7 @@ void AmplifierServer::do_sampling(void * ptr = NULL) {
     }
     while (driver->is_sampling()) {
     	for (uint i=0;i<samples_per_vector;i++){
-    		driver->next_samples();
-    		if (!driver->is_sampling()) {
+    		if (!fetch_samples()) {
     			while (i++<samples_per_vector)
     				s_vector.mutable_samples()->RemoveLast();
     			break;
@@ -128,3 +130,27 @@ void AmplifierServer::stop_sampling() {
 void AmplifierServer::handle_message(MultiplexerMessage & msg) {
     debug("Received message! Type:%s message: %s", types::get_name(msg.type()), msg.message().c_str());
 }
+
+bool AmplifierServer::do_command(string command, istream &cin){
+	if (command=="start"){
+				cout.flush();
+				start_sampling();
+			}
+	else if (command=="stop")
+				stop_sampling();
+	else if (command=="sampling_rate"){
+				uint s_r;
+				cin>>s_r;
+				driver->set_sampling_rate_(s_r);
+			}
+	else if (command=="active_channels"){
+				string line;
+				cin>>line;
+				driver->set_active_channels_string(line);
+			}
+	else return false;
+	return true;
+}
+string AmplifierServer::get_commands(){
+    	return "sampling_rate <value>, active_channels <coma_separated_channel_names>, start, stop";
+    }
