@@ -77,4 +77,6 @@ def find_virtual_amps():
 
 if __name__ == '__main__':
     # DriverDiscovery(settings.MULTIPLEXER_ADDRESSES).loop()
-    print find_drivers()
+    drivers = find_drivers()
+    import json
+    print json.dumps(drivers, indent=4)
