@@ -6,7 +6,7 @@
 message_templates = {
     "register_peer" : dict(peer_type='', uuid='', rep_addrs='', pub_addrs='', name='', other_params=''),
 
-    "create_experiment" : dict(launch_file='', sandbox_dir='', name='', overwrites=''),
+    "create_experiment" : dict(launch_file='', sandbox_dir='', name='', overwrites='', serialized_scenario=''),
     "experiment_created" : dict(name='', uuid='', rep_addrs='', pub_addrs='', origin_machine='',
                                     status_name='', details='', launch_file_path='',
                                     tcp_addrs='', ip=''),
@@ -29,6 +29,9 @@ message_templates = {
         path='',
         peer_id='',
         peer_type=''),
+    "get_experiment_scenario" : dict(),
+    "experiment_scenario" : dict(scenario=''),
+    "set_experiment_scenario" : dict(scenario=''),
 
     "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='',
                                 launcher_message='', params='', details=''),

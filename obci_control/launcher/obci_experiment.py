@@ -8,6 +8,7 @@ import argparse
 import subprocess
 import threading
 import socket
+import io
 
 import zmq
 
@@ -23,6 +24,7 @@ from obci_control_peer import RegistrationDescription
 import subprocess_monitor
 
 import launch_file_parser
+from launch_file_serializer import serialize_scenario_json
 import launcher_tools
 import system_config
 import obci_process_supervisor
@@ -74,7 +76,10 @@ class OBCIExperiment(OBCIControlPeer):
 
         self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
 
-        self.exp_config, self.status = self._initialize_experiment_config(self.launch_file, overwrites)
+        if launch_file == 'None': # command line arg
+            self._initialize_experiment_without_config()
+        else:
+            self.exp_config, self.status = self._initialize_experiment_config(self.launch_file, overwrites)
         print "initialised config"
         self.status_changed(self.status.status_name, self.status.details)
         print "status changed!!!"
@@ -240,6 +245,7 @@ class OBCIExperiment(OBCIControlPeer):
         exp_config.origin_machine = self.origin_machine
         exp_config.launch_file_path = launch_file
 
+
         result, details = self.make_experiment_config(exp_config, launch_file, status)
         if overwrites:
             try:
@@ -254,10 +260,18 @@ class OBCIExperiment(OBCIControlPeer):
         exp_config.status(status)
         status.details = details
         # status_changed(status.status_name, status.details)
-        if not result:
+        if not launch_file:
+            print "No launch file"
+        elif not result:
             print "- - - - - - - NEW LAUNCH FILE INVALID!!!  - - - - - - - "
             print "status:", status.as_dict(), details
         return exp_config, status
+
+    def _initialize_experiment_without_config(self):
+        self.status = launcher_tools.ExperimentStatus()
+        self.status.set_status(launcher_tools.NOT_READY, details="No launch_file")
+        self.exp_config = system_config.OBCIExperimentConfig()
+        self.exp_config.origin_machine = self.origin_machine
 
     def make_experiment_config(self, exp_config, launch_file, status):
         launch_parser = launch_file_parser.LaunchFileParser(
@@ -452,7 +466,31 @@ class OBCIExperiment(OBCIControlPeer):
     def handle_get_peer_config(self, message, sock):
         send_msg(sock, self.mtool.fill_msg('ping', sender=self.uuid))
 
+    @msg_handlers.handler('get_experiment_scenario')
+    def handle_get_experiment_scenario(self, message, sock):
+        jsoned = serialize_scenario_json(self.exp_config)
+        send_msg(sock, self.mtool.fill_msg('experiment_scenario', scenario=jsoned))
 
+    @msg_handlers.handler('set_experiment_scenario')
+    def handle_set_experiment_scenario(self, message, sock):
+        if self.exp_config.peers:
+            send_msg(sock, self.mtool.fill_msg('rq_error', err_code='scenario_already_set'))
+        else:
+            jsonpar = launch_file_parser.LaunchJSONParser(
+                        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+            self.exp_config.launch_file_path = None
+
+            inbuf = io.BytesIO(message.scenario.encode(encoding='utf-8'))
+            jsonpar.parse(inbuf, self.exp_config)
+
+            rd, details = self.exp_config.config_ready()
+            if rd:
+                self.status.set_status(launcher_tools.READY_TO_LAUNCH)
+            else:
+                self.status.set_status(launcher_tools.NOT_READY, details=details)
+                print rd, details
+            self.exp_config.status(self.status)
+            send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
     @msg_handlers.handler('start_experiment')
     def handle_start_experiment(self, message, sock):
@@ -648,7 +686,7 @@ class OBCIExperiment(OBCIControlPeer):
         new_launch_file = launcher_tools.obci_root_relative(message.launch_file)
         exp_config, status = self._initialize_experiment_config(new_launch_file,
                                                             message.overwrites)
-
+        print "new launch status", exp_config, status.status_name
         if status.status_name != launcher_tools.READY_TO_LAUNCH:
             if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
                 send_msg(sock, self.mtool.fill_msg('rq_error',

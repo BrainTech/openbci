@@ -4,6 +4,7 @@
 
 import warnings
 import os
+import codecs
 
 from common.config_helpers import *
 import launcher_tools
@@ -81,7 +82,7 @@ class OBCIExperimentConfig(object):
         self.peers[peer_id].path = path
 
     def set_config_source(self, peer_id, src_name, src_peer_id):
-        if src_peer_id not in self.peers:
+        if src_peer_id and src_peer_id not in self.peers:
             raise OBCISystemConfigError("(src) Peer ID {0} not in peer list".format(src_peer_id))
         if peer_id not in self.peers:
             raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
@@ -268,7 +269,7 @@ class PeerConfigDescription(object):
 
         self.experiment_id = experiment_id
 
-        self.config = config
+        self.config = PeerConfig(peer_id)
         self.path = path
         self.machine = machine
         self.public_params = []
@@ -314,7 +315,22 @@ class PeerConfigDescription(object):
     def launch_data(self):
         ser = PeerConfigSerializerCmd()
         args = [self.peer_id]
-        ser.serialize(self.config, args)
+        peer_parser = peer.peer_config_parser.parser("ini")
+        base_config = PeerConfig(self.peer_id)
+        conf_path = launcher_tools.default_config_path(self.path)
+        if conf_path:
+
+            with codecs.open(conf_path, "r", "utf8") as f:
+                print "parsing default config for peer  ", self.peer_id, conf_path
+                peer_parser.parse(f, base_config)
+            #print "Loaded default config {0} for {1}, path: {2}".format(
+            #                            conf_path, peer_id, peer_program_path)
+        else:
+            #print "No default config found for {1}, prog.path: {1}".format(
+            #                                        peer_id, peer_program_path)
+            pass
+
+        ser.serialize_diff(base_config, self.config, args)
 
         return dict(peer_id=self.peer_id, experiment_id=self.experiment_id,
                     path=self.path, machine=self.machine,

@@ -121,7 +121,16 @@ class PeerConfigSerializerJSON(PeerConfigSerializer):
         self.dic = {}
 
     def _save(self, p_file_obj):
-        json.dump(self.dic, p_file_obj, ensure_ascii=True)
+        json.dump(self.dic, p_file_obj)
+
+    def _do_serialize_diff(self, p_base_config, p_config):
+        sources, deps, params = self.difference(p_base_config, p_config)
+        self._serialize_config_sources(p_config.config_sources)
+
+        self._serialize_launch_deps(p_config.launch_deps)
+
+        self._serialize_local_params(params, p_config.ext_param_defs)
+        self._serialize_ext_params(params, p_config.ext_param_defs)
 
     def _serialize_config_sources(self, p_sources):
         self.dic[helpers.CONFIG_SOURCES] = p_sources
@@ -155,6 +164,15 @@ class PeerConfigSerializerCmd(PeerConfigSerializer):
         for a in self.args:
             p_file_obj.append(a)
         #p_file_obj = self.args
+
+    def _do_serialize_diff(self, p_base_config, p_config):
+        sources, deps, params = self.difference(p_base_config, p_config)
+        self._serialize_config_sources(p_config.config_sources)
+
+        self._serialize_launch_deps(p_config.launch_deps)
+
+        self._serialize_local_params(params, p_config.ext_param_defs)
+        self._serialize_ext_params(params, p_config.ext_param_defs)
 
     def _serialize_config_sources(self, p_sources):
         for sname, peer_id in p_sources.iteritems():
