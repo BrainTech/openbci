@@ -80,8 +80,8 @@ string Channel::get_json() {
 	out << "]}";
 	return out.str();
 }
-Channel::Channel(string name) :
-		name(name), gain(1.0), offset(0),is_signed(true),bit_length(32){
+Channel::Channel(string name,AmplifierDriver *amp) :
+		amplifier(amp),name(name), gain(1.0), offset(0),is_signed(true),bit_length(32){
 }
 string Channel::get_idle() {
 	ostringstream out;
@@ -92,19 +92,19 @@ string Channel::get_idle() {
 	return out.str();
 }
 int SawChannel::get_raw_sample() {
-	return amplifier->get_driver()->cur_sample;
+	return amplifier->cur_sample;
 }
 double SinusChannel::get_value(){
-	return sin((amplifier->get_driver()->cur_sample%period)*2*M_PI/period);
+	return sin((amplifier->cur_sample%period)*2*M_PI/period);
 }
 double CosinusChannel::get_value(){
-	return cos((amplifier->get_driver()->cur_sample%period)*2*M_PI/period);
+	return cos((amplifier->cur_sample%period)*2*M_PI/period);
 }
 double ModuloChannel::get_value(){
-	return (amplifier->get_driver()->cur_sample%period)/(double)period;
+	return (amplifier->cur_sample%period)/(double)period;
 }
 
-FunctionChannel::FunctionChannel(AmplifierDescription *amp,uint period,string function_name):
+FunctionChannel::FunctionChannel(AmplifierDriver *amp,uint period,string function_name):
 	GeneratedChannel(function_name,amp){
 	this->period=period;
 	amplitude=rand()%100+1;
@@ -129,47 +129,47 @@ double FunctionChannel::get_adjusted_sample(){
 }
 DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
 
-	add_channel(new SinusChannel(this,128));
-	add_channel(new CosinusChannel(this,128));
-	add_channel(new ModuloChannel(this,128));
-	add_channel(new FunctionChannel(this,128));
+	add_channel(new SinusChannel(driver,128));
+	add_channel(new CosinusChannel(driver,128));
+	add_channel(new ModuloChannel(driver,128));
+	add_channel(new FunctionChannel(driver,128));
 
-	add_channel(new SinusChannel(this,256));
-	add_channel(new CosinusChannel(this,256));
-	add_channel(new ModuloChannel(this,256));
-	add_channel(new FunctionChannel(this,256));
+	add_channel(new SinusChannel(driver,256));
+	add_channel(new CosinusChannel(driver,256));
+	add_channel(new ModuloChannel(driver,256));
+	add_channel(new FunctionChannel(driver,256));
 
-	add_channel(new SinusChannel(this,512));
-	add_channel(new CosinusChannel(this,512));
-	add_channel(new ModuloChannel(this,512));
-	add_channel(new FunctionChannel(this,512));
+	add_channel(new SinusChannel(driver,512));
+	add_channel(new CosinusChannel(driver,512));
+	add_channel(new ModuloChannel(driver,512));
+	add_channel(new FunctionChannel(driver,512));
 
-	add_channel(new SinusChannel(this,1024));
-	add_channel(new CosinusChannel(this,1024));
-	add_channel(new ModuloChannel(this,1024));
-	add_channel(new FunctionChannel(this,1024));
+	add_channel(new SinusChannel(driver,1024));
+	add_channel(new CosinusChannel(driver,1024));
+	add_channel(new ModuloChannel(driver,1024));
+	add_channel(new FunctionChannel(driver,1024));
 
-	add_channel(new SinusChannel(this,1024));
-	add_channel(new CosinusChannel(this,1024));
-	add_channel(new ModuloChannel(this,1024));
-	add_channel(new FunctionChannel(this,1024));
+	add_channel(new SinusChannel(driver,1024));
+	add_channel(new CosinusChannel(driver,1024));
+	add_channel(new ModuloChannel(driver,1024));
+	add_channel(new FunctionChannel(driver,1024));
 
-	add_channel(new SinusChannel(this,2048));
-	add_channel(new CosinusChannel(this,2048));
-	add_channel(new ModuloChannel(this,2048));
-	add_channel(new FunctionChannel(this,2048));
+	add_channel(new SinusChannel(driver,2048));
+	add_channel(new CosinusChannel(driver,2048));
+	add_channel(new ModuloChannel(driver,2048));
+	add_channel(new FunctionChannel(driver,2048));
 
-	add_channel(new SinusChannel(this,4096));
-	add_channel(new CosinusChannel(this,4096));
-	add_channel(new ModuloChannel(this,4096));
-	add_channel(new FunctionChannel(this,4096));
+	add_channel(new SinusChannel(driver,4096));
+	add_channel(new CosinusChannel(driver,4096));
+	add_channel(new ModuloChannel(driver,4096));
+	add_channel(new FunctionChannel(driver,4096));
 
-	add_channel(new Channel("temp2"));
-	SawChannel *saw=new SawChannel(this);
+	add_channel(new Channel("temp2",driver));
+	SawChannel *saw=new SawChannel(driver);
 	saw->name="Saw";
 	add_channel(saw);
-	add_channel(new SawChannel(this));
-	add_channel(new BoolChannel("Trigger",this));
+	add_channel(new SawChannel(driver));
+	add_channel(new BoolChannel("Trigger",driver));
 	sampling_rates.push_back(128);
 	sampling_rates.push_back(256);
 	sampling_rates.push_back(2048);

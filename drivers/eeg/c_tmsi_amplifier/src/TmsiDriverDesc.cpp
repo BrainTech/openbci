@@ -20,10 +20,10 @@ TmsiDriverDesc::TmsiDriverDesc(tms_input_device_t &dev,TmsiAmplifier *amp):Ampli
 		add_channel(channel);
 	}
 	physical_channels=dev.NrOfChannels;
-	add_channel(new SawChannel(this));
-	add_channel(new TriggerChannel(this));
-	add_channel(new OnOffChannel(this));
-	add_channel(new BatteryChannel(this));
+	add_channel(new SawChannel(amp));
+	add_channel(new TriggerChannel(amp));
+	add_channel(new OnOffChannel(amp));
+	add_channel(new BatteryChannel(amp));
 	uint base_sampling_rate=amp->get_base_sample_rate();
 	while (base_sampling_rate>64){
 		sampling_rates.insert(sampling_rates.begin(),base_sampling_rate);

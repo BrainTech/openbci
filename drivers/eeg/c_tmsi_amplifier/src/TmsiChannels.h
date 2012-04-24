@@ -24,11 +24,10 @@ private:
 	uint type;
 	uint unitId;
 protected:
-	TmsiAmplifier *amplifier;
 	uint index;
 
 public:
-    TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription){
+    TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription,(AmplifierDriver*)amplifier){
     	gain = t_chan.Type.a;
         offset = t_chan.Type.b;
         other_params.push_back(t_chan.GainCorrection);
@@ -41,7 +40,6 @@ public:
         is_signed = t_chan.Type.Format & 0x100;
         bit_length = t_chan.Type.Format & 0xFF;
         unitId=t_chan.Type.UnitId;
-        this->amplifier=amplifier;
         this->index=index;
         if (get_main_type()=="ZAAG")
         	name="Saw";
@@ -121,8 +119,9 @@ public:
 };
 class SpecialChannel:public GeneratedChannel{
 	uint mask;
+
 public:
-	SpecialChannel(string name,uint mask,TmsiDriverDesc *description);
+	SpecialChannel(string name,uint mask,TmsiAmplifier *amp);
 	virtual int get_raw_sample();
 	virtual string get_type(){
 		return "BITMAP";
@@ -130,18 +129,19 @@ public:
 	virtual string get_unit(){
 		return "bit";
 	}
+
 };
 class OnOffChannel:public SpecialChannel{
 public:
-	OnOffChannel(TmsiDriverDesc *description):SpecialChannel("onoff",ON_OFF_BUTTON,description){}
+	OnOffChannel(TmsiAmplifier *amp):SpecialChannel("onoff",ON_OFF_BUTTON,amp){}
 };
 class TriggerChannel:public SpecialChannel{
 public:
-	TriggerChannel(TmsiDriverDesc *description):SpecialChannel("trig",TRIGGER_ACTIVE,description){}
+	TriggerChannel(TmsiAmplifier *amp):SpecialChannel("trig",TRIGGER_ACTIVE,amp){}
 };
 class BatteryChannel:public SpecialChannel{
 public:
-	BatteryChannel(TmsiDriverDesc *description):SpecialChannel("bat",BATTERY_LOW,description){}
+	BatteryChannel(TmsiAmplifier *amp):SpecialChannel("bat",BATTERY_LOW,amp){}
 };
 
 #endif

@@ -59,9 +59,8 @@ double FileAmplifier::next_samples(){
 	return AmplifierDriver::next_samples();
 }
 
-FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name){
+FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name,amp){
 	this->offset=offset;
-	this->amplifier=amp;
 	if (type=="double"){
 		this->bit_length=64;
 		this->type=DOUBLE;

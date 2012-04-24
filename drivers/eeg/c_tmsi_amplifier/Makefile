@@ -51,6 +51,7 @@ AMPLIFIER_DRIVER = AmplifierDriver.o AmplifierDescription.o
 AMPLIFIER_SERVER = variables.pb.o AmplifierServer.o
 TMSI_DRIVER = $(AMPLIFIER_DRIVER) TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o tmsi.o
 FILE_DRIVER = $(AMPLIFIER_DRIVER) FileAmplifier.o
+GTEC_DRIVER = $(AMPLIFIER_DRIVER) GTecDriver.o GTecDescription.o
 
 all: $(TARGETS)
 
@@ -77,7 +78,11 @@ test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o 
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST)
 
 test_file_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_file_driver.o  $(FILE_DRIVER))
+	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST)
+	
+test_gtec_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_gtec_driver.o  $(GTEC_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
+ 
 
 tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o) src/server_main.h
 	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
@@ -111,6 +116,11 @@ $(BUILD)/AmplifierServer.o: src/AmplifierServer.cpp src/AmplifierServer.h $(BUIL
 $(BUILD)/%.o :  src/%.cpp src/%.h src/Logger.h
 	mkdir -p $(BUILD)
 	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
+$(BUILD)/%.o :  src/gtec/%.cpp src/gtec/%.h src/Logger.h
+	mkdir -p $(BUILD)
+	$(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+
 	
 $(BUILD)/%.o :  src/%.cpp
 	mkdir -p $(BUILD)

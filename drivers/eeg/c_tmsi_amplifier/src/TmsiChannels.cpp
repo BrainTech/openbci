@@ -11,13 +11,13 @@ string TmsiChannel::get_type(){
 	return get_main_type()+" "+get_subtype();
 }
 int TmsiChannel::get_raw_sample(){
-	return amplifier->get_sample_int(index);
+	return ((TmsiAmplifier*)amplifier)->get_sample_int(index);
 }
 int DigiChannel::get_raw_sample(){
-	return amplifier->get_digi(index);
+	return ((TmsiAmplifier*)amplifier)->get_digi(index);
 }
 int SpecialChannel::get_raw_sample(){
-		vector<Channel *> digi_chan=((TmsiDriverDesc*)amplifier)->get_digi_channels();
+		vector<Channel *> digi_chan=((TmsiDriverDesc*)amplifier->get_description())->get_digi_channels();
 		uint res=0;
 		uint tmp;
 		for (uint i=0;i<digi_chan.size();i++){
@@ -29,7 +29,7 @@ int SpecialChannel::get_raw_sample(){
 		return res;
 	}
 
-SpecialChannel::SpecialChannel(string name,uint mask,TmsiDriverDesc *description):GeneratedChannel(name,description){
-		this->bit_length=description->get_digi_channels().size();
+SpecialChannel::SpecialChannel(string name,uint mask,TmsiAmplifier *amp):GeneratedChannel(name,amp){
+		this->bit_length=((TmsiDriverDesc*)amplifier->get_description())->get_digi_channels().size();
 		this->mask=mask;
 		}
