@@ -16,7 +16,7 @@ from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from launcher.launcher_messages import message_templates
 import launcher.obci_script as obci_script
 import launcher.launcher_tools as launcher_tools
-from launcher.launch_file_serializer import LaunchFileSerializerINI
+from launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
 
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
 DEFAULT_CATEGORY, USER_CATEGORY
@@ -394,12 +394,31 @@ class OBCILauncherEngine(QtCore.QObject):
         if exp.launcher_data:
             print "already running"
             return
+        jsoned = serialize_scenario_json(exp.exp_config)
 
-        args = exp.get_launch_args()
-        print "launch_args", args
-        result = self.client.launch(**args)
+        result = self.client.send_create_experiment(name=exp.name)
+        if result.type != "experiment_created":
+            self._process_response(result)
+            return result
+        print result
 
-        self._process_response(result)
+        machine = result.origin_machine
+        addrs = [addr for addr in result.rep_addrs if self._addr_connectable(addr, machine)]
+
+        exp_sock = self.ctx.socket(zmq.REQ)
+        for addr in addrs:
+            exp_sock.connect(addr)
+        send_msg(exp_sock, self.mtool.fill_msg("set_experiment_scenario", scenario=jsoned))
+        reply, details =  self.client.poll_recv(exp_sock, 20000)
+        if reply.type != 'rq_ok':
+            self._process_response(reply)
+            exp_sock.close()
+            return
+        send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
+        reply, details =  self.client.poll_recv(exp_sock, 20000)
+
+        self._process_response(reply)
+        exp_sock.close()
 
     def nearby_machines(self):
         nearby_machines = {}
@@ -486,5 +505,9 @@ class OBCILauncherEngine(QtCore.QObject):
             parser.write(f)
 
     def _process_response(self, response):
+        if response is None:
+            err = self.mtool.fill_msg("rq_error", err_code="no_response",
+                            details="Timeout.")
+            self.rq_error.emit(self.mtool.unpack_msg(err))
         if response.type == "rq_error":
             self.rq_error.emit(response)
