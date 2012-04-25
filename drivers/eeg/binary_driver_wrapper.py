@@ -36,6 +36,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
 
     def __init__(self, addresses, type):
         super(BinaryDriverWrapper, self).__init__(addresses=addresses, type=type)
+        self._run_post_super()
 
         self._mx_addresses = addresses
         self.driver = self.run_driver()
@@ -64,6 +65,9 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
         if autostart:
             self.set_driver_params()
             self.start_sampling()
+
+    def _run_post_super(self):
+        pass
 
     def signal_handler(self):
         def handler(signum, frame):
