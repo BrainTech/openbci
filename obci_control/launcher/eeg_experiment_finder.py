@@ -91,6 +91,8 @@ class EEGExperimentFinder(object):
                                                     "), get_experiment_info")
             return None
         exp_info = res#json.loads(res)
+        for field in ["peers_status", "details"]:
+            del exp_info['experiment_status'][field]
 
         peer_list = exp_info.peers
         if not self._has_mx(peer_list):
@@ -125,6 +127,9 @@ class EEGExperimentFinder(object):
         if not info or not params:
             LOGGER.error("get_peer_info failed " + str(peer_id) + "  " + str(details))
             return None, None
+        for field in ["sender", "sender_ip", "receiver", "type", "local_params", "external_params",
+                            "config_sources", "launch_dependencies"]:
+            del info[field]
         return info, params
 
 
@@ -148,9 +153,9 @@ class EEGExperimentFinder(object):
         data['amplifier_params'] = params
         data['amplifier_peer_info'] = peer_info.dict()
         data['experiment_info'] = exp_info.dict()
-        data['rep_addr'] = rep_addr
-        data['pub_addr'] = pub_addr
-        data['tcp_addr'] = tcp_addr
+        data['rep_addrs'] = [rep_addr]
+        data['pub_addrs'] = [pub_addr]
+        data['tcp_addrs'] = [tcp_addr]
         return data
 
     def _has_mx(self, peer_list):
