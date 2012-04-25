@@ -58,8 +58,9 @@ def driver_descriptions():
                 'recommended_scenario' : _SCENARIO,
                 'amplifier_peer_path' : _AMP_PEER,
                 'amplifier_params' : {
-                                        'usb_device' : '',
-                                        'bluetooth_device' : '',
+                                        
+                                        'additional_params' : {'usb_device' : '',
+                                                                'bluetooth_device' : ''},
                                         'active_channels' : '',
                                         'channel_names' : '',
                                         'sampling_rate' : ''},

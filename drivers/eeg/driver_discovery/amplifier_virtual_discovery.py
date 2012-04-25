@@ -17,6 +17,7 @@ def driver_descriptions():
         		'amplifier_params' : {
         								'active_channels' : '',
         								'channel_names' : '',
-        								'sampling_rate' : ''},
+        								'sampling_rate' : '',
+                                                                        'additional_params' : {}}
         		}
         return [desc]
