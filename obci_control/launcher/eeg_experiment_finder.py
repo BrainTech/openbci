@@ -90,11 +90,11 @@ class EEGExperimentFinder(object):
             LOGGER.error("Connection failed (experiment " + exp_desc['name'] + \
                                                     "), get_experiment_info")
             return None
-        exp_info = res#json.loads(res)
+        exp_info = res.dict()#json.loads(res)
         for field in ["peers_status", "details"]:
-            del exp_info['experiment_status'][field]
+            del exp_info["experiment_status"][field]
 
-        peer_list = exp_info.peers
+        peer_list = exp_info["peers"]
         if not self._has_mx(peer_list):
             LOGGER.info("Experiment " + exp_desc['name'] + \
                                                 " does not have a multiplexer.")
@@ -113,7 +113,7 @@ class EEGExperimentFinder(object):
                                 " -- peer " + str(peer) + "is not an amplifier.")
                 continue
             else:
-                exp_data = self._create_exp_data(exp_info, info, params.param_values,
+                exp_data = self._create_exp_data(exp_info, info, params['param_values'],
                                             rep_addr, pub_addr, tcp_addr)
                 amp_options.append(exp_data)
         return amp_options
@@ -127,6 +127,8 @@ class EEGExperimentFinder(object):
         if not info or not params:
             LOGGER.error("get_peer_info failed " + str(peer_id) + "  " + str(details))
             return None, None
+        info = info.dict()
+        params = params.dict()
         for field in ["sender", "sender_ip", "receiver", "type", "local_params", "external_params",
                             "config_sources", "launch_dependencies"]:
             del info[field]
@@ -135,13 +137,13 @@ class EEGExperimentFinder(object):
 
     def _is_amplifier(self, peer_info, peer_params):
         info = peer_info
-        peer_id = info.peer_id
+        peer_id = info['peer_id']
 
-        if not info.peer_type == 'obci_peer':
+        if not info['peer_type'] == 'obci_peer':
             LOGGER.info("Peer " + str(peer_id) + "  not obci_peer")
             return False
 
-        params = peer_params.param_values
+        params = peer_params['param_values']
         if not 'channels_info' in params or\
             not 'active_channels' in params:
             LOGGER.info('Peer  ' + str(peer_id) + "  no channels_info param.")
@@ -151,8 +153,8 @@ class EEGExperimentFinder(object):
     def _create_exp_data(self, exp_info, peer_info, params, rep_addr, pub_addr, tcp_addr):
         data = {}
         data['amplifier_params'] = params
-        data['amplifier_peer_info'] = peer_info.dict()
-        data['experiment_info'] = exp_info.dict()
+        data['amplifier_peer_info'] = peer_info
+        data['experiment_info'] = exp_info
         data['rep_addrs'] = [rep_addr]
         data['pub_addrs'] = [pub_addr]
         data['tcp_addrs'] = [tcp_addr]

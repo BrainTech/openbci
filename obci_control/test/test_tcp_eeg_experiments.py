@@ -61,7 +61,7 @@ def get_eeg_experiments(host, port):
     if response.experiment_list:
         exp = response.experiment_list[0]
         # print exp
-        host, port = exp['tcp_addr']
+        host, port = exp['tcp_addrs'][0]
         msg = mtool.fill_msg("join_experiment", peer_id="blebleble")
         print "sending join to exp ", host, port
         response = send_and_receive(host, port, msg)
