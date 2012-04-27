@@ -79,12 +79,25 @@ test_dummy_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_driver.o 
 
 test_file_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_file_driver.o  $(FILE_DRIVER))
 	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST)
-	
-test_gtec_driver: src/tests/test_driver.h $(addprefix $(BUILD)/, test_gtec_driver.o  $(GTEC_DRIVER))
-	$(CXX) -o $@ $(CXXFLAGS) $^ $(LDFLAGS_TEST) 
- 
+
+simple_gtec_driver:	fake_req
+	cd src/gtec/;make
+	cp -f src/gtec/simple_gtec_driver $@
+
+fake_req:
+	true
+test_gtec_driver: simple_gtec_driver
+
+TEST_GTEC_DEP = src/tests/test_driver.h $(addprefix $(BUILD)/, test_gtec_driver.o  $(GTEC_DRIVER))
+
+test_gtec_driver: 	$(TEST_GTEC_DEP)
+	$(CXX) -o $@ $(CXXFLAGS) $(TEST_GTEC_DEP) $(LDFLAGS_TEST)
+
 
 tmsi_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI_DRIVER) tmsi_driver_server.o) src/server_main.h
+	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
+
+gtec_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(GTEC_DRIVER) gtec_driver_server.o) src/server_main.h
 	$(CXX) -o $@ $(CXXFLAGS)  $^  $(INCLUDEDIRS) $(LDFLAGS) $(LIBRARIES)
 
 file_driver_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(FILE_DRIVER)  TagAmplifierServer.o file_driver_server.o ) src/server_main.h

@@ -18,6 +18,9 @@ void AmplifierDescription::clear_channels() {
 }
 void AmplifierDescription::add_channel(Channel * channel) {
 	channels.push_back(channel);
+	if (channel->is_generated())
+		add_generated_channel(channel);
+	else physical_channels++;
 }
 vector<Channel*> AmplifierDescription::get_channels() {
 	return channels;

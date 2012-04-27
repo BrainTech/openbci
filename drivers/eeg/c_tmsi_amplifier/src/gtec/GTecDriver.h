@@ -32,12 +32,16 @@ private:
 	vector<string> device_names;
 //	CircularBuffer data;
 	float * sample_data;
+	pid_t simple_driver_id;
+	int simple_driver_output;
+	void spawn_simple_driver(const char * name);
+	void wait_simple_driver();
 public:
 	GTecDriver();
 	boost::program_options::options_description get_options();
 	void init(boost::program_options::variables_map &vm);
 	void start_sampling();
-	void stop_sampling();
+	void stop_sampling(bool disconnecting);
 	double next_samples();
 	virtual ~GTecDriver();
 	void get_data();
