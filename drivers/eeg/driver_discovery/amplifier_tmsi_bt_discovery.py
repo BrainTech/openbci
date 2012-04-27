@@ -38,6 +38,7 @@ def _check_amp_name(name):
     for type_ in _TYPES:
         if name.startswith(type_):
             amp_type = type_
+            break
 
     name_ok = False
     parts = name.split()
@@ -54,7 +55,10 @@ def _check_amp_name(name):
 def driver_descriptions():
     descriptions = []
     bt = _find_bluetooth_amps()
-    desc = {
+    print bt
+    
+    for amp in bt:
+        desc = {
                 'experiment_info': {
                     "launch_file_path" : _SCENARIO,
                     'experiment_status' :{
@@ -70,7 +74,8 @@ def driver_descriptions():
                                         'channel_names' : '',
                                         'sampling_rate' : ''},
                 }
-    for amp in bt:
+
+        print amp, amp[0], amp[1]
         desc['amplifier_params']['additional_params']['bluetooth_device'] = amp[0]
         with open(os.path.join(_DESC_BASE_PATH, _BT_DESCS[amp[2]])) as f:
             desc['amplifier_params']['channels_info'] = json.load(f)
