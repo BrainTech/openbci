@@ -16,7 +16,8 @@ vector<string> split_string(string str,char separator){
 		res.push_back(str.substr(i, j - i));
 		i = j + 1;
 	}
-	res.push_back(str.substr(i));
+	if (str.size()-i>0)
+		res.push_back(str.substr(i));
 	return res;
 }
 po::options_description AmplifierDriver::get_options() {

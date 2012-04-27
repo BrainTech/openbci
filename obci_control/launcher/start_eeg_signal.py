@@ -24,7 +24,10 @@ def start_eeg_signal_experiment(ctx, srv_addrs, rq_message):
     #     for addr in srv_addrs:
     #         server_req_socket.connect(addr)
 
-    amp_params = rq_message.amplifier_params
+    amp_params = {}
+    amp_params.update(rq_message.amplifier_params['additional_params'])
+    del rq_message.amplifier_params['additional_params']
+    amp_params.update(rq_message.amplifier_params)
 
     par_list = ['--peer', 'amplifier']
     for par, val in amp_params.iteritems():

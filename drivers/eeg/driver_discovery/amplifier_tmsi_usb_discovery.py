@@ -5,7 +5,7 @@ import json
 import bluetooth
 import os
 
-from launcher.launcher_tools import obci_root
+from launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
 
 _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 
@@ -38,20 +38,28 @@ def driver_descriptions():
     descriptions = []
     usb = _find_usb_amps()
     desc = {
-                'recommended_scenario' : _SCENARIO,
-                'amplifier_peer_path' : _AMP_PEER,
+                'experiment_info': {
+                    "launch_file_path" : _SCENARIO,
+                    'experiment_status' :{
+                                        'status_name' : READY_TO_LAUNCH
+                                }
+                                            },
+                'amplifier_peer_info' : {
+                                              'path' : _AMP_PEER},
+
                 'amplifier_params' : {
-                                        'usb_device' : '',
-                                        'bluetooth_device' : '',
+                                        
+                                        'additional_params' : {'usb_device' : '',
+                                                                'bluetooth_device' : ''},
                                         'active_channels' : '',
                                         'channel_names' : '',
                                         'sampling_rate' : ''},
                 }
 
     for amp in usb:
-        desc['amplifier_params']['usb_device'] = amp[0]
+        desc['amplifier_params']['additional_params']['usb_device'] = amp[0]
         with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
-            desc['channels_info'] = json.load(f)
+            desc['amplifier_params']['channels_info'] = json.load(f)
         descriptions.append(desc)
 
     return descriptions

@@ -160,7 +160,7 @@ class PeerConfigParserJSON(PeerConfigParser):
         self.update = False
 
     def _prepare(self, p_file, p_config_obj, update=False):
-        self.load = json.load(p_file, encoding='ascii')
+        self.load = json.load(p_file)
         if not isinstance(self.load, dict):
             raise ValueError("Expected a JSON'd dictionary!")
 
@@ -216,7 +216,7 @@ class PeerConfigParserDict(PeerConfigParserJSON):
                         helpers.LOCAL_PARAMS, helpers.EXT_PARAMS]:
             if self.load[key] is None:
                 self.load[key] = {}
-                
+
         self.config = p_config_obj
         self.update = update
 

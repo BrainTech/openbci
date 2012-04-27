@@ -61,7 +61,7 @@ def get_eeg_experiments(host, port):
     if response.experiment_list:
         exp = response.experiment_list[0]
         # print exp
-        host, port = exp['tcp_addr']
+        host, port = exp['tcp_addrs'][0]
         msg = mtool.fill_msg("join_experiment", peer_id="blebleble")
         print "sending join to exp ", host, port
         response = send_and_receive(host, port, msg)
@@ -90,10 +90,11 @@ def get_eeg_amplifiers(host, port):
             params['sampling_rate'] = '128'
             params['active_channels'] = '1;2;3;4'
             params['channel_names'] = 'aaa;bbb;xxx;fff'
+            del params['channels_info']
 
             # request for experiment launch
             msg = mtool.fill_msg('start_eeg_signal', amplifier_params=params, name='HELL YEAH',
-                                launch_file=exp['recommended_scenario'], client_push_address='')
+                                launch_file=exp['experiment_info']['launch_file_path'], client_push_address='')
             response= send_and_receive(host, port, msg)
 
             if response is None:

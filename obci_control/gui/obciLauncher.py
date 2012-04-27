@@ -349,6 +349,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         filename = QFileDialog.getSaveFileName(self, "Save scenario as..,",
                             os.path.join(settings.DEFAULT_SCENARIO_DIR),
                             'INI files (*.ini)')
+        if not filename:
+            return
         filename = str(filename)
         if not filename.endswith('.ini'):
             filename += '.ini'
@@ -362,6 +364,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         filename = QFileDialog.getOpenFileName(self, "Import scenario...",
                             os.path.join(settings.DEFAULT_SCENARIO_DIR),
                             'INI files (*.ini)')
+        if not filename:
+            return
         self.import_scenario.emit(filename)
 
     def _remove_from_sidebar(self):

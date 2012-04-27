@@ -5,6 +5,7 @@ import zmq
 from PyQt4 import QtCore
 import os
 import socket
+import io
 
 from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from launcher.launcher_messages import message_templates
@@ -108,16 +109,17 @@ class ExperimentEngineInfo(QtCore.QObject):
                         connected = True
             if not connected:
                 print "Connection to experiment ", self.name, "UNSUCCESFUL!!!!!!"
+                return
 
         self.exp_config.uuid = launcher_data['uuid']
         self.exp_config.origin_machine = launcher_data['origin_machine']
 
-        result, details = self._make_config()
+        self.exp_config.launch_file_path = self.launch_file
+        self.uuid = self.exp_config.uuid
 
+        result, details = self._get_experiment_scenario()
+        self.exp_config.status(self.status)
         self.status.set_status(launcher_data['status_name'], details=launcher_data['details'])
-
-        if not connected:
-            return
 
         self._get_experiment_details()
         self._set_public_params()
@@ -134,7 +136,6 @@ class ExperimentEngineInfo(QtCore.QObject):
         self.exp_config.launch_file_path = self.launch_file
         self.uuid = self.exp_config.uuid
 
-        #TODO in future -- obtain whole config through socket if possible
         result, details = self.make_experiment_config()
 
         self.exp_config.status(self.status)
@@ -165,6 +166,26 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         return True, None
 
+    def _get_experiment_scenario(self):
+        if not self.exp_req:
+            return False, "No experiment socket"
+        response = self.comm_exp(self.mtool.fill_msg("get_experiment_scenario"))
+        if not response:
+            return False, "No response from experient"
+        print "GOT SCENARIO", response.scenario
+
+        jsonpar = launch_file_parser.LaunchJSONParser(
+                        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+        inbuf = io.BytesIO(response.scenario.encode(encoding='utf-8'))
+        jsonpar.parse(inbuf, self.exp_config)
+        rd, details = self.exp_config.config_ready()
+        if rd:
+            self.status.set_status(launcher_tools.READY_TO_LAUNCH)
+        else:
+            self.status.set_status(launcher_tools.NOT_READY, details=details)
+            print rd, details
+        return True, None
+
     def _get_experiment_details(self):
         if not self.exp_req:
             return
@@ -185,6 +206,7 @@ class ExperimentEngineInfo(QtCore.QObject):
             ext_defs = {}
             for name, defi in msg.external_params.iteritems():
                 ext_defs[name] = defi[0] + '.' + defi[1]
+            strict_update = os.path.exists(launcher_tools.expand_path(self.launch_file))
             self.exp_config.update_peer_config(peer, dict(config_sources=msg.config_sources,
                                                 launch_dependencies=msg.launch_dependencies,
                                                 local_params=msg.local_params,

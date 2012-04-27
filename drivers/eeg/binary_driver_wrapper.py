@@ -230,6 +230,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer):
             try:  line = self.driver_out_q.get(timeout=get_timeout) # or self.driver_out_q.get_nowait()
             except Empty:
                 count += 1
+                time.sleep(get_timeout)
                 pass
             if line is None:
                 continue

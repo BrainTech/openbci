@@ -24,11 +24,9 @@ class OBCIClient(object):
     def __init__(self, server_addresses, zmq_context=None):
         self.ctx = zmq_context if zmq_context else zmq.Context()
 
-        self.server_req_socket = self.ctx.socket(zmq.REQ)
         self.server_addresses = server_addresses
-        for addr in server_addresses:
-            print addr
-            self.server_req_socket.connect(addr)
+        self.server_req_socket = None
+        self.init_server_socket(server_addresses)
 
         #self = zmq.Poller()
         #self.register(self.server_req_socket, zmq.POLLIN)
@@ -36,11 +34,22 @@ class OBCIClient(object):
 
         self.mtool = OBCIMessageTool(message_templates)
 
+    def init_server_socket(self, srv_addrs):
+        if self.server_req_socket is not None:
+            print "server socket restart"
+            self.server_req_socket.close()
+
+        self.server_req_socket = self.ctx.socket(zmq.REQ)
+
+        for addr in srv_addrs:
+            print addr
+            self.server_req_socket.connect(addr)
 
     def launch(self, launch_file=None, sandbox_dir=None, name=None, overwrites=None):
         result = self.send_create_experiment(launch_file, sandbox_dir, name, overwrites)
         print "create result:", result
         if not result:
+            self.init_server_socket(self.server_addresses)
             return result
         if result.type != "experiment_created":
             return result
@@ -53,6 +62,7 @@ class OBCIClient(object):
     def morph(self, exp_strname, launch_file, name=None, overwrites=None, leave_on=None):
         response = self.get_experiment_contact(exp_strname)
         exp_sock = self.ctx.socket(zmq.REQ)
+
         if response.type == "rq_error":
             return response
         for addr in response.rep_addrs:
