@@ -480,7 +480,7 @@ class OBCIExperiment(OBCIControlPeer):
                         launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
             self.exp_config.launch_file_path = None
 
-            inbuf = io.BytesIO(message.scenario.encode(encoding='utf-8'))
+            inbuf = io.BytesIO(message.scenario.encode('utf-8'))
             jsonpar.parse(inbuf, self.exp_config)
 
             rd, details = self.exp_config.config_ready()
