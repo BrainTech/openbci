@@ -71,7 +71,7 @@ def driver_descriptions():
                                         'sampling_rate' : ''},
                 }
     for amp in bt:
-        desc['amplifier_params']['bluetooth_device'] = amp[0]
+        desc['amplifier_params']['additional_params']['bluetooth_device'] = amp[0]
         with open(os.path.join(_DESC_BASE_PATH, _BT_DESCS[amp[2]])) as f:
             desc['amplifier_params']['channels_info'] = json.load(f)
             desc['amplifier_params']['channels_info']['name'] = amp[1]

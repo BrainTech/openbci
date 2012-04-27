@@ -57,7 +57,7 @@ def driver_descriptions():
                 }
 
     for amp in usb:
-        desc['amplifier_params']['usb_device'] = amp[0]
+        desc['amplifier_params']['additional_params']['usb_device'] = amp[0]
         with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
             desc['amplifier_params']['channels_info'] = json.load(f)
         descriptions.append(desc)
