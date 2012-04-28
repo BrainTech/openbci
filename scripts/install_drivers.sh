@@ -1,7 +1,5 @@
 #!/bin/bash
 cur=`pwd`
-cd ../drivers/eeg/c_tmsi_amplifier/tmsi/
-sudo make install
-cd ..
-make
+cd ../drivers/eeg/cpp_amplifiers/
+make install
 cd $cur

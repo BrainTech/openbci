@@ -505,6 +505,71 @@ TmsiAmplifier::~TmsiAmplifier() {
     if (dump_fd!=-1)
         close(dump_fd);
 }
+void TmsiAmplifier::free_channel_data(tms_channel_data_t * &channel_data) {
+        if (channel_data != NULL) {
+		for (int i = 0; i < fei.nrofswchannels; i++)
+			free(channel_data[i].data);
+		free(channel_data);
+		channel_data = NULL;
+	}
+}
+
+void TmsiAmplifier::refreshFrontEndInfo() {
+	while (!_refreshInfo(TMSFRONTENDINFO))
+		;
+	set_sampling_rate_div((uint) fei.currentsampleratesetting);
+	sampling = true;
+	stop_sampling();
+}
+
+void TmsiAmplifier::refreshIDData() {
+	int counter = 20;
+	while (counter--) {
+		send_request(TMSIDDATA);
+		if (update_info(TMSIDDATA))
+			break;
+	}
+    tms_prt_iddata(stderr,&dev);
+	set_description(new TmsiAmplifierDesc(dev, this));
+	cerr <<"After desc";
+	if (sampling_rate == 0)
+		set_sampling_rate(description->get_sampling_rates()[0]);
+}
+
+void TmsiAmplifier::refreshVLDeltaInfo() {
+	_refreshInfo(TMSVLDELTAINFO);
+}
+
+int TmsiAmplifier::print_message(FILE * f) {
+	return _print_message(f, msg, br);
+}
+uint TmsiAmplifier::set_sampling_rate(uint sample_rate) {
+	vector<uint> s_r = description->get_sampling_rates();
+	bool ok = false;
+	for (uint i = 0; i < s_r.size(); i++)
+		if (s_r[i] == sample_rate)
+			ok = true;
+	if (!ok) {
+		std::cerr << "Sampling rate " << sample_rate << " not available!";
+		return 0;
+	}
+	int tmp = 0;
+	uint bsr = fei.basesamplerate;
+	while (tmp < 4 && (bsr >> tmp) > sample_rate)
+		tmp++;
+	sample_rate_div = tmp;
+	sampling_rate = bsr >> tmp;
+	if (sample_rate > 128 && mode == BLUETOOTH_AMPLIFIER)
+		sample_rate_div -= 1;
+	return sampling_rate;
+}
+
+void TmsiAmplifier::set_sampling_rate_div(uint sampling_rate_div) {
+	sample_rate_div = sampling_rate_div;
+	sampling_rate = fei.basesamplerate >> sample_rate_div;
+}
+
+
 //------------------------MODIFIED NEXUS FUNCTIONS---------------------
 int32_t tms_put_int(int32_t a, uint8_t *msg, int32_t *s, int32_t n);
 int32_t tms_send_iddata_request(int32_t fd, int32_t adr, int32_t len);

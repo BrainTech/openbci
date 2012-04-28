@@ -55,5 +55,7 @@ $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
 
 $(BUILD)/AmplifierServer.o: $(BUILD)/variables.pb.h
 
+force_look:
+	@true
 clean::
 	rm -rf $(BUILD)

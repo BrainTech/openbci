@@ -11,12 +11,12 @@
 #include <string>
 #include "nexus.h"
 #include "AmplifierDescription.h"
-#include "TmsiDriverDesc.h"
+#include "TmsiAmplifierDesc.h"
 
 using namespace std;
 class TmsiAmplifier;
 class AmplifierDescription;
-class TmsiDriverDesc;
+class TmsiAmplifierDesc;
 
 class TmsiChannel: public Channel{
 private:
@@ -121,7 +121,7 @@ class SpecialChannel:public GeneratedChannel{
 	uint mask;
 
 public:
-	SpecialChannel(string name,uint mask,TmsiAmplifier *amp);
+	SpecialChannel(string name,uint mask,TmsiAmplifierDesc * desc);
 	virtual int get_raw_sample();
 	virtual string get_type(){
 		return "BITMAP";
@@ -133,15 +133,15 @@ public:
 };
 class OnOffChannel:public SpecialChannel{
 public:
-	OnOffChannel(TmsiAmplifier *amp):SpecialChannel("onoff",ON_OFF_BUTTON,amp){}
+	OnOffChannel(TmsiAmplifierDesc *desc):SpecialChannel("onoff",ON_OFF_BUTTON,desc){}
 };
 class TriggerChannel:public SpecialChannel{
 public:
-	TriggerChannel(TmsiAmplifier *amp):SpecialChannel("trig",TRIGGER_ACTIVE,amp){}
+	TriggerChannel(TmsiAmplifierDesc *desc):SpecialChannel("trig",TRIGGER_ACTIVE,desc){}
 };
 class BatteryChannel:public SpecialChannel{
 public:
-	BatteryChannel(TmsiAmplifier *amp):SpecialChannel("bat",BATTERY_LOW,amp){}
+	BatteryChannel(TmsiAmplifierDesc *desc):SpecialChannel("bat",BATTERY_LOW,desc){}
 };
 
 #endif

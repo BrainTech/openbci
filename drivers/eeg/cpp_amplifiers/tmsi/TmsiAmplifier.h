@@ -14,7 +14,7 @@
 
 #include "nexus.h"
 #include "Amplifier.h"
-#include "TmsiDriverDesc.h"
+#include "TmsiAmplifierDesc.h"
 #include "AmplifierDescription.h"
 
 #define BLUETOOTH_AMPLIFIER 1
@@ -69,30 +69,9 @@ public:
         return fei.nrofswchannels;
     }
 
-    uint set_sampling_rate(uint sample_rate) {
-    	vector<uint> s_r=description->get_sampling_rates();
-    	bool ok=false;
-    	for (uint i=0;i<s_r.size();i++)
-    		if (s_r[i]==sample_rate) ok=true;
-    	if (!ok)
-    		{
-		  std::cerr <<"Sampling rate "<<sample_rate << " not available!";
-    			return 0;
-    		}
-        int tmp = 0;
-        uint bsr = fei.basesamplerate;
-        while (tmp < 4 && (bsr>>tmp)>sample_rate) tmp++;
-        sample_rate_div = tmp;
-        sampling_rate = bsr >> tmp;
-        if (sample_rate > 128 && mode == BLUETOOTH_AMPLIFIER)
-            sample_rate_div -= 1;
-        return sampling_rate;
-    }
+    uint set_sampling_rate(uint sample_rate);
 
-    void set_sampling_rate_div(uint sampling_rate_div) {
-        sample_rate_div = sampling_rate_div;
-        sampling_rate = fei.basesamplerate >> sample_rate_div;
-    }
+    void set_sampling_rate_div(uint sampling_rate_div);
 
     int get_sampling_rate_div() {
         return sample_rate_div;
@@ -116,42 +95,15 @@ private:
     bool _refreshInfo(int type);
     tms_channel_data_t* alloc_channel_data(bool vldelta);
 
-    void free_channel_data(tms_channel_data_t * &channel_data) {
-        if (channel_data != NULL) {
-            for (int i = 0; i < fei.nrofswchannels; i++)
-                free(channel_data[i].data);
-            free(channel_data);
-            channel_data = NULL;
-        }
-    }
+    void free_channel_data(tms_channel_data_t * &channel_data);
 
-    void refreshFrontEndInfo() {
-        while (!_refreshInfo(TMSFRONTENDINFO));
-        set_sampling_rate_div((uint)fei.currentsampleratesetting);
-        sampling = true;
-        stop_sampling();
-    }
+    void refreshFrontEndInfo();
 
-    void refreshIDData() {
-        int counter = 20;
-        while (counter--) {
-            send_request(TMSIDDATA);
-            if (update_info(TMSIDDATA)) break;
-        }
-//        tms_prt_iddata(stderr,&dev);
-        set_description(new TmsiDriverDesc(dev,this));
-        if (sampling_rate==0)
-        	set_sampling_rate(description->get_sampling_rates()[0]);
-    }
-
-    void refreshVLDeltaInfo() {
-        _refreshInfo(TMSVLDELTAINFO);
-    }
+    void refreshIDData();
+    void refreshVLDeltaInfo();
     int _print_message(FILE *, uint8_t * msg, int br);
 
-    int print_message(FILE * f) {
-        return _print_message(f, msg, br);
-    }
+    int print_message(FILE * f);
 
     int rcv_message(uint8_t *, int n);
     int fetch_iddata();
