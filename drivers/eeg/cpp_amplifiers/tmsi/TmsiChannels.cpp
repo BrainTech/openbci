@@ -6,7 +6,7 @@
  */
 #include "TmsiChannels.h"
 #include "TmsiAmplifier.h"
-#include "TmsiDriverDesc.h"
+#include "TmsiAmplifierDesc.h"
 string TmsiChannel::get_type(){
 	return get_main_type()+" "+get_subtype();
 }
@@ -17,7 +17,7 @@ int DigiChannel::get_raw_sample(){
 	return ((TmsiAmplifier*)amplifier)->get_digi(index);
 }
 int SpecialChannel::get_raw_sample(){
-		vector<Channel *> digi_chan=((TmsiDriverDesc*)amplifier->get_description())->get_digi_channels();
+		vector<Channel *> digi_chan=((TmsiAmplifierDesc*)amplifier->get_description())->get_digi_channels();
 		uint res=0;
 		uint tmp;
 		for (uint i=0;i<digi_chan.size();i++){
@@ -29,7 +29,7 @@ int SpecialChannel::get_raw_sample(){
 		return res;
 	}
 
-SpecialChannel::SpecialChannel(string name,uint mask,TmsiDriverDesc *desc):GeneratedChannel(name,desc->get_driver()){
+SpecialChannel::SpecialChannel(string name,uint mask,TmsiAmplifierDesc *desc):GeneratedChannel(name,desc->get_driver()){
 		this->bit_length=desc->get_digi_channels().size();
 		this->mask=mask;
 		}

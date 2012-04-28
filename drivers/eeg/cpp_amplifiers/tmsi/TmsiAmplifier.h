@@ -14,7 +14,7 @@
 
 #include "nexus.h"
 #include "Amplifier.h"
-#include "TmsiDriverDesc.h"
+#include "TmsiAmplifierDesc.h"
 #include "AmplifierDescription.h"
 
 #define BLUETOOTH_AMPLIFIER 1

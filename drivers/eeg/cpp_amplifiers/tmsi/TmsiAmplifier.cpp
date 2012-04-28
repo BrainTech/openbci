@@ -530,7 +530,7 @@ void TmsiAmplifier::refreshIDData() {
 			break;
 	}
     tms_prt_iddata(stderr,&dev);
-	set_description(new TmsiDriverDesc(dev, this));
+	set_description(new TmsiAmplifierDesc(dev, this));
 	cerr <<"After desc";
 	if (sampling_rate == 0)
 		set_sampling_rate(description->get_sampling_rates()[0]);

@@ -18,9 +18,10 @@ boost_1_42_0:
 	make boost_1_42_0.tar.bz2 
 	tar --bzip2 -xf boost_1_42_0.tar.bz2
 	cd boost_1_42_0;sh bootstrap.sh
+	cd boost_1_42_0;./bjam $(addprefix --with-,$(BOOST_LIBS)) --stagedir=../
 	
-lib/libboost%: boost_1_42_0
-	cd boost_1_42_0;./bjam $(addprefix --with-,$(BOOST_LIBS)) --stagedir=../ 
+lib/libboost%:
+	make boost_1_42_0
 
 simple_gtec_driver:  $(OBJS) $(BOOST_LIBS_PATHS) $(API_INSTALLED)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) -L$(LIB_PATH) -Wl,--rpath=$(LIB_PATH) $(addprefix -lboost_,$(BOOST_LIBS)) $(LIBS)
