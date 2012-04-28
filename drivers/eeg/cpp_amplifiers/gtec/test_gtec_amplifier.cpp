@@ -1,6 +1,6 @@
-#include "test_driver.h"
-#include "../gtec/GTecDriver.h"
+#include "test_amplifier.h"
+#include "GTecAmplifier.h"
 int main(int argc,char** argv){
-	GTecDriver amp;
+	GTecAmplifier amp;
 	test_driver(argc,argv,&amp);
 }

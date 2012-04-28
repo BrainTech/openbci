@@ -12,10 +12,11 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "nexus/tmsi.h"
-#include "AmplifierDriver.h"
+#include "nexus.h"
+#include "Amplifier.h"
 #include "TmsiDriverDesc.h"
 #include "AmplifierDescription.h"
+
 #define BLUETOOTH_AMPLIFIER 1
 #define USB_AMPLIFIER 2
 #define IP_AMPLIFIER 3
@@ -36,7 +37,7 @@ using namespace std;
 
 
 
-class TmsiAmplifier : public AmplifierDriver {
+class TmsiAmplifier : public Amplifier {
 private:
     int fd, read_fd, dump_fd; //device descriptor
     tms_frontendinfo_t fei;
@@ -158,10 +159,10 @@ private:
     const char * get_type_name(int type);
     void disconnect_mobita();
 };
-class DummyTmsiAmplifier: public AmplifierDriver{
+class DummyTmsiAmplifier: public Amplifier{
 public:
-	DummyTmsiAmplifier():AmplifierDriver(){
-		set_description(new DummyAmplifier(this));
+	DummyTmsiAmplifier():Amplifier(){
+		set_description(new DummyAmpDesc(this));
 	}
 };
 #endif	/* TMSIAMPLIFIER_H */

@@ -16,7 +16,7 @@
 */
 
 #include "TmsiAmplifier.h"
-#include "server_main.h"
+#include "run_server.h"
 #include "Logger.h"
 
 int main(int argc, char**argv)
@@ -24,7 +24,7 @@ int main(int argc, char**argv)
 	TmsiAmplifier driver;
 	AmplifierServer server(&driver);
 	try{
-	run(argc,argv,&server);
+	run_server(argc,argv,&server);
 	}
 	catch (exception &e){
 		cerr << "Exception: "<<e.what();

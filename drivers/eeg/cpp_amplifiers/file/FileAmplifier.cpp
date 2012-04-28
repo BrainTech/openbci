@@ -28,14 +28,14 @@ boost::program_options::options_description FileAmplifier::get_options(){
 				("channel_names,n",po::value<string>(),"Names of channels in the file separated by semicolons")
 				("channel_types,t",po::value<string>(),
 						"String with channel types separated by semicolons");
-	return AmplifierDriver::get_options().add(options);
+	return Amplifier::get_options().add(options);
 }
 void FileAmplifier::init(boost::program_options::variables_map &vm){
 	FileAmplifierDescription * desc=new FileAmplifierDescription(file_path,this,
 			split_string(vm["channel_names"].as<string>(),';'),
 			split_string(vm["channel_types"].as<string>(),';'));
 	set_description(desc);
-	AmplifierDriver::init(vm);
+	Amplifier::init(vm);
 	samples.open(file_path.c_str(),ios::in);
 	if (!samples)
 		throw new FileAmplifierException("Could not open file: "+file_path);
@@ -56,7 +56,7 @@ double FileAmplifier::next_samples(){
 			return 0.0;
 		}
 	}
-	return AmplifierDriver::next_samples();
+	return Amplifier::next_samples();
 }
 
 FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name,amp){

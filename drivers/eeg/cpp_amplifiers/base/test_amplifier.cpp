@@ -13,12 +13,12 @@
  */
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/program_options.hpp>
-#include "../AmplifierDriver.h"
+#include "test_amplifier.h"
 using namespace boost::posix_time;
 using namespace std;
 namespace po=boost::program_options;
 
-int test_driver(int argc, char ** argv, AmplifierDriver *amp){
+int test_driver(int argc, char ** argv, Amplifier *amp){
 	int length;
 	int saw;
 	double time_diff;

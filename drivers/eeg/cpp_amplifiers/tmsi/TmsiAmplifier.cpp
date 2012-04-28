@@ -25,13 +25,13 @@
 #include <sstream>
 #include <arpa/inet.h>
 #include <string.h>
-#include "TmsiAmplifier.h"
-#include "nexus/tmsi.h"
 #include <boost/program_options.hpp>
 #include <boost/bind.hpp>
 namespace po=boost::program_options;
+
+#include "TmsiAmplifier.h"
 TmsiAmplifier * mobita_amp=NULL;
-TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
+TmsiAmplifier::TmsiAmplifier():Amplifier(){
     dev.Channel = NULL;
     vli.SampDiv = NULL;
     channel_data = NULL;
@@ -45,7 +45,7 @@ TmsiAmplifier::TmsiAmplifier():AmplifierDriver(){
 
 }
 po::options_description TmsiAmplifier::get_options(){
-	po::options_description options=AmplifierDriver::get_options();
+	po::options_description options=Amplifier::get_options();
 	options.add_options()
 			("device_path,d",po::value<string>()->default_value("/dev/tmsi0"),"Device path for usb connection")
 			("bluetooth_addr,b",po::value<string>()
@@ -301,7 +301,7 @@ void TmsiAmplifier::start_sampling() {
     free_channel_data(channel_data);
     channel_data = alloc_channel_data(type == TMSVLDELTADATA);
     channel_data_index=1<<30;
-    AmplifierDriver::start_sampling();
+    Amplifier::start_sampling();
 }
 void TmsiAmplifier::disconnect_mobita(){
 	logger.info() << "Disconnecting Mobita...\n";
@@ -317,7 +317,7 @@ void TmsiAmplifier::stop_sampling(bool disconnecting) {
     		disconnect_mobita();
     	return;
     }
-    AmplifierDriver::stop_sampling();
+    Amplifier::stop_sampling();
     logger.info() <<"Sending stop message...\n";
     tms_write_frontendinfo(fd, &fei);
 
@@ -365,7 +365,7 @@ double TmsiAmplifier::next_samples() {
 				break;
 			}
 		}
-	return AmplifierDriver::next_samples();
+	return Amplifier::next_samples();
 }
 
  uint TmsiAmplifier::get_digi(uint index) {

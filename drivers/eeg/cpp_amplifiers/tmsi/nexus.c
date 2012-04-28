@@ -20,7 +20,7 @@
 //#include <bluetooth/bluetooth.h>
 //#include <bluetooth/rfcomm.h>
 
-#include "tmsi.h"
+#include "nexus.h"
 
 #define VERSION "$Revision: 0.1 $"
 

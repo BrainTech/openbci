@@ -8,14 +8,14 @@
 #ifndef GTECDESCRIPTION_H_
 #define GTECDESCRIPTION_H_
 
-#include "../AmplifierDescription.h"
+#include "AmplifierDescription.h"
 
 class GTecChannel: public Channel{
 	float scale;
 	float g_offset;
 	float cur_sample;
 public:
-	GTecChannel(uint index,float scale,float offset,AmplifierDriver *amp):Channel("",amp),scale(scale),g_offset(offset){
+	GTecChannel(uint index,float scale,float offset,Amplifier *amp):Channel("",amp),scale(scale),g_offset(offset){
 		char tmp[20];
 		sprintf(tmp,"Analog %d",index);
 		name=tmp;
@@ -45,7 +45,7 @@ public:
 
 class GTecDescription: public AmplifierDescription {
 public:
-	GTecDescription(string name,AmplifierDriver* driver);
+	GTecDescription(string name,Amplifier* driver);
 	virtual ~GTecDescription();
 };
 

@@ -8,15 +8,15 @@
 #include <stdlib.h>
 #include <iostream>
 #include "AmplifierServer.h"
-#include "AmplifierDriver.h"
+#include "Amplifier.h"
 #include "Logger.h"
 #include <boost/program_options.hpp>
 namespace po=boost::program_options;
 int main(int argc, char** argv) {
     std::cout << "%SUITE_STARTING% testAmplifierServer" << std::endl;
-    AmplifierDriver driver;
+    Amplifier driver;
     AmplifierServer server(&driver);
-    driver.set_description(new DummyAmplifier(&driver));
+    driver.set_description(new DummyAmpDesc(&driver));
     std::cout << "Amplifier driver created" << std::endl;
     std::cout << driver.get_description()->get_json();
     po::options_description options("Program Options");

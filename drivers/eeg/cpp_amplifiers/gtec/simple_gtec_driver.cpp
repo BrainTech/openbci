@@ -27,7 +27,7 @@ void CallBack(void* name_) {
 	size_t cnt_master = GT_GetSamplesAvailable(name);
 	size_t read = GT_GetData(name, usr_buffer_master, cnt_master);
 	if (big_endian) {
-		for (int i = 0; i < read; i += 4) {
+		for (uint i = 0; i < read; i += 4) {
 			float tmp = *((float *) usr_buffer_master + i);
 			unsigned char *c = (unsigned char *) &tmp;
 			usr_buffer_master[i + 0] = c[3];

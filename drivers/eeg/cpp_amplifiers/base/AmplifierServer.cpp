@@ -16,7 +16,7 @@
 #include <vector>
 using namespace multiplexer;
 namespace po=boost::program_options;
-AmplifierServer::AmplifierServer(AmplifierDriver *driv) :
+AmplifierServer::AmplifierServer(Amplifier *driv) :
 BaseMultiplexerServer(new Client(peers::AMPLIFIER), peers::AMPLIFIER)
 {
     driver=driv;

@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <string>
-#include "nexus/tmsi.h"
+#include "nexus.h"
 #include "AmplifierDescription.h"
 #include "TmsiDriverDesc.h"
 
@@ -27,7 +27,7 @@ protected:
 	uint index;
 
 public:
-    TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription,(AmplifierDriver*)amplifier){
+    TmsiChannel(tms_channel_desc_t & t_chan,TmsiAmplifier * amplifier,uint index):Channel(t_chan.ChannelDescription,(Amplifier*)amplifier){
     	gain = t_chan.Type.a;
         offset = t_chan.Type.b;
         other_params.push_back(t_chan.GainCorrection);

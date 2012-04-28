@@ -15,14 +15,18 @@
  *     Maciej Pawlisz <maciej.pawlisz at titanis.pl>
 */
 
-#include "TmsiAmplifier.h"
-#include "server_main.h"
+#include "Amplifier.h"
+#include "AmplifierDescription.h"
+#include "AmplifierServer.h"
+#include "run_server.h"
 #include "Logger.h"
 
 int main(int argc, char**argv)
 {
-	DummyTmsiAmplifier driver;
-	AmplifierServer server(&driver);
-	int res = run(argc,argv,&server);
+	Amplifier amplifier;
+	DummyAmpDesc desc(&amplifier);
+	amplifier.set_description(&desc);
+	AmplifierServer server(&amplifier);
+	int res = run_server(argc,argv,&server);
 	return res;
 }

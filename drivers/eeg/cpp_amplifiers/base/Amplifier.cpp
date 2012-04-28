@@ -1,4 +1,4 @@
-#include "AmplifierDriver.h"
+#include "Amplifier.h"
 #include <stdio.h>
 using namespace std;
 #include <boost/program_options.hpp>
@@ -20,28 +20,28 @@ vector<string> split_string(string str,char separator){
 		res.push_back(str.substr(i));
 	return res;
 }
-po::options_description AmplifierDriver::get_options() {
+po::options_description Amplifier::get_options() {
 	po::options_description options("Amplifier Options");
 	options.add_options()
-			("sampling_rate,s",	po::value<int>()
-					->notifier(boost::bind(&AmplifierDriver::set_sampling_rate_, this,_1)),
+			("sampling_rate,s",	po::value<int>()->default_value(128)
+					->notifier(boost::bind(&Amplifier::set_sampling_rate_, this,_1)),
 					"Sampling rate to use")
 			("active_channels,c",po::value<string>()->default_value("*")
-					->notifier(boost::bind(&AmplifierDriver::set_active_channels_string,this, _1)),
+					->notifier(boost::bind(&Amplifier::set_active_channels_string,this, _1)),
 					"String with channel names or indexes separated by semicolons");
 
 	return options;
 }
-void AmplifierDriver::init(boost::program_options::variables_map &vm) {
+void Amplifier::init(boost::program_options::variables_map &vm) {
 //	set_sampling_rate(vm["sampling_rate"].as<int>());
 //	set_active_channels_string(vm["channels"].as<string>());
 }
-AmplifierDriver * AmplifierDriver::signal_handler=NULL;
-void AmplifierDriver::setup_handler(){
-	AmplifierDriver::signal_handler = this;
-	signal(SIGINT, &AmplifierDriver::stop_sampling_handler);
+Amplifier * Amplifier::signal_handler=NULL;
+void Amplifier::setup_handler(){
+	Amplifier::signal_handler = this;
+	signal(SIGINT, &Amplifier::stop_sampling_handler);
 }
-void AmplifierDriver::start_sampling() {
+void Amplifier::start_sampling() {
 	sampling = true;
 	cur_sample=0;
 	setup_handler();
@@ -54,16 +54,16 @@ void AmplifierDriver::start_sampling() {
 	logger.info()<<"Sleep resolution: "<<sleep_res<<" get_time resolution:"<<get_time_res <<"\n";
 	sampling_start_time=last_sample=sample_timestamp=get_time();
 }
-void AmplifierDriver::stop_sampling_handler(int sig) {
+void Amplifier::stop_sampling_handler(int sig) {
 	signal(sig, SIG_DFL);
 	fprintf(stderr, "Signal %d (%s) intercepted. Driver stopping\n", sig,
 			strsignal(sig));
-	AmplifierDriver::signal_handler->stop_sampling(true);
+	Amplifier::signal_handler->stop_sampling(true);
 }
-double AmplifierDriver::get_expected_sample_time(){
+double Amplifier::get_expected_sample_time(){
 	return sampling_start_time+cur_sample/(double)sampling_rate;
 }
-double AmplifierDriver::next_samples() {
+double Amplifier::next_samples() {
 	cur_sample++;
 	double wait = get_expected_sample_time();
 	double diff,seconds;
@@ -93,7 +93,7 @@ double AmplifierDriver::next_samples() {
 	sample_timestamp = wait;
 	return sample_timestamp;
 }
-void AmplifierDriver::set_active_channels(std::vector<std::string> &channels) {
+void Amplifier::set_active_channels(std::vector<std::string> &channels) {
 	active_channels.clear();
 	if (!description)
 		return;
@@ -109,7 +109,7 @@ void AmplifierDriver::set_active_channels(std::vector<std::string> &channels) {
 			active_channels.push_back(chan);
 	}
 }
-void AmplifierDriver::set_active_channels_string(const string &channels) {
+void Amplifier::set_active_channels_string(const string &channels) {
 	if (!description)
 	{
 		active_channels_str=channels;
@@ -130,4 +130,42 @@ void AmplifierDriver::set_active_channels_string(const string &channels) {
 	names.push_back(channels.substr(i));
 	set_active_channels(names);
 	logger.info()<<"Active channels: "<<get_active_channels_string() << "\n";
+}
+
+double Amplifier::get_sleep_resolution() {
+	double start = get_time();
+	struct timespec slptm;
+	slptm.tv_nsec = 1;
+	slptm.tv_sec = 0;
+	nanosleep(&slptm, NULL);
+	return get_time() - start;
+}
+
+Amplifier::Amplifier():logger(128, "AmplifierDriver") {
+	description = NULL;
+	sampling_rate = sampling_rate_ = 128;
+	sleep_res = get_sleep_resolution();
+}
+
+void Amplifier::set_description(AmplifierDescription * description) {
+	this->description = description;
+	set_sampling_rate(sampling_rate_);
+	set_active_channels_string(active_channels_str);
+}
+Amplifier::~Amplifier() {
+	logger.info() << "Destructor\n";
+	if (description)
+		delete description;
+	description = NULL;
+}
+
+void Amplifier::stop_sampling(bool disconnecting) {
+	sampling = false;
+	signal(SIGINT, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
+	logger.info() << "Sampling stopped" << (disconnecting ? " and disconnecting" : "") << "\n";
+}
+
+uint Amplifier::set_sampling_rate(const uint samp_rate) {
+	return sampling_rate = samp_rate;
 }

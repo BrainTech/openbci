@@ -6,7 +6,7 @@
  */
 
 #include "AmplifierDescription.h"
-#include "AmplifierDriver.h"
+#include "Amplifier.h"
 #include "math.h"
 #include <iostream>
 #include <limits>
@@ -28,7 +28,7 @@ vector<Channel*> AmplifierDescription::get_channels() {
 AmplifierDescription::~AmplifierDescription() {
 	clear_channels();
 }
-AmplifierDescription::AmplifierDescription(string name,AmplifierDriver *driver):name(name),physical_channels(0),driver(driver) {}
+AmplifierDescription::AmplifierDescription(string name,Amplifier *driver):name(name),physical_channels(0),driver(driver) {}
 vector<uint> AmplifierDescription::get_sampling_rates() {
 	return sampling_rates;
 }
@@ -83,7 +83,7 @@ string Channel::get_json() {
 	out << "]}";
 	return out.str();
 }
-Channel::Channel(string name,AmplifierDriver *amp) :
+Channel::Channel(string name,Amplifier *amp) :
 		amplifier(amp),name(name), gain(1.0), offset(0),is_signed(true),bit_length(32){
 }
 string Channel::get_idle() {
@@ -107,7 +107,7 @@ double ModuloChannel::get_value(){
 	return (amplifier->cur_sample%period)/(double)period;
 }
 
-FunctionChannel::FunctionChannel(AmplifierDriver *amp,uint period,string function_name):
+FunctionChannel::FunctionChannel(Amplifier *amp,uint period,string function_name):
 	GeneratedChannel(function_name,amp){
 	this->period=period;
 	amplitude=rand()%100+1;
@@ -130,7 +130,7 @@ int FunctionChannel::get_raw_sample(){
 double FunctionChannel::get_adjusted_sample(){
 	return get_value()*amplitude;
 }
-DummyAmplifier::DummyAmplifier(AmplifierDriver *driver):AmplifierDescription("Dummy Amplifier",driver){
+DummyAmpDesc::DummyAmpDesc(Amplifier *driver):AmplifierDescription("Dummy Amplifier",driver){
 
 	add_channel(new SinusChannel(driver,128));
 	add_channel(new CosinusChannel(driver,128));

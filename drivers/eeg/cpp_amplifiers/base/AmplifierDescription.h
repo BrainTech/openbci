@@ -16,7 +16,7 @@
 #include <stdio.h>
 using namespace std;
 class Channel;
-class AmplifierDriver;
+class Amplifier;
 class AmplifierDescription {
 private:
 	string name;
@@ -25,9 +25,9 @@ private:
 protected:
 	uint physical_channels;
 	vector<uint> sampling_rates;
-	AmplifierDriver *driver;
+	Amplifier *driver;
 public:
-	AmplifierDescription(string name,AmplifierDriver *);
+	AmplifierDescription(string name,Amplifier *);
 	virtual ~AmplifierDescription();
 	virtual vector<uint> get_sampling_rates();
 	virtual string get_name();
@@ -47,23 +47,23 @@ public:
 	uint get_physical_channels(){
 		return physical_channels;
 	}
-	inline AmplifierDriver * get_driver(){
+	inline Amplifier * get_driver(){
 		return driver;
 	}
 };
-class DummyAmplifier:public AmplifierDescription{
+class DummyAmpDesc:public AmplifierDescription{
 public:
-	DummyAmplifier(AmplifierDriver *driver);
+	DummyAmpDesc(Amplifier *driver);
 };
 
 
 class Channel {
 protected:
-	AmplifierDriver * amplifier;
+	Amplifier * amplifier;
 public:
 	string name;
 	vector<double> other_params;
-	Channel(string name,AmplifierDriver * amp);
+	Channel(string name,Amplifier * amp);
 	double gain;
 	double offset;
 	virtual string get_type() {
@@ -98,7 +98,7 @@ public:
 class GeneratedChannel:public Channel{
 	AmplifierDescription * desc;
 public:
-	GeneratedChannel(string name,AmplifierDriver *amp):Channel(name,amp){
+	GeneratedChannel(string name,Amplifier *amp):Channel(name,amp){
 		is_signed=0;
 	}
 	inline bool is_generated(){
@@ -107,7 +107,7 @@ public:
 };
 class BoolChannel: public GeneratedChannel {
 public:
-	BoolChannel(string name,AmplifierDriver *amp):GeneratedChannel(name,amp){
+	BoolChannel(string name,Amplifier *amp):GeneratedChannel(name,amp){
 		bit_length=1;
 
 	}
@@ -123,7 +123,7 @@ public:
 };
 class SawChannel: public GeneratedChannel {
 public:
-	SawChannel(AmplifierDriver *amp,string name = "Driver_Saw") :
+	SawChannel(Amplifier *amp,string name = "Driver_Saw") :
 		GeneratedChannel(name,amp) {
 		bit_length=32;
 	}
@@ -139,7 +139,7 @@ class FunctionChannel: public GeneratedChannel{
 	uint amplitude;
 	uint exp;
 public:
-	FunctionChannel(AmplifierDriver *amp,uint period,string name="Random");
+	FunctionChannel(Amplifier *amp,uint period,string name="Random");
 	string get_unit(){
 		char tmp[100];
 		sprintf(tmp,"Volt %d",exp);
@@ -153,20 +153,20 @@ protected:
 };
 class SinusChannel:public FunctionChannel{
 public:
-	SinusChannel(AmplifierDriver *amp,uint period):FunctionChannel(amp,period,"Sinus"){};
+	SinusChannel(Amplifier *amp,uint period):FunctionChannel(amp,period,"Sinus"){};
 protected:
 	virtual double get_value();
 };
 
 class CosinusChannel:public FunctionChannel{
 public:
-	CosinusChannel(AmplifierDriver *amp,uint period):FunctionChannel(amp,period,"Cos"){};
+	CosinusChannel(Amplifier *amp,uint period):FunctionChannel(amp,period,"Cos"){};
 protected:
 	virtual double get_value();
 };
 class ModuloChannel:public FunctionChannel{
 public:
-	ModuloChannel(AmplifierDriver *amp,uint period):FunctionChannel(amp,period,"Modulo"){};
+	ModuloChannel(Amplifier *amp,uint period):FunctionChannel(amp,period,"Modulo"){};
 protected:
 	virtual double get_value();
 };

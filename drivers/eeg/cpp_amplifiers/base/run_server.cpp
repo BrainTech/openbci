@@ -21,14 +21,15 @@ namespace po= boost::program_options;
 
 #include <iostream>
 #include <sstream>
+#include "run_server.h"
+#include "Amplifier.h"
 #include "AmplifierServer.h"
-#include "AmplifierDriver.h"
 #include "Logger.h"
 
-int run(int argc, char**argv,AmplifierServer * server)
+int run_server(int argc, char**argv,AmplifierServer * server)
 {
 	string line;
-	AmplifierDriver *driver=server->get_driver();
+	Amplifier *driver=server->get_driver();
 	Logger log(128,"Amplifier Server");
 	server->set_logger(&log);
 	po::options_description options("Program Options");

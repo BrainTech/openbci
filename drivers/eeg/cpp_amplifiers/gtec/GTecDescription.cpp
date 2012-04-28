@@ -8,7 +8,7 @@
 #include "GTecDescription.h"
 #include "gAPI.h"
 
-GTecDescription::GTecDescription(string name,AmplifierDriver *driver):AmplifierDescription(name,driver) {
+GTecDescription::GTecDescription(string name,Amplifier *driver):AmplifierDescription(name,driver) {
 	uint s_r[]={32, 64, 128, 256, 512, 600,	1200, 2400, 4800, 9600, 19200, 38400};
 	for (uint i=0;i<12;i++)
 		sampling_rates.push_back(s_r[i]);

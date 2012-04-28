@@ -1,5 +1,5 @@
 /* 
- * File:   AmplifierDriver.h
+ * File:   Amplifier.h
  * Author: Macias
  *
  * Created on 14 październik 2010, 16:25
@@ -27,18 +27,11 @@ inline double get_time_as_double(){
 	gettimeofday(&tv,&tz);
 	return tv.tv_sec+tv.tv_usec/1000000.0;
 }
-class AmplifierDriver {
+class Amplifier {
 private:
 	double sleep_res;
 	double get_time_res;
-	double get_sleep_resolution(){
-		double start=get_time();
-		struct timespec slptm;
-		slptm.tv_nsec = 1;
-		slptm.tv_sec = 0;
-		nanosleep(&slptm,NULL);
-		return get_time()-start;
-	}
+	double get_sleep_resolution();
 protected:
 	bool sampling;
 	uint sampling_rate,sampling_rate_;
@@ -48,7 +41,7 @@ protected:
 	double sample_timestamp;
 	double sampling_start_time;
 	AmplifierDescription * description;
-	static AmplifierDriver * signal_handler;
+	static Amplifier * signal_handler;
 
 	inline double get_time(){
 		return get_time_as_double();
@@ -57,32 +50,14 @@ protected:
 public:
 	Logger logger;
 	uint cur_sample;
-	AmplifierDriver():logger(128,"AmplifierDriver"){
-		description=NULL;
-		sampling_rate=sampling_rate_=128;
-		sleep_res=get_sleep_resolution();
-	}
+	Amplifier();
 
-	void set_description(AmplifierDescription * description){
-		this->description=description;
-		set_sampling_rate(sampling_rate_);
-		set_active_channels_string(active_channels_str);
-	}
-	virtual ~AmplifierDriver() {
-		logger.info()<<"Destructor\n";
-		if (description)
-			delete description;
-		description=NULL;
-	}
+	void set_description(AmplifierDescription * description);
+	virtual ~Amplifier();
 	void setup_handler();
 	virtual void start_sampling();
 
-	virtual void stop_sampling(bool disconnecting=false) {
-		sampling = false;
-		signal(SIGINT,SIG_DFL);
-		signal(SIGTERM,SIG_DFL);
-		logger.info()<<"Sampling stopped"<< (disconnecting?" and disconnecting":"")<<"\n";
-	}
+	virtual void stop_sampling(bool disconnecting=false);
 	static void stop_sampling_handler(int signal);
 	template <class T>
 	int fill_samples(vector<T> &samples,bool adjusted=false){
@@ -101,9 +76,7 @@ public:
 		return sampling;
 	}
 
-	virtual uint set_sampling_rate(const uint samp_rate) {
-		return sampling_rate = samp_rate;
-	}
+	virtual uint set_sampling_rate(const uint samp_rate);
 	inline void set_sampling_rate_(const uint samp_rate){
 		if (!description)
 		{

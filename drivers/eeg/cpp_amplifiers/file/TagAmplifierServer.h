@@ -28,7 +28,7 @@ private:
 	vector<SerializedTag*> tags;
 	double first_timestamp;
 public:
-	TagAmplifierServer(AmplifierDriver* driver):AmplifierServer(driver),first_timestamp(-1){}
+	TagAmplifierServer(Amplifier* driver):AmplifierServer(driver),first_timestamp(-1){}
 	virtual ~TagAmplifierServer();
 	void set_tags(vector<SerializedTag*> tags);
 	virtual bool do_command(string command,istream& cin);

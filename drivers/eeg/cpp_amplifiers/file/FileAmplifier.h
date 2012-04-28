@@ -8,9 +8,9 @@
 #ifndef FILEAMPLIFIER_H_
 #define FILEAMPLIFIER_H_
 
-#include "AmplifierDriver.h"
+#include "Amplifier.h"
 #include <fstream>
-class FileAmplifier: public AmplifierDriver {
+class FileAmplifier: public Amplifier {
 private:
 	char * channel_data;
 	uint channel_data_index;
