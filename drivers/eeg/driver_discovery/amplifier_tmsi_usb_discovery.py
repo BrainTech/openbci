@@ -37,7 +37,10 @@ def _find_usb_amps():
 def driver_descriptions():
     descriptions = []
     usb = _find_usb_amps()
-    desc = {
+
+    for amp in usb:
+
+        desc = {
                 'experiment_info': {
                     "launch_file_path" : _SCENARIO,
                     'experiment_status' :{
@@ -56,8 +59,7 @@ def driver_descriptions():
                                         'sampling_rate' : ''},
                 }
 
-    for amp in usb:
-        desc['amplifier_params']['usb_device'] = amp[0]
+        desc['amplifier_params']['additional_params']['usb_device'] = amp[0]
         with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
             desc['amplifier_params']['channels_info'] = json.load(f)
         descriptions.append(desc)

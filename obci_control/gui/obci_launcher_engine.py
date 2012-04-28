@@ -292,9 +292,14 @@ class OBCILauncherEngine(QtCore.QObject):
     def _handle_launcher_shutdown(self, msg):
         self.experiments = []
         presets = self._parse_presets(self.preset_path)
+        if os.path.exists(self.user_preset_path):
+            presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
         for preset in presets:
             exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
             self.experiments.append(exp)
+        self._process_response(self.mtool.unpack_msg(self.mtool.fill_msg('rq_error', err_code='launcher_shut_down',
+                                        details='Launcher (obci_server) shut down. Starting \
+experiments is possible only when launcher is running (command: obci srv)')))
 
     def _handle_kill_sent(self, msg):
         uid = msg.experiment_id
