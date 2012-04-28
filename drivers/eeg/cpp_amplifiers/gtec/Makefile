@@ -26,7 +26,7 @@ simple_gtec_driver:  $(OBJS) $(BOOST_LIBS_PATHS) $(API_INSTALLED)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) -L$(LIB_PATH) -Wl,--rpath=$(LIB_PATH) $(addprefix -lboost_,$(BOOST_LIBS)) $(LIBS)
 
 $(API_INSTALLED):
-	make install
+	make install_gtec
 
 
 install_gtec:

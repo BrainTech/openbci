@@ -1,12 +1,10 @@
-#!/bin/bash
-# COPYRIGHT © 2011 G.TEC MEDICAL ENGINEERING GMBH, AUSTRIA
-MACHINE_TYPE=`uname -m`
+﻿#!/bin/bash
 all_libs=libgusbampapi*
-if test ${MACHINE_TYPE} = x86_64
-then
-  lib_src="libgusbampapi*64*.1.11.*";
+
+if [ `uname -m` == x86_64 ]; then
+	lib_src="libgusbampapi*64*.1.11.*"
 else
-  lib_src="libgusbampapi*32*.1.11.*";
+	lib_src="libgusbampapi*32*.1.11.*"
 fi
 
 lib_target="/usr/lib/";
@@ -31,4 +29,3 @@ cp $header_src $header_target ;
 mkdir -p $filter_target ;
 cp $filter_src $filter_target ;
 echo ... done
-
