@@ -29,7 +29,7 @@ int SpecialChannel::get_raw_sample(){
 		return res;
 	}
 
-SpecialChannel::SpecialChannel(string name,uint mask,TmsiAmplifier *amp):GeneratedChannel(name,amp){
-		this->bit_length=((TmsiDriverDesc*)amplifier->get_description())->get_digi_channels().size();
+SpecialChannel::SpecialChannel(string name,uint mask,TmsiDriverDesc *desc):GeneratedChannel(name,desc->get_driver()){
+		this->bit_length=desc->get_digi_channels().size();
 		this->mask=mask;
 		}

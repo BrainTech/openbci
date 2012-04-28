@@ -16,9 +16,8 @@ amplifiers: $(TARGETS)
 all: $(TARGETS) $(RECEIVER) $(TESTS)
 
 install:
-	sudo make install_tmsi
-	sudo make install_gtec
-    make $(TARGETS) 
+	sudo make install_tmsi install_gtec
+	make $(TARGETS) 
 	make gtec_amplifier || true
 
 tests: $(TESTS)
@@ -58,6 +57,7 @@ install_tmsi:
 	
 force_look:
 	@true
+
 clean:
-    rm -rf build
-    rm $(TARGETS) $(TESTS) $(RECEIVER)
+	rm -rf build
+	rm $(TARGETS) $(TESTS) $(RECEIVER)

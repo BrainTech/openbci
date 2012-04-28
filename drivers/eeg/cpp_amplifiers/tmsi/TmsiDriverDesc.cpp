@@ -9,6 +9,7 @@
 #include "TmsiAmplifier.h"
 
 TmsiDriverDesc::TmsiDriverDesc(tms_input_device_t &dev,TmsiAmplifier *amp):AmplifierDescription(dev.DeviceDescription,amp){
+	cerr << "desc";
 	for (int i = 0; i < dev.NrOfChannels; i++) {
 		Channel * channel;
 		if (dev.Channel[i].Type.Type==DIGI_CHANNEL){
@@ -21,12 +22,15 @@ TmsiDriverDesc::TmsiDriverDesc(tms_input_device_t &dev,TmsiAmplifier *amp):Ampli
 	}
 	physical_channels=dev.NrOfChannels;
 	add_channel(new SawChannel(amp));
-	add_channel(new TriggerChannel(amp));
-	add_channel(new OnOffChannel(amp));
-	add_channel(new BatteryChannel(amp));
+	cerr <<"trig";
+	add_channel(new TriggerChannel(this));
+	add_channel(new OnOffChannel(this));
+	add_channel(new BatteryChannel(this));
+	cerr <<"samp";
 	uint base_sampling_rate=amp->get_base_sample_rate();
 	while (base_sampling_rate>64){
 		sampling_rates.insert(sampling_rates.begin(),base_sampling_rate);
 		base_sampling_rate=base_sampling_rate>>1;
 	}
+	cerr <<" desc ok";
 }

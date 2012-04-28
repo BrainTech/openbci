@@ -1,5 +1,7 @@
 include ../base/Makefile.common
 
+CXXFLAGS += -DBLUETOOTH
+
 TMSI = TmsiAmplifier.o TmsiChannels.o TmsiDriverDesc.o nexus.o
 
 test_tmsi_amplifier: $(addprefix $(BUILD)/, $(AMPLIFIER) $(TMSI) test_amplifier.o test_tmsi_amplifier.o)
