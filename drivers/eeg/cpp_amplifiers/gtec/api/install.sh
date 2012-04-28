@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 all_libs=libgusbampapi*
 
 if [ `uname -m` == x86_64 ]; then
