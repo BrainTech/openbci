@@ -6,18 +6,24 @@ RECEIVER = dummy_receiver signal_receiver
 
 INSTALLS = install_gtec install_tmsi
 
-TARGETS = tmsi_amplifier gtec_amplifier file_amplifier dummy_amplifier
+TARGETS = tmsi_amplifier file_amplifier dummy_amplifier
 TESTS = $(addprefix test_,$(TARGETS)) test_server test_logger
 
 LN = @cp -f
 
-
+amplifiers: $(TARGETS)
 
 all: $(TARGETS) $(RECEIVER) $(TESTS)
 
+install:
+	sudo make install_tmsi
+	sudo make install_gtec
+    make $(TARGETS) 
+	make gtec_amplifier || true
+
 tests: $(TESTS)
 
-amplifiers: $(TARGETS)
+
 
 receivers: $(RECEIVER)
 
@@ -52,4 +58,6 @@ install_tmsi:
 	
 force_look:
 	@true
- 
+clean:
+    rm -rf build
+    rm $(TARGETS) $(TESTS) $(RECEIVER)

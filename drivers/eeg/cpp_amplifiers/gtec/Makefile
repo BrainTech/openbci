@@ -15,7 +15,7 @@ boost_1_42_0.tar.bz2:
 	wget http://sourceforge.net/projects/boost/files/boost/1.42.0/boost_1_42_0.tar.bz2/download -O boost_1_42_0.tar.bz2
 
 boost_1_42_0: 
-	make boost_1_42_0.tar.bz2
+	make boost_1_42_0.tar.bz2 
 	tar --bzip2 -xf boost_1_42_0.tar.bz2
 	cd boost_1_42_0;sh bootstrap.sh
 	
