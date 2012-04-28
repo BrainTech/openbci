@@ -39,11 +39,12 @@ void CallBack(void* name_) {
 	if (read > 0)
 		write(1, usr_buffer_master, read);
 }
-void get_device_list(bool print = false) {
+string get_device_list(bool print = false,uint amp=0) {
 	char** device_list = 0;
+	string name;
 #ifdef DEBUG
 	cout<<"Amp1\nAmp2";
-	return;
+	return "Amp1";
 #endif
 	size_t list_size = 0;
 	GT_UpdateDevices();
@@ -52,7 +53,10 @@ void get_device_list(bool print = false) {
 	if (print)
 		for (uint i = 0; i < list_size; i++)
 			cout << device_list[i] << "\n";
+	if (amp<list_size)
+		name=device_list[amp];
 	GT_FreeDeviceList(device_list, list_size);
+	return name;
 }
 void stop_sampling(int sig) {
 	signal(sig, SIG_DFL);
@@ -104,20 +108,17 @@ bool start_sampling(uint sample_rate) {
 		config_master.bipolar[i] = GT_BIPOLAR_DERIVATION_NONE;
 	}
 	if (!GT_OpenDevice(name)) {
-		cerr << "Device open error\n";
-		return false;
+		throw "Device open error\n";
 	}
 
 	if (!GT_SetConfiguration(name, &config_master)) {
-		cerr << "Set Configuration error\n";
-		return false;
+		throw "Set Configuration error\n";
 	}
 
 	GT_SetDataReadyCallBack(name, &CallBack, (void*) (name));
 
 	if (!GT_StartAcquisition(name)) {
-		cerr << "Start failed\n";
-		return false;
+		throw "Start failed\n";
 	}
 	return true;
 }
@@ -141,8 +142,10 @@ void do_sampling() {
 }
 int main(int argc, char** argv) {
 	uint sample_rate = SAMPLERATE;
+	string s_name;
 	show_debug(GT_FALSE);
 	int a = 0x12345678;
+	uint amp=0;
 	unsigned char *c = (unsigned char*) (&a);
 	if (*c != 0x78)
 		big_endian = true;
@@ -151,14 +154,21 @@ int main(int argc, char** argv) {
 		get_device_list(true);
 		return 0;
 	}
-	name = argv[1];
+	amp=atoi(argv[1]);
+	s_name = get_device_list(false,amp);
+	name=s_name.c_str();
 	if (argc > 2) {
 		sample_rate = atoi(argv[2]);
 	}
 
 	cerr << "Amplifier: " << name << "; Sampling rate:" << sample_rate << "\n";
 	if (!start_sampling(sample_rate))
-		return -1;
+		{
+			cout <<"error";
+			return -1;
+		}
+	else
+		cout<<"OK";
 	sampling = true;
 	signal(SIGINT, &stop_sampling);
 	while (sampling)

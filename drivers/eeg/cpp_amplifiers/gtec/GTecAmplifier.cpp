@@ -42,6 +42,18 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 }
 
 GTecAmplifier::GTecAmplifier():Amplifier(),simple_driver_id(-1),simple_driver_output(-1) {
+}
+boost::program_options::options_description GTecAmplifier::get_options(){
+	boost::program_options::options_description options=Amplifier::get_options();
+	options.add_options()
+			("device_index,d",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
+			("available_devices,a","Print available devices and exit");
+	return options;
+}
+void get_data_callback(void * driver){
+	((GTecAmplifier *)driver)->get_data();
+}
+void GTecAmplifier::init(boost::program_options::variables_map &vm){
 	size_t list_size = 0;
 	char drivers[MAX_DRIVERS];
 	spawn_simple_driver(NULL);
@@ -62,18 +74,6 @@ GTecAmplifier::GTecAmplifier():Amplifier(),simple_driver_id(-1),simple_driver_ou
 		for (uint i=0;i<list_size;i++)
 			s <<"\t"<<i+1<<".\t"<<device_names[i]<<"\n";
 	}
-}
-boost::program_options::options_description GTecAmplifier::get_options(){
-	boost::program_options::options_description options=Amplifier::get_options();
-	options.add_options()
-			("device_index,d",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
-			("available_devices,a","Print available devices and exit");
-	return options;
-}
-void get_data_callback(void * driver){
-	((GTecAmplifier *)driver)->get_data();
-}
-void GTecAmplifier::init(boost::program_options::variables_map &vm){
 	if (vm.count("available_devices")){
 		for (uint i=0;i<device_names.size();i++)
 			cout<<device_names[i]<<"\n";
@@ -88,6 +88,12 @@ void GTecAmplifier::init(boost::program_options::variables_map &vm){
 void GTecAmplifier::start_sampling(){
 	Amplifier::start_sampling();
 	spawn_simple_driver(name.c_str());
+	char msg[5];
+	read(simple_driver_output,msg,2);
+	msg[2]=0;
+	string s(msg);
+	if (s!="OK")
+		throw "StartSampling Error";
 }
 void GTecAmplifier::stop_sampling(bool disconecting){
 	kill(simple_driver_id,SIGINT);
