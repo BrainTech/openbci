@@ -19,7 +19,7 @@ AMPLIFIER = Amplifier.o AmplifierDescription.o Logger.o
 AMPLIFIER_SERVER =$(AMPLIFIER) AmplifierServer.o run_server.o variables.pb.o
 
 LD_AMPLIFIER = -lboost_program_options -lboost_date_time
-LD_SERVER = $(LD_AMPLIFIER) -lboost_signals -lboost_system -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib
+LD_SERVER = $(LD_AMPLIFIER) -lboost_signals -lboost_system -lprotobuf -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib
 CHECK_BUILD = $(BUILD)/.tmp
 BUILD_TARGETS = $(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
 .SUFFIXES:
