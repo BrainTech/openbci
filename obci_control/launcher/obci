@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+direc=$OBCI_INSTALL_DIR
+
+if [ -z $OBCI_INSTALL_DIR ]
+then
+	direc=$HOME/dev/openbci
+fi
+python $direc/obci_control/launcher/obci_script.py $@

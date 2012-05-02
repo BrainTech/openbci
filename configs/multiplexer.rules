@@ -1,0 +1,1048 @@
+# vim:ft=conf:
+# no_filter
+
+# peer definitions
+#
+#   PEERS 1 - 99 reserverd for Multiplexer and special types
+peer {
+    type: 1
+    name: "MULTIPLEXER"
+    comment: "Peer type representing normal multiplexer instance."
+}
+
+peer {
+    type: 2
+    name: "ALL_TYPES"
+    comment: "this is special peer type that causes a message to be sent to all types"
+}
+
+peer {
+    type: 99
+    name: "MAX_MULTIPLEXER_SPECIAL_PEER_TYPE"
+    comment: "this only defines a constant"
+}
+
+#   PEERS 100-999 are plain peers
+
+
+# peers 100-105 reserved
+
+peer {
+    type: 106
+    name: "PYTHON_TEST_SERVER"
+}
+
+peer {
+    type: 107
+    name: "PYTHON_TEST_CLIENT"
+}
+
+peer {
+    type: 108
+    name: "LOG_STREAMER"
+    is_passive: true
+}
+
+peer {
+    type: 109
+    name: "LOG_COLLECTOR"
+}
+
+peer {
+    type: 110
+    name: "EVENTS_COLLECTOR"
+}
+
+peer {
+    type: 111
+    name: "LOG_RECEIVER_EXAMPLE"
+}
+
+# peers 112 reserved
+
+peer {
+    type: 112
+    name: "AMPLIFIER"
+    queue_size: 32768
+}
+
+peer {
+    type: 113
+    name: "SIGNAL_CATCHER"
+    queue_size: 32768	       
+
+}
+
+peer {
+    type: 114
+    name: "MONITOR"
+}
+
+peer {
+    type: 115
+    name: "HASHTABLE"
+}
+
+peer {
+    type: 116
+    name: "FILTER"
+    queue_size: 32768
+}
+
+peer {
+    type: 117
+    name: "ANALYSIS"
+    queue_size: 32768	       
+}
+
+peer {
+    type: 118
+    name: "LOGIC_DECISION"
+}
+peer {
+    type: 119
+    name: "STREAM_RECEIVER"
+    queue_size: 32768
+}
+
+peer {
+    type: 120
+    name: "DIODE"
+}
+
+peer {
+    type: 121
+    name: "DIODE_CATCHER"
+}
+
+peer {
+    type: 122
+    name: "SUPER_DIODE"
+}
+
+peer {
+    type: 123
+    name: "SIGNAL_STREAMER"
+    queue_size: 32768
+}
+
+peer {
+     type: 124	
+     name: "SIGNAL_SAVER"
+    queue_size: 32768
+}
+
+peer {
+     type: 125
+     name: "SIGNAL_SAVER_CONTROL"
+}
+
+peer {
+     type: 126
+     name: "UGM"
+}
+
+peer {
+     type: 127
+     name: "PINGER"
+}
+
+peer {
+     type: 128
+     name: "TAGS_SENDER"
+    queue_size: 32768
+
+}
+
+peer { 
+     type: 129
+     name: "TAGS_RECEIVER"
+    queue_size: 32768
+}
+
+peer {
+    type: 130
+    name: "CALIBRATOR"
+}
+peer {
+    type: 131
+    name: "TAG_CATCHER"
+    queue_size: 32768
+}
+
+peer {
+     type: 132
+     name: "AUTOSCALE_GENERATOR"
+}
+
+peer {
+     type: 133
+     name: "TAG_SAVER"
+}
+
+peer {
+     type: 134
+     name: "INFO_SAVER"
+}
+
+peer {
+    type: 135
+    name: "BLINK_CATCHER"
+}
+
+peer {
+    type: 136
+    name: "CONFIGURER"
+}
+
+peer {
+     type: 137
+     name: "ETR_ANALYSIS"
+     queue_size: 32768
+}
+
+peer {
+     type: 138
+     name: "ETR_AMPLIFIER"
+}
+
+peer {
+     type: 139
+     name: "UGM_ENGINE"
+}
+peer {
+     type: 140
+     name: "ETR_SAVER"
+}
+
+################# OBCI_CONTROL ############################
+
+peer {
+    type: 141
+    name: "OBCI_LAUNCHER"
+}
+
+peer {
+    type: 142
+    name: "PEER_CONFIG_CONTROL"
+}
+
+peer {
+    type: 143
+    name: "CONFIG_SERVER"
+}
+
+peer {
+     type: 144
+     name: "AMPLIFIER_SERVER"
+}
+
+peer {
+     type: 145
+     name: "UGM_ENGINE_PEER"
+}
+
+peer {
+    type: 146
+    name: "LOGIC_P300_CALIBRATION"
+}
+
+peer {
+    type: 147
+    name: "LOGIC_SSVEP_CALIBRATION"
+}
+
+peer {
+    type: 148
+    name: "SSVEP_ANALYSIS"
+    queue_size: 32768	       
+}
+
+peer {
+    type: 149
+    name: "LOGIC_SSVEP_CSP"
+}
+
+peer {
+    type: 150
+    name: "DRIVER_DISCOVERY"
+}   
+
+peer {
+    type: 151
+    name: "LOGIC_FEEDBACK"
+}
+
+peer {
+    type: 152
+    name: "P300_ANALYSIS"
+    queue_size: 32768	       
+}
+
+peer {
+    type: 153
+    name: "LOGIC_P300_CSP"
+}
+
+peer {
+    type: 154
+    name: "SWITCH_AMPLIFIER"
+}
+
+peer {
+    type: 155
+    name: "SWITCH_ANALYSIS"
+}
+
+peer {
+    type: 156
+    name: "ROBOT_FEEDBACK"
+}
+
+peer {
+    type: 157
+    name: "ROBOT_FEEDBACK_CONTROL"
+}
+
+
+peer {
+     type: 158
+     name: "WII_BOARD_AMPLIFIER"
+}
+
+peer {
+     type: 159
+     name: "WII_BOARD_ANALYSIS"
+     queue_size: 32768
+}
+
+peer {
+     type: 160
+     name: "WII_BOARD_SAVER"
+}
+
+peer {
+     type: 161
+     name: "EXTERNAL_SWITCH_AMPLIFIER"
+}
+
+
+
+# packages and routing rules definitions
+#
+#   PACKAGES 1 - 99 reserved for Multiplexer meta packages
+type {
+    type: 1
+    name: "PING"
+    comment: "I'm alive packet; it never carries any significant message."
+    to {
+	peer: "PINGER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 2
+    name: "CONNECTION_WELCOME"
+    comment: "message interchange by peers just after connecting to each other"
+}
+
+type {
+    type: 3
+    name: "BACKEND_FOR_PACKET_SEARCH"
+    comment: "message used by MX client in query() for finding a backend that would handle its request"
+}
+
+type {
+    type: 4
+    name: "HEARTBIT"
+    comment: "packet to be sent by every peer on every channel when nothing sent through the given channel for certain period of time"
+}
+
+type {
+    type: 5
+    name: "DELIVERY_ERROR"
+    comment: "packet could not be delivered to one or more recipients"
+}
+
+type {
+    type: 99
+    name: "MAX_MULTIPLEXER_META_PACKET"
+    comment: "this only defines a constant"
+}
+
+# PACKAGES 100 - 999 normal package
+
+# types 100-109 reserved
+
+type {
+    type: 110
+    name: "PYTHON_TEST_REQUEST"
+    to {
+	peer: "PYTHON_TEST_SERVER"
+    }
+}
+
+type {
+    type: 111
+    name: "PYTHON_TEST_RESPONSE"
+}
+
+type {
+    type: 112
+    name: "PICKLE_RESPONSE"
+}
+
+type {
+    type: 113
+    name: "REQUEST_RECEIVED"
+    comment: "packet sent by the backend immediatelly after receiving a request and stright to the requesting peer"
+}
+
+type {
+    type: 114
+    name: "BACKEND_ERROR"
+    comment: "packet sent by the backend when request handling function finishes and no packet response packet is sent"
+}
+
+type {
+    type: 115
+    name: "LOGS_STREAM"
+    comment: "payload is LogEntriesMessage"
+    to {
+	peer: "LOG_COLLECTOR"
+        whom: ALL
+    }
+    to {
+	peer: "LOG_RECEIVER_EXAMPLE"
+	whom: ALL
+    }
+}
+
+type {
+    type: 116
+    name: "LOGS_STREAM_RESPONSE"
+    # currently unused
+}
+
+type {
+    type: 117
+    name: "SEARCH_COLLECTED_LOGS_REQUEST"
+    comment: "payload is SearchCollectedLogs; logs are returned in LogEntriesMessage"
+    to {
+	peer: "LOG_COLLECTOR"
+	whom: ANY
+    }
+}
+
+type {
+    type: 118
+    name: "SEARCH_COLLECTED_LOGS_RESPONSE"
+}
+
+# types 119-125 reserved
+
+type {
+    type: 126
+    name: "REPLAY_EVENTS_REQUEST"
+    comment: "this is a no-response request"
+    to {
+	peer: "EVENTS_COLLECTOR"
+	whom: ANY
+    }
+}
+
+# types 127-128 reserverd
+
+type {
+    type: 129
+    name: "AMPLIFIER_SIGNAL_MESSAGE"
+    to {
+       peer: "SIGNAL_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+    to {
+        peer: "SIGNAL_CATCHER"
+        whom: ALL
+	report_delivery_error: false
+    }  
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+	report_delivery_error: false
+    }
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+	report_delivery_error: false
+    }
+    to {
+       peer: "ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "SSVEP_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+    to {
+       peer: "P300_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+    to {
+       peer: "ROBOT_FEEDBACK"
+       whom: ALL
+	report_delivery_error: false
+       }
+}
+
+type {
+    type: 130
+    name: "FILTERED_SIGNAL_MESSAGE"
+    to {
+        peer: "SIGNAL_CATCHER"
+        whom: ALL
+	report_delivery_error: false
+    }
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+	report_delivery_error: false
+    }
+    
+}
+
+type {
+    type: 131
+    name: "SIGNAL_CATCHER_REQUEST_MESSAGE"
+    to {
+        peer: "SIGNAL_CATCHER"
+        whom: ANY
+    }
+}
+
+type {
+    type: 132
+    name: "SIGNAL_CATCHER_RESPONSE_MESSAGE"
+}
+
+type {
+    type: 133
+    name: "DICT_GET_REQUEST_MESSAGE"
+    to {
+        peer: "HASHTABLE"
+        whom: ANY
+    }
+}
+
+type {
+    type: 134
+    name: "DICT_GET_RESPONSE_MESSAGE"
+}
+
+type {
+    type: 135
+    name: "DICT_SET_MESSAGE"
+    to {
+        peer: "HASHTABLE"
+        whom: ALL
+    }
+}
+
+type {
+    type: 136
+    name: "DECISION_MESSAGE"
+    to {
+        peer: "LOGIC_DECISION"
+        whom: ALL
+    }
+    to {
+        peer: "LOGIC_FEEDBACK"
+        whom: ALL
+    }
+
+}
+
+type {
+    type: 137
+    name: "DIODE_MESSAGE"
+    to {
+        peer: "DIODE_CATCHER"
+        whom: ALL
+	report_delivery_error: false
+    }
+}
+
+type {
+    type: 138
+    name: "DIODE_REQUEST"
+    to {
+        peer: "DIODE_CATCHER"
+        whom: ANY
+    }
+}
+
+type {
+    type: 139
+    name: "DIODE_RESPONSE"
+}
+
+type {
+    type: 140
+    name: "P300_DECISION_MESSAGE"
+    to {
+        peer: "LOGIC_DECISION"
+        whom: ALL
+    }
+}
+
+type {
+    type: 141
+    name: "SSVEP_DECISION_MESSAGE"
+    to {
+        peer: "LOGIC_DECISION"
+        whom: ALL
+    }
+}
+type {
+    type: 142
+    name: "SWITCH_MODE"
+    to {
+        peer: "SUPER_DIODE"
+        whom: ALL
+    }
+}
+
+type {
+    type: 143
+    name: "STREAMED_SIGNAL_MESSAGE"
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 144
+    name: "SIGNAL_STREAMER_START"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 145
+    name: "SIGNAL_STREAMER_STOP"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 146
+    name: "SAMPLING_FREQUENCY"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 147
+    name: "CALIBRATION"
+    to {
+        peer: "SIGNAL_STREAMER"
+        whom: ALL
+    }
+}
+
+
+type {
+    type: 149
+    name: "UGM_UPDATE_MESSAGE"
+    to {
+        peer: "UGM"
+        whom: ALL
+    }
+}
+
+type {
+     type: 150
+     name: "TAG"
+     to {
+     	peer: "TAG_SAVER"
+	whom: ALL
+	report_delivery_error: false
+	}
+     to {
+     	peer: "TAGS_RECEIVER"
+	whom: ANY
+	report_delivery_error: false
+	}
+    to {
+        peer: "STREAM_RECEIVER"
+        whom: ALL
+	report_delivery_error: false
+    }
+}
+
+type {
+    type: 151
+    name: "DIODE_CONTROL_MESSAGE"
+    to {
+        peer: "SUPER_DIODE"
+        whom: ALL
+    }
+}
+
+type {
+    type: 152
+    name: "TAG_CATCHER_REQUEST_MESSAGE"
+    to {
+        peer: "TAGS_RECEIVER"
+        whom: ALL
+    }
+}
+type {
+    type: 153
+    name: "TAG_CATCHER_RESPONSE_MESSAGE"
+}
+
+
+type {
+     type: 154
+     name: "BLINK_MESSAGE"
+     to {
+        peer: "BLINK_CATCHER"
+        whom: ALL
+	report_delivery_error: false
+     }
+     
+     to {
+     	peer: "LOGIC_P300_CALIBRATION"
+	whom: ALL
+	report_delivery_error: false
+     }
+
+     to {
+     	peer: "P300_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
+
+     to {
+     	peer: "SWITCH_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
+}
+
+type {
+     type: 155
+     name: "SIGNAL_SAVER_CONTROL_MESSAGE"
+     to {
+     	peer: "SIGNAL_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TAG_SAVER"
+	whom: ALL
+	}	
+     to {
+     	peer: "INFO_SAVER"
+	whom: ALL
+	}	
+}
+
+type {
+     type: 156
+     name: "SIGNAL_SAVER_FINISHED"
+     to {
+     	peer: "INFO_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TAG_SAVER"
+	whom: ALL
+	}
+     to {
+        peer: "LOGIC_SSVEP_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
+}
+
+type {
+     type: 157
+     name: "INFO_SAVER_FINISHED"
+     to {
+        peer: "LOGIC_SSVEP_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
+}
+
+type {
+     type: 158
+     name: "TAG_SAVER_FINISHED"
+     to {
+        peer: "LOGIC_SSVEP_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+     to {
+        peer: "LOGIC_P300_CSP"
+	whom: ALL
+	report_delivery_error: false
+	}	
+
+}
+
+type {
+     type: 159
+     name: "BLINK_VECTOR_MESSAGE"
+     to {
+        peer: "ANALYSIS"
+        whom: ALL
+     }
+}
+
+type {
+    type: 209
+    name: "ETR_SIGNAL_MESSAGE"
+    to {
+       peer: "ETR_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "ETR_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+}
+
+type {
+    type: 210
+    name: "SYSTEM_CONFIGURATION"
+    to {
+        peer: "CONFIGURER"
+        whom: ALL
+        report_delivery_error: true
+    }
+
+}
+
+type {
+     type: 211
+     name: "UGM_ENGINE_MESSAGE"
+     to {
+     	peer: "LOGIC_P300_CALIBRATION"
+	whom: ALL
+	}	
+     to {
+     	peer: "SWITCH_AMPLIFIER"
+	whom: ALL
+        report_delivery_error: false
+	}	
+}
+
+type {
+    type: 212
+    name: "UGM_CONTROL_MESSAGE"
+    to {
+        peer: "UGM"
+        whom: ALL
+    }
+}
+
+################# CONFIGURATION MESSAGES ############################
+#TODO get rid of this type
+type {
+    type: 213
+    name: "CONFIG_MESSAGE"
+    to {
+        peer: "OBCI_LAUNCHER"
+        whom: ALL
+    }
+    to {
+        peer: "PEER_CONFIG_CONTROL"
+        whom: ALL
+    }
+}
+
+# message contains ConfigParamsRequest message
+type {
+	type: 214
+	name: "GET_CONFIG_PARAMS"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains ConfigParams message
+type {
+	type: 215
+	name: "CONFIG_PARAMS"
+}
+
+# message contains ConfigParams message
+type {
+	type: 216
+	name: "REGISTER_PEER_CONFIG"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains peer_id (string)
+type {
+	type: 217
+	name: "PEER_REGISTERED"
+}
+
+# message contains ConfigParams message
+type {
+	type: 218
+	name: "UPDATE_PARAMS"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+# message contains ConfigParams message
+type {
+	type: 219
+	name: "PARAMS_CHANGED"
+	to {
+		peer: "ALL_TYPES"
+		whom: ALL
+	}
+}
+
+# message contains peer_id (string)
+type {
+	type: 220
+	name: "PEER_READY"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#PeerReadyQuery
+type {
+	type: 221
+	name: "PEERS_READY_QUERY"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#PeerReadyStatus
+type {
+	type: 222
+	name: "READY_STATUS"
+}
+
+# message contains PeerIdentity
+type {
+	type: 223
+	name: "UNREGISTER_PEER_CONFIG"
+	to {
+		peer: "CONFIG_SERVER"
+		whom: ALL
+	}
+}
+
+#ConfigError
+type {
+	type: 224
+	name: "CONFIG_ERROR"
+}
+
+#PeerIdentity
+type {
+	type: 225
+	name: "PEER_READY_SIGNAL"
+}
+
+type {
+	type: 226
+	name: "SHUTDOWN_REQUEST"
+	to {
+		peer: "ALL_TYPES"
+		whom: ALL
+	}
+}
+
+# cfg_templates.LauncherCommand
+type {
+    type: 227
+    name: "LAUNCHER_COMMAND"
+    to {
+        peer: "CONFIG_SERVER"
+        whom: ALL
+    }
+}
+
+type {
+    type: 228
+    name: "SWITCH_MESSAGE"
+    to {
+        peer: "SWITCH_ANALYSIS"
+        whom: ALL
+	report_delivery_error: false
+    }
+}
+
+type {
+    type: 229
+    name: "ROBOT_FEEDBACK_CONTROL"
+    to {
+        peer: "ROBOT_FEEDBACK"
+        whom: ALL
+    }
+}
+
+
+type {
+    type: 230
+    name: "WII_BOARD_SIGNAL_MESSAGE"
+    to {
+       peer: "WII_BOARD_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "WII_BOARD_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+}

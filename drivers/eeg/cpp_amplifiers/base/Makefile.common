@@ -1,0 +1,61 @@
+PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\([0-9]\+\).*/\1.\2/')
+CPP_AMPLIFIERS = ..
+ROOTDIR		= $(abspath ../../../../)
+AZOUKDIR	= $(abspath $(ROOTDIR)/multiplexer-install)
+BASEDIR	:= $(CPP_AMPLIFIERS)/base/
+BUILD = $(CPP_AMPLIFIERS)/build
+
+CXX		= g++
+O		= -g #-O2
+GENERALFLAGS	+= $(O) -Wall \
+			-DBOOST_DISABLE_THREADS -fPIC  \
+
+
+
+CXXFLAGS	+= $(GENERALFLAGS) -fpermissive
+INCLUDEDIRS = -I$(BASEDIR) -I$(AZOUKDIR)/include -I/usr/share/multiplexer/src -I$(BUILD)
+
+AMPLIFIER = Amplifier.o AmplifierDescription.o Logger.o
+AMPLIFIER_SERVER =$(AMPLIFIER) AmplifierServer.o run_server.o variables.pb.o
+
+LD_AMPLIFIER = -lboost_program_options -lboost_date_time
+LD_SERVER = $(LD_AMPLIFIER) -lboost_signals -lboost_system -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib
+CHECK_BUILD = $(BUILD)/.tmp
+BUILD_TARGETS = $(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
+.SUFFIXES:
+
+.PRECIOUS: $(BUILD)/%.o $(BUILD)/%.h
+
+$(BUILD)/.tmp:
+	mkdir -p $(BUILD)
+	touch $(BUILD)/.tmp
+
+$(BUILD)/%.o :	%.cpp %.h $(CHECK_BUILD)
+	$(BUILD_TARGETS)
+
+$(BUILD)/%.o :	%.cpp 
+	$(BUILD_TARGETS)
+
+$(BUILD)/%.o :	%.c %.h 
+	$(BUILD_TARGETS)
+
+$(BUILD)/%.o :	$(BASEDIR)/%.cpp $(BASEDIR)/%.h $(CHECK_BUILD) 
+	$(BUILD_TARGETS)
+
+$(BUILD)/%.o :	$(BASEDIR)/%.cpp $(CHECK_BUILD)
+	$(BUILD_TARGETS)
+
+
+$(BUILD)/variables.pb.cc:	$(BUILD)/variables.pb.h $(CHECK_BUILD)
+$(BUILD)/variables.pb.h: $(ROOTDIR)/configs/variables.proto $(CHECK_BUILD)
+	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/configs/ $<
+
+$(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
+	$(BUILD_TARGETS)
+
+$(BUILD)/AmplifierServer.o: $(BUILD)/variables.pb.h
+
+force_look:
+	@true
+clean::
+	rm -rf $(BUILD)

@@ -1,0 +1,89 @@
+######## cebit demo_129 network #########
+192.168.4.104	pralina
+192.168.4.106	lap7
+192.168.4.108	mati-laptop
+192.168.4.110	appliance3
+192.168.4.112	appliance2	
+192.168.4.114	appliance4
+192.168.4.116	Piotr-Durkas-MacBook-Pro.local
+
+192.168.1.9 	rovio
+#########################################
+
+
+################## MAC addresses  ###########
+pralina	192.168.1.104
+  wifi
+	00-21-00-88-ec-cd 
+  ethernet
+	00-22-64-6b-ed-03 
+
+appliance3	192.168.1.110
+(bialy)
+  wifi
+	74-2f-68-b3-fa-58 
+
+usb ethernet apple 2 (gumowy supelek)
+    58-55-ca-26-18-30
+
+
+####################### CEBIT ####################
+
+lap7	192.168.4.117 (127)
+  wifi
+	ac-72-89-9e-7d-39
+    ac:72:89:9e:7d:39 	
+  ethernet
+	18-03-73-8b-63-dc 
+    18:03:73:8b:63:dc		
+
+appliance2	192.168.1.112 (122)
+  external wifi (pentagram)
+    00-b0-8c-03-45-30
+    00:b0:8c:03:45:30
+  external wifi (antenka):
+    00:1f:1f:1b:0d:e4
+  internal wifi
+    00-1c-bf-ae-f9-25
+  usb ethernet apple
+	d8-30-62-a4-fe-b4 	
+    d8:30:62:a4:f3:b4
+
+
+appliance4	192.168.1.114 (124)
+  wifi
+  	74-2f-68-b3-fa-9d
+    74:2f:68:b3:fa:9d
+  usb ethernet apple
+	d8-30-62-a4-fe-b4 	
+    d8:30:62:a4:f3:b4
+
+Piotr-Durkas-MacBook-Pro.local	192.168.1.110 (120)
+  wifi:
+	60-33-4b-0e-44-af
+    60:33:4b:0e:44:af
+  ethernet:
+  	c4-2c-03-2e-0d-f4
+  	c4:2c:03:2e:0d:f4
+
+mati-laptop	192.168.1.111 (121)
+  wifi
+	00-1b-77-a4-cd-33
+	00:1b:77:a4:cd:33
+  ethernet
+	00-15-58-cb-2c-a1 	
+    00:15:58:cb:2c:a1
+
+
+
+
+
+
+######################################## wifi tylko tablety #################
+192.168.4.127	lap7
+192.168.4.121	mati-laptop
+192.168.4.112	appliance2	
+192.168.4.114	appliance4
+192.168.4.120	Piotr-Durkas-MacBook-Pro.local
+
+192.168.4.9 	rovio
