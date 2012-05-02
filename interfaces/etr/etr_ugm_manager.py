@@ -79,18 +79,12 @@ class EtrUgmManager(object):
                 return i
         return -1
 
-    def _get_ugm_field_updates(self, feeds):
+    def get_ugm_updates(self, feeds, msg):
         updates = []
         for i in range(len(feeds)):
             if feeds[i] > 0:
                 updates.append(self.area_configs[i].get_ugm_update(feeds[i]))
-        return updates
-
-    def get_ugm_field_updates(self, feeds):
-        return str(self._get_ugm_field_updates(feeds))
-
-    def get_ugm_updates(self, feeds, msg):
-        updates = self._get_ugm_field_updates(feeds)
         updates.append(self.fix_config.get_ugm_update(msg))
+
         return str(updates)
         

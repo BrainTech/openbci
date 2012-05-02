@@ -6,28 +6,25 @@ class Plotter(object):
         self.num_of_x = x
         self.num_of_y = y
         self.labels = {}
-        self.plot_params = {}
-    def add_plot(self, data, label, x, plot_id, title='', args={}):
+    def add_plot(self, data, label, x, plot_id, args={}):
         print("len(x): "+str(len(x))+", len(data):"+str(len(data)))
         assert(len(x) == len(data))
         pylab.subplot(self.num_of_x, self.num_of_y, plot_id)
         pylab.plot(x, data, **args)
 
+
         self.labels[plot_id] = self.labels.get(plot_id,[])
         self.labels[plot_id].append(label)
+        
 
-    def add_plot_param(self, plot_id, k, v):
-        self.plot_params[plot_id] = self.plot_params.get(plot_id, {})
-        self.plot_params[plot_id][k] = v
 
-    def prepare_to_show(self, xlabel='time (ms)', ylabel='EEG (uV)', loc=4):
+    def prepare_to_show(self):
         for k, v in self.labels.iteritems():
             pylab.subplot(self.num_of_x, self.num_of_y, k)
-            pylab.legend(v, loc=loc)
-            title = self.plot_params.get(k, {}).get('title', '')
-            pylab.title(title)
-            pylab.xlabel(xlabel)
-            pylab.ylabel(ylabel)
+            l = pylab.legend(v, loc=4)
+            l.fontsize = 2
+            pylab.xlabel('time (ms)')
+            pylab.ylabel('EEG (uV)')
 
 
 def show():
