@@ -33,7 +33,8 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 		close(1);
 		dup2(fd[1],1);
 		execl("simple_gtec_driver","simple_gtec_driver",name,NULL);
-
+		cerr << "Could not run simple_gtect_driver:"<<strerror(errno)<<"\n";
+		exit(-1);
 	}
 	else{
 		close(fd[1]);

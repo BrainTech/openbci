@@ -1,18 +1,19 @@
 include Makefile.common
 
- 
+ALL = dummy_amplifier test_server test_logger test_dummy_amplifier
 
-dummy_amplifier: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) dummy_amplifier_main.o)
-	$(CXX) -o $@ $^ $(LD_SERVER)
+#This is for command line completion
+$(ALL):
 
-test_server: $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) test_server.o)
-	$(CXX) -o $@ $^ $(LD_SERVER)
 
-test_logger:  $(addprefix $(BUILD)/,test_logger.o Logger.o) 
-	$(CXX) -o $@ $^
+$(BIN)/dummy_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) dummy_amplifier_main.o)
+	$(LD_SERVER)
 
-test_dummy_amplifier: $(addprefix $(BUILD)/, $(AMPLIFIER) test_amplifier.o test_dummy_amplifier.o)
-	$(CXX) -o $@ $^	$(LD_AMPLIFIER)
+$(BIN)/test_server: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) test_server.o)
+	$(LD_SERVER)
 
-force_look:
-	@true
+$(BIN)/test_logger:  $(CHECK_BIN) $(addprefix $(BUILD)/,test_logger.o Logger.o) 
+	$(LD_AMPLIFIER)
+
+$(BIN)/test_dummy_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER) test_amplifier.o test_dummy_amplifier.o)
+	$(LD_AMPLIFIER)

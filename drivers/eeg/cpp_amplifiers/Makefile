@@ -9,8 +9,11 @@ INSTALLS = install_gtec install_tmsi
 TARGETS = tmsi_amplifier file_amplifier dummy_amplifier
 TESTS = $(addprefix test_,$(TARGETS)) test_server test_logger
 
-LN = @cp -f
-
+BIN=bin/
+BUILD=build/
+MAKE_BIN = make $(BIN)$@
+LN_= @ln -f
+LN = $(LN_) $(BIN)/$@ $@
 amplifiers: $(TARGETS)
 
 all: $(TARGETS) $(RECEIVER) $(TESTS)
@@ -25,27 +28,34 @@ tests: $(TESTS)
 
 
 receivers: $(RECEIVER)
+base: $(BASE)
+tmsi: $(TMSI)
+gtec: $(GTEC)
+file: $(FILE)
 
 $(BASE): force_look
-	@cd base;make $@
-	$(LN) base/$@ $@
+	@cd base;$(MAKE_BIN)
+	$(LN)
 
 $(TMSI): force_look
-	@cd tmsi;make $@
-	$(LN) tmsi/$@ $@
+	@cd tmsi;$(MAKE_BIN)
+	$(LN)
 
 $(FILE): force_look
-	@cd file;make $@
-	$(LN) file/$@ $@
+	@cd file;$(MAKE_BIN)
+	$(LN)
+	
+$(GTEC):: force_look
+	@cd gtec;$(MAKE_BIN)
+	$(LN)
 
-$(GTEC): force_look
-	@cd gtec;make $@
-	$(LN) gtec/$@ $@
-	$(LN) gtec/simple_gtec_driver simple_gtec_driver
+$(GTEC)::
+	$(LN_) $(BIN)simple_gtec_driver simple_gtec_driver
 
 $(RECEIVER): force_look
-	@cd receiver;make $@
-	$(LN) receiver/$@ $@
+	@cd receiver;$(MAKE_BIN)
+	$(LN)
+	
 $(INSTALL) : force_look
 
 install_gtec:
