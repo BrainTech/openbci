@@ -3,7 +3,7 @@
 az_path=$1
 if [ -z $az_path ]
 then
-    az_path=$HOME/azouk-libraries
+    az_path=../../azouk-libraries
 fi
 curr=`pwd`
 top=`cd ../;pwd`
