@@ -18,7 +18,7 @@ using namespace boost::posix_time;
 using namespace std;
 namespace po=boost::program_options;
 
-int test_driver(int argc, char ** argv, Amplifier *amp){
+int _test_driver(int argc, char ** argv, Amplifier *amp){
 	int length;
 	int saw;
 	double time_diff;
@@ -122,4 +122,14 @@ int test_driver(int argc, char ** argv, Amplifier *amp){
 	amp->stop_sampling();
 	return 0;
 
+}
+int test_driver(int argc, char ** argv, Amplifier *amp){
+	try{
+		_test_driver(argc,argv,amp);
+		return 0;
+	}
+	catch (char const* msg){
+		cerr<< "Amplifier exception: "<<msg<<"\n";
+	}
+	return -1;
 }

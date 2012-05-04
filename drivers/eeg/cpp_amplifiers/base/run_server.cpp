@@ -26,7 +26,7 @@ namespace po= boost::program_options;
 #include "AmplifierServer.h"
 #include "Logger.h"
 
-int run_server(int argc, char**argv,AmplifierServer * server)
+int _run_server(int argc, char**argv,AmplifierServer * server)
 {
 	string line;
 	Amplifier *driver=server->get_driver();
@@ -57,4 +57,14 @@ int run_server(int argc, char**argv,AmplifierServer * server)
 	}
 	cerr <<driver->get_description()->get_name()<< " driver server exit\n";
 	return 0;
+}
+int run_server(int argc, char**argv,AmplifierServer * server){
+	try{
+		_run_server(argc,argv,server);
+		return 0;
+	}
+	catch (const char * msg){
+		cerr << "Driver Exception: "<< msg <<"\n";
+	}
+	return -1;
 }

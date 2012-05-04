@@ -2,9 +2,9 @@ PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\(
 CPP_AMPLIFIERS = ..
 ROOTDIR		= $(abspath ../../../../)
 AZOUKDIR	= $(abspath $(ROOTDIR)/multiplexer-install)
-BASEDIR	:= $(CPP_AMPLIFIERS)/base/
+BASEDIR	:= $(CPP_AMPLIFIERS)/base
 BUILD = $(CPP_AMPLIFIERS)/build
-
+BIN = $(CPP_AMPLIFIERS)/bin
 CXX		= g++
 O		= -g #-O2
 GENERALFLAGS	+= $(O) -Wall \
@@ -17,18 +17,35 @@ INCLUDEDIRS = -I$(BASEDIR) -I$(AZOUKDIR)/include -I/usr/share/multiplexer/src -I
 
 AMPLIFIER = Amplifier.o AmplifierDescription.o Logger.o
 AMPLIFIER_SERVER =$(AMPLIFIER) AmplifierServer.o run_server.o variables.pb.o
+AMPLIFIER_LIBS = -lboost_program_options -lboost_date_time
+SERVER_LIBS = -lboost_signals -lboost_system -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib -lprotobuf
 
-LD_AMPLIFIER = -lboost_program_options -lboost_date_time
-LD_SERVER = $(LD_AMPLIFIER) -lboost_signals -lboost_system -lprotobuf -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib
+
 CHECK_BUILD = $(BUILD)/.tmp
+$(CHECK_BUILD):
+	mkdir -p $(BUILD)
+	touch $(BUILD)/.tmp
+
+CHECK_BIN = $(BIN)/.tmp
+$(CHECK_BIN):
+	mkdir -p $(BIN)
+	touch $(BIN)/.tmp
+
+#First dependency of linker will be $(CHECK_BIN) that is why we have to filter that out
+LD_AMPLIFIER = $(CXX) -o $@ $(filter-out $(CHECK_BIN), $^) $(AMPLIFIER_LIBS)
+LD_SERVER = $(LD_AMPLIFIER) $(SERVER_LIBS) 
+
+
 BUILD_TARGETS = $(CXX) $(CXXFLAGS) $(INCLUDEDIRS) -c $< -o $@
 .SUFFIXES:
 
 .PRECIOUS: $(BUILD)/%.o $(BUILD)/%.h
 
-$(BUILD)/.tmp:
-	mkdir -p $(BUILD)
-	touch $(BUILD)/.tmp
+bin/%: $(BIN)/%
+	@true
+
+%: $(BIN)/%
+	@true
 
 $(BUILD)/%.o :	%.cpp %.h $(CHECK_BUILD)
 	$(BUILD_TARGETS)
@@ -55,7 +72,5 @@ $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
 
 $(BUILD)/AmplifierServer.o: $(BUILD)/variables.pb.h
 
-force_look:
-	@true
 clean::
 	rm -rf $(BUILD)
