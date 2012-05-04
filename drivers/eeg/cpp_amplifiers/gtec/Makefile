@@ -31,7 +31,7 @@ $(API_INSTALLED):
 
 
 install_gtec:
-	cd api;sudo sh install.sh
+	cd api;sudo bash install.sh
 
 clean::
 	rm -f *.o
