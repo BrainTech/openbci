@@ -1,5 +1,3 @@
-#!/bin/bash
-cur=`pwd`
-cd ../drivers/eeg/cpp_amplifiers/
-make install
-cd $cur
+#!/bin/sh
+exec make -C ../drivers/eeg/cpp_amplifiers install
+
