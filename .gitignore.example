@@ -30,6 +30,8 @@ drivers/eeg/cpp_amplifiers/gtec/simple_gtec_driver
 drivers/eeg/cpp_amplifiers/simple_gtec_driver
 drivers/eeg/cpp_amplifiers/gtec/lib/
 drivers/eeg/cpp_amplifiers/gtec/boost*
+drivers/eeg/cpp_amplifiers/bin
+
 
 multiplexer-install/
 *test_logger
