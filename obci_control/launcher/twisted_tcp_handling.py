@@ -24,9 +24,9 @@ class OBCIProxy(NetstringReceiver):
         print "twisted got:", req
 
         parsed = self.factory.mtool.unpack_msg(req)
-        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers'\
-            or parsed.type == 'start_eeg_signal':
-            pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.factory.pull_port)
+        if parsed.type in self.factory.long_rqs:
+            sock, port = self.factory.long_rqs[parsed.type]
+            pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
             parsed.client_push_address = pull_addr
 
         send_msg(req_sock, parsed.SerializeToString())
@@ -36,9 +36,9 @@ class OBCIProxy(NetstringReceiver):
         if not msg:
             msg = self.factory.mtool.fill_msg("rq_error", details=det)
 
-        if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers'\
-            or parsed.type == 'start_eeg_signal':
-            msg, det = pl.poll_recv(self.factory.pull_sock, timeout=20000)
+        if parsed.type in self.factory.long_rqs:
+            sock, port = self.factory.long_rqs[parsed.type]
+            msg, det = pl.poll_recv(sock, timeout=20000)
             if not msg:
                 msg = self.factory.mtool.fill_msg("rq_error", details=det)
                 return
@@ -56,11 +56,21 @@ class OBCIProxyFactory(Factory):
         self.srv_address = address
         self.ctx = zmq_ctx
         self.zmq_rep_addr = zmq_rep_addr
-        self.pull_sock = self.ctx.socket(zmq.PULL)
-        self.pull_port = self.pull_sock.bind_to_random_port('tcp://*',
+        self.long_rqs = {}
+
+        for msgtype in ["find_eeg_experiments", 
+                        "find_eeg_amplifiers", 
+                        "start_eeg_signal"]:
+            self.long_rqs[msgtype] = self._make_pull_sock()
+
+        self.mtool = OBCIMessageTool(message_templates)
+
+    def _make_pull_sock(self):
+        sock = self.ctx.socket(zmq.PULL)
+        port = sock.bind_to_random_port('tcp://*',
                                             min_port=PORT_RANGE[0],
                                             max_port=PORT_RANGE[1], max_tries=500)
-        self.mtool = OBCIMessageTool(message_templates)
+        return (sock, port)
 
 
 def run_twisted_server(address, zmq_ctx, zmq_rep_addr):
