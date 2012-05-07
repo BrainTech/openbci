@@ -176,7 +176,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         jsonpar = launch_file_parser.LaunchJSONParser(
                         launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
-        inbuf = io.BytesIO(response.scenario.encode(encoding='utf-8'))
+        inbuf = io.BytesIO(response.scenario.encode('utf-8'))
         jsonpar.parse(inbuf, self.exp_config)
         rd, details = self.exp_config.config_ready()
         if rd:
