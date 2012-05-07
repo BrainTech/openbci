@@ -361,6 +361,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
     def _list_experiments(self):
         exp_list = self.client.send_list_experiments()
         exps = []
+        self._process_response(exp_list)
         if exp_list is not None:
             for exp_data in exp_list.exp_data.values():
                 exps.append(exp_data)
@@ -402,8 +403,9 @@ experiments is possible only when launcher is running (command: obci srv)')))
         jsoned = serialize_scenario_json(exp.exp_config)
 
         result = self.client.send_create_experiment(name=exp.name)
-        if result.type != "experiment_created":
-            self._process_response(result)
+        ok = self._process_response(result)
+
+        if not ok:
             return result
         print result
 
@@ -415,8 +417,8 @@ experiments is possible only when launcher is running (command: obci srv)')))
             exp_sock.connect(addr)
         send_msg(exp_sock, self.mtool.fill_msg("set_experiment_scenario", scenario=jsoned))
         reply, details =  self.client.poll_recv(exp_sock, 20000)
-        if reply.type != 'rq_ok':
-            self._process_response(reply)
+        ok = self._process_response(reply)
+        if not ok:
             exp_sock.close()
             return
         send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
@@ -510,9 +512,13 @@ experiments is possible only when launcher is running (command: obci srv)')))
             parser.write(f)
 
     def _process_response(self, response):
+        is_ok = False
         if response is None:
             err = self.mtool.fill_msg("rq_error", err_code="no_response",
                             details="Timeout.")
             self.rq_error.emit(self.mtool.unpack_msg(err))
-        if response.type == "rq_error":
+        elif response.type == "rq_error":
             self.rq_error.emit(response)
+        else:
+            is_ok = True
+        return is_ok
