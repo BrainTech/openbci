@@ -507,7 +507,7 @@ class OBCIExperiment(OBCIControlPeer):
             if not result:
                 send_msg(self._publish_socket, self.mtool.fill_msg("experiment_launch_error",
                                      sender=self.uuid, err_code='', details=details))
-                print self.name,'[', self.type, ']',  ':-('
+                print self.name,'[', self.type, ']',  'EXPERIMENT LAUNCH ERROR!!!'
                 self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
             self.status_changed(self.status.status_name, self.status.details)
 
@@ -522,10 +522,12 @@ class OBCIExperiment(OBCIControlPeer):
             send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
                                     err_code='mx_not_running'))
 
-        # elif self.status.status_name != launcher_tools.RUNNING:
-        #     send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
-        #                             err_code='exp_status_'+self.status.status_name,
-        #                                     details=""))
+        elif self.status.status_name != launcher_tools.RUNNING and \
+            self.status.status_name != launcher_tools.LAUNCHING:
+            # temporary status bug workaround.
+            send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
+                                    err_code='exp_status_'+self.status.status_name,
+                                            details=""))
         else:
             self.unsupervised_peers[message.peer_id] = dict(peer_type=message.peer_type,
                                                             path=message.path)
