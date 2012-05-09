@@ -90,7 +90,11 @@ class PeerConfigSerializerINI(PeerConfigSerializer):
             self.parser.add_section(sec)
 
     def _save(self, p_file_obj):
-        self.parser.write(p_file_obj)
+        for sec in self.parser.sections():
+            p_file_obj.write('\n[' + sec + ']\n')
+            for opt in self.parser.options(sec):
+                p_file_obj.write(opt + ' = ')
+                p_file_obj.write(self.parser.get(sec, opt) + '\n')
 
     def _serialize_config_sources(self, p_sources):
         for src in p_sources.keys():
