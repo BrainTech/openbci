@@ -490,7 +490,11 @@ class OBCIExperiment(OBCIControlPeer):
                 self.status.set_status(launcher_tools.NOT_READY, details=details)
                 print rd, details
             self.exp_config.status(self.status)
+            self.launch_file = self.exp_config.launch_file_path = message.launch_file_path
             send_msg(sock, self.mtool.fill_msg('rq_ok'))
+            send_msg(self._publish_socket, self.mtool.fill_msg('experiment_scenario',
+                                            scenario=message.scenario,
+                                            launch_file_path=message.launch_file_path))
 
     @msg_handlers.handler('start_experiment')
     def handle_start_experiment(self, message, sock):

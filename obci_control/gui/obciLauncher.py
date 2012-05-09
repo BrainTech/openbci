@@ -246,7 +246,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent.setBackground(0, QBrush(QColor(self.status_colors[st])))
             parent.setBackground(1, QBrush(QColor(self.status_colors[st])))
             parent.setBackground(2, QBrush(QColor(self.status_colors[st])))
-            parent.setToolTip(0, peer.path)
+            parent.setToolTip(0, unicode(peer.path))
 
             self.parameters.addTopLevelItem(parent)
 

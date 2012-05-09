@@ -91,7 +91,8 @@ class ExperimentEngineInfo(QtCore.QObject):
             self.exp_config = system_config.OBCIExperimentConfig()
 
         self.name = launcher_data['name']# if not preset else self.old_uid
-        self.launch_file = launcher_data['launch_file_path']
+        if not preset:
+            self.launch_file = launcher_data['launch_file_path']
 
         connected = False
         if not transform:

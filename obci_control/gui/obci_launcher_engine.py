@@ -248,11 +248,16 @@ class OBCILauncherEngine(QtCore.QObject):
         exps = self.experiments
         old_index, old_exp = None, None
         new_index, new_exp = None, None
-        print msg
+        print msg, len(exps)
 
-        old_matches = [(i, e) for i, e in enumerate(exps) if\
-                (e.launch_file == msg.old_launch_file) ]#and\
-                #    e.preset_data is not None]
+        old_matches = []
+        for i, e in enumerate(exps):
+            print e.launch_file
+            if msg.old_launch_file == e.launch_file:
+                old_matches.append((i, e))
+        # old_matches = [(i, e) for i, e in enumerate(exps) if\
+        #         (msg.old_launch_file in e.launch_file) ]#and\
+        #         #    e.preset_data is not None]
 
         print "old_matches", old_matches
 
@@ -415,7 +420,8 @@ experiments is possible only when launcher is running (command: obci srv)')))
         exp_sock = self.ctx.socket(zmq.REQ)
         for addr in addrs:
             exp_sock.connect(addr)
-        send_msg(exp_sock, self.mtool.fill_msg("set_experiment_scenario", scenario=jsoned))
+        send_msg(exp_sock, self.mtool.fill_msg("set_experiment_scenario", scenario=jsoned,
+                                                launch_file_path=exp.exp_config.launch_file_path))
         reply, details =  self.client.poll_recv(exp_sock, 20000)
         ok = self._process_response(reply)
         if not ok:
