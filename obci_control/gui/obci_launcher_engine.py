@@ -111,6 +111,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
         running = self._list_experiments()
         for exp in running:
+            print "running exp::::::  ", exp
             matches = [(i, e) for i, e in enumerate(experiments) if\
                         e.launch_file == exp['launch_file_path'] and e.preset_data is not None\
                         and e.status.status_name == launcher_tools.READY_TO_LAUNCH]
@@ -213,6 +214,9 @@ class OBCILauncherEngine(QtCore.QObject):
 
         elif type_ == 'experiment_status_change':
             self._handle_experiment_status_change(launcher_message)
+
+        elif type_ == 'experiment_info_change':
+            self._handle_experiment_info_change(launcher_message)
 
         elif type_ == 'obci_peer_dead':
             self._handle_obci_peer_dead(launcher_message)
@@ -346,6 +350,14 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 for peer, status in msg.peers.iteritems():
                     exp.status.peer_status(peer).set_status(status)
 
+    def _handle_experiment_info_change(self, msg):
+        uid = msg.uuid
+        index = self.index_of(uid)
+        if index is not None:
+            exp = self.experiments[index]
+            exp.name = msg.name
+            exp.launch_file_path = msg.launch_file_path
+            
     def _handle_obci_peer_dead(self, msg):
         uid = msg.experiment_id
         index = self.index_of(uid)

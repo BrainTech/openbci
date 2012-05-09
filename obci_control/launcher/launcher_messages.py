@@ -36,7 +36,7 @@ message_templates = {
     "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='',
                                 launcher_message='', params='', details=''),
     "experiment_status_change" : dict(uuid='', status_name='', details='', peers=''),
-
+    "experiment_info_change" : dict(uuid='', name='', launch_file_path=''),
     "experiment_transformation" : dict(uuid='', status_name='', details='', name='',
                                     launch_file='', old_name='', old_launch_file=''),
 

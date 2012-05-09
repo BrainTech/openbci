@@ -382,6 +382,21 @@ class OBCIServer(OBCIControlPeer):
 
         send_msg(self._publish_socket, message.SerializeToString())
 
+    @msg_handlers.handler("experiment_info_change")
+    def handle_experiment_info_change(self, message, sock):
+        exp = self.experiments.get(message.uuid, None)
+        if not exp:
+            print "[obci_server]", "UUID not found", message.uuid
+            if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+                send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
+            return
+        exp.name = message.name
+        exp.launch_file_path = message.launch_file_path
+        if sock.socket_type in [zmq.REP, zmq.ROUTER]:
+            send_msg(sock, self.mtool.fill_msg('rq_ok'))
+        print "[obci_server]", "INFO CHANGED", exp.uuid, exp.name, exp.launch_file_path
+        send_msg(self._publish_socket, message.SerializeToString())
+
     @msg_handlers.handler("experiment_transformation")
     def handle_experiment_transformation(self, message, sock):
         exp = self.experiments.get(message.uuid, None)
