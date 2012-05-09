@@ -474,8 +474,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if self.server_ip is not None:
             self.reset_button.setEnabled(False)
 
+        launched = current_exp.status.status_name not in [LAUNCHING, RUNNING, FAILED, TERMINATED]
         self.actionOpen.setEnabled(True)
-        self.actionSave_as.setEnabled(True)
+        self.actionSave_as.setEnabled(launched)
         if current_exp.preset_data is not None:
             remove_enabled = current_exp.preset_data["category"] == USER_CATEGORY
             self.actionRemove_from_sidebar.setEnabled(remove_enabled)
