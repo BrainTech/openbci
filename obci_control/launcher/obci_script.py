@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-
 import os
 import argparse
 import json
@@ -51,7 +50,6 @@ def cmd_srv_kill(args):
     else:
         disp.view("Server process terminated.")
 
-
 def cmd_launch(args):
     launch_f = os.path.abspath(args.launch_file)
     overwrites = args.ovr
@@ -68,9 +66,7 @@ def cmd_launch(args):
     response = client.launch(launch_f, args.sandbox_dir, args.name, pack)
     disp.view(response)
 
-
 def cmd_morph(args):
-
     launch_f = os.path.abspath(args.launch_file)
     overwrites = args.ovr
     if overwrites:
@@ -85,7 +81,6 @@ def cmd_morph(args):
     print args.leave_on
     response = client.morph(args.experiment, launch_f, args.name, pack, args.leave_on)
     disp.view(response)
-
 
 def cmd_new(args):
     if args.launch_file:
@@ -146,15 +141,14 @@ def cmd_config(args):
                             args.config_file)
     disp.view(response)
 
-
 def cmd_info(args):
     client = client_server_prep()
     if not client:
         sys.exit(1)
-    if not args.e:
+    if not args.experiment:
         response = client.send_list_experiments()
     else:
-        response = client.get_experiment_details(args.e, args.p)
+        response = client.get_experiment_details(args.experiment, args.peer_id)
     if response is None:
         response = "whyyyy"
     disp.view(response)
@@ -173,42 +167,15 @@ def cmd_tail(args):
         response = "whyyyy"
     disp.view(response)
 
-
-########################################################
-
-
 ###############################################################################
 
-
-
-def obci_arg_parser():
-    parser = argparse.ArgumentParser(description="Launch and manage OBCI experiments,\
-their state and configuration", epilog="(c) 2011, Warsaw University", prog='obci')
-    configure_argparser(parser)
-    return parser
-
-def configure_argparser(parser):
-    subparsers = parser.add_subparsers(title='available commands',
-    description='(use %(prog)s *command* -h for help on a specific command)',
-    dest='command_name')
-
-    conf_parser = PeerCmd().conf_parser
-#------------------------------------------------------------------------------
-    parser_srv = subparsers.add_parser('srv',
-                parents=[obci_server.server_arg_parser(add_help=False)],
-                help="Start OBCIServer")
-
+def setup_srv(parser_srv):
     parser_srv.set_defaults(func=cmd_srv)
-#------------------------------------------------------------------------------
-    parser_srv_kill = subparsers.add_parser('srv_kill',
-                parents=[obci_server.server_arg_parser(add_help=False)],
-                help="Kill OBCIServer")
-    parser_srv_kill.set_defaults(func=cmd_srv_kill)
-#------------------------------------------------------------------------------
-    parser_launch = subparsers.add_parser('launch',
-                help="Launch an OpenBCI system with configuration \
-specified in a launch file or in a newly created Experiment")
 
+def setup_srv_kill(parser_srv_kill):
+    parser_srv_kill.set_defaults(func=cmd_srv_kill)
+
+def setup_launch(parser_launch):
     parser_launch.add_argument('launch_file', type=path_to_file,
                 help="OpenBCI launch configuration (experiment configuration).")
     parser_launch.add_argument('--sandbox_dir', type=path_to_file,
@@ -217,10 +184,8 @@ specified in a launch file or in a newly created Experiment")
                 help="A name for experiment")
     parser_launch.add_argument('--ovr', nargs=argparse.REMAINDER)#, type=peer_args)
     parser_launch.set_defaults(func=cmd_launch)
-#------------------------------------------------------------------------------
-    parser_morph = subparsers.add_parser('morph',
-                help='Transform chosen scenario into another, optionally not restarting \
-some peers')
+
+def setup_morph(parser_morph):
     parser_morph.add_argument('experiment', help='Something that identifies experiment: \
 a few first letters of its UUID or of its name \
 (usually derived form launch file name)')
@@ -232,12 +197,34 @@ a few first letters of its UUID or of its name \
                 help="A name for experiment")
     parser_morph.add_argument('--ovr', nargs=argparse.REMAINDER)
     parser_morph.set_defaults(func=cmd_morph)
-#------------------------------------------------------------------------------
-    parser_add = subparsers.add_parser('add',
-                help="Add a peer to an experiment launch configuration")
-#------------------------------------------------------------------------------
-    parser_new = subparsers.add_parser('new',
-                help="Create a new experiment launch configuration")
+
+def setup_kill(parser_kill):
+    parser_kill.add_argument('id', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)')
+    parser_kill.add_argument('--brutal', help='Just kill the specified experiment manager, \
+do not send a "kill" message')
+    parser_kill.set_defaults(func=cmd_kill)
+
+def setup_info(parser_info):
+    parser_info.add_argument('experiment', help='Something that identifies experiment: \
+a few first letters of its UUID or of its name \
+(usually derived form launch file name)', nargs='?', default='')
+#     parser_info.add_argument('-e', help='Something that identifies experiment: \
+# a few first letters of its UUID or of its name \
+# (usually derived form launch file name)')
+    # parser_info.add_argument('-p', help='Peer ID in the specified experiment.')
+    parser_info.add_argument('peer_id', help='Peer ID in the specified experiment.',
+                                nargs='?', default='')
+    parser_info.set_defaults(func=cmd_info)
+
+
+##################### temporarily unsupported commands ########################
+
+def setup_add(parser_add):
+    pass
+
+def setup_new(parser_new):
     parser_new.add_argument('--launch_file', type=path_to_file,
                 help="OpenBCI launch configuration (experiment configuration).")
     parser_new.add_argument('--sandbox_dir', type=path_to_file,
@@ -245,21 +232,17 @@ a few first letters of its UUID or of its name \
     parser_new.add_argument('--name',
                 help="A name for experiment")
     parser_new.set_defaults(func=cmd_new)
-#------------------------------------------------------------------------------
-    parser_kill = subparsers.add_parser('kill',
-                help="Kill an OpenBCI experiment")
-    parser_kill.add_argument('id', help='Something that identifies experiment: \
+
+def setup_start(parser_start):
+    parser_start.add_argument('experiment', help='Something that identifies experiment: \
 a few first letters of its UUID or of its name \
 (usually derived form launch file name)')
-    parser_kill.add_argument('--brutal', help='Just kill the specified experiment manager, \
-do not send a "kill" message')
-    parser_kill.set_defaults(func=cmd_kill)
-#------------------------------------------------------------------------------
-    parser_killall = subparsers.add_parser('killall',
-                help="Kill everything: all experiments and OBCI server.")
-#------------------------------------------------------------------------------
-    parser_join = subparsers.add_parser('join', parents=[conf_parser],
-                help="Join a running OpenBCI experiment with a new peer.")
+    parser_start.set_defaults(func=cmd_start)
+
+def setup_killall(parser_killall):
+    pass
+
+def setup_join(parser_join):
     parser_join.add_argument('id', help='Something that identifies experiment: \
 a few first letters of its UUID or of its name \
 (usually derived form launch file name)')
@@ -267,50 +250,85 @@ a few first letters of its UUID or of its name \
                                     help="Unique name for this peer")
     parser_join.add_argument('peer_path', type=path_to_file,
                 help="Path to an executable file.")
-
     parser_join.set_defaults(func=cmd_join)
-#------------------------------------------------------------------------------
 
-    parser_config = subparsers.add_parser('config',
-                help="Change a single peer configuration", parents=[conf_parser])
+def setup_save(parser_save):
+    pass
+
+def setup_config(parser_config):
     parser_config.add_argument('experiment', help='Something that identifies experiment: \
 a few first letters of its UUID or of its name \
 (usually derived form launch file name)')
     parser_config.add_argument('peer_id', help='Peer ID in the specified experiment.')
     parser_config.set_defaults(func=cmd_config)
-#------------------------------------------------------------------------------
-    parser_save = subparsers.add_parser('save',
-                help="Save OBCI experiment configuration to a launch file or save\
-                        a peer configuration")
-#------------------------------------------------------------------------------
-    parser_start = subparsers.add_parser('start',
-                help='Send start command to a chosen experiment.')
-    parser_start.add_argument('experiment', help='Something that identifies experiment: \
-a few first letters of its UUID or of its name \
-(usually derived form launch file name)')
-    parser_start.set_defaults(func=cmd_start)
-#------------------------------------------------------------------------------
-    parser_info = subparsers.add_parser('info',
-                help="Get information about controlled OpenBCI experiments\
-                        and peers")
-    parser_info.add_argument('-e', help='Something that identifies experiment: \
-a few first letters of its UUID or of its name \
-(usually derived form launch file name)')
-    parser_info.add_argument('-p', help='Peer ID in the specified experiment.')
-    parser_info.set_defaults(func=cmd_info)
-#------------------------------------------------------------------------------
-    parser_tail = subparsers.add_parser('tail',
-                help="View output tail of a chosen peer.")
+
+def setup_tail(parser_tail):
     parser_tail.add_argument('-e', help='Something that identifies experiment: \
 a few first letters of its UUID or of its name \
 (usually derived form launch file name)')
     parser_tail.add_argument('-p', help='Peer ID in the specified experiment.')
     parser_tail.add_argument('-l', help='Number of lines to get')
     parser_tail.set_defaults(func=cmd_tail)
-#------------------------------------------------------------------------------
+
+####################### end of unsupported commands ###########################
+
+class OBCIArgParser(object):
+    defined_commands = {
+        "launch" : dict(help="Launch an OpenBCI system with configuration \
+specified in a launch file or in a newly created Experiment",
+                setup_func=setup_launch),
+        "srv" : dict(parser_parents=[obci_server.server_arg_parser(add_help=False)],
+                help="Start OBCIServer",
+                setup_func=setup_srv),
+        "srv_kill" : dict(parser_parents=[obci_server.server_arg_parser(add_help=False)],
+                help="Kill OBCIServer",
+                setup_func=setup_srv_kill),
+        "morph" : dict(help='Transform chosen running scenario into another.\
+Optionally leave some peers running instead of restarting them',
+                setup_func=setup_morph),
+        "info" : dict(help="Get information about controlled OpenBCI experiments\
+                        and peers",
+                        setup_func=setup_info),
+        "kill" : dict(help="Kill an OpenBCI experiment",
+                    setup_func=setup_kill)
+    }
+
+    def __init__(self, 
+                description="Launch and manage OBCI experiments,their state and configuration", 
+                epilog="(c) 2011, Warsaw University", prog='obci'):
+        self.parser = argparse.ArgumentParser(description=description,
+                                            epilog=epilog,
+                                            prog=prog)
+        self.subparsers = self.parser.add_subparsers(
+                                title='available commands',
+                                description='(use %(prog)s *command* -h for help on a specific command)',
+                                dest='command_name')
+        self.conf_parser = PeerCmd().conf_parser
+        self._commands = {}
+
+    def _create_command_parser(self, name, help_text, parser_parents=None):
+        parents = parser_parents if parser_parents is not None else []
+        new_parser = self.subparsers.add_parser(name, help=help_text, parents=parents)
+        self._commands[name] = new_parser
+        return new_parser
+
+    def _setup_command_parser(self, parser, setup_func):
+        setup_func(parser)
+
+    def add_command(self, name, help, setup_func, parser_parents=None):
+        parser = self._create_command_parser(name, help, parser_parents)
+        self._setup_command_parser(parser, setup_func)
+
+    def setup_commands(self, cmd_defs={}):
+        for defs in [self.defined_commands, cmd_defs]:
+            self._setup_commands(defs)
+
+    def _setup_commands(self, command_defs):
+        for cmd_name, cmd_def in command_defs.iteritems():
+            self.add_command(cmd_name, **cmd_def)
+
 
 ###############################################################################
-
 ###############################################################################
 
 def connect_client(addresses, client=None, client_class=obci_client.OBCIClient, zmq_ctx=None):
@@ -324,8 +342,6 @@ def connect_client(addresses, client=None, client_class=obci_client.OBCIClient, 
     result = client.ping_server(timeout=9000)
 
     return result, client
-
-
 
 def server_process_running(expected_dead=False):
     """
@@ -355,7 +371,6 @@ def server_process_running(expected_dead=False):
 
     sock.close()
     return running
-
 
 def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None, start_srv=True, zmq_ctx=None):
 
@@ -429,5 +444,8 @@ def argv():
 
 if __name__ == "__main__":
 
-    args = obci_arg_parser().parse_args()
+    cmd_mgr = OBCIArgParser()
+    cmd_mgr.setup_commands()
+
+    args = cmd_mgr.parser.parse_args()
     args.func(args)
