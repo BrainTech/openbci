@@ -125,6 +125,7 @@ class PeerConfigSerializerJSON(PeerConfigSerializer):
 
     def _do_serialize_diff(self, p_base_config, p_config):
         sources, deps, params = self.difference(p_base_config, p_config)
+        print "serializing diff of ", p_config.peer_id, "conf_src:",sources, "deps:", deps, "params:",params
         self._serialize_config_sources(p_config.config_sources)
 
         self._serialize_launch_deps(p_config.launch_deps)
@@ -133,10 +134,14 @@ class PeerConfigSerializerJSON(PeerConfigSerializer):
         self._serialize_ext_params(params, p_config.ext_param_defs)
 
     def _serialize_config_sources(self, p_sources):
-        self.dic[helpers.CONFIG_SOURCES] = p_sources
+        self.dic[helpers.CONFIG_SOURCES] = {}
+        for src in p_sources.keys():
+            self.dic[helpers.CONFIG_SOURCES][src] = ''
 
     def _serialize_launch_deps(self, p_deps):
-        self.dic[helpers.LAUNCH_DEPENDENCIES] = p_deps
+        self.dic[helpers.LAUNCH_DEPENDENCIES] = {}
+        for dep in p_deps.keys():
+            self.dic[helpers.LAUNCH_DEPENDENCIES][dep] = ''
 
     def _serialize_local_params(self, p_values, p_ext_param_defs):
         self.dic[helpers.LOCAL_PARAMS] = {}
