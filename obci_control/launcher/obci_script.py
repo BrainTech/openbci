@@ -324,8 +324,8 @@ Optionally leave some peers running instead of restarting them',
             self._setup_commands(defs)
 
     def _setup_commands(self, command_defs):
-        for cmd_name, cmd_def in command_defs.iteritems():
-            self.add_command(cmd_name, **cmd_def)
+        for name in sorted(command_defs):
+            self.add_command(name, **command_defs[name])
 
 
 ###############################################################################
