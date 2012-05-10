@@ -44,7 +44,13 @@ def get_description_from_driver(device_path):
 
     driv = DriverComm(conf, catch_signals=False)
     descr = driv.get_driver_description()
-    dic = json.loads(descr)
+    try:
+        dic = json.loads(descr)
+    except ValueError, e:
+        print "AMPLIFIER ", device_path, "IS PROBABLY BUSY.", 
+        print "Invalid channel description: ", descr
+        dic = None
+
     driv.terminate_driver()
     return dic
 
@@ -76,7 +82,12 @@ def driver_descriptions():
         desc['amplifier_params']['additional_params']['usb_device'] = amp[0]
         # with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
         #     desc['amplifier_params']['channels_info'] = json.load(f)
-        desc['amplifier_params']['channels_info'] = get_description_from_driver(amp[0])
-        descriptions.append(desc)
+        chan_inf = get_description_from_driver(amp[0])
+        if chan_inf is None:
+            # amplifier busy or an error occurred
+            continue
+        else:
+            desc['amplifier_params']['channels_info'] = chan_inf
+            descriptions.append(desc)
 
     return descriptions
