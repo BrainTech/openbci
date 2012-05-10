@@ -181,9 +181,11 @@ class PeerControl(object):
         else:
             return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR
 
-
     def get_param(self, p_name):
         return self.core.get_param(p_name)
+
+    def has_param(self, p_name):
+        return self.core.has_param(p_name)
 
     def set_param(self, p_name, p_value):
         result = self.core.update_local_param(p_name, p_value)

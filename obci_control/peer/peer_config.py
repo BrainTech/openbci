@@ -313,6 +313,9 @@ not declared in configuration!".format(source_name, reference))
         self._update_check(param_name)
         return self.add_local_param(param_name, value)
 
+    def set_param(self, param_name, value):
+        return self.update_local_param(param_name, value)
+
 
 ################### Helper methods ############################################
 

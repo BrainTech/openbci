@@ -6,6 +6,8 @@ import bluetooth
 import os
 
 from launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
+from peer.peer_config import PeerConfig
+from drivers.eeg.driver_comm import DriverComm
 
 _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 
@@ -33,6 +35,18 @@ def _find_usb_amps():
     print "Found USB devices: ", amps
     return amps
 
+def get_description_from_driver(device_path):
+    conf = PeerConfig('amplifier')
+    conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/tmsi_amplifier')
+    conf.add_local_param('samples_per_packet', '4')
+    conf.add_local_param('bluetooth_device', '')
+    conf.add_local_param('usb_device', device_path)
+
+    driv = DriverComm(conf)
+    descr = driv.get_driver_description()
+    dic = json.loads(descr)
+    driv.terminate_driver()
+    return dic
 
 def driver_descriptions():
     descriptions = []
@@ -60,8 +74,9 @@ def driver_descriptions():
                 }
 
         desc['amplifier_params']['additional_params']['usb_device'] = amp[0]
-        with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
-            desc['amplifier_params']['channels_info'] = json.load(f)
+        # with open(os.path.join(_DESC_BASE_PATH, _USB_DESCS[amp[2]])) as f:
+        #     desc['amplifier_params']['channels_info'] = json.load(f)
+        desc['amplifier_params']['channels_info'] = get_description_from_driver(amp[0])
         descriptions.append(desc)
 
     return descriptions
