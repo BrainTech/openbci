@@ -44,7 +44,7 @@ class DriverComm(object):
         >>> driv.terminate_driver()
     """
     
-    def __init__(self, peer_config, mx_addresses=[('localhost', 41921)]):
+    def __init__(self, peer_config, mx_addresses=[('localhost', 41921)], catch_signals=True):
         """ *peer_config* - parameter provider. Should respond to get_param(param_name, value)
         and has_param(param_name) calls. PeerConfig and PeerControl objects are suitable.
         *mx_addresses* - list of (host, port) pairs. Port value None means using default
@@ -62,8 +62,9 @@ class DriverComm(object):
         self.driver_out_thr.daemon = True # thread dies with the program
         self.driver_out_thr.start()
 
-        signal.signal(signal.SIGTERM, self.signal_handler())
-        signal.signal(signal.SIGINT, self.signal_handler())
+        if catch_signals:
+            signal.signal(signal.SIGTERM, self.signal_handler())
+            signal.signal(signal.SIGINT, self.signal_handler())
 
     def signal_handler(self):
         def handler(signum, frame):

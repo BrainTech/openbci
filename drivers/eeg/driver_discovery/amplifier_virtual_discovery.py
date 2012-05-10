@@ -17,7 +17,7 @@ def get_description_from_driver():
     conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/dummy_amplifier')
     conf.add_local_param('samples_per_packet', '4')
 
-    driv = DriverComm(conf)
+    driv = DriverComm(conf, catch_signals=False)
     descr = driv.get_driver_description()
     dic = json.loads(descr)
     driv.terminate_driver()

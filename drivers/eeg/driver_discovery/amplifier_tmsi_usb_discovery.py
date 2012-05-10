@@ -42,7 +42,7 @@ def get_description_from_driver(device_path):
     conf.add_local_param('bluetooth_device', '')
     conf.add_local_param('usb_device', device_path)
 
-    driv = DriverComm(conf)
+    driv = DriverComm(conf, catch_signals=False)
     descr = driv.get_driver_description()
     dic = json.loads(descr)
     driv.terminate_driver()
