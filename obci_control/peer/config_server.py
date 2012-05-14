@@ -107,6 +107,12 @@ class ConfigServer(BaseMultiplexerServer):
 
         with open(base_config_path, 'w') as f:
             parser.write(f)
+        try:
+            os.chmod(base_config_path, 0777)
+        except OSError, e:
+            print "tried to change permissions to", base_config_path, "to 777 but", str(e)
+        else:
+            print "changed permissions to ", base_config_path, "to 777"
         print "CONFIG_SERVER stored configs"
 
 
