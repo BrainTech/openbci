@@ -5,25 +5,30 @@ import pylab as py
 
 import scipy.io
 import scipy.stats as st
-import signalParser as sp
-from Filtr import Filtr
+from signalAnalysis import  DataAnalysis
 import sys, os, time
 
 
-#~ filtr = Filtr(Fs)
-
 class P300_draw(object):
-    def __init__(self, fs=128):
+    def __init__(self, fs=128.):
         
         self.fs = fs
         self.globalNCount = 0
         
+        self.defineMethods()
+    
+    def defineMethods(self):
+        # Declare methods
+        self.sp = DataAnalysis(self.fs)
+        self.sp.initConst(avrM=self.fs)
+
+        self.sp_ds = DataAnalysis(self.fs)
         
     def setCalibration(self, target, nontarget, trgTags, ntrgTags):
         # Sorting tags... (for no real reason)
         trgTags.sort()
         ntrgTags.sort()
-        
+
         # Setting arrays/dicts
         self.target = target 
         self.nontarget = nontarget
@@ -31,102 +36,256 @@ class P300_draw(object):
         self.ntrgTags = ntrgTags        
 
         
-    def setTimeLine(self, conN, avrM, csp_time=[0,1]):
-        tMin, tMax = csp_time[0], csp_time[1]
+    def setTimeLine(self, conN, avrM=None, csp_time=[0,1]):
         self.conN = conN
-        self.avrM = avrM
-        self.simpleT = np.arange(tMin, tMax, (1.*avrM)/self.fs)
-        self.CSP_t = np.arange(tMin, tMax + (tMax-tMin)*(self.conN-1), (self.avrM*1.)/self.fs)
+        self.csp_time = csp_time
+        if avrM == None: self.avrM = self.fs
+        else: self.avrM = avrM
         
     def setCSP(self, P):
         self.P = P
         
-    def plot(self):
+    def plotSignal(self, savefile=None):
         
-        tmp = self.target[self.trgTags[0]]
-        if self.P==None:
-            self.P = np.ones(tmp.shape)
-        
-        P = self.P
-        # Plots
-        py.figure()
+        py.clf()
+        py.cla()
 
-        L = tmp.mean(axis=0).shape[0]
+        # Determine size
+        tmp = self.target[self.trgTags[0]]
+        L = self.sp.prepareSignal(tmp[0]).shape[0]
+        
+        # P matrix
+        if self.P==None: self.P = np.ones(tmp.shape)
+        P = self.P
+
+        # Set time limits
+        self.simple_time = np.linspace(0, 1, L)
+
+        # Create arrays
         meanMeanSimpleTarget = np.zeros( L )
         meanMeanCSPTarget = np.zeros( self.conN*L )
         
         meanMeanSimpleNontarget = np.zeros( L )
         meanMeanCSPNontarget = np.zeros( self.conN*L )
 
+        ## New plotting figure
+        #~ py.figure()
+
         ## Plotting target ##
         for idx, tag in enumerate(self.trgTags):
             
             s = self.target[tag]
             meanCSPTarget = np.array([])
-            meanCSPTarget = s.mean(axis=0)
-            for n in range(self.conN-1):
-                meanCSPTarget = np.concatenate((meanCSPTarget, np.dot( P[:,n], s)) )
-            meanMeanCSPTarget += meanCSPTarget
 
-            meanSimpleTarget = s.mean(axis=0)
+            meanSimpleTarget = self.sp.prepareSignal(s.mean(axis=0))
             meanMeanSimpleTarget += meanSimpleTarget
 
+            py.subplot(2,1+self.conN,1)
+            py.plot(self.simple_time, meanSimpleTarget, 'g-')
+
+            for con in range(self.conN):
+                tmp = self.sp.prepareSignal(np.dot( P[:,con], s))
+                py.subplot(2,1+self.conN,2+con)
+                py.plot(self.simple_time, tmp, 'g-')
+
+                meanCSPTarget = np.concatenate((meanCSPTarget, tmp) )
+            meanMeanCSPTarget += meanCSPTarget
+
             
-            py.subplot(2,2,1)
-
-            py.plot(self.simpleT, meanSimpleTarget,'g-')
-            #~ py.plot(meanSimpleTarget,'g-')
-
-            py.subplot(2,2,2)
-            py.plot(self.CSP_t, meanCSPTarget, 'g-')
-            #~ py.plot(meanCSPTarget, 'g-')
-
-        py.subplot(2,2,1)
+        py.subplot(2,1+self.conN,1)
         py.title("Simple mean target")
-        py.plot(self.simpleT, meanMeanSimpleTarget/len(self.trgTags), 'r-')
-        #~ py.plot(meanMeanSimpleTarget, 'r-')
-        
-        py.subplot(2,2,2)
-        py.title("CSP mean nontarget")
-        #~ py.plot(t, meanMeanCSPTarget, 'r-')
-        py.plot(self.CSP_t, meanMeanCSPTarget/len(self.trgTags), 'r-')
-        #~ py.plot( meanMeanCSPTarget, 'r-')
-        
+        py.plot(self.simple_time, meanMeanSimpleTarget/len(self.trgTags), 'r-')
+            
+        for con in range(self.conN):
+                py.subplot(2,1+self.conN,2+con)
+                py.title("CSP mean target vec " +str(con+1))
+                py.plot(self.simple_time, meanMeanCSPTarget[con*L:(con+1)*L]/len(self.trgTags), 'r-')
+
+        #########################
         ## Plotting non target ##
         for idx, tag in enumerate(self.ntrgTags):
             
             s = self.nontarget[tag]
-            meanCSPNontarget = np.array([])
-            meanCSPNontarget = s.mean(axis=0)
-            for n in range(self.conN-1):
-                meanCSPNontarget = np.concatenate((meanCSPNontarget, np.dot( P[:,n], s)) )
-            meanMeanCSPNontarget += meanCSPNontarget
 
-            meanSimpleNontarget = s.mean(axis=0)
+            meanSimpleNontarget = self.sp.prepareSignal(s.mean(axis=0), 1)
+            meanMeanSimpleNontarget += meanSimpleNontarget
+
+
+            py.subplot(2,1+self.conN,self.conN+2)
+            py.plot(self.simple_time, meanSimpleNontarget,'g-')
+
+            meanCSPNontarget = np.array([])
+            for con in range(self.conN):
+                tmp = self.sp.prepareSignal(np.dot( P[:,con], s))
+                meanCSPNontarget = np.concatenate((meanCSPNontarget, tmp) )
+                py.subplot(2,1+self.conN,self.conN+3+con)
+                py.plot(self.simple_time, tmp, 'g-')
+
+            meanMeanCSPNontarget += meanCSPNontarget
+            
+        py.subplot(2,1+self.conN,self.conN+2)
+        py.title("Simple mean nontarget")
+        py.plot(self.simple_time, meanMeanSimpleNontarget/len(self.ntrgTags), 'r-')
+
+        for con in range(self.conN):
+            py.subplot(2,1+self.conN,self.conN+3+con)
+            py.title("CSP mean nontarget vec " +str(con+1))
+            py.plot(self.simple_time, meanMeanCSPNontarget[con*L:(con+1)*L]/len(self.ntrgTags), 'r-')
+
+        if savefile:
+            py.savefig(savefile, dpi=150)
+
+        ## Plotting Diff
+        py.figure()        
+        
+        meanTarget = meanMeanSimpleTarget/len(self.trgTags)
+        meanNontarget = meanMeanSimpleNontarget/len(self.ntrgTags)
+        
+        meanCSPTarget = meanMeanCSPTarget/len(self.trgTags)
+        meanCSPNontarget = meanMeanCSPNontarget/len(self.ntrgTags)
+        
+        py.subplot(1, 1+self.conN,1)
+        py.title("Diff simple mean")
+        py.plot(self.simple_time, meanTarget-meanNontarget, 'r-')
+        
+        for con in range(self.conN):
+            py.subplot(1,1+self.conN,2+con)
+            py.title("Diff CSP mean vec " + str(con+1))
+            py.plot(self.simple_time, (meanCSPTarget-meanCSPNontarget)[con*L:(con+1)*L], 'r-')
+            
+        if savefile:
+            py.savefig(savefile + "_diff", dpi=150)
+        else:
+            py.show()
+            
+        py.clf()
+        py.cla()
+        
+    def plotSignal_ds(self, savefile=None):
+        
+        py.clf()
+        py.cla()
+        
+        L = self.avrM
+
+        if self.P==None: self.P = np.ones(tmp.shape)
+        P = self.P
+
+        # Create buffers
+        meanMeanSimpleTarget = np.zeros( L )
+        meanMeanCSPTarget = np.zeros( self.conN*L )
+        
+        meanMeanSimpleNontarget = np.zeros( L )
+        meanMeanCSPNontarget = np.zeros( self.conN*L )
+
+        tMin, tMax = self.csp_time[0], self.csp_time[1]
+        self.sp_ds.initConst(self.avrM, self.conN, self.csp_time)
+        self.simple_time_ds = np.linspace(tMin, tMax, self.avrM)
+        
+        # X axis limits
+        dx = self.csp_time[1] - self.csp_time[0]
+        xMin = self.csp_time[0] - 0.25*dx
+        xMax = self.csp_time[1] + 0.25*dx
+        
+        #######################
+        ##  Plotting target  ##
+        for idx, tag in enumerate(self.trgTags):
+            
+            s = self.target[tag]
+            meanCSPTarget = np.array([])
+            
+            meanSimpleTarget = self.sp_ds.prepareSignal(s.mean(axis=0))
+            meanMeanSimpleTarget += meanSimpleTarget
+
+            py.subplot(2,1+self.conN,1)
+            py.plot(self.simple_time_ds, meanSimpleTarget,'g.')
+                
+            for con in range(self.conN):
+                tmp = self.sp_ds.prepareSignal(np.dot( P[:,con], s))
+                py.subplot(2,1+self.conN,2+con)
+                py.plot(self.simple_time_ds, tmp, 'g.')
+                
+                meanCSPTarget = np.concatenate((meanCSPTarget, tmp) )
+            meanMeanCSPTarget += meanCSPTarget
+
+        py.subplot(2,1+self.conN,1)
+        py.title("Simple mean target")
+        py.plot(self.simple_time_ds, meanMeanSimpleTarget/len(self.trgTags), 'ro')
+        py.xlim(xMin, xMax)
+        
+        for con in range(self.conN):
+            py.subplot(2,1+self.conN,2+con)
+            py.title("CSP mean target vec" +str(con+1))
+            py.plot(self.simple_time_ds, meanMeanCSPTarget[con*self.avrM:(con+1)*self.avrM]/len(self.trgTags), 'ro')
+            py.xlim(xMin, xMax)
+        
+        #########################
+        ## Plotting non target ##
+        for idx, tag in enumerate(self.ntrgTags):
+            
+            s = self.nontarget[tag]
+
+
+            meanSimpleNontarget = self.sp_ds.prepareSignal(s.mean(axis=0))
             meanMeanSimpleNontarget += meanSimpleNontarget
 
             
-            py.subplot(2,2,3)
-            py.plot(self.simpleT, meanSimpleNontarget,'g-')
-            #~ py.plot( meanSimpleNontarget,'g-')
+            py.subplot(2,1+self.conN,self.conN+2)
+            py.plot(self.simple_time_ds, meanSimpleNontarget,'g.')
 
-            py.subplot(2,2,4)
-            py.plot(self.CSP_t, meanCSPNontarget, 'g-')
-            #~ py.plot( meanCSPNontarget, 'p-')
+            meanCSPNontarget = np.array([])
+            for con in range(self.conN):
+                tmp = self.sp_ds.prepareSignal(np.dot( P[:,con], s))
+                meanCSPNontarget = np.concatenate((meanCSPNontarget, tmp) )
+                py.subplot(2,1+self.conN,self.conN+3+con)
+                py.plot(self.simple_time_ds, tmp, 'g.')
 
-        py.subplot(2,2,3)
+            meanMeanCSPNontarget += meanCSPNontarget
+
+        py.subplot(2,1+self.conN,self.conN+2)
         py.title("Simple mean nontarget")
-        py.plot(self.simpleT, meanMeanSimpleNontarget/len(self.ntrgTags), 'r-')
-        #~ py.plot(meanMeanSimpleNontarget, 'r-')
+        py.plot(self.simple_time_ds, meanMeanSimpleNontarget/len(self.ntrgTags), 'ro')
+        py.xlim(xMin, xMax)
+        
+        for con in range(self.conN):
+            py.subplot(2,1+self.conN,self.conN+3+con)
+            py.title("CSP mean nontarget vec " +str(con+1))
+            py.plot(self.simple_time_ds, meanMeanCSPNontarget[con*self.avrM:(con+1)*self.avrM]/len(self.ntrgTags), 'ro')
+            py.xlim(xMin, xMax)
 
-        py.subplot(2,2,4)
-        py.title("CSP mean nontarget")
-        py.plot(self.CSP_t, meanMeanCSPNontarget/len(self.ntrgTags), 'r-')
-        #~ py.plot(meanMeanCSPNontarget, 'r-')
-
-        py.show()
+        if savefile:
+            py.savefig(savefile, dpi=150)
+        
+        
+        ## Plotting Diff
+        py.figure()        
+        
+        meanTarget = meanMeanSimpleTarget/len(self.trgTags)
+        meanNontarget = meanMeanSimpleNontarget/len(self.ntrgTags)
+        
+        meanCSPTarget = meanMeanCSPTarget/len(self.trgTags)
+        meanCSPNontarget = meanMeanCSPNontarget/len(self.ntrgTags)
+        
+        py.subplot(1, 1+self.conN,1)
+        py.title("Diff simple mean")
+        py.plot(self.simple_time_ds, meanTarget-meanNontarget, 'ro')
+        py.xlim(xMin, xMax)
+        
+        for con in range(self.conN):
+            py.subplot(1,1+self.conN,2+con)
+            py.title("Diff CSP mean vec " + str(con+1))
+            py.plot(self.simple_time_ds, (meanCSPTarget-meanCSPNontarget)[con*self.avrM:(con+1)*self.avrM], 'ro')
+            py.xlim(xMin, xMax)
+        
+        if savefile:
+            py.savefig(savefile + '_diff', dpi=150)
+        else:
+            py.show()
+            
+        py.clf()
+        py.cla()
     
-    def savePlotsD(self, dArrTotal, pVal):
+    def savePlotsD(self, dArrTotal, pVal, savefile=None):
 
         
         # Quick type check
@@ -192,9 +351,10 @@ class P300_draw(object):
         
         # save all blinks into one plot, then on hdd
         self.globalNCount += 1
-        saveFile = "online_{0}.png".format(self.globalNCount)
-        py.savefig(saveFile)
+        if savefile == None:
+            savefile = "online_{0}.png".format(self.globalNCount)
+        py.savefig(savefile, dpi=150)
         py.cla()        
         py.clf()
-        print "Zapisano obraz '{0}' w katalogu: {1}".format( saveFile, os.getcwd())
+        print "Zapisano obraz '{0}' w katalogu: {1}".format( savefile, os.getcwd())
             

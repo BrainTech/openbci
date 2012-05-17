@@ -41,7 +41,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        #~ cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
         
         montage_matrix = self._get_montage_matrix(cfg)
             
@@ -123,10 +123,6 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
             self.config.get_param('config_file_name'))
 
     def _get_montage_matrix(self, cfg):
-        print "self.config.get_param('channel_names').split(';'): ", self.config.get_param('channel_names').split(';')
-        print "cfg['use_channels'].split(';'): ", cfg['use_channels'].split(';')
-        print "cfg['montage']: ", cfg['montage']
-        print "cfg['montage_channels'].split(';'): ", cfg['montage_channels'].split(';')
         return ssvep_csp_helper.get_montage_matrix(
             self.config.get_param('channel_names').split(';'),
             cfg['use_channels'].split(';'),
