@@ -327,6 +327,19 @@ peer {
 }
 
 
+peer {
+    type: 162
+    name: "ETR_P300_ANALYSIS"
+    queue_size: 32768	       
+}
+
+peer {
+    type: 163
+    name: "RESULTS_ANALYSIS"
+    queue_size: 32768	       
+}
+
+
 
 # packages and routing rules definitions
 #
@@ -724,7 +737,7 @@ type {
         peer: "BLINK_CATCHER"
         whom: ALL
 	report_delivery_error: false
-     }
+	     }
      
      to {
      	peer: "LOGIC_P300_CALIBRATION"
@@ -737,6 +750,13 @@ type {
 	whom: ALL
 	report_delivery_error: false
      }
+
+     to {
+     	peer: "ETR_P300_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
+
 
      to {
      	peer: "SWITCH_ANALYSIS"
@@ -1045,4 +1065,24 @@ type {
 	report_delivery_error: false
        }
 
+}
+
+type {
+    type: 231
+    name: "P300_ANALYSIS_RESULTS"
+    to {
+       peer: "RESULTS_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+}
+
+type {
+    type: 232
+    name: "ETR_ANALYSIS_RESULTS"
+    to {
+       peer: "RESULTS_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
 }
