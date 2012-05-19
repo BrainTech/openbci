@@ -1,6 +1,7 @@
 from xml.dom import minidom
 import numpy as np
 import os.path as osp
+from scipy.signal import decimate
 
 class signalParser(object):
     """This class can extract some information from signal and it's xml descriptors"""
@@ -13,6 +14,9 @@ class signalParser(object):
             .xml - contains signal description
             .tag - contains experiment tags
         """
+        
+        file_prefix = osp.expanduser(file_prefix)
+        
         if osp.exists(file_prefix+'.raw'):
             self.raw_file = file_prefix + '.raw'
         else:
@@ -113,7 +117,7 @@ class signalParser(object):
             raise ValueError("Channel must be a string or an integer")
 
     def setMontage(self, montage):
-        self.montage = self.extract_channel(montage).mean()
+        self.montage = self.extract_channel(montage).mean(axis=0)
 
     def getData(self, channels):
         s = self.extract_channel(channels)
@@ -294,3 +298,41 @@ class signalParser(object):
                 if int(index) !=  abs(idx):
                     exp_list.append(float(e.attributes['position'].value))
         return np.array(exp_list) * fsp 
+
+ 
+    def getTargetNontarget(self, signal, trgTags, ntrgTags):
+        self.chL = signal.shape[0]
+        self.Fs = self.getSamplingFrequency()
+        self.arrL = self.Fs
+        
+        print "self.chL: ", self.chL
+        
+        ## Get target data and stuck it into dictionary
+        target = {}
+
+        # for each target blink
+        for tag in trgTags:
+            
+            index = int(tag)
+            #~ s *= 0
+            s = np.zeros( (self.chL, self.arrL) )
+            for idx in range(self.chL):
+                s[idx] = signal[idx][index:index+self.Fs]
+            
+            target[tag] = s
+
+        
+        ## Get nontarget data and stuck it into dictionary
+        nontarget = {}
+        
+        # for each target blink
+        for tag in ntrgTags:
+            index = int(tag)
+            #~ s *= 0
+            s = np.zeros( (self.chL, self.arrL) )
+            for idx in range(self.chL):
+                s[idx] = signal[idx][index:index+self.Fs]
+            
+            nontarget[tag] = s
+        
+        return target, nontarget

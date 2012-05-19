@@ -17,6 +17,7 @@ from configs import settings
 
 
 import common.config_message as cmsg
+from common.obci_control_settings import DEFAULT_SANDBOX_DIR
 from launcher.launcher_messages import message_templates
 from launcher.launcher_tools import obci_root
 from common.message import OBCIMessageTool, send_msg, recv_msg
@@ -67,26 +68,37 @@ class ConfigServer(BaseMultiplexerServer):
 
     def _config_path(self):
         peer_file = inspect.getfile(self.__init__)
-        base_name = peer_file.rsplit('.', 1)[0]
+        base_name = os.path.basename(peer_file).rsplit('.', 1)[0]
         base_config_path = '.'.join([base_name, 'ini'])
-        return os.path.join(obci_root(), base_config_path)
+        return os.path.join(DEFAULT_SANDBOX_DIR, base_config_path)
 
     def _stored_config(self):
         parser = ConfigParser.RawConfigParser()
-        stored = {}
-        with open(self._config_path(), 'r') as f:
-            parser.readfp(f)
+        stored = None
+        storedconf = self._config_path()
+        if not os.path.exists(storedconf):
+            print "No config stored", storedconf
+        else:
+            with open(storedconf, 'r') as f:
+                print "found stored config", storedconf
+                parser.readfp(f)
+        if not parser.has_option('local_params', 'stored_config'):
+            stored = ''
+        else:
             stored = parser.get('local_params', 'stored_config')
-            if stored == '':
-                stored = '{}'
+        if stored == '':
+            stored = '{}'
         return json.loads(stored)
 
     def _save_config(self):
         base_config_path = self._config_path()
         parser = ConfigParser.RawConfigParser()
         # print "CONFIG_SERVER save path", base_config_path
-        with open(base_config_path, 'r') as f:
-            parser.readfp(f)
+        if os.path.exists(base_config_path):
+            with open(base_config_path, 'r') as f:
+                parser.readfp(f)
+        if not parser.has_section('local_params'):
+            parser.add_section('local_params')
 
         parser.set('local_params', 'stored_config', json.dumps(self._configs))
         parser.set('local_params', 'launcher_socket_addr', '')
@@ -95,6 +107,12 @@ class ConfigServer(BaseMultiplexerServer):
 
         with open(base_config_path, 'w') as f:
             parser.write(f)
+        try:
+            os.chmod(base_config_path, 0777)
+        except OSError, e:
+            print "tried to change permissions to", base_config_path, "to 777 but", str(e)
+        else:
+            print "changed permissions to ", base_config_path, "to 777"
         print "CONFIG_SERVER stored configs"
 
 
