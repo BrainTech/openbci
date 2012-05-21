@@ -10,6 +10,7 @@ sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost
 if [[ `lsb_release -a 2>/dev/null` =~ 'Ubuntu 12.04' ]]
 then 
     echo "[obci install] Ubuntu 12.04, no need to manually install protobuf" 
+    sudo apt-get install libprotobuf-dev
 else 
     cd
     wget http://protobuf.googlecode.com/files/protobuf-2.4.1.tar.bz2
