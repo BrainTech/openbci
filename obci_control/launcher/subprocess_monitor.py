@@ -497,7 +497,7 @@ class LocalProcess(Process):
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                print "\n\n\nKILLING -9 PROCESS", self.pid, "\n\n\n"
+                print "\n\n\nKILLING -9 PROCESS", self.pid, self.name, "\n\n\n"
                 self.popen_obj.send_signal(signal.SIGKILL)
             self.popen_obj.wait()
             if not self._status == NON_RESPONSIVE:
