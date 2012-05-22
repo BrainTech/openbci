@@ -185,7 +185,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 print self.name,'[', self.type, ']', "peer to kill not found:", peer
                 continue
             print "MORPH:  KILLING ", peer
-            proc.kill()
+            proc.kill_with_force()
             print "MORPH:  KILLED ", peer
             del self.processes[peer]
             del self.launch_data[peer]
@@ -247,7 +247,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                     machine=self.machine, path=path,
                                                     args=args, details=details))
             self.processes = {}
-            self.subprocess_mgr.killall()
+            self.subprocess_mgr.killall(force=True)
 
 
     def _launch_process(self, path, args, proc_type, name,
@@ -314,8 +314,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     @msg_handlers.handler("stop_all")
     def handle_stop_all(self, message, sock):
-
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
 
     @msg_handlers.handler("rq_ok")
     def handle_rq_ok(self, message, sock):
@@ -378,13 +377,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
         self.processes = {}
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
 
     def clean_up(self):
         print self.name,'[', self.type, ']',  "cleaning up"
 
         self.processes = {}
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
         self.subprocess_mgr.delete_all()
 
 

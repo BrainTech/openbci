@@ -75,11 +75,13 @@ class SubprocessMonitor(object):
         with self._proc_lock:
             return self._processes.get((machine_ip, pid), None)
 
-    def killall(self):
+    def killall(self, force=False):
         with self._proc_lock:
             for proc in self._processes.values():
+                kill_method = proc.kill if not force else proc.kill_with_force
                 if proc.status()[0] not in [FINISHED, FAILED, TERMINATED]:
-                    proc.kill()
+                    kill_method()
+                    #proc.kill()
                 #del proc
 
     def delete_all(self):
@@ -475,6 +477,28 @@ class LocalProcess(Process):
                 self.popen_obj.terminate()
             self.popen_obj.wait()
 
+            if not self._status == NON_RESPONSIVE:
+                self._status_details = -(self.popen_obj.returncode)
+            self._status = TERMINATED
+
+    def kill_with_force(self, timeout_s=0.1):
+        self.stop_monitoring()
+
+        if self.io_handler is not None:
+            if self.io_handler.is_running():
+                self.io_handler.stop_output_handler()
+
+        self.popen_obj.poll()
+        with self._status_lock:
+            if self.popen_obj.returncode is None:
+                self.popen_obj.terminate()
+        time.sleep(timeout_s)
+        self.popen_obj.poll()
+        with self._status_lock:
+            if self.popen_obj.returncode is None:
+                print "\n\n\nKILLING -9 PROCESS", self.pid, "\n\n\n"
+                self.popen_obj.send_signal(signal.SIGKILL)
+            self.popen_obj.wait()
             if not self._status == NON_RESPONSIVE:
                 self._status_details = -(self.popen_obj.returncode)
             self._status = TERMINATED
