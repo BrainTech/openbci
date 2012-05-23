@@ -686,8 +686,11 @@ class OBCIExperiment(OBCIControlPeer):
 
     @msg_handlers.handler("morph_to_new_scenario")
     def handle_morph(self, message, sock):
-        if self.status.status_name != launcher_tools.RUNNING:
+        # FIXME "LAUNCHING" -- msg bug workaround
+        if self.status.status_name not in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]:
+            print "[obci_experient] EXPERIMENT STATUS NOT RUNNING"
             if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
+                
                 send_msg(sock, self.mtool.fill_msg('rq_error',
                                                         err_code='experiment_not_running',
                                                         details=self.status.details))
@@ -698,7 +701,9 @@ class OBCIExperiment(OBCIControlPeer):
                                                             message.overwrites)
         print "new launch status", exp_config, status.status_name
         if status.status_name != launcher_tools.READY_TO_LAUNCH:
+            print "[obci_experiment] NEW SCENARIO NOT READY TO LAUNCH"
             if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
+                
                 send_msg(sock, self.mtool.fill_msg('rq_error',
                                                         err_code='launch_file_invalid',
                                                         details=dict(status_name=status.status_name,
