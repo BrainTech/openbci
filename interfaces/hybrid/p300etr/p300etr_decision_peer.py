@@ -17,6 +17,12 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
                                      type=peers.RESULTS_ANALYSIS)
         self.ready()
 
+    def initConst(self):
+        
+        self.fields = 8
+        self.tresholdValue = 0.95
+        
+
     def handle_message(self, mxmsg):
         if mxmsg.type == types.ETR_ANALYSIS_RESULTS:
             LOGGER.debug("GOT ETR ANALYSIS RESULTS: "+str(mxmsg.message))
@@ -31,7 +37,26 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             #LOGGER.debug("GOT MESSAGE: "+str(l_msg))
             #self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
-        self.no_response()
+        # Probabilty from etr
+        pdf_etr = np.random.random(8)
+        
+        # Probability from p300
+        pdf_p300 = np.random.random(8)
+        
+        # Hybryd probability
+        pdf = pdf_p300*pdf_etr
+        
+        # Assume pdf is T distribution
+        loc = pdf.mean()
+        scale = pdf.std()
+        cdf = st.t.cdf(pdf, len(pdf), loc=loc, scale=scale)
+        
+        # If only one value is over threshold
+        if np.sum( cdf > self.tresholdValue ) == 1:
+            dec = int(np.arange(len(cdf))[cdf > self.tresholdValue])
+            SEND_DECISION( dec )
+            
+        self.no_response
 
 if __name__ == "__main__":
     P300EtrDecision(settings.MULTIPLEXER_ADDRESSES).loop()

@@ -24,16 +24,15 @@ class P300_draw(object):
 
         self.sp_ds = DataAnalysis(self.fs)
         
-    def setCalibration(self, target, nontarget, trgTags, ntrgTags):
+    def setCalibration(self, target, nontarget):
         # Sorting tags... (for no real reason)
-        trgTags.sort()
-        ntrgTags.sort()
 
         # Setting arrays/dicts
         self.target = target 
         self.nontarget = nontarget
-        self.trgTags = trgTags
-        self.ntrgTags = ntrgTags        
+        
+        self.trgTrials = target.shape[0]
+        self.ntrgTrials = nontarget.shape[0]
 
         
     def setTimeLine(self, conN, avrM=None, csp_time=[0,1]):
@@ -51,7 +50,7 @@ class P300_draw(object):
         py.cla()
 
         # Determine size
-        tmp = self.target[self.trgTags[0]]
+        tmp = self.target[0]
         L = self.sp.prepareSignal(tmp[0]).shape[0]
         
         # P matrix
@@ -72,9 +71,9 @@ class P300_draw(object):
         #~ py.figure()
 
         ## Plotting target ##
-        for idx, tag in enumerate(self.trgTags):
+        for idx in range(self.trgTrials):
             
-            s = self.target[tag]
+            s = self.target[idx]
             meanCSPTarget = np.array([])
 
             meanSimpleTarget = self.sp.prepareSignal(s.mean(axis=0))
@@ -94,18 +93,18 @@ class P300_draw(object):
             
         py.subplot(2,1+self.conN,1)
         py.title("Simple mean target")
-        py.plot(self.simple_time, meanMeanSimpleTarget/len(self.trgTags), 'r-')
+        py.plot(self.simple_time, meanMeanSimpleTarget/self.trgTrials, 'r-')
             
         for con in range(self.conN):
                 py.subplot(2,1+self.conN,2+con)
                 py.title("CSP mean target vec " +str(con+1))
-                py.plot(self.simple_time, meanMeanCSPTarget[con*L:(con+1)*L]/len(self.trgTags), 'r-')
+                py.plot(self.simple_time, meanMeanCSPTarget[con*L:(con+1)*L]/self.trgTrials, 'r-')
 
         #########################
         ## Plotting non target ##
-        for idx, tag in enumerate(self.ntrgTags):
+        for idx in range(self.ntrgTrials):
             
-            s = self.nontarget[tag]
+            s = self.nontarget[idx]
 
             meanSimpleNontarget = self.sp.prepareSignal(s.mean(axis=0), 1)
             meanMeanSimpleNontarget += meanSimpleNontarget
@@ -125,12 +124,12 @@ class P300_draw(object):
             
         py.subplot(2,1+self.conN,self.conN+2)
         py.title("Simple mean nontarget")
-        py.plot(self.simple_time, meanMeanSimpleNontarget/len(self.ntrgTags), 'r-')
+        py.plot(self.simple_time, meanMeanSimpleNontarget/self.ntrgTrials, 'r-')
 
         for con in range(self.conN):
             py.subplot(2,1+self.conN,self.conN+3+con)
             py.title("CSP mean nontarget vec " +str(con+1))
-            py.plot(self.simple_time, meanMeanCSPNontarget[con*L:(con+1)*L]/len(self.ntrgTags), 'r-')
+            py.plot(self.simple_time, meanMeanCSPNontarget[con*L:(con+1)*L]/self.ntrgTrials, 'r-')
 
         if savefile:
             py.savefig(savefile, dpi=150)
@@ -138,11 +137,11 @@ class P300_draw(object):
         ## Plotting Diff
         py.figure()        
         
-        meanTarget = meanMeanSimpleTarget/len(self.trgTags)
-        meanNontarget = meanMeanSimpleNontarget/len(self.ntrgTags)
+        meanTarget = meanMeanSimpleTarget/self.trgTrials
+        meanNontarget = meanMeanSimpleNontarget/self.ntrgTrials
         
-        meanCSPTarget = meanMeanCSPTarget/len(self.trgTags)
-        meanCSPNontarget = meanMeanCSPNontarget/len(self.ntrgTags)
+        meanCSPTarget = meanMeanCSPTarget/self.trgTrials
+        meanCSPNontarget = meanMeanCSPNontarget/self.ntrgTrials
         
         py.subplot(1, 1+self.conN,1)
         py.title("Diff simple mean")
@@ -189,9 +188,9 @@ class P300_draw(object):
         
         #######################
         ##  Plotting target  ##
-        for idx, tag in enumerate(self.trgTags):
+        for idx in range(self.trgTrials):
             
-            s = self.target[tag]
+            s = self.target[idx]
             meanCSPTarget = np.array([])
             
             meanSimpleTarget = self.sp_ds.prepareSignal(s.mean(axis=0))
@@ -210,21 +209,20 @@ class P300_draw(object):
 
         py.subplot(2,1+self.conN,1)
         py.title("Simple mean target")
-        py.plot(self.simple_time_ds, meanMeanSimpleTarget/len(self.trgTags), 'ro')
+        py.plot(self.simple_time_ds, meanMeanSimpleTarget/self.trgTrials, 'ro')
         py.xlim(xMin, xMax)
         
         for con in range(self.conN):
             py.subplot(2,1+self.conN,2+con)
             py.title("CSP mean target vec" +str(con+1))
-            py.plot(self.simple_time_ds, meanMeanCSPTarget[con*self.avrM:(con+1)*self.avrM]/len(self.trgTags), 'ro')
+            py.plot(self.simple_time_ds, meanMeanCSPTarget[con*self.avrM:(con+1)*self.avrM]/self.trgTrials, 'ro')
             py.xlim(xMin, xMax)
         
         #########################
         ## Plotting non target ##
-        for idx, tag in enumerate(self.ntrgTags):
+        for idx in range(self.ntrgTrials):
             
-            s = self.nontarget[tag]
-
+            s = self.nontarget[idx]
 
             meanSimpleNontarget = self.sp_ds.prepareSignal(s.mean(axis=0))
             meanMeanSimpleNontarget += meanSimpleNontarget
@@ -244,13 +242,13 @@ class P300_draw(object):
 
         py.subplot(2,1+self.conN,self.conN+2)
         py.title("Simple mean nontarget")
-        py.plot(self.simple_time_ds, meanMeanSimpleNontarget/len(self.ntrgTags), 'ro')
+        py.plot(self.simple_time_ds, meanMeanSimpleNontarget/self.ntrgTrials, 'ro')
         py.xlim(xMin, xMax)
         
         for con in range(self.conN):
             py.subplot(2,1+self.conN,self.conN+3+con)
             py.title("CSP mean nontarget vec " +str(con+1))
-            py.plot(self.simple_time_ds, meanMeanCSPNontarget[con*self.avrM:(con+1)*self.avrM]/len(self.ntrgTags), 'ro')
+            py.plot(self.simple_time_ds, meanMeanCSPNontarget[con*self.avrM:(con+1)*self.avrM]/self.ntrgTrials, 'ro')
             py.xlim(xMin, xMax)
 
         if savefile:
@@ -260,11 +258,11 @@ class P300_draw(object):
         ## Plotting Diff
         py.figure()        
         
-        meanTarget = meanMeanSimpleTarget/len(self.trgTags)
-        meanNontarget = meanMeanSimpleNontarget/len(self.ntrgTags)
+        meanTarget = meanMeanSimpleTarget/self.trgTrials
+        meanNontarget = meanMeanSimpleNontarget/self.ntrgTrials
         
-        meanCSPTarget = meanMeanCSPTarget/len(self.trgTags)
-        meanCSPNontarget = meanMeanCSPNontarget/len(self.ntrgTags)
+        meanCSPTarget = meanMeanCSPTarget/self.trgTrials
+        meanCSPNontarget = meanMeanCSPNontarget/self.ntrgTrials
         
         py.subplot(1, 1+self.conN,1)
         py.title("Diff simple mean")

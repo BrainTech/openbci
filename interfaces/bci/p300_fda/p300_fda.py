@@ -38,7 +38,6 @@ class P300_train:
 
         # Target/Non-target arrays
         self.chL = len((self.channels).split(';'))
-        #~ self.arrL = (self.iFin-self.iInit)/self.avrM  # Length of data per channel
         self.arrL = self.avrM  # Length of data per channel
 
         # Data arrays
@@ -66,35 +65,27 @@ class P300_train:
         Divides signal into 2 dicts: target & nontarget.
         """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
-
-
-        #~ print "Begin - Inside getTargetNontarget"
-        s = np.zeros( (self.chL, self.arrL) )
-
         
-        ## Get target data and stuck it into dictionary
-        target = {}
-        trgTags = targetTags
+        # Reshapes data into trials x channels x data
+        
+        
+        # Converts targets
+        idxTarget = int(targetTags[0])
+        target = signal[np.newaxis, :, idxTarget:idxTarget+self.fs]
 
-        for tag in trgTags:
-
+        for tag in targetTags[1:]:
             index = int(tag)
-            s = signal[:, index:index+self.fs]
-            #~ for idx in range(self.chL):
-                #~ #s[idx] = self.prepareSignal(signal[idx][index:index+self.fs])
-            
-            target[tag] = s
+            s = signal[np.newaxis, :, index:index+self.fs]
+            target = np.concatenate( (target, s), axis=0)
 
-        nontarget = {}
-        ntrgTags = nontargetTags
-        # for each target blink
-        for tag in ntrgTags:
+        # Converts nontargets
+        idxNontarget = int(nontargetTags[0])
+        nontarget = signal[np.newaxis:, index:index+self.fs]
+        
+        for tag in ntrgTags[1:]:
             index = int(tag)
-            s = signal[:, index:index+self.fs]
-            #~ for idx in range(self.chL):
-                #~ #s[idx] = self.prepareSignal(s[idx])
-            
-            nontarget[tag] = s
+            s = signal[np.newaxis, :, index:index+self.fs]
+            nontarget = np.concatenate( (nontarget, s), axis=0)
         
         return target, nontarget
     
@@ -122,7 +113,6 @@ class P300_train:
                 corresponding eigenvalues
         """
         vals, vects = eig(c_max, c_min)
-        #~ vals, vects = eig(c_min,c_max)
         vals = vals.real
         vals_idx = np.argsort(vals)[::-1]
         P = np.zeros([len(vals), len(vals)])
@@ -143,42 +133,31 @@ class P300_train:
         Returns sorted matrix of eigenvectors and list of eigenvalues.        
         """
 
-        # Get timestamps of stimuly
-        trgTags = np.array(target.keys())
-        ntrgTags = np.array(nontarget.keys())
-        
         # Calcluate covariance matrices
         covTarget = np.zeros((self.chL,self.chL))
         covNontarget = np.zeros((self.chL,self.chL))
 
-        # Target
-        totTarget = np.matrix(np.zeros( target[trgTags[0]].shape))
-        totNtarget= np.matrix(np.zeros( target[trgTags[0]].shape))
-        for tag in trgTags:
-            A = np.matrix(target[tag])
-            totTarget += A
-            
+        # Lengths
+        trgTrialsNo = target.shape[0]
+        ntrgTrialsNo = nontarget.shape[0]
 
-            #~ cov = A*A.T
-            #~ cov = totTarget*totTarget.T
-            #~ cov /= np.trace(cov)
-            covTarget  += np.cov(A)
+        # Target
+        for idx in range(trgTrialsNo):
+            A = np.matrix(target[idx])
+            covTarget += np.cov(A)
 
         # NonTarget
-        for tag in ntrgTags:
-            A = np.matrix(nontarget[tag])
-            totNtarget += A
-            #~ cov = A*A.T
-
-            #~ cov = totNtarget*totNtarget.T
-            #~ cov /= np.trace(cov)
+        for idx in range(ntrgTrialsNo):
+            A = np.matrix(nontarget[idx])
             covNontarget += np.cov(A)
-                
-        covTarget /= trgTags.shape[0]
-        covNontarget /= ntrgTags.shape[0]
+
+        #~ totTarget = np.matrix(np.mean(target, axis=0))
+        #~ totNtarget = np.matrix(np.mean(nontarget, axis=0))
+
+        covTarget /= trgTrialsNo
+        covNontarget /= ntrgTrialsNo
 
         return self.get_filter( covTarget, covNontarget+covTarget)
-        #~ return self.get_filter( covTarget, covNontarget)
         
 
     def crossCheck(self, signal, target, nontarget):
@@ -201,8 +180,15 @@ class P300_train:
         self.P, vals = self.train_csp(target, nontarget)
 
         # Divide dicts into K groups
-        target_kGroups = self.divideDict(target, K)
-        nontarget_kGroups = self.divideDict(nontarget, K)
+        target_kGroups = self.divideData(target, K)
+        nontarget_kGroups = self.divideData(nontarget, K)
+
+        # Determin shape of new matrices
+        tShape = target_kGroups.shape
+        train_tShape = ((tShape[0]-1)*tShape[1], tShape[2], tShape[3])
+        
+        ntShape = nontarget_kGroups.shape
+        train_ntShape = ((ntShape[0]-1)*ntShape[1], ntShape[2], ntShape[3])
 
         testVal = 0
         for i in range(K):
@@ -212,12 +198,12 @@ class P300_train:
             nontarget_test = nontarget_kGroups[i]
             
             # Rest of groups are training groups
-            target_train = {}
-            nontarget_train = {}
-            for L in np.delete(np.arange(K),i):
-                target_train.update( target_kGroups[L] )
-                nontarget_train.update( nontarget_kGroups[L] )
-            
+            target_train = np.delete( target_kGroups, i, axis=0)
+            target_train = target_train.reshape( train_tShape)
+
+            nontarget_train = np.delete( nontarget_kGroups, i,axis=0)
+            nontarget_train = nontarget_train.reshape( train_ntShape )
+                
             # Determin LDA classifier values
             w, c = self.trainFDA(target_train, nontarget_train)
         
@@ -229,22 +215,27 @@ class P300_train:
         #~ return testVal
         
     def analyseData(self, target, nontarget, w, c):
+        """
+        Calculates dValues for whole given targets and nontargets.
+        Perform by K-validation tests.
+        """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
+        # Test targets
         dTarget = 0
-        for tag in target.keys():
+        for tag in range(target.shape[0]):
             s = target[tag]
 
-            sAnal = np.array( [] )
+            sAnal = np.array([])
             for idx in range(self.conN):
                 tmp = self.prepareSignal(np.dot( self.P[:,idx], s))
                 sAnal = np.concatenate( (sAnal, tmp) )
 
             dTarget += np.dot(sAnal, w) - c
 
-        print "sAnal.shape: ", sAnal.shape
+        # Test nontargets
         dNontarget = 0
-        for ntag in nontarget.keys():
+        for ntag in range(nontarget.shape[0]):
             s = nontarget[ntag]
 
             sAnal = np.array( [] )
@@ -254,34 +245,41 @@ class P300_train:
 
             dNontarget += np.dot(sAnal, w) - c
         
-        dTarget = dTarget/float(len(target.keys()))
-        dNontarget = dNontarget/float(len(nontarget.keys()))
+        # Normalize values
+        dTarget = dTarget/float(target.shape[0])
+        dNontarget = dNontarget/float(nontarget.shape[0])
         
         dDiff = dTarget - dNontarget
-        #~ dDiff = dDiff/self.conN
         
         return dDiff
         
-    def divideDict(self, D, K):
+    def divideData(self, D, K):
+        """
+        Separates given data dictionary into K subdictionaries.
+        Used to perform K-validation tests.
+        Takes:
+          D -- numpy 3D matrix: EPOCH x CHANNEL x DATA
+          K -- number of groups to divide to.
+        Returns:
+          kGroups -- numpy 4D matrix: GROUP_NO x EPOCH x CHANNEL x DATA
+        """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
-        keys = np.array( D.keys() )
-        L = len(keys)
+        L = D.shape[0]
+        keys = np.arange(L)
         
         # Fill keys list with random trails utill it's diveable into K groups
         while( len(keys) % K != 0 ):
-            keys = np.append( keys, keys[np.random.randint(0,L-1)]  )
+            keys = np.append( keys, np.random.randint(L))
         
         # Shuffle list
         np.random.shuffle(keys)
         
-        # Divide given dict into K groups
-        kGroups = []
+        # Divide given matrix into K_groups
+        step = len(keys)/K
+        kGroups = np.empty( (K,step,D.shape[1], D.shape[2]))
         for idx in range(K):
-            d = {}
-            for k in keys[idx*len(keys)/K:(idx+1)*len(keys)/K]:
-                d[k] = D[k]
-            kGroups.append(D)
+            kGroups[idx] = D[keys[idx*step:(idx+1)*step]]
 
         return kGroups
         
@@ -302,11 +300,8 @@ class P300_train:
         
     def trainFDA(self, target, nontarget):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
-        trgTags = np.array(target.keys() )
-        ntrgTags = np.array( nontarget.keys() )
-        
         # Target
-        for tag in trgTags:
+        for tag in range(target.shape[0]):
             s = target[tag]
 
             sig = np.array([])
@@ -314,26 +309,26 @@ class P300_train:
                 tmp = self.prepareSignal(np.dot(self.P[:,idx],s))
                 sig = np.concatenate( (sig, tmp))
             
-            self.good = np.vstack( (self.good, sig))
+            self.good = np.vstack((self.good, sig))
 
         # Non-target
-        for tag in ntrgTags:
+        for tag in range(nontarget.shape[0]):
             s = nontarget[tag]
 
             sig = np.array([])
             for idx in range(self.conN):
                 tmp = self.prepareSignal( np.dot(self.P[:,idx],s))
-                sig = np.concatenate( (sig, tmp))
+                sig = np.concatenate((sig, tmp))
 
             self.bad = np.vstack( (self.bad, sig))
                 
-        ### GOOD
+        ### TARGET
         self.good = self.good[1:]
         goodAnal = self.good
         gAnalMean = goodAnal.mean(axis=0)
         gAnalCov = np.cov(goodAnal, rowvar=0)
 
-        ### BAD
+        ### NONTARGET
         self.bad = self.bad[1:]
         badAnal = self.bad
         bAnalMean = badAnal.mean(axis=0)
@@ -362,10 +357,18 @@ class P300_train:
         return self.w, self.c
     
     def isClassifiedFDA(self):
+        """
+        Returns True, if data has already been classified.
+        """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         return self.classifiedFDA
         
     def getPWC(self):
+        """
+        If classifier was taught, returns CSP Matrix as [P],
+        classifier seperation vector [w] and classifier separation value [c].
+        Else returns -1.
+        """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         if self.classifiedFDA:
             return (self.P, self.w, self.c)
@@ -405,7 +408,6 @@ class P300_analysis(object):
         
         self.dec = -1
 
-
         # Arrays
         self.flashCount = np.zeros(self.fields)  # Array4 flash counting
         self.dArr = np.zeros(self.fields) # Array4 d val
@@ -418,6 +420,7 @@ class P300_analysis(object):
         
         # For statistical analysis
         p = float(cfg['pVal'])
+        self.pVal = p
         self.z = st.norm.ppf(p)
         
         # w - values of diff between dVal and significal d (v)
@@ -482,11 +485,12 @@ class P300_analysis(object):
             mean, std = tmp.mean(), tmp.std()
             
             # Find right boundry
-            v = mean + self.z*std
-
+            #~ v = mean + self.z*std
             # Calculate distance
-            self.diffV[sq] = dMean[sq]-v
-            
+            #~ self.diffV[sq] = dMean[sq]-v
+
+            # Assuming that this is t distribution
+            self.diffV[sq] = st.t.cdf(dMean[sq], self.fields, loc=mean, scale=std)            
             
             #~ print "{0}: (m, std, v) = ({1}, {2}, {3})".format(sq, mean, std, v)
             #~ print "{0}: (d, w) = ({1}, {2})".format(sq, dMean[sq], self.diffV[sq])
@@ -495,7 +499,7 @@ class P300_analysis(object):
         
 
         # If only one value is significantly distant
-        if np.sum(self.diffV>0) == 1:
+        if np.sum(self.diffV>self.pVal) == 1:
             #~ return True
             self.dec = np.arange(self.diffV.shape[0])[self.diffV>0]
             self.dec = np.int(self.dec[0])
@@ -541,3 +545,17 @@ class P300_analysis(object):
         
     def getArrD(self):
         return self.dArr
+    
+    def getProbabiltyDensity(self):
+        
+        dMean = np.zeros(self.fields)
+        nMin = self.flashCount.min()
+        #~ print "nMin: ", nMin
+        for i in range(self.fields):
+            dMean[i] = self.dArrTotal[i][:nMin].mean()
+
+        # Assuming that dValues are from T distribution
+        p = st.t.cdf(dMean, self.fields, loc=dMean.mean(), scale=dMean.std())
+        
+        return p
+        

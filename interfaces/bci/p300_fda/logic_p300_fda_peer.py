@@ -24,7 +24,7 @@ from logic import logic_logging as logger
 
 import signalParser as sp
 from p300_draw import P300_draw
-from interfaces.bci.p300_fda.p300_fda import P300_train
+from p300_fda import P300_train
 
 
 LOGGER = logger.get_logger("p300_fda", 'info')
@@ -152,8 +152,8 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         # make sure that:
         # channels -- is in format like "P07;O1;Oz;O2"
         # fs -- is a number
-        # avrM -- is a int
-        # conN -- is a int
+        # avrM -- are int
+        # conN -- are int
         # csp_time -- is a list of two float 0 < x < 1
         N = 0
         d, P_dict = {}, {}
@@ -224,7 +224,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 
         ## Plotting best
         p300_draw = P300_draw()
-        p300_draw.setCalibration(target, nontarget, trgTags, ntrgTags)
+        p300_draw.setCalibration(target, nontarget)
         p300_draw.setCSP(P)
         p300_draw.setTimeLine(conN, avrM, csp_time)
         p300_draw.plotSignal()
