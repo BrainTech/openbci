@@ -6,6 +6,7 @@
 #
 import os
 import imp
+from launcher.launcher_tools import expand_path
 
 class StateMachine(object):
     """A facade between config file and logic_engine class.
@@ -19,9 +20,10 @@ class StateMachine(object):
     def update_from_file(self, p_config_file=None):
         if not  p_config_file:
             p_config_file = self._config_file
-        if os.path.exists(p_config_file):
-            base = os.path.basename(p_config_file).rsplit('.')[0]
-            dirname = os.path.dirname(p_config_file)
+        tpath = expand_path(p_config_file)
+        if os.path.exists(tpath):
+            base = os.path.basename(tpath).rsplit('.')[0]
+            dirname = os.path.dirname(tpath)
             fo, path, des = imp.find_module(base, [dirname])
             mod = imp.load_module(base, fo, path, des)
             l_logic_config = mod.Config()
