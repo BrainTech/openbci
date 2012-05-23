@@ -222,6 +222,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 path = os.path.join(launcher_tools.obci_root(), p)
             else:
                 path = os.path.realpath(p)
+
+            dirname = os.path.dirname(path)
+            if not launcher_tools.obci_root() in dirname:
+                launcher_tools.update_pythonpath(dirname)
+                launcher_tools.update_obci_syspath(dirname)
+                self.env.update({"PYTHONPATH" : os.environ["PYTHONPATH"]})
+
+                print "\n\n PYTHONPATH UPDATED  for ", peer, "!!!!!!!!   ", self.env["PYTHONPATH"], "\n\n"
             args = data['args']
             if peer.startswith('config_server'):
                 args += ['-p', 'launcher_socket_addr', self.cs_addr]
