@@ -185,7 +185,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 print self.name,'[', self.type, ']', "peer to kill not found:", peer
                 continue
             print "MORPH:  KILLING ", peer
-            proc.kill()
+            proc.kill_with_force()
             print "MORPH:  KILLED ", peer
             del self.processes[peer]
             del self.launch_data[peer]
@@ -222,6 +222,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 path = os.path.join(launcher_tools.obci_root(), p)
             else:
                 path = os.path.realpath(p)
+
+            dirname = os.path.dirname(path)
+            if not launcher_tools.obci_root() in dirname:
+                launcher_tools.update_pythonpath(dirname)
+                launcher_tools.update_obci_syspath(dirname)
+                self.env.update({"PYTHONPATH" : os.environ["PYTHONPATH"]})
+
+                print "\n\n PYTHONPATH UPDATED  for ", peer, "!!!!!!!!   ", self.env["PYTHONPATH"], "\n\n"
             args = data['args']
             if peer.startswith('config_server'):
                 args += ['-p', 'launcher_socket_addr', self.cs_addr]
@@ -247,7 +255,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                     machine=self.machine, path=path,
                                                     args=args, details=details))
             self.processes = {}
-            self.subprocess_mgr.killall()
+            self.subprocess_mgr.killall(force=True)
 
 
     def _launch_process(self, path, args, proc_type, name,
@@ -314,8 +322,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     @msg_handlers.handler("stop_all")
     def handle_stop_all(self, message, sock):
-
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
 
     @msg_handlers.handler("rq_ok")
     def handle_rq_ok(self, message, sock):
@@ -378,13 +385,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
         self.processes = {}
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
 
     def clean_up(self):
         print self.name,'[', self.type, ']',  "cleaning up"
 
         self.processes = {}
-        self.subprocess_mgr.killall()
+        self.subprocess_mgr.killall(force=True)
         self.subprocess_mgr.delete_all()
 
 

@@ -89,13 +89,13 @@ def obci_pythonpath():
 
     return os.pathsep.join([root, obci_path, mx_python_path, obci_control_path])
 
-def update_obci_syspath():
-    paths_str = obci_pythonpath()
+def update_obci_syspath(paths_str=None):
+    paths_str = paths_str or obci_pythonpath()
     for direct in paths_str.split(os.pathsep):
         sys.path.insert(1, direct)
 
-def update_pythonpath():
-    obci_paths = obci_pythonpath()
+def update_pythonpath(obci_paths=None):
+    obci_paths = obci_paths or obci_pythonpath()
     pythonpath=os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ''
     pythonpath=os.pathsep.join([pythonpath, obci_paths])
     os.environ["PYTHONPATH"] = pythonpath

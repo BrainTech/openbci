@@ -4,6 +4,9 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
+import os
+import imp
+from launcher.launcher_tools import expand_path
 
 class StateMachine(object):
     """A facade between config file and logic_engine class.
@@ -17,16 +20,24 @@ class StateMachine(object):
     def update_from_file(self, p_config_file=None):
         if not  p_config_file:
             p_config_file = self._config_file
-        dot = p_config_file.rfind('.')
-        if dot < 0:
-            mod = ''
-            cls = p_config_file
+        tpath = expand_path(p_config_file)
+        if os.path.exists(tpath):
+            base = os.path.basename(tpath).rsplit('.')[0]
+            dirname = os.path.dirname(tpath)
+            fo, path, des = imp.find_module(base, [dirname])
+            mod = imp.load_module(base, fo, path, des)
+            l_logic_config = mod.Config()
         else:
-            mod = p_config_file[:dot]
-            cls = p_config_file[dot+1:]
-        tmp = __import__(mod, globals(), locals(), [cls], -1)
-        reload(tmp)
-        l_logic_config = tmp.__dict__[cls]()
+            dot = p_config_file.rfind('.')
+            if dot < 0:
+                mod = ''
+                cls = p_config_file
+            else:
+                mod = p_config_file[:dot]
+                cls = p_config_file[dot+1:]
+            tmp = __import__(mod, globals(), locals(), [cls], -1)
+            reload(tmp)
+            l_logic_config = tmp.__dict__[cls]()
         self._states = []
         for i_state_ind in range(l_logic_config.number_of_states):
             l_state = dict()

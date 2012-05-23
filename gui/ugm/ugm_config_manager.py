@@ -161,11 +161,17 @@ class UgmConfigManager(object):
     (for file ...../ugm/configs/ugm_config.py)
     - _fields = a python-list taken from config file representing ugm config
     """
-    def __init__(self, p_config_file='ugm_config', p_standard_directory=True):
+    def __init__(self, p_config_file='ugm_config'):
         """Init manager from config in format 
         package.subpackage...module_with_configuration."""
         self._config_file = p_config_file
-        self._standard_config = p_standard_directory
+        if  p_config_file.startswith('/') or p_config_file.startswith('~'):
+            self._standard_config = False
+            self._config_file = os.path.expanduser(p_config_file)+'.ugm'
+        else:
+            self._standard_config = True
+            self._config_file = p_config_file
+
         self._standard_config_dir = ''.join([
                 os.path.split(os.path.realpath(os.path.dirname(__file__)))[0], 
                 os.path.sep, 'ugm', os.path.sep, 'configs', os.path.sep])

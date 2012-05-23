@@ -115,7 +115,7 @@ class UGMModuleDockWidget(QtGui.QDockWidget):
         #     
         # # Everything done :) All that is left is to establish connection if needed...
         if not self._connection:
-            self._connection = connect_client(type = peers.LOGIC_DECISION)
+            self._connection = connect_client(type = peers.LOGIC_DECISION, addresses=settings.MULTIPLEXER_ADDRESSES)
          # ...and send message to UGM
         self._connection.send_message(
             message = l_msg.SerializeToString(), 
