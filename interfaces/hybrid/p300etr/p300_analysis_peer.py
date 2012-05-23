@@ -22,10 +22,22 @@ class P300Analysis(ConfiguredMultiplexerServer):
             l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT MESSAGE: "+str(l_msg))
-            self.conn.send_message(message = str(l_msg), type = types.P300_ANALYSIS_RESULTS, flush=True)
-            ##self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+            #zrob cos z sygnalem
 
+        elif mxmsg.type == types.BLINK_MESSAGE:
+	    blink = variables_pb2.Blink()
+            blink.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
+            #zrob cos z blinkiem
         self.no_response()
+
+    def _send_results(self):
+        r = variables_pb2.Sample()
+        t.timestamp = time.time()
+        for i in range(8):
+            r.channels.append(random.random())
+        self.conn.send_message(message = r.SerializeToString(), type = types.P300_ANALYSIS_RESULTS, flush=True)
+        
 
 
 if __name__ == "__main__":

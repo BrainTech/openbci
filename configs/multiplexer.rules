@@ -339,6 +339,12 @@ peer {
     queue_size: 32768	       
 }
 
+peer {
+    type: 164
+    name: "ETR_CALIBRATION"
+    queue_size: 32768	       
+}
+
 
 
 # packages and routing rules definitions
@@ -855,6 +861,12 @@ type {
        whom: ALL
 	report_delivery_error: false
        }
+     to {
+     	peer: "ETR_P300_ANALYSIS"
+	whom: ALL
+	report_delivery_error: false
+     }
+
     to {
        peer: "ETR_SAVER"
        whom: ALL
@@ -1082,6 +1094,16 @@ type {
     name: "ETR_ANALYSIS_RESULTS"
     to {
        peer: "RESULTS_ANALYSIS"
+       whom: ALL
+	report_delivery_error: false
+       }
+}
+
+type {
+    type: 233
+    name: "ETR_CALIBRATION_RESULTS"
+    to {
+       peer: "ETR_P300_ANALYSIS"
        whom: ALL
 	report_delivery_error: false
        }
