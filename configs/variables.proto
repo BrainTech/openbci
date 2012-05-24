@@ -26,8 +26,9 @@ message BlinkVector {
 
 message Sample {
     required double timestamp = 1;
-    repeated double channels = 2;
+    repeated float channels = 2;
 }
+
 message Sample2D {
     required double x = 1;
     required double y = 2;
