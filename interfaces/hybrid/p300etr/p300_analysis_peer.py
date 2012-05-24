@@ -67,6 +67,7 @@ class BCIP300FdaAnalysis(object):
         # PROTOBUF_SAMPLES is a list of protobuf Sample() objects
         'ANALYSIS_BUFFER_RET_FORMAT'
 
+<<<<<<< HEAD
         """
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
@@ -81,6 +82,30 @@ class BCIP300FdaAnalysis(object):
 
         # Classify data
         self.p300.testData(signal, blink.index)
+=======
+    def handle_message(self, mxmsg):
+        if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
+            l_msg = variables_pb2.SampleVector()
+            l_msg.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
+            #zrob cos z sygnalem
+
+        elif mxmsg.type == types.BLINK_MESSAGE:
+	    blink = variables_pb2.Blink()
+            blink.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
+            #zrob cos z blinkiem
+        self.no_response()
+
+    def _send_results(self):
+        r = variables_pb2.Sample()
+        t.timestamp = time.time()
+        for i in range(8):
+            r.channels.append(random.random())
+        self.conn.send_message(message = r.SerializeToString(), type = types.P300_ANALYSIS_RESULTS, flush=True)
+        
+
+>>>>>>> 0ee073e01461ef6178bdf67dac0a784d8438997b
 
         # Calculates cdf for dValues
         pd = self.p300.getProbabiltyDensity()

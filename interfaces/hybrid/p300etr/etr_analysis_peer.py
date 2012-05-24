@@ -68,8 +68,15 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         self.buffor = np.concatenate( (self.buffor, xy), axis=1)[:,1:]
     
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
+        if mxmsg.type == types.ETR_CALIBRATION_RESULTS:
+	    res = variables_pb2.Sample()
+            res.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
+            #zrob cos z macierza kalibracji
+
+        elif mxmsg.type == types.ETR_SIGNAL_MESSAGE:
 	    l_msg = variables_pb2.Sample2D()
+<<<<<<< HEAD
         l_msg.ParseFromString(mxmsg.message)
         LOGGER.debug("GOT MESSAGE: "+str(l_msg))
         self.conn.send_message(message = str(l_msg), type = types.ETR_ANALYSIS_RESULTS, flush=True)
@@ -90,7 +97,27 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         pdf = self.calc_probDensity()
         
         ##self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+=======
+            l_msg.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
+            #zrob cos z sygnalem
+
+        elif mxmsg.type == types.BLINK_MESSAGE:
+	    blink = variables_pb2.Blink()
+            blink.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
+            #zrob cos z blinkiem
+
+>>>>>>> 0ee073e01461ef6178bdf67dac0a784d8438997b
         self.no_response()
+
+    def _send_results(self):
+        r = variables_pb2.Sample()
+        t.timestamp = time.time()
+        for i in range(8):
+            r.channels.append(random.random())
+        self.conn.send_message(message = r.SerializeToString(), type = types.ETR_ANALYSIS_RESULTS, flush=True)
+
 
 if __name__ == "__main__":
     EtrAnalysis(settings.MULTIPLEXER_ADDRESSES).loop()
