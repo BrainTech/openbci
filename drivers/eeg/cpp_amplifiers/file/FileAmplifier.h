@@ -36,7 +36,6 @@ enum FileChannelType{
 };
 class FileChannel:public Channel{
 private:
-	FileAmplifier *amplifier;
 	uint offset;
 	FileChannelType type;
 
@@ -47,7 +46,7 @@ public:
 		return get_sample();
 	}
 	inline virtual float get_sample(){
-		char * data=amplifier->get_channel_data()+this->offset;
+		char * data=((FileAmplifier*)amplifier)->get_channel_data()+this->offset;
 		switch (this->type){
 		case DOUBLE:
 			return *((double*)data);

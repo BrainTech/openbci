@@ -32,7 +32,7 @@ public:
 	virtual void stop_sampling();
 	virtual void handle_message(MultiplexerMessage & msg);
 	int loop_in_thread();
-	void do_sampling(void * ptr /* = NULL */);
+	void do_sampling();
 	virtual ~AmplifierServer();
 	void set_logger(Logger *log) {
 		logger = log;

@@ -38,7 +38,7 @@ void FileAmplifier::init(boost::program_options::variables_map &vm){
 	Amplifier::init(vm);
 	samples.open(file_path.c_str(),ios::in);
 	if (!samples)
-		throw new FileAmplifierException("Could not open file: "+file_path);
+		throw new FileAmplifierException("DEVICE OPEN ERROR: Could not open file: "+file_path);
 	pack_size=get_pack_size();
 	channel_data_len=desc->channel_data_len;
 	channel_data=new char[pack_size*channel_data_len];
@@ -84,6 +84,6 @@ FileAmplifierDescription::FileAmplifierDescription(string name,FileAmplifier *am
 		add_channel(channel);
 		offset+=channel->bit_length/8;
 	}
-	sampling_rates.push_back(amp->get_sampling_rate());
 	channel_data_len=offset;
+	physical_channels=names.size();
 }
