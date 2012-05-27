@@ -202,8 +202,10 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
         harvester.register(req, zmq.POLLIN)
         reqs[req] = addr
 
-    for i in range(len(reqs) * 3):
-        socks = dict(harvester.poll(timeout=1000))
+    srv_responses = 0
+
+    for i in range(len(reqs) * 50):
+        socks = dict(harvester.poll(timeout=300))
 
         for req in socks:
             msg = recv_msg(req)
@@ -217,8 +219,12 @@ def _gather_other_server_results(ctx, this_addr, ip_list):
             elif msg.type == 'eeg_experiments':
                 LOGGER.info("GOT EXPERIMENTS from: " + msg.sender_ip)
                 exps += msg.experiment_list
+                srv_responses += 1
             else:
                 LOGGER.warning('strange msg:  ' + str(msg))
+        if srv_responses == len(ip_list):
+            print "GOT ALL eeg_experiment RESPONSES :-) [addr list:  ", ip_list, "]"
+            break
 
     other_exps_pull.close()
     return exps
