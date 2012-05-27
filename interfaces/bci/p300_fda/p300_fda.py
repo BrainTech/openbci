@@ -189,8 +189,12 @@ class P300_train:
         
         ntShape = nontarget_kGroups.shape
         train_ntShape = ((ntShape[0]-1)*ntShape[1], ntShape[2], ntShape[3])
+        
+        # Buffers for dValues to determine their distributions
+        dWholeTarget = np.zeros(tShape[0]*tShape[1])
+        dWholeNontarget = np.zeros(ntShape[0]*ntShape[1])
 
-        testVal = 0
+        # For each group
         for i in range(K):
             
             # One groups is test group
@@ -208,12 +212,20 @@ class P300_train:
             w, c = self.trainFDA(target_train, nontarget_train)
         
             # Test data
-            testVal += self.analyseData(target_test, nontarget_test, w, c)
+            dTarget, dNontarget = self.analyseData(target_test, nontarget_test, w, c)
+            
+            # Saves dValues
+            dWholeTarget[i*len(dTarget):(i+1)*len(dTarget)] = dTarget
+            dWholeNontarget[i*len(dNontarget):(i+1)*len(dNontarget)] = dNontarget
         
-        #~ return testVal/np.abs(w.sum())
-        return testVal/len(w)
-        #~ return testVal
         
+        self.saveDisributions( dWholeTarget, dWholeNontarget)
+        
+        # Calculates mean distance od dValues
+        meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
+        
+        return meanDiff
+    
     def analyseData(self, target, nontarget, w, c):
         """
         Calculates dValues for whole given targets and nontargets.
@@ -221,37 +233,35 @@ class P300_train:
         """
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
+
         # Test targets
-        dTarget = 0
-        for tag in range(target.shape[0]):
-            s = target[tag]
+        sTargetAnal = np.zeros((target.shape[0],w.shape[0]))
+        sNontargetAnal = np.zeros((nontarget.shape[0],w.shape[0]))
 
-            sAnal = np.array([])
-            for idx in range(self.conN):
-                tmp = self.prepareSignal(np.dot( self.P[:,idx], s))
-                sAnal = np.concatenate( (sAnal, tmp) )
+        # 
+        step = w.shape[0]/self.conN
 
-            dTarget += np.dot(sAnal, w) - c
+        # Depending how many eigenvectors one want's to consider
+        # from CSP,
+        for idx in range(self.conN):
+            # Dot product over all channels (CSP filter) and returns
+            # array of (trials, data) shape.
+            productTrg = np.dot( self.P[:,idx], target)
+            productNtrg = np.dot( self.P[:,idx], nontarget)
+            
+            # Each data signal is analysed: filtred, downsized...
+            analProductTrg = map( lambda sig: self.prepareSignal(sig), productTrg)
+            analProductNtrg = map( lambda sig: self.prepareSignal(sig), productNtrg)
+                        
+            # Fills prepared buffer.
+            sTargetAnal[:,idx*step:(idx+1)*step] = analProductTrg
+            sNontargetAnal[:,idx*step:(idx+1)*step] = analProductNtrg
 
-        # Test nontargets
-        dNontarget = 0
-        for ntag in range(nontarget.shape[0]):
-            s = nontarget[ntag]
+        # Calc dValues as: d = s*w - c
+        dTarget = np.dot(sTargetAnal, w) - c
+        dNontarget = np.dot(sNontargetAnal, w) - c
 
-            sAnal = np.array( [] )
-            for idx in range(self.conN):
-                tmp = self.prepareSignal( np.dot( self.P[:,idx], s) )
-                sAnal = np.concatenate( (sAnal, tmp) )
-
-            dNontarget += np.dot(sAnal, w) - c
-        
-        # Normalize values
-        dTarget = dTarget/float(target.shape[0])
-        dNontarget = dNontarget/float(nontarget.shape[0])
-        
-        dDiff = dTarget - dNontarget
-        
-        return dDiff
+        return dTarget, dNontarget
         
     def divideData(self, D, K):
         """
@@ -374,7 +384,20 @@ class P300_train:
             return (self.P, self.w, self.c)
         else:
             return -1
+
+    def getTresholdValue(self):
+        return st.scoreatpercentile(self.dNontarget, self.pVal)
+        
+    def saveDisributions(self, dTarget, dNontarget):
+        self.dTarget = dTarget
+        self.dNontarget = dNontarget
     
+    def getDValDistribution(self):
+        return self.dTarget, self.dNontarget
+
+    def saveDist2File(self, targetName, nontargetName):
+        np.save(targetName, self.dTarget)
+        np.save(nontargetName, self.dNontarget)
             
 class P300_analysis(object):
     def __init__(self, sampling, cfg={}, fields=8):
@@ -419,12 +442,18 @@ class P300_analysis(object):
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
-        p = float(cfg['pVal'])
-        self.pVal = p
-        self.z = st.norm.ppf(p)
+        self.pPer = float(cfg['pPer'])
+        self.pVal = float(cfg['pVal'])
         
         # w - values of diff between dVal and significal d (v)
         self.diffV = np.zeros(self.fields)
+
+    def newEpoch(self):
+        self.flashCount = np.zeros(self.fields)  # Array4 flash counting
+        self.dArr = np.zeros(self.fields) # Array4 d val
+
+        for i in range(self.fields): self.dArrTotal[i] = np.array([])
+
     
     def defineMethods(self):
         # Declare methods
@@ -438,10 +467,9 @@ class P300_analysis(object):
     def testData(self, signal, blink):
 
         # Analyze signal when data for that flash is neede
-        s = np.array([])
+        s = np.empty( self.avrM*self.conN)
         for con in range(self.conN):
-            tmp = self.prepareSignal(np.dot(self.P[:,con], signal))
-            s = np.append( s, tmp)
+            s[con*self.avrM:(con+1)*self.avrM] = self.prepareSignal(np.dot(self.P[:,con], signal))
         
         # Data projection on Fisher's space
         self.d = np.dot(s,self.w) - self.c
@@ -476,34 +504,17 @@ class P300_analysis(object):
         for i in range(self.fields):
             dMean[i] = self.dArrTotal[i][:nMin].mean()
         
-        #~ dMean = self.dArr / self.flashCount
-        self.diffV = np.zeros(self.diffV.shape)
-        
-        for sq in range(self.fields):
-            # Norm distribution
-            tmp = np.delete(dMean, sq)
-            mean, std = tmp.mean(), tmp.std()
-            
-            # Find right boundry
-            #~ v = mean + self.z*std
-            # Calculate distance
-            #~ self.diffV[sq] = dMean[sq]-v
-
-            # Assuming that this is t distribution
-            self.diffV[sq] = st.t.cdf(dMean[sq], self.fields, loc=mean, scale=std)            
-            
-            #~ print "{0}: (m, std, v) = ({1}, {2}, {3})".format(sq, mean, std, v)
-            #~ print "{0}: (d, w) = ({1}, {2})".format(sq, dMean[sq], self.diffV[sq])
-            
-        #~ print "self.diffV: ", self.diffV
+        # This substitution is to not change much of old code.
+        # In future, try to change code for new variable.
+        self.diffV = dMean
         
 
         # If only one value is significantly distant
-        if np.sum(self.diffV>self.pVal) == 1:
+        if np.sum(dMean>self.pVal) == 1:
             #~ return True
-            self.dec = np.arange(self.diffV.shape[0])[self.diffV>0]
+            self.dec = np.arange(self.fields)[dMean>0]
             self.dec = np.int(self.dec[0])
-            #~ print "wybrano -- {0}".format(self.dec)
+            print "wybrano -- {0}".format(self.dec)
 
             return self.dec
         
@@ -527,16 +538,12 @@ class P300_analysis(object):
         self.w = w
         self.c = c
 
+    def setPdf(self, pdf):
+        self.pdf = pdf
+
     def getDecision(self):
         return self.dec
 
-    def newEpoch(self):
-        self.flashCount = self.flashCount*0  # Array4 flash counting
-        self.dArr = self.dArr*0 # Array4 d val
-
-        for i in range(self.fields): self.dArrTotal[i] = np.array([])
-
-    
     def getArrTotalD(self):
         return self.dArrTotal
 
@@ -547,6 +554,10 @@ class P300_analysis(object):
         return self.dArr
     
     def getProbabiltyDensity(self):
+        """
+        Returns percentiles of given scores
+        from nontarget propabilty density function.
+        """
         
         dMean = np.zeros(self.fields)
         nMin = self.flashCount.min()
@@ -555,7 +566,7 @@ class P300_analysis(object):
             dMean[i] = self.dArrTotal[i][:nMin].mean()
 
         # Assuming that dValues are from T distribution
-        p = st.t.cdf(dMean, self.fields, loc=dMean.mean(), scale=dMean.std())
+        p = map( lambda score: st.percentileofscore(self.pdf, score), dMean)
         
         return p
         

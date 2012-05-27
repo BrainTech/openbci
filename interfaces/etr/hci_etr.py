@@ -17,8 +17,10 @@ class HciEtr(ConfiguredMultiplexerServer):
         super(HciEtr, self).__init__(addresses=addresses,
                                      type=peers.ETR_ANALYSIS)
     def handle_message(self, mxmsg):
+        print "mxmsg: ", mxmsg
+        print "mxmsg.type: ", mxmsg.type
         if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.Sample2D()
+            l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT MESSAGE: "+str(l_msg))
 
@@ -31,8 +33,18 @@ class HciEtr(ConfiguredMultiplexerServer):
                 ugm_helper.send_config(self.conn, ugm, 1)
             else:
                 LOGGER.info("Got notihing from manager...")
+        elif mxmsg.type == types.ETR_CALIBRATION_RESULTS:
+            res = variables_pb2.Sample()
+            res.ParseFromString(mxmsg.message)
+            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
+            res.channels = self.handle_calibration_mesage(res.channels)
+            
         self.no_response()
 
     def handle_etr_message(self, msg):
         LOGGER.error("TO BE SUBCLASSED!!!")
         return None, None
+
+    def handle_calibration_mesage(self, msg):
+        LOGGER.error("TO BE SUBCLASSED!!!")
+        return None 

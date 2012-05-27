@@ -26,6 +26,9 @@ class DataAnalysis(object):
         self.iInit, self.iFin = csp_time[0]*self.fs, csp_time[1]*self.fs
         
     def prepareSignal(self, s, avrM=None):
+        """
+        Prepare 1D signal for anylisis.
+        """
         if avrM == None: avrM = self.avrM
 
         temp = s
@@ -40,7 +43,6 @@ class DataAnalysis(object):
             pass
         else:
             temp = map(lambda i: temp[i], np.floor(np.linspace(self.csp_time[0], self.csp_time[1], self.avrM)*self.fs))
-            
         
         return np.array(temp)
         

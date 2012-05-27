@@ -26,6 +26,9 @@ class EtrCalibration(ConfiguredClient):
         try:
             while True:
                 l_data, addr = self.socket.recvfrom(1024)
+                msg = variables_pb2.Variable()
+                msg.ParseFromString(l_data)
+                msg.key, msg.value # jedno z nich to timestamp i start_calibration
                 l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
                 if l_msg is not None:
                     pass

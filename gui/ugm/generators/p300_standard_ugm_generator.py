@@ -40,6 +40,7 @@ def run(input, output, rows, cols):
             #set text stimulus
             s3 = s2['stimuluses'][0]
             s3['id'] = id3
+            s3['message'] = 'B'
 
 
             stims.append(s1)
@@ -56,8 +57,7 @@ if __name__ == '__main__':
         rows = sys.argv[2] 
         cols = sys.argv[3]
     except:
-        out = 'p300_classic_6x6'
-        rows = 6
-        cols = 6
-
+        out = 'p300_classic_7x7'
+        rows = 7
+        cols = 7
     run('p300_base2', out, rows, cols)

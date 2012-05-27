@@ -60,100 +60,92 @@ class P300_draw(object):
         # Set time limits
         self.simple_time = np.linspace(0, 1, L)
 
-        # Create arrays
-        meanMeanSimpleTarget = np.zeros( L )
-        meanMeanCSPTarget = np.zeros( self.conN*L )
+        # Create buffers
+        allCSPTrg = np.empty( (self.conN, self.target.shape[0], L))
+        allCSPNtrg = np.empty( (self.conN, self.nontarget.shape[0], L))
         
-        meanMeanSimpleNontarget = np.zeros( L )
-        meanMeanCSPNontarget = np.zeros( self.conN*L )
+        allMeanCSPTrg = np.empty( (self.conN, L))
+        allMeanCSPNtrg = np.empty( (self.conN, L))
+        
+        # Plot simple means
+        productMeanTrg = self.target.mean(axis=1)
+        productMeanNtrg = self. nontarget.mean(axis=1)
 
-        ## New plotting figure
-        #~ py.figure()
+        analProductMeanTrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productMeanTrg))
+        analProductMeanNtrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productMeanNtrg))
+        
+        py.subplot(2, 1+self.conN, 1) # 1st row
+        py.title("Mean target")
+        timeArr = np.array(self.simple_time.tolist()*analProductMeanTrg.shape[0]).reshape((-1,L))
+        py.plot(timeArr, analProductMeanTrg,'r.')
+        py.plot(self.simple_time, analProductMeanTrg.mean(axis=0),'g-')
 
-        ## Plotting target ##
-        for idx in range(self.trgTrials):
-            
-            s = self.target[idx]
-            meanCSPTarget = np.array([])
+        py.subplot(2, 1+self.conN, 2+self.conN) # 2nd row
+        py.title("Mean nontarget")
+        timeArr = np.array(self.simple_time.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,L))
+        py.plot(timeArr, analProductMeanNtrg,'r.')
+        py.plot(self.simple_time, analProductMeanTrg.mean(axis=0),'g-')
+        
 
-            meanSimpleTarget = self.sp.prepareSignal(s.mean(axis=0))
-            meanMeanSimpleTarget += meanSimpleTarget
-
-            py.subplot(2,1+self.conN,1)
-            py.plot(self.simple_time, meanSimpleTarget, 'g-')
-
-            for con in range(self.conN):
-                tmp = self.sp.prepareSignal(np.dot( P[:,con], s))
-                py.subplot(2,1+self.conN,2+con)
-                py.plot(self.simple_time, tmp, 'g-')
-
-                meanCSPTarget = np.concatenate((meanCSPTarget, tmp) )
-            meanMeanCSPTarget += meanCSPTarget
-
-            
-        py.subplot(2,1+self.conN,1)
-        py.title("Simple mean target")
-        py.plot(self.simple_time, meanMeanSimpleTarget/self.trgTrials, 'r-')
-            
+        #######################
+        ##  Plotting target  ##
+        # Depending how many eigenvectors one want's to consider
+        # from CSP,
         for con in range(self.conN):
-                py.subplot(2,1+self.conN,2+con)
-                py.title("CSP mean target vec " +str(con+1))
-                py.plot(self.simple_time, meanMeanCSPTarget[con*L:(con+1)*L]/self.trgTrials, 'r-')
+            # Dot product over all channels (CSP filter) and returns
+            # array of (trials, data) shape.
+            productCSPTrg = np.dot( self.P[:,con], self.target)
+            productCSPNtrg = np.dot( self.P[:,con], self.nontarget)
 
-        #########################
-        ## Plotting non target ##
-        for idx in range(self.ntrgTrials):
+            # Each data signal is analysed: filtred, downsized...
+            analProductCSPTrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productCSPTrg))
+            analProductCSPNtrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productCSPNtrg))
             
-            s = self.nontarget[idx]
-
-            meanSimpleNontarget = self.sp.prepareSignal(s.mean(axis=0), 1)
-            meanMeanSimpleNontarget += meanSimpleNontarget
-
-
-            py.subplot(2,1+self.conN,self.conN+2)
-            py.plot(self.simple_time, meanSimpleNontarget,'g-')
-
-            meanCSPNontarget = np.array([])
-            for con in range(self.conN):
-                tmp = self.sp.prepareSignal(np.dot( P[:,con], s))
-                meanCSPNontarget = np.concatenate((meanCSPNontarget, tmp) )
-                py.subplot(2,1+self.conN,self.conN+3+con)
-                py.plot(self.simple_time, tmp, 'g-')
-
-            meanMeanCSPNontarget += meanCSPNontarget
+            allCSPTrg[con] = analProductCSPTrg
+            allCSPNtrg[con] = analProductCSPNtrg
             
-        py.subplot(2,1+self.conN,self.conN+2)
-        py.title("Simple mean nontarget")
-        py.plot(self.simple_time, meanMeanSimpleNontarget/self.ntrgTrials, 'r-')
+            allMeanCSPTrg[con] = analProductCSPTrg.mean(axis=0)
+            allMeanCSPNtrg[con] = analProductCSPNtrg.mean(axis=0)
 
-        for con in range(self.conN):
-            py.subplot(2,1+self.conN,self.conN+3+con)
-            py.title("CSP mean nontarget vec " +str(con+1))
-            py.plot(self.simple_time, meanMeanCSPNontarget[con*L:(con+1)*L]/self.ntrgTrials, 'r-')
+            py.subplot(2,1+self.conN,2+con)
+            py.title("CSP mean target vec" +str(con+1))
+            timeArr = np.array(self.simple_time.tolist()*analProductCSPTrg.shape[0]).reshape((-1,L))
+            py.plot(timeArr, analProductCSPTrg, 'r-')
+            py.plot(self.simple_time, allMeanCSPTrg[con], 'g-')
+
+            py.subplot(2,1+self.conN,self.conN+1+2+con)
+            py.title("CSP mean nontarget vec" +str(con+1))
+            timeArr = np.array(self.simple_time.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,L))
+            py.plot(timeArr, analProductCSPNtrg, 'r-')
+            py.plot(self.simple_time, allMeanCSPNtrg[con], 'g-')
+        
 
         if savefile:
             py.savefig(savefile, dpi=150)
 
+        
         ## Plotting Diff
         py.figure()        
         
-        meanTarget = meanMeanSimpleTarget/self.trgTrials
-        meanNontarget = meanMeanSimpleNontarget/self.ntrgTrials
-        
-        meanCSPTarget = meanMeanCSPTarget/self.trgTrials
-        meanCSPNontarget = meanMeanCSPNontarget/self.ntrgTrials
+        meanTarget = analProductMeanTrg.mean(axis=0)
+        meanNontarget = analProductMeanNtrg.mean(axis=0)
         
         py.subplot(1, 1+self.conN,1)
         py.title("Diff simple mean")
         py.plot(self.simple_time, meanTarget-meanNontarget, 'r-')
         
+        print "self.simple_time.shape: ", self.simple_time.shape
+        print "allMeanCSPTrg[0].shape: ", allMeanCSPTrg[0].shape
+        print "allMeanCSPNtrg[0].shape: ", allMeanCSPNtrg[0].shape
+        
         for con in range(self.conN):
+        #~ for con in range(1):
             py.subplot(1,1+self.conN,2+con)
             py.title("Diff CSP mean vec " + str(con+1))
-            py.plot(self.simple_time, (meanCSPTarget-meanCSPNontarget)[con*L:(con+1)*L], 'r-')
-            
+            py.plot(self.simple_time, allMeanCSPTrg[con]-allMeanCSPNtrg[con], 'r-')
+        
         if savefile:
-            py.savefig(savefile + "_diff", dpi=150)
+            py.savefig(savefile + '_diff', dpi=150)
         else:
             py.show()
             
@@ -171,12 +163,13 @@ class P300_draw(object):
         P = self.P
 
         # Create buffers
-        meanMeanSimpleTarget = np.zeros( L )
-        meanMeanCSPTarget = np.zeros( self.conN*L )
+        allCSPTrg = np.empty( (self.conN, self.target.shape[0], self.avrM))
+        allCSPNtrg = np.empty( (self.conN, self.nontarget.shape[0], self.avrM))
         
-        meanMeanSimpleNontarget = np.zeros( L )
-        meanMeanCSPNontarget = np.zeros( self.conN*L )
-
+        allMeanCSPTrg = np.empty( (self.conN, self.avrM))
+        allMeanCSPNtrg = np.empty( (self.conN, self.avrM))
+        
+        # Time
         tMin, tMax = self.csp_time[0], self.csp_time[1]
         self.sp_ds.initConst(self.avrM, self.conN, self.csp_time)
         self.simple_time_ds = np.linspace(tMin, tMax, self.avrM)
@@ -186,71 +179,63 @@ class P300_draw(object):
         xMin = self.csp_time[0] - 0.25*dx
         xMax = self.csp_time[1] + 0.25*dx
         
+        # Plot simple means
+        productMeanTrg = self.target.mean(axis=1)
+        productMeanNtrg = self. nontarget.mean(axis=1)
+
+        analProductMeanTrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productMeanTrg))
+        analProductMeanNtrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productMeanNtrg))
+        
+        py.subplot(2, 1+self.conN, 1) # 1st row
+        py.title("Mean target")
+        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanTrg.shape[0]).reshape((-1,self.avrM))
+        py.plot(timeArr, analProductMeanTrg,'r.')
+        py.plot(self.simple_time_ds, analProductMeanTrg.mean(axis=0),'go')
+        py.xlim(xMin, xMax)
+
+        py.subplot(2, 1+self.conN, 2+self.conN) # 2nd row
+        py.title("Mean nontarget")
+        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,self.avrM))
+        py.plot(timeArr, analProductMeanNtrg,'r.')
+        py.plot(self.simple_time_ds, analProductMeanTrg.mean(axis=0),'g')
+        py.xlim(xMin, xMax)
+        
+
         #######################
         ##  Plotting target  ##
-        for idx in range(self.trgTrials):
-            
-            s = self.target[idx]
-            meanCSPTarget = np.array([])
-            
-            meanSimpleTarget = self.sp_ds.prepareSignal(s.mean(axis=0))
-            meanMeanSimpleTarget += meanSimpleTarget
-
-            py.subplot(2,1+self.conN,1)
-            py.plot(self.simple_time_ds, meanSimpleTarget,'g.')
-                
-            for con in range(self.conN):
-                tmp = self.sp_ds.prepareSignal(np.dot( P[:,con], s))
-                py.subplot(2,1+self.conN,2+con)
-                py.plot(self.simple_time_ds, tmp, 'g.')
-                
-                meanCSPTarget = np.concatenate((meanCSPTarget, tmp) )
-            meanMeanCSPTarget += meanCSPTarget
-
-        py.subplot(2,1+self.conN,1)
-        py.title("Simple mean target")
-        py.plot(self.simple_time_ds, meanMeanSimpleTarget/self.trgTrials, 'ro')
-        py.xlim(xMin, xMax)
-        
+        # Depending how many eigenvectors one want's to consider
+        # from CSP,
         for con in range(self.conN):
+            # Dot product over all channels (CSP filter) and returns
+            # array of (trials, data) shape.
+            productCSPTrg = np.dot( self.P[:,con], self.target)
+            productCSPNtrg = np.dot( self.P[:,con], self.nontarget)
+
+            # Each data signal is analysed: filtred, downsized...
+            analProductCSPTrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productCSPTrg))
+            analProductCSPNtrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productCSPNtrg))
+            
+            allCSPTrg[con] = analProductCSPTrg
+            allCSPNtrg[con] = analProductCSPNtrg
+            
+            allMeanCSPTrg[con] = analProductCSPTrg.mean(axis=0)
+            allMeanCSPNtrg[con] = analProductCSPNtrg.mean(axis=0)
+
             py.subplot(2,1+self.conN,2+con)
             py.title("CSP mean target vec" +str(con+1))
-            py.plot(self.simple_time_ds, meanMeanCSPTarget[con*self.avrM:(con+1)*self.avrM]/self.trgTrials, 'ro')
-            py.xlim(xMin, xMax)
-        
-        #########################
-        ## Plotting non target ##
-        for idx in range(self.ntrgTrials):
-            
-            s = self.nontarget[idx]
-
-            meanSimpleNontarget = self.sp_ds.prepareSignal(s.mean(axis=0))
-            meanMeanSimpleNontarget += meanSimpleNontarget
-
-            
-            py.subplot(2,1+self.conN,self.conN+2)
-            py.plot(self.simple_time_ds, meanSimpleNontarget,'g.')
-
-            meanCSPNontarget = np.array([])
-            for con in range(self.conN):
-                tmp = self.sp_ds.prepareSignal(np.dot( P[:,con], s))
-                meanCSPNontarget = np.concatenate((meanCSPNontarget, tmp) )
-                py.subplot(2,1+self.conN,self.conN+3+con)
-                py.plot(self.simple_time_ds, tmp, 'g.')
-
-            meanMeanCSPNontarget += meanCSPNontarget
-
-        py.subplot(2,1+self.conN,self.conN+2)
-        py.title("Simple mean nontarget")
-        py.plot(self.simple_time_ds, meanMeanSimpleNontarget/self.ntrgTrials, 'ro')
-        py.xlim(xMin, xMax)
-        
-        for con in range(self.conN):
-            py.subplot(2,1+self.conN,self.conN+3+con)
-            py.title("CSP mean nontarget vec " +str(con+1))
-            py.plot(self.simple_time_ds, meanMeanCSPNontarget[con*self.avrM:(con+1)*self.avrM]/self.ntrgTrials, 'ro')
+            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPTrg.shape[0]).reshape((-1,self.avrM))
+            py.plot(timeArr, analProductCSPTrg, 'r.')
+            py.plot(self.simple_time_ds, allMeanCSPTrg[con], 'g-')
             py.xlim(xMin, xMax)
 
+            py.subplot(2,1+self.conN,self.conN+1+2+con)
+            py.title("CSP mean nontarget vec" +str(con+1))
+            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,self.avrM))
+            py.plot(timeArr, analProductCSPNtrg, 'r.')
+            py.plot(self.simple_time_ds, allMeanCSPNtrg[con], 'g-')
+            py.xlim(xMin, xMax)
+        
+        
         if savefile:
             py.savefig(savefile, dpi=150)
         
@@ -258,21 +243,19 @@ class P300_draw(object):
         ## Plotting Diff
         py.figure()        
         
-        meanTarget = meanMeanSimpleTarget/self.trgTrials
-        meanNontarget = meanMeanSimpleNontarget/self.ntrgTrials
-        
-        meanCSPTarget = meanMeanCSPTarget/self.trgTrials
-        meanCSPNontarget = meanMeanCSPNontarget/self.ntrgTrials
+        meanTarget = analProductMeanTrg.mean(axis=0)
+        meanNontarget = analProductMeanNtrg.mean(axis=0)
         
         py.subplot(1, 1+self.conN,1)
         py.title("Diff simple mean")
-        py.plot(self.simple_time_ds, meanTarget-meanNontarget, 'ro')
+        py.plot(self.simple_time_ds, meanTarget-meanNontarget, 'r-')
         py.xlim(xMin, xMax)
         
         for con in range(self.conN):
+        #~ for con in range(1):
             py.subplot(1,1+self.conN,2+con)
             py.title("Diff CSP mean vec " + str(con+1))
-            py.plot(self.simple_time_ds, (meanCSPTarget-meanCSPNontarget)[con*self.avrM:(con+1)*self.avrM], 'ro')
+            py.plot(self.simple_time_ds, allMeanCSPTrg[con]-allMeanCSPNtrg[con], 'r-')
             py.xlim(xMin, xMax)
         
         if savefile:
@@ -356,3 +339,40 @@ class P300_draw(object):
         py.clf()
         print "Zapisano obraz '{0}' w katalogu: {1}".format( savefile, os.getcwd())
             
+    def plotDistribution(self, dTarget, dNontarget, savefile=None, show=None):
+        """
+        Takes 1D numpy arrays of d values for target and nontarget.
+        Plots and saves their histograms to file.
+        """
+        bins = 20
+        
+        py.subplot(2,2,1)
+        py.title("Target distribution")
+        py.hist(dTarget, bins)
+        py.axvline(dTarget.mean(), color='r')
+        py.xlabel("d values")
+        py.ylabel("Quantity")
+        
+        py.subplot(2,2,2)
+        py.title("Nontarget distribution")
+        py.hist(dNontarget, bins)
+        py.axvline(dNontarget.mean(), color='r')
+        py.xlabel("d values")
+        py.ylabel("Quantity")
+
+        py.subplot(2,1,2)
+        py.title("Target/Nontarget distribution")
+        py.hist(np.append(dTarget,dNontarget), bins)
+        py.axvline(dTarget.mean(), color='r')
+        py.axvline(dNontarget.mean(), color='r')
+        py.xlabel("d values")
+        py.ylabel("Quantity")
+
+        if savefile == None:
+            savefile = "distrib_{0}.png".format(self.globalNCount)
+        self.globalNCount += 1
+        
+        py.savefig(savefile, dpi=150)
+        
+        if show:
+            py.show()

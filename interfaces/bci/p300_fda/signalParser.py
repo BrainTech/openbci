@@ -303,11 +303,12 @@ class signalParser(object):
     def getTargetNontarget(self, signal, trgTags, ntrgTags):
         self.chL = signal.shape[0]
         self.Fs = self.getSamplingFrequency()
+        print "self.Fs: ", self.Fs
         
-        ## Get target data and stuck it into dictionary
+        ## Get target data and stuck it into numpy arrays
         target = np.zeros((len(trgTags), self.chL, self.Fs))
         nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
-
+    
         # Target trials
         for idx, tag in enumerate(trgTags):
             index = int(tag)

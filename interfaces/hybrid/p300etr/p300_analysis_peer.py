@@ -1,133 +1,150 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#
 
-import random, time
+import random, time, pickle
+
+from multiplexer.multiplexer_constants import peers, types
+from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from configs import settings, variables_pb2
+from devices import appliance_helper
+from acquisition import acquisition_helper
+from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
-import numpy as np
+from analysis.buffers import auto_blink_buffer
+from interfaces.hybrid.p300etr import p300_analysis_data_peer
 
-from interfaces.bci.p300_fda.p300_fda import P300_analysis
-from interfaces.bci.p300_fda.p300_draw import P300_draw
-from signalAnalysis import DataAnalysis
+from interfaces.hybrid.p300etr import csp_helper
+from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")
-DEBUG = False
+LOGGER = logger.get_logger("bci_p300_fda", "info")
+DEBUG = True
 
-class BCIP300FdaAnalysis(object):
-    def __init__(self, send_func, cfg, montage_matrix, sampling):
+
+#~ class BCIP300Fda(ConfiguredMultiplexerServer):
+#~ 
+    #~ def __init__(self, addresses):
+        #~ #Create a helper object to get configuration from the system
+        #~ super(BCIP300Fda, self).__init__(addresses=addresses,
+                                          #~ type=peers.P300_ANALYSIS)
+class P300Analysis(ConfiguredMultiplexerServer):
+    def __init__(self, addresses):
+        super(P300Analysis, self).__init__(addresses=addresses,
+                                     type=peers.P300_ANALYSIS)
+        self.ready()
+        LOGGER = logger.get_logger("etr_analysis", "info")
+        #get stats from file
+        cfg = self._get_csp_config()
+        #~ cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
         
-        self.send_func = send_func
-        self.last_time = time.time()
-        self.fs = sampling
-        self.montage_matrix = montage_matrix
+        montage_matrix = self._get_montage_matrix(cfg)
+            
+        #Create analysis object to analyse data 
+        self.analysis = self._get_analysis(self.send_results, cfg, montage_matrix)
 
-        self.nPole = np.zeros(8)
-        self.nMin = 5
-        self.nMax = 10
-
-        cfg['nMin'] = self.nMin
-        cfg['nMax'] = self.nMax
-        csp_time = cfg['csp_time']
-        self.pVal = cfg['pVal']
-        use_channels = cfg['use_channels']
-
-        nRepeat = cfg['nRepeat']
-        avrM = cfg['avrM']
-        conN = cfg['conN']
-        CONTINUE = True
+        #Initialise round buffer that will supply analysis with data
+        #See auto_ring_buffer documentation
+        sampling = int(self.config.get_param('sampling_rate'))
+        channels_count = len(self.config.get_param('channel_names').split(';'))
+        self.buffer = auto_blink_buffer.AutoBlinkBuffer(
+            from_blink=0,
+            samples_count=int(float(cfg['buffer'])),
+            sampling=sampling,
+            num_of_channels=channels_count,
+            ret_func=self.analysis.analyse,
+            ret_format=self.config.get_param('buffer_ret_format'),
+            copy_on_ret=int(self.config.get_param('buffer_copy_on_ret'))
+            )
         
-        print "cfg['w']: ", cfg['w']
-        self.p300 = P300_analysis(sampling, cfg, fields=8)
-        self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
-        
-        self.p300_draw = P300_draw(self.fs)
-        self.p300_draw.setTimeLine(conN, avrM, csp_time)
-        
-        self.epochNo = 0
-        
-        
+        self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
+        if DEBUG:
+            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
+                                               LOGGER,
+                                               int(self.config.get_param('samples_per_packet')))
+                                                   
+        self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
+        ugm_helper.send_start_blinking(self.conn)
+        #~ self.ready()
+        LOGGER.info("BCIAnalysisServer init finished!")
 
-    def analyse(self, blink, data):
-        """Fired as often as defined in hashtable configuration:
-        # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':
-        # Define how many samples we wish to analyse every tick (in seconds)
-        'ANALYSIS_BUFFER_COUNT':
-        # Define a tick duration (in seconds).
-        'ANALYSIS_BUFFER_EVERY':
-        # To SUMP UP - above default values (0.5, 0.4, 0.25) define that
-        # every 0.25s we will get buffer of length 0.4s starting from a sample 
-        # that we got 0.5s ago.
-        # Some more typical example would be for values (0.5, 0.5 0.25). 
-        # In that case, every 0.25 we would get buffer of samples from 0.5s ago till now.
-
-        data format is determined by another hashtable configuration:
-        # possible values are: 'PROTOBUF_SAMPLES', 'NUMPY_CHANNELS'
-        # it indicates format of buffered data returned to analysis
-        # NUMPY_CHANNELS is a numpy 2D array with data divided by channels
-        # PROTOBUF_SAMPLES is a list of protobuf Sample() objects
-        'ANALYSIS_BUFFER_RET_FORMAT'
-
-<<<<<<< HEAD
-        """
-        LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
-        LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
-        self.last_time = time.time()
-        #Wszystko dalej powinno się robić dla każdego nowego sygnału
+    def send_results(self, results):
+        """Send dec message to the system (probably to LOGIC peer).
+        dec is of integer type."""
+        LOGGER.info("Sending dec message: "+str(results))
+        self._last_dec_time = time.time()
+        #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
+        #self.buffer.clear_blinks()
+        #ugm_helper.send_stop_blinking(self.conn)
         
-        # 
-        signal = np.dot(self.montage_matrix.T, data)
+        r = variables_pb2.Sample()
+        r.timestamp = time.time()
+        for i in range(len(results)):
+            r.channels.append(float(results[i]))
+        self.conn.send_message(message = r.SerializeToString(), type = types.P300_ANALYSIS_RESULTS, flush=True)
 
-        # Count how many times did each field blink
-        self.nPole[blink.index] += 1
-
-        # Classify data
-        self.p300.testData(signal, blink.index)
-=======
     def handle_message(self, mxmsg):
+        #always buffer signal
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
             l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
-            #zrob cos z sygnalem
+            #Supply buffer with sample data, the buffer will fire its
+            #ret_func (that we defined as self.analysis.analyse) every 'every' samples
+            #~ self.conn.send_message(message = str(l_msg), type = types.P300_ANALYSIS_RESULTS, flush=True)
+            self.buffer.handle_sample_vect(l_msg)
+            if DEBUG:
+                self.debug.next_sample()
 
-        elif mxmsg.type == types.BLINK_MESSAGE:
-	    blink = variables_pb2.Blink()
-            blink.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
-            #zrob cos z blinkiem
+        if mxmsg.type == types.BLINK_MESSAGE:
+            l_msg = variables_pb2.Blink()
+            l_msg.ParseFromString(mxmsg.message)
+            self.buffer.handle_blink(l_msg)
+            
+            #~ #process blinks only when hold_time passed
+            #~ if self._last_dec_time > 0:
+                #~ t = time.time() - self._last_dec_time
+                #~ if t > self.hold_after_dec:
+                    #~ self._last_dec_time = 0
+                    #~ ugm_helper.send_start_blinking(self.conn)
+                #~ else:
+                    #~ self.no_response()
+                    #~ return
+
+
+            
         self.no_response()
 
-    def _send_results(self):
-        r = variables_pb2.Sample()
-        t.timestamp = time.time()
-        for i in range(8):
-            r.channels.append(random.random())
-        self.conn.send_message(message = r.SerializeToString(), type = types.P300_ANALYSIS_RESULTS, flush=True)
-        
-
->>>>>>> 0ee073e01461ef6178bdf67dac0a784d8438997b
-
-        # Calculates cdf for dValues
-        pd = self.p300.getProbabiltyDensity()
-        
-        if np.all(self.nPole>1):
-            
-            LOGGER.info("Decision from P300: " +str(dec) )
-            
-            #~ self.p300.newEpoch()
-            self.epochNo += 1
-            
-            self.nPole -= 1
-            
-            self.send_func(dec)
-        else:
-            LOGGER.info("Got -1 ind- no decision")
-
-    def getPD(self, d):
+    def _get_analysis(self, send_func, cfg, montage_matrix):
+        """Fired in __init__ method.
+        Return analysis instance object implementing interface:
+        - get_requested_configs()
+        - set_configs(configs)
+        - analyse(data)
         """
-        Derives probabilty density from given dict.
-        """
+        return p300_analysis_data_peer.BCIP300FdaAnalysis(
+            send_func,
+            cfg,
+            montage_matrix,
+            int(self.config.get_param('sampling_rate')))
+
+
+    def _get_csp_config(self):
+        return csp_helper.get_csp_config(
+            self.config.get_param('config_file_path'),
+            self.config.get_param('config_file_name'))
+
+    def _get_montage_matrix(self, cfg):
+        print "self.config.get_param('channel_names').split(';'): ", self.config.get_param('channel_names').split(';')
+        print "cfg['use_channels'].split(';'): ", cfg['use_channels'].split(';')
+        print "cfg['montage']: ",cfg['montage']
+        print "cfg['montage_channels'].split(';'): ", cfg['montage_channels'].split(';')
+        return csp_helper.get_montage_matrix(
+            self.config.get_param('channel_names').split(';'),
+            cfg['use_channels'].split(';'),
+            cfg['montage'],
+            cfg['montage_channels'].split(';'))
         
-        
-        for i in d.keys():
-        
+
+if __name__ == "__main__":
+    P300Analysis(settings.MULTIPLEXER_ADDRESSES).loop()
