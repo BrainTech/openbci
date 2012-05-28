@@ -19,11 +19,12 @@ class EtrCalibration(ConfiguredClient):
         super(EtrCalibration, self).__init__(addresses=addresses, type=peers.ETR_CALIBRATION)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.get_param('rcv_ip'),int(self.get_param('rcv_port'))))
-        self.ready()
+        self.socket.listen(1)
         LOGGER.info("Start initializin etr amplifier...")
         print "\n"*10 
         print "STARTING ETR CALIBRATION"
         print "\n"*10
+        self.ready()
 
     def run(self):
         print "\n"*10 
@@ -33,19 +34,15 @@ class EtrCalibration(ConfiguredClient):
             while True:
                 print "*"*10
                 print "socket"
-                l_data, addr = self.socket.recvfrom(1024)
+                conn, addr = self.socket.accept()
+                l_data = conn.recv(1024)
                 print "*"*10
                 print "l_data: ", l_data
                 msg = variables_pb2.Variable()
-                print "*"*10
-                print "msg: ", msg
                 msg.ParseFromString(l_data)
                 print "*"*10
-                print "msg: ", msg
-                #~ msg.key, msg.value # jedno z nich to timestamp i start_calibration
-                l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
-                if l_msg is not None:
-                    pass
+                print "msg: ", msg.key, ' / ', msg.value
+                print "*"*10
                 #tu pewnie będzie czytanie obrazu z kamery i po otrzymaniu info o stopie kalibracji
                 #pewnie bedzie odpalenie send_results
         finally:
