@@ -349,8 +349,8 @@ double TmsiAmplifier::next_samples() {
 			receive();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
-				fprintf(stderr, "Sample dropped!!!\n");
-				continue;
+				logger.info()<<"Checksum Error! Sample should be dropped!";
+				//continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
 				tms_get_data(msg, br, &dev, channel_data);
