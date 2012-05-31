@@ -139,7 +139,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
         self._data_proxy = data_write_proxy.get_proxy(
-            self._file_path, use_tmp_file, use_own_buffer, append_ts)
+            self._file_path, append_ts, use_tmp_file, use_own_buffer)
 
         self._signal_type = types.__dict__[self.config.get_param("signal_type")]
 
