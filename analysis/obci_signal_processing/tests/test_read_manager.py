@@ -6,7 +6,7 @@
 #
 
 """
->>> from .. import read_manager
+>>> from analysis.obci_signal_processing import read_manager
 
 >>> import os, os.path, sys
 

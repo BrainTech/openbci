@@ -8,7 +8,7 @@ import os
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from analysis.obci_signal_processing.signal import data_file_proxy
+from analysis.obci_signal_processing.signal import data_write_proxy
 from configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
 
@@ -28,7 +28,7 @@ class WiiBoardSaver(ConfiguredMultiplexerServer):
              os.mkdir(f_dir)
         f_path = os.path.normpath(os.path.join(
                f_dir, f_name + DATA_FILE_EXTENSION))
-        self._data_proxy = data_file_proxy.DataFileWriteProxy(f_path)
+        self._data_proxy = data_write_proxy.get_proxy(f_path)
 
         self.ready()
         LOGGER.info("WiiSaver init finished!")

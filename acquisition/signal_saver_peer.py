@@ -10,7 +10,7 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
-from analysis.obci_signal_processing.signal import data_file_proxy
+from analysis.obci_signal_processing.signal import data_write_proxy
 from analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
 
 LOGGER = logger.get_logger("signal_saver", 'info')
@@ -66,11 +66,6 @@ class SignalSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(SignalSaver, self).__init__(addresses=addresses,
                                           type=peers.SIGNAL_SAVER)
-        if __debug__:
-            from utils import streaming_debug
-            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), LOGGER)
-
-
         self._session_is_active = False
 
         # A method fired ever time we get new samples
@@ -84,6 +79,14 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._number_of_samples = 0
         self._first_sample_timestamp = -1.0
         self._init_saving_session()
+        self.debug_on = int(self.config.get_param('debug_on'))
+        if self.debug_on:
+            from utils import streaming_debug
+            self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), 
+                                               LOGGER,
+                                               self._samples_per_vector
+                                               )
+
         self.ready()
         self._session_is_active = True
 
@@ -99,7 +102,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             self._number_of_samples += self._samples_per_vector
             self._data_received(mxmsg.message)
 
-            if __debug__:
+            if self.debug_on:
                 #Log module real sampling rate
                 self.debug.next_sample()
 
@@ -122,11 +125,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
             LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
             return
         append_ts = int(self.config.get_param("append_timestamps"))
-        if append_ts:
-            self._append_ts_index = len(self.config.get_param("channel_names").split(";"))
-        else:
-            self._append_ts_index = -1
-
+        use_tmp_file = int(self.config.get_param("use_tmp_file"))
+        use_own_buffer = int(self.config.get_param("use_own_buffer"))
         self._samples_per_vector = int(self.config.get_param("samples_per_packet"))
 
         l_f_name =  self.config.get_param("save_file_name")
@@ -138,7 +138,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._file_path = os.path.normpath(os.path.join(
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
-        self._data_proxy = data_file_proxy.MxBufferDataFileWriteProxy(self._file_path)
+        self._data_proxy = data_write_proxy.get_proxy(
+            self._file_path, use_tmp_file, use_own_buffer, append_ts)
 
         self._signal_type = types.__dict__[self.config.get_param("signal_type")]
 
@@ -166,7 +167,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_var.key = 'file_path'
         l_var.value = self._file_path
 
-        l_files = self._data_proxy.finish_saving(self._append_ts_index)
+        l_files = self._data_proxy.finish_saving()
 
         self.conn.send_message(
             message=l_vec.SerializeToString(),
