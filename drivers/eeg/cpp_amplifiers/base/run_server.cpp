@@ -64,7 +64,10 @@ int run_server(int argc, char**argv,AmplifierServer * server){
 		return 0;
 	}
 	catch (const char * msg){
-		cerr << "Driver Exception: "<< msg <<"\n";
+		cerr << "Server Exception: "<< msg <<"\n";
 	}
+	catch (exception * ex){
+			cerr << "Server exception: "<<ex->what()<<"\n";
+		}
 	return -1;
 }
