@@ -131,5 +131,8 @@ int test_driver(int argc, char ** argv, Amplifier *amp){
 	catch (char const* msg){
 		cerr<< "Amplifier exception: "<<msg<<"\n";
 	}
+	catch (exception * ex){
+		cerr << "Amplifier exception: "<<ex->what()<<"\n";
+	}
 	return -1;
 }

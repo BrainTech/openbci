@@ -25,15 +25,23 @@ boost::program_options::options_description FileAmplifier::get_options(){
 	po::options_description options("FileAmplifier Options");
 	options.add_options()
 				("file,f",po::value<string>(&file_path),"Path to a file with sample data")
-				("channel_names,n",po::value<string>(),"Names of channels in the file separated by semicolons")
-				("channel_types,t",po::value<string>(),
-						"String with channel types separated by semicolons");
+				("names,n",po::value<string>(),"Names of channels in the file separated by semicolons")
+				("types,t",po::value<string>(), "Channel types separated by semicolons. Available values: double,float,int32,uint32")
+				("gains,g",po::value<string>()->default_value(""),"Gains for all channels separated by semicolons")
+				("offsets,o",po::value<string>()->default_value(""),"Offsets for all channels separated by semicolons");
 	return Amplifier::get_options().add(options);
 }
 void FileAmplifier::init(boost::program_options::variables_map &vm){
-	FileAmplifierDescription * desc=new FileAmplifierDescription(file_path,this,
-			split_string(vm["channel_names"].as<string>(),';'),
-			split_string(vm["channel_types"].as<string>(),';'));
+	FileAmplifierDescription * desc;
+	try {
+		desc=new FileAmplifierDescription(file_path,this,
+			split_string(vm["names"].as<string>(),';'),
+			split_string(vm["types"].as<string>(),';'),
+			split_string(vm["gains"].as<string>(),';'),
+			split_string(vm["offsets"].as<string>(),';'));
+	} catch (exception e) {
+		exit(-1);
+	}
 	set_description(desc);
 	Amplifier::init(vm);
 	samples.open(file_path.c_str(),ios::in);
@@ -60,7 +68,7 @@ double FileAmplifier::next_samples(){
 }
 
 FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name,amp){
-	this->offset=offset;
+	this->data_offset=offset;
 	if (type=="double"){
 		this->bit_length=64;
 		this->type=DOUBLE;
@@ -73,14 +81,24 @@ FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp
 		this->type = UINT32;
 	}
 }
-FileAmplifierDescription::FileAmplifierDescription(string name,FileAmplifier *amp,vector<string> names,vector<string>types):AmplifierDescription(name,amp){
+FileAmplifierDescription::FileAmplifierDescription(string name,
+		FileAmplifier *amp,vector<string> names,vector<string>types,
+		vector<string>gains,vector<string>offsets):AmplifierDescription(name,amp){
 	if (names.size()>types.size())
 		throw new FileAmplifierException("Not enough channel types!");
 	if (names.size()<types.size())
 		throw new FileAmplifierException("To many channel types!");
+	if (gains.size()>0 && gains.size()!=names.size())
+		throw new FileAmplifierException("Wrong number of channel gains!");
+	if (offsets.size()>0 && offsets.size()!=names.size())
+		throw new FileAmplifierException("Wrong number of channel offsets!");
 	uint offset=0;
 	for (uint i=0;i<names.size();i++){
 		FileChannel * channel=new FileChannel(names[i],offset,types[i],amp);
+		if (gains.size())
+			sscanf(gains[i].c_str(),"%lf",&channel->gain);
+		if (offsets.size())
+			sscanf(offsets[i].c_str(),"%lf",&channel->offset);
 		add_channel(channel);
 		offset+=channel->bit_length/8;
 	}
