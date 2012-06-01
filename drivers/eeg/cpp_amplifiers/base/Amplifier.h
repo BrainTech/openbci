@@ -105,7 +105,7 @@ public:
 	}
 	virtual boost::program_options::options_description get_options();
 	virtual void init(boost::program_options::variables_map &vm);
-	virtual double next_samples();
+	virtual double next_samples(bool synchronize=true);
 	inline double get_sample_timestamp(){
 		return sample_timestamp;
 	}
