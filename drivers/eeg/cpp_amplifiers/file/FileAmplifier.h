@@ -25,7 +25,7 @@ public:
 	virtual ~FileAmplifier();
 	virtual boost::program_options::options_description get_options();
 	virtual void init(boost::program_options::variables_map &vm);
-	virtual double next_samples(bool synchonize=true);
+	virtual double next_samples();
 	inline char * get_channel_data(){
 		return channel_data+channel_data_index*channel_data_len;
 	}

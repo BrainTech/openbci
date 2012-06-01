@@ -342,7 +342,7 @@ void TmsiAmplifier::stop_sampling(bool disconnecting) {
 double TmsiAmplifier::get_expected_sample_time(){
 	return last_sample+1.0/sampling_rate;
 }
-double TmsiAmplifier::next_samples(bool synchronize) {
+double TmsiAmplifier::next_samples() {
     channel_data_index++;
     if (channel_data_index >= channel_data[0].ns)
 		while (sampling) {
@@ -362,10 +362,10 @@ double TmsiAmplifier::next_samples(bool synchronize) {
 					logger.info()<<"Sending keep_alive\n";
 					tms_snd_keepalive(fd);
 				}
-				return Amplifier::next_samples(synchronize && read_fd!=fd);
+				break;
 			}
 		}
-	return Amplifier::next_samples(synchronize);
+	return Amplifier::next_samples();
 }
 
  uint TmsiAmplifier::get_digi(uint index) {

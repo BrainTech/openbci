@@ -63,21 +63,19 @@ void Amplifier::stop_sampling_handler(int sig) {
 double Amplifier::get_expected_sample_time(){
 	return sampling_start_time+cur_sample/(double)sampling_rate;
 }
-double Amplifier::next_samples(bool synchronize) {
+double Amplifier::next_samples() {
 	cur_sample++;
-	double expected = get_expected_sample_time();
-	sample_timestamp=last_sample =get_time();
-	if (!synchronize)
-		return sample_timestamp;
+	double wait = get_expected_sample_time();
 	double diff,seconds;
-	diff=expected-last_sample;
-//	fprintf(stderr,"[%d] Cur:%f, Expected:%f, Diff:%f, Comp:%f",cur_sample, sample_timestamp, expected, diff,sampling_start_time+cur_sample/(float)sampling_rate); diff=expected-get_time();
+	last_sample =get_time();
+	diff=wait-last_sample;
+//	fprintf(stderr,"Sample %d, Computed timestamp: %f, relative to previous:%f,current timestamp %f; sleep_res:%f;",cur_sample,sampling_start_time+cur_sample/(float)sampling_rate,wait,last_sample,sleep_res); diff=wait-get_time();
 //	if (diff<0){
 //		fprintf(stderr,"is late by %f\n",-diff);
 //	}
 	if (diff>sleep_res){
 		struct timespec slptm;
-//		fprintf(stderr," sleep for %f s",diff);diff=expected-get_time();
+//		fprintf(stderr," sleep for %f s",diff);diff=wait-get_time();
 		diff-=sleep_res;
 		slptm.tv_nsec = modf(diff,&seconds)*1000000000;
 		slptm.tv_sec = seconds;
@@ -85,13 +83,14 @@ double Amplifier::next_samples(bool synchronize) {
 		nanosleep(&slptm,NULL);
 		last_sample=get_time();
 	}
-//	if (last_sample+get_time_res<expected){
-//		fprintf(stderr,"active wait for %f; ",expected-last_sample);last_sample=get_time();
-	while (last_sample+get_time_res<expected)
+	//if (last_sample+get_time_res<wait){
+		//fprintf(stderr,"active wait for %f; ",wait-last_sample);last_sample=get_time();
+	while (last_sample+get_time_res<wait)
 		last_sample=get_time();
 //	}
-//	double tmp=get_time();fprintf(stderr,"finished waiting at %f, should finish at %f, late by %f\n",tmp,expected,tmp-expected);
-	sample_timestamp = expected;
+//	double tmp=get_time();
+//	fprintf(stderr,"finished waiting at %f, should finish at %f, late by %f\n",tmp,wait,tmp-wait);
+	sample_timestamp = wait;
 	return sample_timestamp;
 }
 void Amplifier::set_active_channels(std::vector<std::string> &channels) {
