@@ -62,7 +62,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.7.0"
+#define DRIVER_VERSION                  "1.7.1"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -85,7 +85,7 @@
 #define TMSI_CHECKSUM_FIELD           18
 
 /* Buffer structure */
-#define PACKET_BUFFER_SIZE            2097152
+#define PACKET_BUFFER_SIZE            20971520
 #define BULK_RECV_URBS                  50
 #define ISOC_RECV_URBS                  50
 
