@@ -73,11 +73,11 @@
 
 
 /* IOCTL commands */
-#define IOCTL_TMSI_BUFFERSIZE            0x40044601
-#define IOCTL_TMSI_BUFFERSIZE_64      0x40084601
+#define IOCTL_TMSI_BUFFERSIZE            1
+#define IOCTL_TMSI_BUFFERSIZE_64      1
 
 /* BLOCK TYPES */
-#define TMSI_SYNCHRO                  0xAAAA
+#define TMSI_SYNCHRO                  0xAAAAtl
 #define TMSI_FEI                      0x0210
 #define TMSI_ACK                      0x0002
 #define TMSI_STOP_REQ                 0x11
@@ -442,6 +442,9 @@ static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int comma
 
     return -1;
 }
+static int tmsi_unlocked_ioctl(struct file* file, unsigned int command, unsigned long argument){
+	return tmsi_ioctl(0,file,command,argument);
+}
 
 /*******************************************************************
                       R/W callback functions
@@ -584,6 +587,8 @@ static struct file_operations tmsi_fops = {
     .write = tmsi_write,
 #if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,35)
     .ioctl = tmsi_ioctl,
+#else
+    .unlocked_ioctl = tmsi_unlocked_ioctl,
 #endif
 };
 
