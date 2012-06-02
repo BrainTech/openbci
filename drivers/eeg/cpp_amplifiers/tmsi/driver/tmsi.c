@@ -62,7 +62,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.7.1"
+#define DRIVER_VERSION                  "1.7.2"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -73,8 +73,8 @@
 
 
 /* IOCTL commands */
-#define IOCTL_TMSI_BUFFERSIZE            1
-#define IOCTL_TMSI_BUFFERSIZE_64      1
+#define IOCTL_TMSI_BUFFERSIZE         0x40044601
+#define IOCTL_TMSI_BUFFERSIZE_64      0x40084601
 
 /* BLOCK TYPES */
 #define TMSI_SYNCHRO                  0xAAAA
@@ -423,22 +423,15 @@ error:
 }
 
 static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int command, unsigned long argument) {
-    struct tmsi_data* dev;
-    unsigned long* arg_address = (unsigned long*) argument;
-
-    dev = (struct tmsi_data*) file->private_data;
-
+    struct tmsi_data* dev=(struct tmsi_data*) file->private_data;
     switch (command) {
+    	case IOCTL_TMSI_BUFFERSIZE_64:
         case IOCTL_TMSI_BUFFERSIZE:
-        {
-            put_user(kfifo_len(dev->packet_buffer), arg_address);
-            return 0;
-        }
+            return kfifo_len(dev->packet_buffer);
         default:
             info("%s: IOCTL command 0x%X not implemented!", __FUNCTION__, command);
             break;
     }
-
     return -1;
 }
 static int tmsi_unlocked_ioctl(struct file* file, unsigned int command, unsigned long argument){

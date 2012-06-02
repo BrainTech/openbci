@@ -350,9 +350,8 @@ double TmsiAmplifier::next_samples(bool synchronize) {
 			receive();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
-				unsigned long buffer_size;
-				ioctl(fd,1,&buffer_size);
-				logger.info()<<"Checksum Error! Sample should be dropped! Kernel fifo size:"<<buffer_size<<"\n";
+//				ioctl(fd,0x40044601);
+				logger.info()<<"Checksum Error! Sample should be dropped! Kernel fifo size:"<<ioctl(fd,0x40044601)<<"\n";
 				//continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
