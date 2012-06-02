@@ -82,7 +82,7 @@
 #define TMSI_CHECKSUM_FIELD           18
 
 /* Buffer structure */
-#define PACKET_BUFFER_SIZE            131072
+#define PACKET_BUFFER_SIZE            2097152
 #define BULK_RECV_URBS                  50
 #define ISOC_RECV_URBS                  50
 
