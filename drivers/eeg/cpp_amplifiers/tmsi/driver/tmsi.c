@@ -77,7 +77,7 @@
 #define IOCTL_TMSI_BUFFERSIZE_64      1
 
 /* BLOCK TYPES */
-#define TMSI_SYNCHRO                  0xAAAAtl
+#define TMSI_SYNCHRO                  0xAAAA
 #define TMSI_FEI                      0x0210
 #define TMSI_ACK                      0x0002
 #define TMSI_STOP_REQ                 0x11
@@ -430,7 +430,6 @@ static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int comma
 
     switch (command) {
         case IOCTL_TMSI_BUFFERSIZE:
-        case IOCTL_TMSI_BUFFERSIZE_64:
         {
             put_user(kfifo_len(dev->packet_buffer), arg_address);
             return 0;
