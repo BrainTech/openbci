@@ -11,6 +11,9 @@
  *          
  * ChangeLog
  * ---------
+ * v1.7 - 02-06-2012 Maciej Pawlisz
+ * 		* PACKET_BUFFER_SIZE changed to 2MB
+ *
  * v1.6 - 21-10-2011 Maciej Pawlisz
  *      + Support kernel 3.0
  *      + Sending front_end_info with stop request on release
@@ -59,7 +62,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.6.1"
+#define DRIVER_VERSION                  "1.7.0"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
