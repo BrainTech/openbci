@@ -51,9 +51,10 @@ class HciEtrNatural(hci_etr.HciEtr):
         """
         Handles massage that informs when was calibration processed.
         """
+        LOGGER.debug("Got etr msg: "+str(msg))
         #### What to do when receive ETR_MATRIX information
         res = variables_pb2.Sample()
-        res.ParseFromString(mxmsg.message)
+        res.ParseFromString(msg)
         LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
         self.dec_mgr.updateTransformationMatrix(res.channels)
 

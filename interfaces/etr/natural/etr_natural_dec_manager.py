@@ -53,13 +53,14 @@ class EtrDecManager(object):
         
 
     def updateTransformationMatrix(self, data):
-        print "\n\n"
+        
+        print "\n\n"*10
         print "updateTransformationMatrix"
         print "\n\n"
         print "dostalem: ", data
-        #~ S = np.array( data).reshape((3,3))
-        S = np.random.random( (3,3))
-        invS = np.linalg.inv(S)
+        invS = np.array( data).reshape((3,3))
+        #~ S = np.random.random( (3,3))
+        #~ invS = np.linalg.inv(S)
         self.invS = np.matrix(invS)
         
         print "self.invS: ", self.invS

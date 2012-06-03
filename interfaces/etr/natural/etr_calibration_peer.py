@@ -11,53 +11,58 @@ from drivers import drivers_logging as logger
 
 LOGGER = logger.get_logger("etr_calibration", "info")
 
+from camera import Camera
+import numpy as np
+
 class EtrCalibration(ConfiguredClient):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
     to ugm_engine using udp. That level of comminication is needed, as
     pyqt won`t work with multithreading..."""
     def __init__(self, addresses):
         super(EtrCalibration, self).__init__(addresses=addresses, type=peers.ETR_CALIBRATION)
+        
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.get_param('rcv_ip'),int(self.get_param('rcv_port'))))
+        self.socket.listen(1)
         self.ready()
         LOGGER.info("Start initializin etr amplifier...")
-        print "\n"*10 
-        print "STARTING ETR CALIBRATION"
-        print "\n"*10
+        
+        #~ self.cam = Camera()
+
+    def __del__(self):
+        self.socket.close()        
 
     def run(self):
-        print "\n"*10 
-        print "RUNNNING ETR CALIBRATION"
-        print "\n"*10 
         try:
             while True:
-                print "*"*10
-                print "socket"
-                l_data, addr = self.socket.recvfrom(1024)
-                print "*"*10
-                print "l_data: ", l_data
+                self.connection, addr = self.socket.accept()
+                l_data = self.connection.recv(1024)
                 msg = variables_pb2.Variable()
-                print "*"*10
-                print "msg: ", msg
                 msg.ParseFromString(l_data)
-                print "*"*10
+                
                 print "msg: ", msg
-                #~ msg.key, msg.value # jedno z nich to timestamp i start_calibration
-                l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
-                if l_msg is not None:
-                    pass
-                #tu pewnie będzie czytanie obrazu z kamery i po otrzymaniu info o stopie kalibracji
-                #pewnie bedzie odpalenie send_results
+                #~ l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
+                #~ if l_msg is not None:
+                    #~ pass
+
+                #~ self.invS = self.camera.calibrationStart()
+                self.invS = self.fakeMatrix()
+                self._send_results()
         finally:
             self.socket.close()
 
+    def fakeMatrix(self):
+        return np.vstack((np.random.random((2,3)), np.array([[0,0,1]])))
+    
     def _send_results(self):
         r = variables_pb2.Sample()
         r.timestamp = time.time()
-        for i in range(8):
-            r.channels.append(random.random())
+        for val in self.invS.flatten().tolist():
+            r.channels.append(val)
+        LOGGER.info("sending matrix: " + str(self.invS.flatten().tolist()) )
+        print "types.ETR_CALIBRATION_RESULTS: ", types.ETR_CALIBRATION_RESULTS
         self.conn.send_message(message = r.SerializeToString(), 
-                               type = types.ETR_CALIBRATION_RESULTS, flush=True)
+                               type = types.ETR_CALIBRATION_RESULTS, flush=False)
 
 
 if __name__ == "__main__":
