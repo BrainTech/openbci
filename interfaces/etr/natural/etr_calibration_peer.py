@@ -32,15 +32,16 @@ class EtrCalibration(ConfiguredClient):
     def __del__(self):
         self.socket.close()        
 
+
     def run(self):
         try:
             while True:
-                self.connection, addr = self.socket.accept()
-                l_data = self.connection.recv(1024)
+                conn, addr = self.socket.accept()
+                l_data = conn.recv(1024)
                 msg = variables_pb2.Variable()
                 msg.ParseFromString(l_data)
                 
-                print "msg: ", msg
+                print "msg: ", msg.key, ' / ', msg.value
                 #~ l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
                 #~ if l_msg is not None:
                     #~ pass
@@ -48,6 +49,7 @@ class EtrCalibration(ConfiguredClient):
                 #~ self.invS = self.camera.calibrationStart()
                 self.invS = self.fakeMatrix()
                 self._send_results()
+
         finally:
             self.socket.close()
 
