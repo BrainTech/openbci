@@ -110,6 +110,7 @@ void AmplifierServer::start_sampling() {
     //  sampling_thread = new boost::thread(t);
     if (logger!=NULL) {
     	logger->restart();
+    	logger->sampling = driver->get_sampling_rate();
     	logger->info() << "Sampling started\n";
     }
     //pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);

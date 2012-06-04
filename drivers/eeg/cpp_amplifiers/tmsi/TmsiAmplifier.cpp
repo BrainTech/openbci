@@ -14,6 +14,7 @@
 #endif
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <fcntl.h>
@@ -349,7 +350,8 @@ double TmsiAmplifier::next_samples() {
 			receive();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
-				logger.info()<<"Checksum Error! Sample should be dropped!";
+//				ioctl(fd,0x40044601);
+				logger.info()<<"Checksum Error! Sample should be dropped! Kernel fifo size:"<<ioctl(fd,0x40044601)<<"\n";
 				//continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
