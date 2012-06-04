@@ -9,10 +9,11 @@ import sys, os.path
 from configs import variables_pb2
 
 import signal_exceptions
+import signal_constants
 import signal_logging as logger
 LOGGER = logger.get_logger("data_generic_write_proxy", 'info')
 
-SAMPLE_SIZE = 8 #double
+SAMPLE_STRUCT_TYPES = signal_constants.SAMPLE_STRUCT_TYPES
 
 class DataGenericWriteProxy(object):
     """
@@ -24,12 +25,13 @@ class DataGenericWriteProxy(object):
     - finish_saving() - closes data file and return its path,
     - data_received(p_data_sample) - gets and saves next sample of signal
     """
-    def __init__(self, p_file_path, p_unpack_later=False, p_append_ts=False):
+    def __init__(self, p_file_path, p_unpack_later=False, p_append_ts=False, p_sample_type='FLOAT'):
         """Open p_file_name file in p_dir_path directory."""
         self._number_of_samples = 0
         self._unpack_later = p_unpack_later
         self._append_ts = p_append_ts
         self._file_path = p_file_path
+        self._sample_struct_type = SAMPLE_STRUCT_TYPES[sample_type]
 
         try:
             if self._unpack_later:
@@ -104,9 +106,9 @@ class DataGenericWriteProxy(object):
             s = l_vec.samples[j]
             ts = s.timestamp
             try:
-                strs = [struct.pack("d", ch) for ch in s.channels]
+                strs = [struct.pack(self._sample_struct_type, ch) for ch in s.channels]
                 if self._append_ts:
-                    strs.append(struct.pack("d", ts))
+                    strs.append(struct.pack(self._sample_struct_type, ts))
             except struct.error:
                 LOGGER.error("Error while writhing to file. Bad sample format.")
                 raise(signal_exceptions.BadSampleFormat())

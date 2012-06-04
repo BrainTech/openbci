@@ -46,7 +46,7 @@ class AmplifierFile(BinaryDriverWrapper):
         mgr = read_info_source.FileInfoSource(self.f_info)
 
         names = mgr.get_param('channels_names')
-        type = mgr.get_param('sample_type').lower()
+        type = mgr.get_param('sample_type')
         self.all_types = ';'.join([type]*len(names))
         self.all_names = ';'.join(names)
         self.all_gains = ';'.join(mgr.get_param('channels_gains'))
