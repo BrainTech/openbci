@@ -23,7 +23,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import numpy, copy
-import data_file_proxy
+import data_read_proxy
 import signal_logging as logger
 import signal_exceptions
 LOGGER = logger.get_logger("data_source", "info")
@@ -86,7 +86,7 @@ class FileDataSource(DataSource):
         try:
             ''+p_file
             LOGGER.debug("Got file path.")
-            self._data_proxy = data_file_proxy.DataFileReadProxy(p_file)
+            self._data_proxy = data_read_proxy.DataReadProxy(p_file)
         except TypeError:
             LOGGER.debug("Got file proxy.")
             self._data_proxy = p_file

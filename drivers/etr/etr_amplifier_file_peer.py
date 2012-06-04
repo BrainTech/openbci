@@ -6,7 +6,7 @@ import random, time, os.path, sys
 
 from drivers.etr import etr_amplifier
 from configs import settings, variables_pb2
-from analysis.obci_signal_processing.signal import data_file_proxy
+from analysis.obci_signal_processing.signal import data_read_proxy
 from drivers import drivers_logging as logger
 
 LOGGER = logger.get_logger("etr_amplifier", "debug")
@@ -15,7 +15,7 @@ class EtrAmplifierFile(etr_amplifier.EtrAmplifier):
     def __init__(self, addresses):
         super(EtrAmplifierFile, self).__init__(addresses=addresses)
         l_path = os.path.expanduser(os.path.normpath(self.get_param("file_path")))
-        file_proxy = data_file_proxy.DataFileReadProxy(l_path)
+        file_proxy = data_file_proxy.DataReadProxy(l_path)
         self.file_buf = file_proxy.get_all_values(2)
         self.file_buf_ind = 0
         file_proxy.finish_reading()

@@ -10,7 +10,7 @@ from signal import read_data_source
 from signal import read_info_source
 from tags import read_tags_source
 
-from signal import data_file_proxy
+from signal import data_raw_write_proxy
 from signal import info_file_proxy
 from tags import tags_file_writer
 
@@ -80,7 +80,7 @@ class ReadManager(object):
         info_writer.set_attributes(params)
 
         #store data
-        data_writer = data_file_proxy.DataFileWriteProxy(path+'.obci.dat')
+        data_writer = data_raw_write_proxy.DataRawWriteProxy(path+'.obci.dat')
         for sample in self.iter_samples():
             for d in sample:
                 data_writer.data_received(d)
