@@ -14,7 +14,8 @@ bool SerializedTag::send(double sample_time){
 //	msg.set_type(type);
 //	msg.set_id(conn->random64());
 //	msg.set_message(data);
-	cout<<setprecision(15)<<timestamp<<"\n";
+	cout<<setprecision(15)<<get_time_as_double()<<"\n";
+
 	cout.flush();
 //	cerr<<"Sending Tag at "<<sample_time<<" type "<<type<<" data:"<<data<<"\n";
 //	Client::ScheduledMessageTracker tracker = conn->schedule_one(msg);
@@ -37,13 +38,15 @@ vector<SerializedTag*> SerializedTag::parseTags(string str){
 		res.push_back(parseTag(timestamps[i]));
 	return res;
 }
+void TagAmplifierServer::delete_tags(){
+	while (tags.size()>0){
+			delete tags.back();
+			tags.pop_back();
+		}
+}
 
 TagAmplifierServer::~TagAmplifierServer() {
-	// TODO Auto-generated destructor stub
-	while (tags.size()>0){
-		delete tags.back();
-		tags.pop_back();
-	}
+	delete_tags();
 }
 
 bool TagAmplifierServer::fetch_samples(){
@@ -55,7 +58,7 @@ bool TagAmplifierServer::fetch_samples(){
 			first_timestamp=time;
 		}
 		time=time-first_timestamp;
-		while (tags.size()>0 && tags.back()->timestamp<time){
+		while (tags.size()>0 && tags.back()->timestamp<=time+2.0/driver->get_sampling_rate()){
 			if (!tags.back()->send(time)) return false;
 			delete tags.back();
 			tags.pop_back();
@@ -73,20 +76,24 @@ bool TagAmplifierServer::do_command(string command,istream &cin){
 	if (AmplifierServer::do_command(command,cin))
 		return true;
 	if (command=="tags_start"){
-		char buf[BUF_SIZE];
-		while (cin.getline(buf,BUF_SIZE).fail());
-		streamsize count=0;
+		string buf;
 		cin.exceptions(istream::failbit|istream::badbit|istream::eofbit);
+		delete_tags();
 		while (true){
-			if (count>0) buf[count-1]='\n';
-			char * cur = buf+count;
-			cin.getline(cur,BUF_SIZE-count);
-			if (strncmp(cur,"tags_end",7)==0)
+			getline(cin,buf);
+			if (buf.substr(0,8)=="tags_end")
 				break;
-			count+=cin.gcount();
+			istringstream line(buf);
+			while (line)
+			{
+				string tag;
+				getline(line,tag,';');
+				if (tag.length()>0)
+					this->tags.push_back(SerializedTag::parseTag(tag));
+			}
 		}
 		cin.exceptions(istream::goodbit);
-		set_tags(SerializedTag::parseTags(buf));
+		reverse(this->tags.begin(),this->tags.end());
 		return true;
 	}
 	return false;

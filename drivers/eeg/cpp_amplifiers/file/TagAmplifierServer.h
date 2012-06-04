@@ -27,6 +27,7 @@ class TagAmplifierServer: public AmplifierServer {
 private:
 	vector<SerializedTag*> tags;
 	double first_timestamp;
+	void delete_tags();
 public:
 	TagAmplifierServer(Amplifier* driver):AmplifierServer(driver),first_timestamp(-1){}
 	virtual ~TagAmplifierServer();

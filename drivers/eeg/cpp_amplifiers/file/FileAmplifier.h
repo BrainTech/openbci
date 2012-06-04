@@ -36,8 +36,7 @@ enum FileChannelType{
 };
 class FileChannel:public Channel{
 private:
-	FileAmplifier *amplifier;
-	uint offset;
+	uint data_offset;
 	FileChannelType type;
 
 public:
@@ -47,7 +46,7 @@ public:
 		return get_sample();
 	}
 	inline virtual float get_sample(){
-		char * data=amplifier->get_channel_data()+this->offset;
+		char * data=((FileAmplifier*)amplifier)->get_channel_data()+this->data_offset;
 		switch (this->type){
 		case DOUBLE:
 			return *((double*)data);
@@ -62,7 +61,8 @@ public:
 };
 class FileAmplifierDescription:public AmplifierDescription{
 public:
-	FileAmplifierDescription(string name,FileAmplifier *amp,vector<string> names,vector<string>types);
+	FileAmplifierDescription(string name,FileAmplifier *amp,vector<string> names,
+			vector<string>types,vector<string>gains,vector<string>offsets);
 	uint channel_data_len;
 };
 class FileAmplifierException:public exception{
@@ -70,7 +70,7 @@ private:
 	string message;
 public:
 	FileAmplifierException(string message):message(message){}
-	const char * what(){
+	virtual const char * what() const throw(){
 		return message.c_str();
 	}
 	virtual ~FileAmplifierException() throw(){};

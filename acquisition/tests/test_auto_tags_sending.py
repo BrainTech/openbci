@@ -29,13 +29,13 @@ class AutoTagGenerator(ConfiguredClient):
             t= time.time()
             print("SEND TAG name"+name+" with time: "+repr(t))
             if name == 'pozytywny' or name == 'negatywny':
-                TAGGER.send_tag(t, 1.0, name, {'czestosc':random.randint(0, 10),
+                TAGGER.send_tag(t, t+1.0, name, {'czestosc':random.randint(0, 10),
                                                                   'liczba':random.random(), 
                                                                   'wypelnienie':COLORS[random.randint(0, len(COLORS)-1)], 
                                                                   'tekst': " d jfsld fkjew lkgjew lkgjewlkg jewg ldsj glkds jglkdsg jlkdsg jds"
                                                                      })
             else:
-                TAGGER.send_tag(t, 1.0, name, {'czestosc':random.randint(0, 10),
+                TAGGER.send_tag(t, t+1.0, name, {'czestosc':random.randint(0, 10),
                                                'wypelnienie':COLORS[random.randint(0, len(COLORS)-1)], 
                                                'poziom': random.randint(100, 1000)})
 
