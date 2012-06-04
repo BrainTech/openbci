@@ -8,9 +8,9 @@
 """
 >>> import os, os.path
 
->>> from .. import smart_tags_manager as mgr
+>>> from analysis.obci_signal_processing import smart_tags_manager as mgr
 
->>> from ..tags import smart_tag_definition as df    
+>>> from analysis.obci_signal_processing.tags import smart_tag_definition as df    
 
 >>> d = df.SmartTagDurationDefinition(start_tag_name='trigger', start_offset=0, end_offset=0, duration=1.0)
 

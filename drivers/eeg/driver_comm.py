@@ -131,7 +131,7 @@ class DriverComm(object):
     def start_sampling(self):
         signal.signal(signal.SIGINT, self.stop_sampling)
         LOGGER.info("Start sampling")
-        error=self._communicate("start",  timeout_s=2, timeout_error=False)
+        error=self._communicate("start",  timeout_s=0, timeout_error=False)
         if error:
             print error
         LOGGER.info("Sampling started")

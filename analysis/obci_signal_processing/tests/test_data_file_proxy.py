@@ -6,12 +6,15 @@
 #
 
 """
->>> from ..signal import data_file_proxy as p
-variables_pb2 import failed!!! Mx part of the class will not work
+>>> from analysis.obci_signal_processing.signal.data_read_proxy import DataReadProxy
+
+>>> from analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
 
 >>> import os.path, os
 
->>> px = p.DataFileWriteProxy('./tescik.obci.dat')
+>>> px = DataRawWriteProxy('./tescik.obci.dat')
+
+>>> px.set_data_len(1, 1)
 
 >>> px.data_received(1.2)
 
@@ -27,7 +30,7 @@ variables_pb2 import failed!!! Mx part of the class will not work
 
 >>> f = './tescik.obci.dat'
 
->>> py = p.DataFileReadProxy(f)
+>>> py = DataReadProxy(f)
 
 >>> py.get_next_value()
 1.2

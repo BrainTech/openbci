@@ -23,28 +23,34 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
                         channels_info='channels')
 
     def __init__(self, addresses, type):
+        """Do:
+        1) run super constructor to receive configs
+        2) run DriverComm constructor that fires binary driver
+        3) get json description from the driver (desc_params are required)
+        4) store that description in self.configs to share it with other modules
+        5) if autostart is set to true: 
+        6) set driver params from config (sampling_rate and active_channels)
+        7) start sampling
+        """
         super(BinaryDriverWrapper, self).__init__(addresses=addresses, type=type)
+        self._init_got_configs()
         self._mx_addresses = addresses
         DriverComm.__init__(self, self.config, addresses)
-        self._run_post_super()
 
         desc = self.get_driver_description()
-        # print(desc)
         if desc.startswith('DEVICE OPEN ERROR'):
             self.abort("DEVICE PROBLEM: " + desc + " ...ABORTING!!!")
-
         self.store_driver_description(desc)
 
         autostart = self.config.true_val(self.config.get_param('start_sampling'))
+        LOGGER.info('Automatic start' + str(autostart))
 
         self.ready()
-
-        LOGGER.info('Automatic start' + str(autostart))
         if autostart:
             self.set_driver_params()
             self.start_sampling()
 
-    def _run_post_super(self):
+    def _init_got_configs(self):
         pass
 
     def store_driver_description(self, driver_output):

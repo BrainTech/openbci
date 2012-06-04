@@ -6,13 +6,13 @@
 #
 
 """
->>> from ..signal import data_file_proxy as p
+>>> from analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
 
 >>> import os.path, os
 
 >>> # PREPARE SOME SAMPLE FILE *************************************************
 
->>> px = p.DataFileWriteProxy('./tescik.obci.dat')
+>>> px = DataRawWriteProxy('./tescik.obci.dat')
 
 >>> px.data_received(1.2)
 
@@ -30,7 +30,7 @@
 
 >>> f = './tescik.obci.dat'
 
->>> from ..signal import read_data_source as s
+>>> from analysis.obci_signal_processing.signal import read_data_source as s
 
 >>> # TEST MEMORY DATA SOURCE **************************************************
 

@@ -1,47 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-
 import sys
-#export PYTHONPATH=../../../:../../../openbci/:PYTHONPATH
-sys.path.insert(1, '../../')
-sys.path.insert(1, '../../openbci/')
-
 import os.path
 import math
-from openbci.offline_analysis.obci_signal_processing import read_manager
-from core import core_logging as logger
+from obci.analysis.obci_signal_processing import read_manager
+from analysis import analysis_logging as logger
 LOGGER = logger.get_logger("lost_samples_test", "debug")
 
 
-TEST = True
+TEST = False
 
 def test():
     import doctest
     doctest.testmod(sys.modules[__name__])
     print("Tests succeeded!")
 
-def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False):
+def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False, saw_name="DriverSaw", saw_top=sys.float_info.max):
     """
     p_read_mgr['SAMPLE_NUMBER'] channels (or a collection numbers) 
     should contain a sequence of naturals (starting from 1)
@@ -53,12 +27,12 @@ def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False):
     """
     if p_read_mgr:
         if spare_memory:
-            ch_ind = p_read_mgr.get_param('channels_names').index("SAMPLE_NUMBER")
+            ch_ind = p_read_mgr.get_param('channels_names').index(saw_name)
             samples_no = []
             for samples in p_read_mgr.iter_samples():
                 samples_no.append(samples[ch_ind])
         else:
-            samples_no = p_read_mgr.get_channel_samples("SAMPLE_NUMBER")
+            samples_no = p_read_mgr.get_channel_samples(saw_name)
         print "NUMBER OF SAMPLES RED: "+str(len(samples_no))
     else:
         samples_no = numbers
@@ -66,9 +40,17 @@ def find_lost_samples(p_read_mgr, numbers=None, spare_memory=False):
     last = samples_no[0]
     lost = []
     lost += [i for i in range(1,int(last))]
-    for no in samples_no[1:]:
-        if (no - 1) != last:
-            lost += [i for i in range(int(last)+1, int(no))]
+    for index, no in enumerate(samples_no[1:]):
+        if no > last:
+            if (no - 1) != last:
+                lost += [i for i in range(int(last)+1, int(no))]
+            else:
+                pass
+        else:
+            if last == saw_top and no == 1:
+                pass
+            else:
+                lost += ([i for i in range(int(last)+1, int(saw_top))]+[i for i in range(1, int(no))])
         last = no
     return lost
 
@@ -123,7 +105,7 @@ def print_result(l):
             print ("All but first "+str(i+1)+" samples were written.")
         else:
             print ("Samples numbers that were NOT written:")
-            print ('0 - '+str(i+1))
+            #print ('0 - '+str(i+1))
             start = l[0] - 1
             prev = l[0] - 1
             for v in l:
@@ -152,7 +134,7 @@ if __name__ == "__main__":
         test()
         sys.exit(0)
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) >= 3:
         f = {}
         f['info'] = sys.argv[1]
         f['data'] = sys.argv[2]
@@ -164,13 +146,25 @@ if __name__ == "__main__":
             'data': os.path.join(dr, f_name+'.obci.dat'),
             #'tags':os.path.join(dr, f_name+'.obci.tags')
             }
+    try:
+        spare_memory = int(sys.argv[3])
+    except:
+        spare_memory=True
+
+    try:
+        saw_name = sys.argv[4]
+    except:
+        saw_name = "DriverSaw"
+
+
+    print("ANALYSE: "+str(f))
     manager = read_manager.ReadManager(
         f['info'],
         f['data'],
         None#f['tags']
         )
 
-    l = find_lost_samples(manager, spare_memory=True)
+    l = find_lost_samples(manager, spare_memory=spare_memory, saw_name=saw_name)
     print_result(l)
             
             
