@@ -41,10 +41,11 @@ classdef DataSource < handle
             end
             samples=self.read_samples(1);
         end
-        function save_to_file(self,p_file_name)
+        function save_to_file(self,p_file_name,sample_type)
             %SAVE_TO_FILE(p_filename) - dumps all samples to the file            
+            default('sample_type','double')
             file_id=fopen(p_file_name,'w');
-            fwrite(file_id,self.get_samples(),'double',0,'l');
+            fwrite(file_id,self.get_samples(),lower(sample_type),0,'l');
             fclose(file_id);            
         end
         function seek_samples(self,p_from)            
