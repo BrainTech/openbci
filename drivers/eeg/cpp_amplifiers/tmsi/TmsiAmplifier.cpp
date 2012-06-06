@@ -31,6 +31,7 @@
 namespace po=boost::program_options;
 
 #include "TmsiAmplifier.h"
+#define IOCTL_TMSI_BUFFERSIZE         0x40044601
 TmsiAmplifier * mobita_amp=NULL;
 TmsiAmplifier::TmsiAmplifier():Amplifier(){
     dev.Channel = NULL;
@@ -350,17 +351,16 @@ double TmsiAmplifier::next_samples(bool synchronize) {
 			receive();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
-//				ioctl(fd,0x40044601);
 				int available;
 				if (mode==BLUETOOTH_AMPLIFIER)
 				{
 					char tmp[MESSAGE_SIZE];
 					available = recv(fd,tmp,MESSAGE_SIZE,MSG_PEEK|MSG_DONTWAIT);
 					if (available==-1)
-						available = errno;
+						available = -errno;
 				}
 				else
-					available = ioctl(fd,0x40044601);
+					available = ioctl(fd,IOCTL_TMSI_BUFFERSIZE);
 				logger.info()<<"Checksum Error! Sample should be dropped! Available data:"<<available<<"\n";
 				//continue;
 			}
