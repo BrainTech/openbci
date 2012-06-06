@@ -25,7 +25,7 @@ public:
 	void init(boost::program_options::variables_map &vm);
 	void start_sampling();
 	void stop_sampling(bool disconnecting);
-	double next_samples();
+	double next_samples(bool synchrnize=true);
 	virtual ~GTecAmplifier();
 	void get_data();
 };

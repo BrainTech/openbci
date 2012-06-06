@@ -31,6 +31,7 @@
 namespace po=boost::program_options;
 
 #include "TmsiAmplifier.h"
+#define IOCTL_TMSI_BUFFERSIZE         0x40044601
 TmsiAmplifier * mobita_amp=NULL;
 TmsiAmplifier::TmsiAmplifier():Amplifier(){
     dev.Channel = NULL;
@@ -343,15 +344,24 @@ void TmsiAmplifier::stop_sampling(bool disconnecting) {
 double TmsiAmplifier::get_expected_sample_time(){
 	return last_sample+1.0/sampling_rate;
 }
-double TmsiAmplifier::next_samples() {
+double TmsiAmplifier::next_samples(bool synchronize) {
     channel_data_index++;
     if (channel_data_index >= channel_data[0].ns)
 		while (sampling) {
 			receive();
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
-//				ioctl(fd,0x40044601);
-				logger.info()<<"Checksum Error! Sample should be dropped! Kernel fifo size:"<<ioctl(fd,0x40044601)<<"\n";
+				int available;
+				if (mode==BLUETOOTH_AMPLIFIER)
+				{
+					char tmp[MESSAGE_SIZE];
+					available = recv(fd,tmp,MESSAGE_SIZE,MSG_PEEK|MSG_DONTWAIT);
+					if (available==-1)
+						available = -errno;
+				}
+				else
+					available = ioctl(fd,IOCTL_TMSI_BUFFERSIZE);
+				logger.info()<<"Checksum Error! Sample should be dropped! Available data:"<<available<<"\n";
 				//continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
@@ -364,10 +374,10 @@ double TmsiAmplifier::next_samples() {
 					logger.info()<<"Sending keep_alive\n";
 					tms_snd_keepalive(fd);
 				}
-				break;
+				return Amplifier::next_samples(synchronize && read_fd!=fd);
 			}
 		}
-	return Amplifier::next_samples();
+	return Amplifier::next_samples(synchronize);
 }
 
  uint TmsiAmplifier::get_digi(uint index) {

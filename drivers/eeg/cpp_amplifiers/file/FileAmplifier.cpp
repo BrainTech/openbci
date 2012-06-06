@@ -53,7 +53,7 @@ void FileAmplifier::init(boost::program_options::variables_map &vm){
 	channel_data_index=pack_size;
 	data_len=0;
 }
-double FileAmplifier::next_samples(){
+double FileAmplifier::next_samples(bool synchronize){
 	channel_data_index++;
 	if (channel_data_index*channel_data_len>=data_len){
 		channel_data_index=0;
@@ -64,7 +64,7 @@ double FileAmplifier::next_samples(){
 			return 0.0;
 		}
 	}
-	return Amplifier::next_samples();
+	return Amplifier::next_samples(synchronize);
 }
 
 FileChannel::FileChannel(string name,uint offset, string type,FileAmplifier *amp):Channel(name,amp){

@@ -916,8 +916,7 @@ int32_t tms_chk_msg(uint8_t *msg, int32_t n) {
 	}
 	/* size check */
 	size = tms_msg_size(msg, n, &i);
-	if (size == 255)
-		size = tms_get_int(msg, &i, 4);
+
 	if (n != (2 * size + i + 2)) {
 		fprintf(stderr, "# Warning: found size %d != expected size %d\n", size,
 				(n - i - 2) / 2);
