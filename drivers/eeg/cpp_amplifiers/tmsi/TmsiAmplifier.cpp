@@ -351,7 +351,17 @@ double TmsiAmplifier::next_samples() {
 			int type = tms_get_type(msg, br);
 			if (tms_chk_msg(msg, br) != 0) {
 //				ioctl(fd,0x40044601);
-				logger.info()<<"Checksum Error! Sample should be dropped! Kernel fifo size:"<<ioctl(fd,0x40044601)<<"\n";
+				int available;
+				if (mode==BLUETOOTH_AMPLIFIER)
+				{
+					char tmp[MESSAGE_SIZE];
+					available = recv(fd,tmp,MESSAGE_SIZE,MSG_PEEK|MSG_DONTWAIT);
+					if (available==-1)
+						available = errno;
+				}
+				else
+					available = ioctl(fd,0x40044601);
+				logger.info()<<"Checksum Error! Sample should be dropped! Available data:"<<available<<"\n";
 				//continue;
 			}
 			if (type == TMSCHANNELDATA || type == TMSVLDELTADATA) {
