@@ -2,6 +2,7 @@
 
 direc=$OBCI_INSTALL_DIR
 export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+export DISPLAY=:0
 
 if [ -z $OBCI_INSTALL_DIR ]
 then
