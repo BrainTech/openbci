@@ -46,7 +46,7 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 	ampSaw=amp->get_description()->find_channel("Saw");
 	driverSaw=amp->get_description()->find_channel("Driver_Saw");
 	vector<Channel *> channels = amp->get_active_channels();
-	uint last_saw=0;
+	int last_saw=-1;
 
 	if (!vm.count("start"))
 		return 0;
@@ -79,8 +79,8 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 						channels[j]->get_raw_sample());
 		}
 		if (saw) {
-			uint new_saw = ampSaw->get_raw_sample();
-			if (new_saw < last_saw && saw_jump==1<<31)
+			int new_saw = ampSaw->get_raw_sample();
+			if (last_saw!=-1 && new_saw < last_saw && saw_jump==1<<31)
 				{
 					while ((saw_jump>>1)>last_saw) saw_jump=saw_jump>>1;
 					printf(
@@ -88,13 +88,17 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 							to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
 							 driverSaw->get_raw_sample(),saw_jump, last_saw,new_saw);
 				}
-			else if ((last_saw + saw)%saw_jump != new_saw) {
+			if (last_saw>=0 && (last_saw + saw)%saw_jump != new_saw) {
+				int lost;
+				if (new_saw<last_saw)
+					lost = (saw_jump-last_saw+new_saw)/saw -1;
+				else
+					lost = (new_saw-last_saw)/saw -1;
 				printf(
-						"[%15s] S %d: ERROR!!! %d Samples lost. Saw %d->%d\n",
+						"[%15s] S %d: ERROR!!! At least %d Samples lost. Saw %d->%d (jump %d)\n",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						driverSaw->get_raw_sample(), (new_saw - last_saw)/saw -1,
-						last_saw,new_saw);
-				lost_samples += (new_saw - last_saw)/saw -1;
+						driverSaw->get_raw_sample(), lost, last_saw,new_saw, saw_jump);
+				lost_samples += lost;
 			}						
 			last_saw=new_saw;
 		}

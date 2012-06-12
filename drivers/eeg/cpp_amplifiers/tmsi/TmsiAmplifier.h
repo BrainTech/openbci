@@ -83,6 +83,7 @@ public:
 	void init(boost::program_options::variables_map &vm);
 	void connect_device(uint type,const string &address);
     virtual ~TmsiAmplifier();
+    int get_available_data();
 private:
 
     int connect_usb(const string & address);
