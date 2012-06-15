@@ -27,7 +27,7 @@ class EtrCalibration(ConfiguredClient):
         self.ready()
         LOGGER.info("Start initializin etr amplifier...")
         
-        #~ self.cam = Camera()
+        self.cam = Camera()
 
     def __del__(self):
         self.socket.close()        

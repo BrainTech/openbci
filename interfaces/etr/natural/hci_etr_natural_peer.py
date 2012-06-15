@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import random, time, sys
 
+from multiplexer.multiplexer_constants import peers, types
 from configs import settings, variables_pb2
 from gui.ugm import ugm_helper
 from interfaces.etr import hci_etr
@@ -12,7 +13,7 @@ LOGGER = logger.get_logger("hci_etr_classic", "info")
 
 class HciEtrNatural(hci_etr.HciEtr):
     def __init__(self, addresses):
-        super(HciEtrNatural, self).__init__(addresses=addresses)
+        super(HciEtrNatural, self).__init__(addresses=addresses, p_type=peers.ETR_P300_ANALYSIS)
 
         self.dec_mgr = etr_natural_dec_manager.EtrDecManager(
             self.get_param('dec_type'),
@@ -23,6 +24,8 @@ class HciEtrNatural(hci_etr.HciEtr):
             self.get_param('speller_area_count'),
             self.get_param('dec_break')
             )
+
+        #~ self.dec_mgr.setScale(self.get_param('scaleValue'))
 
         start_id = self.get_param('ugm_field_ids').split(';')[0]
         self.ugm_mgr = etr_ugm_manager.EtrUgmManager(
@@ -47,16 +50,13 @@ class HciEtrNatural(hci_etr.HciEtr):
         
         return dec, ugms
         
-    def handle_calibration_mesage(self, msg):
+    def handle_calibration_mesage(self, data):
         """
         Handles massage that informs when was calibration processed.
         """
-        LOGGER.debug("Got etr msg: "+str(msg))
         #### What to do when receive ETR_MATRIX information
-        res = variables_pb2.Sample()
-        res.ParseFromString(msg)
-        LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
-        self.dec_mgr.updateTransformationMatrix(res.channels)
+        LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
+        self.dec_mgr.updateTransformationMatrix(data)
 
 if __name__ == "__main__":
     HciEtrNatural(settings.MULTIPLEXER_ADDRESSES).loop()

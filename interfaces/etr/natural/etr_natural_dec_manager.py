@@ -31,14 +31,19 @@ class EtrDecManager(object):
         assert(self.speller_area_count > 0)
         self.dec_break = float(dec_break)
 
+        self.initValues()
 
         self.last_tss = []
         self.last_dec = 0
         for i in range(self.speller_area_count+1):
             self.last_tss.append(deque())
         
+
+    def initValues(self):
         # Transformation matrix
         self.invS = np.eye(3)
+        
+        self.scaleValue = 1.        
 
     def getRealData(self, msg):
         x, y = msg.x, msg.y
@@ -54,10 +59,9 @@ class EtrDecManager(object):
 
     def updateTransformationMatrix(self, data):
         
-        print "\n\n"*10
-        print "updateTransformationMatrix"
-        print "\n\n"
         print "dostalem: ", data
+        data = np.array(data)
+        data[:6] = data[:6]*self.scaleValue
         invS = np.array( data).reshape((3,3))
         #~ S = np.random.random( (3,3))
         #~ invS = np.linalg.inv(S)

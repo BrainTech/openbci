@@ -1,8 +1,12 @@
+#!/usr/bin/env python
+#coding: UTF-8
 import numpy as np
 import cv as CV
 import cv2 as cv
 import sys, time
 
+# Author: Dawid Laszuk
+# Contact: laszukdawid@gmail.com
 
 
 class Camera:
@@ -42,9 +46,12 @@ class Camera:
 
 
         # Create trackbar and init default values
-        self.switch_callback(self._threshold)
-        CV.CreateTrackbar( "THRESHOLD", "original", self._threshold, 255, self.switch_callback )
-        #~ cv.createTrackbar( "RadiusMin", "original", _minRad, 10, self.switch_callback )
+        self.treshold_callback(self._threshold)
+        CV.CreateTrackbar( "THRESHOLD", "original", self._threshold, 255, self.treshold_callback )
+
+        self.scale_callback(self._threshold)
+        CV.CreateTrackbar( "SCALE", "original", self._scale, 200, self.scale_callback )
+        #~ cv.createTrackbar( "RadiusMin", "original", _minRad, 10, self.treshold_callback )
 
         # Set mouse events on
         cv.setMouseCallback( "original", self.onMouse, 0)
@@ -73,10 +80,12 @@ class Camera:
 
         # black/white threshold
         self._threshold = 100
+        self._scale = 10
+        self.scale = self._scale/100.
         self.edge_thresh = 3
 
         # ile pikseli wziac wiecej do analizy
-        self.dis = 50
+        self.dis = 70
 
         # no of dots
         self.dots = 4
@@ -88,6 +97,7 @@ class Camera:
         self.roi = np.zeros(4)
         
         self.S = np.eye(3)
+        self.invS = np.eye(3)
 
         # debug option
         self.debug = False
@@ -97,14 +107,15 @@ class Camera:
         Initiates camera/video source.
         """
 
-        if len(sys.argv) >= 2:
-            self.filename = sys.argv[1]
-        else:
-            self.filename = "dot_4.avi"
+        #~ if len(sys.argv) >= 2:
+            #~ self.filename = int(sys.argv[1])
+        #~ else:
+            #~ self.filename = int(-1)
+        self.filename = int(0)
 
         # init cam/video
-        #~ self.cap = cv.VideoCapture(self.filename)
-        self.cap = cv.VideoCapture(-1)
+        self.cap = cv.VideoCapture(self.filename)
+        #~ self.cap = cv.VideoCapture(1)
 
         if(not self.cap.isOpened()):
             return -1
@@ -306,11 +317,13 @@ class Camera:
         # inversed transformation matrix
         # X' = S X -> X = S^-1 X'
         Xp = np.matrix( [int(xMean), int(yMean),1]).T
-        p_test = self.getInvTransformMatrix()*Xp
+        #~ p_test = self.getInvTransformMatrix()*Xp
+
+        p_test = self.invS*Xp
         cv.circle( self.img, (int(p_test[0]),int(p_test[1])), 10, (255,255,255), 3, 8,0)
 
 
-    def switch_callback(self, threshold ):
+    def treshold_callback(self, threshold ):
         """
         What is done after change of threshold.
         """
@@ -325,15 +338,26 @@ class Camera:
         #~ cv.imshow("threshold", self.grayOut)
         cv.imshow("edge", self.edge)
 
+    def scale_callback(self, scale):
+        self.scale = scale/10.
+        self.getInvTransformMatrix()
+        
+        self.drawPoints()
+
     def getTransformMatrix(self, P):
         return P*self.invP
 
     def getInvTransformMatrix(self):
+        
         try:
-            return np.linalg.inv(self.S)
+            inv = np.linalg.inv(self.S)/self.scale
         except np.linalg.LinAlgError('Singular matrix'):
             self.debugPrint("Singular matrix problem. Matrix can't be inversed!")
-            return np.eye(self.S.shape[0])
+            inv = np.eye(self.S.shape[0])
+        
+        self.invS = inv
+        self.invS[2,2] = 1.
+        return inv
         
 
     def onMouse(self, event, x, y, flags, param ):
@@ -357,6 +381,7 @@ class Camera:
 
 
     def calibrationStart(self):
+        print "calibrationStart"
         self.setRef()
         return self.getInvTransformMatrix()
 

@@ -13,26 +13,20 @@ LOGGER = logger.get_logger("hci_etr", "info")
 
 
 class HciEtr(ConfiguredMultiplexerServer):
-    def __init__(self, addresses):
+    def __init__(self, addresses, p_type = peers.ETR_ANALYSIS):
         super(HciEtr, self).__init__(addresses=addresses,
-                                     type=peers.ETR_ANALYSIS)
+                                    type=p_type)
+
     def handle_message(self, mxmsg):
-        print "mxmsg: ", mxmsg
-        print "mxmsg.type: ", mxmsg.type
-        print "types.ETR_CALIBRATION_RESULTS: ", types.ETR_CALIBRATION_RESULTS
         
         if mxmsg.type == types.ETR_CALIBRATION_RESULTS:
 
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
-            res.channels = self.handle_calibration_mesage(res.channels)
+            data = res.channels
+            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
             
-        elif int(mxmsg.type) == 233:
-            res = variables_pb2.Sample()
-            res.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
-            res.channels = self.handle_calibration_mesage(res.channels)
+            self.handle_calibration_mesage(data)
             
         elif mxmsg.type == types.ETR_SIGNAL_MESSAGE:
             l_msg = variables_pb2.Sample2D()
