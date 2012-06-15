@@ -27,8 +27,8 @@ import sys
 
 def store_avgs_for_svarog(avgs, f_dir='./', f_name='svarog'):
     """Saver data file with len(avgs) channels and with data from avgs."""
-    from openbci.offline_analysis.obci_signal_processing.signal import data_file_proxy as fp
-    w = fp.DataFileWriteProxy(f_name, f_dir, 'p300')
+    from openbci.offline_analysis.obci_signal_processing.signal import data_raw_write_proxy as fp
+    w = fp.DataRawWriteProxy(f_name, f_dir, 'p300')
     max_len = len(max(avgs))
     for i in range(max_len):
         for j in range(len(avgs)):

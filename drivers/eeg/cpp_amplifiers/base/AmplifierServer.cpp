@@ -62,7 +62,7 @@ bool AmplifierServer::fetch_samples(){
 	driver->next_samples();
 	return driver->is_sampling();
 }
-void AmplifierServer::do_sampling(void * ptr = NULL) {
+void AmplifierServer::do_sampling() {
     MultiplexerMessage msg;
 	msg.set_from(conn->instance_id());
 	msg.set_type(types::AMPLIFIER_SIGNAL_MESSAGE);
@@ -110,6 +110,7 @@ void AmplifierServer::start_sampling() {
     //  sampling_thread = new boost::thread(t);
     if (logger!=NULL) {
     	logger->restart();
+    	logger->sampling = driver->get_sampling_rate();
     	logger->info() << "Sampling started\n";
     }
     //pthread_create(&sampling_thread, NULL, _do_sampling, (void *) this);

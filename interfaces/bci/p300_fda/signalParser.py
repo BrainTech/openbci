@@ -308,9 +308,9 @@ class signalParser(object):
         ## Get target data and stuck it into numpy arrays
         target = np.zeros((len(trgTags), self.chL, self.Fs))
         nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
-    
         # Target trials
         for idx, tag in enumerate(trgTags):
+            
             index = int(tag)
             target[idx] = signal[:,index:index+self.Fs]
         

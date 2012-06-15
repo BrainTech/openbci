@@ -426,8 +426,8 @@ class P300_analysis(object):
         self.arrL = self.avrM
 
         self.nRepeat = int(cfg['nRepeat'])
-        self.nMin = 3
-        self.nMax = 6
+        self.nMin = 1
+        self.nMax = 3
         
         self.dec = -1
 
@@ -482,10 +482,13 @@ class P300_analysis(object):
         #~ print "self.d: ", self.d
         
     def isItEnought(self):
+        print "self.flashCount: ", self.flashCount
         if (self.flashCount < self.nMin).any():
             return -1
-
-        return self.testSignificances()
+        elif (self.flashCount > self.nMax).all():
+            self.forceDecision()
+        else:
+            return self.testSignificances()
         
         
     def testSignificances(self):
@@ -497,6 +500,7 @@ class P300_analysis(object):
         percentyl are calulated. If only one d is larger than that pVal
         then that's the target.
         """
+        print "++ testSignificances ++ "
         
         dMean = np.zeros(self.fields)
         nMin = self.flashCount.min()
@@ -504,6 +508,7 @@ class P300_analysis(object):
         for i in range(self.fields):
             dMean[i] = self.dArrTotal[i][:nMin].mean()
         
+        print "dMean: ", dMean
         # This substitution is to not change much of old code.
         # In future, try to change code for new variable.
         self.diffV = dMean
@@ -522,6 +527,7 @@ class P300_analysis(object):
             return -1
 
     def forceDecision(self):
+        print " ++ forceDecision ++ "
         
         self.testSignificances()
 

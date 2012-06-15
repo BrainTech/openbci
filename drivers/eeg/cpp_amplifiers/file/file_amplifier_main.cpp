@@ -12,13 +12,13 @@
 
 int main(int argc, char**argv)
 {
+	try{
 	FileAmplifier driver;
 	TagAmplifierServer server(&driver);
-	try{
 	run_server(argc,argv,&server);
 	}
-	catch (exception &e){
-		cerr << "Exception: "<<e.what();
+	catch (FileAmplifierException *e){
+		cerr << e->what()<<"\n";
 	}
 }
 

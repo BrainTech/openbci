@@ -124,6 +124,18 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         trgTags = data.get_p300_tags()
         ntrgTags = data.get_not_p300_tags()
 
+        print "Signal.shape[1]: ", Signal.shape[1]
+        print "last trg: ", trgTags[-1]
+        print "last ntrg: ", ntrgTags[-1]
+        m = max([trgTags[-1], ntrgTags[-1]])
+        # ?!?!?!?!?!?!?!?! Why blinks are <0
+        trgTags = trgTags[trgTags>0]
+        ntrgTags = ntrgTags[ntrgTags>0]
+        trgTags = trgTags[trgTags<Signal.shape[1]-fs]
+        ntrgTags = ntrgTags[ntrgTags<Signal.shape[1]-fs]
+        print "last trg: ", trgTags[-1]
+        print "last ntrg: ", ntrgTags[-1]
+
         target, nontarget = data.getTargetNontarget(Signal, trgTags, ntrgTags)
 
         ## Get params from file
@@ -173,9 +185,6 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         for idxN in range(N):
             KEY = d[idxN].keys()
             for k in KEY:
-                #~ c = "{0} = {1}".format(k, d[idxN][k])
-                #~ print c
-                #~ exec(c)
                 exec "{0}_tmp = {1}".format(k, d[idxN][k]) in globals(), locals()
                 
             p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp)

@@ -27,7 +27,7 @@ class BCIP300FdaAnalysis(object):
         cfg['nMin'] = self.nMin
         cfg['nMax'] = self.nMax
         csp_time = cfg['csp_time']
-        self.pVal = cfg['pVal']
+        self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
         nRepeat = cfg['nRepeat']
@@ -73,16 +73,20 @@ class BCIP300FdaAnalysis(object):
         self.last_time = time.time()
         #Wszystko dalej powinno się robić dla każdego nowego sygnału
         
+        # Get's montaged signal
         signal = np.dot(self.montage_matrix.T, data)
 
+        # Counts each blink
         self.nPole[blink.index] += 1
 
-        #3 Klasyfikacja: indeks pola albo -1, gdy nie ma detekcji
+        # Classify each signal
         self.p300.testData(signal, blink.index)
         dec = -1
 
+        # If statistical significanse
         if self.p300.isItEnought() != -1:
             dec = self.p300.getDecision()
+            print "dec wewnatrz: ", dec
 
         #~ if (dec == -1) and (self.nPole.min() == self.nMax):
             #~ dec = self.p300.forceDecision()

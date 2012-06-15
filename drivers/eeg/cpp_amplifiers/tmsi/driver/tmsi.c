@@ -11,6 +11,10 @@
  *          
  * ChangeLog
  * ---------
+ * v1.7 - 02-06-2012 Maciej Pawlisz
+ * 		* PACKET_BUFFER_SIZE changed to 2MB
+ * 		+ Support for unlocked_ioctl
+ *
  * v1.6 - 21-10-2011 Maciej Pawlisz
  *      + Support kernel 3.0
  *      + Sending front_end_info with stop request on release
@@ -59,7 +63,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.6.1"
+#define DRIVER_VERSION                  "1.7.3"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -70,7 +74,7 @@
 
 
 /* IOCTL commands */
-#define IOCTL_TMSI_BUFFERSIZE            0x40044601
+#define IOCTL_TMSI_BUFFERSIZE         0x40044601
 #define IOCTL_TMSI_BUFFERSIZE_64      0x40084601
 
 /* BLOCK TYPES */
@@ -82,7 +86,7 @@
 #define TMSI_CHECKSUM_FIELD           18
 
 /* Buffer structure */
-#define PACKET_BUFFER_SIZE            131072
+#define PACKET_BUFFER_SIZE            2097152
 #define BULK_RECV_URBS                  50
 #define ISOC_RECV_URBS                  50
 
@@ -420,24 +424,19 @@ error:
 }
 
 static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int command, unsigned long argument) {
-    struct tmsi_data* dev;
-    unsigned long* arg_address = (unsigned long*) argument;
-
-    dev = (struct tmsi_data*) file->private_data;
-
+    struct tmsi_data* dev=(struct tmsi_data*) file->private_data;
     switch (command) {
+    	case IOCTL_TMSI_BUFFERSIZE_64:
         case IOCTL_TMSI_BUFFERSIZE:
-        case IOCTL_TMSI_BUFFERSIZE_64:
-        {
-            put_user(kfifo_len(dev->packet_buffer), arg_address);
-            return 0;
-        }
+            return kfifo_len(dev->packet_buffer);
         default:
             info("%s: IOCTL command 0x%X not implemented!", __FUNCTION__, command);
             break;
     }
-
     return -1;
+}
+static long tmsi_unlocked_ioctl(struct file* file, unsigned int command, unsigned long argument){
+	return tmsi_ioctl(0,file,command,argument);
 }
 
 /*******************************************************************
@@ -579,9 +578,8 @@ static struct file_operations tmsi_fops = {
     .release = tmsi_release,
     .read = tmsi_read,
     .write = tmsi_write,
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,35)
-    .ioctl = tmsi_ioctl,
-#endif
+    .unlocked_ioctl = tmsi_unlocked_ioctl,
+    .compat_ioctl = tmsi_unlocked_ioctl
 };
 
 /*******************************************************************
