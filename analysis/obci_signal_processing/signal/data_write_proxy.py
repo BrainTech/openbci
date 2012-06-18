@@ -11,8 +11,8 @@ import data_asci_write_proxy
 import signal_logging as logger
 LOGGER = logger.get_logger("data_write_proxy", 'info')
 
-def get_proxy(file_path, append_ts=False, use_tmp_file=False, use_own_buffer=False, format='mx'):
-    if format == 'mx':
+def get_proxy(file_path, append_ts=False, use_tmp_file=False, use_own_buffer=False, format='FLOAT'):
+    if format == 'FLOAT':
         if use_own_buffer:
             return data_buffered_write_proxy.DataBufferedWriteProxy(
                 file_path, use_tmp_file, append_ts)

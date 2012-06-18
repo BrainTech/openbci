@@ -31,7 +31,7 @@ class DataGenericWriteProxy(object):
         self._unpack_later = p_unpack_later
         self._append_ts = p_append_ts
         self._file_path = p_file_path
-        self._sample_struct_type = SAMPLE_STRUCT_TYPES[sample_type]
+        self._sample_struct_type = SAMPLE_STRUCT_TYPES[p_sample_type]
 
         try:
             if self._unpack_later:
