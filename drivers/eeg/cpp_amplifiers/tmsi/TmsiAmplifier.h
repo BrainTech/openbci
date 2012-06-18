@@ -64,7 +64,7 @@ public:
     uint get_base_sample_rate(){
     	return fei.basesamplerate;
     }
-    double next_samples();
+    double next_samples(bool synchronize=true);
     int number_of_channels() {
         return fei.nrofswchannels;
     }
@@ -83,6 +83,7 @@ public:
 	void init(boost::program_options::variables_map &vm);
 	void connect_device(uint type,const string &address);
     virtual ~TmsiAmplifier();
+    int get_available_data();
 private:
 
     int connect_usb(const string & address);

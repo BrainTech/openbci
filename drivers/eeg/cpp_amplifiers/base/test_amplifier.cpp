@@ -6,6 +6,8 @@
  */
 
 #include <stdlib.h>
+#define __STDC_LIMIT_MACROS
+#include <stdint.h>
 #include <iostream>
 
 /*
@@ -44,7 +46,7 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 	ampSaw=amp->get_description()->find_channel("Saw");
 	driverSaw=amp->get_description()->find_channel("Driver_Saw");
 	vector<Channel *> channels = amp->get_active_channels();
-	uint last_saw;
+	int last_saw=-1;
 
 	if (!vm.count("start"))
 		return 0;
@@ -53,8 +55,6 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 			cerr<< "Driver has no 'Saw' or 'DriverSaw' channel which are required for 'saw' option";
 			return -1;
 		}
-		else
-			last_saw=ampSaw->get_raw_sample();
 	}
 	amp->start_sampling();
 	ptime start=microsec_clock::local_time();
@@ -65,8 +65,8 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 	uint lost_samples=0;
 	int i=0;
 	double last_sample_time=amp->get_sample_timestamp();
-	usleep(200000);
 	double stop_time;
+	uint saw_jump=1<<31;
 	while ((i < length * sample_rate) & amp->is_sampling()) {
 		double cur_sample=amp->next_samples();
 		if (!amp->is_sampling()) break;
@@ -79,32 +79,34 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 						channels[j]->get_raw_sample());
 		}
 		if (saw) {
-			uint new_saw = ampSaw->get_raw_sample();
-			if (new_saw < last_saw) {
-				printf(
-						"[%15s] S %d: Saw Jump. Saw  %d ->%d",
-						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						driverSaw->get_raw_sample(), last_saw,new_saw);
-				if (new_saw != 0)
-					printf(" ERROR samples lost: %d\n", new_saw/saw);
+			int new_saw = ampSaw->get_raw_sample();
+			if (last_saw!=-1 && new_saw < last_saw && saw_jump==1<<31)
+				{
+					while ((saw_jump>>1)>last_saw) saw_jump=saw_jump>>1;
+					printf(
+							"[%15s] S %d: Saw Jump set to: %d. Saw  %d ->%d\n",
+							to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
+							 driverSaw->get_raw_sample(),saw_jump, last_saw,new_saw);
+				}
+			if (last_saw>=0 && (last_saw + saw)%saw_jump != new_saw) {
+				int lost;
+				if (new_saw<last_saw)
+					lost = (saw_jump-last_saw+new_saw)/saw -1;
 				else
-					printf("\n");
-				lost_samples += new_saw;
-			} else if (last_saw + saw != new_saw) {
+					lost = (new_saw-last_saw)/saw -1;
 				printf(
-						"[%15s] S %d: ERROR!!! %d Samples lost. Saw %d->%d\n",
+						"[%15s] S %d: ERROR!!! At least %d Samples lost. Saw %d->%d (jump %d)\n",
 						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),
-						driverSaw->get_raw_sample(), (new_saw - last_saw)/saw -1,
-						last_saw,new_saw);
-				lost_samples += (new_saw - last_saw)/saw -1;
+						driverSaw->get_raw_sample(), lost, last_saw,new_saw, saw_jump);
+				lost_samples += lost;
 			}						
 			last_saw=new_saw;
 		}
 		if (time_diff>0){
 			double expected_sample=last_sample_time+1.0/amp->get_sampling_rate();
 			if (abs(expected_sample-cur_sample)>time_diff)
-				printf("[%15s] S %d: ERROR!!! Has different timestamp than expected: (exp: %f,got: %f,diff: %f)\n",
-						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,expected_sample,cur_sample,cur_sample-expected_sample);
+				printf("[%15s] S %d: ERROR!!! Has different timestamp than expected: (exp: %.4f,got: %.4f,diff: %.4f)\n",
+						to_simple_string(microsec_clock::local_time()).substr(12).c_str(),i,expected_sample-start_time,cur_sample-start_time,cur_sample-expected_sample);
 
 		}
 		last_sample_time=cur_sample;

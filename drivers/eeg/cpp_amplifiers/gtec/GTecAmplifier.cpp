@@ -117,9 +117,9 @@ void GTecAmplifier::get_data(){
 		((GTecChannel*)description->get_channels()[i])->set_sample(buffer[i]);
 	}
 }
-double GTecAmplifier::next_samples(){
+double GTecAmplifier::next_samples(bool synchronize){
 	get_data();
-	return Amplifier::next_samples();
+	return Amplifier::next_samples(synchronize);
 }
 GTecAmplifier::~GTecAmplifier() {
 	wait_simple_driver();

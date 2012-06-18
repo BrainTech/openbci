@@ -13,6 +13,7 @@
  * ---------
  * v1.7 - 02-06-2012 Maciej Pawlisz
  * 		* PACKET_BUFFER_SIZE changed to 2MB
+ * 		+ Support for unlocked_ioctl
  *
  * v1.6 - 21-10-2011 Maciej Pawlisz
  *      + Support kernel 3.0
@@ -62,7 +63,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.7.2"
+#define DRIVER_VERSION                  "1.7.3"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -434,7 +435,7 @@ static int tmsi_ioctl(struct inode* inode, struct file* file, unsigned int comma
     }
     return -1;
 }
-static int tmsi_unlocked_ioctl(struct file* file, unsigned int command, unsigned long argument){
+static long tmsi_unlocked_ioctl(struct file* file, unsigned int command, unsigned long argument){
 	return tmsi_ioctl(0,file,command,argument);
 }
 
@@ -577,11 +578,8 @@ static struct file_operations tmsi_fops = {
     .release = tmsi_release,
     .read = tmsi_read,
     .write = tmsi_write,
-#if LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,35)
-    .ioctl = tmsi_ioctl,
-#else
     .unlocked_ioctl = tmsi_unlocked_ioctl,
-#endif
+    .compat_ioctl = tmsi_unlocked_ioctl
 };
 
 /*******************************************************************

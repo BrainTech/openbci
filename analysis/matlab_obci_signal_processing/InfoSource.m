@@ -149,9 +149,9 @@ classdef InfoSource < handle
                     t_param=char(child.getData);
                 catch
                     t_param='';
-                end
-                param=str2num(t_param);
-                if isnan(param)
+                end                
+                [param,status]=str2num(t_param);                
+                if ~status
                     param=t_param;
                 end                    
             catch ex
@@ -166,6 +166,11 @@ classdef InfoSource < handle
                     params.(fn{i})=self.get_dom_param(fn{i});
                 catch ex
                 end
+            end
+            try
+                params.sample_type;
+            catch ex
+                params.sample_type='DOUBLE';
             end
         end
 
