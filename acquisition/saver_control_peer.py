@@ -27,6 +27,7 @@ class SaverControl(ConfiguredClient):
 		self.conn.send_message(message=v.SerializeToString(), 
 				       type=types.SIGNAL_SAVER_CONTROL_MESSAGE,
 				       flush=True)
+		time.sleep(5)
 
 	def validate_params(self, params):
 		try:
