@@ -2,6 +2,11 @@ from xml.dom import minidom
 import numpy as np
 import os.path as osp
 
+# A map from xml`s sample_type string to numpy.fromfile function argument. 
+# Numpy treats 'float' as float64 (=double) and 'float32' as float32
+NP_TYPES = {'double': 'float',
+            'float': 'float32'}
+
 class signalParser(object):
     """This class can extract some information from signal and it's xml descriptors"""
 
@@ -43,9 +48,11 @@ class signalParser(object):
         """Returns number of channels"""
 
         fxml = minidom.parse(self.xml_file)
+        #24062, \
+
         return int(fxml.getElementsByTagName('rs:channelCount')[0].firstChild.data), \
-                int(fxml.getElementsByTagName('rs:sampleCount')[0].firstChild.data), \
-                float(fxml.getElementsByTagName('rs:samplingFrequency')[0].firstChild.data)
+            int(fxml.getElementsByTagName('rs:sampleCount')[0].firstChild.data), \
+            float(fxml.getElementsByTagName('rs:samplingFrequency')[0].firstChild.data)
 
 
     def __get_channel_list(self):
@@ -61,9 +68,9 @@ class signalParser(object):
         fxml = minidom.parse(self.xml_file)
         sample_type = fxml.getElementsByTagName('rs:sampleType')[0].firstChild.data
         ch_no = self.channel_count
-        sig = np.fromfile(self.raw_file,sample_type.lower())
+        sig = np.fromfile(self.raw_file, NP_TYPES[sample_type.lower()])
         signal = np.zeros([len(channel_list), self.sample_count])
-        print channel_list
+        print ("DEBUG GET FILTERED: "+str(sample_type)+ " / "+str(ch_no)+" / "+str(sig.shape)+" / "+str(signal.shape)+" / "+str(channel_list))
         for i,v in enumerate(channel_list):
             signal[i] = sig[v::ch_no][0:self.sample_count]
         if filt != None:
