@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import os, os.path, sys, Queue
+import os, os.path, sys, Queue, time
 from multiplexer.multiplexer_constants import peers, types
 from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from drivers import drivers_logging as logger
@@ -51,23 +51,13 @@ class AmplifierFile(BinaryDriverWrapper):
         self.all_names = ';'.join(names)
         self.all_gains = ';'.join(mgr.get_param('channels_gains'))
         self.all_offsets = ';'.join(mgr.get_param('channels_offsets'))
+        self.sleep_on_out = 1.0/float(mgr.get_param('sampling_frequency'))
 
         self.config.set_param('sample_type', mgr.get_param('sample_type'))
-        self.config.set_param('sampling_rate', mgr.get_param('sampling_frequency'))
+        self.config.set_param('sampling_rate', str(int(float(mgr.get_param('sampling_frequency')))))
         self.config.set_param('channel_names', self.all_names)
         if len(self.config.get_param('active_channels')) == 0:
             self.config.set_param('active_channels', self.config.get_param('channel_names'))
-
-        #active_names = self.config.get_param('active_channels').split(';')
-        #active_gains = []
-        #active_offsets = []
-
-        #for ch_name in active_names:
-        #    active_gains.append(all_gains[all_names.index(ch_name)])
-        #    active_offsets.append(all_offsets[all_names.index(ch_name)])
-
-        #self.config.set_param('channel_gains', ';'.join(active_gains))
-        #self.config.set_param('channel_offsets', ';'.join(active_offsets))
 
     def get_run_args(self,multiplexer_address):
         args = super(AmplifierFile, self).get_run_args(multiplexer_address)
@@ -78,7 +68,7 @@ class AmplifierFile(BinaryDriverWrapper):
              '-n', self.all_names,
              '-g', self.all_gains,
              '-o', self.all_offsets,
-             '-s', str(int(float(self.get_param('sampling_rate'))))
+             '-s', self.get_param('sampling_rate')
               ])
         LOGGER.info("Extended arguments: "+str(args))
         return args
@@ -86,6 +76,10 @@ class AmplifierFile(BinaryDriverWrapper):
     def set_driver_params(self):
         super(AmplifierFile, self).set_driver_params()
         self.set_tags()
+
+    def store_driver_description(self, driver_output):
+        super(AmplifierFile, self).store_driver_description(driver_output)
+        self.set_param('sampling_rates', [int(self.get_param('sampling_rate'))])
 
     def set_tags(self):
         tags = read_tags_source.FileTagsSource(self.f_tags).get_tags()
@@ -126,10 +120,11 @@ class AmplifierFile(BinaryDriverWrapper):
                     else:
                         LOGGER.warning("Got unrecognised message from driver: "+v)
                 else:
+                    LOGGER.debug("Got trigger with ts: "+repr(ts)+" / real ts: "+repr(time.time()))
                     self.got_trigger(ts)
 
             except Queue.Empty:
-                pass
+                time.sleep(self.sleep_on_out)
 
         sys.exit(self.driver.returncode)
 
