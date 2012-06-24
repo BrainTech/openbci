@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
-import os.path
+import os.path, time
 import sys
 
 from multiplexer.multiplexer_constants import peers, types
@@ -45,7 +45,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         * signal_saver_control_message - a message from signal saver
         being a signal to finish saving."""
         if mxmsg.type == types.SIGNAL_SAVER_FINISHED:
-            LOGGER.info("Got signal saver control message!")
+            LOGGER.info("Got signal saver finished!")
             l_vec = variables_pb2.VariableVector()
             l_vec.ParseFromString(mxmsg.message)
             l_num_of_samples = None
@@ -58,6 +58,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
                 elif i_var.key == 'first_sample_timestamp':
                     l_first_sample_ts = i_var.value
             self._finish_saving(l_num_of_samples, l_file_path, l_first_sample_ts)
+            time.sleep(3)
             sys.exit(0)
 
     def _finish_saving(self, p_number_of_samples, p_data_file_path, p_first_sample_ts):

@@ -106,16 +106,16 @@ class SignalSaver(ConfiguredMultiplexerServer):
                 #Log module real sampling rate
                 self.debug.next_sample()
 
-        elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
-            v = variables_pb2.Variable()
-            v.ParseFromString(mxmsg.message)
-            if v.key == 'finish':
+        elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
+            ctr = mxmsg.message
+            if ctr == 'finish':
                 LOGGER.info("Signal saver got finish saving _message.")
                 LOGGER.info("Last sample ts ~ "+repr(time.time()))
                 self._finish_saving_session()
+                time.sleep(3)
                 sys.exit(0)
             else:
-                LOGGER.warning("Signal saver got unknown control message "+v.key+"!")                
+                LOGGER.warning("Signal saver got unknown control message "+ctr+"!")                
         self.no_response()
 
     def _init_saving_session(self):

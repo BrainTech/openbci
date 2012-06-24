@@ -134,7 +134,7 @@ peer {
 
 peer {
      type: 125
-     name: "SIGNAL_SAVER_CONTROL"
+     name: "ACQUISITION_CONTROL"
 }
 
 peer {
@@ -326,6 +326,10 @@ peer {
      name: "EXTERNAL_SWITCH_AMPLIFIER"
 }
 
+peer {
+     type: 162
+     name: "CLIENT"
+}
 
 
 # packages and routing rules definitions
@@ -747,17 +751,13 @@ type {
 
 type {
      type: 155
-     name: "SIGNAL_SAVER_CONTROL_MESSAGE"
+     name: "ACQUISITION_CONTROL_MESSAGE"
      to {
      	peer: "SIGNAL_SAVER"
 	whom: ALL
 	}
      to {
      	peer: "TAG_SAVER"
-	whom: ALL
-	}	
-     to {
-     	peer: "INFO_SAVER"
 	whom: ALL
 	}	
 }
@@ -773,6 +773,11 @@ type {
      	peer: "TAG_SAVER"
 	whom: ALL
 	}
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}	
      to {
         peer: "LOGIC_SSVEP_CSP"
 	whom: ALL
@@ -790,6 +795,11 @@ type {
      type: 157
      name: "INFO_SAVER_FINISHED"
      to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}	
+     to {
         peer: "LOGIC_SSVEP_CSP"
 	whom: ALL
 	report_delivery_error: false
@@ -805,6 +815,11 @@ type {
 type {
      type: 158
      name: "TAG_SAVER_FINISHED"
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}	
      to {
         peer: "LOGIC_SSVEP_CSP"
 	whom: ALL

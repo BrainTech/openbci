@@ -5,7 +5,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 
-import sys, os.path
+import sys, os.path, time
 from configs import settings, variables_pb2
 
 from acquisition import acquisition_logging as logger
@@ -61,17 +61,16 @@ class TagSaver(ConfiguredMultiplexerServer):
                                   
             LOGGER.debug("Signal saver got tag: "+str(l_tag))
             self._tag_received(l_tag)
-        elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
-            v = variables_pb2.Variable()
-            v.ParseFromString(mxmsg.message)
-            if v.key == 'finish':
+        elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
+            ctr = mxmsg.message
+            if ctr == 'finish':
                 if not self._session_is_active:
                     LOGGER.error("Attempting to finish saving tags while session is not active.!")
                     return 
                 self._session_is_active = False
                 LOGGER.info("Got finish saving message. Waiting for saver_finished message...")
             else:
-                LOGGER.warning("Tag saver got unknown control message "+v.key+"!")                
+                LOGGER.warning("Tag saver got unknown control message "+ctr+"!")                
             
         elif mxmsg.type == types.SIGNAL_SAVER_FINISHED:
             if self._session_is_active:
@@ -85,6 +84,7 @@ class TagSaver(ConfiguredMultiplexerServer):
                 # in a dictinary got from signal saver
                 if i_var.key == 'first_sample_timestamp':
                     self._finish_saving(float(i_var.value))
+                    time.sleep(3)
                     sys.exit(0)
             LOGGER.error("Got saver finished message without first_sample_timestamp. Do noting ...")
         self.no_response()
