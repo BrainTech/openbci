@@ -303,36 +303,20 @@ class signalParser(object):
     def getTargetNontarget(self, signal, trgTags, ntrgTags):
         self.chL = signal.shape[0]
         self.Fs = self.getSamplingFrequency()
-        self.arrL = self.Fs
+        print "self.Fs: ", self.Fs
         
-        print "self.chL: ", self.chL
-        
-        ## Get target data and stuck it into dictionary
-        target = {}
-
-        # for each target blink
-        for tag in trgTags:
+        ## Get target data and stuck it into numpy arrays
+        target = np.zeros((len(trgTags), self.chL, self.Fs))
+        nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
+        # Target trials
+        for idx, tag in enumerate(trgTags):
             
             index = int(tag)
-            #~ s *= 0
-            s = np.zeros( (self.chL, self.arrL) )
-            for idx in range(self.chL):
-                s[idx] = signal[idx][index:index+self.Fs]
-            
-            target[tag] = s
-
+            target[idx] = signal[:,index:index+self.Fs]
         
-        ## Get nontarget data and stuck it into dictionary
-        nontarget = {}
-        
-        # for each target blink
-        for tag in ntrgTags:
+        # Nontarget trials    
+        for idx, tag in enumerate(ntrgTags):
             index = int(tag)
-            #~ s *= 0
-            s = np.zeros( (self.chL, self.arrL) )
-            for idx in range(self.chL):
-                s[idx] = signal[idx][index:index+self.Fs]
+            nontarget[idx] = signal[:, index:index+self.Fs]
             
-            nontarget[tag] = s
-        
         return target, nontarget
