@@ -118,12 +118,12 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
 
 
     def _get_csp_config(self):
-        return ssvep_csp_helper.get_csp_config(
+        return csp_helper.get_csp_config(
             self.config.get_param('config_file_path'),
             self.config.get_param('config_file_name'))
 
     def _get_montage_matrix(self, cfg):
-        return ssvep_csp_helper.get_montage_matrix(
+        return csp_helper.get_montage_matrix(
             self.config.get_param('channel_names').split(';'),
             cfg['use_channels'].split(';'),
             cfg['montage'],
