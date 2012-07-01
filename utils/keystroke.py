@@ -6,6 +6,7 @@
 
 from Xlib import X, display, Xutil, XK
 import Xlib
+import time
 special_X_keysyms = {
     ' ' : "space",
     '\t' : "Tab",
@@ -142,7 +143,7 @@ def send_string(str) :
 
 
 if __name__ == "__main__":
-    import sys,time
+    import sys
     print(wait(sys.argv[1:]))
     #send_string("aBcd")
     #time.sleep(10)
