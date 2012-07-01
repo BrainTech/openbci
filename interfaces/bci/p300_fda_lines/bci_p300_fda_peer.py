@@ -16,8 +16,8 @@ from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_fda import bci_p300_fda_analysis
+import csp_helper
 
-from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
@@ -41,7 +41,12 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        #~ cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['nMin'] = int(self.config.get_param("n_min"))
+        cfg['nMax'] = int(self.config.get_param("n_max"))
+        cfg['nLast'] = int(self.config.get_param("n_last"))
+        
+        cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
         
         montage_matrix = self._get_montage_matrix(cfg)
             
@@ -118,12 +123,12 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
 
 
     def _get_csp_config(self):
-        return ssvep_csp_helper.get_csp_config(
+        return csp_helper.get_csp_config(
             self.config.get_param('config_file_path'),
             self.config.get_param('config_file_name'))
 
     def _get_montage_matrix(self, cfg):
-        return ssvep_csp_helper.get_montage_matrix(
+        return csp_helper.get_montage_matrix(
             self.config.get_param('channel_names').split(';'),
             cfg['use_channels'].split(';'),
             cfg['montage'],

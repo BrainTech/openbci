@@ -1,24 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 #
-# OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
-# Project was initiated by Magdalena Michalska and Krzysztof Kulewski
-# as part of their MSc theses at the University of Warsaw.
-# Copyright (C) 2008-2009 Krzysztof Kulewski and Magdalena Michalska
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
@@ -40,7 +22,7 @@ class DataSource(object):
 
 
 class MemoryDataSource(DataSource):
-    def __init__(self, p_data=None, p_copy=True):
+    def __init__(self, p_data=None, p_copy=True, p_sample_source='DOUBLE'):
         self._data = None
 
         if not (p_data is None):
@@ -80,13 +62,13 @@ class MemoryDataSource(DataSource):
     
 
 class FileDataSource(DataSource):
-    def __init__ (self, p_file, p_num_of_channels):
+    def __init__ (self, p_file, p_num_of_channels, p_sample_type="DOUBLE"):
         self._num_of_channels = p_num_of_channels
         self._mem_source = None 
         try:
             ''+p_file
             LOGGER.debug("Got file path.")
-            self._data_proxy = data_read_proxy.DataReadProxy(p_file)
+            self._data_proxy = data_read_proxy.DataReadProxy(p_file, sample_type=p_sample_type)
         except TypeError:
             LOGGER.debug("Got file proxy.")
             self._data_proxy = p_file

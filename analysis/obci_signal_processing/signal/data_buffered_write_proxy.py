@@ -8,10 +8,10 @@ from data_generic_write_proxy import DataGenericWriteProxy
 BUF_SIZE = 1024
 
 class DataBufferedWriteProxy(DataGenericWriteProxy):
-    def __init__(self, p_file_path, p_unpack_later=False, p_append_ts=False):
+    def __init__(self, p_file_path, p_unpack_later=False, p_append_ts=False, p_sample_type='FLOAT'):
         """Open p_file_name file in p_dir_path directory."""
         self.buffer = [0.0]*BUF_SIZE
-        super(DataBufferedWriteProxy, self).__init__(p_file_path, p_unpack_later, p_append_ts)
+        super(DataBufferedWriteProxy, self).__init__(p_file_path, p_unpack_later, p_append_ts, p_sample_type)
 
     def data_received(self, p_data):
         """ p_data must be protobuf SampleVector message, but serialized to string.

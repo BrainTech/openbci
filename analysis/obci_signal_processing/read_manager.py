@@ -45,7 +45,8 @@ class ReadManager(object):
             LOGGER.debug("Got data source file path.")
             self.data_source = read_data_source.FileDataSource(
                 p_data_source,
-                int(self.info_source.get_param('number_of_channels'))
+                int(self.info_source.get_param('number_of_channels')),
+                self.info_source.get_param('sample_type')
                 )
         except TypeError:
             LOGGER.debug("Got data source object.")

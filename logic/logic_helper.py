@@ -27,7 +27,11 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 					'and', 'we', 'do','not', 'want', 'them', 'to', 'restart']
 	"""
 
-	new_scenario = os.path.join(obci_root(), new_scenario)
+	if new_scenario.startswith('/') or new_scenario.startswith('~'):
+		new_scenario = os.path.expanduser(new_scenario)
+	else:
+		new_scenario = os.path.join(obci_root(), new_scenario)
+
 	conf_msg = cmsg.fill_msg(types.GET_CONFIG_PARAMS,
 				 sender='',
 				 param_names=['experiment_uuid'],

@@ -17,7 +17,7 @@ classdef ReadManager < handle
             end
             self.info_source=p_info_source;
             if ~isa(p_data_source,'DataSource')
-                p_data_source=FileDataSource(p_data_source,self.info_source.get_param('number_of_channels'));
+                p_data_source=FileDataSource(p_data_source,self.info_source.get_param('number_of_channels'), self.info_source.get_param('sample_type'));
             end
             self.data_source=p_data_source;
             if nargin==3 && ~isempty(p_tags_source)
@@ -156,7 +156,7 @@ classdef ReadManager < handle
                 self.get_samples();
             end
             path=[p_dir '/' p_name];
-            self.data_source.save_to_file([path '.obci.dat']);
+            self.data_source.save_to_file([path '.obci.dat'],self.info_source.get_param('sample_type'));
             self.info_source.save_to_file([path '.obci.info']);
             self.tags_source.save_to_file([path '.obci.tags']);            
         end

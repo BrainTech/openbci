@@ -51,8 +51,6 @@ TAGS_DEFINITIONS = {
                 ('simple', ['channelCount']),
             'sampling_frequency':
                 ('simple', ['samplingFrequency']),
-            'amplifier_null':
-                ('simple', ['amplifierNull']),
             'first_sample_timestamp':
                 ('simple', ['firstSampleTimestamp']),
             'file':
@@ -142,7 +140,6 @@ class GenericInfoFileWriteProxy(object):
         """Set all default (hardcoded) tags and other tags as now we
         we have all needed data."""
         self.set_attributes({
-                'sample_type':'DOUBLE',
                 'byte_order':'LITTLE_ENDIAN',
                 })
 

@@ -96,7 +96,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         If session is active convey data to save_manager.
         * signal_saver_finish_message - finish saving session"""
 
-        if mxmsg.type == self._signal_type and \
+        if mxmsg.type == self._mx_signal_type and \
                 self._session_is_active:
 
             self._number_of_samples += self._samples_per_vector
@@ -127,6 +127,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         append_ts = int(self.config.get_param("append_timestamps"))
         use_tmp_file = int(self.config.get_param("use_tmp_file"))
         use_own_buffer = int(self.config.get_param("use_own_buffer"))
+        signal_type = self.config.get_param("signal_type")
         self._samples_per_vector = int(self.config.get_param("samples_per_packet"))
 
         l_f_name =  self.config.get_param("save_file_name")
@@ -139,9 +140,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
 
         self._data_proxy = data_write_proxy.get_proxy(
-            self._file_path, append_ts, use_tmp_file, use_own_buffer)
+            self._file_path, append_ts, use_tmp_file, use_own_buffer, signal_type)
 
-        self._signal_type = types.__dict__[self.config.get_param("signal_type")]
+        self._mx_signal_type = types.__dict__[self.config.get_param("mx_signal_type")]
 
 
     def _finish_saving_session(self):

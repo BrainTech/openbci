@@ -113,15 +113,16 @@ class LogicSSVEPCalibration(ConfiguredClient):
         
         
     def run(self):
+        LOGGER.info("RUN!!!")
         #process intro
         #ugm_helper.send_text(self.conn, self.hi_text)
         ugm_helper.send_config(self.conn, self.ugm)
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.hi_text)
         #keystroke.wait([" "])
-        time.sleep(15)
+        time.sleep(20)
         #ugm_helper.send_text(self.conn, self.trial_text)
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.trial_text)
-        time.sleep(15)
+        time.sleep(20)
         #keystroke.wait([" "])
         ugm_helper.send_config(self.conn, self.ugm)
         appliance_helper.send_freqs(self.conn, self.all_freqs[:int(self.config.get_param("fields_count"))])
@@ -132,7 +133,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         #ugm_helper.send_text(self.conn, self.ready_text)
         ugm_helper.send_config(self.conn, self.ugm)
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.ready_text)
-        time.sleep(15)
+        time.sleep(20)
         #keystroke.wait([" "])
         LOGGER.info("Send begin config ...")
         #ugm_helper.send_config(self.conn, self.ugm)

@@ -382,6 +382,8 @@ class P300_draw(object):
         self.globalNCount += 1
         
         py.savefig(savefile, dpi=150)
-        
+        py.cla()        
+        py.clf()        
+
         if show:
             py.show()

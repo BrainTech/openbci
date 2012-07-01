@@ -32,7 +32,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
 
         #external params
         self.freq = float(self.config.get_param("sampling_rate"))
-        self.amp_null=float(self.config.get_param("amplifier_null"))
+        self.sample_type = self.config.get_param("sample_type")
         self.ch_nums = self.config.get_param("active_channels").split(";")
         self.ch_names = self.config.get_param("channel_names").split(";")
         self.ch_gains = [float(i) for i in self.config.get_param("channel_gains").split(";")]
@@ -67,7 +67,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         l_signal_params = {
             'number_of_channels':len(self.ch_nums),
             'sampling_frequency':self.freq,
-            'amplifier_null':self.amp_null,
+            'sample_type':self.sample_type,
             'channels_numbers':self.ch_nums,
             'channels_names':self.ch_names,
             'channels_gains':self.ch_gains,
@@ -107,7 +107,6 @@ class InfoSaver(ConfiguredMultiplexerServer):
         l_dict = {
             'number_of_channels':str(params['number_of_channels']),
             'sampling_frequency':str(params['sampling_frequency']),
-            #'amplifier_null':str(params['amplifier_null']),
             'channels_numbers':';'.join([str(i) for i in params['channels_numbers']]),
             'channels_names':';'.join(params['channels_names']),
             'channels_gains':';'.join([str(i) for i in params['channels_gains']]),
