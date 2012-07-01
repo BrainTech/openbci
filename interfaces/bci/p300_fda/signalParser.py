@@ -18,8 +18,9 @@ class signalParser(object):
             .xml - contains signal description
             .tag - contains experiment tags
         """
-	file_prefix = osp.expanduser(file_prefix)
-
+        
+        file_prefix = osp.expanduser(file_prefix)
+        
         if osp.exists(file_prefix+'.raw'):
             self.raw_file = file_prefix + '.raw'
         else:

@@ -34,8 +34,8 @@ class DataAnalysis(object):
         temp = s
         #~ temp = (temp-temp.mean())/temp.std()
         temp = self.filtrHigh(temp)
-        temp = self.movingAvr(temp, avrM)
-        temp = self.filtrLow(temp)
+        temp = self.movingAvr(temp, avrM+1)
+        #~ temp = self.filtrLow(temp)
         
         #~ temp = self.movingAvr(temp, 10)
         #~ temp = temp[self.iInit:self.iFin:avrM]
@@ -96,7 +96,6 @@ class DataAnalysis(object):
         return filtfilt(self.b_H, self.a_H, s)
         
     def movingAvr(self, s, r):
-        import time
         L, r = len(s), int(r)
         temp = np.zeros(L)
         temp[:r] = s[:r]

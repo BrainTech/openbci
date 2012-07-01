@@ -21,26 +21,30 @@ class BCIP300FdaAnalysis(object):
         self.montage_matrix = montage_matrix
 
         self.nPole = np.zeros(8)
-        self.nMin = 5
-        self.nMax = 10
+        self.nMin = cfg['nMin']
+        self.nMax = cfg['nMax']
+        nRepeat = cfg['nLast']
 
-        cfg['nMin'] = self.nMin
-        cfg['nMax'] = self.nMax
+        print "self.nMin: ", self.nMin
+        print "self.nMax: ", self.nMax
+
         csp_time = cfg['csp_time']
         self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
-        nRepeat = cfg['nRepeat']
+        
         avrM = cfg['avrM']
         conN = cfg['conN']
-        CONTINUE = True
         
         print "cfg['w']: ", cfg['w']
         self.p300 = P300_analysis(sampling, cfg, fields=8)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
-        self.p300_draw = P300_draw(self.fs)
-        self.p300_draw.setTimeLine(conN, avrM, csp_time)
+        self.debugFlag = cfg['debug_flag']
+        
+        if self.debugFlag:
+            self.p300_draw = P300_draw(self.fs)
+            self.p300_draw.setTimeLine(conN, avrM, csp_time)
         
         self.epochNo = 0
         
@@ -96,8 +100,9 @@ class BCIP300FdaAnalysis(object):
         if dec != -1:
             LOGGER.info("Decision from P300: " +str(dec) )
             
-            #~ self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
-            self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
+            if self.debugFlag:
+                self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
+                self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
             
             self.p300.newEpoch()
             self.epochNo += 1

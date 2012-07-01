@@ -227,10 +227,20 @@ class P300_train:
         
         self.saveDisributions( dWholeTarget, dWholeNontarget)
         
-        # Calculates mean distance od dValues
-        meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
+        meanDiff = self.compareDistributions(dWholeTarget, dWholeNontarget)
         
         return meanDiff
+    
+    def compareDistributions(self, target, nontarget):
+        
+        #~ # Calculates mean distance od dValues
+        #~ meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
+        
+        percentileList = [st.percentileofscore(nontarget, t) for t in target]
+        percentileSum = sum(percentileList)/len(target)
+        result = percentileSum 
+        
+        return result
     
     def analyseData(self, target, nontarget, w, c):
         """

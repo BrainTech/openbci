@@ -41,7 +41,12 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        #~ cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['nMin'] = int(self.config.get_param("n_min"))
+        cfg['nMax'] = int(self.config.get_param("n_max"))
+        cfg['nLast'] = int(self.config.get_param("n_last"))
+        
+        cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
         
         montage_matrix = self._get_montage_matrix(cfg)
             
