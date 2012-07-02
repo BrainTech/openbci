@@ -5,8 +5,8 @@ import random, time
 from interfaces import interfaces_logging as logger
 import numpy as np
 
-from interfaces.bci.p300_fda.p300_fda import P300_analysis
-from interfaces.bci.p300_fda.p300_draw import P300_draw
+from interfaces.bci.p300_fda_lines.p300_fda import P300_analysis
+from interfaces.bci.p300_fda_lines.p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 
 LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")
@@ -20,21 +20,24 @@ class BCIP300FdaAnalysis(object):
         self.fs = sampling
         self.montage_matrix = montage_matrix
 
-        self.nPole = np.zeros(8)
+        
         self.nMin = cfg['nMin']
         self.nMax = cfg['nMax']
-        nRepeat = cfg['nLast']
+        nLast = cfg['nLast']
 
         csp_time = cfg['csp_time']
         self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
-        nRepeat = cfg['nRepeat']
         avrM = cfg['avrM']
         conN = cfg['conN']
         
+        self.cols = cfg['col_count']
+        self.rows = cfg['row_count']
+        self.nPole = np.zeros(self.cols+self.rows)
+        
         print "cfg['w']: ", cfg['w']
-        self.p300 = P300_analysis(sampling, cfg, fields=8)
+        self.p300 = P300_analysis(sampling, cfg, rows=self.rows, cols=self.cols)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
         self.debugFlag = cfg['debug_flag']
@@ -72,24 +75,30 @@ class BCIP300FdaAnalysis(object):
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-        #Wszystko dalej powinno się robić dla każdego nowego sygnału
         
         # Get's montaged signal
         signal = np.dot(self.montage_matrix.T, data)
 
+        index = blink.index
+        if int(index) >= self.cols: lineFlag, index = 'r', index - self.cols
+        else:                       lineFlag = 'c'
+        
+        LOGGER.info("Blink -- {0}*{1}".format(lineFlag, index))
+        
         # Counts each blink
         self.nPole[blink.index] += 1
 
         # Classify each signal
-        self.p300.testData(signal, blink.index)
+        self.p300.testData(signal, lineFlag, index)
         dec = -1
 
         # If statistical significanse
         if self.p300.isItEnought() != -1:
             dec = self.p300.getDecision()
 
-        #~ if (dec == -1) and (self.nPole.min() == self.nMax):
-            #~ dec = self.p300.forceDecision()
+        if (dec == -1) and (self.nPole.min() >= self.nMax):
+            LOGGER.info("Forcing decision!")
+            dec = self.p300.forceDecision()
 
         print "dec: ", dec
 

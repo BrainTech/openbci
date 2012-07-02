@@ -15,17 +15,17 @@ from scipy.linalg import eig
 import time, inspect
 
 class P300_train:
-    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6]):
+    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6], pPer=90):
 
         self.fs = Fs
         self.csp_time = np.array(csp_time)
         self.channels = channels
 
-        self.defineConst(avrM, conN)
+        self.defineConst(avrM, conN, pPer)
         self.defineMethods()
         
         
-    def defineConst(self, avrM, conN):
+    def defineConst(self, avrM, conN, pPer):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
         # Define Const
@@ -35,7 +35,7 @@ class P300_train:
         
         self.avrM = avrM  # Moving avr window length
         self.conN = conN  # No. of chan. to concatenate
-        self.pPer = 90 # Nontarget percentile threshold
+        self.pPer = pPer # Nontarget percentile threshold
 
         # Target/Non-target arrays
         self.chL = len((self.channels).split(';'))
@@ -408,10 +408,10 @@ class P300_analysis(object):
     def defineConst(self, cfg):
 
         # moving avr & resample factor
-        self.avrM = int(cfg['avrM'])  # VAR !
+        self.avrM = int(cfg['avrM'])
         
-        # Concatenate No. of signals
-        self.conN = int(cfg['conN'])  # VAR !
+        # Concatenate number of CSP vectors
+        self.conN = int(cfg['conN'])  
 
         # Define analysis time
         self.csp_time = np.array(cfg['csp_time'])
@@ -419,12 +419,11 @@ class P300_analysis(object):
         self.iInit, self.iFin = np.floor(self.csp_time*self.fs)
 
         self.chL = len(cfg['use_channels'].split(';'))
-        #~ self.arrL = np.floor((self.iFin-self.iInit)/self.avrM)
         self.arrL = self.avrM
 
-        self.nRepeat = int(cfg['nRepeat'])
-        self.nMin = 3
-        self.nMax = 6
+        self.nLast = int(cfg['nLast'])
+        self.nMin = int(cfg['nMin'])
+        self.nMax = int(cfg['nMax'])
         
         self.dec = -1
 
@@ -478,9 +477,15 @@ class P300_analysis(object):
     def prepareSignal(self, signal):
         return self.sp.prepareSignal(signal)
         
-    def testData(self, signal, blink):
-
-        lineFlag = ['r','c'][np.random.randint(2)]
+    def testData(self, signal, lineFlag, blink):
+        """
+        Analysis given data and stores it's classifier value.
+        Takes:
+            signal - CHANNEL x DATA signal;
+            lineFlag - Indicating which line blinked. Either 'c' (column) or 'r' (row);
+            blink - Position of blink ( 0 < blink < max(lineFlag) );
+        """
+        #~ lineFlag = ['r','c'][np.random.randint(2)]
         
         # Analyze signal when data for that flash is neede
         s = np.empty( self.avrM*self.conN)
@@ -498,11 +503,18 @@ class P300_analysis(object):
         #~ print "self.d: ", self.d
         
     def isItEnought(self):
+        print "self.flashCount['c']: ", self.flashCount['c']
+        print "self.flashCount['r']: ", self.flashCount['r']
+        
         for flag in ['r', 'c']:
             if (self.flashCount[flag] < self.nMin).any():
                 return -1
 
-        return self.testSignificances()
+        if (self.flashCount['c'] >= self.nMax).all() and \
+           (self.flashCount['r'] >= self.nMax).all():
+            return self.forceDecision()
+        else:
+            return self.testSignificances()
         
     def testSignificances(self):
         """
@@ -526,8 +538,11 @@ class P300_analysis(object):
         
         # This substitution is to not change much of old code.
         # In future, try to change code for new variable.
-        self.diffR = dMeanR
-        self.diffC = dMeanC
+        self.diffV['r'] = self.diffR = dMeanR
+        self.diffV['c'] = self.diffC = dMeanC
+        
+        print "self.diffR: ", self.diffR
+        print "self.diffC: ", self.diffC
         
         if np.sum(dMeanR>self.pVal) == 1 and np.sum(dMeanC>self.pVal)==1:
             self.decR = np.arange(self.rows)[dMeanR>self.pVal]
@@ -536,7 +551,8 @@ class P300_analysis(object):
             self.decC = np.arange(self.cols)[dMeanC>self.pVal]
             self.decC = int(self.decC[0])
             
-            self.dec = (self.decC, self.decR)
+            #~ self.dec = (self.decC, self.decR)
+            self.dec = self.decC + self.decR*self.cols
             print "P300_FDA: Decision -- " + str(self.dec)
             
             return self.dec
@@ -560,10 +576,10 @@ class P300_analysis(object):
         
         # Col decision
         d = self.diffV['c']
-        self.decC = np.arange(self.cols)[c==np.max(d)]
+        self.decC = np.arange(self.cols)[d==np.max(d)]
         self.decC = np.int(self.decC[0])        
         
-        self.dec = (self.decC, self.decR)
+        self.dec = self.decC + self.decR*self.cols
 
         # Return int value
         return self.dec

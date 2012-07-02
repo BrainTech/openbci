@@ -189,7 +189,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
             LOGGER.info(str(d[idxN]))
                 
-            p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp)
+            p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp, pPer)
             l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
             P_dict[idxN] = p300.getPWC()
             dVal_dict[idxN] = p300.getDValDistribution()
@@ -240,8 +240,8 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         cfg = {"csp_time":csp_time,
                 "use_channels": ';'.join(self.use_channels),
-                'pPer':pPer,
-                'pVal':pVal,
+                'pPercent':pPer,
+                'pValue':pVal,
                 'avrM':avrM,
                 'conN':conN,
                 "nRepeat":nRepeat,

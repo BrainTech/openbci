@@ -15,17 +15,17 @@ from scipy.linalg import eig
 import time, inspect
 
 class P300_train:
-    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6]):
+    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6], pPer=90):
 
         self.fs = Fs
         self.csp_time = np.array(csp_time)
         self.channels = channels
 
-        self.defineConst(avrM, conN)
+        self.defineConst(avrM, conN, pPer)
         self.defineMethods()
         
         
-    def defineConst(self, avrM, conN):
+    def defineConst(self, avrM, conN, pPer):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
         # Define Const
@@ -35,7 +35,7 @@ class P300_train:
         
         self.avrM = avrM  # Moving avr window length
         self.conN = conN  # No. of chan. to concatenate
-        self.pPer = 90 # Nontarget percentile threshold
+        self.pPer = pPer # Nontarget percentile threshold
 
         # Target/Non-target arrays
         self.chL = len((self.channels).split(';'))
@@ -407,10 +407,10 @@ class P300_analysis(object):
     def defineConst(self, cfg):
 
         # moving avr & resample factor
-        self.avrM = int(cfg['avrM'])  # VAR !
+        self.avrM = int(cfg['avrM'])
         
-        # Concatenate No. of signals
-        self.conN = int(cfg['conN'])  # VAR !
+        # Concatenate number of CSP vectors
+        self.conN = int(cfg['conN'])  
 
         # Define analysis time
         self.csp_time = np.array(cfg['csp_time'])
@@ -418,12 +418,11 @@ class P300_analysis(object):
         self.iInit, self.iFin = np.floor(self.csp_time*self.fs)
 
         self.chL = len(cfg['use_channels'].split(';'))
-        #~ self.arrL = np.floor((self.iFin-self.iInit)/self.avrM)
         self.arrL = self.avrM
 
-        self.nRepeat = int(cfg['nRepeat'])
-        self.nMin = 1
-        self.nMax = 3
+        self.nLast = int(cfg['nLast'])
+        self.nMin = int(cfg['nMin'])
+        self.nMax = int(cfg['nMax'])
         
         self.dec = -1
 
@@ -438,8 +437,8 @@ class P300_analysis(object):
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
-        self.pPer = float(cfg['pPer'])
-        self.pVal = float(cfg['pVal'])
+        self.pPer = float(cfg['pPercent'])
+        self.pVal = float(cfg['pValue'])
         
         # w - values of diff between dVal and significal d (v)
         self.diffV = np.zeros(self.fields)

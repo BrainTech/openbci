@@ -18,7 +18,7 @@ from configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 #from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
-from interfaces.bci.p300_fda import csp_helper
+from interfaces.bci.p300_fda_lines import csp_helper
 
 from logic import logic_helper
 from logic import logic_logging as logger
@@ -35,7 +35,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(LogicP300Fda, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_P300_CSP)
-
+        
         self.use_channels=None
         tmp = self.config.get_param("use_channels")
         if len(tmp) > 0:
@@ -189,7 +189,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
             LOGGER.info(str(d[idxN]))
                 
-            p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp)
+            p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp, pPer)
             l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
             P_dict[idxN] = p300.getPWC()
             dVal_dict[idxN] = p300.getDValDistribution()
@@ -233,6 +233,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         P, w, c = P_dict[BEST]
         dTarget, dNontarget = dVal_dict[BEST]
         pVal = st.scoreatpercentile(dNontarget, pPer)
+        pdf = dNontarget
         
         avrM = d[BEST]["avrM"]
         conN = d[BEST]["conN"]
@@ -240,11 +241,11 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         cfg = {"csp_time":csp_time,
                 "use_channels": ';'.join(self.use_channels),
-                'pPer':pPer,
-                'pVal':pVal,
+                'pPercent':pPer,
+                'pValue':pVal,
                 'avrM':avrM,
                 'conN':conN,
-                "nRepeat":nRepeat,
+                'pdf':pdf,
                 "P":P,
                 "w":w,
                 "c":c,

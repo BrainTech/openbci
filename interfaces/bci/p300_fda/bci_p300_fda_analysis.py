@@ -29,7 +29,6 @@ class BCIP300FdaAnalysis(object):
         self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
-        nRepeat = cfg['nRepeat']
         avrM = cfg['avrM']
         conN = cfg['conN']
         
@@ -88,7 +87,7 @@ class BCIP300FdaAnalysis(object):
         if self.p300.isItEnought() != -1:
             dec = self.p300.getDecision()
 
-        #~ if (dec == -1) and (self.nPole.min() == self.nMax):
+        #~ if (dec == -1) and (self.nPole.min() >= self.nMax):
             #~ dec = self.p300.forceDecision()
 
         print "dec: ", dec
