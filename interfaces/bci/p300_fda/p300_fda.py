@@ -235,9 +235,11 @@ class P300_train:
         #~ # Calculates mean distance od dValues
         #~ meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
         
-        percentileList = [st.percentileofscore(nontarget, t) for t in target]
-        percentileSum = sum(percentileList)/len(target)
-        result = percentileSum 
+        #~ percentileList = [st.percentileofscore(nontarget, t) for t in target]
+        #~ percentileSum = sum(percentileList)/len(target)
+        #~ result = percentileSum 
+        
+        result = st.mannwhitneyu(nontarget, target)[0]
         
         return result
     
@@ -437,11 +439,9 @@ class P300_analysis(object):
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
+        self.per = np.zeros(self.fields)
         self.pPer = float(cfg['pPercent'])
-        self.pVal = float(cfg['pValue'])
-        
-        # w - values of diff between dVal and significal d (v)
-        self.diffV = np.zeros(self.fields)
+        self.pdf = np.array(cfg['pdf'])
 
     def newEpoch(self):
         self.flashCount = np.zeros(self.fields)  # Array4 flash counting
@@ -467,6 +467,8 @@ class P300_analysis(object):
             s[con*self.avrM:(con+1)*self.avrM] = self.prepareSignal(np.dot(self.P[:,con], signal))
         
         # Data projection on Fisher's space
+        #~ print "w.shape: ", self.w.shape
+        #~ print "s.shape: ", s.shape
         self.d = np.dot(s,self.w) - self.c
         self.dArr[blink] += self.d
         self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
@@ -499,20 +501,20 @@ class P300_analysis(object):
         
         dMean = np.zeros(self.fields)
         nMin = self.flashCount.min()
-        #~ print "nMin: ", nMin
+        
         for i in range(self.fields):
-            dMean[i] = self.dArrTotal[i][:nMin].mean()
+            dMean[i] = self.dArrTotal[i][:self.nLast].mean()
         
-        print "dMean: ", dMean
-        # This substitution is to not change much of old code.
-        # In future, try to change code for new variable.
-        self.diffV = dMean
+        self.per = [st.percentileofscore(self.pdf, x) for x in dMean]
+        self.per = np.array(self.per)
         
+        #~ print "dMean: ", dMean
+        print "percentile: ", self.per
 
         # If only one value is significantly distant
-        if np.sum(dMean>self.pVal) == 1:
+        if np.sum(self.per > self.pPer) == 1:
             #~ return True
-            self.dec = np.arange(self.fields)[dMean>0]
+            self.dec = np.arange(self.fields)[self.per==self.per.max()]
             self.dec = np.int(self.dec[0])
             print "wybrano -- {0}".format(self.dec)
 
@@ -528,7 +530,7 @@ class P300_analysis(object):
 
         # If only one value is significantly distant 
         # Decision is the field with largest w value
-        self.dec = np.arange(self.diffV.shape[0])[self.diffV==np.max(self.diffV)]
+        self.dec = np.arange(self.per.shape[0])[self.per==np.max(self.per)]
         self.dec = np.int(self.dec[0])
 
         # Return int value

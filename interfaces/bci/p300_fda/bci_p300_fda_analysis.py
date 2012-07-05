@@ -26,7 +26,6 @@ class BCIP300FdaAnalysis(object):
         nRepeat = cfg['nLast']
 
         csp_time = cfg['csp_time']
-        self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
         avrM = cfg['avrM']
@@ -97,7 +96,7 @@ class BCIP300FdaAnalysis(object):
             
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
-                self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
+                #~ self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
             
             self.p300.newEpoch()
             self.epochNo += 1

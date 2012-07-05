@@ -214,21 +214,20 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         #################################
         # Finding best    
 
-        print "\n"*5
-        print "L: ", l
+        LOGGER.info("\n"*5)
+        LOGGER.info( "L: " + str(l) )
+        
         P, conN, avrM, csp_time = None, None, None, None
         BEST = -1
         arr = np.arange(len(l))
         for i in range(5):
-            bestN = int(arr[l==l.max()])
+            bestN = int(arr[l==l.min()])
             
             print "best_{0}: {1}".format(i, bestN)
             print "d[bestN]: ", d[bestN]
-            print "l[bestN]: ", l.max()
-            if (l.max() < 1000) and (BEST == -1): BEST = bestN
-            l[bestN] = l.min()-1
-
-        print "best: ", BEST
+            print "l[bestN]: ", l.min()
+            if (l.min() > 100) and (BEST == -1): BEST = bestN
+            l[bestN] = l.max()-1
 
         P, w, c = P_dict[BEST]
         dTarget, dNontarget = dVal_dict[BEST]
@@ -241,8 +240,6 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         cfg = {"csp_time":csp_time,
                 "use_channels": ';'.join(self.use_channels),
-                'pPercent':pPer,
-                'pValue':pVal,
                 'avrM':avrM,
                 'conN':conN,
                 'pdf':pdf,

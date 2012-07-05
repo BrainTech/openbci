@@ -235,9 +235,11 @@ class P300_train:
         #~ # Calculates mean distance od dValues
         #~ meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
         
-        percentileList = [st.percentileofscore(nontarget, t) for t in target]
-        percentileSum = sum(percentileList)/len(target)
-        result = percentileSum 
+        #~ percentileList = [st.percentileofscore(nontarget, t) for t in target]
+        #~ percentileSum = sum(percentileList)/len(target)
+        #~ result = percentileSum 
+        
+        result = st.mannwhitneyu(nontarget, target)[0]
         
         return result
     
@@ -447,7 +449,6 @@ class P300_analysis(object):
         # For statistical analysis
         self.pdf = np.array(cfg['pdf'])
         self.pPer = float(cfg['pPercent'])
-        self.pVal = float(cfg['pValue'])
         
         # w - values of diff between dVal and significal d (v)
         #~ self.diffV = np.zeros(self.fields)
@@ -530,25 +531,29 @@ class P300_analysis(object):
         dMeanR = np.zeros(self.rows)
         dMeanC = np.zeros(self.cols)
         
-        nMinR = self.flashCount['r'].min()
-        nMinC = self.flashCount['c'].min()
-
-        dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nMinR]) for i in range(self.rows)])
-        dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nMinC]) for i in range(self.cols)])
+        #~ nMinR = self.flashCount['r'].min()
+        #~ nMinC = self.flashCount['c'].min()
+        nLast = self.nLast
+        dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nLast]) for i in range(self.rows)])
+        dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nLast]) for i in range(self.cols)])
         
         # This substitution is to not change much of old code.
         # In future, try to change code for new variable.
         self.diffV['r'] = self.diffR = dMeanR
         self.diffV['c'] = self.diffC = dMeanC
         
-        print "self.diffR: ", self.diffR
-        print "self.diffC: ", self.diffC
+        self.perR = np.array([st.percentileofscore(self.pdf, x) for x in dMeanR])
+        self.perC = np.array([st.percentileofscore(self.pdf, x) for x in dMeanC])
         
-        if np.sum(dMeanR>self.pVal) == 1 and np.sum(dMeanC>self.pVal)==1:
-            self.decR = np.arange(self.rows)[dMeanR>self.pVal]
+        print "self.perR: ", self.perR
+        print "self.perC: ", self.perC
+        
+        
+        if np.sum(self.perR>self.pPer) == 1 and np.sum(self.perC>self.pPer)==1:
+            self.decR = np.arange(self.rows)[self.perR==self.perR.max()]
             self.decR = int(self.decR[0])
             
-            self.decC = np.arange(self.cols)[dMeanC>self.pVal]
+            self.decC = np.arange(self.cols)[self.perC==self.perC.max()]
             self.decC = int(self.decC[0])
             
             #~ self.dec = (self.decC, self.decR)
@@ -570,13 +575,11 @@ class P300_analysis(object):
         # Decision is the field with largest w value
         
         # Row decision
-        d = self.diffV['r']
-        self.decR = np.arange(self.rows)[d==np.max(d)]
+        self.decR = np.arange(self.rows)[self.perR==self.perR.max()]
         self.decR = np.int(self.decR[0])
         
         # Col decision
-        d = self.diffV['c']
-        self.decC = np.arange(self.cols)[d==np.max(d)]
+        self.decC = np.arange(self.cols)[self.perC==self.perC.max()]
         self.decC = np.int(self.decC[0])        
         
         self.dec = self.decC + self.decR*self.cols
