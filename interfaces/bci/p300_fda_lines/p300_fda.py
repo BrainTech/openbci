@@ -35,7 +35,6 @@ class P300_train:
         
         self.avrM = avrM  # Moving avr window length
         self.conN = conN  # No. of chan. to concatenate
-        self.pPer = 90 # Nontarget percentile threshold
 
         # Target/Non-target arrays
         self.chL = len((self.channels).split(';'))
@@ -45,6 +44,10 @@ class P300_train:
         totTarget = np.zeros( (self.chL, self.arrL))
         totNontarget = np.zeros((self.chL, self.arrL))
 
+        self.good = np.zeros(self.arrL*self.conN)
+        self.bad  = np.zeros(self.arrL*self.conN)
+        good_count, bad_count = 0, 0
+        
         # Flags
         self.classifiedFDA = -1 # 1 if classified with FDA
         
@@ -91,7 +94,7 @@ class P300_train:
 
     def get_filter(self, c_max, c_min):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
-        """This returns CSP filters
+        """This retzurns CSP filters
 
             Function returns array. Each column is a filter sorted in descending order i.e. first column represents filter that explains most energy, second - second most, etc.
 
@@ -120,24 +123,15 @@ class P300_train:
 
     def train_csp(self, target, nontarget):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
-
-        """Creates covariance matrices to be filtred with CSP.
-
-            Parameters:
-            -----------
-            target : ndarray
-                target signal matrix in shape TRIAL x CHANNELS x DATA.
-            nontarget : ndarray
-                not target signal matrix in shape TRIAL x CHANNELS x DATA.
-
-            Returns:
-            --------
-            P : ndarray
-                each column of this matrix is a CSP filter sorted in descending order
-            vals : array-like
-                corresponding eigenvalues
         """
-
+        Input:
+        Function takes two dictionaries with timestamps as keys
+        and matrix of numpy values as a value. First argument should be
+        target dict.
+        
+        Output:
+        Returns sorted matrix of eigenvectors and list of eigenvalues.        
+        """
 
         # Calcluate covariance matrices
         covTarget = np.zeros((self.chL,self.chL))
@@ -184,6 +178,9 @@ class P300_train:
 
         # Determin CSP filter matrix
         self.P, vals = self.train_csp(target, nontarget)
+        
+        #~ # JUST FOR DEBUG PURPOSE !!
+        #~ self.P, vals = np.random.random((target.shape[1],target.shape[1])), np.random.random(target.shape[1])
 
         # Divide dicts into K groups
         target_kGroups = self.divideData(target, K)
@@ -203,7 +200,7 @@ class P300_train:
         # For each group
         for i in range(K):
             
-            # One group is test group
+            # One groups is test group
             target_test = target_kGroups[i]
             nontarget_test = nontarget_kGroups[i]
             
@@ -227,20 +224,10 @@ class P300_train:
         
         self.saveDisributions( dWholeTarget, dWholeNontarget)
         
-        meanDiff = self.compareDistributions(dWholeTarget, dWholeNontarget)
+        # Calculates mean distance od dValues
+        meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
         
         return meanDiff
-    
-    def compareDistributions(self, target, nontarget):
-        
-        #~ # Calculates mean distance od dValues
-        #~ meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
-        
-        percentileList = [st.percentileofscore(nontarget, t) for t in target]
-        percentileSum = sum(percentileList)/len(target)
-        result = percentileSum 
-        
-        return result
     
     def analyseData(self, target, nontarget, w, c):
         """
@@ -309,8 +296,15 @@ class P300_train:
 
         return kGroups
         
-    def trainClassifier(self, signal, trgTags, ntrgTags):
+    def divideDictToTwo(self, d):
+        print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
+        """
+        Receives as a argument dictionary with int numbers as keys.
+        Returns two dicts as two halfs of input.
+        """
+        return divideDict(d, 2)
         
+    def trainClassifier(self, signal, trgTags, ntrgTags):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         target, nontarget = self.getTargetNontarget(signal, trgTags, ntrgTags)
         self.P, vals = self.train_csp(target, nontarget)
@@ -319,44 +313,58 @@ class P300_train:
         
     def trainFDA(self, target, nontarget):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
-        
-        #~ target = np.matrix(target)
-        #~ nontarget = np.matrix(nontarget)
-        
-        goodAnal = np.empty((target.shape[0],self.conN*self.avrM))
-        badAnal = np.empty((nontarget.shape[0],self.conN*self.avrM))
-        
-        for con in range(self.conN):
-            productCSPTrg = np.dot( self.P[:,con], target)
-            productCSPNtrg = np.dot( self.P[:,con], nontarget)
+        # Target
+        for tag in range(target.shape[0]):
+            s = target[tag]
+
+            sig = np.array([])
+            for idx in range(self.conN):
+                tmp = self.prepareSignal(np.dot(self.P[:,idx],s))
+                sig = np.concatenate( (sig, tmp))
             
-            # Each data signal is analysed: filtred, downsized...
-            analProductCSPTrg = np.array(map( lambda sig: self.prepareSignal(sig), productCSPTrg))
-            analProductCSPNtrg = np.array(map( lambda sig: self.prepareSignal(sig), productCSPNtrg))
+            self.good = np.vstack((self.good, sig))
 
-            goodAnal[:,con*self.avrM:(con+1)*self.avrM] = analProductCSPTrg
-            badAnal[:,con*self.avrM:(con+1)*self.avrM] = analProductCSPNtrg
+        # Non-target
+        for tag in range(nontarget.shape[0]):
+            s = nontarget[tag]
 
+            sig = np.array([])
+            for idx in range(self.conN):
+                tmp = self.prepareSignal( np.dot(self.P[:,idx],s))
+                sig = np.concatenate((sig, tmp))
+
+            self.bad = np.vstack( (self.bad, sig))
+                
         ### TARGET
+        self.good = self.good[1:]
+        goodAnal = self.good
         gAnalMean = goodAnal.mean(axis=0)
         gAnalCov = np.cov(goodAnal, rowvar=0)
 
         ### NONTARGET
+        self.bad = self.bad[1:]
+        badAnal = self.bad
         bAnalMean = badAnal.mean(axis=0)
         bAnalCov = np.cov(badAnal, rowvar=0)
         
         # Mean diff
         meanAnalDiff = gAnalMean - bAnalMean
-        #~ meanAnalMean = 0.5*(gAnalMean + bAnalMean)
+        meanAnalMean = 0.5*(gAnalMean + bAnalMean)
 
         A = gAnalCov + bAnalCov
         invertCovariance = np.linalg.inv( A )
+        
+        # JUST FOR TESTING PURPOSE
+        
+        #~ print "meanAnalDiff: ", meanAnalDiff
+        #~ print "meanAnalDiff: ", meanAnalDiff
+        #~ print "A: ", A
+        #~ invertCovariance = A
 
         # w - normal vector to separeting hyperplane
         # c - treshold for data projection
         self.w = np.dot( invertCovariance, meanAnalDiff)
-        self.c = st.scoreatpercentile(np.dot(self.w, badAnal.T), self.pPer)
-        #~ self.c = np.dot(self.w, meanAnalMean)
+        self.c = np.dot(self.w, meanAnalMean)
 
         
         #~ print "We've done a research and it turned out that best values for you are: "
@@ -386,6 +394,9 @@ class P300_train:
             return (self.P, self.w, self.c)
         else:
             return -1
+
+    def getTresholdValue(self):
+        return st.scoreatpercentile(self.dNontarget, self.pVal)
         
     def saveDisributions(self, dTarget, dNontarget):
         self.dTarget = dTarget
@@ -399,10 +410,11 @@ class P300_train:
         np.save(nontargetName, self.dNontarget)
             
 class P300_analysis(object):
-    def __init__(self, sampling, cfg={}, fields=8):
+    def __init__(self, sampling, cfg={}, rows=6, cols=6):
         
         self.fs = sampling
-        self.fields = fields
+        self.rows = rows
+        self.cols = cols
         
         self.defineConst(cfg)
         self.defineMethods()
@@ -425,34 +437,51 @@ class P300_analysis(object):
         self.arrL = self.avrM
 
         self.nRepeat = int(cfg['nRepeat'])
-        self.nMin = 1
-        self.nMax = 3
+        self.nMin = 3
+        self.nMax = 6
         
         self.dec = -1
 
         # Arrays
-        self.flashCount = np.zeros(self.fields)  # Array4 flash counting
-        self.dArr = np.zeros(self.fields) # Array4 d val
+        self.flashCount = {}
+        self.flashCount['r'] = np.zeros(self.rows)
+        self.flashCount['c'] = np.zeros(self.cols)
+        
+        self.dArr = {}
+        self.dArr['r'] = np.zeros(self.rows)
+        self.dArr['c'] = np.zeros(self.cols)
         
         self.dArrTotal = {}
-        for i in range(self.fields): self.dArrTotal[i] = np.array([])
+        self.dArrTotal['r'] = [np.array([]) for x in xrange(self.rows)]
+        self.dArrTotal['c'] = [np.array([]) for x in xrange(self.cols)]
         
         self.sAnalArr = {}
-        for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
+        self.sAnalArr['r'] = [np.zeros(self.arrL*self.conN) for x in xrange(self.rows)]
+        self.sAnalArr['c'] = [np.zeros(self.arrL*self.conN) for x in xrange(self.cols)]
         
         # For statistical analysis
-        self.pPer = float(cfg['pPer'])
-        self.pVal = float(cfg['pVal'])
+        self.pdf = np.array(cfg['pdf'])
+        self.pPer = float(cfg['pPercent'])
+        self.pVal = float(cfg['pValue'])
         
         # w - values of diff between dVal and significal d (v)
-        self.diffV = np.zeros(self.fields)
+        #~ self.diffV = np.zeros(self.fields)
+        self.diffV = {}
+        self.diffV['r'] = np.zeros(self.rows)
+        self.diffV['c'] = np.zeros(self.cols)
 
     def newEpoch(self):
-        self.flashCount = np.zeros(self.fields)  # Array4 flash counting
-        self.dArr = np.zeros(self.fields) # Array4 d val
+        """
+        Clears all buffor arrays.
+        """
+        self.flashCount['r'] = np.zeros(self.rows)
+        self.flashCount['c'] = np.zeros(self.cols)
+        
+        self.dArr['r'] = np.zeros(self.rows)
+        self.dArr['c'] = np.zeros(self.cols)
 
-        for i in range(self.fields): self.dArrTotal[i] = np.array([])
-
+        self.dArrTotal['r'] = [np.array([]) for x in xrange(self.rows)]
+        self.dArrTotal['c'] = [np.array([]) for x in xrange(self.cols)]
     
     def defineMethods(self):
         # Declare methods
@@ -465,6 +494,8 @@ class P300_analysis(object):
         
     def testData(self, signal, blink):
 
+        lineFlag = ['r','c'][np.random.randint(2)]
+        
         # Analyze signal when data for that flash is neede
         s = np.empty( self.avrM*self.conN)
         for con in range(self.conN):
@@ -472,23 +503,20 @@ class P300_analysis(object):
         
         # Data projection on Fisher's space
         self.d = np.dot(s,self.w) - self.c
-        self.dArr[blink] += self.d
-        self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
-        self.dArrTotal[blink] = self.dArrTotal[blink][:self.nMax]
+        self.dArr[lineFlag][blink] += self.d
+        self.dArrTotal[lineFlag][blink] = np.append(self.d, self.dArrTotal[lineFlag][blink])
+        self.dArrTotal[lineFlag][blink] = self.dArrTotal[lineFlag][blink][:self.nMax]
         
-        self.flashCount[blink] += 1
+        self.flashCount[lineFlag][blink] += 1
         
         #~ print "self.d: ", self.d
         
     def isItEnought(self):
-        print "self.flashCount: ", self.flashCount
-        if (self.flashCount < self.nMin).any():
-            return -1
-        elif (self.flashCount > self.nMax).all():
-            self.forceDecision()
-        else:
-            return self.testSignificances()
-        
+        for flag in ['r', 'c']:
+            if (self.flashCount[flag] < self.nMin).any():
+                return -1
+
+        return self.testSignificances()
         
     def testSignificances(self):
         """
@@ -499,41 +527,55 @@ class P300_analysis(object):
         percentyl are calulated. If only one d is larger than that pVal
         then that's the target.
         """
-        print "++ testSignificances ++ "
         
-        dMean = np.zeros(self.fields)
-        nMin = self.flashCount.min()
-        #~ print "nMin: ", nMin
-        for i in range(self.fields):
-            dMean[i] = self.dArrTotal[i][:nMin].mean()
+        dMeanR = np.zeros(self.rows)
+        dMeanC = np.zeros(self.cols)
         
-        print "dMean: ", dMean
+        nMinR = self.flashCount['r'].min()
+        nMinC = self.flashCount['c'].min()
+
+        dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nMinR]) for i in range(self.rows)])
+        dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nMinC]) for i in range(self.cols)])
+        
         # This substitution is to not change much of old code.
         # In future, try to change code for new variable.
-        self.diffV = dMean
+        self.diffR = dMeanR
+        self.diffC = dMeanC
         
-
-        # If only one value is significantly distant
-        if np.sum(dMean>self.pVal) == 1:
-            #~ return True
-            self.dec = np.arange(self.fields)[dMean>0]
-            self.dec = np.int(self.dec[0])
-            print "wybrano -- {0}".format(self.dec)
-
+        if np.sum(dMeanR>self.pVal) == 1 and np.sum(dMeanC>self.pVal)==1:
+            self.decR = np.arange(self.rows)[dMeanR>self.pVal]
+            self.decR = int(self.decR[0])
+            
+            self.decC = np.arange(self.cols)[dMeanC>self.pVal]
+            self.decC = int(self.decC[0])
+            
+            self.dec = (self.decC, self.decR)
+            print "P300_FDA: Decision -- " + str(self.dec)
+            
             return self.dec
         
         else:
             return -1
+            
 
     def forceDecision(self):
-        print " ++ forceDecision ++ "
         
         self.testSignificances()
 
         # If only one value is significantly distant 
         # Decision is the field with largest w value
-        self.dec = np.arange(self.diffV.shape[0])[self.diffV==np.max(self.diffV)]
-        self.dec = np.int(self.dec[0])
+        
+        # Row decision
+        d = self.diffV['r']
+        self.decR = np.arange(self.rows)[d==np.max(d)]
+        self.decR = np.int(self.decR[0])
+        
+        # Col decision
+        d = self.diffV['c']
+        self.decC = np.arange(self.cols)[c==np.max(d)]
+        self.decC = np.int(self.decC[0])        
+        
+        self.dec = (self.decC, self.decR)
 
         # Return int value
         return self.dec
@@ -563,15 +605,18 @@ class P300_analysis(object):
         Returns percentiles of given scores
         from nontarget propabilty density function.
         """
+        dMeanR = np.zeros(self.rows)
+        dMeanC = np.zeros(self.cols)
         
-        dMean = np.zeros(self.fields)
-        nMin = self.flashCount.min()
-        #~ print "nMin: ", nMin
-        for i in range(self.fields):
-            dMean[i] = self.dArrTotal[i][:nMin].mean()
-
+        nMinR = self.flashCount['r'].min()
+        nMinC = self.flashCount['c'].min()
+        
+        dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nMinR]) for i in range(self.rows)])
+        dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nMinC]) for i in range(self.cols)])
+        
         # Assuming that dValues are from T distribution
-        p = map( lambda score: st.percentileofscore(self.pdf, score), dMean)
+        pR = map( lambda score: st.percentileofscore(self.pdf, score), dMeanR)
+        pC = map( lambda score: st.percentileofscore(self.pdf, score), dMeanC)
         
         return p
         

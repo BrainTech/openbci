@@ -18,7 +18,7 @@ from configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 #from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
-from interfaces.bci.p300_fda import csp_helper
+import csp_helper
 
 from logic import logic_helper
 from logic import logic_logging as logger
@@ -124,18 +124,6 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         trgTags = data.get_p300_tags()
         ntrgTags = data.get_not_p300_tags()
 
-        print "Signal.shape[1]: ", Signal.shape[1]
-        print "last trg: ", trgTags[-1]
-        print "last ntrg: ", ntrgTags[-1]
-        m = max([trgTags[-1], ntrgTags[-1]])
-        # ?!?!?!?!?!?!?!?! Why blinks are <0
-        trgTags = trgTags[trgTags>0]
-        ntrgTags = ntrgTags[ntrgTags>0]
-        trgTags = trgTags[trgTags<Signal.shape[1]-fs]
-        ntrgTags = ntrgTags[ntrgTags<Signal.shape[1]-fs]
-        print "last trg: ", trgTags[-1]
-        print "last ntrg: ", ntrgTags[-1]
-
         target, nontarget = data.getTargetNontarget(Signal, trgTags, ntrgTags)
 
         ## Get params from file
@@ -148,9 +136,6 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         conN_l = map(lambda x: int(x), self.config.get_param("con_n").split(';'))
         csp_dt_l = map(lambda x: float(x), self.config.get_param("csp_dt").split(';'))
         csp_time_l = map(lambda x: float(x), self.config.get_param("csp_time").split(';'))
-        
-        plotFlag = int(self.config.get_param("plot_flag"))
-        debugFlag = int(self.config.get_param("debug_flag"))
 
         ## Define buffer
         buffer = 1.1*fs
@@ -165,7 +150,12 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         channels = ";".join(self.use_channels)
         
-        # Test all combination of parameters
+        # make sure that:
+        # channels -- is in format like "P07;O1;Oz;O2"
+        # fs -- is a number
+        # avrM -- are int
+        # conN -- are int
+        # csp_time -- is a list of two float 0 < x < 1
         N = 0
         d = {}
         for avrM in avrM_l:
@@ -183,31 +173,23 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         for idxN in range(N):
             KEY = d[idxN].keys()
             for k in KEY:
+                #~ c = "{0} = {1}".format(k, d[idxN][k])
+                #~ print c
+                #~ exec(c)
                 exec "{0}_tmp = {1}".format(k, d[idxN][k]) in globals(), locals()
-
-            LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
-            LOGGER.info(str(d[idxN]))
                 
             p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp)
             l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
             P_dict[idxN] = p300.getPWC()
             dVal_dict[idxN] = p300.getDValDistribution()
+            p300.saveDist2File("target_%i"%idxN, "nontarget_%i"%idxN)
 
-            if debugFlag:
-                p300.saveDist2File("target_%i"%idxN, "nontarget_%i"%idxN)
-            
-            LOGGER.info("Test score: " + str(l[idxN]))
-
-
-        LOGGER.info("Calibration passed")
         #################################
-        
-        if debugFlag:
-            distributionDraw = P300_draw(fs)
-            # Plot all d distributions
-            for idx in range(N):
-                dTarget, dNontarget = dVal_dict[idx]
-                distributionDraw.plotDistribution(dTarget, dNontarget)
+        distributionDraw = P300_draw(fs)
+        # Plot all d distributions
+        for idx in range(N):
+            dTarget, dNontarget = dVal_dict[idx]
+            distributionDraw.plotDistribution(dTarget, dNontarget)
 
 
         #################################
@@ -229,6 +211,8 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         print "best: ", BEST
 
+        #JUST FOR TEST PURPOSE:
+        BEST = 1
         P, w, c = P_dict[BEST]
         dTarget, dNontarget = dVal_dict[BEST]
         pVal = st.scoreatpercentile(dNontarget, pPer)
@@ -255,15 +239,14 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         f_name = self.config.get_param("fda_file_name")
         f_dir = self.config.get_param("fda_file_path")
         csp_helper.set_csp_config(f_dir, f_name, cfg)
-        
-        if plotFlag:
-            ## Plotting best
-            p300_draw = P300_draw()
-            p300_draw.setCalibration(target, nontarget)
-            p300_draw.setCSP(P)
-            p300_draw.setTimeLine(conN, avrM, csp_time)
-            p300_draw.plotSignal()
-            #~ p300_draw.plotSignal_ds()
+
+        ## Plotting best
+        p300_draw = P300_draw()
+        p300_draw.setCalibration(target, nontarget)
+        p300_draw.setCSP(P)
+        p300_draw.setTimeLine(conN, avrM, csp_time)
+        p300_draw.plotSignal()
+        p300_draw.plotSignal_ds()
         
         LOGGER.info("FDA classifier -- DONE")
         if not self.run_offline:
@@ -278,9 +261,9 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             sys.exit(0)
     
     def _get_montage_matrix(self, use_channels, montage, montage_channels, channels_names):
-        if isinstance(use_channels, str):
+        if type(use_channels) == type("Pz;Oz"):
             use_channels = use_channels.split(';')
-        if isinstance(montage_channels, str):
+        if type(montage_channels) == type("Pz;Oz"):
             montage_channels = montage_channels.split(';')
         return csp_helper.get_montage_matrix(
             channels_names,
