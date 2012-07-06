@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.73.05), kwiecień 05, 2012, at 19:39
+This experiment was created using PsychoPy2 Experiment Builder (v1.73.05), pią, 6 lip 2012, 01:19:38
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -9,16 +9,17 @@ If you publish work using this script please cite the relevant PsychoPy publicat
 
 from __future__ import division #so that 1/3=0.333 instead of 1/3=0
 from psychopy import visual, core, data, event, logging, gui
-logging.console.setLevel(logging.WARNING)
 from psychopy.constants import * #things like STARTED, FINISHED
-import numpy as np  # whole numpy lib is available, pre-pend 'np.'
+import numpy as np  # whole numpy lib is available, prepend 'np.'
 from numpy import sin, cos, tan, log, log10, pi, average, sqrt, std, deg2rad, rad2deg, linspace, asarray
 from numpy.random import random, randint, normal, shuffle
 import os #handy system and path functions
 
 #store info about the experiment session
-expName='stroop_peer'#from the Builder filename that created this script
+expName='stroop_debug_peer'#from the Builder filename that created this script
 expInfo={'participant':'', 'session':'01'}
+dlg=gui.DlgFromDict(dictionary=expInfo,title=expName)
+if dlg.OK==False: core.quit() #user pressed cancel
 expInfo['date']=data.getDateStr()#add a simple timestamp
 expInfo['expName']=expName
 #setup files for saving
@@ -37,10 +38,9 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 
 #setup the Window
 win = visual.Window(size=(1280, 800), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
-    monitor=u'testMonitor', color=u'black', colorSpace=u'rgb', units=u'norm')
-win.setRecordFrameIntervals(True)
+    monitor='testMonitor', color='black', colorSpace='rgb', units='norm')
 
-#Initialise components for routine:instruct
+#Initialise components for Routine "instruct"
 instructClock=core.Clock()
 instrText=visual.TextStim(win=win, ori=0, name='instrText',
     text='OK. Ready for the real thing?\n\nRemember, ignore the word itself; press:\nLeft for red LETTERS\nDown for green LETTERS\nRight for blue LETTERS\n(Esc will quit)\n\nPress any key to continue',
@@ -49,7 +49,7 @@ instrText=visual.TextStim(win=win, ori=0, name='instrText',
     color=[1, 1, 1], colorSpace='rgb', opacity=1,
     depth=0.0)
 
-#Initialise components for routine:trial
+#Initialise components for Routine "trial"
 trialClock=core.Clock()
 word=visual.TextStim(win=win, ori=0, name='word',
     text='nonsense',
@@ -61,7 +61,7 @@ from exps import exps_helper
 import time
 H = exps_helper.ExpsHelper()
 
-#Initialise components for routine:thanks
+#Initialise components for Routine "thanks"
 thanksClock=core.Clock()
 thanksText=visual.TextStim(win=win, ori=0, name='thanksText',
     text='This is the end of the experiment.\n\nThanks!',
@@ -70,20 +70,23 @@ thanksText=visual.TextStim(win=win, ori=0, name='thanksText',
     color=[1, 1, 1], colorSpace='rgb', opacity=1,
     depth=0.0)
 
-#Start of routine instruct
-t=0; instructClock.reset()
-frameN=-1
+# Create some handy timers
+globalClock=core.Clock() #to track the time since experiment started
+routineTimer=core.CountdownTimer() #to track time remaining of each (non-slip) routine 
 
+#------Prepare to start Routine"instruct"-------
+t=0; instructClock.reset() #clock 
+frameN=-1
 #update component parameters for each repeat
 ready = event.BuilderKeyResponse() #create an object of type KeyResponse
 ready.status=NOT_STARTED
-#keep track of which have finished
-instructComponents=[]#to keep track of which have finished
+#keep track of which components have finished
+instructComponents=[]
 instructComponents.append(instrText)
 instructComponents.append(ready)
 for thisComponent in instructComponents:
     if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
-#start the Routine
+#-------Start Routine "instruct"-------
 continueRoutine=True
 while continueRoutine:
     #get current time
@@ -113,8 +116,9 @@ while continueRoutine:
             continueRoutine=False
     
     #check if all components have finished
-    if not continueRoutine:
-        break # lets a component forceEndRoutine
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
     continueRoutine=False#will revert to True if at least one component still running
     for thisComponent in instructComponents:
         if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
@@ -128,14 +132,14 @@ while continueRoutine:
     if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
         win.flip()
 
-#end of routine instruct
+#End of Routine "instruct"
 for thisComponent in instructComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
-    
+
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=1.0, method=u'random', 
+trials=data.TrialHandler(nReps=1.0, method='random', 
     extraInfo=expInfo, originPath=None,
-    trialList=data.importConditions(u'trialTypes.xlsx'),
+    trialList=data.importConditions('trialTypes.xlsx'),
     seed=None, name='trials')
 thisExp.addLoop(trials)#add the loop to the experiment
 thisTrial=trials.trialList[0]#so we can initialise stimuli with some values
@@ -151,10 +155,9 @@ for thisTrial in trials:
         for paramName in thisTrial.keys():
             exec(paramName+'=thisTrial.'+paramName)
     
-    #Start of routine trial
-    t=0; trialClock.reset()
+    #------Prepare to start Routine"trial"-------
+    t=0; trialClock.reset() #clock 
     frameN=-1
-    
     #update component parameters for each repeat
     word.setColor(letterColor, colorSpace='rgb')
     word.setText(text)
@@ -162,13 +165,13 @@ for thisTrial in trials:
     resp.status=NOT_STARTED
     ts = time.time() - trialClock.getTime()
     H.send_tag(time.time(), time.time(), "trial")
-    #keep track of which have finished
-    trialComponents=[]#to keep track of which have finished
+    #keep track of which components have finished
+    trialComponents=[]
     trialComponents.append(word)
     trialComponents.append(resp)
     for thisComponent in trialComponents:
         if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
-    #start the Routine
+    #-------Start Routine "trial"-------
     continueRoutine=True
     xx = 0
     while continueRoutine:
@@ -210,8 +213,9 @@ for thisTrial in trials:
         
         
         #check if all components have finished
-        if not continueRoutine:
-            break # lets a component forceEndRoutine
+        if not continueRoutine: #a component has requested that we end
+            routineTimer.reset() #this is the new t0 for non-slip Routines
+            break
         continueRoutine=False#will revert to True if at least one component still running
         for thisComponent in trialComponents:
             if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
@@ -228,7 +232,7 @@ for thisTrial in trials:
                 H.send_tag(ttt, ttt, "word2")
                 H.send_tag(time.time(), time.time(), "word3")
     
-    #end of routine trial
+    #End of Routine "trial"
     for thisComponent in trialComponents:
         if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
     #check responses
@@ -266,19 +270,19 @@ trials.saveAsText(filename+'trials.csv', delim=',',
     stimOut=params,
     dataOut=['n','all_mean','all_std', 'all_raw'])
 
-#Start of routine thanks
-t=0; thanksClock.reset()
+#------Prepare to start Routine"thanks"-------
+t=0; thanksClock.reset() #clock 
 frameN=-1
-
+routineTimer.add(2.000000)
 #update component parameters for each repeat
-#keep track of which have finished
-thanksComponents=[]#to keep track of which have finished
+#keep track of which components have finished
+thanksComponents=[]
 thanksComponents.append(thanksText)
 for thisComponent in thanksComponents:
     if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
-#start the Routine
+#-------Start Routine "thanks"-------
 continueRoutine=True
-while continueRoutine:
+while continueRoutine and routineTimer.getTime()>0:
     #get current time
     t=thanksClock.getTime()
     frameN=frameN+1#number of completed frames (so 0 in first frame)
@@ -294,8 +298,9 @@ while continueRoutine:
         thanksText.setAutoDraw(False)
     
     #check if all components have finished
-    if not continueRoutine:
-        break # lets a component forceEndRoutine
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
     continueRoutine=False#will revert to True if at least one component still running
     for thisComponent in thanksComponents:
         if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
@@ -309,7 +314,7 @@ while continueRoutine:
     if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
         win.flip()
 
-#end of routine thanks
+#End of Routine "thanks"
 for thisComponent in thanksComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 H.finish_saving()
