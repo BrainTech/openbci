@@ -16,4 +16,4 @@ class ExpsHelper(object):
                  p_tag_name, p_tag_desc, p_tag_channels)
 
     def finish_saving(self):
-        acquisition_helper.send_finish_saving(self.tagger.conn)
+        acquisition_helper.finish_saving()
