@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>848</width>
-    <height>512</height>
+    <width>873</width>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,6 +57,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QTreeWidget" name="scenarios">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>100</verstretch>
+           </sizepolicy>
+          </property>
           <column>
            <property name="text">
             <string notr="true">1</string>
@@ -65,32 +71,92 @@
          </widget>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QCheckBox" name="store_checkBox">
+          <property name="text">
+           <string>store EEG signal and tags</string>
           </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>50</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Information</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <widget class="QLabel" name="info">
-             <property name="text">
-              <string>asjdn asjklndjk naskljdh jkashdjk ashdkjhas kjashd akljshdk jlasd kjahdkjashd kjahsdjk hasdjlhasdklj hadkljashd lashd kjash djkashdkj ahsd lash</string>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="store_container" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <layout class="QFormLayout" name="formLayout_4">
+             <property name="horizontalSpacing">
+              <number>3</number>
              </property>
-             <property name="wordWrap">
+             <property name="verticalSpacing">
+              <number>3</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Directory</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>File name</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="store_file">
+               <property name="text">
+                <string>test1</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_7">
+               <item>
+                <widget class="QLineEdit" name="store_dir">
+                 <property name="text">
+                  <string>~/</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QToolButton" name="store_dir_chooser">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="store_ts_checkBox">
+             <property name="toolTip">
+              <string/>
+             </property>
+             <property name="statusTip">
+              <string/>
+             </property>
+             <property name="whatsThis">
+              <string/>
+             </property>
+             <property name="text">
+              <string>Append timestamp to file name</string>
+             </property>
+             <property name="checked">
               <bool>true</bool>
              </property>
-             <property name="openExternalLinks">
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="store_local_checkBox">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string>Store data locally</string>
+             </property>
+             <property name="checked">
               <bool>true</bool>
              </property>
             </widget>
@@ -126,30 +192,11 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="reset_button">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string>Reset all</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </item>
        </layout>
       </widget>
       <widget class="QGroupBox" name="parameters_of">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-         <horstretch>2</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -157,10 +204,10 @@
         </size>
        </property>
        <property name="title">
-        <string>Parameters</string>
+        <string>Scenario data</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
+        <item row="1" column="0">
          <widget class="QTreeWidget" name="parameters">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
@@ -181,7 +228,20 @@
           </column>
          </widget>
         </item>
-        <item row="1" column="0">
+        <item row="0" column="0">
+         <widget class="QLabel" name="info">
+          <property name="text">
+           <string>asjdn asjklndjk naskljdh jkashdjk ashdkjhas kjashd akljshdk jlasd kjahdkjashd kjahsdjk hasdjlhasdklj hadkljashd lashd kjash djkashdkj ahsd lash</string>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QLabel" name="details_label">
@@ -213,8 +273,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>848</width>
-     <height>25</height>
+     <width>873</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
@@ -239,9 +299,14 @@
    <addaction name="actionSave_as"/>
    <addaction name="actionRemove_from_sidebar"/>
    <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
    <addaction name="actionConnect"/>
    <addaction name="separator"/>
-   <addaction name="actionExit"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
   </widget>
   <action name="actionSave_as">
    <property name="icon">

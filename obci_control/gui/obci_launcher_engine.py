@@ -394,7 +394,8 @@ experiments is possible only when launcher is running (command: obci srv)')))
         self.client = obci_script.client_server_prep()
         self.experiments = self.prepare_experiments()
 
-    def stop_experiment(self, msg):
+    def stop_experiment(self, msg, stop_storing=False):
+        print "STOP EXPERIMENT!!!!"
         uid = str(msg)
         index = self.index_of(uid)
         if index is None:
@@ -406,7 +407,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             return
         self._process_response(self.client.kill_exp(exp.uuid))
 
-    def start_experiment(self, msg):
+    def start_experiment(self, msg, store_options=None):
         print "START EXPERIMENT!!!!"
         uid = str(msg)
         index = self.index_of(uid)
