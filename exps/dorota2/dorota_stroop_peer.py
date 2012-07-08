@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 14:21:34
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 15:36:27
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -35,55 +35,55 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 
 #setup the Window
 win = visual.Window(size=(1280, 800), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
-    monitor=u'testMonitor', color=u'white', colorSpace=u'rgb', units=u'norm')
+    monitor='testMonitor', color='white', colorSpace='rgb', units='norm')
 
 #Initialise components for Routine "intro"
 introClock=core.Clock()
 text_7=visual.TextStim(win=win, ori=0, name='text_7',
-    text=u'Prepare everything. Hit space to continue...',
-    font=u'Arial',
+    text='Prepare everything. Hit space to continue...',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 #Initialise components for Routine "baseline_instruction"
 baseline_instructionClock=core.Clock()
 text_5=visual.TextStim(win=win, ori=0, name='text_5',
-    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
-    font=u'Arial',
+    text='Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 #Initialise components for Routine "baseline"
 baselineClock=core.Clock()
 text_4=visual.TextStim(win=win, ori=0, name='text_4',
-    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
-    font=u'Arial',
+    text='Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
 #Initialise components for Routine "instruct"
 instructClock=core.Clock()
 instrText=visual.TextStim(win=win, ori=0, name='instrText',
-    text=u'OK. Ready for the real thing?\n\nRemember, ignore the word itself; press:\n7 for green LETTERS\n8 for red LETTERS\n9 for yellow LETTERS\n0 for blue LETTERS\n\n\nPress any key to continue',
+    text=u"In a moment you'll see a list of words displayed one by one at the center of the screen. Fonts will be of different colours. Your task will be to recognise font colour and to push that colour's button as fast as possible. Now - put your four fingers on buttons 7 8 9 0. Leave your hand at that position till the end of the experiment. Hit 7 to continue ...",
     font=u'Arial',
-    pos=[0, 0], height=0.1,wrapWidth=None,
+    pos=[0, 0], height=0.08,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 
 #Initialise components for Routine "learn1"
 learn1Clock=core.Clock()
 text_8=visual.TextStim(win=win, ori=0, name='text_8',
-    text=u'Hit 7 for green ..',
+    text=u'Hit 7 button (this button is assigned to GREEN colour).',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 text_9=visual.TextStim(win=win, ori=0, name='text_9',
-    text=u'green                         ',
+    text=None,
     font=u'Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
     color=u'grey', colorSpace=u'rgb', opacity=1,
@@ -92,13 +92,13 @@ text_9=visual.TextStim(win=win, ori=0, name='text_9',
 #Initialise components for Routine "learn2"
 learn2Clock=core.Clock()
 text_10=visual.TextStim(win=win, ori=0, name='text_10',
-    text=u'Hit 8 for red ...',
+    text=u'Hit 8 button (this button is assigned to RED colour).',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 text_11=visual.TextStim(win=win, ori=0, name='text_11',
-    text=u'green    red                  ',
+    text=u'green                         ',
     font=u'Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
     color=u'grey', colorSpace=u'rgb', opacity=1,
@@ -107,13 +107,13 @@ text_11=visual.TextStim(win=win, ori=0, name='text_11',
 #Initialise components for Routine "learn3"
 learn3Clock=core.Clock()
 text_12=visual.TextStim(win=win, ori=0, name='text_12',
-    text=u'Hit 9 for yellow...',
+    text=u'Hit 9 button (this button is assigned to YELLOW colour).',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 text_13=visual.TextStim(win=win, ori=0, name='text_13',
-    text=u'green    red    yellow          ',
+    text=u'green    red                    ',
     font=u'Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
     color=u'grey', colorSpace=u'rgb', opacity=1,
@@ -122,13 +122,13 @@ text_13=visual.TextStim(win=win, ori=0, name='text_13',
 #Initialise components for Routine "learn4"
 learn4Clock=core.Clock()
 text_14=visual.TextStim(win=win, ori=0, name='text_14',
-    text=u'Hit 0 for blue...',
+    text=u'Hit 0 button (this button is assigned to BLUE colour).',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 text_15=visual.TextStim(win=win, ori=0, name='text_15',
-    text=u'green    red    yellow    blue',
+    text=u'green    red    yellow        ',
     font=u'Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
     color=u'grey', colorSpace=u'rgb', opacity=1,
@@ -137,7 +137,7 @@ text_15=visual.TextStim(win=win, ori=0, name='text_15',
 #Initialise components for Routine "ready_2"
 ready_2Clock=core.Clock()
 text_6=visual.TextStim(win=win, ori=0, name='text_6',
-    text=u'Ready to go? Hit one of 7 8 9 0 to begin ...',
+    text=u'You learned colours assigned to buttons. If ready hit 7 button to start the experiment.',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
@@ -182,22 +182,22 @@ except Exception, e:
     print("No obci mode?: "+str(e))
 
 fixation=visual.TextStim(win=win, ori=0, name='fixation',
-    text=u'+',
-    font=u'Arial',
+    text='+',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=-3.0)
 hint=visual.TextStim(win=win, ori=0, name='hint',
-    text=u'green    red    yellow    blue',
-    font=u'Arial',
+    text='green    red    yellow    blue',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-4.0)
 
 #Initialise components for Routine "block_break"
 block_breakClock=core.Clock()
 text_2=visual.TextStim(win=win, ori=0, name='text_2',
-    text=u'Remember - pay attention to colours!!!',
+    text=u'Remember - pay attention to font colours!!!',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
@@ -207,7 +207,7 @@ text_2=visual.TextStim(win=win, ori=0, name='text_2',
 #Initialise components for Routine "condition_break"
 condition_breakClock=core.Clock()
 text_3=visual.TextStim(win=win, ori=0, name='text_3',
-    text=u'Get some rest.. Hit one of 7 8 9 0 to continue',
+    text=u'Get some rest.. Hit one of 7 8 9 0 to continue ...',
     font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'black', colorSpace=u'rgb', opacity=1,
@@ -787,7 +787,7 @@ while continueRoutine:
         key_resp_2.clock.reset() # now t=0
         event.clearEvents()
     if key_resp_2.status==STARTED:#only update if being drawn
-        theseKeys = event.getKeys(keyList=['7', '8', '9', '0'])
+        theseKeys = event.getKeys(keyList=['7'])
         if len(theseKeys)>0:#at least one key was pressed
             key_resp_2.keys=theseKeys[-1]#just the last key pressed
             key_resp_2.rt = key_resp_2.clock.getTime()
@@ -823,7 +823,7 @@ for thisComponent in ready_2Components:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=1.0, method=u'sequential', 
+trials=data.TrialHandler(nReps=1.0, method='sequential', 
     extraInfo=expInfo, originPath=None,
     trialList=data.importConditions('/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'),
     seed=None, name='trials')

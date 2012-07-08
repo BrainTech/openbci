@@ -28,7 +28,7 @@
         <Param name="name" val="text_8" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Hit 7 for green .." valType="str" updates="constant"/>
+        <Param name="text" val="Hit 7 button (this button is assigned to GREEN colour)." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -62,7 +62,7 @@
         <Param name="name" val="text_9" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="grey" valType="str" updates="constant"/>
-        <Param name="text" val="green                         " valType="str" updates="constant"/>
+        <Param name="text" val="" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0.5, -0.8]" valType="code" updates="constant"/>
@@ -81,14 +81,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_10" valType="code" updates="None"/>
-        <Param name="color" val="black" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="black" valType="str" updates="constant"/>
+        <Param name="text" val="Hit 8 button (this button is assigned to RED colour)." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="Hit 8 for red ..." valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -115,14 +115,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_11" valType="code" updates="None"/>
-        <Param name="color" val="grey" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="grey" valType="str" updates="constant"/>
+        <Param name="text" val="green                         " valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0.5, -0.8]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="green    red                  " valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -136,14 +136,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_12" valType="code" updates="None"/>
-        <Param name="color" val="black" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="black" valType="str" updates="constant"/>
+        <Param name="text" val="Hit 9 button (this button is assigned to YELLOW colour)." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="Hit 9 for yellow..." valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -170,14 +170,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_13" valType="code" updates="None"/>
-        <Param name="color" val="grey" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="grey" valType="str" updates="constant"/>
+        <Param name="text" val="green    red                    " valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0.5, -0.8]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="green    red    yellow          " valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -191,14 +191,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_14" valType="code" updates="None"/>
-        <Param name="color" val="black" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="black" valType="str" updates="constant"/>
+        <Param name="text" val="Hit 0 button (this button is assigned to BLUE colour)." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="Hit 0 for blue..." valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -225,14 +225,14 @@
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
         <Param name="name" val="text_15" valType="code" updates="None"/>
-        <Param name="color" val="grey" valType="str" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
+        <Param name="color" val="grey" valType="str" updates="constant"/>
+        <Param name="text" val="green    red    yellow        " valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0.5, -0.8]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="text" val="green    red    yellow    blue" valType="str" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
         <Param name="ori" val="0" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
@@ -298,7 +298,7 @@
         <Param name="name" val="text_6" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Ready to go? Hit one of 7 8 9 0 to begin ..." valType="str" updates="constant"/>
+        <Param name="text" val="You learned colours assigned to buttons. If ready hit 7 button to start the experiment." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -321,7 +321,7 @@
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'7','8','9','0'" valType="code" updates="constant"/>
+        <Param name="allowedKeys" val="'7'" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="store" val="last key" valType="str" updates="constant"/>
@@ -353,7 +353,7 @@
         <Param name="name" val="text_2" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Remember - pay attention to colours!!!" valType="str" updates="constant"/>
+        <Param name="text" val="Remember - pay attention to font colours!!!" valType="str" updates="constant"/>
         <Param name="stopVal" val="2.0" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -464,7 +464,7 @@
         <Param name="name" val="instrText" valType="code" updates="constant"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="OK. Ready for the real thing?&#10;&#10;Remember, ignore the word itself; press:&#10;7 for green LETTERS&#10;8 for red LETTERS&#10;9 for yellow LETTERS&#10;0 for blue LETTERS&#10;&#10;&#10;Press any key to continue" valType="str" updates="constant"/>
+        <Param name="text" val="In a moment you'll see a list of words displayed one by one at the center of the screen. Fonts will be of different colours. Your task will be to recognise font colour and to push that colour's button as fast as possible. Now - put your four fingers on buttons 7 8 9 0. Leave your hand at that position till the end of the experiment. Hit 7 to continue ..." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -475,7 +475,7 @@
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
-        <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.08" valType="code" updates="constant"/>
       </TextComponent>
       <KeyboardComponent name="ready">
         <Param name="correctAns" val="thisTrial.corrAns" valType="str" updates="constant"/>
@@ -557,7 +557,7 @@
         <Param name="name" val="text_3" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
-        <Param name="text" val="Get some rest.. Hit one of 7 8 9 0 to continue" valType="str" updates="constant"/>
+        <Param name="text" val="Get some rest.. Hit one of 7 8 9 0 to continue ..." valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -601,9 +601,9 @@
     <Routine name="baseline"/>
     <Routine name="instruct"/>
     <Routine name="learn1"/>
-    <Routine name="learn1"/>
-    <Routine name="learn1"/>
-    <Routine name="learn1"/>
+    <Routine name="learn2"/>
+    <Routine name="learn3"/>
+    <Routine name="learn4"/>
     <Routine name="ready_2"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
       <Param name="conditionsFile" val="/home/mati/obci/exps/dorota2/trialTypesCongruent.csv" valType="str" updates="None"/>
