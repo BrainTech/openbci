@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 12:57:28
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 14:21:34
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -35,16 +35,119 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 
 #setup the Window
 win = visual.Window(size=(1280, 800), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
-    monitor='testMonitor', color='black', colorSpace='rgb', units='norm')
+    monitor=u'testMonitor', color=u'white', colorSpace=u'rgb', units=u'norm')
+
+#Initialise components for Routine "intro"
+introClock=core.Clock()
+text_7=visual.TextStim(win=win, ori=0, name='text_7',
+    text=u'Prepare everything. Hit space to continue...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+
+#Initialise components for Routine "baseline_instruction"
+baseline_instructionClock=core.Clock()
+text_5=visual.TextStim(win=win, ori=0, name='text_5',
+    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+
+#Initialise components for Routine "baseline"
+baselineClock=core.Clock()
+text_4=visual.TextStim(win=win, ori=0, name='text_4',
+    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+
 
 #Initialise components for Routine "instruct"
 instructClock=core.Clock()
 instrText=visual.TextStim(win=win, ori=0, name='instrText',
-    text='OK. Ready for the real thing?\n\nRemember, ignore the word itself; press:\nLeft for red LETTERS\nDown for green LETTERS\nRight for blue LETTERS\n(Esc will quit)\n\nPress any key to continue',
-    font='Arial',
+    text=u'OK. Ready for the real thing?\n\nRemember, ignore the word itself; press:\n7 for green LETTERS\n8 for red LETTERS\n9 for yellow LETTERS\n0 for blue LETTERS\n\n\nPress any key to continue',
+    font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=[1, 1, 1], colorSpace='rgb', opacity=1,
+    color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
+
+#Initialise components for Routine "learn1"
+learn1Clock=core.Clock()
+text_8=visual.TextStim(win=win, ori=0, name='text_8',
+    text=u'Hit 7 for green ..',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+text_9=visual.TextStim(win=win, ori=0, name='text_9',
+    text=u'green                         ',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-2.0)
+
+#Initialise components for Routine "learn2"
+learn2Clock=core.Clock()
+text_10=visual.TextStim(win=win, ori=0, name='text_10',
+    text=u'Hit 8 for red ...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+text_11=visual.TextStim(win=win, ori=0, name='text_11',
+    text=u'green    red                  ',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-2.0)
+
+#Initialise components for Routine "learn3"
+learn3Clock=core.Clock()
+text_12=visual.TextStim(win=win, ori=0, name='text_12',
+    text=u'Hit 9 for yellow...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+text_13=visual.TextStim(win=win, ori=0, name='text_13',
+    text=u'green    red    yellow          ',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-2.0)
+
+#Initialise components for Routine "learn4"
+learn4Clock=core.Clock()
+text_14=visual.TextStim(win=win, ori=0, name='text_14',
+    text=u'Hit 0 for blue...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+text_15=visual.TextStim(win=win, ori=0, name='text_15',
+    text=u'green    red    yellow    blue',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-2.0)
+
+#Initialise components for Routine "ready_2"
+ready_2Clock=core.Clock()
+text_6=visual.TextStim(win=win, ori=0, name='text_6',
+    text=u'Ready to go? Hit one of 7 8 9 0 to begin ...',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'black', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+text_16=visual.TextStim(win=win, ori=0, name='text_16',
+    text=u'green    red    yellow    blue',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-2.0)
 
 #Initialise components for Routine "trial"
 trialClock=core.Clock()
@@ -73,33 +176,41 @@ condition_index = 0
 block_index = 0
 trial_index = 0
 
-
-dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)
+try:
+    dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)
+except Exception, e:
+    print("No obci mode?: "+str(e))
 
 fixation=visual.TextStim(win=win, ori=0, name='fixation',
-    text='+',
-    font='Arial',
+    text=u'+',
+    font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color='white', colorSpace='rgb', opacity=1,
+    color=u'black', colorSpace=u'rgb', opacity=1,
     depth=-3.0)
+hint=visual.TextStim(win=win, ori=0, name='hint',
+    text=u'green    red    yellow    blue',
+    font=u'Arial',
+    pos=[0.5, -0.8], height=0.1,wrapWidth=None,
+    color=u'grey', colorSpace=u'rgb', opacity=1,
+    depth=-4.0)
 
 #Initialise components for Routine "block_break"
 block_breakClock=core.Clock()
 text_2=visual.TextStim(win=win, ori=0, name='text_2',
-    text='Remember - pay attention to colours!!!',
-    font='Arial',
+    text=u'Remember - pay attention to colours!!!',
+    font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color='white', colorSpace='rgb', opacity=1,
+    color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 
 
 #Initialise components for Routine "condition_break"
 condition_breakClock=core.Clock()
 text_3=visual.TextStim(win=win, ori=0, name='text_3',
-    text='Get some rest.. Hit space to continue',
-    font='Arial',
+    text=u'Get some rest.. Hit one of 7 8 9 0 to continue',
+    font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color='white', colorSpace='rgb', opacity=1,
+    color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 
 
@@ -115,6 +226,174 @@ thanksText=visual.TextStim(win=win, ori=0, name='thanksText',
 # Create some handy timers
 globalClock=core.Clock() #to track the time since experiment started
 routineTimer=core.CountdownTimer() #to track time remaining of each (non-slip) routine 
+
+#------Prepare to start Routine"intro"-------
+t=0; introClock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_3 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_3.status=NOT_STARTED
+#keep track of which components have finished
+introComponents=[]
+introComponents.append(text_7)
+introComponents.append(key_resp_3)
+for thisComponent in introComponents:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "intro"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=introClock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_7* updates
+    if t>=0.0 and text_7.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_7.tStart=t#underestimates by a little under one frame
+        text_7.frameNStart=frameN#exact frame index
+        text_7.setAutoDraw(True)
+    
+    #*key_resp_3* updates
+    if t>=0.0 and key_resp_3.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_3.tStart=t#underestimates by a little under one frame
+        key_resp_3.frameNStart=frameN#exact frame index
+        key_resp_3.status=STARTED
+        #keyboard checking is just starting
+        key_resp_3.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_3.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['space'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_3.keys=theseKeys[-1]#just the last key pressed
+            key_resp_3.rt = key_resp_3.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in introComponents:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "intro"
+for thisComponent in introComponents:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"baseline_instruction"-------
+t=0; baseline_instructionClock.reset() #clock 
+frameN=-1
+routineTimer.add(5.000000)
+#update component parameters for each repeat
+#keep track of which components have finished
+baseline_instructionComponents=[]
+baseline_instructionComponents.append(text_5)
+for thisComponent in baseline_instructionComponents:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "baseline_instruction"-------
+continueRoutine=True
+while continueRoutine and routineTimer.getTime()>0:
+    #get current time
+    t=baseline_instructionClock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_5* updates
+    if t>=0.0 and text_5.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_5.tStart=t#underestimates by a little under one frame
+        text_5.frameNStart=frameN#exact frame index
+        text_5.setAutoDraw(True)
+    elif text_5.status==STARTED and t>=(0.0+5.0):
+        text_5.setAutoDraw(False)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in baseline_instructionComponents:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "baseline_instruction"
+for thisComponent in baseline_instructionComponents:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"baseline"-------
+t=0; baselineClock.reset() #clock 
+frameN=-1
+routineTimer.add(10.000000)
+#update component parameters for each repeat
+try:
+    ts = time.time()
+    H.send_tag(ts, ts+30, "baseline")
+except Exception, e:
+    print("No obci mode?: "+str(e))
+#keep track of which components have finished
+baselineComponents=[]
+baselineComponents.append(text_4)
+for thisComponent in baselineComponents:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "baseline"-------
+continueRoutine=True
+while continueRoutine and routineTimer.getTime()>0:
+    #get current time
+    t=baselineClock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_4* updates
+    if t>=0.0 and text_4.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_4.tStart=t#underestimates by a little under one frame
+        text_4.frameNStart=frameN#exact frame index
+        text_4.setAutoDraw(True)
+    elif text_4.status==STARTED and t>=(0.0+10.0):
+        text_4.setAutoDraw(False)
+    
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in baselineComponents:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "baseline"
+for thisComponent in baselineComponents:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
 
 #------Prepare to start Routine"instruct"-------
 t=0; instructClock.reset() #clock 
@@ -178,6 +457,371 @@ while continueRoutine:
 for thisComponent in instructComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
+#------Prepare to start Routine"learn1"-------
+t=0; learn1Clock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_4 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_4.status=NOT_STARTED
+#keep track of which components have finished
+learn1Components=[]
+learn1Components.append(text_8)
+learn1Components.append(key_resp_4)
+learn1Components.append(text_9)
+for thisComponent in learn1Components:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "learn1"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=learn1Clock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_8* updates
+    if t>=0.0 and text_8.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_8.tStart=t#underestimates by a little under one frame
+        text_8.frameNStart=frameN#exact frame index
+        text_8.setAutoDraw(True)
+    
+    #*key_resp_4* updates
+    if t>=0.0 and key_resp_4.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_4.tStart=t#underestimates by a little under one frame
+        key_resp_4.frameNStart=frameN#exact frame index
+        key_resp_4.status=STARTED
+        #keyboard checking is just starting
+        key_resp_4.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_4.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['7'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_4.keys=theseKeys[-1]#just the last key pressed
+            key_resp_4.rt = key_resp_4.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #*text_9* updates
+    if t>=0.0 and text_9.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_9.tStart=t#underestimates by a little under one frame
+        text_9.frameNStart=frameN#exact frame index
+        text_9.setAutoDraw(True)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in learn1Components:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "learn1"
+for thisComponent in learn1Components:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"learn2"-------
+t=0; learn2Clock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_5 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_5.status=NOT_STARTED
+#keep track of which components have finished
+learn2Components=[]
+learn2Components.append(text_10)
+learn2Components.append(key_resp_5)
+learn2Components.append(text_11)
+for thisComponent in learn2Components:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "learn2"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=learn2Clock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_10* updates
+    if t>=0.0 and text_10.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_10.tStart=t#underestimates by a little under one frame
+        text_10.frameNStart=frameN#exact frame index
+        text_10.setAutoDraw(True)
+    
+    #*key_resp_5* updates
+    if t>=0.0 and key_resp_5.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_5.tStart=t#underestimates by a little under one frame
+        key_resp_5.frameNStart=frameN#exact frame index
+        key_resp_5.status=STARTED
+        #keyboard checking is just starting
+        key_resp_5.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_5.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['8'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_5.keys=theseKeys[-1]#just the last key pressed
+            key_resp_5.rt = key_resp_5.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #*text_11* updates
+    if t>=0.0 and text_11.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_11.tStart=t#underestimates by a little under one frame
+        text_11.frameNStart=frameN#exact frame index
+        text_11.setAutoDraw(True)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in learn2Components:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "learn2"
+for thisComponent in learn2Components:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"learn3"-------
+t=0; learn3Clock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_6 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_6.status=NOT_STARTED
+#keep track of which components have finished
+learn3Components=[]
+learn3Components.append(text_12)
+learn3Components.append(key_resp_6)
+learn3Components.append(text_13)
+for thisComponent in learn3Components:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "learn3"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=learn3Clock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_12* updates
+    if t>=0.0 and text_12.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_12.tStart=t#underestimates by a little under one frame
+        text_12.frameNStart=frameN#exact frame index
+        text_12.setAutoDraw(True)
+    
+    #*key_resp_6* updates
+    if t>=0.0 and key_resp_6.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_6.tStart=t#underestimates by a little under one frame
+        key_resp_6.frameNStart=frameN#exact frame index
+        key_resp_6.status=STARTED
+        #keyboard checking is just starting
+        key_resp_6.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_6.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['9'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_6.keys=theseKeys[-1]#just the last key pressed
+            key_resp_6.rt = key_resp_6.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #*text_13* updates
+    if t>=0.0 and text_13.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_13.tStart=t#underestimates by a little under one frame
+        text_13.frameNStart=frameN#exact frame index
+        text_13.setAutoDraw(True)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in learn3Components:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "learn3"
+for thisComponent in learn3Components:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"learn4"-------
+t=0; learn4Clock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_7 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_7.status=NOT_STARTED
+#keep track of which components have finished
+learn4Components=[]
+learn4Components.append(text_14)
+learn4Components.append(key_resp_7)
+learn4Components.append(text_15)
+for thisComponent in learn4Components:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "learn4"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=learn4Clock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_14* updates
+    if t>=0.0 and text_14.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_14.tStart=t#underestimates by a little under one frame
+        text_14.frameNStart=frameN#exact frame index
+        text_14.setAutoDraw(True)
+    
+    #*key_resp_7* updates
+    if t>=0.0 and key_resp_7.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_7.tStart=t#underestimates by a little under one frame
+        key_resp_7.frameNStart=frameN#exact frame index
+        key_resp_7.status=STARTED
+        #keyboard checking is just starting
+        key_resp_7.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_7.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['0'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_7.keys=theseKeys[-1]#just the last key pressed
+            key_resp_7.rt = key_resp_7.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #*text_15* updates
+    if t>=0.0 and text_15.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_15.tStart=t#underestimates by a little under one frame
+        text_15.frameNStart=frameN#exact frame index
+        text_15.setAutoDraw(True)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in learn4Components:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "learn4"
+for thisComponent in learn4Components:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+#------Prepare to start Routine"ready_2"-------
+t=0; ready_2Clock.reset() #clock 
+frameN=-1
+#update component parameters for each repeat
+key_resp_2 = event.BuilderKeyResponse() #create an object of type KeyResponse
+key_resp_2.status=NOT_STARTED
+#keep track of which components have finished
+ready_2Components=[]
+ready_2Components.append(text_6)
+ready_2Components.append(key_resp_2)
+ready_2Components.append(text_16)
+for thisComponent in ready_2Components:
+    if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+#-------Start Routine "ready_2"-------
+continueRoutine=True
+while continueRoutine:
+    #get current time
+    t=ready_2Clock.getTime()
+    frameN=frameN+1#number of completed frames (so 0 in first frame)
+    #update/draw components on each frame
+    
+    #*text_6* updates
+    if t>=0.0 and text_6.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_6.tStart=t#underestimates by a little under one frame
+        text_6.frameNStart=frameN#exact frame index
+        text_6.setAutoDraw(True)
+    
+    #*key_resp_2* updates
+    if t>=0.0 and key_resp_2.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        key_resp_2.tStart=t#underestimates by a little under one frame
+        key_resp_2.frameNStart=frameN#exact frame index
+        key_resp_2.status=STARTED
+        #keyboard checking is just starting
+        key_resp_2.clock.reset() # now t=0
+        event.clearEvents()
+    if key_resp_2.status==STARTED:#only update if being drawn
+        theseKeys = event.getKeys(keyList=['7', '8', '9', '0'])
+        if len(theseKeys)>0:#at least one key was pressed
+            key_resp_2.keys=theseKeys[-1]#just the last key pressed
+            key_resp_2.rt = key_resp_2.clock.getTime()
+            #abort routine on response
+            continueRoutine=False
+    
+    #*text_16* updates
+    if t>=0.0 and text_16.status==NOT_STARTED:
+        #keep track of start time/frame for later
+        text_16.tStart=t#underestimates by a little under one frame
+        text_16.frameNStart=frameN#exact frame index
+        text_16.setAutoDraw(True)
+    
+    #check if all components have finished
+    if not continueRoutine: #a component has requested that we end
+        routineTimer.reset() #this is the new t0 for non-slip Routines
+        break
+    continueRoutine=False#will revert to True if at least one component still running
+    for thisComponent in ready_2Components:
+        if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+            continueRoutine=True; break#at least one component has not yet finished
+    
+    #check for quit (the [Esc] key)
+    if event.getKeys(["escape"]):
+        core.quit()
+    
+    #refresh the screen
+    if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+        win.flip()
+
+#End of Routine "ready_2"
+for thisComponent in ready_2Components:
+    if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
 #set up handler to look after randomisation of conditions etc
 trials=data.TrialHandler(nReps=1.0, method=u'sequential', 
     extraInfo=expInfo, originPath=None,
@@ -215,6 +859,7 @@ for thisTrial in trials:
     trialComponents.append(word)
     trialComponents.append(resp)
     trialComponents.append(fixation)
+    trialComponents.append(hint)
     for thisComponent in trialComponents:
         if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
     #-------Start Routine "trial"-------
@@ -262,6 +907,13 @@ for thisTrial in trials:
         elif fixation.status==STARTED and t>=(0.3+0.7):
             fixation.setAutoDraw(False)
         
+        #*hint* updates
+        if t>=0.0 and hint.status==NOT_STARTED:
+            #keep track of start time/frame for later
+            hint.tStart=t#underestimates by a little under one frame
+            hint.frameNStart=frameN#exact frame index
+            hint.setAutoDraw(True)
+        
         #check if all components have finished
         if not continueRoutine: #a component has requested that we end
             routineTimer.reset() #this is the new t0 for non-slip Routines
@@ -306,9 +958,9 @@ for thisTrial in trials:
         if block_index % BLOCKS_COUNT == 0:
             condition_index += 1
             condition_changed = True
-    print("trials: "+str(trial_index)+" blocks: "+str(block_index)+ "conds: "+str(condition_index))
-    print("Block changed: "+str(block_changed))
-    print("cond changed: "+str(condition_changed))
+    #print("trials: "+str(trial_index)+" blocks: "+str(block_index)+ "conds: "+str(condition_index))
+    #print("Block changed: "+str(block_changed))
+    #print("cond changed: "+str(condition_changed))
     #check responses
     if len(resp.keys)==0: #No response was made
        resp.keys=None
@@ -324,7 +976,7 @@ for thisTrial in trials:
     #------Prepare to start Routine"block_break"-------
     t=0; block_breakClock.reset() #clock 
     frameN=-1
-    routineTimer.add(1.000000)
+    routineTimer.add(2.000000)
     #update component parameters for each repeat
     if not block_changed:
         continue
@@ -347,7 +999,7 @@ for thisTrial in trials:
             text_2.tStart=t#underestimates by a little under one frame
             text_2.frameNStart=frameN#exact frame index
             text_2.setAutoDraw(True)
-        elif text_2.status==STARTED and t>=(0.0+1.0):
+        elif text_2.status==STARTED and t>=(0.0+2.0):
             text_2.setAutoDraw(False)
         
         
@@ -412,7 +1064,7 @@ for thisTrial in trials:
             key_resp.clock.reset() # now t=0
             event.clearEvents()
         if key_resp.status==STARTED:#only update if being drawn
-            theseKeys = event.getKeys(keyList=['space'])
+            theseKeys = event.getKeys(keyList=['7', '8', '9', '0'])
             if len(theseKeys)>0:#at least one key was pressed
                 key_resp.keys=theseKeys[-1]#just the last key pressed
                 key_resp.rt = key_resp.clock.getTime()
@@ -456,10 +1108,7 @@ for thisTrial in trials:
 if trials.trialList in ([], [None], None):  params=[]
 else:  params = trials.trialList[0].keys()
 #save data for this loop
-#trials.saveAsPickle(filename+'trials', fileCollisionMethod='rename')
-#trials.saveAsText(filename+'trials.csv', delim=',',
-#    stimOut=params,
-#    dataOut=['n','all_mean','all_std', 'all_raw'])
+
 
 #------Prepare to start Routine"thanks"-------
 t=0; thanksClock.reset() #clock 
@@ -508,6 +1157,7 @@ while continueRoutine and routineTimer.getTime()>0:
 #End of Routine "thanks"
 for thisComponent in thanksComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
 try:
     H.finish_saving()
 except Exception, e:

@@ -15,5 +15,8 @@ class ExpsHelper(object):
         self.tagger.send_tag(p_start_timestamp, p_end_timestamp, 
                  p_tag_name, p_tag_desc, p_tag_channels)
 
-    def finish_saving(self):
-        acquisition_helper.finish_saving()
+    def finish_saving(self, wait=True):
+        if wait:
+            acquisition_helper.finish_saving()
+        else:
+            acquisition_helper.send_finish_saving(self.tagger.conn)
