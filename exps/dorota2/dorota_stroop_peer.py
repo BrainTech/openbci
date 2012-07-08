@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 11:53:18
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 12:02:18
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -75,6 +75,26 @@ fixation=visual.TextStim(win=win, ori=0, name='fixation',
     pos=[0, 0], height=0.1,wrapWidth=None,
     color=u'white', colorSpace=u'rgb', opacity=1,
     depth=-3.0)
+
+#Initialise components for Routine "block_break"
+block_breakClock=core.Clock()
+text_2=visual.TextStim(win=win, ori=0, name='text_2',
+    text=u'Remember - pay attention to colours!!!',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'white', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+
+
+#Initialise components for Routine "condition_break"
+condition_breakClock=core.Clock()
+text_3=visual.TextStim(win=win, ori=0, name='text_3',
+    text=u'A little wrest... Hit space to continue',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'white', colorSpace=u'rgb', opacity=1,
+    depth=0.0)
+
 
 #Initialise components for Routine "thanks"
 thanksClock=core.Clock()
@@ -285,6 +305,134 @@ for thisTrial in trials:
     trials.addData('resp.corr',resp.corr)
     if resp.keys != None:#we had a response
         trials.addData('resp.rt',resp.rt)
+    
+    #------Prepare to start Routine"block_break"-------
+    t=0; block_breakClock.reset() #clock 
+    frameN=-1
+    routineTimer.add(1.000000)
+    #update component parameters for each repeat
+    if not block_changed:
+        continue
+    #keep track of which components have finished
+    block_breakComponents=[]
+    block_breakComponents.append(text_2)
+    for thisComponent in block_breakComponents:
+        if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+    #-------Start Routine "block_break"-------
+    continueRoutine=True
+    while continueRoutine and routineTimer.getTime()>0:
+        #get current time
+        t=block_breakClock.getTime()
+        frameN=frameN+1#number of completed frames (so 0 in first frame)
+        #update/draw components on each frame
+        
+        #*text_2* updates
+        if t>=0.0 and text_2.status==NOT_STARTED:
+            #keep track of start time/frame for later
+            text_2.tStart=t#underestimates by a little under one frame
+            text_2.frameNStart=frameN#exact frame index
+            text_2.setAutoDraw(True)
+        elif text_2.status==STARTED and t>=(0.0+1.0):
+            text_2.setAutoDraw(False)
+        
+        
+        #check if all components have finished
+        if not continueRoutine: #a component has requested that we end
+            routineTimer.reset() #this is the new t0 for non-slip Routines
+            break
+        continueRoutine=False#will revert to True if at least one component still running
+        for thisComponent in block_breakComponents:
+            if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+                continueRoutine=True; break#at least one component has not yet finished
+        
+        #check for quit (the [Esc] key)
+        if event.getKeys(["escape"]):
+            core.quit()
+        
+        #refresh the screen
+        if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+            win.flip()
+    
+    #End of Routine "block_break"
+    for thisComponent in block_breakComponents:
+        if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+    
+    
+    #------Prepare to start Routine"condition_break"-------
+    t=0; condition_breakClock.reset() #clock 
+    frameN=-1
+    #update component parameters for each repeat
+    key_resp = event.BuilderKeyResponse() #create an object of type KeyResponse
+    key_resp.status=NOT_STARTED
+    if not condition_changed:
+        continue
+    #keep track of which components have finished
+    condition_breakComponents=[]
+    condition_breakComponents.append(text_3)
+    condition_breakComponents.append(key_resp)
+    for thisComponent in condition_breakComponents:
+        if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
+    #-------Start Routine "condition_break"-------
+    continueRoutine=True
+    while continueRoutine:
+        #get current time
+        t=condition_breakClock.getTime()
+        frameN=frameN+1#number of completed frames (so 0 in first frame)
+        #update/draw components on each frame
+        
+        #*text_3* updates
+        if t>=0.0 and text_3.status==NOT_STARTED:
+            #keep track of start time/frame for later
+            text_3.tStart=t#underestimates by a little under one frame
+            text_3.frameNStart=frameN#exact frame index
+            text_3.setAutoDraw(True)
+        
+        #*key_resp* updates
+        if t>=0.0 and key_resp.status==NOT_STARTED:
+            #keep track of start time/frame for later
+            key_resp.tStart=t#underestimates by a little under one frame
+            key_resp.frameNStart=frameN#exact frame index
+            key_resp.status=STARTED
+            #keyboard checking is just starting
+            key_resp.clock.reset() # now t=0
+            event.clearEvents()
+        if key_resp.status==STARTED:#only update if being drawn
+            theseKeys = event.getKeys(keyList=['space'])
+            if len(theseKeys)>0:#at least one key was pressed
+                key_resp.keys=theseKeys[-1]#just the last key pressed
+                key_resp.rt = key_resp.clock.getTime()
+                #abort routine on response
+                continueRoutine=False
+        
+        
+        #check if all components have finished
+        if not continueRoutine: #a component has requested that we end
+            routineTimer.reset() #this is the new t0 for non-slip Routines
+            break
+        continueRoutine=False#will revert to True if at least one component still running
+        for thisComponent in condition_breakComponents:
+            if hasattr(thisComponent,"status") and thisComponent.status!=FINISHED:
+                continueRoutine=True; break#at least one component has not yet finished
+        
+        #check for quit (the [Esc] key)
+        if event.getKeys(["escape"]):
+            core.quit()
+        
+        #refresh the screen
+        if continueRoutine:#don't flip if this routine is over or we'll get a blank screen
+            win.flip()
+    
+    #End of Routine "condition_break"
+    for thisComponent in condition_breakComponents:
+        if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+    #check responses
+    if len(key_resp.keys)==0: #No response was made
+       key_resp.keys=None
+    #store data for trials (TrialHandler)
+    trials.addData('key_resp.keys',key_resp.keys)
+    if key_resp.keys != None:#we had a response
+        trials.addData('key_resp.rt',key_resp.rt)
+    
     thisExp.nextEntry()
 
 #completed asarray(BLOCKS_COUNT*CONDITIONS_COUNT) repeats of 'trials'
@@ -345,6 +493,8 @@ while continueRoutine and routineTimer.getTime()>0:
 #End of Routine "thanks"
 for thisComponent in thanksComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
+
+
 
 
 #Shutting down:
