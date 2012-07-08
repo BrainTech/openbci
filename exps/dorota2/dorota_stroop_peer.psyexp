@@ -71,12 +71,12 @@
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
       </TextComponent>
       <CodeComponent name="code">
-        <Param name="Begin Experiment" val="CONDITIONS = ['CON', 'EXP']&#10;CONDITIONS_COUNT = len(CONDITIONS)&#10;BLOCKS_COUNT = 2&#10;TRIALS_COUNT = 4&#10;KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}&#10;CONDITIONS_FILE='/home/mati/obci/exps/dorota2/alTypesCongruent.csv'&#10;&#10;&#10;condition_index = 0&#10;block_index = 0&#10;trial_index = 0&#10;&#10;&#10;#gen. trials()&#10;" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="try:&#10;    from exps import exps_helper&#10;    from exps.dorota2 import dorota_helper&#10;    import time&#10;    H = exps_helper.ExpsHelper()&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))&#10;&#10;CONDITIONS = ['con', 'exp']&#10;CONDITIONS_COUNT = len(CONDITIONS)&#10;BLOCKS_COUNT = 2&#10;TRIALS_COUNT = 4&#10;KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}&#10;CONDITIONS_FILE='/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'&#10;&#10;condition_index = 0&#10;block_index = 0&#10;trial_index = 0&#10;&#10;&#10;dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)&#10;" valType="code" updates="constant"/>
         <Param name="name" val="code" valType="code" updates="None"/>
         <Param name="Each Frame" val="" valType="code" updates="constant"/>
-        <Param name="Begin Routine" val="" valType="code" updates="constant"/>
-        <Param name="End Routine" val="#ts = ts +word.tStart&#10;#H.send_tag(ts, time.time(), &quot;word&quot;,&#10;#    {'keys':str(resp.keys),&#10;#    'corr':str(resp.corr),&#10;#    'rt':str(resp.rt),&#10;#    'text':str(text),&#10;#   'color':str(letterColor),&#10;#   'condition':str(CONDITIONS[condition_index]),&#10;#   'block_index':str(block_index),&#10;#   'trial_index':str(trial_index),&#10;#    })&#10;block_changed = False&#10;condition_changed = False&#10;trial_index += 1&#10;if trial_index % TRIALS_COUNT == 0:&#10;    block_index += 1&#10;    block_changed = True&#10;    if block_index % BLOCKS_COUNT == 0:&#10;        condition_index += 1&#10;        condition_changed = True&#10;print(&quot;trials: &quot;+str(trial_index)+&quot; blocks: &quot;+str(block_index)+ &quot;conds: &quot;+str(condition_index))&#10;print(&quot;Block changed: &quot;+str(block_changed))&#10;print(&quot;cond changed: &quot;+str(condition_changed))" valType="code" updates="constant"/>
-        <Param name="End Experiment" val="" valType="code" updates="constant"/>
+        <Param name="Begin Routine" val="try:&#10;    ts = time.time() - trialClock.getTime()&#10;    H.send_tag(time.time(), time.time(), &quot;trial&quot;)&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))" valType="code" updates="constant"/>
+        <Param name="End Routine" val="try:&#10;    ts = ts +word.tStart&#10;    H.send_tag(ts, time.time(), &quot;word&quot;,&#10;    {'keys':str(resp.keys),&#10;    'corr':str(resp.corr),&#10;    'rt':str(resp.rt),&#10;    'text':str(text),&#10;   'color':str(letterColor),&#10;   'condition':str(CONDITIONS[condition_index]),&#10;   'block_index':str(block_index),&#10;   'trial_index':str(trial_index),&#10;    })&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))&#10;&#10;block_changed = False&#10;condition_changed = False&#10;trial_index += 1&#10;if trial_index % TRIALS_COUNT == 0:&#10;    block_index += 1&#10;    block_changed = True&#10;    if block_index % BLOCKS_COUNT == 0:&#10;        condition_index += 1&#10;        condition_changed = True&#10;print(&quot;trials: &quot;+str(trial_index)+&quot; blocks: &quot;+str(block_index)+ &quot;conds: &quot;+str(condition_index))&#10;print(&quot;Block changed: &quot;+str(block_changed))&#10;print(&quot;cond changed: &quot;+str(condition_changed))" valType="code" updates="constant"/>
+        <Param name="End Experiment" val="try:&#10;    H.finish_saving()&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))" valType="code" updates="constant"/>
       </CodeComponent>
       <KeyboardComponent name="resp">
         <Param name="correctAns" val="$corrAns" valType="str" updates="constant"/>
@@ -156,7 +156,7 @@
         <Param name="name" val="text_3" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="A little wrest... Hit space to continue" valType="str" updates="constant"/>
+        <Param name="text" val="Get some rest.. Hit space to continue" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -222,7 +222,7 @@
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
       <Param name="loopType" val="sequential" valType="str" updates="None"/>
-      <Param name="nReps" val="BLOCKS_COUNT*CONDITIONS_COUNT" valType="num" updates="None"/>
+      <Param name="nReps" val="1" valType="num" updates="None"/>
       <Param name="endPoints" val="[1, 2]" valType="num" updates="None"/>
       <Param name="conditions" val="[{'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}, {'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}, {'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}]" valType="str" updates="None"/>
     </LoopInitiator>

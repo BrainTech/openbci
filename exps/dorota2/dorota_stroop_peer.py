@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 12:02:18
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 12:57:28
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -35,7 +35,7 @@ thisExp = data.ExperimentHandler(name=expName, version='',
 
 #setup the Window
 win = visual.Window(size=(1280, 800), fullscr=True, screen=0, allowGUI=False, allowStencil=False,
-    monitor=u'testMonitor', color=u'black', colorSpace=u'rgb', units=u'norm')
+    monitor='testMonitor', color='black', colorSpace='rgb', units='norm')
 
 #Initialise components for Routine "instruct"
 instructClock=core.Clock()
@@ -50,49 +50,56 @@ instrText=visual.TextStim(win=win, ori=0, name='instrText',
 trialClock=core.Clock()
 word=visual.TextStim(win=win, ori=0, name='word',
     text='nonsense',
-    font=u'Arial',
+    font='Arial',
     pos=[0, 0], height=0.2,wrapWidth=None,
-    color=1.0, colorSpace=u'rgb', opacity=1,
+    color=1.0, colorSpace='rgb', opacity=1,
     depth=0.0)
-CONDITIONS = ['CON', 'EXP']
+try:
+    from exps import exps_helper
+    from exps.dorota2 import dorota_helper
+    import time
+    H = exps_helper.ExpsHelper()
+except Exception, e:
+    print("No obci mode?: "+str(e))
+
+CONDITIONS = ['con', 'exp']
 CONDITIONS_COUNT = len(CONDITIONS)
 BLOCKS_COUNT = 2
 TRIALS_COUNT = 4
 KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}
-CONDITIONS_FILE='/home/mati/obci/exps/dorota2/alTypesCongruent.csv'
-
+CONDITIONS_FILE='/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'
 
 condition_index = 0
 block_index = 0
 trial_index = 0
 
 
-#gen. trials()
+dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)
 
 fixation=visual.TextStim(win=win, ori=0, name='fixation',
-    text=u'+',
-    font=u'Arial',
+    text='+',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'white', colorSpace=u'rgb', opacity=1,
+    color='white', colorSpace='rgb', opacity=1,
     depth=-3.0)
 
 #Initialise components for Routine "block_break"
 block_breakClock=core.Clock()
 text_2=visual.TextStim(win=win, ori=0, name='text_2',
-    text=u'Remember - pay attention to colours!!!',
-    font=u'Arial',
+    text='Remember - pay attention to colours!!!',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'white', colorSpace=u'rgb', opacity=1,
+    color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
 #Initialise components for Routine "condition_break"
 condition_breakClock=core.Clock()
 text_3=visual.TextStim(win=win, ori=0, name='text_3',
-    text=u'A little wrest... Hit space to continue',
-    font=u'Arial',
+    text='Get some rest.. Hit space to continue',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'white', colorSpace=u'rgb', opacity=1,
+    color='white', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
@@ -172,9 +179,9 @@ for thisComponent in instructComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=asarray(BLOCKS_COUNT*CONDITIONS_COUNT), method=u'sequential', 
+trials=data.TrialHandler(nReps=1.0, method=u'sequential', 
     extraInfo=expInfo, originPath=None,
-    trialList=data.importConditions(u'/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'),
+    trialList=data.importConditions('/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'),
     seed=None, name='trials')
 thisExp.addLoop(trials)#add the loop to the experiment
 thisTrial=trials.trialList[0]#so we can initialise stimuli with some values
@@ -194,9 +201,13 @@ for thisTrial in trials:
     t=0; trialClock.reset() #clock 
     frameN=-1
     #update component parameters for each repeat
-    word.setColor(letterColor, colorSpace=u'rgb')
+    word.setColor(letterColor, colorSpace='rgb')
     word.setText(text)
-    
+    try:
+        ts = time.time() - trialClock.getTime()
+        H.send_tag(time.time(), time.time(), "trial")
+    except Exception, e:
+        print("No obci mode?: "+str(e))
     resp = event.BuilderKeyResponse() #create an object of type KeyResponse
     resp.status=NOT_STARTED
     #keep track of which components have finished
@@ -271,17 +282,21 @@ for thisTrial in trials:
     #End of Routine "trial"
     for thisComponent in trialComponents:
         if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
-    #ts = ts +word.tStart
-    #H.send_tag(ts, time.time(), "word",
-    #    {'keys':str(resp.keys),
-    #    'corr':str(resp.corr),
-    #    'rt':str(resp.rt),
-    #    'text':str(text),
-    #   'color':str(letterColor),
-    #   'condition':str(CONDITIONS[condition_index]),
-    #   'block_index':str(block_index),
-    #   'trial_index':str(trial_index),
-    #    })
+    try:
+        ts = ts +word.tStart
+        H.send_tag(ts, time.time(), "word",
+        {'keys':str(resp.keys),
+        'corr':str(resp.corr),
+        'rt':str(resp.rt),
+        'text':str(text),
+       'color':str(letterColor),
+       'condition':str(CONDITIONS[condition_index]),
+       'block_index':str(block_index),
+       'trial_index':str(trial_index),
+        })
+    except Exception, e:
+        print("No obci mode?: "+str(e))
+    
     block_changed = False
     condition_changed = False
     trial_index += 1
@@ -435,7 +450,7 @@ for thisTrial in trials:
     
     thisExp.nextEntry()
 
-#completed asarray(BLOCKS_COUNT*CONDITIONS_COUNT) repeats of 'trials'
+#completed 1.0 repeats of 'trials'
 
 #get names of stimulus parameters
 if trials.trialList in ([], [None], None):  params=[]
@@ -493,7 +508,10 @@ while continueRoutine and routineTimer.getTime()>0:
 #End of Routine "thanks"
 for thisComponent in thanksComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
-
+try:
+    H.finish_saving()
+except Exception, e:
+    print("No obci mode?: "+str(e))
 
 
 
