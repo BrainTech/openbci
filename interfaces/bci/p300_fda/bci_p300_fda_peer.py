@@ -16,8 +16,8 @@ from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_fda import bci_p300_fda_analysis
+import csp_helper
 
-from interfaces.bci.p300_fda import csp_helper
 from utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
@@ -41,7 +41,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['pPercent'] = float(self.config.get_param('analysis_treshold'))
         cfg['nMin'] = int(self.config.get_param("n_min"))
         cfg['nMax'] = int(self.config.get_param("n_max"))
         cfg['nLast'] = int(self.config.get_param("n_last"))

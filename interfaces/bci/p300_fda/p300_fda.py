@@ -15,17 +15,17 @@ from scipy.linalg import eig
 import time, inspect
 
 class P300_train:
-    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6]):
+    def __init__(self, channels, Fs, avrM, conN, csp_time=[0.2, 0.6], pPer=90):
 
         self.fs = Fs
         self.csp_time = np.array(csp_time)
         self.channels = channels
 
-        self.defineConst(avrM, conN)
+        self.defineConst(avrM, conN, pPer)
         self.defineMethods()
         
         
-    def defineConst(self, avrM, conN):
+    def defineConst(self, avrM, conN, pPer):
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         
         # Define Const
@@ -35,7 +35,7 @@ class P300_train:
         
         self.avrM = avrM  # Moving avr window length
         self.conN = conN  # No. of chan. to concatenate
-        self.pPer = 90 # Nontarget percentile threshold
+        self.pPer = pPer # Nontarget percentile threshold
 
         # Target/Non-target arrays
         self.chL = len((self.channels).split(';'))
@@ -138,7 +138,6 @@ class P300_train:
                 corresponding eigenvalues
         """
 
-
         # Calcluate covariance matrices
         covTarget = np.zeros((self.chL,self.chL))
         covNontarget = np.zeros((self.chL,self.chL))
@@ -236,9 +235,11 @@ class P300_train:
         #~ # Calculates mean distance od dValues
         #~ meanDiff = np.mean(dWholeTarget) - np.mean(dWholeNontarget)
         
-        percentileList = [st.percentileofscore(nontarget, t) for t in target]
-        percentileSum = sum(percentileList)/len(target)
-        result = percentileSum 
+        #~ percentileList = [st.percentileofscore(nontarget, t) for t in target]
+        #~ percentileSum = sum(percentileList)/len(target)
+        #~ result = percentileSum 
+        
+        result = st.mannwhitneyu(nontarget, target)[0]
         
         return result
     
@@ -310,7 +311,6 @@ class P300_train:
         return kGroups
         
     def trainClassifier(self, signal, trgTags, ntrgTags):
-        
         print "*"*5 + inspect.getframeinfo(inspect.currentframe())[2]
         target, nontarget = self.getTargetNontarget(signal, trgTags, ntrgTags)
         self.P, vals = self.train_csp(target, nontarget)
@@ -341,7 +341,6 @@ class P300_train:
         gAnalMean = goodAnal.mean(axis=0)
         gAnalCov = np.cov(goodAnal, rowvar=0)
 
-        ### NONTARGET
         bAnalMean = badAnal.mean(axis=0)
         bAnalCov = np.cov(badAnal, rowvar=0)
         
@@ -410,10 +409,10 @@ class P300_analysis(object):
     def defineConst(self, cfg):
 
         # moving avr & resample factor
-        self.avrM = int(cfg['avrM'])  # VAR !
+        self.avrM = int(cfg['avrM'])
         
-        # Concatenate No. of signals
-        self.conN = int(cfg['conN'])  # VAR !
+        # Concatenate number of CSP vectors
+        self.conN = int(cfg['conN'])  
 
         # Define analysis time
         self.csp_time = np.array(cfg['csp_time'])
@@ -421,12 +420,11 @@ class P300_analysis(object):
         self.iInit, self.iFin = np.floor(self.csp_time*self.fs)
 
         self.chL = len(cfg['use_channels'].split(';'))
-        #~ self.arrL = np.floor((self.iFin-self.iInit)/self.avrM)
         self.arrL = self.avrM
 
-        self.nRepeat = int(cfg['nRepeat'])
-        self.nMin = 1
-        self.nMax = 3
+        self.nLast = int(cfg['nLast'])
+        self.nMin = int(cfg['nMin'])
+        self.nMax = int(cfg['nMax'])
         
         self.dec = -1
 
@@ -441,11 +439,9 @@ class P300_analysis(object):
         for i in range(self.fields): self.sAnalArr[i] = np.zeros( self.arrL*self.conN)
         
         # For statistical analysis
-        self.pPer = float(cfg['pPer'])
-        self.pVal = float(cfg['pVal'])
-        
-        # w - values of diff between dVal and significal d (v)
-        self.diffV = np.zeros(self.fields)
+        self.per = np.zeros(self.fields)
+        self.pPer = float(cfg['pPercent'])
+        self.pdf = np.array(cfg['pdf'])
 
     def newEpoch(self):
         self.flashCount = np.zeros(self.fields)  # Array4 flash counting
@@ -471,6 +467,8 @@ class P300_analysis(object):
             s[con*self.avrM:(con+1)*self.avrM] = self.prepareSignal(np.dot(self.P[:,con], signal))
         
         # Data projection on Fisher's space
+        #~ print "w.shape: ", self.w.shape
+        #~ print "s.shape: ", s.shape
         self.d = np.dot(s,self.w) - self.c
         self.dArr[blink] += self.d
         self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
@@ -503,20 +501,20 @@ class P300_analysis(object):
         
         dMean = np.zeros(self.fields)
         nMin = self.flashCount.min()
-        #~ print "nMin: ", nMin
+        
         for i in range(self.fields):
-            dMean[i] = self.dArrTotal[i][:nMin].mean()
+            dMean[i] = self.dArrTotal[i][:self.nLast].mean()
         
-        print "dMean: ", dMean
-        # This substitution is to not change much of old code.
-        # In future, try to change code for new variable.
-        self.diffV = dMean
+        self.per = [st.percentileofscore(self.pdf, x) for x in dMean]
+        self.per = np.array(self.per)
         
+        #~ print "dMean: ", dMean
+        print "percentile: ", self.per
 
         # If only one value is significantly distant
-        if np.sum(dMean>self.pVal) == 1:
+        if np.sum(self.per > self.pPer) == 1:
             #~ return True
-            self.dec = np.arange(self.fields)[dMean>0]
+            self.dec = np.arange(self.fields)[self.per==self.per.max()]
             self.dec = np.int(self.dec[0])
             print "wybrano -- {0}".format(self.dec)
 
@@ -532,7 +530,7 @@ class P300_analysis(object):
 
         # If only one value is significantly distant 
         # Decision is the field with largest w value
-        self.dec = np.arange(self.diffV.shape[0])[self.diffV==np.max(self.diffV)]
+        self.dec = np.arange(self.per.shape[0])[self.per==np.max(self.per)]
         self.dec = np.int(self.dec[0])
 
         # Return int value

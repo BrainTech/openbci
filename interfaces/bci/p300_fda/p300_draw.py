@@ -384,5 +384,6 @@ class P300_draw(object):
         py.savefig(savefile, dpi=150)
         py.cla()        
         py.clf()        
+
         if show:
             py.show()

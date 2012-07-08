@@ -76,9 +76,11 @@ class signalParser(object):
         fxml = minidom.parse(self.xml_file)
         sample_type = fxml.getElementsByTagName('rs:sampleType')[0].firstChild.data
         ch_no = self.channel_count
+
         sig = np.fromfile(self.raw_file, NP_TYPES[sample_type.lower()])
         signal = np.zeros([len(channel_list), self.sample_count])
         print ("DEBUG GET FILTERED: "+str(sample_type)+ " / "+str(ch_no)+" / "+str(sig.shape)+" / "+str(signal.shape)+" / "+str(channel_list))
+
         for i,v in enumerate(channel_list):
             signal[i] = sig[v::ch_no][0:self.sample_count]
         if filt != None:
@@ -218,12 +220,8 @@ class signalParser(object):
         else: fsp = 1.0
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                timestamp = float(e.attributes['position'].value)
-                exp_list[timestamp*fsp] = int(index)
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+            timestamp = float(e.attributes['position'].value)
+            exp_list[timestamp*fsp] = int(index)
                     
         return exp_list
         
@@ -255,14 +253,16 @@ class signalParser(object):
             if Fs != None:
                 fsp = Fs
         else: fsp = 1.0
+        
+        # If int passed as target -> change it into list
+        if isinstance(idx, int): idx = [idx]
+        
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                if int(index) != idx:
-                    exp_list.append(float(e.attributes['position'].value))
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+
+            if int(index) not in idx:
+                exp_list.append(float(e.attributes['position'].value))
+
         return np.array(exp_list) * fsp 
         
     def get_p300_tags(self, idx=1, samples = True, Fs = None):
@@ -295,12 +295,16 @@ class signalParser(object):
         else: fsp = 1.0
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                if int(index) == idx:
-                    exp_list.append(float(e.attributes['position'].value))
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+
+        # If int passed as target -> change it into list
+        if isinstance(idx, int): idx = [idx]
+        
+        for e in tag_list:
+            index = e.getElementsByTagName('index')[0].firstChild.data
+
+            if int(index) in idx:
+                exp_list.append(float(e.attributes['position'].value))
+                
         return np.array(exp_list) * fsp 
 
  
@@ -312,6 +316,7 @@ class signalParser(object):
         ## Get target data and stuck it into numpy arrays
         target = np.zeros((len(trgTags), self.chL, self.Fs))
         nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
+
         # Target trials
         for idx, tag in enumerate(trgTags):
             

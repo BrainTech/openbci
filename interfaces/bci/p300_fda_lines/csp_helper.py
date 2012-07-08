@@ -65,6 +65,8 @@ def get_montage_matrix(all_channels, use_channels, montage, montage_channels):
         ch_ind = all_channels.index(ch)
         m[ch_ind, i] = 1.0
 
+
+
     montage_len = len(montage_channels)
     for mon in range(montage_len):
         e = all_channels.index(montage_channels[mon])

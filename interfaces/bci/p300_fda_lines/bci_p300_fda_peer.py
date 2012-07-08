@@ -15,9 +15,9 @@ from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
-from interfaces.bci.p300_fda import bci_p300_fda_analysis
-
+from interfaces.bci.p300_fda_lines import bci_p300_fda_analysis
 import csp_helper
+
 from utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
@@ -30,6 +30,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         dec is of integer type."""
         LOGGER.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
+
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
         ugm_helper.send_stop_blinking(self.conn)
@@ -41,7 +42,22 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        #~ cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['nMin'] = int(self.config.get_param("n_min"))
+        cfg['nMax'] = int(self.config.get_param("n_max"))
+        cfg['nLast'] = int(self.config.get_param("n_last"))
+        
+        cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
+
+        #~ row = cfg['row'] = int(self.config.get_param('row_count'))
+        #~ col = cfg['col'] = int(self.config.get_param('col_count'))
+        row = cfg['row_count'] = 6
+        col = cfg['col_count'] = 6
+      
+        print "\n"*3
+        LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
+        print "\n"*3
+
         
         montage_matrix = self._get_montage_matrix(cfg)
             

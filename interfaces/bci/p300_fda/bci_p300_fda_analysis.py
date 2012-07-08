@@ -25,14 +25,9 @@ class BCIP300FdaAnalysis(object):
         self.nMax = cfg['nMax']
         nRepeat = cfg['nLast']
 
-        print "self.nMin: ", self.nMin
-        print "self.nMax: ", self.nMax
-
         csp_time = cfg['csp_time']
-        self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
-        
         avrM = cfg['avrM']
         conN = cfg['conN']
         
@@ -90,9 +85,8 @@ class BCIP300FdaAnalysis(object):
         # If statistical significanse
         if self.p300.isItEnought() != -1:
             dec = self.p300.getDecision()
-            print "dec wewnatrz: ", dec
 
-        #~ if (dec == -1) and (self.nPole.min() == self.nMax):
+        #~ if (dec == -1) and (self.nPole.min() >= self.nMax):
             #~ dec = self.p300.forceDecision()
 
         print "dec: ", dec
@@ -102,7 +96,7 @@ class BCIP300FdaAnalysis(object):
             
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
-                self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
+                #~ self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
             
             self.p300.newEpoch()
             self.epochNo += 1

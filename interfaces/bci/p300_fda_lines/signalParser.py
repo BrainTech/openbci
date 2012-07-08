@@ -76,9 +76,11 @@ class signalParser(object):
         fxml = minidom.parse(self.xml_file)
         sample_type = fxml.getElementsByTagName('rs:sampleType')[0].firstChild.data
         ch_no = self.channel_count
+
         sig = np.fromfile(self.raw_file, NP_TYPES[sample_type.lower()])
         signal = np.zeros([len(channel_list), self.sample_count])
         print ("DEBUG GET FILTERED: "+str(sample_type)+ " / "+str(ch_no)+" / "+str(sig.shape)+" / "+str(signal.shape)+" / "+str(channel_list))
+
         for i,v in enumerate(channel_list):
             signal[i] = sig[v::ch_no][0:self.sample_count]
         if filt != None:
@@ -294,7 +296,7 @@ class signalParser(object):
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
 
-         # If int passed as target -> change it into list
+        # If int passed as target -> change it into list
         if isinstance(idx, int): idx = [idx]
         
         for e in tag_list:
@@ -314,7 +316,7 @@ class signalParser(object):
         ## Get target data and stuck it into numpy arrays
         target = np.zeros((len(trgTags), self.chL, self.Fs))
         nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
-        
+
         # Target trials
         for idx, tag in enumerate(trgTags):
             
