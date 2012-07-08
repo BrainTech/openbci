@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 11:21:30
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 11:53:18
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -50,20 +50,31 @@ instrText=visual.TextStim(win=win, ori=0, name='instrText',
 trialClock=core.Clock()
 word=visual.TextStim(win=win, ori=0, name='word',
     text='nonsense',
-    font='Arial',
+    font=u'Arial',
     pos=[0, 0], height=0.2,wrapWidth=None,
-    color=1.0, colorSpace='rgb', opacity=1,
+    color=1.0, colorSpace=u'rgb', opacity=1,
     depth=0.0)
-SUPER_BLOCKS = ['CON', 'EXP']
+CONDITIONS = ['CON', 'EXP']
+CONDITIONS_COUNT = len(CONDITIONS)
 BLOCKS_COUNT = 2
-TRIALS_COUNT = 12
+TRIALS_COUNT = 4
 KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}
 CONDITIONS_FILE='/home/mati/obci/exps/dorota2/alTypesCongruent.csv'
 
 
-condition = 'EXP'
+condition_index = 0
 block_index = 0
 trial_index = 0
+
+
+#gen. trials()
+
+fixation=visual.TextStim(win=win, ori=0, name='fixation',
+    text=u'+',
+    font=u'Arial',
+    pos=[0, 0], height=0.1,wrapWidth=None,
+    color=u'white', colorSpace=u'rgb', opacity=1,
+    depth=-3.0)
 
 #Initialise components for Routine "thanks"
 thanksClock=core.Clock()
@@ -141,7 +152,7 @@ for thisComponent in instructComponents:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=asarray(BLOCKS_COUNT), method=u'sequential', 
+trials=data.TrialHandler(nReps=asarray(BLOCKS_COUNT*CONDITIONS_COUNT), method=u'sequential', 
     extraInfo=expInfo, originPath=None,
     trialList=data.importConditions(u'/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'),
     seed=None, name='trials')
@@ -163,7 +174,7 @@ for thisTrial in trials:
     t=0; trialClock.reset() #clock 
     frameN=-1
     #update component parameters for each repeat
-    word.setColor(letterColor, colorSpace='rgb')
+    word.setColor(letterColor, colorSpace=u'rgb')
     word.setText(text)
     
     resp = event.BuilderKeyResponse() #create an object of type KeyResponse
@@ -172,6 +183,7 @@ for thisTrial in trials:
     trialComponents=[]
     trialComponents.append(word)
     trialComponents.append(resp)
+    trialComponents.append(fixation)
     for thisComponent in trialComponents:
         if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
     #-------Start Routine "trial"-------
@@ -183,7 +195,7 @@ for thisTrial in trials:
         #update/draw components on each frame
         
         #*word* updates
-        if t>=0.5 and word.status==NOT_STARTED:
+        if t>=1.0 and word.status==NOT_STARTED:
             #keep track of start time/frame for later
             word.tStart=t#underestimates by a little under one frame
             word.frameNStart=frameN#exact frame index
@@ -191,7 +203,7 @@ for thisTrial in trials:
         
         
         #*resp* updates
-        if t>=0.5 and resp.status==NOT_STARTED:
+        if t>=1.0 and resp.status==NOT_STARTED:
             #keep track of start time/frame for later
             resp.tStart=t#underestimates by a little under one frame
             resp.frameNStart=frameN#exact frame index
@@ -209,6 +221,15 @@ for thisTrial in trials:
                 else: resp.corr=0
                 #abort routine on response
                 continueRoutine=False
+        
+        #*fixation* updates
+        if t>=0.3 and fixation.status==NOT_STARTED:
+            #keep track of start time/frame for later
+            fixation.tStart=t#underestimates by a little under one frame
+            fixation.frameNStart=frameN#exact frame index
+            fixation.setAutoDraw(True)
+        elif fixation.status==STARTED and t>=(0.3+0.7):
+            fixation.setAutoDraw(False)
         
         #check if all components have finished
         if not continueRoutine: #a component has requested that we end
@@ -237,10 +258,22 @@ for thisTrial in trials:
     #    'rt':str(resp.rt),
     #    'text':str(text),
     #   'color':str(letterColor),
-    #   'condition':str(condition),
+    #   'condition':str(CONDITIONS[condition_index]),
     #   'block_index':str(block_index),
     #   'trial_index':str(trial_index),
     #    })
+    block_changed = False
+    condition_changed = False
+    trial_index += 1
+    if trial_index % TRIALS_COUNT == 0:
+        block_index += 1
+        block_changed = True
+        if block_index % BLOCKS_COUNT == 0:
+            condition_index += 1
+            condition_changed = True
+    print("trials: "+str(trial_index)+" blocks: "+str(block_index)+ "conds: "+str(condition_index))
+    print("Block changed: "+str(block_changed))
+    print("cond changed: "+str(condition_changed))
     #check responses
     if len(resp.keys)==0: #No response was made
        resp.keys=None
@@ -254,7 +287,7 @@ for thisTrial in trials:
         trials.addData('resp.rt',resp.rt)
     thisExp.nextEntry()
 
-#completed asarray(BLOCKS_COUNT) repeats of 'trials'
+#completed asarray(BLOCKS_COUNT*CONDITIONS_COUNT) repeats of 'trials'
 
 #get names of stimulus parameters
 if trials.trialList in ([], [None], None):  params=[]
