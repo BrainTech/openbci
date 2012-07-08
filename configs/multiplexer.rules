@@ -326,10 +326,6 @@ peer {
      name: "EXTERNAL_SWITCH_AMPLIFIER"
 }
 
-peer {
-     type: 162
-     name: "CLIENT"
-}
 
 peer {
     type: 162
@@ -349,6 +345,11 @@ peer {
     queue_size: 32768	       
 }
 
+
+peer {
+     type: 165
+     name: "CLIENT"
+}
 
 
 # packages and routing rules definitions
