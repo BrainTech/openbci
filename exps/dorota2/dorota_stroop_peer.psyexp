@@ -17,7 +17,7 @@
     <Param name="logging level" val="warning" valType="code" updates="None"/>
     <Param name="Units" val="norm" valType="str" updates="None"/>
     <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
-    <Param name="Saved data folder" val="/home/mati/temp" valType="code" updates="None"/>
+    <Param name="Saved data folder" val="~/obci_temp" valType="code" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>
@@ -249,7 +249,7 @@
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
         <Param name="text" val="Now sit and relax for a moment. Just look at the screen and do nothing..." valType="str" updates="constant"/>
-        <Param name="stopVal" val="10.0" valType="code" updates="constant"/>
+        <Param name="stopVal" val="$BASELINE_DURATION" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
@@ -278,7 +278,7 @@
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
         <Param name="color" val="black" valType="str" updates="constant"/>
         <Param name="text" val="Now sit and relax for a moment. Just look at the screen and do nothing..." valType="str" updates="constant"/>
-        <Param name="stopVal" val="5.0" valType="code" updates="constant"/>
+        <Param name="stopVal" val="1.0" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
@@ -396,7 +396,7 @@
         <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
       </TextComponent>
       <CodeComponent name="code">
-        <Param name="Begin Experiment" val="try:&#10;    from exps import exps_helper&#10;    from exps.dorota2 import dorota_helper&#10;    import time&#10;    H = exps_helper.ExpsHelper()&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))&#10;&#10;CONDITIONS = ['con', 'exp']&#10;CONDITIONS_COUNT = len(CONDITIONS)&#10;BLOCKS_COUNT = 2&#10;TRIALS_COUNT = 4&#10;KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}&#10;CONDITIONS_FILE='/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'&#10;&#10;condition_index = 0&#10;block_index = 0&#10;trial_index = 0&#10;&#10;try:&#10;    dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))&#10;" valType="code" updates="constant"/>
+        <Param name="Begin Experiment" val="# defaults&#10;CONDITIONS = ['con', 'exp']&#10;BLOCKS_COUNT = 1&#10;TRIALS_COUNT = 3&#10;KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}&#10;CONDITIONS_FILE='~/obci/exps/dorota2/trialTypesCongruent.csv'&#10;BASELINE_DURATION=5&#10;&#10;try:&#10;    from exps import exps_helper&#10;    from exps.dorota2 import dorota_helper&#10;    import time, sys&#10;    H = exps_helper.ExpsHelper(config_module=sys.modules[__name__])&#10;&#10;    # from config &#10;    p = H.get_param('conditions').split(';')&#10;    if len(p) &gt; 0:&#10;        CONDITIONS = p&#10;    p = H.get_param('blocks_count')&#10;    if len(p) &gt; 0:&#10;        BLOCKS_COUNT = int(p)&#10;    p = H.get_param('trials_count')&#10;    if len(p) &gt; 0:&#10;        TRIALS_COUNT = int(p)&#10;    p = H.get_param('keys_map')&#10;    if len(p) &gt; 0:&#10;        KEYS_MAP = eval(p)&#10;    p = H.get_param('conditions_file')&#10;    if len(p) &gt; 0:&#10;        CONDITIONS_FILE=p&#10;    p = H.get_param('baseline_duration')&#10;    if len(p) &gt; 0:&#10;        BASELINE_DURATION=float(p)&#10;#generate csv file&#10;    dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)&#10;&#10;except Exception, e:&#10;    print(&quot;No obci mode??????????????????: &quot;)&#10;    print(e)&#10;&#10;#control variables&#10;condition_index = 0&#10;block_index = 0&#10;trial_index = 0" valType="code" updates="constant"/>
         <Param name="name" val="code" valType="code" updates="None"/>
         <Param name="Each Frame" val="" valType="code" updates="constant"/>
         <Param name="Begin Routine" val="try:&#10;    ts = time.time() - trialClock.getTime()&#10;    H.send_tag(time.time(), time.time(), &quot;trial&quot;)&#10;except Exception, e:&#10;    print(&quot;No obci mode?: &quot;+str(e))" valType="code" updates="constant"/>
@@ -606,13 +606,13 @@
     <Routine name="learn4"/>
     <Routine name="ready_2"/>
     <LoopInitiator loopType="TrialHandler" name="trials">
-      <Param name="conditionsFile" val="/home/mati/obci/exps/dorota2/trialTypesCongruent.csv" valType="str" updates="None"/>
+      <Param name="conditionsFile" val="$CONDITIONS_FILE" valType="str" updates="None"/>
       <Param name="name" val="trials" valType="code" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
       <Param name="loopType" val="sequential" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="num" updates="None"/>
       <Param name="endPoints" val="[1, 2]" valType="num" updates="None"/>
-      <Param name="conditions" val="[{'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}, {'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}, {'text': u'red', 'congruent': 1, 'corrAns': 7, 'letterColor': u'red'}, {'text': u'green', 'congruent': 1, 'corrAns': 8, 'letterColor': u'green'}, {'text': u'blue', 'congruent': 1, 'corrAns': 9, 'letterColor': u'blue'}, {'text': u'yellow', 'congruent': 1, 'corrAns': 0, 'letterColor': u'yellow'}]" valType="str" updates="None"/>
+      <Param name="conditions" val="None" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="trial"/>
     <Routine name="block_break"/>

@@ -4,7 +4,7 @@
 #      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
 from acquisition import csv_manager
-import random
+import random, os
 
 def _get_control_rows(keys_map, count):
     colors = keys_map.keys()
@@ -48,7 +48,7 @@ def _get_experimental_rows(keys_map, count):
 
 def generate_trials(file_name, conds_list, blocks_count,
                     trials_count, keys_map):
-    
+    file_name = os.path.expanduser(file_name)
     m = csv_manager.Writer(file_name, ',')
     m.write_row(["text","letterColor","corrAns","congruent"])
     for cond in conds_list:

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), nie, 8 lip 2012, 15:36:27
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), pon, 9 lip 2012, 01:53:14
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -21,9 +21,9 @@ expInfo={}
 expInfo['date']=data.getDateStr()#add a simple timestamp
 expInfo['expName']=expName
 #setup files for saving
-if not os.path.isdir('/home/mati/temp'):
-    os.makedirs('/home/mati/temp') #if this fails (e.g. permissions) we will get error
-filename='/home/mati/temp' + os.path.sep + '%s' %(expInfo['date'])
+if not os.path.isdir('/home/mati/obci_temp'):
+    os.makedirs('/home/mati/obci_temp') #if this fails (e.g. permissions) we will get error
+filename='/home/mati/obci_temp' + os.path.sep + '%s' %(expInfo['date'])
 logging.console.setLevel(logging.WARNING)#this outputs to the screen, not a file
 
 #an ExperimentHandler isn't essential but helps with data saving
@@ -58,95 +58,95 @@ text_5=visual.TextStim(win=win, ori=0, name='text_5',
 #Initialise components for Routine "baseline"
 baselineClock=core.Clock()
 text_4=visual.TextStim(win=win, ori=0, name='text_4',
-    text='Now sit and relax for a moment. Just look at the screen and do nothing...',
-    font='Arial',
+    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font=u'Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color='black', colorSpace='rgb', opacity=1,
+    color=u'black', colorSpace=u'rgb', opacity=1,
     depth=0.0)
 
 
 #Initialise components for Routine "instruct"
 instructClock=core.Clock()
 instrText=visual.TextStim(win=win, ori=0, name='instrText',
-    text=u"In a moment you'll see a list of words displayed one by one at the center of the screen. Fonts will be of different colours. Your task will be to recognise font colour and to push that colour's button as fast as possible. Now - put your four fingers on buttons 7 8 9 0. Leave your hand at that position till the end of the experiment. Hit 7 to continue ...",
-    font=u'Arial',
+    text="In a moment you'll see a list of words displayed one by one at the center of the screen. Fonts will be of different colours. Your task will be to recognise font colour and to push that colour's button as fast as possible. Now - put your four fingers on buttons 7 8 9 0. Leave your hand at that position till the end of the experiment. Hit 7 to continue ...",
+    font='Arial',
     pos=[0, 0], height=0.08,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 #Initialise components for Routine "learn1"
 learn1Clock=core.Clock()
 text_8=visual.TextStim(win=win, ori=0, name='text_8',
-    text=u'Hit 7 button (this button is assigned to GREEN colour).',
-    font=u'Arial',
+    text='Hit 7 button (this button is assigned to GREEN colour).',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 text_9=visual.TextStim(win=win, ori=0, name='text_9',
     text=None,
-    font=u'Arial',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-2.0)
 
 #Initialise components for Routine "learn2"
 learn2Clock=core.Clock()
 text_10=visual.TextStim(win=win, ori=0, name='text_10',
-    text=u'Hit 8 button (this button is assigned to RED colour).',
-    font=u'Arial',
+    text='Hit 8 button (this button is assigned to RED colour).',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 text_11=visual.TextStim(win=win, ori=0, name='text_11',
-    text=u'green                         ',
-    font=u'Arial',
+    text='green                         ',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-2.0)
 
 #Initialise components for Routine "learn3"
 learn3Clock=core.Clock()
 text_12=visual.TextStim(win=win, ori=0, name='text_12',
-    text=u'Hit 9 button (this button is assigned to YELLOW colour).',
-    font=u'Arial',
+    text='Hit 9 button (this button is assigned to YELLOW colour).',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 text_13=visual.TextStim(win=win, ori=0, name='text_13',
-    text=u'green    red                    ',
-    font=u'Arial',
+    text='green    red                    ',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-2.0)
 
 #Initialise components for Routine "learn4"
 learn4Clock=core.Clock()
 text_14=visual.TextStim(win=win, ori=0, name='text_14',
-    text=u'Hit 0 button (this button is assigned to BLUE colour).',
-    font=u'Arial',
+    text='Hit 0 button (this button is assigned to BLUE colour).',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 text_15=visual.TextStim(win=win, ori=0, name='text_15',
-    text=u'green    red    yellow        ',
-    font=u'Arial',
+    text='green    red    yellow        ',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-2.0)
 
 #Initialise components for Routine "ready_2"
 ready_2Clock=core.Clock()
 text_6=visual.TextStim(win=win, ori=0, name='text_6',
-    text=u'You learned colours assigned to buttons. If ready hit 7 button to start the experiment.',
-    font=u'Arial',
+    text='You learned colours assigned to buttons. If ready hit 7 button to start the experiment.',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 text_16=visual.TextStim(win=win, ori=0, name='text_16',
-    text=u'green    red    yellow    blue',
-    font=u'Arial',
+    text='green    red    yellow    blue',
+    font='Arial',
     pos=[0.5, -0.8], height=0.1,wrapWidth=None,
-    color=u'grey', colorSpace=u'rgb', opacity=1,
+    color='grey', colorSpace='rgb', opacity=1,
     depth=-2.0)
 
 #Initialise components for Routine "trial"
@@ -157,30 +157,50 @@ word=visual.TextStim(win=win, ori=0, name='word',
     pos=[0, 0], height=0.2,wrapWidth=None,
     color=1.0, colorSpace='rgb', opacity=1,
     depth=0.0)
+# defaults
+CONDITIONS = ['con', 'exp']
+BLOCKS_COUNT = 1
+TRIALS_COUNT = 3
+KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}
+CONDITIONS_FILE='~/obci/exps/dorota2/trialTypesCongruent.csv'
+BASELINE_DURATION=5
+
 try:
     from exps import exps_helper
     from exps.dorota2 import dorota_helper
-    import time
-    H = exps_helper.ExpsHelper()
+    import time, sys
+    H = exps_helper.ExpsHelper(config_module=sys.modules[__name__])
+
+    # from config 
+    p = H.get_param('conditions').split(';')
+    if len(p) > 0:
+        CONDITIONS = p
+    p = H.get_param('blocks_count')
+    if len(p) > 0:
+        BLOCKS_COUNT = int(p)
+    p = H.get_param('trials_count')
+    if len(p) > 0:
+        TRIALS_COUNT = int(p)
+    p = H.get_param('keys_map')
+    if len(p) > 0:
+        KEYS_MAP = eval(p)
+    p = H.get_param('conditions_file')
+    if len(p) > 0:
+        CONDITIONS_FILE=p
+    p = H.get_param('baseline_duration')
+    if len(p) > 0:
+        BASELINE_DURATION=float(p)
+#generate csv file
+    dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)
+
 except Exception, e:
-    print("No obci mode?: "+str(e))
+    print("No obci mode??????????????????: ")
+    print(e)
 
-CONDITIONS = ['con', 'exp']
-CONDITIONS_COUNT = len(CONDITIONS)
-BLOCKS_COUNT = 2
-TRIALS_COUNT = 4
-KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}
-CONDITIONS_FILE='/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'
-
+#control variables
 condition_index = 0
 block_index = 0
 trial_index = 0
-
-try:
-    dorota_helper.generate_trials(CONDITIONS_FILE, CONDITIONS, BLOCKS_COUNT, TRIALS_COUNT, KEYS_MAP)
-except Exception, e:
-    print("No obci mode?: "+str(e))
-
 fixation=visual.TextStim(win=win, ori=0, name='fixation',
     text='+',
     font='Arial',
@@ -197,20 +217,20 @@ hint=visual.TextStim(win=win, ori=0, name='hint',
 #Initialise components for Routine "block_break"
 block_breakClock=core.Clock()
 text_2=visual.TextStim(win=win, ori=0, name='text_2',
-    text=u'Remember - pay attention to font colours!!!',
-    font=u'Arial',
+    text='Remember - pay attention to font colours!!!',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
 #Initialise components for Routine "condition_break"
 condition_breakClock=core.Clock()
 text_3=visual.TextStim(win=win, ori=0, name='text_3',
-    text=u'Get some rest.. Hit one of 7 8 9 0 to continue ...',
-    font=u'Arial',
+    text='Get some rest.. Hit one of 7 8 9 0 to continue ...',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
@@ -295,7 +315,7 @@ for thisComponent in introComponents:
 #------Prepare to start Routine"baseline_instruction"-------
 t=0; baseline_instructionClock.reset() #clock 
 frameN=-1
-routineTimer.add(5.000000)
+routineTimer.add(1.000000)
 #update component parameters for each repeat
 #keep track of which components have finished
 baseline_instructionComponents=[]
@@ -316,7 +336,7 @@ while continueRoutine and routineTimer.getTime()>0:
         text_5.tStart=t#underestimates by a little under one frame
         text_5.frameNStart=frameN#exact frame index
         text_5.setAutoDraw(True)
-    elif text_5.status==STARTED and t>=(0.0+5.0):
+    elif text_5.status==STARTED and t>=(0.0+1.0):
         text_5.setAutoDraw(False)
     
     #check if all components have finished
@@ -343,7 +363,6 @@ for thisComponent in baseline_instructionComponents:
 #------Prepare to start Routine"baseline"-------
 t=0; baselineClock.reset() #clock 
 frameN=-1
-routineTimer.add(10.000000)
 #update component parameters for each repeat
 try:
     ts = time.time()
@@ -357,7 +376,7 @@ for thisComponent in baselineComponents:
     if hasattr(thisComponent,'status'): thisComponent.status = NOT_STARTED
 #-------Start Routine "baseline"-------
 continueRoutine=True
-while continueRoutine and routineTimer.getTime()>0:
+while continueRoutine:
     #get current time
     t=baselineClock.getTime()
     frameN=frameN+1#number of completed frames (so 0 in first frame)
@@ -369,7 +388,7 @@ while continueRoutine and routineTimer.getTime()>0:
         text_4.tStart=t#underestimates by a little under one frame
         text_4.frameNStart=frameN#exact frame index
         text_4.setAutoDraw(True)
-    elif text_4.status==STARTED and t>=(0.0+10.0):
+    elif text_4.status==STARTED and t>=(0.0+BASELINE_DURATION):
         text_4.setAutoDraw(False)
     
     
@@ -823,9 +842,9 @@ for thisComponent in ready_2Components:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=1.0, method='sequential', 
+trials=data.TrialHandler(nReps=1.0, method=u'sequential', 
     extraInfo=expInfo, originPath=None,
-    trialList=data.importConditions('/home/mati/obci/exps/dorota2/trialTypesCongruent.csv'),
+    trialList=data.importConditions(CONDITIONS_FILE),
     seed=None, name='trials')
 thisExp.addLoop(trials)#add the loop to the experiment
 thisTrial=trials.trialList[0]#so we can initialise stimuli with some values
@@ -1108,7 +1127,10 @@ for thisTrial in trials:
 if trials.trialList in ([], [None], None):  params=[]
 else:  params = trials.trialList[0].keys()
 #save data for this loop
-
+trials.saveAsPickle(filename+'trials', fileCollisionMethod='rename')
+trials.saveAsText(filename+'trials.csv', delim=',',
+    stimOut=params,
+    dataOut=['n','all_mean','all_std', 'all_raw'])
 
 #------Prepare to start Routine"thanks"-------
 t=0; thanksClock.reset() #clock 
