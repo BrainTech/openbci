@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), pon, 9 lip 2012, 01:53:14
+This experiment was created using PsychoPy2 Experiment Builder (v1.74.00), pon, 9 lip 2012, 02:14:19
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -58,10 +58,10 @@ text_5=visual.TextStim(win=win, ori=0, name='text_5',
 #Initialise components for Routine "baseline"
 baselineClock=core.Clock()
 text_4=visual.TextStim(win=win, ori=0, name='text_4',
-    text=u'Now sit and relax for a moment. Just look at the screen and do nothing...',
-    font=u'Arial',
+    text='Now sit and relax for a moment. Just look at the screen and do nothing...',
+    font='Arial',
     pos=[0, 0], height=0.1,wrapWidth=None,
-    color=u'black', colorSpace=u'rgb', opacity=1,
+    color='black', colorSpace='rgb', opacity=1,
     depth=0.0)
 
 
@@ -160,9 +160,9 @@ word=visual.TextStim(win=win, ori=0, name='word',
 # defaults
 CONDITIONS = ['con', 'exp']
 BLOCKS_COUNT = 1
-TRIALS_COUNT = 3
+TRIALS_COUNT = 4
 KEYS_MAP = {'green':'7', 'red':'8', 'yellow':'9', 'blue':'0'}
-CONDITIONS_FILE='~/obci/exps/dorota2/trialTypesCongruent.csv'
+CONDITIONS_FILE='~/obci/exps/dorota2/trialTypes.csv'
 BASELINE_DURATION=5
 
 try:
@@ -842,7 +842,7 @@ for thisComponent in ready_2Components:
     if hasattr(thisComponent,"setAutoDraw"): thisComponent.setAutoDraw(False)
 
 #set up handler to look after randomisation of conditions etc
-trials=data.TrialHandler(nReps=1.0, method=u'sequential', 
+trials=data.TrialHandler(nReps=1.0, method='sequential', 
     extraInfo=expInfo, originPath=None,
     trialList=data.importConditions(CONDITIONS_FILE),
     seed=None, name='trials')

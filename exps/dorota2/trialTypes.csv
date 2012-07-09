@@ -1,0 +1,9 @@
+"text","letterColor","corrAns","congruent"
+"red","red",8,1
+"green","green",7,1
+"blue","blue",0,1
+"yellow","yellow",9,1
+"red","green",7,0
+"green","blue",0,0
+"blue","yellow",9,0
+"yellow","red",8,0
