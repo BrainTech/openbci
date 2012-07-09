@@ -39,7 +39,7 @@ class EtrCalibration(ConfiguredClient):
 
     def _send_results(self):
         r = variables_pb2.Sample()
-        t.timestamp = time.time()
+        r.timestamp = time.time()
         for i in range(8):
             r.channels.append(random.random())
         self.conn.send_message(message = r.SerializeToString(), 

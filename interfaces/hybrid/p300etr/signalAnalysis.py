@@ -26,13 +26,16 @@ class DataAnalysis(object):
         self.iInit, self.iFin = csp_time[0]*self.fs, csp_time[1]*self.fs
         
     def prepareSignal(self, s, avrM=None):
+        """
+        Prepare 1D signal for anylisis.
+        """
         if avrM == None: avrM = self.avrM
 
         temp = s
         #~ temp = (temp-temp.mean())/temp.std()
         temp = self.filtrHigh(temp)
-        temp = self.movingAvr(temp, avrM)
-        temp = self.filtrLow(temp)
+        temp = self.movingAvr(temp, avrM+1)
+        #~ temp = self.filtrLow(temp)
         
         #~ temp = self.movingAvr(temp, 10)
         #~ temp = temp[self.iInit:self.iFin:avrM]
@@ -40,7 +43,6 @@ class DataAnalysis(object):
             pass
         else:
             temp = map(lambda i: temp[i], np.floor(np.linspace(self.csp_time[0], self.csp_time[1], self.avrM)*self.fs))
-            
         
         return np.array(temp)
         
@@ -94,7 +96,6 @@ class DataAnalysis(object):
         return filtfilt(self.b_H, self.a_H, s)
         
     def movingAvr(self, s, r):
-        import time
         L, r = len(s), int(r)
         temp = np.zeros(L)
         temp[:r] = s[:r]

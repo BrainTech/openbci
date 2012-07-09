@@ -65,20 +65,29 @@ def get_montage_matrix(all_channels, use_channels, montage, montage_channels):
         ch_ind = all_channels.index(ch)
         m[ch_ind, i] = 1.0
 
-    if montage == 'ident':
-        return m
-    elif montage == 'ears':
-        e1 = all_channels.index(montage_channels[0])
-        e2 = all_channels.index(montage_channels[1])
-        for i in range(len(use_channels)):
-            m[e1, i] = -0.5
-            m[e2, i] = -0.5
-    elif montage == 'diff':
-        d = all_channels.index(montage_channels[0])
-        for i in range(len(use_channels)):
-            m[d, i] = -1.0
 
+
+    montage_len = len(montage_channels)
+    for mon in range(montage_len):
+        e = all_channels.index(montage_channels[mon])
+        for i in range(len(use_channels)):
+            m[e, i] = -1./montage_len
     return m
+
+    #~ if montage == 'ident':
+        #~ return m
+    #~ elif montage == 'ears':
+        #~ e1 = all_channels.index(montage_channels[0])
+        #~ e2 = all_channels.index(montage_channels[1])
+        #~ for i in range(len(use_channels)):
+            #~ m[e1, i] = -0.5
+            #~ m[e2, i] = -0.5
+    #~ elif montage == 'diff':
+        #~ d = all_channels.index(montage_channels[0])
+        #~ for i in range(len(use_channels)):
+            #~ m[d, i] = -1.0
+#~ 
+    #~ return m
 
 
 def edit_csp_configs(buf_time, freqs):

@@ -60,7 +60,7 @@ class Camera:
 
         c = cv.waitKey(10)
         #~ print chr(c)
-        if (c==ord('q')): break
+        if (c==ord('q')): sys.exit()
         if (c==ord('s')): self.setRef()
             
     def calibrationStart(self):

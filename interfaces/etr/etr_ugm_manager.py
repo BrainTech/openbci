@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from gui.ugm import ugm_config_manager
+import math
 
 class AreaConfig(object):
     def __init__(self, ugm_config):
@@ -8,6 +9,9 @@ class AreaConfig(object):
         self.y1 = float(ugm_config['position_vertical'])
         self.x2 = self.x1 + float(ugm_config['width'])
         self.y2 = self.y1 + float(ugm_config['height'])
+        
+        self.xMean = 0.5*(self.x1+self.x2)
+        self.yMean = 0.5*(self.y1+self.y2)
 
         self.config = {'id': ugm_config['id']}
 
@@ -71,7 +75,7 @@ class EtrUgmManager(object):
             self.area_configs.append(AreaConfig(mgr.get_config_for(count+i)))
 
         self.fix_config = FixConfig(mgr.get_config_for(self.fix_id))
-                                    
+
 
     def get_pushed_area_id(self, msg):
         for i, p in enumerate(self.area_configs):
@@ -88,3 +92,12 @@ class EtrUgmManager(object):
 
         return str(updates)
         
+    def get_area_centres(self):
+        """
+        Returns centre positions of each rectangle.
+        """
+        cX, cY = [0]*self.speller_area_count, [0]*self.speller_area_count
+        for i, p in enumerate(self.area_configs):
+            cX[i], cY[i] = 0.5*(p.x1+p.x2), 0.5*(p.y1+p.y2)
+            
+        return cX, cY

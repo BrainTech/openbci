@@ -17,7 +17,6 @@ from analysis.obci_signal_processing import smart_tags_manager as sgr
 from configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
-#from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.p300_fda_lines import csp_helper
 
 from logic import logic_helper
