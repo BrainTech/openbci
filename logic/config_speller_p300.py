@@ -29,7 +29,7 @@ class Config(object):
                        "M", "N", "O", "P", "R", "S",
                        "T", "U", "W", "Y", "Z", "0",
                        "1", "2", "3", "4", "5", "6",
-                       "7", "8", "9", "_", "<", "#"]]
+                       "7", "8", "9", "_", "<-", "#"]]
 
         # See descripton above.
         self.letters_solver = [[""]*self.number_of_decisions]

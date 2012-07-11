@@ -59,11 +59,11 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         density for each epoch.
         """
         m = np.array(m)
-        m = np.exp(-m)
+        m = np.exp(-(40*m)**2)
         self.metricBuffor = np.hstack((self.metricBuffor[:,1:],m[np.newaxis].T))
     
     def _calc_pdf(self):
-        self.pdf = np.sum(self.metricBuffor, axis=1)
+        self.pdf = np.mean(self.metricBuffor, axis=1)
         #~ self.pdf = self.pdf/np.sum(self.pdf)
         
         return self.pdf
@@ -108,15 +108,16 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
             m = self._calc_metric(x,y)
             self._update_heatmap(m)
             
-            # Calc heatmap as probabilty density
-            pdf = self._calc_pdf()
-            
             ugm = self.ugm_mgr.get_ugm_updates(self.feeds, msg)
             ugm_helper.send_config(self.conn, ugm, 1)
             
             self.nCount += 1
             
-            if self.nCount & self.nRefresh == 0:
+            if self.nCount % self.nRefresh == 0:
+                # Calc heatmap as probabilty density
+                pdf = self._calc_pdf()
+                
+                # Send results to decision modul
                 self._send_results()
             
         #~ elif mxmsg.type == types.BLINK_MESSAGE:
@@ -133,6 +134,10 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         Sends results do decision making module.
         """
         pdf = self._getPdf()
+        
+        # Flip pdf matrix
+        #~ pdf = pdf.reshape((self.rows,self.cols))[:,::-1].flatten()
+        pdf = pdf.reshape((6,6))[:,::-1].flatten()
         
         r = variables_pb2.Sample()
         r.timestamp = time.time()

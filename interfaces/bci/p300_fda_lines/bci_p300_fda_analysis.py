@@ -26,7 +26,6 @@ class BCIP300FdaAnalysis(object):
         nLast = cfg['nLast']
 
         csp_time = cfg['csp_time']
-        self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
         avrM = cfg['avrM']
@@ -36,7 +35,7 @@ class BCIP300FdaAnalysis(object):
         self.rows = cfg['row_count']
         self.nPole = np.zeros(self.cols+self.rows)
         
-        print "cfg['w']: ", cfg['w']
+        #~ print "cfg['w']: ", cfg['w']
         self.p300 = P300_analysis(sampling, cfg, rows=self.rows, cols=self.cols)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         

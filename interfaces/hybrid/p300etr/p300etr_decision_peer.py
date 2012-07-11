@@ -25,7 +25,10 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
         
         self.rows = int(self.config.get_param("rows"))
         self.cols = int(self.config.get_param("cols"))
-        self.thresholdPercent = float(self.config.get_param("threshold_percent"))
+        
+        self.thresholdPercent = float(self.config.get_param("p300etr_threshold"))
+        self.p300Tr =  float(self.config.get_param("p300_threshold"))
+        self.etrTr =  float(self.config.get_param("etr_threshold"))
         
 
     def handle_message(self, mxmsg):
@@ -48,6 +51,7 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             print "pdf_p300: ", res.channels
             self.pdf_p300 = np.array( res.channels )
 
+
             # Probabilty from etr
             pdf_etr = self.pdf_etr
             
@@ -55,19 +59,42 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             pdf_p300 = self.pdf_p300
             
             # Hybryd probability
-            pdf = np.array(pdf_p300)*np.array(pdf_etr)
-            
-            # Assume pdf is T distribution
-            loc = pdf.mean()
-            scale = pdf.std()
-            cdf = st.t.cdf(pdf, len(pdf), loc=loc, scale=scale)
-            
-            # If only one value is over threshold
-            if np.sum( cdf > self.thresholdPercent ) == 1:
-                dec = int(np.arange(len(cdf))[cdf > self.tresholdValue][0])
-                print "WYSYLAM DECYZJE: ", dec
+            pdf = 0.5*(pdf_etr + pdf_p300)
+            #~ pdf = pdf_etr
 
+            print "pdf_etr: ", pdf_etr
+            print "pdf_p300: ", pdf_p300
+            print "pdf: ", pdf
+                        
+            dec = -1
+                        
+            
+            if (pdf>self.thresholdPercent).sum() == 1:
+                dec = int(np.arange(self.cols*self.rows)[pdf==pdf.max()])
+                LOGGER.info("Dec: " + str(dec))
+            
+            elif ((pdf_p300>self.p300Tr).sum() == 1) and (pdf_etr<self.etrTr).all():
+                dec = int(np.arange(self.cols*self.rows)[pdf_p300==pdf_p300.max()])
+                LOGGER.info("Dec (only p300): " + str(dec))
+
+            elif (pdf_p300<self.p300Tr).all() and ((pdf_etr>self.etrTr).sum() == 1):
+                dec = int(np.arange(self.cols*self.rows)[pdf_etr==pdf_etr.max()])
+                LOGGER.info("Dec (only etr): " + str(dec))
+
+            if dec != -1:
                 self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+                
+            # Assume pdf is T distribution
+            #~ loc = pdf.mean()
+            #~ scale = pdf.std()
+            #~ cdf = st.t.cdf(pdf, len(pdf), loc=loc, scale=scale)
+                        
+            #~ # If only one value is over threshold
+            #~ if np.sum( cdf > self.thresholdPercent ) == 1:
+                #~ dec = int(np.arange(len(cdf))[cdf > self.tresholdValue][0])
+                #~ print "WYSYLAM DECYZJE: ", dec
+#~ 
+                #~ self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
                 
         self.no_response
 

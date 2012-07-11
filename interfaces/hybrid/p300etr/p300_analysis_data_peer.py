@@ -109,13 +109,14 @@ class BCIP300FdaAnalysis(object):
             return
         
         else:
-            perR, perC = self.p300.getProbabiltyDensity()
+            #~ perR, perC = self.p300.getProbabiltyDensity()
+            pdf = self.p300.getProbabiltyDensity()
             
-            perR = np.matrix(perR)
-            perC = np.matrix(perC)
+            #~ perR = np.matrix(perR)/100.
+            #~ perC = np.matrix(perC)/100.
             
-            pdf = perC.T*perR
-            pdf = np.array(pdf).flatten()
+            #~ pdf = perC.T*perR
+            #~ pdf = np.array(pdf).flatten()
 
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )

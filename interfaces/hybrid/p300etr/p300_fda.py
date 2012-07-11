@@ -448,7 +448,7 @@ class P300_analysis(object):
         
         # For statistical analysis
         self.pdf = np.array(cfg['pdf'])
-        self.pPer = float(cfg['pPercent'])
+        #~ self.pPer = float(cfg['pPercent'])
         
         # w - values of diff between dVal and significal d (v)
         #~ self.diffV = np.zeros(self.fields)
@@ -621,9 +621,14 @@ class P300_analysis(object):
         dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nMinR]) for i in range(self.rows)])
         dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nMinC]) for i in range(self.cols)])
         
+        p = np.zeros(self.rows*self.cols)
+        for x in range(self.cols):
+            for y in range(self.rows):
+                d = (dMeanR[y] + dMeanR[x])*0.5
+                p[x+y*self.cols] = st.percentileofscore(self.pdf, d)/100.
         # Assuming that dValues are from T distribution
-        pR = map( lambda score: st.percentileofscore(self.pdf, score), dMeanR)
-        pC = map( lambda score: st.percentileofscore(self.pdf, score), dMeanC)
+        #~ pR = map( lambda score: st.percentileofscore(self.pdf, score), dMeanR)
+        #~ pC = map( lambda score: st.percentileofscore(self.pdf, score), dMeanC)
         
-        return pR, pC
-        
+        #~ return pR, pC
+        return p
