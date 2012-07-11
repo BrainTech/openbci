@@ -9,7 +9,7 @@ from obci_control.peer.configured_client import ConfiguredClient
 from configs import settings, variables_pb2
 from drivers import drivers_logging as logger
 
-from cam import Camera`
+from cam import Camera
 
 LOGGER = logger.get_logger("etr_calibration", "info")
 

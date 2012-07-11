@@ -1,7 +1,11 @@
 from xml.dom import minidom
 import numpy as np
 import os.path as osp
-from scipy.signal import decimate
+
+# A map from xml`s sample_type string to numpy.fromfile function argument. 
+# Numpy treats 'float' as float64 (=double) and 'float32' as float32
+NP_TYPES = {'double': 'float',
+            'float': 'float32'}
 
 class signalParser(object):
     """This class can extract some information from signal and it's xml descriptors"""
@@ -50,8 +54,8 @@ class signalParser(object):
 
         fxml = minidom.parse(self.xml_file)
         return int(fxml.getElementsByTagName('rs:channelCount')[0].firstChild.data), \
-                int(fxml.getElementsByTagName('rs:sampleCount')[0].firstChild.data), \
-                float(fxml.getElementsByTagName('rs:samplingFrequency')[0].firstChild.data)
+            int(fxml.getElementsByTagName('rs:sampleCount')[0].firstChild.data), \
+            float(fxml.getElementsByTagName('rs:samplingFrequency')[0].firstChild.data)
 
     def getSamplingFrequency(self):
         return self.sampling_frequency
@@ -72,9 +76,11 @@ class signalParser(object):
         fxml = minidom.parse(self.xml_file)
         sample_type = fxml.getElementsByTagName('rs:sampleType')[0].firstChild.data
         ch_no = self.channel_count
-        sig = np.fromfile(self.raw_file,sample_type.lower())
+
+        sig = np.fromfile(self.raw_file, NP_TYPES[sample_type.lower()])
         signal = np.zeros([len(channel_list), self.sample_count])
-        print channel_list
+        print ("DEBUG GET FILTERED: "+str(sample_type)+ " / "+str(ch_no)+" / "+str(sig.shape)+" / "+str(signal.shape)+" / "+str(channel_list))
+
         for i,v in enumerate(channel_list):
             signal[i] = sig[v::ch_no][0:self.sample_count]
         if filt != None:
@@ -214,12 +220,8 @@ class signalParser(object):
         else: fsp = 1.0
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                timestamp = float(e.attributes['position'].value)
-                exp_list[timestamp*fsp] = int(index)
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+            timestamp = float(e.attributes['position'].value)
+            exp_list[timestamp*fsp] = int(index)
                     
         return exp_list
         
@@ -251,14 +253,16 @@ class signalParser(object):
             if Fs != None:
                 fsp = Fs
         else: fsp = 1.0
+        
+        # If int passed as target -> change it into list
+        if isinstance(idx, int): idx = [idx]
+        
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                if int(index) != idx:
-                    exp_list.append(float(e.attributes['position'].value))
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+
+            if int(index) not in idx:
+                exp_list.append(float(e.attributes['position'].value))
+
         return np.array(exp_list) * fsp 
         
     def get_p300_tags(self, idx=1, samples = True, Fs = None):
@@ -291,49 +295,37 @@ class signalParser(object):
         else: fsp = 1.0
         for e in tag_list:
             index = e.getElementsByTagName('index')[0].firstChild.data
-            if idx > 0:
-                if int(index) == idx:
-                    exp_list.append(float(e.attributes['position'].value))
-            else:
-                if int(index) !=  abs(idx):
-                    exp_list.append(float(e.attributes['position'].value))
+
+        # If int passed as target -> change it into list
+        if isinstance(idx, int): idx = [idx]
+        
+        for e in tag_list:
+            index = e.getElementsByTagName('index')[0].firstChild.data
+
+            if int(index) in idx:
+                exp_list.append(float(e.attributes['position'].value))
+                
         return np.array(exp_list) * fsp 
 
  
     def getTargetNontarget(self, signal, trgTags, ntrgTags):
         self.chL = signal.shape[0]
         self.Fs = self.getSamplingFrequency()
-        self.arrL = self.Fs
+        print "self.Fs: ", self.Fs
         
-        print "self.chL: ", self.chL
-        
-        ## Get target data and stuck it into dictionary
-        target = {}
+        ## Get target data and stuck it into numpy arrays
+        target = np.zeros((len(trgTags), self.chL, self.Fs))
+        nontarget = np.zeros((len(ntrgTags), self.chL, self.Fs))
 
-        # for each target blink
-        for tag in trgTags:
+        # Target trials
+        for idx, tag in enumerate(trgTags):
             
             index = int(tag)
-            #~ s *= 0
-            s = np.zeros( (self.chL, self.arrL) )
-            for idx in range(self.chL):
-                s[idx] = signal[idx][index:index+self.Fs]
-            
-            target[tag] = s
-
+            target[idx] = signal[:,index:index+self.Fs]
         
-        ## Get nontarget data and stuck it into dictionary
-        nontarget = {}
-        
-        # for each target blink
-        for tag in ntrgTags:
+        # Nontarget trials    
+        for idx, tag in enumerate(ntrgTags):
             index = int(tag)
-            #~ s *= 0
-            s = np.zeros( (self.chL, self.arrL) )
-            for idx in range(self.chL):
-                s[idx] = signal[idx][index:index+self.Fs]
+            nontarget[idx] = signal[:, index:index+self.Fs]
             
-            nontarget[tag] = s
-        
         return target, nontarget
-

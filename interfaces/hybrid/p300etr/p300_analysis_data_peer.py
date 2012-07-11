@@ -1,20 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-##
-# Author: Dawid Laszuk
-# Contact: laszukdawid@gmail.com
-##
-
 import random, time
 from interfaces import interfaces_logging as logger
 import numpy as np
 
-from interfaces.bci.p300_fda.p300_fda import P300_analysis
-from interfaces.bci.p300_fda.p300_draw import P300_draw
+from p300_fda import P300_analysis
+from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 
-LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")
+LOGGER = logger.get_logger("p300_analysis_data_peer", "debug")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
@@ -25,31 +20,44 @@ class BCIP300FdaAnalysis(object):
         self.fs = sampling
         self.montage_matrix = montage_matrix
 
-        self.nPole = np.zeros(8)
-        self.nMin = 5
-        self.nMax = 10
+        
+        self.nMin = cfg['nMin']
+        self.nMax = cfg['nMax']
+        nLast = cfg['nLast']
 
-        cfg['nMin'] = self.nMin
-        cfg['nMax'] = self.nMax
         csp_time = cfg['csp_time']
-        self.pVal = cfg['pVal']
+        self.pVal = float(cfg['pVal'])
         use_channels = cfg['use_channels']
 
-        nRepeat = cfg['nRepeat']
         avrM = cfg['avrM']
         conN = cfg['conN']
-        CONTINUE = True
         
-        print "cfg['w']: ", cfg['w']
-        self.p300 = P300_analysis(sampling, cfg, fields=8)
+        self.cols = cfg['col_count']
+        self.rows = cfg['row_count']
+        self.nPole = np.zeros(self.cols+self.rows)
+
+        self.epochNo = 0
+
+        # Clears buffer when blink time diff > timeThreshold
+        self.timeThreshold = 1.5
+        
+        self.p300 = P300_analysis(sampling, cfg, rows=self.rows, cols=self.cols)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
-        self.p300_draw = P300_draw(self.fs)
-        self.p300_draw.setTimeLine(conN, avrM, csp_time)
+        self.debugFlag = cfg['debug_flag']
         
-        self.epochNo = 0
+        if self.debugFlag:
+            self.p300_draw = P300_draw(self.fs)
+            self.p300_draw.setTimeLine(conN, avrM, csp_time)
         
         
+    def newEpoch(self):
+    
+        self.p300.newEpoch()
+        self.epochNo += 1
+        
+        self.nPole = np.zeros( self.nPole.shape)
+    
 
     def analyse(self, blink, data):
         """Fired as often as defined in hashtable configuration:
@@ -71,39 +79,48 @@ class BCIP300FdaAnalysis(object):
         # NUMPY_CHANNELS is a numpy 2D array with data divided by channels
         # PROTOBUF_SAMPLES is a list of protobuf Sample() objects
         'ANALYSIS_BUFFER_RET_FORMAT'
+
         """
-        
+        if time.time()-self.last_time > self.timeThreshold:
+            self.newEpoch
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
 
+        
+        # Get's montaged signal
         signal = np.dot(self.montage_matrix.T, data)
 
-        # Count how many times did each field blink
+        index = blink.index
+        if int(index) >= self.cols: lineFlag, index = 'r', index - self.cols
+        else:                       lineFlag = 'c'
+        
+        LOGGER.info("Blink -- {0}*{1}".format(lineFlag, index))
+        
+        # Counts each blink
         self.nPole[blink.index] += 1
+        LOGGER.debug("self.nPole: " + str(self.nPole))
 
-        # Classify data
-        self.p300.testData(signal, blink.index)
+        # Classify each signal
+        self.p300.testData(signal, lineFlag, index)
+        dec = -1
 
+        if self.nPole.min() < self.nMin:
+            return
         
-        #~ if np.all(self.nPole>1):
-        if np.all(self.nPole>1):
-            
-            #~ self.p300.newEpoch()
-            self.epochNo += 1
-            dec_arr = range(8)
-            self.nPole -= 1
-            
-            LOGGER.info("Decision from P300: " +str(dec_arr) )
-            self.send_func(dec_arr)
         else:
-            LOGGER.info("Got -1 ind- no decision")
+            perR, perC = self.p300.getProbabiltyDensity()
+            
+            perR = np.matrix(perR)
+            perC = np.matrix(perC)
+            
+            pdf = perC.T*perR
+            pdf = np.array(pdf).flatten()
 
-    def getPD(self, d):
-        """
-        Derives probabilty density from given dict.
-        """
-        pass
-        
-        #~ for i in d.keys():
-        
+            if self.debugFlag:
+                self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
+                self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
+
+            self.send_func(pdf)
+        #~ else:
+            #~ LOGGER.info("Got -1 ind- no decision")

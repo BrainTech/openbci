@@ -30,7 +30,9 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         self.break_text = self.config.get_param("break_text")
         self.break_duration = float(self.config.get_param("break_duration"))
         self.trials_count = int(self.config.get_param("trials_count"))
-        self.current_target = int(self.config.get_param("target"))
+        #~ self.current_target = int(self.config.get_param("target"))
+        self.current_target = [int(x) for x in self.config.get_param("target").split(';')]
+
         self.blink_duration = float(self.config.get_param("blink_duration"))
 
         self._trials_counter = self.trials_count

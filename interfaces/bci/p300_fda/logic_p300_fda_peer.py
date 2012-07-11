@@ -221,7 +221,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         BEST = -1
         arr = np.arange(len(l))
         for i in range(5):
-            bestN = int(arr[l==l.min()])
+            bestN = int(arr[l==l.min()][0])
             
             print "best_{0}: {1}".format(i, bestN)
             print "d[bestN]: ", d[bestN]

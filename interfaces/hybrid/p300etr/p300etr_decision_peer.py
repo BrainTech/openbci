@@ -23,8 +23,9 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
 
     def initConst(self):
         
-        self.fields = 8
-        self.tresholdValue = 0.95
+        self.rows = int(self.config.get_param("rows"))
+        self.cols = int(self.config.get_param("cols"))
+        self.thresholdPercent = float(self.config.get_param("threshold_percent"))
         
 
     def handle_message(self, mxmsg):
@@ -33,11 +34,12 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT ETR ANALYSIS RESULTS: "+str(res.channels))
+    
             self.pdf_etr = np.array(res.channels)
-            #~ print "pdf_etr: ", pdf_etr
-            #~ print "type(pdf_etr): ", type(pdf_etr)
+            LOGGER.debug("pdf_etr: " + str(self.pdf_etr) )
 
             #self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+
         elif mxmsg.type == types.P300_ANALYSIS_RESULTS:
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
@@ -45,17 +47,15 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             
             print "pdf_p300: ", res.channels
             self.pdf_p300 = np.array( res.channels )
-            
-
 
             # Probabilty from etr
-            #~ pdf_etr = np.random.random(8)
+            pdf_etr = self.pdf_etr
             
             # Probability from p300
-            #~ pdf_p300 = np.random.random(8)
+            pdf_p300 = self.pdf_p300
             
             # Hybryd probability
-            pdf = self.pdf_p300*self.pdf_etr
+            pdf = np.array(pdf_p300)*np.array(pdf_etr)
             
             # Assume pdf is T distribution
             loc = pdf.mean()
@@ -63,8 +63,8 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             cdf = st.t.cdf(pdf, len(pdf), loc=loc, scale=scale)
             
             # If only one value is over threshold
-            if np.sum( cdf > self.tresholdValue ) == 1:
-                dec = int(np.arange(len(cdf))[cdf > self.tresholdValue])
+            if np.sum( cdf > self.thresholdPercent ) == 1:
+                dec = int(np.arange(len(cdf))[cdf > self.tresholdValue][0])
                 print "WYSYLAM DECYZJE: ", dec
 
                 self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)

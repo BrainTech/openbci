@@ -20,11 +20,11 @@ import csp_helper
 
 from utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_p300_csp", "info")
+LOGGER = logger.get_logger("bci_p300_fda", "info")
 DEBUG = True
 
 
-class BCIP300Csp(ConfiguredMultiplexerServer):
+class BCIP300Fda(ConfiguredMultiplexerServer):
     def send_decision(self, dec):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
@@ -38,7 +38,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
 
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
-        super(BCIP300Csp, self).__init__(addresses=addresses,
+        super(BCIP300Fda, self).__init__(addresses=addresses,
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
@@ -147,4 +147,4 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         
 
 if __name__ == "__main__":
-    BCIP300Csp(settings.MULTIPLEXER_ADDRESSES).loop()
+    BCIP300Fda(settings.MULTIPLEXER_ADDRESSES).loop()

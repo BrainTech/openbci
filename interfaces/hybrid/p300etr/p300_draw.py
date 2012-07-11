@@ -73,19 +73,22 @@ class P300_draw(object):
 
         analProductMeanTrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productMeanTrg))
         analProductMeanNtrg = np.array(map( lambda sig: self.sp.prepareSignal(sig), productMeanNtrg))
-        
+
+
+        ##
+        timeArr = np.array(self.simple_time.tolist()*analProductMeanTrg.shape[0]).reshape((-1,L))
         py.subplot(2, 1+self.conN, 1) # 1st row
         py.title("Mean target")
-        timeArr = np.array(self.simple_time.tolist()*analProductMeanTrg.shape[0]).reshape((-1,L))
-        py.plot(timeArr, analProductMeanTrg,'r.')
+        py.plot(np.transpose(timeArr), np.transpose(analProductMeanTrg),'r-')
         py.plot(self.simple_time, analProductMeanTrg.mean(axis=0),'g-')
 
+
+        ##
+        timeArr = np.array(self.simple_time.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,L))
         py.subplot(2, 1+self.conN, 2+self.conN) # 2nd row
         py.title("Mean nontarget")
-        timeArr = np.array(self.simple_time.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,L))
-        py.plot(timeArr, analProductMeanNtrg,'r.')
-        py.plot(self.simple_time, analProductMeanTrg.mean(axis=0),'g-')
-        
+        py.plot(np.transpose(timeArr), np.transpose(analProductMeanNtrg),'r-')
+        py.plot(self.simple_time, analProductMeanNtrg.mean(axis=0),'g-')
 
         #######################
         ##  Plotting target  ##
@@ -107,18 +110,20 @@ class P300_draw(object):
             allMeanCSPTrg[con] = analProductCSPTrg.mean(axis=0)
             allMeanCSPNtrg[con] = analProductCSPNtrg.mean(axis=0)
 
+            ## PLOT
+            timeArr = np.array(self.simple_time.tolist()*analProductCSPTrg.shape[0]).reshape((-1,L))
             py.subplot(2,1+self.conN,2+con)
             py.title("CSP mean target vec" +str(con+1))
-            timeArr = np.array(self.simple_time.tolist()*analProductCSPTrg.shape[0]).reshape((-1,L))
-            py.plot(timeArr, analProductCSPTrg, 'r-')
+            py.plot(np.transpose(timeArr), np.transpose(analProductCSPTrg), 'r-')
             py.plot(self.simple_time, allMeanCSPTrg[con], 'g-')
 
+            ## PLOT
+            timeArr = np.array(self.simple_time.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,L))
             py.subplot(2,1+self.conN,self.conN+1+2+con)
             py.title("CSP mean nontarget vec" +str(con+1))
-            timeArr = np.array(self.simple_time.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,L))
-            py.plot(timeArr, analProductCSPNtrg, 'r-')
+            py.plot(np.transpose(timeArr), np.transpose(analProductCSPNtrg), 'r-')
             py.plot(self.simple_time, allMeanCSPNtrg[con], 'g-')
-        
+
 
         if savefile:
             py.savefig(savefile, dpi=150)
@@ -186,17 +191,19 @@ class P300_draw(object):
         analProductMeanTrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productMeanTrg))
         analProductMeanNtrg = np.array(map( lambda sig: self.sp_ds.prepareSignal(sig), productMeanNtrg))
         
+        ## PLOT
+        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanTrg.shape[0]).reshape((-1,self.avrM))
         py.subplot(2, 1+self.conN, 1) # 1st row
         py.title("Mean target")
-        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanTrg.shape[0]).reshape((-1,self.avrM))
-        py.plot(timeArr, analProductMeanTrg,'r.')
-        py.plot(self.simple_time_ds, analProductMeanTrg.mean(axis=0),'go')
+        py.plot(self.simple_time_ds, analProductMeanTrg.mean(axis=0),'g-')
+        py.plot(np.transpose(timeArr), np.transpose(analProductMeanTrg),'r.')
         py.xlim(xMin, xMax)
 
+        ## PLOT
+        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,self.avrM))
         py.subplot(2, 1+self.conN, 2+self.conN) # 2nd row
         py.title("Mean nontarget")
-        timeArr = np.array(self.simple_time_ds.tolist()*analProductMeanNtrg.shape[0]).reshape((-1,self.avrM))
-        py.plot(timeArr, analProductMeanNtrg,'r.')
+        py.plot(np.transpose(timeArr), np.transpose(analProductMeanNtrg),'r.')
         py.plot(self.simple_time_ds, analProductMeanTrg.mean(axis=0),'g')
         py.xlim(xMin, xMax)
         
@@ -221,17 +228,19 @@ class P300_draw(object):
             allMeanCSPTrg[con] = analProductCSPTrg.mean(axis=0)
             allMeanCSPNtrg[con] = analProductCSPNtrg.mean(axis=0)
 
+            ## PLOT
+            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPTrg.shape[0]).reshape((-1,self.avrM))
             py.subplot(2,1+self.conN,2+con)
             py.title("CSP mean target vec" +str(con+1))
-            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPTrg.shape[0]).reshape((-1,self.avrM))
-            py.plot(timeArr, analProductCSPTrg, 'r.')
+            py.plot(np.transpose(timeArr), np.transpose(analProductCSPTrg), 'r.')
             py.plot(self.simple_time_ds, allMeanCSPTrg[con], 'g-')
             py.xlim(xMin, xMax)
-
+            
+            ## PLOT
+            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,self.avrM))
             py.subplot(2,1+self.conN,self.conN+1+2+con)
             py.title("CSP mean nontarget vec" +str(con+1))
-            timeArr = np.array(self.simple_time_ds.tolist()*analProductCSPNtrg.shape[0]).reshape((-1,self.avrM))
-            py.plot(timeArr, analProductCSPNtrg, 'r.')
+            py.plot(np.transpose(timeArr), np.transpose(analProductCSPNtrg), 'r.')
             py.plot(self.simple_time_ds, allMeanCSPNtrg[con], 'g-')
             py.xlim(xMin, xMax)
         
@@ -339,7 +348,7 @@ class P300_draw(object):
         py.clf()
         print "Zapisano obraz '{0}' w katalogu: {1}".format( savefile, os.getcwd())
             
-    def plotDistribution(self, dTarget, dNontarget, savefile=None):
+    def plotDistribution(self, dTarget, dNontarget, savefile=None, show=None):
         """
         Takes 1D numpy arrays of d values for target and nontarget.
         Plots and saves their histograms to file.
@@ -373,5 +382,8 @@ class P300_draw(object):
         self.globalNCount += 1
         
         py.savefig(savefile, dpi=150)
-        
-        py.show()
+        py.cla()        
+        py.clf()        
+
+        if show:
+            py.show()
