@@ -7,9 +7,9 @@
 from multiplexer.multiplexer_constants import peers, types
 from logic import logic_helper
 from logic.logic_decision_peer import LogicDecision
-from logic.speller_engine import SpellerEngine
-from logic.robot_engine import RobotEngine
-from logic.transform_engine import TransformEngine
+from logic.engines.speller_engine import SpellerEngine
+from logic.engines.robot_engine import RobotEngine
+from logic.engines.transform_engine import TransformEngine
 
 from configs import settings, variables_pb2
 from logic import logic_logging as logger
