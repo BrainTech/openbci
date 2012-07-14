@@ -9,8 +9,9 @@ import numpy as np
 import scipy.stats as st
 
 from interfaces import interfaces_logging as logger
+from gui.ugm import ugm_helper
 
-LOGGER = logger.get_logger("p300_etr_decision", "debug")
+LOGGER = logger.get_logger("p300_etr_decision", "info")
 
 
 class P300EtrDecision(ConfiguredMultiplexerServer):
@@ -30,9 +31,12 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
         self.p300Tr =  float(self.config.get_param("p300_threshold"))
         self.etrTr =  float(self.config.get_param("etr_threshold"))
         
+        self.pdf_p300 = np.zeros(self.rows*self.cols)
+        self.pdf_etr = np.zeros(self.rows*self.cols)
+        
 
     def handle_message(self, mxmsg):
-        LOGGER.info("P300EtrDecision\n")
+        LOGGER.debug("P300EtrDecision\n")
         if mxmsg.type == types.ETR_ANALYSIS_RESULTS:
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
@@ -53,13 +57,15 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
 
 
             # Probabilty from etr
-            pdf_etr = self.pdf_etr
+            pdf_etr = self.pdf_etr            
             
             # Probability from p300
             pdf_p300 = self.pdf_p300
             
             # Hybryd probability
             pdf = 0.5*(pdf_etr + pdf_p300)
+            pdf[np.random.randint(36)] = np.random.random()
+            pdf[np.random.randint(36)] = np.random.random()
             #~ pdf = pdf_etr
 
             print "pdf_etr: ", pdf_etr
@@ -67,7 +73,6 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             print "pdf: ", pdf
                         
             dec = -1
-                        
             
             if (pdf>self.thresholdPercent).sum() == 1:
                 dec = int(np.arange(self.cols*self.rows)[pdf==pdf.max()])
@@ -96,7 +101,7 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
 #~ 
                 #~ self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
                 
-        self.no_response
+        self.no_response()
 
 if __name__ == "__main__":
     P300EtrDecision(settings.MULTIPLEXER_ADDRESSES).loop()

@@ -29,11 +29,8 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
         LOGGER.info("Sending dec message: "+str(pdf))
-        self._last_dec_time = time.time()
 
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
-        self.buffer.clear_blinks()
-        ugm_helper.send_stop_blinking(self.conn)
 
         r = variables_pb2.Sample()
         r.timestamp = time.time()
@@ -117,6 +114,15 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             else:
                 self.no_response()
                 return
+        
+        # What to do after everything is done...
+        if mxmsg.type == types.DECISION_MESSAGE:
+            LOGGER.info("GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOT")
+            self.buffer.clear_blinks()
+            self._last_dec_time = time.time()
+            ugm_helper.send_stop_blinking(self.conn)
+            
+
 
         if mxmsg.type == types.BLINK_MESSAGE:
             l_msg = variables_pb2.Blink()

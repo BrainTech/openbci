@@ -12,8 +12,9 @@ from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 
 import numpy as np
+from utils import streaming_debug
 
-LOGGER = logger.get_logger("etr_analysis", "debug")
+LOGGER = logger.get_logger("etr_analysis", "info")
 
 
 class EtrAnalysis(ConfiguredMultiplexerServer):
@@ -21,7 +22,9 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         super(EtrAnalysis, self).__init__(addresses=addresses,
                                      type=peers.ETR_P300_ANALYSIS)
 
-
+        self.debug = streaming_debug.Debug(int(30),
+                                            LOGGER,
+                                            1)
         self.initConstants()
         self.ready()
 
@@ -86,7 +89,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         return np.sqrt((self.cX-x)**4 + (self.cY-y)**4)
         
     def handle_message(self, mxmsg):
-        LOGGER.info("EtrAnalysis\n")
+        #~ LOGGER.info("EtrAnalysis\n")
         if mxmsg.type == types.ETR_CALIBRATION_RESULTS:
         #### What to do when receive ETR_MATRIX information
             res = variables_pb2.Sample()
@@ -95,10 +98,15 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
 
 
         elif mxmsg.type == types.ETR_SIGNAL_MESSAGE:
+            self.debug.next_sample()
+
         #### What to do when receive ETR_SIGNAL information
             msg = variables_pb2.Sample2D()
             msg.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT MESSAGE: "+str(msg))
+
+            msg.x = 0.2 + (self.nCount % 2)*0.5
+            msg.y = 0.6
 
             # Save positions
             x, y = msg.x, msg.y            
@@ -108,6 +116,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
             m = self._calc_metric(x,y)
             self._update_heatmap(m)
             
+
             ugm = self.ugm_mgr.get_ugm_updates(self.feeds, msg)
             ugm_helper.send_config(self.conn, ugm, 1)
             
