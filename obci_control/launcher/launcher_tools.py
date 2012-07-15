@@ -105,7 +105,7 @@ def mx_path():
     return os.path.join(obci_root(), 'multiplexer-install', 'bin', 'mxcontrol')
 
 def mx_rules_path():
-    return os.path.join(obci_root(), 'configs', 'multiplexer.rules')
+    return os.path.join(obci_root(), 'obci_configs', 'multiplexer.rules')
 
 
 def module_path(module):

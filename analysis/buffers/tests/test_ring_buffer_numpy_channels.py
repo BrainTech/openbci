@@ -51,7 +51,7 @@ array([[  1.10000000e+01,   1.20000000e+01],
 """
 
 
-from configs import variables_pb2
+from obci_configs import variables_pb2
 def get_sample(v, ch):
     sample = variables_pb2.Sample()
     mult = 1

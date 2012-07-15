@@ -6,7 +6,7 @@
 
 import struct
 import sys, os.path
-from configs import variables_pb2
+from obci_configs import variables_pb2
 
 import signal_exceptions
 import signal_constants

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from multiplexer.clients import BaseMultiplexerServer
 from common.message import send_msg, recv_msg

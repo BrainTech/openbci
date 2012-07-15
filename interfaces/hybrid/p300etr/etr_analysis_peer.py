@@ -4,7 +4,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 import random, time, sys
 
 from interfaces.etr import etr_ugm_manager

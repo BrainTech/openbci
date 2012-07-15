@@ -9,7 +9,7 @@ import sys
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.signal import info_file_proxy
 

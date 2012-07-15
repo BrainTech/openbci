@@ -7,7 +7,7 @@ import os.path, sys, time, os
 #import speller_graphics_manager as sgm
 
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from logic.logic_speller_peer import LogicSpeller
 from logic.engines.robot_engine import RobotEngine

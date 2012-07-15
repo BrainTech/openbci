@@ -6,7 +6,7 @@ import time
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
-from configs import variables_pb2
+from obci_configs import variables_pb2
 from gui import gui_logging as logger
 
 LOGGER = logger.get_logger("ugm_blinking_connection", "debug")

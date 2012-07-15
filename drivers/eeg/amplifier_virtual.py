@@ -5,7 +5,7 @@ import os
 from multiplexer.multiplexer_constants import peers, types
 from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from drivers import drivers_logging as logger
-from configs import settings
+from obci_configs import settings
 from launcher.launcher_tools import obci_root
 
 LOGGER = logger.get_logger("AmplifierVirtual", "info")
