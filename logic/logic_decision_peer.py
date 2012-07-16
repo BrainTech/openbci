@@ -11,7 +11,7 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from logic import state_machine
 from logic import logic_helper
 #from import speller_graphics_manager as sgm
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from logic import logic_logging as logger
 
 LOGGER = logger.get_logger("logic_decision", "info")

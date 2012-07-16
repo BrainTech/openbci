@@ -5,7 +5,7 @@ import os, os.path, sys, Queue, time
 from multiplexer.multiplexer_constants import peers, types
 from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from drivers import drivers_logging as logger
-from configs import settings
+from obci_configs import settings
 from launcher.launcher_tools import obci_root
 from drivers.eeg import tags_to_mxmsg
 from analysis.obci_signal_processing.signal import read_info_source

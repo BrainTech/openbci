@@ -8,7 +8,7 @@ import sys, os, time
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from configs import settings
+from obci_configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 from interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis

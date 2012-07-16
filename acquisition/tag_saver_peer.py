@@ -6,7 +6,7 @@
 from multiplexer.multiplexer_constants import peers, types
 
 import sys, os.path, time
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.tags import tags_file_writer as tags_writer

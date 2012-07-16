@@ -10,7 +10,7 @@ from logic import logic_helper
 from logic.logic_decision_peer import LogicDecision
 from logic.engines.speller_engine import SpellerEngine
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("logic_speller", "info")
 

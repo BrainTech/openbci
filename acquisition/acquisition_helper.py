@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 import os.path
-from configs import variables_pb2
+from obci_configs import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from acquisition import acquisition_control
 

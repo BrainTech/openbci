@@ -3,7 +3,7 @@
 import time
 from obci_control.peer.configured_client import ConfiguredClient
 from acquisition import acquisition_helper
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 
 from acquisition import acquisition_logging as logger

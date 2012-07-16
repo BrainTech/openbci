@@ -13,8 +13,8 @@ from gui.ugm.ugm_config_manager import UgmConfigManager
 import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
-from configs import variables_pb2
-from configs import settings
+from obci_configs import variables_pb2
+from obci_configs import settings
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""

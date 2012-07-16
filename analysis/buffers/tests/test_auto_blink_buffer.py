@@ -176,7 +176,7 @@ def zero_count():
     global COUNT
     COUNT = 0
 
-from configs import variables_pb2
+from obci_configs import variables_pb2
 import time
 COUNT = 0
 

@@ -8,7 +8,7 @@ import os.path, sys, time
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_client import ConfiguredClient
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 

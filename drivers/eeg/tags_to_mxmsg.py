@@ -6,7 +6,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from utils import tags_helper
-from configs import variables_pb2
+from obci_configs import variables_pb2
 
 import Queue
 
