@@ -585,7 +585,10 @@ type {
         peer: "LOGIC_FEEDBACK"
         whom: ALL
     }
-
+    to {
+        peer: "P300_ANALYSIS"
+        whom: ALL
+    }
 }
 
 type {
