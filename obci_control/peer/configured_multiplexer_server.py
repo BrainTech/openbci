@@ -4,7 +4,7 @@ import sys
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from peer.peer_control import PeerControl
 import common.config_message as cmsg

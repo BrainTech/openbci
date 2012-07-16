@@ -9,7 +9,7 @@ import random, time, pickle
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
 from interfaces import interfaces_logging as logger

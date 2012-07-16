@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import random, time, sys
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_helper
 from interfaces.etr import hci_etr
 from interfaces.etr.classic import etr_classic_dec_manager

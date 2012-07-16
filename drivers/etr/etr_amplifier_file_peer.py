@@ -5,7 +5,7 @@
 import random, time, os.path, sys
 
 from drivers.etr import etr_amplifier
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from analysis.obci_signal_processing.signal import data_read_proxy
 from drivers import drivers_logging as logger
 

@@ -3,7 +3,7 @@
 import random, time, sys
 
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_helper
 from interfaces.etr import hci_etr
 from interfaces.etr.natural import etr_natural_dec_manager

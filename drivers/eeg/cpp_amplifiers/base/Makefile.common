@@ -64,8 +64,8 @@ $(BUILD)/%.o :	$(BASEDIR)/%.cpp $(CHECK_BUILD)
 
 
 $(BUILD)/variables.pb.cc:	$(BUILD)/variables.pb.h $(CHECK_BUILD)
-$(BUILD)/variables.pb.h: $(ROOTDIR)/configs/variables.proto $(CHECK_BUILD)
-	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/configs/ $<
+$(BUILD)/variables.pb.h: $(ROOTDIR)/obci_configs/variables.proto $(CHECK_BUILD)
+	protoc --cpp_out='$(BUILD)' --proto_path $(ROOTDIR)/obci_configs/ $<
 
 $(BUILD)/variables.pb.o: $(addprefix $(BUILD)/, variables.pb.cc variables.pb.h)
 	$(BUILD_TARGETS)
