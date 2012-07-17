@@ -5,7 +5,7 @@ import time
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from utils import debug_helper
 from acquisition import acquisition_logging as logger
