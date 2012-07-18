@@ -12,7 +12,7 @@ import peer.peer_cmd as peer_cmd
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
-from configs import settings
+from obci_configs import settings
 
 mtool = OBCIMessageTool(message_templates)
 

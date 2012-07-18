@@ -13,7 +13,7 @@ from peer_cmd import PeerCmd
 
 import common.config_message as cmsg
 
-from configs import settings
+from obci_configs import settings
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 from azouk._allinone import OperationFailed, OperationTimedOut
@@ -68,6 +68,9 @@ class PeerControl(object):
         # parse default config file
         self._load_config_base()
 
+        # parse external config file
+        self._load_config_external()
+
         # parse other config files (names from command line)
         for filename in self.file_list:
             self._load_config_from_file(filename, CONFIG_FILE_EXT, update=True)
@@ -85,6 +88,15 @@ class PeerControl(object):
         self.cmd_overrides = cmd_ovr
 
 
+    def _load_config_external(self):
+        """Parse the external configuration file, provided by peer"""
+
+        if self.peer is None:
+            raise NoPeerError
+        if self.peer.external_config_file is not None:
+            config_path = self.peer.external_config_file.rsplit('.', 1)[0]
+            config_path = '.'.join([config_path, CONFIG_FILE_EXT])
+            self._load_config_from_file(config_path, CONFIG_FILE_EXT)
 
     def _load_config_base(self):
         """Parse the base configuration file, named the same as peer's

@@ -5,7 +5,7 @@ import os
 import sys
 #from multiplexer.multiplexer_constants import peers, types
 from drivers import drivers_logging as logger
-from configs import settings
+from obci_configs import settings
 #from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from launcher.launcher_tools import obci_root
 import json

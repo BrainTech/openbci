@@ -39,8 +39,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
     classdocs
     '''
-    start = pyqtSignal(str)
-    stop = pyqtSignal(str)
+    start = pyqtSignal(str, dict)
+    stop = pyqtSignal(str, bool)
     reset = pyqtSignal(str)
 
     save_as = pyqtSignal(object)
@@ -96,7 +96,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
-        self.reset_button.clicked.connect(self._reset)
+        #self.reset_button.clicked.connect(self._reset)
+        self.store_container.hide()
+        self.store_checkBox.stateChanged.connect(self._update_store)
+        self.store_dir_chooser.clicked.connect(self._choose_dir)
 
         self._params = []
         self._scenarios = []
@@ -326,13 +329,34 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 self._getParams()
             self._setParams(self.exp_states[scenario_item.uuid])
             self.parameters_of.setTitle("Parameters of " + self.exp_states[scenario_item.uuid].exp.name)
+            self._store_update_info(self.exp_states[scenario_item.uuid].store_options)
+
         self._manage_actions(scenario_item)
 
     def _start(self):
-        self.start.emit(str(self.scenarios.currentItem().uuid))
+        uid = str(self.scenarios.currentItem().uuid)
+        if self.store_checkBox.isChecked():
+            store_options = {u'file_name': self.store_file.text(),
+                             u'file_dir': self.store_dir.text(),
+                             u'append_ts':  1 if self.store_ts_checkBox.isChecked() else 0,
+                             u'store_locally': 1 if self.store_local_checkBox.isChecked() else 0
+                             }
+            self.exp_states[uid].store_options = store_options
+        else:
+            store_options = None
+        self.start.emit(uid, store_options)
 
     def _stop(self):
-        self.stop.emit(str(self.scenarios.currentItem().uuid))
+        uid = str(self.scenarios.currentItem().uuid)
+        self.stop.emit(uid, self.exp_states[uid].store_options is not None)
+        self.exp_states[uid].store_options = None
+
+    def _update_store(self, state):
+        if int(state):
+            self.store_container.show()
+        else:
+            self.store_container.hide()
+
 
     def _reset(self):
         self.reset.emit(str(self.server_ip))
@@ -359,6 +383,17 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         exp = self.exp_states[uid].exp
         self.save_as.emit((filename, exp))
 
+    def _choose_dir(self):
+        curr = str(self.store_dir.text())
+        if len(curr) == 0:
+            curr = '~' 
+        curr = os.path.expanduser(curr)
+        dir = QFileDialog.getExistingDirectory(self, "Choose directory..,", curr)
+                      
+        if not dir:
+            return
+
+        self.store_dir.setText(dir)
 
     def _import(self):
         filename = QFileDialog.getOpenFileName(self, "Import scenario...",
@@ -410,7 +445,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for exp in scenarios:
 
             if exp.uuid not in self.exp_states:
-                st = new_states[exp.uuid] = ExperimentGuiState(exp)
+                st = new_states[exp.uuid] = ExperimentGuiState(
+                    exp, 
+                    self.exp_states.get(exp.old_uid, None)
+                    )
                 st.exp.destroyed.connect(self.exp_destroyed)
             else:
                 new_states[exp.uuid] = self.exp_states[exp.uuid]
@@ -452,27 +490,29 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _manage_actions(self, current_sc):
         if current_sc is None:
             self.start_button.setEnabled(False)
+            self._store_set_enabled(False)
             self.stop_button.setEnabled(False)
             return
         if current_sc.uuid not in self.exp_states:
             self.start_button.setEnabled(False)
+            self._store_set_enabled(False)
             self.stop_button.setEnabled(False)
             return
         current_exp = self.exp_states[current_sc.uuid].exp
 
         if current_exp.launcher_data is not None:
             self.start_button.setEnabled(False)
+            self._store_set_enabled(False)
             self.stop_button.setEnabled(True)
             self.parameters.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
             enable = (current_exp.status.status_name == READY_TO_LAUNCH)
             self.start_button.setEnabled(enable)
+            self._store_set_enabled(enable)
             self.stop_button.setEnabled(False)
             self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
                                          QAbstractItemView.EditKeyPressed)
 
-        if self.server_ip is not None:
-            self.reset_button.setEnabled(False)
 
         launched = current_exp.status.status_name not in [LAUNCHING, RUNNING, FAILED, TERMINATED]
         self.actionOpen.setEnabled(True)
@@ -484,16 +524,42 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.actionConnect.setEnabled(self._nearby_machines != {})
 
+    def _store_set_enabled(self, enable):
+        self.store_checkBox.setEnabled(enable)
+        self.store_file.setEnabled(enable)
+        self.store_dir.setEnabled(enable)
+        self.store_dir_chooser.setEnabled(enable)
+        self.store_ts_checkBox.setEnabled(enable)
+        self.store_local_checkBox.setEnabled(enable)
+
+    def _store_update_info(self, store_options):
+        if store_options is not None:
+            self.store_file.setText(store_options[u'file_name'])
+            self.store_dir.setText(store_options[u'file_dir'])
+            self.store_ts_checkBox.setChecked(store_options[u'append_ts'])
+            self.store_local_checkBox.setChecked(store_options[u'store_locally'])
+            self.store_checkBox.setChecked(True)
+            self.store_container.show()
+        else:
+            self.store_checkBox.setChecked(False)
+            self.store_container.hide()
+
+
 class ObciTreeWidgetItem(QTreeWidgetItem):
     def __init__(self, header_list, experiment_id):
         self.uuid = experiment_id
         super(ObciTreeWidgetItem, self).__init__(header_list)
 
 class ExperimentGuiState(object):
-    def __init__(self, engine_experiment):
+    def __init__(self, engine_experiment, old_exp=None):
 
         self.exp = engine_experiment
         self.expanded_peers = set()
+        if old_exp is None:
+            self.store_options = None
+        else:
+            self.store_options = old_exp.store_options
+
 
 
 class ConnectToMachine(QDialog, Ui_ConnectToMachine):

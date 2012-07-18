@@ -8,7 +8,7 @@ import sys, os.path, time
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.signal import data_write_proxy
 from analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
@@ -106,16 +106,16 @@ class SignalSaver(ConfiguredMultiplexerServer):
                 #Log module real sampling rate
                 self.debug.next_sample()
 
-        elif mxmsg.type == types.SIGNAL_SAVER_CONTROL_MESSAGE:
-            v = variables_pb2.Variable()
-            v.ParseFromString(mxmsg.message)
-            if v.key == 'finish':
+        elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
+            ctr = mxmsg.message
+            if ctr == 'finish':
                 LOGGER.info("Signal saver got finish saving _message.")
                 LOGGER.info("Last sample ts ~ "+repr(time.time()))
                 self._finish_saving_session()
+                time.sleep(3)
                 sys.exit(0)
             else:
-                LOGGER.warning("Signal saver got unknown control message "+v.key+"!")                
+                LOGGER.warning("Signal saver got unknown control message "+ctr+"!")                
         self.no_response()
 
     def _init_saving_session(self):

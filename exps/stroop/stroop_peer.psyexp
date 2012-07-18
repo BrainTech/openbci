@@ -1,4 +1,4 @@
-<PsychoPy2experiment version="1.73.05" encoding="utf-8">
+<PsychoPy2experiment version="1.74.00" encoding="utf-8">
   <Settings>
     <Param name="Show mouse" val="False" valType="bool" updates="None"/>
     <Param name="Save csv file" val="True" valType="bool" updates="None"/>
@@ -13,10 +13,11 @@
     <Param name="Save excel file" val="False" valType="bool" updates="None"/>
     <Param name="Save wide csv file" val="False" valType="bool" updates="None"/>
     <Param name="Save psydat file" val="True" valType="bool" updates="None"/>
+    <Param name="expName" val="stroop_peer" valType="str" updates="None"/>
     <Param name="logging level" val="warning" valType="code" updates="None"/>
     <Param name="Units" val="norm" valType="str" updates="None"/>
     <Param name="Show info dlg" val="False" valType="bool" updates="None"/>
-    <Param name="Saved data folder" val="~/temp/" valType="code" updates="None"/>
+    <Param name="Saved data folder" val="./temp" valType="code" updates="None"/>
     <Param name="Screen" val="1" valType="num" updates="None"/>
   </Settings>
   <Routines>

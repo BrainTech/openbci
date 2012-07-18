@@ -7,10 +7,10 @@ import os.path, sys, time, os
 #import speller_graphics_manager as sgm
 
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from logic.logic_speller_peer import LogicSpeller
-from logic.robot_engine import RobotEngine
+from logic.engines.robot_engine import RobotEngine
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("logic_robot", "info")

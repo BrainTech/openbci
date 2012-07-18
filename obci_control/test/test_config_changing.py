@@ -3,7 +3,7 @@
 
 import time
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from multiplexer.clients import connect_client
 import common.config_message as cmsg

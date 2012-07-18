@@ -7,7 +7,7 @@ from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from drivers import drivers_logging as logger
 from drivers.eeg.driver_comm import DriverComm
-from configs import settings
+from obci_configs import settings
 
 import json
 

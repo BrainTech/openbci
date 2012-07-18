@@ -9,7 +9,7 @@ from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from analysis.obci_signal_processing.signal import data_write_proxy
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 from acquisition import acquisition_logging as logger
 
 LOGGER = logger.get_logger("wii_board_saver", 'info')

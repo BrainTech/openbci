@@ -13,7 +13,7 @@ import random
 
 from peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
-from configs import settings
+from obci_configs import settings
 
 class AutoTagGenerator(ConfiguredClient):
     def __init__(self, addresses):

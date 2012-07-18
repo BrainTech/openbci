@@ -4,16 +4,17 @@ import sys
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-from configs import settings, variables_pb2
+from obci_configs import settings, variables_pb2
 
 from peer.peer_control import PeerControl
 import common.config_message as cmsg
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):
-    def __init__(self, addresses, type=None):
+    def __init__(self, addresses, type=None, external_config_file=None):
         super(ConfiguredMultiplexerServer, self).__init__(addresses, type)
 
         self.ready_to_work = False
+        self.external_config_file = external_config_file
         self.config = PeerControl(self)
         self.config.connection = self.conn
         self.config.peer_validate_params = self.validate_params
