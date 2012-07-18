@@ -264,10 +264,5 @@ def parse_peer_default_config(peer_id, peer_program_path):
         with codecs.open(conf_path, "r", "utf8") as f:
             print "parsing default config for peer  ", peer_id, conf_path
             peer_parser.parse(f, peer_cfg)
-        #print "Loaded default config {0} for {1}, path: {2}".format(
-        #                            conf_path, peer_id, peer_program_path)
-    else:
-        #print "No default config found for {1}, prog.path: {1}".format(
-        #                                        peer_id, peer_program_path)
-        pass
+
     return peer_cfg, peer_parser

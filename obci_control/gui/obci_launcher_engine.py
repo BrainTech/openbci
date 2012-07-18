@@ -31,6 +31,7 @@ class OBCILauncherEngine(QtCore.QObject):
     update_ui = QtCore.pyqtSignal(object)
     obci_state_change = QtCore.pyqtSignal(object)
     rq_error = QtCore.pyqtSignal(object)
+    saver_msg = QtCore.pyqtSignal(object)
 
     internal_msg_templates = {
         '_launcher_engine_msg' : dict(task='', pub_addr=''),
@@ -220,7 +221,8 @@ class OBCILauncherEngine(QtCore.QObject):
 
         elif type_ == 'obci_peer_dead':
             self._handle_obci_peer_dead(launcher_message)
-
+        elif type_ == 'launch_error':
+            self._handle_launch_error(launcher_message)
         elif type_ == 'experiment_transformation':
             self._handle_experiment_transformation(launcher_message)
         elif type_ == 'nearby_machines':
@@ -346,6 +348,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if index is not None:
             exp = self.experiments[index]
             exp.status.set_status(msg.status_name, msg.details)
+            print msg.status_name
             if msg.peers:
                 for peer, status in msg.peers.iteritems():
                     exp.status.peer_status(peer).set_status(status)
@@ -368,6 +371,17 @@ experiments is possible only when launcher is running (command: obci srv)')))
             details = msg.status[1]
             st = exp.status
             st.peer_status(msg.peer_id).set_status(status_name, details)
+
+    def _handle_launch_error(self, msg):
+        peer_id = msg.details["peer_id"]
+        index = self.index_of(msg.sender)
+        if index is not None:
+            exp = self.experiments[index]
+
+            status_name = launcher_tools.FAILED_LAUNCH
+            details = ""
+            st = exp.status
+            st.peer_status(peer_id).set_status(status_name, details)
 
     def _handle_nearby_machines(self, msg):
         self._cached_nearby_machines = msg.nearby_machines
@@ -405,6 +419,8 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if not exp.launcher_data:
             print "this exp is not running...", uid
             return
+        if stop_storing or "signal_saver" in exp.exp_config.peers:
+            exp.stop_storing(self.client)
         self._process_response(self.client.kill_exp(exp.uuid))
 
     def start_experiment(self, msg, store_options=None):
@@ -418,6 +434,10 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if exp.launcher_data:
             print "already running"
             return
+
+        if store_options:
+            exp.enable_signal_storing(store_options)
+
         jsoned = serialize_scenario_json(exp.exp_config)
 
         result = self.client.send_create_experiment(name=exp.name)

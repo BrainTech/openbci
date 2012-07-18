@@ -30,3 +30,7 @@ class ExpsHelper(ConfiguredClient):
             acquisition_helper.finish_saving()
         else:
             acquisition_helper.send_finish_saving(self.tagger.conn)
+
+if __name__ == '__main__':
+    helper = ExpsHelper()
+    helper.finish_saving()

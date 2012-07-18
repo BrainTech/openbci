@@ -323,12 +323,6 @@ class PeerConfigDescription(object):
             with codecs.open(conf_path, "r", "utf8") as f:
                 print "parsing default config for peer  ", self.peer_id, conf_path
                 peer_parser.parse(f, base_config)
-            #print "Loaded default config {0} for {1}, path: {2}".format(
-            #                            conf_path, peer_id, peer_program_path)
-        else:
-            #print "No default config found for {1}, prog.path: {1}".format(
-            #                                        peer_id, peer_program_path)
-            pass
 
         ser.serialize_diff(base_config, self.config, args)
 
