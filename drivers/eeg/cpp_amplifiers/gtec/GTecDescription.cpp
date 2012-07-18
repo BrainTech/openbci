@@ -8,7 +8,7 @@
 #include "GTecDescription.h"
 #include "gAPI.h"
 
-GTecDescription::GTecDescription(string name,Amplifier *driver):AmplifierDescription(name,driver) {
+GTecDescription::GTecDescription(string name,Amplifier *driver,uint device_index):AmplifierDescription(name,driver) {
 	uint s_r[]={32, 64, 128, 256, 512, 600,	1200, 2400, 4800, 9600, 19200, 38400};
 	for (uint i=0;i<12;i++)
 		sampling_rates.push_back(s_r[i]);
@@ -16,6 +16,7 @@ GTecDescription::GTecDescription(string name,Amplifier *driver):AmplifierDescrip
 //	GT_Calibrate(name.c_str(),&calib);
 	for (uint i=0;i<GT_USBAMP_NUM_ANALOG_IN;i++)
 		add_channel(new GTecChannel(i,1.0,0,driver));
+	this->device_index = device_index;
 }
 
 GTecDescription::~GTecDescription() {

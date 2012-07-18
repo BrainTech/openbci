@@ -28,4 +28,6 @@ ldconfig
 cp $header_src $header_target ;
 mkdir -p $filter_target ;
 cp $filter_src $filter_target ;
+cp gtec.rules /etc/udev/rules.d
+udevadm control --reload-rules
 echo ... done

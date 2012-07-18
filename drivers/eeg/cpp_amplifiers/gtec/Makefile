@@ -36,10 +36,12 @@ $(API_INSTALLED):
 install_gtec:
 	cd api;sudo bash install.sh
 
+$(BIN)/test_gtec_amplifier: $(SIMPLE)
+
 $(BIN)/test_gtec_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER) $(GTEC) test_gtec_amplifier.o test_amplifier.o)
-	$(LD_AMPLIFIER)
+	$(filter-out $(SIMPLE), $(LD_AMPLIFIER))
 	make $(SIMPLE)
-	
+
 $(BIN)/gtec_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(GTEC) gtec_amplifier_main.o)
 	$(LD_SERVER)
 	make $(SIMPLE)

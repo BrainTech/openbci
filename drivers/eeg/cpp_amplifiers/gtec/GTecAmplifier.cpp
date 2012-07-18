@@ -33,7 +33,7 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 		close(1);
 		dup2(fd[1],1);
 		execl("simple_gtec_driver","simple_gtec_driver",name,NULL);
-		cerr << "Could not run simple_gtect_driver:"<<strerror(errno)<<"\n";
+		cerr << "Could not run simple_gtec_driver:"<<strerror(errno)<<"\n";
 		exit(-1);
 	}
 	else{
@@ -84,17 +84,24 @@ void GTecAmplifier::init(boost::program_options::variables_map &vm){
 	if (device_index<0 || device_index>=device_names.size())
 		throw "Wrong device index!";
 	name=device_names[device_index];
-	set_description(new GTecDescription(name,this));
+	set_description(new GTecDescription(name,this,device_index));
 }
 void GTecAmplifier::start_sampling(){
 	Amplifier::start_sampling();
-	spawn_simple_driver(name.c_str());
-	char msg[5];
+	stringstream name;
+	name << ((GTecDescription*)this->description)->device_index+1;	
+	spawn_simple_driver(name.str().c_str());
+	return;
+	char msg[50];
 	read(simple_driver_output,msg,2);
 	msg[2]=0;
 	string s(msg);
-	if (s!="OK")
-		throw "StartSampling Error";
+	if (s!="OK"){	
+		read(simple_driver_output,msg+2,48);
+		cerr<<msg<<"\n";
+		throw "StartSampling Error!";
+	
+	}
 }
 void GTecAmplifier::stop_sampling(bool disconecting){
 	kill(simple_driver_id,SIGINT);

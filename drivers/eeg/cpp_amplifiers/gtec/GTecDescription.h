@@ -14,6 +14,7 @@ class GTecChannel: public Channel{
 	float scale;
 	float g_offset;
 	float cur_sample;
+	
 public:
 	GTecChannel(uint index,float scale,float offset,Amplifier *amp):Channel("",amp),scale(scale),g_offset(offset){
 		char tmp[20];
@@ -45,8 +46,9 @@ public:
 
 class GTecDescription: public AmplifierDescription {
 public:
-	GTecDescription(string name,Amplifier* driver);
+	GTecDescription(string name,Amplifier* driver,uint device_index);
 	virtual ~GTecDescription();
+	uint device_index;
 };
 
 #endif /* GTECDESCRIPTION_H_ */

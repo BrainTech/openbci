@@ -46,7 +46,7 @@ $(FILE): force_look
 	$(LN)
 	
 $(GTEC):: force_look
-	@cd gtec;$(MAKE_BIN)
+	cd gtec;$(MAKE_BIN)
 	$(LN)
 
 $(GTEC)::

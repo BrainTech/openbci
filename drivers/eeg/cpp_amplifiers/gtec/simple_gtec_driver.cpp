@@ -35,7 +35,7 @@ void CallBack(void* name_) {
 			usr_buffer_master[i + 2] = c[1];
 			usr_buffer_master[i + 3] = c[0];
 		}
-	}
+	}	
 	if (read > 0)
 		write(1, usr_buffer_master, read);
 }
@@ -108,17 +108,20 @@ bool start_sampling(uint sample_rate) {
 		config_master.bipolar[i] = GT_BIPOLAR_DERIVATION_NONE;
 	}
 	if (!GT_OpenDevice(name)) {
-		throw "Device open error\n";
+		cerr<< "Device open error:'"<<name<<"'\n";
+		return false;
 	}
 
 	if (!GT_SetConfiguration(name, &config_master)) {
-		throw "Set Configuration error\n";
+		cerr<<"Set Configuration error\n";
+		return false;
 	}
 
 	GT_SetDataReadyCallBack(name, &CallBack, (void*) (name));
 
 	if (!GT_StartAcquisition(name)) {
-		throw "Start failed\n";
+		cerr<< "Start failed\n";
+		return false;
 	}
 	return true;
 }
@@ -126,7 +129,7 @@ bool start_sampling(uint sample_rate) {
 #define CHUNK CHANNELS*256
 int counter = 0;
 void do_sampling() {
-	sleep(1);
+	sleep(1);	
 #ifndef DEBUG
 	return;
 #endif
@@ -153,27 +156,32 @@ int main(int argc, char** argv) {
 	if (argc == 1) {
 		get_device_list(true);
 		return 0;
-	}
+	}	
 	amp=atoi(argv[1]);
-	s_name = get_device_list(false,amp);
+	if (amp!=0){
+	s_name = get_device_list(false,amp-1);
 	name=s_name.c_str();
+	}
+	else
+	name=argv[1];
 	if (argc > 2) {
 		sample_rate = atoi(argv[2]);
 	}
 
 	cerr << "Amplifier: " << name << "; Sampling rate:" << sample_rate << "\n";
+	
 	if (!start_sampling(sample_rate))
-		{
-			cout <<"error";
-			return -1;
-		}
-	else
-		cout<<"OK";
+	{			
+		return -1;
+	}
+	
 	sampling = true;
 	signal(SIGINT, &stop_sampling);
 	while (sampling)
 		do_sampling();
+	cerr <<"\nStop Aquisition....\n";
 	GT_StopAcquisition(name);
+	cerr <<"\nCloseDevice...\n";
 	GT_CloseDevice(name);
 	cerr << "Simple Driver Stopped\n" << std::endl;
 }
