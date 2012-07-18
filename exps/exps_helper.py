@@ -5,7 +5,7 @@
 #
 import inspect, os
 from obci_control.peer.configured_client import ConfiguredClient
-from configs import settings
+from obci_configs import settings
 from multiplexer.multiplexer_constants import types, peers
 
 from utils import tags_helper
