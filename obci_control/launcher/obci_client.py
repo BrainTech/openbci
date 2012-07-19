@@ -212,6 +212,21 @@ class OBCIClient(object):
         response, details = self.poll_recv(sock, 4000)
         return response
 
+    def leave_experiment(self, strname, peer_id):
+        response = self.get_experiment_contact(strname)
+
+        if response.type == "rq_error":
+            return response
+
+        sock = self.ctx.socket(zmq.REQ)
+        for addr in response.rep_addrs:
+            sock.connect(addr)
+
+        send_msg(sock, self.mtool.fill_msg("leave_experiment",
+                                        peer_id=peer_id))
+        response, details = self.poll_recv(sock, 4000)
+        return response
+
 
     def get_tail(self, strname, peer_id, len_):
         response = self.get_experiment_contact(strname)

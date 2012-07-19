@@ -78,6 +78,15 @@ class OBCILauncherEngine(QtCore.QObject):
 
         self.details_mode = MODE_ADVANCED
 
+    def make_exp_obj(self, *args, **kwargs):
+        exp = ExperimentEngineInfo(*args, **kwargs)
+        exp.exp_saver_msg.connect(self._saver_msg)
+        return exp
+
+    def _saver_msg(self, killer_proc):
+        print "_SAVER_MSG"
+        self.saver_msg.emit(killer_proc)
+
     def cleanup(self):
         print "CLEANUP!!!!"
         self._stop_monitoring = True
@@ -107,7 +116,7 @@ class OBCILauncherEngine(QtCore.QObject):
             presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
 
         for preset in presets:
-            exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=preset, ctx=self.ctx)
             experiments.append(exp)
 
         running = self._list_experiments()
@@ -120,7 +129,7 @@ class OBCILauncherEngine(QtCore.QObject):
                 index, preset = matches.pop()
                 preset.setup_from_launcher(exp, preset=True)
             else:
-                experiments.append(ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx))
+                experiments.append(self.make_exp_obj(launcher_data=exp, ctx=self.ctx))
 
         return experiments
 
@@ -246,7 +255,7 @@ class OBCILauncherEngine(QtCore.QObject):
             exp.setup_from_launcher(msg.dict(), preset=True)
             print "^^^^^^^^  created exp, UUID:", exp.exp_config.uuid
         else:
-            exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
+            exps.append(self.make_exp_obj(launcher_data=msg.dict(), ctx=self.ctx))
 
         self._exp_connect(msg.dict())
 
@@ -280,7 +289,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
         if old_index is not None:
             print "old match", old_index, old_exp.preset_data
-            exp = ExperimentEngineInfo(preset_data=old_exp.preset_data, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=old_exp.preset_data, ctx=self.ctx)
             self.experiments[old_index] = exp
 
         old_exp.launcher_data['name'] = msg.name
@@ -306,7 +315,7 @@ class OBCILauncherEngine(QtCore.QObject):
         if os.path.exists(self.user_preset_path):
             presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
         for preset in presets:
-            exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=preset, ctx=self.ctx)
             self.experiments.append(exp)
         self._process_response(self.mtool.unpack_msg(self.mtool.fill_msg('rq_error', err_code='launcher_shut_down',
                                         details='Launcher (obci_server) shut down. Starting \
@@ -419,7 +428,10 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if not exp.launcher_data:
             print "this exp is not running...", uid
             return
-        if stop_storing or "signal_saver" in exp.exp_config.peers:
+        if stop_storing or ("signal_saver" in exp.exp_config.peers and\
+                exp.status.peer_status("signal_saver").status_name \
+                            in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
+            print "STOP STORING"
             exp.stop_storing(self.client)
         self._process_response(self.client.kill_exp(exp.uuid))
 
@@ -496,7 +508,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 preset_data["name"] += "_*"
             else:
                 self.experiments.remove(dup)
-        exp = ExperimentEngineInfo(preset_data=preset_data, ctx=self.ctx)
+        exp = self.make_exp_obj(preset_data=preset_data, ctx=self.ctx)
         self.experiments.append(exp)
         self._update_user_presets()
         return exp

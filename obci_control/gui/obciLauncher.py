@@ -162,6 +162,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _connect_signals(self):
         self.engine.update_ui.connect(self.update_user_interface)
         self.engine.rq_error.connect(self.launcher_error)
+        self.engine.saver_msg.connect(self._saver_msg)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
         self.stop.connect(self.engine.stop_experiment)
@@ -351,6 +352,21 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.stop.emit(uid, self.exp_states[uid].store_options is not None)
         self.exp_states[uid].store_options = None
 
+    def _saver_msg(self, killer_proc):
+        print "GUI SAVER MSG"
+        reply = QMessageBox.question(self, 'Signal saving',
+            "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
+            "Continue saving?", 
+            QMessageBox.Yes | QMessageBox.No, 
+            QMessageBox.Yes)
+        killer_proc.poll()
+        if reply == QMessageBox.No and killer_proc.returncode is None:
+            print "KILLING"
+            killer_proc.kill()
+            killer_proc.wait()
+            print killer_proc.returncode, "^^^"
+
+
     def _update_store(self, state):
         if int(state):
             self.store_container.show()
@@ -513,7 +529,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             enable = (current_exp.status.status_name == READY_TO_LAUNCH)
             self.start_button.setEnabled(enable)
-            self._store_set_enabled(enable)
+            self._store_set_enabled(enable and "amplifier" in current_exp.exp_config.peers)
             self.stop_button.setEnabled(False)
             self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
                                          QAbstractItemView.EditKeyPressed)
