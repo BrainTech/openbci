@@ -26,14 +26,16 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 	wait_simple_driver();
 	pipe(fd);
 	simple_driver_id=fork();
+	stringstream s_rate;
+	s_rate << sampling_rate;
 	if (simple_driver_id<0)
 		throw "Fork Error";
 	else if (simple_driver_id==0){
 		close(fd[0]);
 		close(1);
 		dup2(fd[1],1);
-		execl("simple_gtec_driver","simple_gtec_driver",name,NULL);
-		cerr << "Could not run simple_gtec_driver:"<<strerror(errno)<<"\n";
+		execl(simple_driver_path.c_str(),"simple_gtec_driver",name,s_rate.str().c_str(),NULL);
+		cerr << "Could not run "<<simple_driver_path<<":"<<strerror(errno)<<"\n";
 		exit(-1);
 	}
 	else{
@@ -47,8 +49,9 @@ GTecAmplifier::GTecAmplifier():Amplifier(),simple_driver_id(-1),simple_driver_ou
 boost::program_options::options_description GTecAmplifier::get_options(){
 	boost::program_options::options_description options=Amplifier::get_options();
 	options.add_options()
-			("device_index,d",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
-			("available_devices,a","Print available devices and exit");
+			("device_index,i",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
+			("available_devices,a","Print available devices and exit")
+			("simple_driver_path,d",boost::program_options::value<string>()->default_value("simple_gtec_driver"),"Path to the simple_gtec_driver");
 	return options;
 }
 void get_data_callback(void * driver){
@@ -57,6 +60,7 @@ void get_data_callback(void * driver){
 void GTecAmplifier::init(boost::program_options::variables_map &vm){
 	size_t list_size = 0;
 	char drivers[MAX_DRIVERS];
+	simple_driver_path=vm["simple_driver_path"].as<string>();	
 	spawn_simple_driver(NULL);
 	read(simple_driver_output,drivers,MAX_DRIVERS);
 	close(simple_driver_output);
@@ -126,7 +130,7 @@ void GTecAmplifier::get_data(){
 }
 double GTecAmplifier::next_samples(bool synchronize){
 	get_data();
-	return Amplifier::next_samples(synchronize);
+	return Amplifier::next_samples(false);
 }
 GTecAmplifier::~GTecAmplifier() {
 	wait_simple_driver();

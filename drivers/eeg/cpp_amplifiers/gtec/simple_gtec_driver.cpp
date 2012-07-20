@@ -79,8 +79,8 @@ bool start_sampling(uint sample_rate) {
 #endif
 	gt_usbamp_analog_out_config ao_config_master;
 	ao_config_master.shape = GT_ANALOGOUT_SINE;
-	ao_config_master.frequency = 10;
-	ao_config_master.amplitude = 200;
+	ao_config_master.frequency = 1;
+	ao_config_master.amplitude = 100;
 	ao_config_master.offset = 0;
 
 	gt_usbamp_config config_master;

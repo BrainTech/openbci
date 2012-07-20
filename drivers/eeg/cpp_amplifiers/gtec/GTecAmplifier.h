@@ -17,6 +17,7 @@ private:
 	float * sample_data;
 	pid_t simple_driver_id;
 	int simple_driver_output;
+	string simple_driver_path;
 	void spawn_simple_driver(const char * name);
 	void wait_simple_driver();
 public:

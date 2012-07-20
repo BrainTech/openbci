@@ -15,7 +15,7 @@ GTecDescription::GTecDescription(string name,Amplifier *driver,uint device_index
 //	gt_usbamp_channel_calibration calib;
 //	GT_Calibrate(name.c_str(),&calib);
 	for (uint i=0;i<GT_USBAMP_NUM_ANALOG_IN;i++)
-		add_channel(new GTecChannel(i,1.0,0,driver));
+		add_channel(new GTecChannel(i,1.0,0,driver));	
 	this->device_index = device_index;
 }
 
