@@ -9,6 +9,7 @@ import io
 import codecs
 import subprocess
 import threading
+import time
 
 from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from launcher.launcher_messages import message_templates
@@ -36,6 +37,8 @@ SIGNAL_STORAGE_PEERS = {
 STORAGE_CONTROL = "exps/exps_helper.py"
 
 class ExperimentEngineInfo(QtCore.QObject):
+    exp_saver_msg = QtCore.pyqtSignal(object)
+
     def __init__(self, preset_data=None, launcher_data=None, ctx=None):
         self.preset_data = preset_data
         self.launch_file = None
@@ -342,19 +345,28 @@ class ExperimentEngineInfo(QtCore.QObject):
                 params[opt] = val
 
     def stop_storing(self, client):
+        client.leave_experiment(self.uuid, "storage_control")
         join_response = client.join_experiment(
                                 self.uuid, "storage_control", STORAGE_CONTROL)
         if not join_response.type == "rq_ok":
             print "join error"
-        else:
-            mx_addr = join_response.params["mx_addr"]
-            os.environ["MULTIPLEXER_ADDRESSES"] = mx_addr
-            pth = os.path.join(launcher_tools.obci_root(), "exps", "exps_helper.py")
-            proc = subprocess.Popen(["python", pth, "storage_control"], env=os.environ.copy())
-            def kill_storage():
-                print "KILL STORAGE CONTROL"
-                proc.kill()
-            tim = threading.Timer(30.0, kill_storage)
-            tim.start()
-            proc.wait()
+            return
+    
+        mx_addr = join_response.params["mx_addr"]
+        os.environ["MULTIPLEXER_ADDRESSES"] = mx_addr
+        pth = os.path.join(launcher_tools.obci_root(), "exps", "exps_helper.py")
+        proc = subprocess.Popen(["python", pth, "storage_control"], env=os.environ.copy())
 
+        def check_proc(proc, time_):
+            secs = time_
+            while proc.returncode is None and secs > 0:
+                time.sleep(0.5)
+                secs -= 0.5
+                proc.poll()
+            return proc.returncode
+
+        while proc.returncode is None:
+            if check_proc(proc, 5) is None:
+                self.exp_saver_msg.emit(proc)
+        print ":---)"
+        proc.wait()
