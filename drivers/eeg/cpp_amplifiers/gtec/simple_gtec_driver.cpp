@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <signal.h>
 #include <gAPI.h>
+#include <vector>
 using namespace std;
 //#define DEBUG
 
@@ -50,9 +51,25 @@ string get_device_list(bool print = false,uint amp=0) {
 	GT_UpdateDevices();
 	list_size = GT_GetDeviceListSize();
 	device_list = GT_GetDeviceList();
+	vector<string> devices;
+	for (uint i=0;i<list_size;i++)
+		devices.push_back(device_list[i]);
+	
 	if (print)
-		for (uint i = 0; i < list_size; i++)
-			cout << device_list[i] << "\n";
+		for (uint i = 0; i < list_size; i++){
+			string name = devices[i];
+			cout << name << ":";
+			gt_usbamp_channel_calibration calibration;		
+			
+			for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
+				//cout<<calibration.scale[c]<<";";
+				cout<<1.0<<";";
+			cout << ":";
+			for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
+				//cout<<calibration.offset[c]<<";";
+				cout<<0<<";";
+			cout <<"\n";
+		}
 	if (amp<list_size)
 		name=device_list[amp];
 	GT_FreeDeviceList(device_list, list_size);

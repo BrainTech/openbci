@@ -19,13 +19,14 @@ class Channel;
 class Amplifier;
 class AmplifierDescription {
 private:
-	string name;
+	
 	vector<Channel *> channels;
 	vector<Channel *> generated_channels;
 protected:
 	uint physical_channels;
 	vector<uint> sampling_rates;
 	Amplifier *driver;
+	string name;
 public:
 	AmplifierDescription(string name,Amplifier *);
 	virtual ~AmplifierDescription();
