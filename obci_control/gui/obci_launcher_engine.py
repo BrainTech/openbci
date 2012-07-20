@@ -31,6 +31,7 @@ class OBCILauncherEngine(QtCore.QObject):
     update_ui = QtCore.pyqtSignal(object)
     obci_state_change = QtCore.pyqtSignal(object)
     rq_error = QtCore.pyqtSignal(object)
+    saver_msg = QtCore.pyqtSignal(object)
 
     internal_msg_templates = {
         '_launcher_engine_msg' : dict(task='', pub_addr=''),
@@ -77,6 +78,15 @@ class OBCILauncherEngine(QtCore.QObject):
 
         self.details_mode = MODE_ADVANCED
 
+    def make_exp_obj(self, *args, **kwargs):
+        exp = ExperimentEngineInfo(*args, **kwargs)
+        exp.exp_saver_msg.connect(self._saver_msg)
+        return exp
+
+    def _saver_msg(self, killer_proc):
+        print "_SAVER_MSG"
+        self.saver_msg.emit(killer_proc)
+
     def cleanup(self):
         print "CLEANUP!!!!"
         self._stop_monitoring = True
@@ -106,7 +116,7 @@ class OBCILauncherEngine(QtCore.QObject):
             presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
 
         for preset in presets:
-            exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=preset, ctx=self.ctx)
             experiments.append(exp)
 
         running = self._list_experiments()
@@ -119,7 +129,7 @@ class OBCILauncherEngine(QtCore.QObject):
                 index, preset = matches.pop()
                 preset.setup_from_launcher(exp, preset=True)
             else:
-                experiments.append(ExperimentEngineInfo(launcher_data=exp, ctx=self.ctx))
+                experiments.append(self.make_exp_obj(launcher_data=exp, ctx=self.ctx))
 
         return experiments
 
@@ -220,7 +230,8 @@ class OBCILauncherEngine(QtCore.QObject):
 
         elif type_ == 'obci_peer_dead':
             self._handle_obci_peer_dead(launcher_message)
-
+        elif type_ == 'launch_error':
+            self._handle_launch_error(launcher_message)
         elif type_ == 'experiment_transformation':
             self._handle_experiment_transformation(launcher_message)
         elif type_ == 'nearby_machines':
@@ -244,7 +255,7 @@ class OBCILauncherEngine(QtCore.QObject):
             exp.setup_from_launcher(msg.dict(), preset=True)
             print "^^^^^^^^  created exp, UUID:", exp.exp_config.uuid
         else:
-            exps.append(ExperimentEngineInfo(launcher_data=msg.dict(), ctx=self.ctx))
+            exps.append(self.make_exp_obj(launcher_data=msg.dict(), ctx=self.ctx))
 
         self._exp_connect(msg.dict())
 
@@ -278,7 +289,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
         if old_index is not None:
             print "old match", old_index, old_exp.preset_data
-            exp = ExperimentEngineInfo(preset_data=old_exp.preset_data, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=old_exp.preset_data, ctx=self.ctx)
             self.experiments[old_index] = exp
 
         old_exp.launcher_data['name'] = msg.name
@@ -304,7 +315,7 @@ class OBCILauncherEngine(QtCore.QObject):
         if os.path.exists(self.user_preset_path):
             presets += self._parse_presets(self.user_preset_path, cat_name=USER_CATEGORY)
         for preset in presets:
-            exp = ExperimentEngineInfo(preset_data=preset, ctx=self.ctx)
+            exp = self.make_exp_obj(preset_data=preset, ctx=self.ctx)
             self.experiments.append(exp)
         self._process_response(self.mtool.unpack_msg(self.mtool.fill_msg('rq_error', err_code='launcher_shut_down',
                                         details='Launcher (obci_server) shut down. Starting \
@@ -346,6 +357,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if index is not None:
             exp = self.experiments[index]
             exp.status.set_status(msg.status_name, msg.details)
+            print msg.status_name
             if msg.peers:
                 for peer, status in msg.peers.iteritems():
                     exp.status.peer_status(peer).set_status(status)
@@ -368,6 +380,17 @@ experiments is possible only when launcher is running (command: obci srv)')))
             details = msg.status[1]
             st = exp.status
             st.peer_status(msg.peer_id).set_status(status_name, details)
+
+    def _handle_launch_error(self, msg):
+        peer_id = msg.details["peer_id"]
+        index = self.index_of(msg.sender)
+        if index is not None:
+            exp = self.experiments[index]
+
+            status_name = launcher_tools.FAILED_LAUNCH
+            details = ""
+            st = exp.status
+            st.peer_status(peer_id).set_status(status_name, details)
 
     def _handle_nearby_machines(self, msg):
         self._cached_nearby_machines = msg.nearby_machines
@@ -405,6 +428,11 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if not exp.launcher_data:
             print "this exp is not running...", uid
             return
+        if stop_storing or ("signal_saver" in exp.exp_config.peers and\
+                exp.status.peer_status("signal_saver").status_name \
+                            in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
+            print "STOP STORING"
+            exp.stop_storing(self.client)
         self._process_response(self.client.kill_exp(exp.uuid))
 
     def start_experiment(self, msg, store_options=None):
@@ -418,6 +446,10 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if exp.launcher_data:
             print "already running"
             return
+
+        if store_options:
+            exp.enable_signal_storing(store_options)
+
         jsoned = serialize_scenario_json(exp.exp_config)
 
         result = self.client.send_create_experiment(name=exp.name)
@@ -476,7 +508,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 preset_data["name"] += "_*"
             else:
                 self.experiments.remove(dup)
-        exp = ExperimentEngineInfo(preset_data=preset_data, ctx=self.ctx)
+        exp = self.make_exp_obj(preset_data=preset_data, ctx=self.ctx)
         self.experiments.append(exp)
         self._update_user_presets()
         return exp

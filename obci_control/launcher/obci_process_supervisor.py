@@ -280,7 +280,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
                                             sender=self.uuid,
                                             details=dict(machine=self.machine, path=path, args=args,
-                                                        error=details)))
+                                                        error=details, peer_id=name)))
         else:
             print self.name,'[', self.type, ']', "process launch success:", path, args, proc.pid
             send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",

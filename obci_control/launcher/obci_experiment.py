@@ -596,6 +596,10 @@ class OBCIExperiment(OBCIControlPeer):
     @msg_handlers.handler("obci_peer_ready")
     def handle_obci_peer_ready(self, message, sock):
         peer_id = message.peer_id
+        if not peer_id in self.exp_config.peers:
+            print "{0} [{1}], Unknown Peer update!!! {2}".format(
+                                self.name, self.peer_type(), peer_id)
+            return
         self.status.peer_status(peer_id).set_status(
                                             launcher_tools.RUNNING)
         self._ready_register -= 1
@@ -633,9 +637,27 @@ class OBCIExperiment(OBCIControlPeer):
             self.status.set_status(launcher_tools.FAILED,
                                     details='Failed process ' + message.peer_id)
         elif not self.status.peer_status_exists(launcher_tools.RUNNING) and\
-                self.status.status_name != launcher_tools.FAILED:
+                (self.status.status_name not in [launcher_tools.FAILED, launcher_tools.FAILED_LAUNCH]):
             self.status.set_status(status)
         message.experiment_id = self.uuid
+        send_msg(self._publish_socket, message.SerializeToString())
+        self.status_changed(self.status.status_name, self.status.details)
+
+    @msg_handlers.handler('obci_launch_failed')
+    def handle_obci_launch_failed(self, message, sock):
+        pass
+
+    @msg_handlers.handler('launch_error')
+    def handle_launch_error(self, message, sock):
+        peer_id = message.details["peer_id"]
+        if not peer_id in self.exp_config.peers:
+            print self.name, '[', self.type, ']', "peer_id ", peer_id, "not found."
+            return
+
+        self.status.peer_status(peer_id).set_status(launcher_tools.FAILED_LAUNCH)
+        self.status.set_status(launcher_tools.FAILED_LAUNCH,
+                                    details='Failed to launch process ' + peer_id)
+        message.sender = self.uuid
         send_msg(self._publish_socket, message.SerializeToString())
         self.status_changed(self.status.status_name, self.status.details)
 
@@ -688,7 +710,7 @@ class OBCIExperiment(OBCIControlPeer):
     def handle_morph(self, message, sock):
         # FIXME "LAUNCHING" -- msg bug workaround
         if self.status.status_name not in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]:
-            print "[obci_experient] EXPERIMENT STATUS NOT RUNNING"
+            print "[obci_experient] EXPERIMENT STATUS NOT RUNNING, MORPH NOT ALLOWED"
             if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
                 
                 send_msg(sock, self.mtool.fill_msg('rq_error',
@@ -701,7 +723,7 @@ class OBCIExperiment(OBCIControlPeer):
                                                             message.overwrites)
         print "new launch status", exp_config, status.status_name
         if status.status_name != launcher_tools.READY_TO_LAUNCH:
-            print "[obci_experiment] NEW SCENARIO NOT READY TO LAUNCH"
+            print "[obci_experiment] NEW SCENARIO NOT READY TO LAUNCH, MOPRH NOT ALLOWED"
             if sock.getsockopt(zmq.TYPE) in [zmq.REQ, zmq.ROUTER]:
                 
                 send_msg(sock, self.mtool.fill_msg('rq_error',

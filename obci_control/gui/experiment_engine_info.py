@@ -6,12 +6,16 @@ from PyQt4 import QtCore
 import os
 import socket
 import io
+import codecs
+import subprocess
+import threading
 
 from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from launcher.launcher_messages import message_templates
 import launcher.system_config as system_config
 import launcher.launch_file_parser as launch_file_parser
 import launcher.launcher_tools as launcher_tools
+import launcher.subprocess_monitor as subprocess_monitor
 import peer.peer_cmd as peer_cmd
 import common.net_tools as net
 import common.obci_control_settings as settings
@@ -23,6 +27,13 @@ MODES = [MODE_ADVANCED, MODE_BASIC]#, MODE_EXPERT]
 
 DEFAULT_CATEGORY = u'Uncategorised'
 USER_CATEGORY = u'User defined'
+
+SIGNAL_STORAGE_PEERS = {
+    "signal_saver" : "acquisition/signal_saver_peer.py",
+    "tag_saver" : "acquisition/tag_saver_peer.py",
+    "info_saver" : "acquisition/info_saver_peer.py"
+}
+STORAGE_CONTROL = "exps/exps_helper.py"
 
 class ExperimentEngineInfo(QtCore.QObject):
     def __init__(self, preset_data=None, launcher_data=None, ctx=None):
@@ -239,7 +250,7 @@ class ExperimentEngineInfo(QtCore.QObject):
         send_msg(self.exp_req, msg)
         response, _ = self.poller.poll_recv(self.exp_req, timeout=3000)
         if not response:
-            print "!!!!!!!!!!!!!!!!!!!!!!!!!!!1 no response to ",msg
+            print "!!!!!!!!!!!!!!!!!!!!!!!!!!!1 no response to ", msg
             self.exp_req.close()
             self.exp_req = self.ctx.socket(zmq.REQ)
             for addr in self.launcher_data['rep_addrs']:
@@ -282,3 +293,68 @@ class ExperimentEngineInfo(QtCore.QObject):
 
     def peer_info(self, peer_id):
         return self.exp_config.peers[peer_id]
+
+    def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None, 
+                                             custom_config_path=None, machine=None):
+        override = peer_id in self.exp_config.peers
+
+        self.exp_config.add_peer(peer_id)
+        cfg, cfg_parser = launch_file_parser.parse_peer_default_config(
+                                                peer_id, peer_path)
+        if custom_config_path:
+            with codecs.open(custom_config_path, "r", "utf8") as f:
+                print "parsing _custom_ config for peer  ", peer_id, custom_config_path
+                cfg_parser.parse(f, cfg)
+
+        self.exp_config.set_peer_config(peer_id, cfg)
+        self.exp_config.set_peer_path(peer_id, peer_path)
+
+        if config_sources:
+            for src_name, src_id in config_sources.iteritems():
+                self.exp_config.set_config_source(peer_id, src_name, src_id)
+        else:
+            for src in cfg.config_sources:
+                if src in self.exp_config.peers:
+                    self.exp_config.set_config_source(peer_id, src, src)
+
+        if launch_deps:            
+            for dep_name, dep_id in launch_deps.iteritems():
+                self.exp_config.set_launch_dependency(peer_id, dep_name, dep_id)
+        else:
+            for dep in cfg.launch_deps:
+                if dep in self.exp_config.peers:
+                    self.exp_config.set_launch_dependency(peer_id, dep, dep)
+            
+        return override
+
+    def enable_signal_storing(self, store_options):
+        if not store_options:
+            return
+
+        for peer, peer_path in SIGNAL_STORAGE_PEERS.iteritems():
+            if peer not in self.exp_config.peers:
+                self.add_peer(peer, peer_path)
+
+        saver = self.exp_config.peers['signal_saver']
+        params = saver.config.param_values
+        for opt, val in store_options.iteritems():
+            if opt in saver.config.param_values:
+                params[opt] = val
+
+    def stop_storing(self, client):
+        join_response = client.join_experiment(
+                                self.uuid, "storage_control", STORAGE_CONTROL)
+        if not join_response.type == "rq_ok":
+            print "join error"
+        else:
+            mx_addr = join_response.params["mx_addr"]
+            os.environ["MULTIPLEXER_ADDRESSES"] = mx_addr
+            pth = os.path.join(launcher_tools.obci_root(), "exps", "exps_helper.py")
+            proc = subprocess.Popen(["python", pth, "storage_control"], env=os.environ.copy())
+            def kill_storage():
+                print "KILL STORAGE CONTROL"
+                proc.kill()
+            tim = threading.Timer(30.0, kill_storage)
+            tim.start()
+            proc.wait()
+

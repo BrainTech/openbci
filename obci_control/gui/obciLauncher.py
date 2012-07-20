@@ -162,6 +162,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _connect_signals(self):
         self.engine.update_ui.connect(self.update_user_interface)
         self.engine.rq_error.connect(self.launcher_error)
+        self.engine.saver_msg.connect(self._saver_msg)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
         self.stop.connect(self.engine.stop_experiment)
@@ -336,20 +337,35 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _start(self):
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
-            store_options = {u'file_name': self.store_file.text(),
-                             u'file_dir': self.store_dir.text(),
-                             u'append_ts':  1 if self.store_ts_checkBox.isChecked() else 0,
+            store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
+                             u'save_file_path': unicode(self.store_dir.text().toUtf8(), 'utf-8'),
+                             u'append_timestamps':  unicode(1 if self.store_ts_checkBox.isChecked() else 0),
                              u'store_locally': 1 if self.store_local_checkBox.isChecked() else 0
                              }
             self.exp_states[uid].store_options = store_options
         else:
-            store_options = None
+            store_options = {}
         self.start.emit(uid, store_options)
 
     def _stop(self):
         uid = str(self.scenarios.currentItem().uuid)
         self.stop.emit(uid, self.exp_states[uid].store_options is not None)
         self.exp_states[uid].store_options = None
+
+    def _saver_msg(self, killer_proc):
+        print "GUI SAVER MSG"
+        reply = QMessageBox.question(self, 'Signal saving',
+            "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
+            "Continue saving?", 
+            QMessageBox.Yes | QMessageBox.No, 
+            QMessageBox.Yes)
+        killer_proc.poll()
+        if reply == QMessageBox.No and killer_proc.returncode is None:
+            print "KILLING"
+            killer_proc.kill()
+            killer_proc.wait()
+            print killer_proc.returncode, "^^^"
+
 
     def _update_store(self, state):
         if int(state):
@@ -388,12 +404,17 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if len(curr) == 0:
             curr = '~' 
         curr = os.path.expanduser(curr)
-        dir = QFileDialog.getExistingDirectory(self, "Choose directory..,", curr)
+        if self.server_hostname != socket.gethostname():
+            PyQt4.QtGui.QMessageBox.information(self, "This is a remote connection",
+                                                "Enter the directory path by hand.")
+            direc = curr
+        else:
+            direc = QFileDialog.getExistingDirectory(self, "Choose directory..,", curr)
                       
-        if not dir:
+        if not direc:
             return
 
-        self.store_dir.setText(dir)
+        self.store_dir.setText(direc)
 
     def _import(self):
         filename = QFileDialog.getOpenFileName(self, "Import scenario...",
@@ -508,7 +529,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             enable = (current_exp.status.status_name == READY_TO_LAUNCH)
             self.start_button.setEnabled(enable)
-            self._store_set_enabled(enable)
+            self._store_set_enabled(enable and "amplifier" in current_exp.exp_config.peers)
             self.stop_button.setEnabled(False)
             self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
                                          QAbstractItemView.EditKeyPressed)
@@ -530,14 +551,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.store_dir.setEnabled(enable)
         self.store_dir_chooser.setEnabled(enable)
         self.store_ts_checkBox.setEnabled(enable)
-        self.store_local_checkBox.setEnabled(enable)
+        # self.store_local_checkBox.setEnabled(enable)
 
     def _store_update_info(self, store_options):
         if store_options is not None:
-            self.store_file.setText(store_options[u'file_name'])
-            self.store_dir.setText(store_options[u'file_dir'])
-            self.store_ts_checkBox.setChecked(store_options[u'append_ts'])
-            self.store_local_checkBox.setChecked(store_options[u'store_locally'])
+            self.store_file.setText(store_options[u'save_file_name'])
+            self.store_dir.setText(store_options[u'save_file_path'])
+            self.store_ts_checkBox.setChecked(int(store_options[u'append_timestamps']))
+            # self.store_local_checkBox.setChecked(store_options[u'store_locally'])
             self.store_checkBox.setChecked(True)
             self.store_container.show()
         else:
