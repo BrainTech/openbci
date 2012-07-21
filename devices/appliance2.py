@@ -11,3 +11,8 @@ class Blinker(appliance1.Blinker):
         str = chr(5)
         str+=chr(v)
         self.send(str)
+
+    def blinkSSVEP(self,d, p1, p2):
+        d = list(d)
+        d.reverse()
+        super(Blinker, self).blinkSSVEP(d, p1, p2)
