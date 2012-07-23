@@ -43,10 +43,11 @@ void CallBack(void* name_) {
 
 gt_usbamp_channel_calibration get_calibration(string name){
 	gt_usbamp_channel_calibration calib;
+	calib.scale[0]=3;
 	if (GT_OpenDevice(name.c_str())){
 		try{
-			GT_GetChannelCalibration(name.c_str(),&calib);
-			cerr<<"First channel calib:"<<calib.scale[0]<<";"<<calib.offset[0]<<"\n";
+			if (!GT_GetChannelCalibration(name.c_str(),&calib))
+				cerr<<"getChannelCalibration Failed\n";
 			GT_CloseDevice(name.c_str());
 			return calib;
 		}
@@ -58,9 +59,9 @@ gt_usbamp_channel_calibration get_calibration(string name){
 	else
 		cerr <<"Could not open device: "<<name<<"\n";
 	for (uint i=0;i<GT_USBAMP_NUM_ANALOG_IN;i++){
-			calib.offset[i]=0.0;
-			calib.scale[i]=1.0;
-		}
+				calib.offset[i]=0.0;
+				calib.scale[i]=1.0;
+			}
 	return calib;
 }
 
@@ -194,7 +195,7 @@ int main(int argc, char** argv) {
 		return 0;
 	}	
 	amp=atoi(argv[1]);
-	if (amp!=0){
+	if (amp>0){
 		name = devices[amp-1].c_str();
 	}
 	else
