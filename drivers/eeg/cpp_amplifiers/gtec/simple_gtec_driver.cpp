@@ -131,7 +131,7 @@ bool start_sampling(const char * name,uint sample_rate) {
 	config_master.scan_dio = GT_FALSE;
 	config_master.slave_mode = GT_FALSE;
 	config_master.enable_sc = GT_FALSE;
-	config_master.mode = GT_MODE_CALIBRATE;
+	config_master.mode = GT_MODE_COUNTER;
 	config_master.num_analog_in = 16;
 
 	gt_usbamp_asynchron_config asynchron_config_master;
