@@ -44,6 +44,7 @@ void CallBack(void* name_) {
 gt_usbamp_channel_calibration get_calibration(string name){
 	gt_usbamp_channel_calibration calib;
 	calib.scale[0]=3;
+	cerr <<"Getting calibration for "<<name<<"\n";
 	if (GT_OpenDevice(name.c_str())){
 		try{
 			if (!GT_GetChannelCalibration(name.c_str(),&calib))
@@ -189,9 +190,12 @@ int main(int argc, char** argv) {
 	unsigned char *c = (unsigned char*) (&a);
 	if (*c != 0x78)
 		big_endian = true;
+	cerr <<"Getting Device list...\n";
 	vector<string> devices = get_device_list();
 	if (argc == 1) {
+		cerr <<"Printing device list....\n";
 		print_device_list(devices);
+		cerr <<"Done";
 		return 0;
 	}	
 	amp=atoi(argv[1]);
