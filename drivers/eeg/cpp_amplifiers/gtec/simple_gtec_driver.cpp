@@ -20,11 +20,11 @@ using namespace std;
 
 //------------------------------------------------------------------------------
 unsigned char usr_buffer_master[32768];
-const char* name;
 bool sampling = false;
 bool big_endian = false;
 
 void CallBack(void* name_) {
+	const char * name= (const char*) name_;
 	size_t cnt_master = GT_GetSamplesAvailable(name);
 	size_t read = GT_GetData(name, usr_buffer_master, cnt_master);
 	if (big_endian) {
@@ -40,7 +40,31 @@ void CallBack(void* name_) {
 	if (read > 0)
 		write(1, usr_buffer_master, read);
 }
-string get_device_list(bool print = false,uint amp=0) {
+
+gt_usbamp_channel_calibration get_calibration(string name){
+	gt_usbamp_channel_calibration calib;
+	if (GT_OpenDevice(name.c_str())){
+		try{
+			cerr <<"new\n";
+			GT_GetChannelCalibration(name.c_str(),&calib);
+			GT_CloseDevice(name.c_str());
+			return calib;
+		}
+		catch (exception &ex){
+			cerr <<"Could not get calibration params for "<<name<<": Exception:"<<ex.what()<<"\n";
+			GT_CloseDevice(name.c_str());
+		}
+	}
+	else
+		cerr <<"Could not open device: "<<name<<"\n";
+	for (uint i=0;i<GT_USBAMP_NUM_ANALOG_IN;i++){
+			calib.offset[i]=0.0;
+			calib.scale[i]=1.0;
+		}
+	return calib;
+}
+
+vector<string> get_device_list() {
 	char** device_list = 0;
 	string name;
 #ifdef DEBUG
@@ -54,26 +78,21 @@ string get_device_list(bool print = false,uint amp=0) {
 	vector<string> devices;
 	for (uint i=0;i<list_size;i++)
 		devices.push_back(device_list[i]);
-	
-	if (print)
-		for (uint i = 0; i < list_size; i++){
-			string name = devices[i];
-			cout << name << ":";
-			gt_usbamp_channel_calibration calibration;		
-			
-			for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
-				//cout<<calibration.scale[c]<<";";
-				cout<<1.0<<";";
-			cout << ":";
-			for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
-				//cout<<calibration.offset[c]<<";";
-				cout<<0<<";";
-			cout <<"\n";
-		}
-	if (amp<list_size)
-		name=device_list[amp];
 	GT_FreeDeviceList(device_list, list_size);
-	return name;
+	return devices;
+}
+void print_device_list(vector<string> devices){
+	for (uint i = 0; i < devices.size(); i++){
+		string name = devices[i];
+		cout << name << ":";
+		gt_usbamp_channel_calibration calibration = get_calibration(name);
+		for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
+			cout<<calibration.scale[c]<<";";
+		cout << ":";
+		for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
+			cout<<calibration.offset[c]<<";";
+		cout <<"\n";
+	}
 }
 void stop_sampling(int sig) {
 	signal(sig, SIG_DFL);
@@ -90,7 +109,7 @@ bool show_debug(bool debug) {
 
 }
 
-bool start_sampling(uint sample_rate) {
+bool start_sampling(const char * name,uint sample_rate) {
 #ifdef DEBUG
 	return true;
 #endif
@@ -162,36 +181,47 @@ void do_sampling() {
 }
 int main(int argc, char** argv) {
 	uint sample_rate = SAMPLERATE;
-	string s_name;
+	const char * name;
 	show_debug(GT_FALSE);
 	int a = 0x12345678;
 	uint amp=0;
 	unsigned char *c = (unsigned char*) (&a);
 	if (*c != 0x78)
 		big_endian = true;
-
+	vector<string> devices = get_device_list();
 	if (argc == 1) {
-		get_device_list(true);
+		print_device_list(devices);
 		return 0;
 	}	
 	amp=atoi(argv[1]);
 	if (amp!=0){
-	s_name = get_device_list(false,amp-1);
-	name=s_name.c_str();
+		name = devices[amp-1].c_str();
 	}
 	else
-	name=argv[1];
+		name=argv[1];
 	if (argc > 2) {
 		sample_rate = atoi(argv[2]);
 	}
-
+	try{
 	cerr << "Amplifier: " << name << "; Sampling rate:" << sample_rate << "\n";
-	
-	if (!start_sampling(sample_rate))
+
+	if (!start_sampling(name,sample_rate))
 	{			
 		return -1;
 	}
-	
+	}
+
+	catch(const char ** msg){
+		cerr <<*msg;
+	}catch(char * msg){
+		cerr <<msg;
+	}
+	catch(const char  msg){
+			cerr <<msg;
+		}
+	catch(char const * msg){
+			cerr <<msg;
+		}
 	sampling = true;
 	signal(SIGINT, &stop_sampling);
 	while (sampling)
