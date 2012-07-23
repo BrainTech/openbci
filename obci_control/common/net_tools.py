@@ -227,7 +227,7 @@ class DNS(object):
         if len(parts) > 0:
             addr = parts[0]
         print "aaaa",addr
-        print self.__servers
+        # print self.__servers
         return addr == self.this_addr_network() or addr == self.this_addr_local()
 
     def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
