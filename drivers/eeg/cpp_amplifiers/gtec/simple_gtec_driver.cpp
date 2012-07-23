@@ -45,7 +45,7 @@ gt_usbamp_channel_calibration get_calibration(string name){
 	gt_usbamp_channel_calibration calib;
 	if (GT_OpenDevice(name.c_str())){
 		try{
-			GT_Calibrate(name.c_str(),&calib);
+			GT_GetChannelCalibration(name.c_str(),&calib);
 			cerr<<"First channel calib:"<<calib.scale[0]<<";"<<calib.offset[0]<<"\n";
 			GT_CloseDevice(name.c_str());
 			return calib;
@@ -115,9 +115,9 @@ bool start_sampling(const char * name,uint sample_rate) {
 #endif
 	gt_usbamp_analog_out_config ao_config_master;
 	ao_config_master.shape = GT_ANALOGOUT_SINE;
-	ao_config_master.frequency = 1;
+	ao_config_master.frequency = 5;
 	ao_config_master.amplitude = 100;
-	ao_config_master.offset = 0;
+	ao_config_master.offset = 10;
 
 	gt_usbamp_config config_master;
 	config_master.ao_config = &ao_config_master;
@@ -127,7 +127,7 @@ bool start_sampling(const char * name,uint sample_rate) {
 	config_master.scan_dio = GT_FALSE;
 	config_master.slave_mode = GT_FALSE;
 	config_master.enable_sc = GT_FALSE;
-	config_master.mode = GT_MODE_COUNTER;
+	config_master.mode = GT_MODE_CALIBRATE;
 	config_master.num_analog_in = 16;
 
 	gt_usbamp_asynchron_config asynchron_config_master;
@@ -202,26 +202,12 @@ int main(int argc, char** argv) {
 	if (argc > 2) {
 		sample_rate = atoi(argv[2]);
 	}
-	try{
 	cerr << "Amplifier: " << name << "; Sampling rate:" << sample_rate << "\n";
 
 	if (!start_sampling(name,sample_rate))
 	{			
 		return -1;
 	}
-	}
-
-	catch(const char ** msg){
-		cerr <<*msg;
-	}catch(char * msg){
-		cerr <<msg;
-	}
-	catch(const char  msg){
-			cerr <<msg;
-		}
-	catch(char const * msg){
-			cerr <<msg;
-		}
 	sampling = true;
 	signal(SIGINT, &stop_sampling);
 	while (sampling)
