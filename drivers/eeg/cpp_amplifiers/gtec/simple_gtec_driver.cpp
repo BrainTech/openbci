@@ -45,8 +45,8 @@ gt_usbamp_channel_calibration get_calibration(string name){
 	gt_usbamp_channel_calibration calib;
 	if (GT_OpenDevice(name.c_str())){
 		try{
-			cerr <<"new\n";
 			GT_GetChannelCalibration(name.c_str(),&calib);
+			cerr<<"Calibration ok done";
 			GT_CloseDevice(name.c_str());
 			return calib;
 		}
