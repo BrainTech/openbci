@@ -47,9 +47,11 @@ gt_usbamp_channel_calibration get_calibration(string name){
 	cerr <<"Getting calibration for "<<name<<"\n";
 	if (GT_OpenDevice(name.c_str())){
 		try{
+			cerr<<"Device Opened\n";
 			if (!GT_GetChannelCalibration(name.c_str(),&calib))
 				cerr<<"getChannelCalibration Failed\n";
 			GT_CloseDevice(name.c_str());
+			cerr<<"Device Closed\n";
 			return calib;
 		}
 		catch (exception &ex){
@@ -86,8 +88,8 @@ vector<string> get_device_list() {
 void print_device_list(vector<string> devices){
 	for (uint i = 0; i < devices.size(); i++){
 		string name = devices[i];
-		cout << name << ":";
 		gt_usbamp_channel_calibration calibration = get_calibration(name);
+		cout << name << ":";
 		for (uint c=0;c<GT_USBAMP_NUM_ANALOG_IN;c++)
 			cout<<calibration.scale[c]<<";";
 		cout << ":";
@@ -195,7 +197,7 @@ int main(int argc, char** argv) {
 	if (argc == 1) {
 		cerr <<"Printing device list....\n";
 		print_device_list(devices);
-		cerr <<"Done";
+		cerr <<"Done\n";
 		return 0;
 	}	
 	amp=atoi(argv[1]);
