@@ -21,14 +21,7 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
 
         self.initConst()
         self.initFile()
-        self.ready()
-
-    def __del__(self):
-        if self.file.closed:
-            self.file.close()
-    
-    def initFile(self):
-        self.file = open("etr_output",'w')
+        self.ready()    
     
     def initConst(self):
         
@@ -72,46 +65,32 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             
             # Hybryd probability
             pdf = 0.5*(pdf_etr + pdf_p300)
-            pdf[np.random.randint(36)] = np.random.random()
-            pdf[np.random.randint(36)] = np.random.random()
-            #~ pdf = pdf_etr
 
-            print "pdf_etr: ", pdf_etr
-            print "pdf_p300: ", pdf_p300
-            print "pdf: ", pdf
+            # Debugging leftouts...
+            LOGGER.debug("pdf_etr: " +str(pdf_etr))
+            LOGGER.debug("pdf_p300: " +str(pdf_p300))
+            LOGGER.debug("pdf: " + str(pdf))
                         
             dec = -1
             
+            # If both interfaces return significant value
             if (pdf>self.thresholdPercent).sum() == 1:
                 dec = int(np.arange(self.cols*self.rows)[pdf==pdf.max()])
                 LOGGER.info("Dec: " + str(dec))
             
+            # If only P300 declares significant and all ETR values are highly insignificant
             elif ((pdf_p300>self.p300Tr).sum() == 1) and (pdf_etr<self.etrTr).all():
                 dec = int(np.arange(self.cols*self.rows)[pdf_p300==pdf_p300.max()])
                 LOGGER.info("Dec (only p300): " + str(dec))
 
+            # If only ETR declares significant and all P300 values are highly insignificant
             elif (pdf_p300<self.p300Tr).all() and ((pdf_etr>self.etrTr).sum() == 1):
                 dec = int(np.arange(self.cols*self.rows)[pdf_etr==pdf_etr.max()])
                 LOGGER.info("Dec (only etr): " + str(dec))
 
+            # If decision is to be made
             if dec != -1:
-                t = str(time.time()).split('.')[0]
-                np.save("pdf_etr_" + t, pdf_etr)
-                np.save("pdf_p300_" + t, pdf_p300)
-                np.save("pdf_" + t, pdf)
                 self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
-                
-            # Assume pdf is T distribution
-            #~ loc = pdf.mean()
-            #~ scale = pdf.std()
-            #~ cdf = st.t.cdf(pdf, len(pdf), loc=loc, scale=scale)
-                        
-            #~ # If only one value is over threshold
-            #~ if np.sum( cdf > self.thresholdPercent ) == 1:
-                #~ dec = int(np.arange(len(cdf))[cdf > self.tresholdValue][0])
-                #~ print "WYSYLAM DECYZJE: ", dec
-#~ 
-                #~ self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
                 
         self.no_response()
 
