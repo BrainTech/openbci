@@ -9,7 +9,7 @@ import socket, time, sys
 
 from utils import tagger
 from gui import gui_logging as logger
-from configs import variables_pb2
+from obci_configs import variables_pb2
 
 BUF = 2**19
 LOGGER = logger.get_logger('ugm_internal_server')

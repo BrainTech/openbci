@@ -13,7 +13,7 @@ import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
 from peer.peer_cmd import PeerCmd
-from configs import settings
+from obci_configs import settings
 
 
 import common.config_message as cmsg

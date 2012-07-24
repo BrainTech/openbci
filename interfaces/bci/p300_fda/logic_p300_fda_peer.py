@@ -14,7 +14,7 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from analysis.obci_signal_processing import read_manager
 from analysis.obci_signal_processing.tags import smart_tag_definition as df
 from analysis.obci_signal_processing import smart_tags_manager as sgr
-from configs import settings
+from obci_configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
 from interfaces.bci.p300_fda import csp_helper
