@@ -626,9 +626,5 @@ class P300_analysis(object):
             for y in range(self.rows):
                 d = (dMeanR[y] + dMeanR[x])*0.5
                 p[x+y*self.cols] = st.percentileofscore(self.pdf, d)/100.
-        # Assuming that dValues are from T distribution
-        #~ pR = map( lambda score: st.percentileofscore(self.pdf, score), dMeanR)
-        #~ pC = map( lambda score: st.percentileofscore(self.pdf, score), dMeanC)
         
-        #~ return pR, pC
         return p

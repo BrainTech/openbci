@@ -49,7 +49,7 @@ class Config(object):
         self.actions[1] = ["msg('a')", "msg('b')","msg('c')", "msg('d')", "msg('e')", "msg('f')", "backspace()", ""] 
         self.actions[2] = ["msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", "msg('l')", "backspace()", ""] 
         self.actions[3] = ["msg('m')", "msg('n')", "msg('o')", "msg('p')", "msg('r')", "msg('s')", "backspace()", ""] 
-        self.actions[4] = ["msg('t')", "msg('u')", "msg('w')", "msg('y')", "msg('z')", u"msg(u'ż')", "backspace()", ""] 
+        self.actions[4] = ["msg('t')", "msg('u')", "msg('w')", "msg('x')", "msg('y')", u"msg(u'z')", "backspace()", ""] 
         self.actions[5] = [u"msg(u'ą')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", "backspace()", ""]
         self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
         self.actions[7] = ["say()", "clear()", "backspace()", "", "say()", "clear()", "start_test()", ""]

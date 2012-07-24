@@ -19,15 +19,18 @@ class BCIP300FdaAnalysis(object):
         self.last_time = time.time()
         self.fs = sampling
         self.montage_matrix = montage_matrix
+        use_channels = cfg['use_channels']
 
         self.nPole = np.zeros(8)
         self.nMin = cfg['nMin']
         self.nMax = cfg['nMax']
-        nRepeat = cfg['nLast']
 
+        # For plotting purpose
         csp_time = cfg['csp_time']
-        use_channels = cfg['use_channels']
-
+        
+        # For analysis purpose
+        self.csp_time = np.array(csp_time)*self.fs
+        
         avrM = cfg['avrM']
         conN = cfg['conN']
         
@@ -70,10 +73,10 @@ class BCIP300FdaAnalysis(object):
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-        #Wszystko dalej powinno się robić dla każdego nowego sygnału
         
         # Get's montaged signal
         signal = np.dot(self.montage_matrix.T, data)
+        signal = signal[:,self.csp_time[0]:self.csp_time[1]]
 
         # Counts each blink
         self.nPole[blink.index] += 1

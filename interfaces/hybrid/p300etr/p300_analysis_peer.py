@@ -117,12 +117,11 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         
         # What to do after everything is done...
         if mxmsg.type == types.DECISION_MESSAGE:
-            LOGGER.info("GOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOT")
             self.buffer.clear_blinks()
             self._last_dec_time = time.time()
+            self.analysis.newEpoch()
             ugm_helper.send_stop_blinking(self.conn)
             
-
 
         if mxmsg.type == types.BLINK_MESSAGE:
             l_msg = variables_pb2.Blink()

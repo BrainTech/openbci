@@ -17,11 +17,19 @@ LOGGER = logger.get_logger("p300_etr_decision", "info")
 class P300EtrDecision(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(P300EtrDecision, self).__init__(addresses=addresses,
-                                     type=peers.RESULTS_ANALYSIS)
-        
+                                     type=peers.RESULTS_ANALYSIS)        
+
         self.initConst()
+        self.initFile()
         self.ready()
 
+    def __del__(self):
+        if self.file.closed:
+            self.file.close()
+    
+    def initFile(self):
+        self.file = open("etr_output",'w')
+    
     def initConst(self):
         
         self.rows = int(self.config.get_param("rows"))
@@ -87,6 +95,10 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
                 LOGGER.info("Dec (only etr): " + str(dec))
 
             if dec != -1:
+                t = str(time.time()).split('.')[0]
+                np.save("pdf_etr_" + t, pdf_etr)
+                np.save("pdf_p300_" + t, pdf_p300)
+                np.save("pdf_" + t, pdf)
                 self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
                 
             # Assume pdf is T distribution

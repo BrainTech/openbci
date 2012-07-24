@@ -17,7 +17,6 @@ from analysis.obci_signal_processing import smart_tags_manager as sgr
 from configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
-#from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.p300_fda import csp_helper
 
 from logic import logic_helper
@@ -188,9 +187,15 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
             LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
             LOGGER.info(str(d[idxN]))
-                
+
+            csp = csp_time_tmp[0]*fs, csp_time_tmp[1]*fs
+
+            # Crop signalas to csp_time : csp_time+csp_dt
+            _target = target[:,:,csp[0]:csp[1]]
+            _nontarget = nontarget[:,:,csp[0]:csp[1]]
+            
             p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp, pPer)
-            l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
+            l[idxN] = p300.valid_kGroups(Signal, _target, _nontarget, 2)
             P_dict[idxN] = p300.getPWC()
             dVal_dict[idxN] = p300.getDValDistribution()
 

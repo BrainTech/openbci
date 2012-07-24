@@ -23,9 +23,8 @@ class BCIP300FdaAnalysis(object):
         
         self.nMin = cfg['nMin']
         self.nMax = cfg['nMax']
-        nLast = cfg['nLast']
 
-        csp_time = cfg['csp_time']
+        self.csp_time = cfg['csp_time']
         use_channels = cfg['use_channels']
 
         avrM = cfg['avrM']
@@ -43,7 +42,7 @@ class BCIP300FdaAnalysis(object):
         
         if self.debugFlag:
             self.p300_draw = P300_draw(self.fs)
-            self.p300_draw.setTimeLine(conN, avrM, csp_time)
+            self.p300_draw.setTimeLine(conN, avrM, self.csp_time)
         
         self.epochNo = 0
         
@@ -76,6 +75,7 @@ class BCIP300FdaAnalysis(object):
         self.last_time = time.time()
         
         # Get's montaged signal
+        data = data[:,self.csp_time[0]*self.fs:self.csp_time[1]*self.fs]
         signal = np.dot(self.montage_matrix.T, data)
 
         index = blink.index
@@ -100,13 +100,13 @@ class BCIP300FdaAnalysis(object):
             dec = self.p300.forceDecision()
 
         print "dec: ", dec
-
+        
         if dec != -1:
             LOGGER.info("Decision from P300: " +str(dec) )
             
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
-                self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
+                #~ self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
             
             self.p300.newEpoch()
             self.epochNo += 1

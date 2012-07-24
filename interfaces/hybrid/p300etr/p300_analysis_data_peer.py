@@ -9,7 +9,7 @@ from p300_fda import P300_analysis
 from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 
-LOGGER = logger.get_logger("p300_analysis_data_peer", "debug")
+LOGGER = logger.get_logger("p300_analysis_data_peer", "info")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
@@ -52,7 +52,7 @@ class BCIP300FdaAnalysis(object):
         
         
     def newEpoch(self):
-    
+
         self.p300.newEpoch()
         self.epochNo += 1
         
@@ -62,7 +62,7 @@ class BCIP300FdaAnalysis(object):
     def analyse(self, blink, data):
         """Fired as often as defined in hashtable configuration:
         # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':
+        'ANALYSIS_BUFFER_FROM':"
         # Define how many samples we wish to analyse every tick (in seconds)
         'ANALYSIS_BUFFER_COUNT':
         # Define a tick duration (in seconds).
@@ -81,8 +81,8 @@ class BCIP300FdaAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        if time.time()-self.last_time > self.timeThreshold:
-            self.newEpoch
+        #~ if time.time()-self.last_time > self.timeThreshold:
+            #~ self.newEpoch
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
@@ -107,21 +107,12 @@ class BCIP300FdaAnalysis(object):
 
         if self.nPole.min() < self.nMin:
             return
-        
         else:
-            #~ perR, perC = self.p300.getProbabiltyDensity()
+            LOGGER.debug( "self.nPole: " + str(self.nPole) )
             pdf = self.p300.getProbabiltyDensity()
             
-            #~ perR = np.matrix(perR)/100.
-            #~ perC = np.matrix(perC)/100.
-            
-            #~ pdf = perC.T*perR
-            #~ pdf = np.array(pdf).flatten()
-
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
                 self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
 
             self.send_func(pdf)
-        #~ else:
-            #~ LOGGER.info("Got -1 ind- no decision")

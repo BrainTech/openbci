@@ -22,9 +22,6 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         super(EtrAnalysis, self).__init__(addresses=addresses,
                                      type=peers.ETR_P300_ANALYSIS)
 
-        self.debug = streaming_debug.Debug(int(30),
-                                            LOGGER,
-                                            1)
         self.initConstants()
         self.ready()
 
@@ -43,6 +40,8 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         self.metricBuffor = np.zeros((self.areaCount, bufforLen))
         
         self.feeds = [0]*self.areaCount
+        self.hold_after_dec = 2.
+        self._last_dec_time = time.time() + 1
 
         start_id = self.get_param('ugm_field_ids').split(';')[0]
         self.ugm_mgr = etr_ugm_manager.EtrUgmManager(
@@ -55,6 +54,9 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         cX, cY = self.ugm_mgr.get_area_centres()
         self.cX = np.array(cX)
         self.cY = np.array(cY)
+        
+        self.lambX = np.log(2)*len(cX)
+        self.lambY = np.log(2)*len(cY)
 
     def _update_heatmap(self, m):
         """
@@ -62,7 +64,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         density for each epoch.
         """
         m = np.array(m)
-        m = np.exp(-(40*m)**2)
+        m = np.exp(-m**2)
         self.metricBuffor = np.hstack((self.metricBuffor[:,1:],m[np.newaxis].T))
     
     def _calc_pdf(self):
@@ -86,7 +88,8 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         self.buffor = np.concatenate( (self.buffor, xy), axis=1)[:,1:]
     
     def _calc_metric(self, x, y):
-        return np.sqrt((self.cX-x)**4 + (self.cY-y)**4)
+        #~ return np.sqrt((self.cX-x)**4 + (self.cY-y)**4)
+        return np.sqrt(self.lambX*(self.cX-x)**2 + self.lambY*(self.cY-y)**2)
         
     def handle_message(self, mxmsg):
         #~ LOGGER.info("EtrAnalysis\n")
@@ -96,17 +99,25 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
             res.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
 
+        #process blinks only when hold_time passed
+        if self._last_dec_time > 0:
+            t = time.time() - self._last_dec_time
+            if t > self.hold_after_dec:
+                self._last_dec_time = 0
+            else:
+                self.no_response()
+                return
 
-        elif mxmsg.type == types.ETR_SIGNAL_MESSAGE:
-            self.debug.next_sample()
+        # What to do after everything is done...
+        if mxmsg.type == types.DECISION_MESSAGE:
+            self._last_dec_time = time.time()
+            
 
+        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
         #### What to do when receive ETR_SIGNAL information
             msg = variables_pb2.Sample2D()
             msg.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT MESSAGE: "+str(msg))
-
-            msg.x = 0.2 + (self.nCount % 2)*0.5
-            msg.y = 0.6
 
             # Save positions
             x, y = msg.x, msg.y            
