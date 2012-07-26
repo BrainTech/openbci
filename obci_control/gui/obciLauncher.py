@@ -39,7 +39,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
     classdocs
     '''
-    start = pyqtSignal(str, dict)
+    start = pyqtSignal(str, object)
     stop = pyqtSignal(str, bool)
     reset = pyqtSignal(str)
 
