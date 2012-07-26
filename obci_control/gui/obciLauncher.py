@@ -344,7 +344,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                              }
             self.exp_states[uid].store_options = store_options
         else:
-            store_options = {}
+            store_options = None
         self.start.emit(uid, store_options)
 
     def _stop(self):
