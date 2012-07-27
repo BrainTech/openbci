@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
+"""
+Helps analyse data and sends it to decision making module.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import os.path, sys, time
 
