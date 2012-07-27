@@ -1,5 +1,13 @@
-#!/usr/bin/python
-# coding: UTF-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Helps analyse data and sends it to decision making module.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
+import matplotlib.cm as cm
+
 import numpy as np
 import pylab as py  
 
@@ -387,3 +395,48 @@ class P300_draw(object):
 
         if show:
             py.show()
+
+    def probabilityMatrix(self, pdf_etr, pdf_p300, alpha=0.5):
+        x = np.arange(0.5, 7.5, 1)
+        y = np.arange(0.5, 7.5, 1)
+        X,Y = py.meshgrid(x, y)
+
+        T = str(time.time()).split(".")[0]
+
+        py.clf()        
+        # Plot ETR pdf
+        pdf_etr = pdf_etr.reshape((6,6))
+        py.pcolor(X, Y, pdf_etr, vmin=0, vmax=100, cmap=cm.jet)
+        py.title("pdf_etr")
+        py.xlim((0.5,6.5))
+        py.ylim((6.5,0.5))
+
+        py.colorbar()
+
+        py.savefig(T+"_pdf_etr")
+
+
+        py.clf()
+        # Plot P300 pdf
+        pdf_p300 = pdf_p300.reshape((6,6))
+        py.pcolor(X, Y, pdf_p300, vmin=0, vmax=100, cmap=cm.jet)
+        py.title("pdf_p300")
+        py.xlim((0.5,6.5))
+        py.ylim((6.5,0.5))
+
+        py.colorbar()
+
+        py.savefig(T+ "_pdf_p300")
+        
+        py.clf()
+        # Plot combined pdf
+        pdf = pdf_p300*(1-alpha) + pdf_etr*alpha
+        py.pcolor(X, Y, pdf_p300, vmin=0, vmax=100, cmap=cm.jet)
+        py.title("pdf")
+        py.xlim((0.5,6.5))
+        py.ylim((6.5,0.5))
+
+        py.colorbar()
+
+        py.savefig(T+"_pdf")
+

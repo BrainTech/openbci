@@ -27,9 +27,9 @@ class Config(object):
         self.letters = [["A", "B", "C", "D", "E", "F",
                        "G", "H", "I", "J", "K", "L",
                        "M", "N", "O", "P", "R", "S",
-                       "T", "U", "W", "Y", "Z", "0",
-                       "1", "2", "3", "4", "5", "6",
-                       "7", "8", "9", "_", "<", "#"]]
+                       "T", "U", "W", "Y", "Z", "_",
+                       "1", "2", "3", "4", "5", "<-",
+                       "6", "7", "8", "9", "0", "<<-"]]
 
         # See descripton above.
         self.letters_solver = [[""]*self.number_of_decisions]
@@ -41,9 +41,11 @@ class Config(object):
         self.actions = [["msg('A')", "msg('B')", "msg('C')", "msg('D')", "msg('E')", "msg('F')", 
                       "msg('G')", "msg('H')", "msg('I')", "msg('J')", "msg('K')", "msg('L')", 
                       "msg('M')", "msg('N')", "msg('O')", "msg('P')", "msg('R')", "msg('S')",
-                      "msg('T')", "msg('U')", "msg('W')", "msg('Y')", "msg('Z')", "msg('0')",
-                      "msg('1')", "msg('2')", "msg('3')", "msg('4')", "msg('5')", "msg('6')",
-                      "msg('7')", "msg('8')", "msg('9')", "msg(' ')", "backspace()", "say()"]]
+                      "msg('T')", "msg('U')", "msg('W')", "msg('Y')", "msg('Z')", "msg(' ')",
+                      "msg('1')", "msg('2')", "msg('3')", "msg('4')", "msg('5')", "backspace()",
+                      "msg('6')", "msg('7')", "msg('8')", "msg('9')", "msg('0')", "backspace(2)"]]
+    
+    
 
         # See description above.
         self.actions_solver = [[""]*self.number_of_decisions]

@@ -34,7 +34,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(LogicP300Fda, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_P300_CSP)
-        
+
         self.use_channels=None
         tmp = self.config.get_param("use_channels")
         if len(tmp) > 0:
@@ -120,23 +120,20 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         ## Get data and tags
         data.setMontage(self.montage_channels)
         Signal = data.getData(self.use_channels)
-        trgTags = data.get_p300_tags()
-        ntrgTags = data.get_not_p300_tags()
+        trgTags = data.get_p300_tags(idx=[1,7])
+        ntrgTags = data.get_not_p300_tags(idx=[1,7])
+        
 
-        print "Signal.shape[1]: ", Signal.shape[1]
-        print "last trg: ", trgTags[-1]
-        print "last ntrg: ", ntrgTags[-1]
         m = max([trgTags[-1], ntrgTags[-1]])
         # ?!?!?!?!?!?!?!?! Why blinks are <0
         trgTags = trgTags[trgTags>0]
         ntrgTags = ntrgTags[ntrgTags>0]
         trgTags = trgTags[trgTags<Signal.shape[1]-fs]
         ntrgTags = ntrgTags[ntrgTags<Signal.shape[1]-fs]
-        print "last trg: ", trgTags[-1]
-        print "last ntrg: ", ntrgTags[-1]
 
+        
         target, nontarget = data.getTargetNontarget(Signal, trgTags, ntrgTags)
-
+        
         ## Get params from file
         pPer = float(self.config.get_param("p_per"))
         nRepeat = int(self.config.get_param("n_repeat"))
@@ -150,11 +147,10 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         
         plotFlag = int(self.config.get_param("plot_flag"))
         debugFlag = int(self.config.get_param("debug_flag"))
-
+        
         ## Define buffer
         buffer = 1.1*fs
         LOGGER.info("Computer buffer len: "+str(buffer))
-
         
         ## Make montage matrix
         conf = self.use_channels, self.montage, self.montage_channels
@@ -187,9 +183,15 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
             LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
             LOGGER.info(str(d[idxN]))
+            
+            csp = csp_time_tmp[0]*fs, csp_time_tmp[1]*fs
+            
+            # Crop signalas to csp_time : csp_time+csp_dt
+            _target = target[:,:,csp[0]:csp[1]]
+            _nontarget = nontarget[:,:,csp[0]:csp[1]]
                 
             p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp, pPer)
-            l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
+            l[idxN] = p300.valid_kGroups(Signal, _target, _nontarget, 2)
             P_dict[idxN] = p300.getPWC()
             dVal_dict[idxN] = p300.getDValDistribution()
 
@@ -220,12 +222,13 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         BEST = -1
         arr = np.arange(len(l))
         for i in range(5):
-            bestN = int(arr[l==l.min()])
+            bestN = int(arr[l==l.min()][0])
             
             print "best_{0}: {1}".format(i, bestN)
             print "d[bestN]: ", d[bestN]
             print "l[bestN]: ", l.min()
-            if (l.min() > 100) and (BEST == -1): BEST = bestN
+            #~ if (l.min() > 100) and (BEST == -1): BEST = bestN
+            if (BEST == -1): BEST = bestN
             l[bestN] = l.max()-1
 
         P, w, c = P_dict[BEST]

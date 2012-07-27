@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
+"""
+Modul dedicated for signal analysis.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
+
 from scipy.signal import butter, buttord
 from scipy.signal import filtfilt, lfilter
 from scipy.signal import cheb2ord, cheby2

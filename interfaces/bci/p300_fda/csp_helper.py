@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 
 from interfaces import interfaces_logging as logger
-LOGGER = logger.get_logger("ssvep_csp_helper")
+LOGGER = logger.get_logger("csp_helper")
 
 from acquisition import acquisition_helper
 

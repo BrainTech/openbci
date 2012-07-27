@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+"""
+
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import sys, os, time
 import numpy as np
@@ -17,7 +21,6 @@ from analysis.obci_signal_processing import smart_tags_manager as sgr
 from obci_configs import settings
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
-#from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.p300_fda_lines import csp_helper
 
 from logic import logic_helper

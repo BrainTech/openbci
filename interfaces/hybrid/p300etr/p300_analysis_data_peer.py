@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Helps analyse data and sends it to decision making module.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import random, time
 from interfaces import interfaces_logging as logger
@@ -9,7 +15,7 @@ from p300_fda import P300_analysis
 from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 
-LOGGER = logger.get_logger("p300_analysis_data_peer", "debug")
+LOGGER = logger.get_logger("p300_analysis_data_peer", "info")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
@@ -37,9 +43,6 @@ class BCIP300FdaAnalysis(object):
         self.nPole = np.zeros(self.cols+self.rows)
 
         self.epochNo = 0
-
-        # Clears buffer when blink time diff > timeThreshold
-        self.timeThreshold = 1.5
         
         self.p300 = P300_analysis(sampling, cfg, rows=self.rows, cols=self.cols)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
@@ -52,7 +55,7 @@ class BCIP300FdaAnalysis(object):
         
         
     def newEpoch(self):
-    
+
         self.p300.newEpoch()
         self.epochNo += 1
         
@@ -62,7 +65,7 @@ class BCIP300FdaAnalysis(object):
     def analyse(self, blink, data):
         """Fired as often as defined in hashtable configuration:
         # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':
+        'ANALYSIS_BUFFER_FROM':"
         # Define how many samples we wish to analyse every tick (in seconds)
         'ANALYSIS_BUFFER_COUNT':
         # Define a tick duration (in seconds).
@@ -81,8 +84,6 @@ class BCIP300FdaAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        if time.time()-self.last_time > self.timeThreshold:
-            self.newEpoch
         LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
@@ -95,7 +96,7 @@ class BCIP300FdaAnalysis(object):
         if int(index) >= self.cols: lineFlag, index = 'r', index - self.cols
         else:                       lineFlag = 'c'
         
-        LOGGER.info("Blink -- {0}*{1}".format(lineFlag, index))
+        LOGGER.debug("Blink -- {0}*{1}".format(lineFlag, index))
         
         # Counts each blink
         self.nPole[blink.index] += 1
@@ -107,20 +108,12 @@ class BCIP300FdaAnalysis(object):
 
         if self.nPole.min() < self.nMin:
             return
-        
         else:
-            perR, perC = self.p300.getProbabiltyDensity()
+            LOGGER.debug( "self.nPole: " + str(self.nPole) )
+            pdf = self.p300.getProbabiltyDensity()
             
-            perR = np.matrix(perR)
-            perC = np.matrix(perC)
-            
-            pdf = perC.T*perR
-            pdf = np.array(pdf).flatten()
-
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
                 self.p300_draw.savePlotsD(self.p300.getArrTotalD(), self.pVal, 'dVal_%i_%i.png' %(self.epochNo,dec))
 
             self.send_func(pdf)
-        #~ else:
-            #~ LOGGER.info("Got -1 ind- no decision")

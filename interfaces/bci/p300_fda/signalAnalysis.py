@@ -42,7 +42,8 @@ class DataAnalysis(object):
         if self.avrM == self.fs:
             pass
         else:
-            temp = map(lambda i: temp[i], np.floor(np.linspace(self.csp_time[0], self.csp_time[1], self.avrM)*self.fs))
+            #~ temp = map(lambda i: temp[i], np.floor(np.linspace(self.csp_time[0], self.csp_time[1], self.avrM)*self.fs))
+            temp = map(lambda i: temp[i], np.floor(np.linspace(0, len(temp)-1, self.avrM)))
         
         return np.array(temp)
         
