@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+This module is responsible for making decision from gathered data.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -20,10 +26,11 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
                                      type=peers.RESULTS_ANALYSIS)        
 
         self.initConst()
-        self.initFile()
         self.ready()    
     
     def initConst(self):
+        
+        self.alpha = float(self.config.get_param("alpha"))
         
         self.rows = int(self.config.get_param("rows"))
         self.cols = int(self.config.get_param("cols"))
@@ -35,7 +42,6 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
         self.pdf_p300 = np.zeros(self.rows*self.cols)
         self.pdf_etr = np.zeros(self.rows*self.cols)
         
-
     def handle_message(self, mxmsg):
         LOGGER.debug("P300EtrDecision\n")
         if mxmsg.type == types.ETR_ANALYSIS_RESULTS:
@@ -64,8 +70,8 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             pdf_p300 = self.pdf_p300
             
             # Hybryd probability
-            pdf = 0.5*(pdf_etr + pdf_p300)
-
+            pdf = self.alpha*pdf_etr + (1-self.alpha)*pdf_p300
+            
             # Debugging leftouts...
             LOGGER.debug("pdf_etr: " +str(pdf_etr))
             LOGGER.debug("pdf_p300: " +str(pdf_p300))
