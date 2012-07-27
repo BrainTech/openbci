@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-#
+"""
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import random, time, pickle
 
@@ -36,8 +38,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         r.timestamp = time.time()
         for i in range(len(pdf)): r.channels.append(pdf[i])
         self.conn.send_message(message = r.SerializeToString(),     
-                        type = types.P300_ANALYSIS_RESULTS, flush=True)            
-        #~ self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+                        type = types.P300_ANALYSIS_RESULTS, flush=True)
 
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
@@ -50,12 +51,12 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         cfg['nMax'] = int(self.config.get_param("n_max"))
         cfg['nLast'] = int(self.config.get_param("n_last"))
         
+        # If debug=1, then all additional plots are drawn
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
-
-        #~ row = cfg['row'] = int(self.config.get_param('row_count'))
-        #~ col = cfg['col'] = int(self.config.get_param('col_count'))
-        row = cfg['row_count'] = 6
-        col = cfg['col_count'] = 6
+        
+        # Shape of grid
+        row = cfg['row_count'] = int(self.config.get_param('row_count'))
+        col = cfg['col_count'] = int(self.config.get_param('col_count'))
       
         print "\n"*3
         LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
@@ -64,8 +65,6 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         
         montage_matrix = self._get_montage_matrix(cfg)
             
-        #dec_count = int(self.config.get_param('dec_count'))
-
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision, cfg, montage_matrix)
 

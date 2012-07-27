@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
+"""
+Analysise eye tracking data.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 
 from multiplexer.multiplexer_constants import peers, types
@@ -30,7 +36,6 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         Initiates constants values.
         """
         self.areaCount = int(self.get_param('speller_area_count'))
-        print "self.areaCount: ", self.areaCount
 
         self.nCount = 0
         self.nRefresh = 10
@@ -50,6 +55,9 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
             start_id,
             self.get_param('fix_id')
             )
+        
+        self.cols = int(self.get_param("col_count"))
+        self.rows = int(self.get_param("row_count"))
         
         cX, cY = self.ugm_mgr.get_area_centres()
         self.cX = np.array(cX)
@@ -88,7 +96,6 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         self.buffor = np.concatenate( (self.buffor, xy), axis=1)[:,1:]
     
     def _calc_metric(self, x, y):
-        #~ return np.sqrt((self.cX-x)**4 + (self.cY-y)**4)
         return np.sqrt(self.lambX*(self.cX-x)**2 + self.lambY*(self.cY-y)**2)
         
     def handle_message(self, mxmsg):
@@ -156,8 +163,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         pdf = self._getPdf()
         
         # Flip pdf matrix
-        #~ pdf = pdf.reshape((self.rows,self.cols))[:,::-1].flatten()
-        pdf = pdf.reshape((6,6))[:,::-1].flatten()
+        pdf = pdf.reshape((self.rows,self.cols))[:,::-1].flatten()
         
         r = variables_pb2.Sample()
         r.timestamp = time.time()
