@@ -21,7 +21,7 @@ class AmplifierGtec(BinaryDriverWrapper):
         exe = os.path.join(obci_root(), exe)
         v = self.config.get_param('samples_per_packet')
         simple_driver = os.path.join(os.path.dirname(exe), "simple_gtec_driver")
-        rate = int(self.config.get_param('sampling_rate'))
+        rate = int(float(self.config.get_param('sampling_rate')))
         channels = self.config.get_param('active_channels')
         device_no = self.config.get_param('device_index')
         args = [exe, "-h" , str(host), '-p', str(port), '-v', v, "-d", simple_driver,
