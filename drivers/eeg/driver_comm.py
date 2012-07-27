@@ -112,6 +112,10 @@ class DriverComm(object):
         if self.config.has_param("dump_responses"):
             if self.config.get_param("dump_responses"):
                 args.extend(["--save_responses", self.config.get_param("dump_responses")])
+
+        #FIXME FIXME 
+        if "gtec" in exe:
+            args.extend(["-d", os.path.join(os.path.dirname(exe), "simple_gtec_driver")])
         return args
 
     def set_sampling_rate(self,sampling_rate):
