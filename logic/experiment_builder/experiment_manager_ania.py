@@ -19,7 +19,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Author:
-#      ukasz Polak <l.polak@gmail.com>
+#      Lukasz Polak <l.polak@gmail.com>
 #      Joanna Tustanowska <asia.tustanowska@gmail.com>
 #
 """Holds Experiment_manager class:

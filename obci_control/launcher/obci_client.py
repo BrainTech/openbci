@@ -33,6 +33,7 @@ class OBCIClient(object):
         self.poller = PollingObject()
 
         self.mtool = OBCIMessageTool(message_templates)
+        self.dns = net.DNS()
 
     def init_server_socket(self, srv_addrs):
         if self.server_req_socket is not None:
@@ -204,13 +205,33 @@ class OBCIClient(object):
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        for addr in response.rep_addrs:
-            sock.connect(addr)
+        self._connect(sock, response.rep_addrs)
 
         send_msg(sock, self.mtool.fill_msg("join_experiment",
                                         peer_id=peer_id, path=path, peer_type='obci_peer'))
-        response, details = self.poll_recv(sock, 4000)
+        response, details = self.poll_recv(sock, 5000)
         return response
+
+    def _connect(self, sock, addr_list):
+        print "****  ", addr_list
+        this = self._is_this_machine(addr_list)
+        connected = False
+        for addr in addr_list:
+            if not this and ('localhost' in addr or '127.0.0.1' in addr):
+                continue
+            try:
+                sock.connect(addr)
+                connected = True
+            except zmq.ZMQError, e:
+                print addr, " ::: ", str(e)
+        if not connected:
+            raise Exception("Could not connect to any of the addresses: " + str(addr_list))
+        
+    def _is_this_machine(self, addr_list):
+        for addr in addr_list:
+            if self.dns.is_this_machine(addr):
+                return True
+        return False
 
     def leave_experiment(self, strname, peer_id):
         response = self.get_experiment_contact(strname)
@@ -219,12 +240,11 @@ class OBCIClient(object):
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        for addr in response.rep_addrs:
-            sock.connect(addr)
+        self._connect(sock, response.rep_addrs)
 
         send_msg(sock, self.mtool.fill_msg("leave_experiment",
                                         peer_id=peer_id))
-        response, details = self.poll_recv(sock, 4000)
+        response, details = self.poll_recv(sock, 5000)
         return response
 
 

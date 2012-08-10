@@ -12,7 +12,7 @@ from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_stimuluses
 
 from gui import gui_logging as logger
-LOGGER = logger.get_logger("ugm_engine", "error")
+LOGGER = logger.get_logger("ugm_engine", "warning")
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
     """For now, just to express it..."""
@@ -164,7 +164,7 @@ class UgmEngine(QtCore.QObject):
             self.mutex.unlock()
             return
         elif (self.queue.qsize() > 5):
-            LOGGER.info("Warning! Queue size is: "+str(self.queue.qsize()))
+            LOGGER.warning("Warning! Queue size is: "+str(self.queue.qsize()))
 
         while True:
             try:

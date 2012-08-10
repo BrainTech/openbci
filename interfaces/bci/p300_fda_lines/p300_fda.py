@@ -451,7 +451,6 @@ class P300_analysis(object):
         self.pPer = float(cfg['pPercent'])
         
         # w - values of diff between dVal and significal d (v)
-        #~ self.diffV = np.zeros(self.fields)
         self.diffV = {}
         self.diffV['r'] = np.zeros(self.rows)
         self.diffV['c'] = np.zeros(self.cols)
@@ -486,8 +485,7 @@ class P300_analysis(object):
             lineFlag - Indicating which line blinked. Either 'c' (column) or 'r' (row);
             blink - Position of blink ( 0 < blink < max(lineFlag) );
         """
-        #~ lineFlag = ['r','c'][np.random.randint(2)]
-        
+
         # Analyze signal when data for that flash is neede
         s = np.empty( self.avrM*self.conN)
         for con in range(self.conN):
@@ -508,7 +506,7 @@ class P300_analysis(object):
         print "self.flashCount['r']: ", self.flashCount['r']
         
         for flag in ['r', 'c']:
-            if (self.flashCount[flag] < self.nMin).any():
+            if (self.flashCount[flag] <= self.nMin).any():
                 return -1
 
         if (self.flashCount['c'] >= self.nMax).all() and \
@@ -531,8 +529,6 @@ class P300_analysis(object):
         dMeanR = np.zeros(self.rows)
         dMeanC = np.zeros(self.cols)
         
-        #~ nMinR = self.flashCount['r'].min()
-        #~ nMinC = self.flashCount['c'].min()
         nLast = self.nLast
         dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nLast]) for i in range(self.rows)])
         dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nLast]) for i in range(self.cols)])
@@ -541,49 +537,35 @@ class P300_analysis(object):
         # In future, try to change code for new variable.
         self.diffV['r'] = self.diffR = dMeanR
         self.diffV['c'] = self.diffC = dMeanC
+                
+        self.per = np.zeros(self.rows*self.cols)
+        for r in range(self.rows):
+            for c in range(self.cols):
+                d = 0.5*(dMeanR[r] + dMeanC[c])
+                self.per[c + r*self.cols] = st.percentileofscore(self.pdf, d)
         
-        self.perR = np.array([st.percentileofscore(self.pdf, x) for x in dMeanR])
-        self.perC = np.array([st.percentileofscore(self.pdf, x) for x in dMeanC])
+        print self.per
         
-        print "self.perR: ", self.perR
-        print "self.perC: ", self.perC
-        
-        
-        if np.sum(self.perR>self.pPer) == 1 and np.sum(self.perC>self.pPer)==1:
-            self.decR = np.arange(self.rows)[self.perR==self.perR.max()]
-            self.decR = int(self.decR[0])
+        if np.sum(self.per > self.pPer) == 1:
+            print "per: ", self.per
             
-            self.decC = np.arange(self.cols)[self.perC==self.perC.max()]
-            self.decC = int(self.decC[0])
-            
-            #~ self.dec = (self.decC, self.decR)
-            self.dec = self.decC + self.decR*self.cols
-            print "P300_FDA: Decision -- " + str(self.dec)
-            
+            self.dec = np.arange(self.rows*self.cols)[self.per==self.per.max()]
+            self.dec = np.int(self.dec[0])
+            print "wybrano -- {0}".format(self.dec)
+
             return self.dec
         
         else:
             return -1
-            
+                
 
     def forceDecision(self):
         print " ++ forceDecision ++ "
         
         self.testSignificances()
 
-        # If only one value is significantly distant 
-        # Decision is the field with largest w value
-        
-        # Row decision
-        self.decR = np.arange(self.rows)[self.perR==self.perR.max()]
-        self.decR = np.int(self.decR[0])
-        
-        # Col decision
-        self.decC = np.arange(self.cols)[self.perC==self.perC.max()]
-        self.decC = np.int(self.decC[0])        
-        
-        self.dec = self.decC + self.decR*self.cols
-
+        print "per: ", self.per
+        self.dec = int(np.arange(self.cols*self.rows)[self.per==self.per.max()][0])
         # Return int value
         return self.dec
         
@@ -621,9 +603,11 @@ class P300_analysis(object):
         dMeanR = np.array([ np.mean(self.dArrTotal['r'][i][:nMinR]) for i in range(self.rows)])
         dMeanC = np.array([ np.mean(self.dArrTotal['c'][i][:nMinC]) for i in range(self.cols)])
         
-        # Assuming that dValues are from T distribution
-        pR = map( lambda score: st.percentileofscore(self.pdf, score), dMeanR)
-        pC = map( lambda score: st.percentileofscore(self.pdf, score), dMeanC)
-        
-        return p
+        self.per = np.zeros(self.rows*self.cols)
+        for r in range(self.rows):
+            for c in range(self.cols):
+                d = 0.5*(dMeanR[r] + dMeanC[c])
+                self.per[c + r*self.cols] = st.percentileofscore(self.pdf, d)
+                
+        return self.per
         

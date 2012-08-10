@@ -348,6 +348,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         client.leave_experiment(self.uuid, "storage_control")
         join_response = client.join_experiment(
                                 self.uuid, "storage_control", STORAGE_CONTROL)
+        if join_response is None:
+            print "connection timeout!"
+            return
+            
         if not join_response.type == "rq_ok":
             print "join error"
             return

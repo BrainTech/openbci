@@ -77,7 +77,7 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
     def begin(self):
         ugm_helper.send_text(self.conn, self.hi_text)
         #keystroke.wait([" "])
-        time.sleep(5)
+        time.sleep(10)
         LOGGER.info("Send begin config ...")
         ugm_helper.send_config(self.conn, self.blinking_ugm)
         LOGGER.info("Send start blinking on begin ...")

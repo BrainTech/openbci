@@ -17,12 +17,12 @@ class SpellerEngine(object):
 
     # --------------------------------------------------------------------------
     # ------------------ actions available in config ---------------------------
-    def backspace(self):
+    def backspace(self,n=1):
         """Run backspace action -> truncate self._message.
         A place where this action is defined to be fired
         is speller config file.
         """
-        self._message = self._message[:len(self._message) - 1]
+        self._message = self._message[:len(self._message) - n]
 
     def say(self, msg=None):
         """Run say action -> run external program with self._message

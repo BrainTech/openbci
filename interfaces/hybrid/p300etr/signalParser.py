@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+#-*- coding: utf-8 -*-
+"""
+Module dedicated for parsing signal from file.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
+
 from xml.dom import minidom
 import numpy as np
 import os.path as osp
