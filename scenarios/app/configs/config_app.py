@@ -16,7 +16,7 @@ class Config(object):
         menu_state = 0
         self.letters.append([u"Speller",u"Robot"
                              ,"Media", "", #u"High SSVEP",u"Low SSVEP"
-                             u"", u"", u"", u"Quit"])
+                             u"", u"", u"", u"Back"])
         self.actions.append([
                 "",
                 "start_robot_feedback()", 
