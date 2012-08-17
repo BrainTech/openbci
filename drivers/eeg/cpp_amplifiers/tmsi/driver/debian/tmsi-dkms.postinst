@@ -11,11 +11,6 @@ case "$1" in
       c_arch=`uname -m`
       c_kern=`uname -r`
 
-      if [ -e "/var/lib/dkms/$NAME/$VERSION" ]; then
-         echo "Removing old $NAME-$VERSION DKMS files..."
-         dkms remove -m $NAME -v $VERSION --all
-      fi
-
       echo "Loading new $NAME-$VERSION DKMS files..."
       if [ -f "/usr/src/$NAME-$VERSION.dkms.tar.gz" ]; then
           dkms ldtarball --archive "/usr/src/$NAME-$VERSION.dkms.tar.gz"
