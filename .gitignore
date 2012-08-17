@@ -14,7 +14,6 @@ modules.order
 Module.symvers
 tmsi.mod.c
 .tmp_versions
-.gitignore
 drivers/eeg/cpp_amplifiers/build/
 drivers/eeg/cpp_amplifiers/test*
 drivers/eeg/cpp_amplifiers/base/*dummy_amplifier
