@@ -1,0 +1,11 @@
+Source: tmsi
+Section: misc
+Priority: optional
+Maintainer: Maciej Pawlisz <maciej.pawlisz@titanis.pl>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.7.3
+
+Package: tmsi-dkms
+Architecture: all
+Depends: dkms (>= 1.95), bash (>> 1.99)
+Description: tmsi amplifier driver in DKMS format.

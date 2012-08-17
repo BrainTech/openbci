@@ -1,0 +1,5 @@
+tmsi (1.7-0~) precise; urgency=low
+
+  * Automatically packaged by DKMS.
+
+ -- Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>  Fri, 17 Aug 2012 19:00:22 +0200
