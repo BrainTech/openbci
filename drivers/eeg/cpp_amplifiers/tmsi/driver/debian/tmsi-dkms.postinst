@@ -2,67 +2,23 @@
 
 set -e
 
-NAME=tmsi
-VERSION=1.7
+package=tmsi-dkms
+name=tmsi
 
-case "$1" in
-    configure)
-      # Determine current arch / kernel
-      c_arch=`uname -m`
-      c_kern=`uname -r`
+version=`dpkg-query -W -f='${Version}' "$package" \
+        |rev|cut -d- -f2-|rev|cut -d':' -f2|tr -d "\n"`
 
-      echo "Loading new $NAME-$VERSION DKMS files..."
-      if [ -f "/usr/src/$NAME-$VERSION.dkms.tar.gz" ]; then
-          dkms ldtarball --archive "/usr/src/$NAME-$VERSION.dkms.tar.gz"
-      else
-          dkms add -m $NAME -v $VERSION
-      fi
+isadded=`dkms status -m "$name" -v "$version"`
 
-      echo "Installing prebuilt kernel module binaries (if any)"
-      set +e
-      IFS='
-'
-      for kern in `dkms status -m $NAME -v $VERSION -a $c_arch | grep ": built" | awk {'print $3'} | sed 's/,$//'`; do
-         echo "Trying kernel: $kern"
-         dkms install --force -m $NAME -v $VERSION -k $kern -a $c_arch
-      done
-      unset IFS
-      set -e
+if [ "x${isadded}" = "x" ] ; then
+        dkms add -m "$name" -v "$version"
+fi
 
-      # If none installed, install.
-      ##if [ `dkms status -m $NAME -v $VERSION -k $c_kern -a $c_arch | grep -c ": installed"` -eq 0 ]; then
-      dkms_status=`dkms status -m $NAME -v $VERSION -k $c_kern -a $c_arch`
-      if [ `echo $dkms_status | grep -c ": installed"` -eq 0 ]; then
-         if [ `echo $c_kern | grep -c "BOOT"` -eq 0 ] && [ -e "/lib/modules/$c_kern/build/include" ]; then
-            # Only build if we need to.
-            if [ `echo $dkms_status | grep -c ": built"` -eq 0 ]; then
-               echo "Building module..."
-               dkms build -m $NAME -v $VERSION
-            fi
-            echo "Installing module..."
-            dkms install -m $NAME -v $VERSION
-         elif [ `echo $c_kern | grep -c "BOOT"` -gt 0 ]; then
-            echo ""
-            echo "Module build for the currently running kernel was skipped since you"
-            echo "are running a BOOT variant of the kernel."
-         else
-            echo ""
-            echo "Module build for the currently running kernel was skipped since the"
-            echo "kernel source for this kernel does not seem to be installed."
-         fi
-      fi
-    ;;
+if [ "$1" = 'configure' ] ; then
+        dkms build -m "$name" -v "$version" && dkms install -m "$name" -v "$version" || true
+fi
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
-esac
-
-#DEBHELPER#
 
 exit 0
 

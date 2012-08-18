@@ -1,28 +1,15 @@
 #!/bin/sh
 
-NAME=tmsi
-VERSION=1.7
-
 set -e
 
-case "$1" in
-    remove|upgrade|deconfigure)
-      if [  "`dkms status -m $NAME`" ]; then
-         dkms remove -m $NAME -v $VERSION --all
-      fi
-    ;;
+package=tmsi-dkms
+name=tmsi
 
-    failed-upgrade)
-    ;;
+version=`dpkg-query -W -f='${Version}' "$package" \
+        |rev|cut -d- -f2-|rev|cut -d':' -f2|tr -d "\n"`
 
-    *)
-        echo "prerm called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
-esac
+dkms remove -m "$name" -v "$version" --all || true
 
-#DEBHELPER#
+
 
 exit 0
-
-
