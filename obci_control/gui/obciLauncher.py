@@ -217,8 +217,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 treecat.setText(0, QString(str(cat)))
                 self.categories.append(treecat)
                 self.scenarios.addTopLevelItem(treecat)
-                treecat.setExpanded(True)
-                self.scenarios.expandItem(treecat)
+                treecat.setExpanded(False)
             else:
                 treecat = self.categories[names.index(cat)]
             name = ObciTreeWidgetItem([s.name, s.status.status_name], s.uuid)

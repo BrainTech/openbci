@@ -21,9 +21,9 @@ class TransformEngine(object):
             return
         elif not self._is_transforming:#can fire only once...
             self._is_transforming = True
-            if self._current_interface.startswith('ssvep'):
-                diode_helper.diode_stop(self.conn)
+            #if self._current_interface.startswith('ssvep'):
+            #    diode_helper.diode_stop(self.conn) replaced with diode_cleaner_peer.py ...
 
             self._current_interface = to_interface
             logic_helper.restart_scenario(self.conn, self._configs[to_interface],
-                                          leave_on=['amplifier'])
+                                          leave_on=['amplifier', 'splash'])
