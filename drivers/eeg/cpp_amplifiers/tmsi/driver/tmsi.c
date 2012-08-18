@@ -1,5 +1,5 @@
 /*
- * tmsi.c: USB driver for the TMS International Fiber to USB convertor
+ * tmsi.c: USB driver for the TMS International Fiber to USB converter
  *          used in the Refa8 series of products.
  *
  * Copyright (C) 2008 Clinical Science Systems (http://www.clinicalsciencesystems.com)
