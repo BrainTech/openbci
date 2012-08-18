@@ -27,6 +27,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         super(LogicSSVEPCalibration, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_SSVEP_CALIBRATION)
         self.ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config")).config_to_message()
+        self.raw_ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config"))
         self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
         self.text_id = int(self.config.get_param('ugm_text_id'))
         self.hi_text = self.config.get_param("hi_text")
@@ -37,6 +38,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         self.break_times = [float(i) for i in self.config.get_param("break_times").split(';')]
         assert(len(self.break_texts)==len(self.break_times))
         self.target_time = float(self.config.get_param("target_time"))
+        self.target_fancy = int(self.config.get_param("target_fancy"))
         self.feed_time = float(self.config.get_param("feed_time"))
         self.feed_text = self.config.get_param("feed_text")
         self._init_sequence()
@@ -209,7 +211,30 @@ class LogicSSVEPCalibration(ConfiguredClient):
                               'field':target_ind,
                               'duration':self.target_time
                               })
-        time.sleep(self.target_time)
+        if self.target_fancy:
+            self._send_fancy_target(target_ind)
+        else:
+            time.sleep(self.target_time)
+
+    def _send_fancy_target(self, target_ind):
+        t = time.time()
+        target_config = str([self.raw_ugm.get_config_for(self.text_ids[target_ind])])
+        while time.time() - t < self.target_time:
+            l_str_config = str([
+                {'id':self.text_ids[target_ind],
+                 'message':self.feed_text,
+                 'position_horizontal_type':'relative',
+                 'position_vertical_type':'relative',
+                 'position_horizontal':0.4+random.random()/5.0,
+                 'position_vertical':0.4+random.random()/5.0,
+                 'font_size':15,
+                 'message':'X'
+                 }
+                ])
+            ugm_helper.send_config(self.conn, l_str_config, 1)
+            time.sleep(0.1)
+        ugm_helper.send_config(self.conn, target_config, 1)
+            
 
     def _send_breaks(self):
         t = time.time()
