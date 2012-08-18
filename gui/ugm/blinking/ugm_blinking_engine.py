@@ -37,6 +37,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         assert(self._blink_duration > 0)
 
     def control(self, msg):
+        super(UgmBlinkingEngine, self).control(msg)
         msg_type = msg.key
         if msg_type == 'start_blinking':
             self.start_blinking()

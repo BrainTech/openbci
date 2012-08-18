@@ -4,8 +4,10 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 #import os.path, sys, time, os
+import time
 from logic import logic_logging as logger
 from logic import logic_helper
+from gui.ugm import ugm_helper
 from devices import diode_helper
 LOGGER = logger.get_logger("transform_engine", "info")
 
@@ -21,9 +23,9 @@ class TransformEngine(object):
             return
         elif not self._is_transforming:#can fire only once...
             self._is_transforming = True
-            #if self._current_interface.startswith('ssvep'):
-            #    diode_helper.diode_stop(self.conn) replaced with diode_cleaner_peer.py ...
-
             self._current_interface = to_interface
+            time.sleep(0.3)# wait a moment, maybe gui wants to take a while before hiding
+            #restarting takes many seconds anyway...
+            ugm_helper.send_hide(self.conn)
             logic_helper.restart_scenario(self.conn, self._configs[to_interface],
                                           leave_on=['amplifier'])
