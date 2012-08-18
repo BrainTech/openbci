@@ -26,4 +26,4 @@ class TransformEngine(object):
 
             self._current_interface = to_interface
             logic_helper.restart_scenario(self.conn, self._configs[to_interface],
-                                          leave_on=['amplifier', 'splash'])
+                                          leave_on=['amplifier'])
