@@ -121,14 +121,11 @@ class ConfigServer(BaseMultiplexerServer):
         message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)
 
         msg, mtype, launcher_msg = self._call_handler(mxmsg.type, message)
-        #print mxmsg.type, mtype
         if msg is None:
             self.no_response()
         else:
             msg = cmsg.pack_msg(msg)
             if self.__to_all:
-                # self.no_response()
-                # self.spare_conn.send_message(message=msg, type=mtype, flush=True)
                 self.send_message(message=msg, to=0, type=mtype, flush=True)
                 self.__to_all = False
             else:
@@ -136,9 +133,7 @@ class ConfigServer(BaseMultiplexerServer):
         if launcher_msg is not None and self.launcher_sock is not None:
             print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
             send_msg(self.launcher_sock, launcher_msg)
-        # self._save_config()
-
-
+            time.sleep(0.1) # TODO - temporary kind-of bug fix...
 
     def _call_handler(self, mtype, message):
         if mtype == types.GET_CONFIG_PARAMS:
