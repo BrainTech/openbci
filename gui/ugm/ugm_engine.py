@@ -121,9 +121,10 @@ class UgmEngine(QtCore.QObject):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
     ugm pyqt structure so that it can refresh."""
-    def __init__(self, p_config_manager):
+    def __init__(self, p_config_manager, p_connection):
         """Store config manager."""
         super(UgmEngine, self).__init__()
+        self.connection = p_connection
         self._config_manager = p_config_manager
         self.ugm_rebuild = QtCore.pyqtSignal()
         self.connect(self, QtCore.SIGNAL("ugm_rebuild"), 
@@ -179,11 +180,18 @@ class UgmEngine(QtCore.QObject):
 
     @QtCore.pyqtSlot(QtGui.QMouseEvent)
     def mousePressEvent(self, event):
-        pass
+        try:
+            self.connection.send_mouse_event(event.button())
+        except Exception, e:
+           LOGGER.error("Could send mouse event to connection. Error: "+str(e)) 
 
     @QtCore.pyqtSlot(QtGui.QKeyEvent)
     def keyPressEvent(self, event):
-        pass
+        try:
+            self.connection.send_keyboard_event(event.key())
+        except Exception, e:
+           LOGGER.error("Could send keyboard event to connection. Error: "+str(e)) 
+
 
     def run(self):
         """Fire pyqt application with UgmMainWindow. 
