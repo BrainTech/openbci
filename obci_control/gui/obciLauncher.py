@@ -25,6 +25,7 @@ from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
 
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
+from obci_launcher_constants import STATUS_COLORS
 from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
 import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
@@ -34,6 +35,8 @@ import common.obci_control_settings as settings
 from common.message import LauncherMessage
 import common.net_tools as net
 
+import obci_log_engine
+import obci_log_model
 
 class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
@@ -49,18 +52,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     engine_reinit = pyqtSignal(object)
 
-    status_colors = {
-        NOT_READY : 'dimgrey',
-        READY_TO_LAUNCH : 'bisque',
-        LAUNCHING : 'lightseagreen',
-        FAILED_LAUNCH : 'red',
-        RUNNING : 'lightgreen',
-        FINISHED : 'lightblue',
-        FAILED : 'red',
-        TERMINATED : 'khaki'
-    }
-
-
     def __init__(self):
         '''
         Constructor
@@ -72,6 +63,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.exp_states = {}
         self.exp_widgets = {}
+
+        self.scenarioTab.setTabText(0, "Scenario")
+        self.scenarioTab.setTabsClosable(True)
+        self.log_engine = obci_log_engine.LogEngine(self.scenarioTab)
+
         self.engine_server_setup()
 
         self._nearby_machines = self.engine.nearby_machines()
@@ -89,12 +85,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.setHeaderLabels(["Name", 'Value', 'Info'])
         self.parameters.itemClicked.connect(self._itemClicked)
         self.parameters.itemChanged.connect(self._itemChanged)
+        self.parameters.itemDoubleClicked.connect(self._itemDoubleClicked)
         self.parameters.setColumnWidth(0, 200)
         self.parameters.setColumnWidth(1, 400)
-
-        self.scenarioTab.removeTab(1)
-        self.scenarioTab.setTabText(0, "Scenario")
-        self.scenarioTab.setTabsClosable(True)
 
         self.machines_dialog = ConnectToMachine(self)
 
@@ -115,7 +108,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.setupMenus()
         self.setupActions()
         self.update_user_interface(None)
-        self.showFullScreen()
+        self.showMaximized()
 
     def engine_server_setup(self, server_ip_host=None):
         server_ip, server_name = server_ip_host or (None, None)
@@ -165,11 +158,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _connect_signals(self):
         self.engine.update_ui.connect(self.update_user_interface)
+        self.engine.update_ui.connect(self.log_engine.update_user_interface)
         self.engine.rq_error.connect(self.launcher_error)
         self.engine.saver_msg.connect(self._saver_msg)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
         self.stop.connect(self.engine.stop_experiment)
+        self.stop.connect(self.log_engine.experiment_stopped)
         self.save_as.connect(self.engine.save_scenario_as)
         self.import_scenario.connect(self.engine.import_scenario)
         self.remove_user_preset.connect(self.engine.remove_preset)
@@ -228,8 +223,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self.exp_widgets[s.uuid] = name
 
             if s.status.status_name:
-                name.setBackground(0, QColor(self.status_colors[s.status.status_name]))
-                name.setBackground(1, QColor(self.status_colors[s.status.status_name]))
+                name.setBackground(0, QColor(STATUS_COLORS[s.status.status_name]))
+                name.setBackground(1, QColor(STATUS_COLORS[s.status.status_name]))
             treecat.addChild(name)
             name.setToolTip(0, QString(s.launch_file))
         self.scenarios.sortItems(0, Qt.AscendingOrder)
@@ -238,7 +233,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         return self._scenarios
 
     def _setParams(self, experiment):
-
         expanded = self.exp_states[experiment.exp.uuid].expanded_peers
 
         self.parameters.clear()
@@ -250,9 +244,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
 
-            parent.setBackground(0, QBrush(QColor(self.status_colors[st])))
-            parent.setBackground(1, QBrush(QColor(self.status_colors[st])))
-            parent.setBackground(2, QBrush(QColor(self.status_colors[st])))
+            parent.setBackground(0, QBrush(QColor(STATUS_COLORS[st])))
+            parent.setBackground(1, QBrush(QColor(STATUS_COLORS[st])))
+            parent.setBackground(2, QBrush(QColor(STATUS_COLORS[st])))
             parent.setToolTip(0, unicode(peer.path))
 
             self.parameters.addTopLevelItem(parent)
@@ -292,7 +286,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 child = parent.child(j)
 
         state.expanded_peers = expanded
+
         return self._params
+
+    def _itemDoubleClicked(self, item, column):
+        if item.parent() is None:
+            uid = str(self.scenarios.currentItem().uuid)
+            #self.exp_states[uid].exp.exp_config.peers[
+            self.log_engine.show_log(item.text(0), uid)
 
     def _itemClicked(self, item, column):
         if item.columnCount() > 1 and column > 0:
@@ -334,6 +335,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self._setParams(self.exp_states[scenario_item.uuid])
             self.parameters_of.setTitle("Parameters of " + self.exp_states[scenario_item.uuid].exp.name)
             self._store_update_info(self.exp_states[scenario_item.uuid].store_options)
+            self.log_engine.show(self.exp_states[scenario_item.uuid])
 
         self._manage_actions(scenario_item)
 
@@ -467,7 +469,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         new_states = {}
         for exp in scenarios:
-
             if exp.uuid not in self.exp_states:
                 st = new_states[exp.uuid] = ExperimentGuiState(
                     exp, 
@@ -579,11 +580,14 @@ class ExperimentGuiState(object):
 
         self.exp = engine_experiment
         self.expanded_peers = set()
+        print "AAAAAAAAAAAAAAAAAAAAAAAAA ", old_exp
         if old_exp is None:
             self.store_options = None
+            self.log_model = obci_log_model.LogModel()
         else:
             self.store_options = old_exp.store_options
-
+            self.log_model = old_exp.log_model
+        
 
 
 class ConnectToMachine(QDialog, Ui_ConnectToMachine):
