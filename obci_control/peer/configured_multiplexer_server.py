@@ -8,6 +8,7 @@ from obci_configs import settings, variables_pb2
 
 from peer.peer_control import PeerControl
 import common.config_message as cmsg
+from utils.openbci_logging import get_logger
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):
     def __init__(self, addresses, type=None, external_config_file=None):
@@ -15,7 +16,16 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
 
         self.ready_to_work = False
         self.external_config_file = external_config_file
-        self.config = PeerControl(self)
+        self.config = PeerControl(peer=self)
+
+        self.logger = get_logger(self.config.peer_id,
+                            file_level=self.get_param('file_log_level'),
+                            stream_level=self.get_param('console_log_level'),
+                            mx_level=self.get_param('mx_log_level'),
+                            conn=self.conn,
+                            log_dir=self.get_param('log_dir'))
+        self.config.logger = self.logger
+
         self.config.connection = self.conn
         self.config.peer_validate_params = self.validate_params
         self.config.peer_params_changed = self.params_changed
@@ -29,9 +39,8 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
             self.validate_params(self.config.param_values())
 
     def bad_initialization_result(self, result, details):
-        txt = '[{0}] (CRITICAL!) config initialisation FAILED: {1}'.format(
-                                                        self.config.peer_id, details)
-        sys.exit(txt)
+        self.logger.critical('config initialisation FAILED: {0}'.format(details))
+        sys.exit(1)
 
     def ready(self):
         self.ready_to_work = True
@@ -48,19 +57,19 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
         return mxmsg.type in cmsg.MX_CFG_MESSAGES
 
     def _handle_message(self, mxmsg):
-        print '[',self.config.peer_id,"] Handling secret message!", mxmsg.type
+        self.logger.info("Handling secret message!" + str(mxmsg.type))
         self.config.handle_config_message(mxmsg)
 
     def validate_params(self, params):
-        print '[',self.config.peer_id,"] *VALIDATE PARAMS, {0}".format(params)
+        self.logger.info("VALIDATE PARAMS, {0}".format(params))
         return True
 
     def params_changed(self, params):
-        print '[',self.config.peer_id,"] PARAMS CHAnGED, {0}".format(params)
+        self.logger.info("PARAMS CHAnGED, {0}".format(params))
         return True
 
     def clean_up(self):
-        print '[',self.config.peer_id,"] CLEAN UP"
+        self.logger.info("CLEAN UP")
 
     def shut_down(self):
         self.clean_up()
