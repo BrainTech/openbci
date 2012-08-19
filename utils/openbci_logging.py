@@ -42,10 +42,18 @@ MAX_FILE_SIZE_B = 1000000
 LOG_BUFFER_SIZE_B = 5000
 BACKUP_COUNT = 2
 
-def log_formatter():
-    """Standard openBCI log formatter"""
+def console_formatter():
+    return logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+def file_formatter():
     return logging.Formatter(
                     "%(asctime)s - %(name)s - %(filename)s:%(lineno)d - %(levelname)s - %(message)s")
+
+def mx_formatter():
+    return logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
 
 def get_logger(name, file_level='debug', stream_level='warning', 
                             mx_level='warning', conn=None, log_dir=None):
@@ -60,7 +68,7 @@ def get_logger(name, file_level='debug', stream_level='warning',
         
         level = LEVELS['debug']
         logger.setLevel(level)
-        formatter = log_formatter()
+        formatter = console_formatter()
 
         shandler = logging.StreamHandler()
         shandler.setFormatter(formatter)
@@ -70,7 +78,9 @@ def get_logger(name, file_level='debug', stream_level='warning',
         if conn is not None:
             mxhandler = log_mx_handler.LogMXHandler(conn)
             mxhandler.setLevel(LEVELS[mx_level])
+            mxhandler.setFormatter(mx_formatter())
             logger.addHandler(mxhandler)
+
 
         if log_dir is not None:
             fhandler = logging.handlers.RotatingFileHandler(
@@ -79,6 +89,7 @@ def get_logger(name, file_level='debug', stream_level='warning',
                                     backupCount=BACKUP_COUNT)
             fhandler.setFormatter(formatter)
             fhandler.setLevel(LEVELS[file_level])
+            fhandler.setFormatter(file_formatter())
             # memhandler = logging.handlers.MemoryHandler(LOG_BUFFER_SIZE_B, 
             #                                     flushLevel=LEVELS['warning'],
             #                                            target=fhandler)
