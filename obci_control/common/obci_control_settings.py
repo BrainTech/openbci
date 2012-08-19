@@ -5,6 +5,10 @@
 
 import os
 import os.path
+from peer.config_defaults import CONFIG_DEFAULTS
+
+OBCI_CONTROL_LOG_DIR = os.path.join(CONFIG_DEFAULTS["log_dir"], "obci_control")
+
 
 USE_ZMQ = False
 

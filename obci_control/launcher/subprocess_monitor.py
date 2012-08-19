@@ -22,6 +22,8 @@ import common.net_tools as net
 from common.message import OBCIMessageTool, PollingObject, send_msg, recv_msg
 from launcher_messages import message_templates
 
+from utils.openbci_logging import get_logger
+
 PING = 2
 RETURNCODE = 4
 
@@ -49,10 +51,13 @@ _DEFAULT_TIMEOUT_MS=6000
 
 
 class SubprocessMonitor(object):
-    def __init__(self, zmq_ctx, uuid):
+    def __init__(self, zmq_ctx, uuid, logger=None):
         self._processes = {}
         self._ctx = zmq_ctx
         self.uuid = uuid
+        self.logger = logger or get_logger('subprocess_monitor',
+                                stream_level='warning')
+
         self._mtool = OBCIMessageTool(message_templates)
         self.poller = PollingObject()
         self._proc_lock = threading.RLock()
@@ -109,7 +114,7 @@ class SubprocessMonitor(object):
             launch_args = PYTHON_CALL +[path] + args
         else:
             launch_args = [path] + args
-        print "[subprocess monitor]",proc_type," local path:  ", path
+        self.logger.info(proc_type + " local path:  " + path)
         machine = machine_ip if machine_ip else socket.gethostname()
         out = subprocess.PIPE if capture_io & STDOUT else None
 
@@ -133,19 +138,19 @@ class SubprocessMonitor(object):
         except OSError as e:
             details = "{0} : Unable to spawn process {1} [{2}]".format(
                                                         machine, path, e.args)
-            print details
+            self.logger.error(details)
             return None, details
         except ValueError as e:
             details = "{0} : Unable to spawn process (bad arguments) \
 {1} [{2}]".format(machine, path, e.args)
-            print details
+            self.logger.error(details)
             return None, details
         except Exception as e:
             return None, "Error: " + str(e) + str(e.args)
         else:
             if popen_obj.returncode is not None:
-                print "aaaaaaaaaaa"
-                print popen_obj.communicate()
+                self.logger.warning("opened process already terminated"
+                                        + popen_obj.communicate())
             if not name:
                 name = os.path.basename(path)
             process_desc = ProcessDescription(proc_type=proc_type,
@@ -175,7 +180,8 @@ class SubprocessMonitor(object):
 
             new_proc = LocalProcess(process_desc, popen_obj, io_handler=io_handler,
                                 reg_timeout_desc=timeout_desc,
-                                monitoring_optflags=monitoring_optflags)
+                                monitoring_optflags=monitoring_optflags,
+                                logger=self.logger)
 
             if monitoring_optflags & PING:
                 new_proc._ctx = self._ctx
@@ -220,7 +226,9 @@ class SubprocessMonitor(object):
             return None, "Could not connect to {0}, err: {1}, {2}".format(
                                                             conn_addr, e, e.args)
 
-        print "************SENDING LAUNCH REQUEST  ", machine_ip, _DEFAULT_TIMEOUT_MS, 'ms'
+        self.logger.info("************SENDING LAUNCH REQUEST  %s  %d  %s", 
+                                machine_ip, _DEFAULT_TIMEOUT_MS, 'ms')
+
         send_msg(rq_sock, rq_message)
         result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT_MS)
 
@@ -229,17 +237,18 @@ class SubprocessMonitor(object):
         if not result:
 
             details = details + "  [address was: {0}]".format(conn_addr)
-            print "@@@@@@@@@@@@@@@@@@@@@@@@@  ", details
+            self.logger.error("@@@@@@@@@@@@   %s", details)
             return None, details
         else:
             result = self._mtool.unpack_msg(result)
 
 
         if result.type == 'rq_error':
+            self.logger.error("REQUEST FAILED  %s", 
+                                        result.err_code + ':' + result.details)
             return None, result.err_code + ':' + result.details
-            print "REQUEST FAILED  ", result.err_code + ':' + result.details
         elif result.type == 'launched_process_info':
-            print "REQUEST SUCCESS  ", result.dict()
+            self.logger.info("REQUEST SUCCESS  %s", result.dict())
             process_desc = ProcessDescription(proc_type=result.proc_type,
                                             name=result.name,
                                             path=result.path,
@@ -250,7 +259,8 @@ class SubprocessMonitor(object):
 
             new_proc = RemoteProcess(process_desc, conn_addr,
                                 reg_timeout_desc=timeout_desc,
-                                monitoring_optflags=monitoring_optflags)
+                                monitoring_optflags=monitoring_optflags,
+                                logger=self.logger)
 
             if monitoring_optflags & PING:
                 new_proc._ctx = self._ctx
@@ -278,7 +288,8 @@ _REG_TIMER = 0
 class Process(object):
     def __init__(self, proc_description,
                                 reg_timeout_desc=None,
-                                monitoring_optflags=PING):
+                                monitoring_optflags=PING,
+                                logger=None):
 
         self.desc = proc_description
 
@@ -291,6 +302,9 @@ class Process(object):
         self.check_returncode = monitoring_optflags & RETURNCODE if \
                                         self.desc.pid is not None else False
 
+        self.logger = logger or get_logger(
+                                'subprocess_monitor'+'-'+self.desc.name+'-'+str(self.desc.pid),
+                                stream_level='info')
         self.set_registration_timeout_handler(reg_timeout_desc)
         self.registration_data = None
 
@@ -359,7 +373,9 @@ class Process(object):
     def registered(self, reg_data):
         if self.reg_timer is not None:
             self.reg_timer.cancel()
-        print "[subprocess_monitor] {0} [{1}]  REGISTERED!!! {2}".format(self.name, self.proc_type, reg_data.machine_ip)
+
+        self.logger.info("{0} [{1}]  REGISTERED!!! {2}".format(
+                                            self.name, self.proc_type, reg_data.machine_ip))
         #print "ping:", self.ping_it, "ret:", self.check_returncode
         with self._status_lock:
             self._status = RUNNING
@@ -380,12 +396,16 @@ class Process(object):
         self._stop_monitoring = True
 
         if self._ping_thread is not None:
-            print "[subprocess_monitor]", self.proc_type, self.name ,"Joining ping thread"
+            self.logger.info("%s, %s, %s",
+                            self.proc_type, self.name ,"Joining ping thread")
+            
             self._ping_thread.join()
         if self._returncode_thread is not None:
-            print "[subprocess_monitor]", self.proc_type,self.name, "joining returncode thread"
+            self.logger.info("%s  %s  %s",
+                            self.proc_type,self.name, "joining returncode thread")
             self._returncode_thread.join()
-        print "[subprocess_monitor] monitor for: ", self.proc_type,self.name, "  ...monitoring threads stopped."
+        self.logger.info("monitor for: %s, %s, %s", 
+                    self.proc_type,self.name, "  ...monitoring threads stopped.")
 
     def finished(self):
         return self.popen_obj.returncode is not None and\
@@ -415,7 +435,8 @@ class Process(object):
                 while self._ping_retries and not result and not self._stop_monitoring:
                     result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
                 if not result and not self._stop_monitoring:
-                    print "[subprocess_monitor] for", self.proc_type, self.name, "NO RESPONSE TO PING!",
+                    self.logger.info("%s %s %s", 
+                            self.proc_type, self.name, "NO RESPONSE TO PING!")
                     with self._status_lock:
                         if self._status not in [FAILED, FINISHED]:
                             self._status = NON_RESPONSIVE
@@ -441,12 +462,14 @@ class Process(object):
 class LocalProcess(Process):
     def __init__(self, proc_description, popen_obj, io_handler=None,
                                 reg_timeout_desc=None,
-                                monitoring_optflags=PING | RETURNCODE):
+                                monitoring_optflags=PING | RETURNCODE,
+                                logger=None):
         self.popen_obj = popen_obj
         self.io_handler = io_handler
 
         super(LocalProcess, self).__init__(proc_description,
-                                        reg_timeout_desc, monitoring_optflags)
+                                        reg_timeout_desc, monitoring_optflags,
+                                        logger)
 
     def is_local(self):
         return True
@@ -497,7 +520,7 @@ class LocalProcess(Process):
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                print "\n\n\nKILLING -9 PROCESS", self.pid, self.name, "\n\n\n"
+                self.logger.info("KILLING -9 PROCESS %s %s", self.pid, self.name)
                 self.popen_obj.send_signal(signal.SIGKILL)
             self.popen_obj.wait()
             if not self._status == NON_RESPONSIVE:
@@ -532,8 +555,8 @@ class LocalProcess(Process):
             code = self.popen_obj.returncode
 
             if code is not None:
-                print "[subprocess_monitor]",self.proc_type,"process", self.name,\
-                                         "pid", self.pid, "ended with", code
+                self.logger.info(self.proc_type + " process " + self.name +\
+                                    " pid " + str(self.pid) + " ended with " + str(code))
                 with self._status_lock:
                     self.popen_obj.wait()
                     if code == 0:
@@ -547,9 +570,8 @@ class LocalProcess(Process):
                         self._status_detals = self.tail_stdout(15)
                 break
             elif self.status()[0] == NON_RESPONSIVE:
-                print "[subprocess_monitor]",self.proc_type,"process", self.name,\
-                                         "pid", self.pid, "is NON_RESPONSIVE"
-
+                self.logger.warning(self.proc_type + "process" + self.name +\
+                                         "pid" + self.pid + "is NON_RESPONSIVE")
                 with self._status_lock:
                     self.popen_obj.poll()
                     if self.popen_obj.returncode is None:
@@ -567,14 +589,16 @@ class LocalProcess(Process):
 class RemoteProcess(Process):
     def __init__(self, proc_description, rq_address,
                                 reg_timeout_desc=None,
-                                monitoring_optflags=PING):
+                                monitoring_optflags=PING,
+                                logger=None):
 
         self.rq_address = rq_address
         self._ctx = None
         # returncode monitoring is not supported in remote processes..
         monitoring_optflags = monitoring_optflags & ~(1 << RETURNCODE)
         super(RemoteProcess, self).__init__(proc_description,
-                                        reg_timeout_desc, monitoring_optflags)
+                                        reg_timeout_desc, monitoring_optflags,
+                                        logger)
 
 
     def is_local(self):
@@ -609,7 +633,7 @@ class RemoteProcess(Process):
 
             with self._status_lock:
                 self._status = TERMINATED
-            pass
+
 
 class ProcessDescription(object):
     def __init__(self, proc_type, name, path, args, machine_ip, pid=None):

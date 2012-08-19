@@ -15,7 +15,7 @@ from common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
 import common.net_tools as net
 import common.obci_control_settings as settings
-
+from peer.config_defaults import CONFIG_DEFAULTS
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import launcher_tools
@@ -23,6 +23,8 @@ import launcher_tools
 import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE, DEFAULT_TAIL_RQ
+
+TEST_PACKS = 100000
 
 class OBCIProcessSupervisor(OBCIControlPeer):
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
@@ -54,12 +56,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.rqs = 0
         self._nearby_machines = net.DNS()
 
+        self.test_count = 0
+
         super(OBCIProcessSupervisor, self).__init__(
                                             source_addresses=source_addresses,
                                             rep_addresses=rep_addresses,
                                             pub_addresses=pub_addresses,
                                             name=name)
-        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
+        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid, logger=self.logger)
 
 
     def peer_type(self):
@@ -186,7 +190,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 continue
             print "MORPH:  KILLING ", peer
             proc.kill_with_force()
-            print "MORPH:  KILLED ", peer
+            print "MORPH:  KILLED ", peertest
             del self.processes[peer]
             del self.launch_data[peer]
 
@@ -196,6 +200,16 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         
         self._launch_processes(message.start_peers_data, restore_config=restore_config)
 
+    @msg_handlers.handler("test_pack_msg")
+    def handle_test_msg(self, message, sock):
+        self.test_count += 1
+        if self.test_count == TEST_PACKS:
+            print "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"\
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"\
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"\
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"\
+            "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"\
+            "received ", self.TEST_PACKS, "test messages"
 
     def _launch_processes(self, launch_data, restore_config=[]):
         proc, details = None, None
@@ -238,6 +252,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 if restore_config:
                     args += ['-p', 'restore_peers', ' '.join(restore_config)]
                 wait = 0.4
+            if "log_dir" in args:
+                idx = args.index("log_dir") + 1
+                log_dir = args[idx]
+                log_dir = os.path.join(log_dir, self.name)
+                if not os.path.exists(log_dir):
+                    os.makedirs(log_dir)
+                args[idx] = log_dir
+
             proc, details = self._launch_process(path, args, data['peer_type'],
                                                         peer, env=self.env, capture_io=NO_STDIO)
             if proc is not None:

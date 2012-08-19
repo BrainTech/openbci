@@ -4,6 +4,7 @@
 import zmq
 import uuid
 import signal
+import os
 import sys
 import threading
 import time
@@ -18,7 +19,7 @@ import common.obci_control_settings as settings
 
 from subprocess_monitor import SubprocessMonitor, FAILED, TERMINATED, FINISHED, \
                                                         RUNNING, NON_RESPONSIVE
-
+from utils.openbci_logging import get_logger                                                        
 
 class HandlerCollection(object):
     def __init__(self):
@@ -101,12 +102,20 @@ class OBCIControlPeer(object):
         self.name = str(name)
         self.type = self.peer_type()
 
+        log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR, 
+                                self.name + '-' + self.uuid[:8])
+        if not hasattr(self, 'logger'):
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
+            self.logger = get_logger(self.peer_type(), log_dir=log_dir,
+                                    stream_level='info')
+
         self.mtool = self.message_tool()
 
         if not hasattr(self, "ctx"):
             self.ctx = zmq.Context()
 
-        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
+        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid, logger=self.logger)
         self.net_init()
 
         if self.source_addresses:
@@ -122,8 +131,8 @@ class OBCIControlPeer(object):
 
     def signal_handler(self):
         def handler(signum, frame):
-            print "[!!!!]", self.name, "got signal", signum, frame
-            print frame.f_back, frame.f_code, frame.f_lasti
+            self.logger.info("[!!!!] %s %s %s %s", 
+                        self.name, "got signal", signum, frame)
             self.interrupted = True
         return handler
 
@@ -154,10 +163,11 @@ class OBCIControlPeer(object):
 
                 if to_publish:
                     send_msg(pub_sock, to_publish)
+
             except:
                 #print self.name, '.Publisher -- STOP.'
                 break
-        print self.name,'[', self.type, ']', "close  sock ", pub_addrs, pub_sock
+        # self.logger.info( "close  sock %s %s", pub_addrs, pub_sock)
         pub_sock.close()
         pull_sock.close()
         push_sock.close()
@@ -170,11 +180,10 @@ class OBCIControlPeer(object):
         while not self._stop_monitoring:
             dead = self.subprocess_mgr.not_running_processes()
             if dead:
-                print "DEAD  process" , dead
+                # self.logger.warning("DEAD  process" +  str(dead))
                 for key, status in dead.iteritems():
                     send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
                                                         pid=key[1], status=status))
-
             time.sleep(1)
         push_sock.close()
 
@@ -259,7 +268,7 @@ class OBCIControlPeer(object):
                 else:
                     sock.bind(addr)
         except Exception, e:
-            print self.peer_type(), "CRITICAL error: ", str(e)
+            self.logger.critical("CRITICAL error: %s", str(e))
             sys.exit(0)
 
         advertised_addrs = []
@@ -280,13 +289,12 @@ class OBCIControlPeer(object):
                                                 pub_addrs=pub_addrs,
                                                 name=self.name,
                                                 other_params=params)
-        print self.name,'[', self.type, ']', message
+        self.logger.debug("_register()  " + str(message))
         send_msg(self.source_req_socket, message)
         response_str = recv_msg(self.source_req_socket)
         response = self.mtool.unpack_msg(response_str)
         if response.type == "rq_error":
-            print "{0} [{1}] Registration failed: {2}".format(
-                                        self.name, self.peer_type(),response_str)
+            self.logger.critical("Registration failed: {0}".format(response_str))
             sys.exit(2)
         return response
 
@@ -298,7 +306,7 @@ class OBCIControlPeer(object):
         pass
 
     def shutdown(self):
-        print '{0} [{1}] -- IS SHUTTING DOWN'.format(self.name, self.peer_type())
+        self.logger.info("SHUTTING DOWN")
         sys.exit(0)
 
     def params_for_registration(self):
@@ -329,10 +337,9 @@ class OBCIControlPeer(object):
         while True:
             socks = []
             try:
-                #print self.name + ' ['+self.peer_type() + ']' + 'listening'
                 socks = dict(poller.poll())
             except zmq.ZMQError, e:
-                print str(self.name) + ' ['+str(self.peer_type()) + ']' +": zmq.poll(): " +str(    e.strerror)
+                self.logger.error(": zmq.poll(): " +str(    e.strerror))
 
             for sock in socks:
                 if socks[sock] == zmq.POLLIN:
@@ -345,9 +352,8 @@ class OBCIControlPeer(object):
                             if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
                                 more = False
                             else:
-                                print str(self.name) + ' ['+str(self.peer_type()) + ']', "error:", str(e)
-                                print str(self.name) + ' ['+str(self.peer_type()) + ']',\
-                                                        "handling socket read error: ", sock, e.errno
+                                self.logger.error("handling socket read error: %s  %d  %s", 
+                                                    str(e), e.errno, str(sock))
                                 poller.unregister(sock)
                                 if sock in poll_sockets:
                                     poll_sockets.remove(sock)
@@ -400,8 +406,7 @@ class OBCIControlPeer(object):
         self.clean_up()
 
     def clean_up(self):
-
-        print "{0} [{1}], Cleaning up".format(self.name, self.peer_type())
+        self.logger.info("CLEANING UP")
 
 
 ########## message handling ######################################
@@ -413,8 +418,7 @@ class OBCIControlPeer(object):
         try:
             msg = self.mtool.unpack_msg(message)
             if msg.type != "ping" and msg.type != "rq_ok":
-                print "{0} [{1}], got message: {2}".format(
-                                        self.name, self.peer_type(), msg.type)
+                self.logger.info("got message: {0}".format(msg.type))
                 if msg.type == "get_tail":
                     print self.msg_handlers
         except ValueError, e:
