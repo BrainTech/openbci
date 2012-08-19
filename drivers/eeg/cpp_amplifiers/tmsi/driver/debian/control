@@ -3,7 +3,7 @@ Section: kernel
 Priority: optional
 Maintainer: Karol Auguštin <karol@augustin.pl>
 Build-Depends: debhelper (>= 7)
-Standards-Version: 3.9.1
+Standards-Version: 3.9.3
 
 Package: tmsi-dkms
 Architecture: all
