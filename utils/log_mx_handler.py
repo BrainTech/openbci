@@ -7,7 +7,7 @@ a LogMXHandler.
 """
 
 import logging
-import pickle
+import json
 
 from multiplexer.multiplexer_constants import types
 
@@ -20,6 +20,7 @@ picked up by a log collector mx peer."""
     def __init__(self, conn):
         # store multiplexer connection object
         self.conn = conn
+        super(LogMXHandler, self).__init__()
 
     def close(self):
         pass
@@ -43,7 +44,8 @@ picked up by a log collector mx peer."""
             record.msg = record.message 
             record.args = None 
             record.exc_info = None 
-            data = pickle.dumps(record.__dict__)
+            # print record.__dict__
+            data = json.dumps(record.__dict__)
             self.conn.send_message(
                         message=data, type=types.OBCI_LOG_MESSAGE, flush=True)
         except (KeyboardInterrupt, SystemExit): 
