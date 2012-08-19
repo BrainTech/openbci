@@ -5,13 +5,11 @@ import sys
 
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from drivers import drivers_logging as logger
 from drivers.eeg.driver_comm import DriverComm
 from obci_configs import settings
 
 import json
 
-LOGGER = logger.get_logger("BinaryDriverWrapper", "info")
 SEP = ';'
 
 class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
@@ -43,7 +41,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
         self.store_driver_description(desc)
 
         autostart = self.config.true_val(self.config.get_param('start_sampling'))
-        LOGGER.info('Automatic start' + str(autostart))
+        self.logger.info('Automatic start' + str(autostart))
 
         self.ready()
         if autostart:
@@ -55,7 +53,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
 
     def store_driver_description(self, driver_output):
         if len(driver_output) < 500:
-            LOGGER.info("This does not look good: "+driver_output)
+            self.logger.info("This does not look good: "+driver_output)
         amp_desc=json.loads(driver_output)
         for par, desc_par in self.desc_params.iteritems():
             self.config.set_param(par, amp_desc[desc_par])
@@ -67,7 +65,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
         gains = []
         offsets = []
         if len(active) != len(names):
-            LOGGER.error("Active channels list length different than channel names length!")
+            self.logger.error("Active channels list length different than channel names length!")
             self.stop_sampling()
             sys.exit(1)
         for chan in active:
@@ -79,7 +77,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
         offset_str = SEP.join([str(o) for o in offsets])
         self.set_param('channel_gains',  gains_str)
         self.set_param('channel_offsets', offset_str)
-        LOGGER.info('Set active channels: ' + str(active) + ', channel_gains: ' +\
+        self.logger.info('Set active channels: ' + str(active) + ', channel_gains: ' +\
                                 gains_str + ', channel_offsets: ' + offset_str)
 
 
@@ -88,11 +86,11 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
                                                     info['name'] == chan or \
                                                     str(index) == chan]
         if not match:
-            LOGGER.error('Invalid channel name ' + chan)
+            self.logger.error('Invalid channel name ' + chan)
             self.stop_sampling()
             sys.exit(1)
         elif len(match) > 1:
-            LOGGER.error('Ambiguous channel name ' + chan + str(channels_list))
+            self.logger.error('Ambiguous channel name ' + chan + str(channels_list))
             self.stop_sampling()
             sys.exit(1)
 
@@ -110,7 +108,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
         if amp_params_received:
             for par in params:
                 if params[par] == '':
-                    LOGGER.error('Parameter ' + par + 'is empty!!! ABORTING....')
+                    self.logger.error('Parameter ' + par + 'is empty!!! ABORTING....')
                     sys.exit(1)
 
 
