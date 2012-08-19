@@ -9,6 +9,7 @@ import json
 
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
+from peer.config_defaults import CONFIG_DEFAULTS
 from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
 from launcher_tools import expand_path, default_config_path
 
@@ -19,12 +20,13 @@ SYS_SECTIONS = [PEERS]
 
 class ScenarioParser(object):
 
-    def parse(self, p_file, p_config_obj):
+    def parse(self, p_file, p_config_obj, apply_globals=False):
         self._prepare(p_file, p_config_obj)
-        self._do_parse()
+        self._do_parse(apply_globals)
         return True
 
-    def _do_parse(self):
+    def _do_parse(self, apply_globals=False):
+        self._apply_globals = apply_globals
         self._check_sections()
         self._load_general_settings()
         peer_sections = self._peer_sections()
@@ -130,6 +132,10 @@ class LaunchFileParser(ScenarioParser):
             with codecs.open(config_path, "r", "utf8") as f:
                 print "parsing _custom_ config for peer  ", peer_id, config_path
                 peer_parser.parse(f, peer_cfg)
+        if self._apply_globals:
+            for param, value in CONFIG_DEFAULTS.iteritems():
+                peer_cfg.add_local_param(param, value)
+
         self.config.set_peer_config(peer_id, peer_cfg)
 
     def _parse_peer_config_section(self, peer_id, peer_config_section, peer_path):
@@ -183,9 +189,9 @@ class LaunchJSONParser(ScenarioParser):
         self.config = None
         self.load = {}
 
-    def parse(self, p_file, p_config_obj):
+    def parse(self, p_file, p_config_obj, apply_globals=False):
         self._prepare(p_file, p_config_obj)
-        self._do_parse()
+        self._do_parse(apply_globals)
         return True
 
     def _prepare(self, p_file, p_config_obj):
@@ -223,6 +229,11 @@ class LaunchJSONParser(ScenarioParser):
             self._load_peer(sec, items)
 
     def _parse_peer_config_section(self, peer_id, peer_config_section, peer_path):
+        # we do not apply globals when parsing JSON - we just assume
+        # the globals are already in the JSON config
+        # TODO! apply them if parameter _apply_globals is set 
+        # and they are not present in the config
+
         peer_cfg, peer_parser = parse_peer_default_config(
                                                 peer_id, peer_path)
         config = peer_config_section

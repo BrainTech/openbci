@@ -10,6 +10,7 @@ import codecs
 import peer_config
 import peer_config_parser
 from peer_cmd import PeerCmd
+from config_defaults import CONFIG_DEFAULTS
 
 import common.config_message as cmsg
 
@@ -68,6 +69,7 @@ class PeerControl(object):
         # parse default config file
         self._load_config_base()
 
+        self._load_defaults(CONFIG_DEFAULTS)
         # parse external config file
         self._load_config_external()
 
@@ -79,6 +81,9 @@ class PeerControl(object):
         dictparser = peer_config_parser.parser('python')
         dictparser.parse(self.cmd_overrides, self.core, update=True)
 
+    def _load_defaults(self, globals_):
+        for param, val in globals_.iteritems():
+            self.core.add_local_param(param, val)
 
     def _process_command_line(self):
         cmd_ovr, other_params = PeerCmd().parse_cmd()

@@ -166,7 +166,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         try:
             with open(launcher_tools.expand_path(self.launch_file)) as f:
-                launch_parser.parse(f, self.exp_config)
+                launch_parser.parse(f, self.exp_config, apply_globals=True)
         except Exception as e:
             self.status.set_status(launcher_tools.NOT_READY, details=str(e))
             print "config errror   ", str(e)
