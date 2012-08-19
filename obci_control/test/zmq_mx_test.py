@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from multiplexer.multiplexer_constants import peers, types
+# from multiplexer.multiplexer_constants import peers, types
 from obci_configs import settings, variables_pb2
 
-from multiplexer.clients import BaseMultiplexerServer
+# from multiplexer.clients import BaseMultiplexerServer
 from common.message import send_msg, recv_msg
 
 import zmq
 import time
 
-SEND = 10000
+SEND = 1000000
 
 class Tester(object):
 
@@ -21,10 +21,10 @@ class Tester(object):
         # self.push.bind('tcp://*:17890')
         # self.push.setsockopt(zmq.LINGER, 0)
 
-        self.pull = self.ctx.socket(zmq.SUB)
+        self.pull = self.ctx.socket(zmq.PULL)
         self.pull.bind('tcp://*:16789')
         self.pull.setsockopt(zmq.LINGER, 0)
-        self.pull.setsockopt(zmq.SUBSCRIBE, "")
+        # self.pull.setsockopt(zmq.SUBSCRIBE, "")
 
     def test(self):
         # for i in range(SEND):
@@ -43,7 +43,7 @@ class Tester(object):
         if received == SEND:
             print "zmq: OK"
         else:
-            print "WUT?", received
+            print "OHHHH NOOOOOOOOO :( :( :( :( :(", received
         # self.push.close()
         self.pull.close()
 
