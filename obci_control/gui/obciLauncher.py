@@ -92,6 +92,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.setColumnWidth(0, 200)
         self.parameters.setColumnWidth(1, 400)
 
+        self.scenarioTab.removeTab(1)
+        self.scenarioTab.setTabText(0, "Scenario")
+        self.scenarioTab.setTabsClosable(True)
+
         self.machines_dialog = ConnectToMachine(self)
 
         self.start_button.clicked.connect(self._start)
@@ -111,7 +115,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.setupMenus()
         self.setupActions()
         self.update_user_interface(None)
-        self.show()
+        self.showFullScreen()
 
     def engine_server_setup(self, server_ip_host=None):
         server_ip, server_name = server_ip_host or (None, None)
