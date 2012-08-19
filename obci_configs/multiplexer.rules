@@ -345,11 +345,19 @@ peer {
     queue_size: 32768	       
 }
 
-
 peer {
      type: 165
      name: "CLIENT"
 }
+
+#####################  OBCI LOGGING ##########
+
+peer {
+    type: 166
+    name: "OBCI_LOG_COLLECTOR"
+}
+
+############### /OBCI LOGGING ######
 
 
 # packages and routing rules definitions
@@ -1130,4 +1138,27 @@ type {
        whom: ALL
 	report_delivery_error: false
        }
+}
+
+
+######### OBCI_LOGGING #######################
+
+type {
+    type: 234
+    name: "OBCI_LOG_MESSAGE"
+    to {
+        peer: "OBCI_LOG_COLLECTOR"
+        whom: ALL
+        report_delivery_error: false
+    }
+}
+
+type {
+    type: 235
+    name: "OBCI_LOG_DUMP_REQUEST"
+}
+
+type {
+    type: 236
+    name: "OBCI_LOG_DUMP_RESPONSE"
 }
