@@ -6,6 +6,7 @@ import time
 import inspect
 import numbers
 import codecs
+import logging
 
 import peer_config
 import peer_config_parser
@@ -24,12 +25,14 @@ WAIT_READY_SIGNAL = "wait_ready_signal"
 CONFIG_FILE = "config_file"
 PEER_ID = "peer_id"
 
+LOGGER = logging.getLogger("peer_control_default_logger")
+
 class PeerControl(object):
 
-    def __init__(self, p_peer=None, connection=None, param_validate_method=None,
+    def __init__(self, peer=None, connection=None, param_validate_method=None,
                                param_change_method=None):
         self.core = peer_config.PeerConfig()
-        self.peer = p_peer
+        self.peer = peer
         self.peer_validate_params = param_validate_method
         self.peer_params_changed = param_change_method
 
@@ -40,6 +43,11 @@ class PeerControl(object):
 
         self.cmd_overrides = {}
         self.file_list = []
+        self.logger = LOGGER
+
+        # parse command line
+        self.process_command_line()
+        self._load_provided_configs()
 
         if self.peer_validate_params:
             if self.connection:
@@ -50,7 +58,7 @@ class PeerControl(object):
 
 
     def initialize_config(self, connection):
-        self._load_provided_configs()
+        #### self._load_provided_configs()
 
         self._request_ext_params(connection)
 
@@ -58,13 +66,11 @@ class PeerControl(object):
         return self.config_ready()
 
     def initialize_config_locally(self):
-        self._load_provided_configs()
+        #### self._load_provided_configs()
         #self.peer_validate_params(self.core.param_values)
         return self.config_ready()
 
     def _load_provided_configs(self):
-        # parse command line
-        self._process_command_line()
 
         # parse default config file
         self._load_config_base()
@@ -85,7 +91,7 @@ class PeerControl(object):
         for param, val in globals_.iteritems():
             self.core.add_local_param(param, val)
 
-    def _process_command_line(self):
+    def process_command_line(self):
         cmd_ovr, other_params = PeerCmd().parse_cmd()
         self.peer_id = self.core.peer_id = other_params[PEER_ID]
         if other_params[CONFIG_FILE] is not None:

@@ -2,5 +2,8 @@
 # -*- coding: utf-8 -*-
 
 CONFIG_DEFAULTS = {
-    "log_level" : "warning"
+    "console_log_level" : "info",
+    "file_log_level" : "debug",
+    "mx_log_level" : "info",
+    "log_dir" : "/tmp/log/obci/"
 }

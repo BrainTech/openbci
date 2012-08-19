@@ -5,6 +5,9 @@ from multiplexer.clients import connect_client
 
 from peer.peer_control import PeerControl, ConfigNotReadyError
 import common.config_message as cmsg
+from utils.openbci_logging import get_logger
+import sys
+
 
 class ConfiguredClient(object):
 
@@ -13,7 +16,16 @@ class ConfiguredClient(object):
         self.conn = connect_client(addresses=addresses, type=type)
         self.ready_to_work = False
         self.external_config_file = external_config_file
-        self.config = PeerControl(self)
+        self.config = PeerControl(peer=self)
+
+        self.logger = get_logger(self.config.peer_id,
+                            file_level=self.get_param('file_log_level'),
+                            stream_level=self.get_param('console_log_level'),
+                            mx_level=self.get_param('mx_log_level'),
+                            conn=self.conn,
+                            log_dir=self.get_param('log_dir'))
+        self.config.logger = self.logger
+
         self.config.connection = self.conn
         self.config.peer_validate_params = self.validate_params
         self.config.peer_params_change = self.params_changed
@@ -21,9 +33,9 @@ class ConfiguredClient(object):
 
 
         if not result:
-            txt = '[{0}] (CRITICAL!) config initialisation FAILED: {1}'.format(
-                                                        self.config.peer_id, details)
-            sys.exit(txt)
+            self.logger.critical(
+                        'Config initialisation FAILED: {0}'.format(details))
+            sys.exit(1)
         else:
             self.validate_params(self.config.param_values())
 
@@ -40,9 +52,9 @@ class ConfiguredClient(object):
 
 
     def validate_params(self, params):
-        print '[',self.config.peer_id,"] VALIDATE PARAMS, {0}".format(params)
+        self.logger.info("VALIDATE PARAMS, {0}".format(params))
         return True
 
     def params_changed(self, params):
-        print '[',self.config.peer_id,"] PARAMS CHAnGED, {0}".format(params)
+        self.logger.info("PARAMS CHAnGED, {0}".format(params))
         return True
