@@ -6,6 +6,7 @@ import os
 import warnings
 import codecs
 import json
+import logging
 
 import peer.peer_config as peer_config
 import peer.peer_config_parser as peer_config_parser
@@ -86,11 +87,12 @@ class ScenarioParser(object):
 
 class LaunchFileParser(ScenarioParser):
 
-    def __init__(self, obci_base_dir, scenario_base_dir):
+    def __init__(self, obci_base_dir, scenario_base_dir, logger=None):
         self.base_dir = obci_base_dir
         self.scenario_dir = scenario_base_dir
         self.parser = None
         self.config = None
+        self.logger = logger or logging.getLogger("LaunchFileParser")
 
     def _prepare(self, p_file, p_config_obj):
         self.parser = ConfigParser.RawConfigParser()
@@ -126,11 +128,11 @@ class LaunchFileParser(ScenarioParser):
 
     def _parse_peer_config(self, peer_id, config_path, peer_program_path):
         peer_cfg, peer_parser = parse_peer_default_config(
-                                                peer_id, peer_program_path)
+                                                peer_id, peer_program_path, self.logger)
         #print "Trying to parse {0} for {1}".format(config_path, peer_id)
         if config_path:
             with codecs.open(config_path, "r", "utf8") as f:
-                print "parsing _custom_ config for peer  ", peer_id, config_path
+                self.logger.info("parsing _custom_ config for peer %s, %s ", peer_id, config_path)
                 peer_parser.parse(f, peer_cfg)
         if self._apply_globals:
             for param, value in CONFIG_DEFAULTS.iteritems():
@@ -183,10 +185,11 @@ class LaunchFileParser(ScenarioParser):
 
 class LaunchJSONParser(ScenarioParser):
 
-    def __init__(self, obci_base_dir, scenario_base_dir):
+    def __init__(self, obci_base_dir, scenario_base_dir, logger=None):
         self.base_dir = obci_base_dir
         self.scenario_dir = scenario_base_dir
         self.config = None
+        self.logger = logger or logging.getLogger("LaunchJSONParser")
         self.load = {}
 
     def parse(self, p_file, p_config_obj, apply_globals=False):
@@ -220,7 +223,7 @@ class LaunchJSONParser(ScenarioParser):
 
     def _load_peer_ids(self, peer_sections):
         for peer_id in peer_sections:
-            print "adding peer", peer_id
+            self.logger.info("adding peer %s", peer_id)
             self.config.add_peer(peer_id)
 
     def _load_launch_data(self, peer_sections):
@@ -235,10 +238,11 @@ class LaunchJSONParser(ScenarioParser):
         # and they are not present in the config
 
         peer_cfg, peer_parser = parse_peer_default_config(
-                                                peer_id, peer_path)
+                                                peer_id, peer_path, self.logger)
         config = peer_config_section
         if config:
-            print "parsing _custom_ JSON config for peer  ", peer_id, config
+            self.logger.info("parsing _custom_ JSON config "
+                        "for peer %s. %s ", peer_id, str(config))
             json_parser = peer_config_parser.parser("python")
             json_parser.parse(config, peer_cfg)
 
@@ -264,7 +268,7 @@ class LaunchJSONParser(ScenarioParser):
         return section
 
 
-def parse_peer_default_config(peer_id, peer_program_path):
+def parse_peer_default_config(peer_id, peer_program_path, logger=None):
     #print "Trying to find default config for {0}, path: {1}".format(
     #                                            peer_id, peer_program_path)
     peer_parser = peer_config_parser.parser("ini")
@@ -273,7 +277,9 @@ def parse_peer_default_config(peer_id, peer_program_path):
     if conf_path:
 
         with codecs.open(conf_path, "r", "utf8") as f:
-            print "parsing default config for peer  ", peer_id, conf_path
+            if logger:
+                logger.info("parsing default config "
+                                "for peer %s, %s ", peer_id, conf_path)
             peer_parser.parse(f, peer_cfg)
 
     return peer_cfg, peer_parser

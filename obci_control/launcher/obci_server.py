@@ -48,29 +48,22 @@ class OBCIServer(OBCIControlPeer):
         self.experiments = {}
         self.exp_process_supervisors = {}
         self._nearby_servers = net.DNS()
-
         super(OBCIServer, self).__init__( None, rep_addresses,
                                                           pub_addresses,
                                                           name)
         
-        # log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR, self.name + self.uuid[:8])
-        # if not os.path.exists(log_dir):
-        #     os.makedirs(log_dir)
-        # self.logger = get_logger(self.name, log_dir=log_dir,
-        #                         stream_level='info')
-
         self.machine = socket.gethostname()
 
         self.rep_port = int(net.server_rep_port())
         self.pub_port = int(net.server_pub_port())
         bcast_port = int(net.server_bcast_port())
-
+        self._nearby_servers.logger = self.logger
         self._bcast_server = threading.Thread(target=broadcast_server,
                                                 args=[self.uuid,
                                                     self.rep_port, self.pub_port, bcast_port])
         self._bcast_server.daemon = True
         self._bcast_server.start()
-
+        
         self._nearby_updater = threading.Thread(target=update_nearby_servers,
                                                 args=[self._nearby_servers,
 

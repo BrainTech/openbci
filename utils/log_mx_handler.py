@@ -32,7 +32,7 @@ picked up by a log collector mx peer."""
  
         Writes the LogRecord to the queue, preparing it for pickling first. 
         """ 
-        print "  ## ## ## ## ## ##  emit!!! ", record
+        # print "  ## ## ## ## ## ##  emit!!! ", record
         try: 
             # The format operation gets traceback text into record.exc_text 
             # (if there's exception data), and also puts the message into 

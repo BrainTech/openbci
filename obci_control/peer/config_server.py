@@ -22,10 +22,12 @@ from launcher.launcher_messages import message_templates
 from launcher.launcher_tools import obci_root
 from common.message import OBCIMessageTool, send_msg, recv_msg
 
+from utils.openbci_logging import get_logger
 
 class ConfigServer(BaseMultiplexerServer):
 
     def __init__(self, addresses):
+        super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
         self._configs = {}
         self._ready_peers = []
         self.__to_all = False
@@ -37,9 +39,15 @@ class ConfigServer(BaseMultiplexerServer):
         self.addr = params['local_params'].get('launcher_socket_addr', '')
 
         self.exp_uuid = params['local_params'].get('experiment_uuid', '')
-
+        self.log_dir = params['local_params'].get('log_dir', None)
+        self.logger = get_logger('config_server', log_dir=self.log_dir,
+                                conn=self.conn,
+                                file_level=params['local_params'].get('file_log_level', None),
+                                mx_level=params['local_params'].get('mx_log_level', None),
+                                stream_level=params['local_params'].get('console_log_level', None))
         self._old_configs = self._stored_config()
         self._restore_peers = params['local_params'].get('restore_peers', '').split()
+
 
         for peer in self._restore_peers:
             if peer in self._old_configs:
@@ -52,20 +60,12 @@ class ConfigServer(BaseMultiplexerServer):
             try:
                 self.launcher_sock.connect(self.addr)
             except Exception, e:
-                print "[config_server] -- failed to connect to address", self.addr, "!!!"
+                self.logger.error("failed to connect to address " +\
+                                             self.addr + " !!!")
                 self.launcher_sock = None
             else:
-                print "[config_server] OK OK OK OK OK OK", self.addr
-
-
-        super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
-        # ss = 10000
-        # if self.addr != '':
-        #     for i in range(ss):
-        #         send_msg(self.launcher_sock, self.mtool.fill_msg('rq_ok'))
-        #         # print i
-        # print "[config_server] sent", ss, "messages"
-
+                self.logger.info("OK: connected to " + self.addr)
+                
     def _config_path(self):
         peer_file = inspect.getfile(self.__init__)
         base_name = os.path.basename(peer_file).rsplit('.', 1)[0]
@@ -77,10 +77,10 @@ class ConfigServer(BaseMultiplexerServer):
         stored = None
         storedconf = self._config_path()
         if not os.path.exists(storedconf):
-            print "No config stored", storedconf
+            self.logger.info("No config stored %s", str(storedconf))
         else:
             with open(storedconf, 'r') as f:
-                print "found stored config", storedconf
+                self.logger.info("found stored config %s", str(storedconf))
                 parser.readfp(f)
         if not parser.has_option('local_params', 'stored_config'):
             stored = ''
@@ -110,10 +110,10 @@ class ConfigServer(BaseMultiplexerServer):
         try:
             os.chmod(base_config_path, 0777)
         except OSError, e:
-            print "tried to change permissions to", base_config_path, "to 777 but", str(e)
+            self.logger.error("tried to change permissions to" + \
+                                    base_config_path + "to 777 but" + str(e))
         else:
-            print "changed permissions to ", base_config_path, "to 777"
-        print "CONFIG_SERVER stored configs"
+            self.logger.info("changed permissions to " + base_config_path + " to 777")
 
 
     def handle_message(self, mxmsg):
@@ -131,7 +131,7 @@ class ConfigServer(BaseMultiplexerServer):
             else:
                 self.send_message(message=msg, to=int(mxmsg.from_), type=mtype, flush=True)
         if launcher_msg is not None and self.launcher_sock is not None:
-            print '[config_server]  SENDING msg ', launcher_msg[:100] + '[...]'
+            self.logger.info('SENDING msg ' + launcher_msg[:100] + '[...]')
             send_msg(self.launcher_sock, launcher_msg)
             time.sleep(0.1) # TODO - temporary kind-of bug fix...
 
