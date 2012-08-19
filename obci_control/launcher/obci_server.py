@@ -35,13 +35,15 @@ from server_scanner import update_nearby_servers, broadcast_server
 
 import twisted_tcp_handling
 
+from utils.openbci_logging import get_logger
+
 REGISTER_TIMEOUT = 6
 
 class OBCIServer(OBCIControlPeer):
 
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
-    def __init__(self,     rep_addresses=None, pub_addresses=None, name='obci_server'):
+    def __init__(self, rep_addresses=None, pub_addresses=None, name='obci_server'):
 
         self.experiments = {}
         self.exp_process_supervisors = {}
@@ -50,9 +52,14 @@ class OBCIServer(OBCIControlPeer):
         super(OBCIServer, self).__init__( None, rep_addresses,
                                                           pub_addresses,
                                                           name)
-        self.machine = socket.gethostname()
+        
+        # log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR, self.name + self.uuid[:8])
+        # if not os.path.exists(log_dir):
+        #     os.makedirs(log_dir)
+        # self.logger = get_logger(self.name, log_dir=log_dir,
+        #                         stream_level='info')
 
-        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid)
+        self.machine = socket.gethostname()
 
         self.rep_port = int(net.server_rep_port())
         self.pub_port = int(net.server_pub_port())
@@ -73,6 +80,7 @@ class OBCIServer(OBCIControlPeer):
 
         self._nearby_updater.daemon = True
         self._nearby_updater.start()
+        self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid, logger=self.logger)
 
 
     def nearby_server_addrs(self):
@@ -88,7 +96,7 @@ class OBCIServer(OBCIControlPeer):
         try:
             addr = self._nearby_servers.this_addr_network()
         except Exception, e:
-            print str(e)
+            self.logger.error(str(e))
         return addr
 
     def network_ready(self):
@@ -97,7 +105,7 @@ class OBCIServer(OBCIControlPeer):
 
     def handle_socket_read_error(self, socket, error):
         if socket == self.rep_socket:
-            print "[obci_server] reinitialising REP socket"
+            self.logger.warning("reinitialising REP socket")
             self._all_sockets.remove(self.rep_socket)
             if socket in self.client_rq:
                 self.client_rq = None
@@ -108,9 +116,10 @@ class OBCIServer(OBCIControlPeer):
                                         ['tcp://*:' + str(self.rep_port)], zmq.REP)
             self.rep_socket.setsockopt(zmq.LINGER, 0)
             self._all_sockets.append(self.rep_socket)
-            print "[obci_server]", self.rep_addresses
+            logger.info(self.rep_addresses)
+            
         elif socket == self.exp_rep:
-            print "[obci_server] reinitialising EXPERIMENT REP socket"
+            self.logger.info("reinitialising EXPERIMENT REP socket")
             self.exp_rep.close()#linger=0)
 
             (self.exp_rep, self.exp_rep_addrs) = self._init_socket(
@@ -156,7 +165,7 @@ class OBCIServer(OBCIControlPeer):
                         self.mtool.fill_msg("kill", receiver=""))
         send_msg(self._publish_socket, self.mtool.fill_msg("launcher_shutdown",
                         sender=self.uuid))
-        print '{0} [{1}] -- sent KILL to experiments'.format(self.name, self.peer_type())
+        self.logger.info('sent KILL to experiments')
 
 
     def _args_for_experiment(self, sandbox_dir, launch_file, local=False, name=None, overwrites=None):
@@ -248,8 +257,9 @@ class OBCIServer(OBCIControlPeer):
         send_msg(self._publish_socket, info_msg)
 
     def _handle_register_experiment_timeout(self, exp):
-        print """New experiment process failed to register before timeout""", exp
-        pid = exp.pid
+        self.logger.error("New experiment process failed to "
+            "register before timeout" + str(exp.pid))
+        
         if exp.returncode is None:
             exp.kill()
             exp.wait()
@@ -287,15 +297,18 @@ class OBCIServer(OBCIControlPeer):
 
         sandbox = sandbox if sandbox else settings.DEFAULT_SANDBOX_DIR
 
-        exp, details = self.start_experiment_process(sandbox, launch_file, name, overwrites)
+        exp, details = self.start_experiment_process(
+                                    sandbox, launch_file, name, overwrites)
 
         if exp is None:
-            print "failed to launch experiment process"
-            send_msg(sock, self.mtool.fill_msg("rq_error", request=vars(message),
+            self.logger.error("failed to launch experiment "
+                                "process, request: " + str(vars(message)))
+            send_msg(sock, self.mtool.fill_msg("rq_error", 
+                                        request=vars(message),
                                 err_code='launch_error', details=details))
         else:
-            print "{0} [{1}] -- experiment process launched:  {2}".format(
-                                        self.name, self.peer_type(), exp.pid)
+            self.logger.info("experiment process "
+                                        "launched:  {0}".format(exp.pid))
             if sock.socket_type in [zmq.REP, zmq.ROUTER]:
                 self.client_rq = (message, sock)
 
@@ -314,9 +327,8 @@ class OBCIServer(OBCIControlPeer):
         for srv in nearby_dict:
             info += '\n' + srv + ' : ' + nearby_dict[srv] + ','
         info += '}'
-        print "{0} [{1}] -- nearby servers:  count: {2}, {3}".format(
-                                        self.name, self.peer_type(), len(nearby),
-                                        info)
+        self.logger.debug("nearby servers:  count: {0}, {1}".format(
+                                            len(nearby), info))
 
         send_msg(sock, self.mtool.fill_msg("running_experiments",
                                                 exp_data=exp_data,
@@ -353,7 +365,7 @@ class OBCIServer(OBCIControlPeer):
 
     @msg_handlers.handler("get_experiment_contact")
     def handle_get_experiment_contact(self, message, sock):
-        print "##### rq contact for: ", message.strname
+        self.logger.info("##### rq contact for: %s", message.strname)
 
         info = self._handle_match_name(message, sock)
         if info:
@@ -386,7 +398,7 @@ class OBCIServer(OBCIControlPeer):
     def handle_experiment_info_change(self, message, sock):
         exp = self.experiments.get(message.uuid, None)
         if not exp:
-            print "[obci_server]", "UUID not found", message.uuid
+            self.logger.warning("UUID not found  " + message.uuid)
             if sock.socket_type in [zmq.REP, zmq.ROUTER]:
                 send_msg(sock, self.mtool.fill_msg('rq_error', err_code='experiment_not_found'))
             return
@@ -394,7 +406,7 @@ class OBCIServer(OBCIControlPeer):
         exp.launch_file_path = message.launch_file_path
         if sock.socket_type in [zmq.REP, zmq.ROUTER]:
             send_msg(sock, self.mtool.fill_msg('rq_ok'))
-        print "[obci_server]", "INFO CHANGED", exp.uuid, exp.name, exp.launch_file_path
+        self.logger.info("INFO CHANGED %s", exp.launch_file_path)
         send_msg(self._publish_socket, message.SerializeToString())
 
     @msg_handlers.handler("experiment_transformation")
@@ -444,16 +456,15 @@ class OBCIServer(OBCIControlPeer):
                                     details="Experiment already shutting down"))
 
             elif not message.force:
-                print "{0} [{1}] - sending kill to experiment {2} ({3})".format(
-                                    self.name, self.peer_type(),match.uuid, match.name)
+                self.logger.info("sending kill to experiment "
+                                        "{0} ({1})".format(match.uuid, match.name))
                 send_msg(self._publish_socket,#self.exp_pub,
                         self.mtool.fill_msg("kill", receiver=match.uuid))
 
                 send_msg(sock, self.mtool.fill_msg("kill_sent", experiment_id=match.uuid))
                 pid = match.experiment_pid
                 uid = match.uuid
-                print "{0} [{1}]  Waiting for experiment process {2} to terminate".format(
-                                                            self.name, self.peer_type(), uid)
+                self.logger.info("Waiting for experiment process {0} to terminate".format(uid))
                 match.kill_timer = threading.Timer(1.1,
                                     self._handle_killing_exp, args=[pid, uid])
                 match.kill_timer.start()
@@ -466,8 +477,7 @@ class OBCIServer(OBCIControlPeer):
         proc = self.subprocess_mgr.process(self.machine, pid)
         if proc.process_is_running():
             proc.kill()
-        print "{0} [{1}] - experiment {2} FINISHED".format(
-                                    self.name, self.peer_type(), uid)
+        self.logger.info("experiment {0} FINISHED".format(uid))
         proc.delete = True
         del self.experiments[uid]
 
@@ -483,7 +493,7 @@ class OBCIServer(OBCIControlPeer):
     def _handle_launch_process_supervisor(self, message, sock):
         sv_obj, details = self._start_obci_supervisor_process( message)
 
-        print "[obci_server] LAUNCH PROCESS SV   ", sv_obj, details
+        self.logger.info("LAUNCH PROCESS SV   " + str(sv_obj) + str(details))
         if sv_obj:
             self.exp_process_supervisors[message.sender] = sv_obj
             send_msg(sock,
@@ -492,12 +502,12 @@ class OBCIServer(OBCIControlPeer):
                                             pid=sv_obj.pid, proc_type=sv_obj.proc_type,
                                             name=sv_obj.name,
                                             path=sv_obj.path))
-            print "[obci_server] CONFIRMED LAUNCH"
+            self.logger.info("CONFIRMED LAUNCH")
         else:
             send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(),
                                                 err_code="launch_error",
                                                 details=details))
-            print "[obci_server] PROCESS SUPERVISOR LAUNCH FAILURE"
+            self.logger.error("PROCESS SUPERVISOR LAUNCH FAILURE")
 
 
     @msg_handlers.handler("kill_process")
@@ -520,7 +530,8 @@ class OBCIServer(OBCIControlPeer):
         if proc is not None:
             proc.mark_delete()
             status, details = proc.status()
-            print "[obci_server]", proc.proc_type, "dead:", status, details, proc.name, proc.pid
+            self.logger.warning("Process " + proc.proc_type + "dead:" +\
+                             status + str(details) + proc.name + str(proc.pid))
             if proc.proc_type == 'obci_process_supervisor':
                 pass
             elif proc.proc_type == 'obci_experiment':

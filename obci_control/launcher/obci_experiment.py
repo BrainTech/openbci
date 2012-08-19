@@ -72,9 +72,7 @@ class OBCIExperiment(OBCIControlPeer):
         self.sandbox_dir = sandbox_dir if sandbox_dir else settings.DEFAULT_SANDBOX_DIR
 
 
-        log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR, self.name + self.uuid[:8])
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir)
+
 
         self.supervisors = {} #machine -> supervisor contact/other info
         self._wait_register = 0

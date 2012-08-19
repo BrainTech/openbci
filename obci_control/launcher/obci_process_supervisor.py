@@ -256,9 +256,12 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 idx = args.index("log_dir") + 1
                 log_dir = args[idx]
                 log_dir = os.path.join(log_dir, self.name)
-                if not os.path.exists(log_dir):
-                    os.makedirs(log_dir)
                 args[idx] = log_dir
+            else:
+                log_dir = os.path.join(CONFIG_DEFAULTS["log_dir"], self.name)
+                args += ['-p', 'log_dir', log_dir]
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
 
             proc, details = self._launch_process(path, args, data['peer_type'],
                                                         peer, env=self.env, capture_io=NO_STDIO)
