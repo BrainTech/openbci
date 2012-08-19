@@ -1,0 +1,5 @@
+openbci-amplifiers (0.1-1) precise; urgency=low
+
+  * Initial release.
+
+ -- Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>  Sun, 19 Aug 2012 13:56:58 +0200

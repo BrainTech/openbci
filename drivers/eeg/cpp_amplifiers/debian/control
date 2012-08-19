@@ -1,0 +1,39 @@
+Source: openbci-amplifiers
+Section: science
+Priority: optional
+Maintainer: Karol Auguštin <karol@augustin.pl>
+Build-Depends: debhelper (>= 7),
+      libboost-dev,
+      libboost-date-time-dev,
+      libboost-filesystem-dev,
+      libboost-program-options-dev,
+      libboost-signals-dev,
+      libboost-system-dev,
+      libprotobuf-dev (>= 2.4.1),
+      libstdc++-dev
+Standards-Version: 3.9.3
+
+Package: openbci-dummy-amplifier
+Architecture: amd64 i386
+Depends:
+      ${misc:Depends},
+      ${shlibs:Depends}
+Description: Generates a fake signal
+  Uses multiplexer to transfer the samples to the receivers.
+
+Package: openbci-file-amplifier
+Architecture: amd64 i386
+Depends:
+      ${misc:Depends},
+      ${shlibs:Depends}
+Description: Reads samples from a file
+  Uses multiplexer to transfer the samples to the receivers.
+
+Package: openbci-tmsi-amplifier
+Architecture: amd64 i386
+Depends:
+      ${misc:Depends},
+      ${shlibs:Depends}
+Recommends: tmsi-dkms
+Description: Reads samples from the TMSi amplifier kernel driver
+  Uses multiplexer to transfer the samples to the receivers.
