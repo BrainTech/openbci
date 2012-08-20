@@ -20,10 +20,8 @@ class LogEngine(QtCore.QObject):
             self._prev_model = self.model
             self.model = experiment.log_model
             self.exp = experiment.exp
-
             self._prev_model.set_running(False)
             self._rebuild_tab_widget()
-            self._request_update_log()
             self.model.set_running(True)
 
     def tab_closed(self, tab_id):
@@ -42,9 +40,9 @@ class LogEngine(QtCore.QObject):
     def update_log(self, log):
         try:
             ind = self.model.get_peer_ind(log[QtCore.QString('peer_id')])
-            if self.tab_widget.currentIndex()-1 == ind:
-                t = self.tab_widget.currentWidget()
-                t.append('\n'.join([str(l) for l in log[QtCore.QString('logs')]]))
+            #if self.tab_widget.currentIndex()-1 == ind:
+            w = self.tab_widget.widget(ind+1)
+            w.append('\n'.join([str(l) for l in log[QtCore.QString('logs')]]))
                 #t.verticalScrollBar().setSliderPosition(t.verticalScrollBar().maximum())
         except ValueError:
             pass
@@ -60,7 +58,6 @@ class LogEngine(QtCore.QObject):
             self.tab_widget.addTab(self._get_log_widget(), peer_id)
             self._update_tab_status()
             self._show_tab(len(self.model.get_peers()))
-            self._request_update_log()
 
     def experiment_stopped(self):
         print 'stop'
@@ -72,6 +69,8 @@ class LogEngine(QtCore.QObject):
         self.tab_widget.addTab(scenario, "Scenario")
         for t in self.model.get_peers():
             self.tab_widget.addTab(self._get_log_widget(), t)
+        print "REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEBILD"
+        self._request_update_log()
         self._update_tab_status()
 
     def _init_tab_shortcut(self):
