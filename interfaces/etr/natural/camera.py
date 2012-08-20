@@ -4,6 +4,7 @@ import numpy as np
 import cv as CV
 import cv2 as cv
 import sys, time
+import os
 
 # Author: Dawid Laszuk
 # Contact: laszukdawid@gmail.com
@@ -55,8 +56,13 @@ class Camera:
 
         # Set mouse events on
         cv.setMouseCallback( "original", self.onMouse, 0)
-
+        
         while(1):
+            # Check for file
+            if "calibFlag" in os.listdir(os.path.expanduser("~/obci/interfaces/etr/natural")):
+                np.save(os.path.expanduser("~/obci/interfaces/etr/natural/calibMat"), self.calibrationStart())
+                os.system("rm " + os.path.expanduser("~/obci/interfaces/etr/natural/calibFlag"))
+            
             # Read frame
             flag, self.img = self.cap.read()
             cv.imshow("original", self.img)
@@ -96,8 +102,8 @@ class Camera:
         self.xP, self.yP = np.zeros(self.dots), np.zeros(self.dots)
         self.roi = np.zeros(4)
         
-        self.S = np.eye(3)
-        self.invS = np.eye(3)
+        self.H = np.eye(3)
+        self.invH = np.eye(3)
 
         # debug option
         self.debug = False
@@ -111,7 +117,8 @@ class Camera:
             #~ self.filename = int(sys.argv[1])
         #~ else:
             #~ self.filename = int(-1)
-        self.filename = int(0)
+        #~ self.filename = int(0)
+        self.filename = int(2)
 
         # init cam/video
         self.cap = cv.VideoCapture(self.filename)
@@ -257,11 +264,11 @@ class Camera:
     def setTransformationMatrix(self, points):
         try:
             Pp = points[:,:3]
-            self.S = self.getTransformMatrix(Pp)
-            self.debugPrint("S: \n" + str(self.S) )
+            self.H = self.getTransformMatrix(Pp)
+            self.debugPrint("S: \n" + str(self.H) )
         except TypeError:
             self.debugPrint("Coudn't set transformation matrix.")
-            self.S = np.eye(3)
+            self.H = np.eye(3)
 
     def drawPoints(self):
         """
@@ -315,11 +322,11 @@ class Camera:
 
         # Draw test dot, which coordinates are calulcated from
         # inversed transformation matrix
-        # X' = S X -> X = S^-1 X'
+        # X' = H X -> X = H^-1 X'
         Xp = np.matrix( [int(xMean), int(yMean),1]).T
         #~ p_test = self.getInvTransformMatrix()*Xp
 
-        p_test = self.invS*Xp
+        p_test = self.invH*Xp
         cv.circle( self.img, (int(p_test[0]),int(p_test[1])), 10, (255,255,255), 3, 8,0)
 
 
@@ -345,18 +352,23 @@ class Camera:
         self.drawPoints()
 
     def getTransformMatrix(self, P):
+        """ H = P x inv(P')
+            P -- current position of markers
+            P' -- position of markers during the calibration
+            inv(P') -- inverse matrix of P'
+        """
         return P*self.invP
 
     def getInvTransformMatrix(self):
         
         try:
-            inv = np.linalg.inv(self.S)/self.scale
+            inv = np.linalg.inv(self.H)/self.scale
         except np.linalg.LinAlgError('Singular matrix'):
             self.debugPrint("Singular matrix problem. Matrix can't be inversed!")
-            inv = np.eye(self.S.shape[0])
+            inv = np.eye(self.H.shape[0])
         
-        self.invS = inv
-        self.invS[2,2] = 1.
+        self.invH = inv
+        #~ self.invH[2,2] = 1.
         return inv
         
 
