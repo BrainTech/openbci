@@ -191,7 +191,14 @@ class OBCIExperiment(OBCIControlPeer):
                                                             proc_type=proc_type,
                                                             capture_io=NO_STDIO)
         else:
-            srv_ip = self._nearby_machines.ip(hostname=machine_addr)
+            try:
+                srv_ip = self._nearby_machines.ip(hostname=machine_addr)
+            except  Exception, e:
+                det = "Machine " + machine_addr +" not found, cannot launch remote process!" +\
+                                    "Is obci_server running there? " +\
+                                    "If yes, maybe you should wait for a few seconds and retry."
+                self.logger.critical(det)
+                return False, det
 
             conn_addr = 'tcp://' + srv_ip + ':' + net.server_rep_port()
             sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
@@ -683,6 +690,25 @@ class OBCIExperiment(OBCIControlPeer):
             else:
                 send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
+
+    @msg_handlers.handler("dead_process")
+    def handle_dead_process(self, message, sock):
+        proc = self.subprocess_mgr.process(message.machine, message.pid)
+        if proc is not None:
+            proc.mark_delete()
+            status, details = proc.status()
+            self.logger.warning("Process " + proc.proc_type + "dead:" +\
+                             status + str(details) + proc.name + str(proc.pid))
+            if proc.proc_type == 'obci_process_supervisor':
+                send_msg(self._publish_socket,
+                        self.mtool.fill_msg("stop_all", receiver=""))
+                self.status.set_status(launcher_tools.FAILED,
+                        details='Failed LAUNCHER component obci_process_supervisor')
+            elif proc.proc_type == 'obci_experiment':
+                pass
+            if status == subprocess_monitor.FAILED:
+                pass
+        self.status_changed(self.status.status_name, self.status.details)
 
 
     @msg_handlers.handler('save_scenario')

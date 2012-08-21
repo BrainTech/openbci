@@ -75,6 +75,17 @@ class SubprocessMonitor(object):
                 if proc.status()[0] not in [FINISHED, FAILED, TERMINATED]:
                     kill_method()
 
+    def delete(self, machine, pid):
+        proc = self._processes.get((machine, pid), None)
+        if proc is None:
+            raise Exception("Process not found: " + str((machine, pid)))
+        if not proc.running():
+            del self._processes[(machine, pid)]
+            return True
+        else:
+            self.logger.error("Process is running, will not delete! " + str((machine, pid)))
+            return False
+
     def delete_all(self):
         with self._proc_lock:
             for proc in self._processes.values():

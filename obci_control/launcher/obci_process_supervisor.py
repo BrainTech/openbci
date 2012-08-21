@@ -93,8 +93,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         super(OBCIProcessSupervisor, self).net_init()
 
     def params_for_registration(self):
+        mx_data = None
+        if self.mx_data:
+            mx_data = [self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]]
         return dict(pid=os.getpid(), machine=self.machine,
-                    mx_data=[self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]])
+                    mx_data=mx_data)
 
     def custom_sockets(self):
         return [self.source_sub_socket, self.config_server_socket]
@@ -349,6 +352,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             
             self.logger.debug("GOT %s %s", str(self.rqs), "messages!")
             self.rqs = 0
+
+    @msg_handlers.handler("experiment_launch_error")
+    def handle_experiment_launch_error(self, message, sock):
+        self.subprocess_mgr.killall(force=True)
 
     @msg_handlers.handler("dead_process")
     def handle_dead_process(self, message, sock):
