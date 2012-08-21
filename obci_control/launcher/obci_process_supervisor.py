@@ -94,7 +94,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def params_for_registration(self):
         mx_data = None
-        if self.mx_data:
+        if None not in self.mx_data:
             mx_data = [self.mx_addr_str(((socket.gethostname(), self.mx_data[0][1]), self.mx_data[1])), self.mx_data[1]]
         return dict(pid=os.getpid(), machine=self.machine,
                     mx_data=mx_data)
