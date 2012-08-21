@@ -225,7 +225,7 @@ class OBCIExperiment(OBCIControlPeer):
 
             if not result:
                 self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
-                details = "FAILED to start supervisor: {2}".format(details)
+                details = "FAILED to start supervisor: {0}".format(details)
                 self.logger.error(details)
                 self.status_changed(self.status.status_name, self.status.details)
                 return False, details
@@ -327,7 +327,7 @@ class OBCIExperiment(OBCIControlPeer):
 
             machine, pid = message.other_params['machine'], message.other_params['pid']
 
-            if message.other_params['mx_data'][0] is not None and not self.mx_addr:
+            if message.other_params['mx_data'] is not None and not self.mx_addr:
                 ## right now we support only one mx per obci instance
                 ip = self._nearby_machines.ip(machine) if self._nearby_machines.dict_snapshot() else\
                             machine
