@@ -20,9 +20,9 @@ from peer.config_defaults import CONFIG_DEFAULTS
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import launcher_tools
 
-import subprocess_monitor
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
-STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE, DEFAULT_TAIL_RQ
+STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
+from process_io_handler import DEFAULT_TAIL_RQ
 
 TEST_PACKS = 100000
 

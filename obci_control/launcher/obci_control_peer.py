@@ -17,9 +17,9 @@ from common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 import common.net_tools as net
 import common.obci_control_settings as settings
 
-from subprocess_monitor import SubprocessMonitor, FAILED, TERMINATED, FINISHED, \
-                                                        RUNNING, NON_RESPONSIVE
-from utils.openbci_logging import get_logger                                                        
+from subprocess_monitor import SubprocessMonitor
+from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
+from utils.openbci_logging import get_logger 
 
 class HandlerCollection(object):
     def __init__(self):

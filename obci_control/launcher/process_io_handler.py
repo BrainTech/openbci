@@ -3,13 +3,13 @@
 
 import threading
 import time
+import subprocess
 
 from collections import deque
 try:
     from Queue import Queue, Empty, Full
 except ImportError:
     from queue import Queue, Empty, Full  # python 3.x
-
 
 
 STDIO_QUEUE_MAX_SIZE = 8192
@@ -19,6 +19,26 @@ DEFAULT_TAIL_RQ = 10
 LINES_TO_GET = 5
 IO_WAIT = 0.5
 
+def start_stdio_handler(popen_obj, stdio_actions, name, 
+                                            stdout_log, stderr_log):
+    io_handler = None
+    if stdio_actions != (None, None, None):
+        out, err, stdin = stdio_actions
+        out_handle = popen_obj.stdout if out is not None else None
+        if err == subprocess.STDOUT or err is None:
+            err_handle = None
+        else: err_handle = popen_obj.stderr
+
+        in_handle = popen_obj.stdin if stdin is not None else None
+
+        io_handler = ProcessIOHandler(
+                        name=name,
+                        stdout=out_handle,
+                        stderr=err_handle,
+                        stdin=in_handle,
+                        out_log=stdout_log, err_log=stderr_log)
+        io_handler.start_output_handler()
+    return io_handler
 
 class ProcessIOHandler(object):
     """Processes data from descriptors (stdout, stderr) in separate threads.
