@@ -287,7 +287,7 @@ class OBCIExperiment(OBCIControlPeer):
         try:
             with open(launcher_tools.expand_path(launch_file)) as f:
                 self.logger.info("launch file opened " + launch_file)
-                launch_parser.parse(f, exp_config)
+                launch_parser.parse(f, exp_config, apply_globals=True)
         except Exception as e:
             status.set_status(launcher_tools.NOT_READY, details=str(e))
 
