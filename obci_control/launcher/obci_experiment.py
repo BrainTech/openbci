@@ -350,7 +350,7 @@ class OBCIExperiment(OBCIControlPeer):
                                                 sender=self.uuid, details=(status, details),
                                                 err_code='registration_error'))
                 return
-
+            self.logger.info(vars(message))
             desc = self.supervisors[message.other_params['machine']] = \
                             RegistrationDescription(
                                                 message.uuid,

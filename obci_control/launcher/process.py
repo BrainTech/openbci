@@ -124,10 +124,12 @@ class Process(object):
             self._status = RUNNING
         #TODO validate registration data
         self.registration_data = reg_data
+        self.logger.info(reg_data)
         if self.ping_it:
             if not self._ctx:
                 self._ctx = zmq.Context()
             self.rq_sock = self._ctx.socket(zmq.REQ)
+            #TODO localhost OUT if remote process...
             for addr in reg_data.rep_addrs:
                 self.rq_sock.connect(addr)
 
