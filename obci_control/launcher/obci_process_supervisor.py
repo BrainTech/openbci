@@ -178,7 +178,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.logger.info("start peers --  my mx_data: %s, received mx_data: %s",
                                         self.mx_data, message.mx_data)
         if 'mx' not in self.launch_data:
-            self.mx_data = message.mx_data
+            mx_addr = message.mx_data[1][:6].split(':')
+            mx_addr[1] = int(mx_addr[1])
+            self.mx_data[0] = mx_addr
+            self.env = self.peer_env(self.mx_data)
         self._launch_processes(self.launch_data)
 
 
