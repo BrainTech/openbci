@@ -175,6 +175,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     @msg_handlers.handler("start_peers")
     def handle_start_peers(self, message, sock):
+        self.logger.info("start peers --  my mx_data: %s, received mx_data: %s",
+                                        self.mx_data, message.mx_data)
         if 'mx' not in self.launch_data:
             self.mx_data = message.mx_data
         self._launch_processes(self.launch_data)
