@@ -180,7 +180,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         if 'mx' not in self.launch_data:
             mx_addr = message.mx_data[1].split(':')
             mx_addr[1] = int(mx_addr[1])
-            self.mx_data[0] = mx_addr
+            self.mx_data = tuple(mx_addr)
             self.env = self.peer_env(self.mx_data)
         self._launch_processes(self.launch_data)
 
