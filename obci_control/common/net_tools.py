@@ -8,6 +8,7 @@ import fcntl
 import os
 import ConfigParser
 import threading
+import logging
 import time
 
 from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
@@ -159,9 +160,10 @@ def server_tcp_proxy_port():
     return port
 
 class DNS(object):
-    def __init__(self, allowed_silence_time=45):
+    def __init__(self, allowed_silence_time=45, logger=None):
         self.__lock = threading.RLock()
         self.__servers = {}
+        self.logger = logger or logging.getLogger("dns")
 
         self.allowed_silence = allowed_silence_time
 
@@ -226,8 +228,6 @@ class DNS(object):
         parts = addr.split(':')
         if len(parts) > 0:
             addr = parts[0]
-        print "aaaa",addr
-        # print self.__servers
         return addr == self.this_addr_network() or addr == self.this_addr_local()
 
     def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
@@ -256,7 +256,8 @@ class DNS(object):
                 srv = self.__servers[uid]
                 if srv.timestamp + self.allowed_silence < check_time:
                     changed = True
-                    print "[obci_server] obci_server on", srv.ip, ',', srv.hostname, "is most probably down."
+                    self.logger.warning("obci_server on " + str(srv.ip) +'   ' +\
+                             srv.hostname + " is most probably down.")
                     del self.__servers[uid]
         return changed
 

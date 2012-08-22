@@ -155,7 +155,7 @@ class PeerControl(object):
             return None, None
 
     def _handle_params_changed(self, p_msg):
-        print '[', self.peer_id, "] peer_control: PARAMS CHANGED - ", p_msg.sender
+        self.logger.info("PARAMS CHANGED - ", p_msg.sender)
         params = cmsg.params2dict(p_msg)
         param_owner = p_msg.sender
 
@@ -221,9 +221,10 @@ class PeerControl(object):
                                      types.UPDATE_PARAMS)
             #self.connection.send_message(message=msg, type=types.UPDATE_PARAMS)
             val_short = str(p_value)[:300] + '[...]'
-            print '[', self.peer_id,  '] param update (', p_name, val_short,')  '#,  reply
+            self.logger.info(' param update:: %s %s', p_name, val_short)
         else:
-            print '[', self.peer_id,  '] param updated locally (', p_name, val_short,')', result
+            self.logger.warning('param updated locally %s, %s, %s', 
+                                    p_name, val_short, str(result))
 
         return result
 
@@ -251,14 +252,16 @@ class PeerControl(object):
         #print 'AAAAAAAAAAAAAAAAAA', reply, "(rq:", types.REGISTER_PEER_CONFIG,\
         #                            "exp:", types.PEER_REGISTERED, ')'
         if reply is None:
-            print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
+            self.logger.error('config registration unsuccesful!!!! %s',
+                                                             str(reply))
         elif not reply.type == types.PEER_REGISTERED:
-            print '[', self.peer_id, '] config registration unsuccesful!!!!', reply
+            self.logger.error('config registration unsuccesful!!!! %s', 
+                                                            str(reply))
 
 
     def _request_ext_params(self, connection, retries=300):
         #TODO set timeout and retry count
-        print '[', self.peer_id, ']', "requesting external parameters"
+        self.logger.info("requesting external parameters")
         if self.peer is None:
             raise NoPeerError
 
@@ -286,7 +289,7 @@ class PeerControl(object):
                     continue
 
                 if reply.type == types.CONFIG_ERROR:
-                    print '[', self.peer_id, ']',  "peer {0} has not yet started".format(msg.receiver)
+                    self.logger.warning("peer {0} has not yet started".format(msg.receiver))
 
                 elif reply.type == types.CONFIG_PARAMS:
                     reply_msg = cmsg.unpack_msg(reply.type, reply.message)
@@ -295,23 +298,23 @@ class PeerControl(object):
                     for par, val in params.iteritems():
                         self.core.set_param_from_source(reply_msg.sender, par, val)
                 else:
-                    print '[', self.peer_id, ']',  "WTF? {0}".format(reply.message)
+                    self.logger.error("WTF? {0}".format(reply.message))
 
-            print '.',#"{0} external params still unset".format(_unset_param_count())
+            # print '.',#"{0} external params still unset".format(_unset_param_count())
             time.sleep(0.4)
             ready, details = self.core.config_ready()
             retries -= 1
 
         if ready:
-            print '[', self.peer_id, ']', "External parameters initialised. [", \
-                            self.core.config_ready(), ']'
+            self.logger.info("External parameters initialised %s",
+                            str(self.core.config_ready()))
 
         return ready, details
 
     def send_peer_ready(self, connection):
         if self.peer is None:
             raise NoPeerError
-        print '[', self.peer_id, '] sending ready signal.'
+        self.logger.info('sending ready signal.')
         mtype = types.PEER_READY
         msg = cmsg.fill_and_pack(mtype, peer_id=self.peer_id)
 
@@ -326,7 +329,7 @@ class PeerControl(object):
             raise NoPeerError
 
         others = self.core.launch_deps.values()
-        print '[', self.peer_id, '] waiting for other peers: ', others
+        self.logger.info('waiting for other peers %s: ', str(others))
         msg = cmsg.fill_and_pack(types.PEERS_READY_QUERY, sender=self.peer_id,
                                                             deps=others)
 
@@ -344,7 +347,7 @@ class PeerControl(object):
                 ready = rmsg.peers_ready
             if not ready:
                 time.sleep(2)
-        print '[', self.peer_id, "] Dependencies are ready, I can start working"
+        self.logger.info("Dependencies are ready, I can start working")
 
 
     def __query(self, conn, msg, msgtype):
@@ -352,10 +355,10 @@ class PeerControl(object):
             reply = conn.query(message=msg,
                                     type=msgtype)
         except OperationFailed:
-            print '[', self.peer_id, "] Could not connect to config server"
+            self.logger.error("Could not connect to config server")
             reply = None
         except OperationTimedOut:
-            print '[', self.peer_id, "] Operation timed out! (could not connect to config server)"
+            self.logger.error("Operation timed out! (could not connect to config server)")
             reply = None
         return reply
 

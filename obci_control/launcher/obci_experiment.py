@@ -191,7 +191,14 @@ class OBCIExperiment(OBCIControlPeer):
                                                             proc_type=proc_type,
                                                             capture_io=NO_STDIO)
         else:
-            srv_ip = self._nearby_machines.ip(hostname=machine_addr)
+            try:
+                srv_ip = self._nearby_machines.ip(hostname=machine_addr)
+            except  Exception, e:
+                det = "Machine " + machine_addr +" not found, cannot launch remote process!" +\
+                                    "Is obci_server running there? " +\
+                                    "If yes, maybe you should wait for a few seconds and retry."
+                self.logger.critical(det)
+                return False, det
 
             conn_addr = 'tcp://' + srv_ip + ':' + net.server_rep_port()
             sv_obj, details = self.subprocess_mgr.new_remote_process(path=None,
@@ -218,7 +225,7 @@ class OBCIExperiment(OBCIControlPeer):
 
             if not result:
                 self.status.set_status(launcher_tools.FAILED_LAUNCH, details)
-                details = "FAILED to start supervisor: {2}".format(details)
+                details = "FAILED to start supervisor: {0}".format(details)
                 self.logger.error(details)
                 self.status_changed(self.status.status_name, self.status.details)
                 return False, details
@@ -287,7 +294,7 @@ class OBCIExperiment(OBCIControlPeer):
         try:
             with open(launcher_tools.expand_path(launch_file)) as f:
                 self.logger.info("launch file opened " + launch_file)
-                launch_parser.parse(f, exp_config)
+                launch_parser.parse(f, exp_config, apply_globals=True)
         except Exception as e:
             status.set_status(launcher_tools.NOT_READY, details=str(e))
 
@@ -320,7 +327,7 @@ class OBCIExperiment(OBCIControlPeer):
 
             machine, pid = message.other_params['machine'], message.other_params['pid']
 
-            if message.other_params['mx_data'][0] is not None and not self.mx_addr:
+            if message.other_params['mx_data'] is not None and not self.mx_addr:
                 ## right now we support only one mx per obci instance
                 ip = self._nearby_machines.ip(machine) if self._nearby_machines.dict_snapshot() else\
                             machine
@@ -343,13 +350,21 @@ class OBCIExperiment(OBCIControlPeer):
                                                 sender=self.uuid, details=(status, details),
                                                 err_code='registration_error'))
                 return
-
-            desc = self.supervisors[message.other_params['machine']] = \
+            self.logger.info("exp registration message  " + str(vars(message)))
+            adr_list = [message.rep_addrs, message.pub_addrs]
+            if machine != socket.gethostname():
+                ip = self._nearby_machines.ip(machine)
+                for i, addrs in enumerate([message.rep_addrs, message.pub_addrs]):
+                    first = addrs[0]
+                    port = net.port(first)
+                    adr_list[i] = ['tcp://' + ip + ':' + str(port)]
+            self.logger.info("addresses after filtering: %s", str(adr_list))
+            desc = self.supervisors[machine] = \
                             RegistrationDescription(
                                                 message.uuid,
                                                 message.name,
-                                                message.rep_addrs,
-                                                message.pub_addrs,
+                                                adr_list[0],
+                                                adr_list[1],
                                                 message.other_params['machine'],
                                                 message.other_params['pid'])
             proc.registered(desc)
@@ -358,8 +373,9 @@ class OBCIExperiment(OBCIControlPeer):
                 self.supervisors_sub_addrs.append(a)
                 self.supervisors_sub.setsockopt(zmq.SUBSCRIBE, "")
                 self.supervisors_sub.connect(a)
-                self.logger.info("Connecting to supervisor pub address {0}".format(
-                                self.name, self.peer_type(), a))
+                self.logger.info("Connecting to supervisor pub address {0} ({1})".format(a, machine))
+            else:
+                self.logger.error("Could not find suitable PUB address to connect. (supervisor on " + machine +")")
 
             launch_data = self.exp_config.launch_data(machine)
             order = self.exp_config.peer_order()
@@ -683,6 +699,25 @@ class OBCIExperiment(OBCIControlPeer):
             else:
                 send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
+
+    @msg_handlers.handler("dead_process")
+    def handle_dead_process(self, message, sock):
+        proc = self.subprocess_mgr.process(message.machine, message.pid)
+        if proc is not None:
+            proc.mark_delete()
+            status, details = proc.status()
+            self.logger.warning("Process " + proc.proc_type + "dead:" +\
+                             status + str(details) + proc.name + str(proc.pid))
+            if proc.proc_type == 'obci_process_supervisor':
+                send_msg(self._publish_socket,
+                        self.mtool.fill_msg("stop_all", receiver=""))
+                self.status.set_status(launcher_tools.FAILED,
+                        details='Failed LAUNCHER component obci_process_supervisor')
+            elif proc.proc_type == 'obci_experiment':
+                pass
+            if status == subprocess_monitor.FAILED:
+                pass
+        self.status_changed(self.status.status_name, self.status.details)
 
 
     @msg_handlers.handler('save_scenario')

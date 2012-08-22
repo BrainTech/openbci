@@ -5,6 +5,7 @@
 import warnings
 import os
 import codecs
+import logging
 
 from common.config_helpers import *
 import launcher_tools
@@ -15,7 +16,8 @@ from peer.peer_config import PeerConfig
 from common.graph import Graph, Vertex
 
 class OBCIExperimentConfig(object):
-    def __init__(self, launch_file_path=None, uuid=None, origin_machine=None):
+    def __init__(self, launch_file_path=None, uuid=None, 
+                                    origin_machine=None, logger=None):
         self.uuid = uuid
         self.launch_file_path = launch_file_path
 
@@ -24,6 +26,7 @@ class OBCIExperimentConfig(object):
         self.scenario_dir = ''
         self.mx = 0
         self.peers = {}
+        self.logger = logger or logging.getLogger("ObciExperimentConfig")
 
     @property
     def launch_file_path(self):
@@ -264,7 +267,8 @@ class OBCIExperimentConfig(object):
 
 
 class PeerConfigDescription(object):
-    def __init__(self, peer_id, experiment_id, config=None, path=None, machine=None):
+    def __init__(self, peer_id, experiment_id, config=None, path=None, machine=None,
+                        logger=None):
         self.peer_id = peer_id
 
         self.experiment_id = experiment_id
@@ -273,6 +277,7 @@ class PeerConfigDescription(object):
         self.path = path
         self.machine = machine
         self.public_params = []
+        self.logger = logger or logging.getLogger("ObciExperimentConfig.peer_id")
 
     def __str__(self):
         return self.peer_id
@@ -321,7 +326,8 @@ class PeerConfigDescription(object):
         if conf_path:
 
             with codecs.open(conf_path, "r", "utf8") as f:
-                print "parsing default config for peer  ", self.peer_id, conf_path
+                self.logger.info("parsing default config for peer %s, %s ",
+                                                         self.peer_id, conf_path)
                 peer_parser.parse(f, base_config)
 
         ser.serialize_diff(base_config, self.config, args)

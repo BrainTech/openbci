@@ -29,7 +29,6 @@ import os
 import logging
 import logging.handlers
 import log_mx_handler
-import common.net_tools as net
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -72,6 +71,9 @@ def get_logger(name, file_level='debug', stream_level='warning',
 
         shandler = logging.StreamHandler()
         shandler.setFormatter(formatter)
+        stream_level = stream_level or 'warning'
+        file_level = file_level or 'debug'
+        mx_level = mx_level or 'warning'
         shandler.setLevel(LEVELS[stream_level])
         logger.addHandler(shandler)
         
@@ -83,6 +85,9 @@ def get_logger(name, file_level='debug', stream_level='warning',
 
 
         if log_dir is not None:
+            log_dir = os.path.expanduser(log_dir)
+            if not os.path.exists(log_dir):
+                os.makedirs(log_dir)
             fhandler = logging.handlers.RotatingFileHandler(
                                     os.path.join(log_dir, name + ".log"), 
                                     maxBytes=MAX_FILE_SIZE_B,

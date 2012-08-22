@@ -41,8 +41,8 @@ def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None)
         try:
             inp, out, exc = select.select([s], [], [], UPDATE_INTERVAL / _LOOPS)
         except Exception, e:
-            print "nearby_servers_update - exception:", str(e)
-            print "nearby_servers_update - aborting."
+            srv_data.logger.critical("nearby_servers_update - exception: %s", str(e))
+            srv_data.logger.critical("nearby_servers - aborting")
             return
 
         if s in inp:
