@@ -175,6 +175,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     @msg_handlers.handler("start_peers")
     def handle_start_peers(self, message, sock):
+        if 'mx' not in self.launch_data:
+            self.mx_data = message.mx_data
         self._launch_processes(self.launch_data)
 
 
@@ -285,14 +287,6 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                         capture_io=capture_io,
                                                         env=env)
 
-        # if path.endswith('.py'):
-        #     launch_args = ['python'] +[path] + args
-        # else:
-        #     launch_args = [path] + args
-        # print "----->   ",launch_args
-        # proc = self.proc = subprocess.Popen(launch_args,
-        #                                  env=env)
-        # details = ''
         if proc is None:
             self.logger.error("process launch FAILED: %s --- %s", 
                                                                 path, str(args))

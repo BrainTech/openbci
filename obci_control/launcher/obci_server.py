@@ -158,6 +158,8 @@ class OBCIServer(OBCIControlPeer):
                         self.mtool.fill_msg("kill", receiver=""))
         send_msg(self._publish_socket, self.mtool.fill_msg("launcher_shutdown",
                         sender=self.uuid))
+        for sup in self.exp_process_supervisors:
+            self.exp_process_supervisors[sup].kill()
         self.logger.info('sent KILL to experiments')
 
 

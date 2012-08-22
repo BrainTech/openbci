@@ -3,11 +3,12 @@
 
 import threading
 import time
-
+import socket
 import zmq
 
 from common.message import OBCIMessageTool, PollingObject, send_msg
 from launcher_messages import message_templates
+import common.net_tools as net
 
 from utils.openbci_logging import get_logger
 
@@ -124,13 +125,16 @@ class Process(object):
             self._status = RUNNING
         #TODO validate registration data
         self.registration_data = reg_data
-        self.logger.info(reg_data)
+        self.logger.info("reg_data" + str(vars(reg_data)))
         if self.ping_it:
             if not self._ctx:
                 self._ctx = zmq.Context()
             self.rq_sock = self._ctx.socket(zmq.REQ)
-            #TODO localhost OUT if remote process...
             for addr in reg_data.rep_addrs:
+                if reg_data.machine_ip != socket.gethostname() and\
+                                                        net.addr_is_local(addr):
+                    continue
+                self.logger.debug(self.name + "connecting to " + addr)
                 self.rq_sock.connect(addr)
 
 

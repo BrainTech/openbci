@@ -38,13 +38,13 @@ _DEFAULT_TIMEOUT_MS = 6000
 
 
 class SubprocessMonitor(object):
-    def __init__(self, zmq_ctx, uuid, logger=None):
+    def __init__(self, zmq_ctx, uuid, logger=None, obci_dns=None):
         self._processes = {}
         self._ctx = zmq_ctx
         self.uuid = uuid
         self.logger = logger or get_logger('subprocess_monitor',
                                 stream_level='warning')
-
+        self.obci_dns = obci_dns
         self._mtool = OBCIMessageTool(message_templates)
         self.poller = PollingObject()
         self._proc_lock = threading.RLock()
@@ -229,8 +229,8 @@ class SubprocessMonitor(object):
             self.logger.error(det)
             return None, det
 
-        self.logger.info("SENDING LAUNCH REQUEST  {0}  {1}  {2}".format( 
-                                machine_ip, _DEFAULT_TIMEOUT_MS, 'ms'))
+        self.logger.info("SENDING LAUNCH REQUEST  {0}  {1}  {2} {3}".format( 
+                                machine_ip, _DEFAULT_TIMEOUT_MS, 'ms', conn_addr))
 
         send_msg(rq_sock, rq_message)
         result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT_MS)
