@@ -19,7 +19,7 @@ import common.obci_control_settings as settings
 
 from subprocess_monitor import SubprocessMonitor
 from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
-from utils.openbci_logging import get_logger 
+from utils.openbci_logging import get_logger
 
 class HandlerCollection(object):
     def __init__(self):
@@ -102,13 +102,13 @@ class OBCIControlPeer(object):
         self.name = str(name)
         self.type = self.peer_type()
 
-        log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR, 
+        log_dir = os.path.join(settings.OBCI_CONTROL_LOG_DIR,
                                 self.name + '-' + self.uuid[:8])
         if not hasattr(self, 'logger'):
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
-                                    stream_level='info')
+                                    stream_level='debug')
 
         self.mtool = self.message_tool()
 
@@ -131,7 +131,7 @@ class OBCIControlPeer(object):
 
     def signal_handler(self):
         def handler(signum, frame):
-            self.logger.info("[!!!!] %s %s %s %s", 
+            self.logger.info("[!!!!] %s %s %s %s",
                         self.name, "got signal", signum, frame)
             self.interrupted = True
         return handler
@@ -334,38 +334,41 @@ class OBCIControlPeer(object):
         for sock in poll_sockets:
             poller.register(sock, zmq.POLLIN)
 
-        while True:
-            socks = []
-            try:
-                socks = dict(poller.poll())
-            except zmq.ZMQError, e:
-                self.logger.error(": zmq.poll(): " +str(    e.strerror))
+        try:
+            while True:
+                socks = []
+                try:
+                    socks = dict(poller.poll())
+                except zmq.ZMQError, e:
+                    self.logger.error(": zmq.poll(): " +str(    e.strerror))
 
-            for sock in socks:
-                if socks[sock] == zmq.POLLIN:
-                    more = True
-                    while more:
-                        try:
-                            msg = recv_msg(sock, flags=zmq.NOBLOCK)
-                        except zmq.ZMQError, e:
+                for sock in socks:
+                    if socks[sock] == zmq.POLLIN:
+                        more = True
+                        while more:
+                            try:
+                                msg = recv_msg(sock, flags=zmq.NOBLOCK)
+                            except zmq.ZMQError, e:
 
-                            if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
-                                more = False
+                                if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
+                                    more = False
+                                else:
+                                    self.logger.error("handling socket read error: %s  %d  %s",
+                                                        e, e.errno, sock)
+                                    poller.unregister(sock)
+                                    if sock in poll_sockets:
+                                        poll_sockets.remove(sock)
+                                    self.handle_socket_read_error(sock, e)
+                                    break
                             else:
-                                self.logger.error("handling socket read error: %s  %d  %s", 
-                                                    str(e), e.errno, str(sock))
-                                poller.unregister(sock)
-                                if sock in poll_sockets:
-                                    poll_sockets.remove(sock)
-                                self.handle_socket_read_error(sock, e)
-                                break
-                        else:
-                            self.handle_message(msg, sock)
+                                self.handle_message(msg, sock)
 
-            if self.interrupted:
-                break
-
-            self._update_poller(poller, poll_sockets)
+                if self.interrupted:
+                    break
+                self._update_poller(poller, poll_sockets)
+        except Exception, e:
+            self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
+                                self.name, e, e.args, vars(e))
 
         self._clean_up()
 

@@ -122,7 +122,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
         if src == socket.gethostname():
             sock = self.ctx.socket(zmq.REP)
-            port = str(sock.bind_to_random_port("tcp://127.0.0.1", 
+            port = str(sock.bind_to_random_port("tcp://127.0.0.1",
                                             min_port=settings.PORT_RANGE[0],
                                             max_port=settings.PORT_RANGE[1]))
             sock.close()
@@ -145,10 +145,12 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
         env = os.environ.copy()
         addr, port = mx_data[0]
+        if addr == '0.0.0.0':
+            addr = socket.gethostname()
 
         _env = {
-            "MULTIPLEXER_ADDRESSES": socket.gethostname() + ':' + str(port),
-            "MULTIPLEXER_PASSWORD": mx_data[1],
+            "MULTIPLEXER_ADDRESSES": addr + ':' + str(port),
+            "MULTIPLEXER_PASSWORD": '',#mx_data[1],
             "MULTIPLEXER_RULES": launcher_tools.mx_rules_path()
         }
         env.update(_env)
@@ -192,7 +194,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         if not message.receiver == self.uuid:
             return
         message.kill_peers.append('config_server')
-        
+
         message.start_peers_data['config_server'] = dict(self.launch_data['config_server'])
         restore_config = [peer for peer in self.processes if peer not in message.kill_peers]
         for peer in message.kill_peers:
@@ -209,7 +211,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         for peer, data in message.start_peers_data.iteritems():
             self.launch_data[peer] = data
         self.restarting = [peer for peer in message.start_peers_data if peer in message.kill_peers]
-        
+
         self._launch_processes(message.start_peers_data, restore_config=restore_config)
 
     def _launch_processes(self, launch_data, restore_config=[]):
@@ -250,7 +252,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             if peer.startswith('config_server'):
                 args += ['-p', 'launcher_socket_addr', self.cs_addr]
                 args += ['-p', 'experiment_uuid', self.experiment_uuid]
-                
+
                 if restore_config:
                     args += ['-p', 'restore_peers', ' '.join(restore_config)]
                 wait = 0.4
@@ -287,6 +289,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def _launch_process(self, path, args, proc_type, name,
                                     env=None, capture_io=NO_STDIO):
+        self.logger.debug("launching..... %s %s", path, args)
         proc, details = self.subprocess_mgr.new_local_process(path, args,
                                                         proc_type=proc_type,
                                                         name=name,
@@ -295,7 +298,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                         env=env)
 
         if proc is None:
-            self.logger.error("process launch FAILED: %s --- %s", 
+            self.logger.error("process launch FAILED: %s --- %s",
                                                                 path, str(args))
             send_msg(self._publish_socket, self.mtool.fill_msg("launch_error",
                                             sender=self.uuid,
@@ -350,7 +353,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.rqs += 1
         # print "--> ", self.rqs
         if self.rqs == 10000:
-            
+
             self.logger.debug("GOT %s %s", str(self.rqs), "messages!")
             self.rqs = 0
 

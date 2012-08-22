@@ -137,7 +137,7 @@ class SubprocessMonitor(object):
             self.logger.error(details)
             return None, details
         except Exception as e:
-            details = "Process launch Error: " + str(e) + str(e.args)
+            details = "Process launch Error: " + str(e) + str(e.args) + str(vars(e))
             self.logger.error(details)
             return None, details
 
@@ -157,6 +157,7 @@ class SubprocessMonitor(object):
         std_actions = self._stdio_actions(capture_io)
         timeout_desc = register_timeout_desc
 
+        self.logger.debug('process launch arg list:  %s', launch_args)
         popen_obj, details = self._local_launch(launch_args, std_actions, env)
 
         if popen_obj is None:
@@ -177,10 +178,10 @@ class SubprocessMonitor(object):
                                         pid=popen_obj.pid)
 
         # io_handler will be None if no stdio is captured
-        io_handler = start_stdio_handler(popen_obj, std_actions, 
+        io_handler = start_stdio_handler(popen_obj, std_actions,
                                                     ':'.join([machine, path, name]),
                                                     stdout_log, stderr_log)
-    
+
         new_proc = LocalProcess(process_desc, popen_obj, io_handler=io_handler,
                             reg_timeout_desc=timeout_desc,
                             monitoring_optflags=monitoring_optflags,
@@ -229,7 +230,7 @@ class SubprocessMonitor(object):
             self.logger.error(det)
             return None, det
 
-        self.logger.info("SENDING LAUNCH REQUEST  {0}  {1}  {2} {3}".format( 
+        self.logger.info("SENDING LAUNCH REQUEST  {0}  {1}  {2} {3}".format(
                                 machine_ip, _DEFAULT_TIMEOUT_MS, 'ms', conn_addr))
 
         send_msg(rq_sock, rq_message)
