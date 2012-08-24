@@ -36,7 +36,7 @@ class Config(object):
         self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \nbackspace", u"wróć\nback"]
         self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \nbackspace", u"wróć\nback"]
         self.letters[6] = ["_",",",".",";","?","!","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "TEST!", "back"]
+        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "backspace", "back"]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
         
@@ -52,7 +52,7 @@ class Config(object):
         self.actions[4] = ["msg('t')", "msg('u')", "msg('w')", "msg('x')", "msg('y')", u"msg(u'z')", "backspace()", ""] 
         self.actions[5] = [u"msg(u'ą')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", "backspace()", ""]
         self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
-        self.actions[7] = ["say()", "clear()", "backspace()", "", "say()", "clear()", "start_test()", ""]
+        self.actions[7] = ["say()", "clear()", "backspace()", "", "say()", "clear()", "backspace()", ""]
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
 
