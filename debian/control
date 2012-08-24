@@ -1,0 +1,20 @@
+Source: openbci-source
+Section: science
+Priority: extra
+Maintainer: Karol Auguštin <karol@augustin.pl>
+Build-Depends: bash
+Standards-Version: 3.9.3
+Vcs-Git: git://git.braintech.pl/openbci.git
+Vcs-Browser: http://git.braintech.pl/openbci.git
+
+
+Package: openbci
+Architecture: all
+Depends:
+      python,
+      python-dev,
+      bash
+Description: openBCI Framework is used to...
+ Something
+ .
+ Something2

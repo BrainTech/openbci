@@ -1,0 +1,13 @@
+acquisition/	  /usr/share/openbci
+analysis/	  /usr/share/openbci
+devices/	  /usr/share/openbci
+drivers/	  /usr/share/openbci
+exps/		  /usr/share/openbci
+gui/		  /usr/share/openbci
+__init__.py	  /usr/share/openbci
+interfaces/	  /usr/share/openbci
+logic/		  /usr/share/openbci
+obci_configs/	  /usr/share/openbci
+obci_control/	  /usr/share/openbci
+scenarios/	  /usr/share/openbci
+utils/		  /usr/share/openbci
