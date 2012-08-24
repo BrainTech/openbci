@@ -240,6 +240,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         experiment = experiment.exp
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
+            #print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+            #print(experiment.origin_machine)
 
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
