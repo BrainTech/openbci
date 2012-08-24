@@ -27,6 +27,7 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         self.blinking_ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config")).config_to_message()
         self.hi_text = self.config.get_param("hi_text")
         self.hi_text_2 = self.config.get_param("hi_text_2")
+        self.hi_text_3 = self.config.get_param("hi_text_3")
         self.bye_text = self.config.get_param("bye_text")
         self.break_text = self.config.get_param("break_text")
         self.break_duration = float(self.config.get_param("break_duration"))
@@ -74,11 +75,14 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
             LOGGER.info("Got unrecognised ugm engine message: "+str(m.key))
 
     def begin(self):
-        ugm_helper.send_text(self.conn, self.hi_text)
-        #keystroke.wait([" "])
+        ugm_helper.send_status(self.conn, self.hi_text)
         time.sleep(5)
-        ugm_helper.send_text(self.conn, self.hi_text_2)
+        ugm_helper.send_status(self.conn, self.hi_text_2)
         time.sleep(8)
+        ugm_helper.send_status(self.conn, self.hi_text_3)
+        time.sleep(3)
+        ugm_helper.send_status(self.conn, "")
+
         LOGGER.info("Send begin config ...")
         ugm_helper.send_config(self.conn, self.blinking_ugm)
         LOGGER.info("Send start blinking on begin ...")
