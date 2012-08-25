@@ -12,13 +12,16 @@ class LogModel(QtCore.QObject):
         self._run = False
         self._is_running = False
         self._mutex = QtCore.QMutex()
-        self._peers_log = {'amplifier': 
-                           {'peer_id': 'amplifier', 'logs': []},
-                           'mx': 
-                           {'peer_id': 'mx', 'logs': []}
-                           } #'logs keyed by peer id
+        self._peers_log = {}
 
-    def start_running(self):
+    def connect_running(self, exp):
+        self._start_thread(exp)
+
+    def start_running(self, exp):
+        self._start_thread(exp)
+
+    def _start_thread(self, exp):
+        self._exp = exp
         self._run = True
         self._is_running = True
         thread.start_new_thread(
@@ -54,25 +57,24 @@ class LogModel(QtCore.QObject):
         self._mutex.unlock()
 
     def run(self):
-        self._init_run()
         print("model start running ")
-
         while self._run:
             peer_id, log = self.next_log()
-
-            self._mutex.lock()
-            self._peers_log[peer_id]['logs'].append(log)
-            if self._emmit:
-                e = {'peer_id':peer_id, 'logs':[log]}
-                self.update_log.emit(e)
-            self._mutex.unlock()
+            if peer_id is None:
+                print ("ERROR IN RECEIVING LOG ON SOCKET OR TIMEOUT!")
+                time.sleep(0.1)
+            else:
+                self._mutex.lock()
+                if not self._peers_log.has_key(peer_id):
+                    self._peers_log[peer_id] = {'peer_id':peer_id,
+                                                'logs':[]}
+                self._peers_log[peer_id]['logs'].append(log)
+                if self._emmit:
+                    e = {'peer_id':peer_id, 'logs':[log]}
+                    self.update_log.emit(e)
+                self._mutex.unlock()
 
         print ("model stop running ")
-        self._deinit_run()
+        self.post_run()
         self._is_running = False
 
-    def _init_run(self):
-        pass
-
-    def _deinit_run(self):
-        pass

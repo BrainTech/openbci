@@ -27,7 +27,7 @@ class LogEngine(QtCore.QObject):
             self._model.set_emmiting(True)
             if self._exp.status.status_name in ['launching', 'running'] and \
                     not self._model.is_running():
-                self._model.start_running()
+                self._model.connect_running(self._exp)
 
     def tab_closed(self, tab_id):
         """Called on tab_closed event from GUI"""
@@ -75,7 +75,11 @@ class LogEngine(QtCore.QObject):
 
     def experiment_started(self):
         print 'experiment started'
-        self._model.start_running()
+        #self._model.start_running(self._exp)
+
+    def on_experiment_start(self, exp):
+        self._model.start_running(self._exp)
+        
 
     def _rebuild_tab_widget(self):
         scenario = self.tab_widget.widget(0)
