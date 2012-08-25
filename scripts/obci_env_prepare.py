@@ -86,6 +86,10 @@ if __name__ == '__main__':
 		print "linking obci_gum command"
 		os.symlink(os.path.join(obci_dir, 'obci_control', 'gui', 'obci_gui'),
 				'/usr/bin/obci_gui')
+	if not os.path.exists('/usr/bin/obci_x_tray'):
+		print "linking obci_x_tray command"
+		os.symlink(os.path.join(obci_dir, 'obci_control', 'gui', 'obci_x_tray'),
+				'/usr/bin/obci_x_tray')
 
 
 		

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+direc=$OBCI_INSTALL_DIR
+
+if [ -z $OBCI_INSTALL_DIR ]
+then
+	direc=$HOME/dev/openbci
+fi
+python $direc/obci_control/gui/obci_x_tray.py

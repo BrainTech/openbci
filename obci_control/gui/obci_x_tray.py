@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, os
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -12,7 +12,7 @@ class ServerController(QObject):
     serverPingTimeout  = 100
     serverReadyTimeout = 10*serverPingDelay
     
-    serverShutdownTimeout = 10*1000
+    serverShutdownTimeout = 1000#10*1000
 
     serverReady           = pyqtSignal()          # emited when server is fully operational
     serverStartingUpError = pyqtSignal('QString') # emited when error was detected during startup
@@ -30,32 +30,39 @@ class ServerController(QObject):
         
         self.process.started.connect(self.startPinging)
         self.process.error.connect(self.processError)
-        self.process.finished.connect(self.processFinished)
+        #self.process.finished.connect(self.processFinished)
         
         self.pingingStartTime = QTime()
         self.startingServer = False
         
         self.terminatingServer = False
 
+        self.startServer()
+
     #---------------------------------------------------------------------------
 
     def isServerRunning(self):
-        return self.process.state() == QProcess.Running
+        print("isServerRunning? ", self.process.state())
+        return True#self.process.state() == QProcess.Running
     
     def isServerResponding(self):
         # TODO: !!!!!!!!!
         return self.isServerRunning()
         
     def startServer(self):
-        if not self.isServerRunning():
+        if 1 == 1:#not self.isServerRunning():
             self.startingServer = True
             self.process.start(self.programName)
     
     def stopServer(self):
         if self.isServerRunning():
+            print("stopServer.isRunning")
             self.terminatingServer = True
+            os.system('obci srv_kill')
             self.process.terminate()
             QTimer.singleShot(self.serverShutdownTimeout, self.checkShutdownTimeout)
+        else:
+            print("stopServer.isNotRunning...")
         
     #---------------------------------------------------------------------------
     
@@ -66,53 +73,70 @@ class ServerController(QObject):
     def pingServer(self):
         print("Ping obci server")
         if not self.startingServer:
+            print("pingServer.Not starting")
             return
     
         if self.process.state() != QProcess.Running:
+            print("pingServer.Not running")
             self.startingServer = False
             self.serverStartingUpError.emit(self.tr('Server suddenly died...'))           
             return
         
         if self.isServerResponding():
+            print("pingServer.Responding")
             self.startingServer = False
             self.serverReady.emit()
         elif self.pingingStartTime.msecsTo(QTime.currentTime()) < serverReadyTimeout:
+            print("pingServer.Delay")
             QTimer.singleShot(self.serverPingDelay, self.pingServer)
         else:
+            print("pingServer.Kill")
             self.startingServer = False
             self.process.kill()
             self.serverStartingUpError.emit()
             
     def processError(self, error):
         if self.startingServer:
+            print("processError.Starting")
             self.startingServer = False
             self.process.kill()
             self.serverStartingUpError.emit(self.tr('Process error during starting up...'))
         elif self.terminatingServer:
+            print("processError.terminating")
             if error == QProcess.Crashed:
+                print("processError.Crashed")
                 return
             self.terminatingServer = False
             self.process.kill()
             self.serverShuttingDownError.emit(self.tr('Error during server termination...'))
+        else:
+            print("processError.else....")
               
     def processFinished(self):
         if self.startingServer:
+            print("processFinished.starting")
             self.startingServer = False
             self.serverStartingUpError.emit(self.tr('Process suddenly died...'))
         elif self.terminatingServer:
+            print("processFinished.terminating")
             self.terminatingServer = False
             self.serverTerminated.emit()
         else:
+            print("processFinished.emitDied")
             self.serverUnexpectedlyDied.emit(self.tr('Process unexpectedly died...'))
             
     def checkShutdownTimeout(self):
        if not self.terminatingServer:
+           print("checkShutdownTimeout.Not terminating")
            return
             
-       if self.process.state() == QProcess.Running:
+       if self.isServerRunning():
+           print("checkShutdownTimeout.Running")
            self.process.kill()
            self.terminatingServer = False
            self.serverShuttingDownError.emit(self.tr('Killing server with fire...'))
+       else:
+           print("checkShutdownTimeout.Else ...")           
 
     #---------------------------------------------------------------------------
      
@@ -123,22 +147,25 @@ class MainWidget(QWidget):
         
         self.menu = QMenu(parent)
         
-        self.startAction   = QAction(self.tr("&Start"), self)
-        self.stopAction    = QAction(self.tr("S&top"),  self)
+        self.startAction   = QAction(self.tr("&Start OpenBCI"), self)
+        self.stopAction    = QAction(self.tr("S&top OpenBCI"),  self)
         self.quitAction    = QAction(self.tr("&Close OpenBCI tray"), self)
-        self.runGuiAction  = QAction(self.tr("&Run OpenBCI GUI..."),  self)
+        self.runGuiAction  = QAction(self.tr("&Run Control Panel..."),  self)
+        self.runSvarogAction  = QAction(self.tr("&Run Signal Viewer..."),  self)
 
         self.runningIcon     = QIcon(qApp.style().standardPixmap(QStyle.SP_ComputerIcon))
         self.startingUpIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxInformation))
         self.terminatingIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_TrashIcon))
         self.serverDownIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxCritical))
 
-        self.menu.addAction(self.startAction)
-        self.menu.addAction(self.stopAction)
-        self.menu.addSeparator()
         self.menu.addAction(self.runGuiAction)
         self.menu.addSeparator()
-        self.menu.addAction(self.quitAction)
+        self.menu.addAction(self.runSvarogAction)
+        self.menu.addSeparator()
+        self.menu.addAction(self.startAction)
+        self.menu.addAction(self.stopAction)
+        #self.menu.addSeparator()
+        #self.menu.addAction(self.quitAction)
         
         self.trayIcon = QSystemTrayIcon(self.serverDownIcon)
         self.trayIcon.setContextMenu(self.menu)
@@ -147,6 +174,7 @@ class MainWidget(QWidget):
         self.startAction.triggered.connect(self.startServer)
         self.stopAction.triggered.connect(self.stopServer)
         self.runGuiAction.triggered.connect(self.runGui)
+        self.runSvarogAction.triggered.connect(self.runSvarog)
         self.quitAction.triggered.connect(self.quit_tray)
 
         self.controller = ServerController()
@@ -155,6 +183,7 @@ class MainWidget(QWidget):
         self.setStoppedUi()
     
         self.guiProcess = QProcess()
+        self.svarogProcess = QProcess()
             
         self.controller.serverReady.            connect(self.serverReady)
         self.controller.serverStartingUpError.  connect(self.startingUpError)
@@ -168,12 +197,13 @@ class MainWidget(QWidget):
         self.startAction.setEnabled(enabled)
         self.stopAction.setEnabled(enabled)
         self.runGuiAction.setEnabled(enabled)
+        self.runSvarogAction.setEnabled(enabled)
         self.quitAction.setEnabled(enabled)
 
     def setRunningUi(self, disableAll=False):
         self.startAction.setVisible(False)
         self.stopAction.setVisible(True)
-        self.menu.setDefaultAction(self.stopAction)
+        #self.menu.setDefaultAction(self.stopAction)
         
         if disableAll:
             self.setEnabledAll(False)
@@ -256,6 +286,11 @@ class MainWidget(QWidget):
         #QMessageBox.information(None, self.tr('OpenBCI'), self.tr('RUN GUI'))
         if self.guiProcess.state() == QProcess.NotRunning:
             self.guiProcess.start('obci_gui')
+
+    def runSvarog(self):
+        #QMessageBox.information(None, self.tr('OpenBCI'), self.tr('RUN GUI'))
+        if self.svarogProcess.state() == QProcess.NotRunning:
+            self.svarogProcess.start('svarog')
        
     #---------------------------------------------------------------------------
 
