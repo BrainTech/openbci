@@ -36,7 +36,7 @@ from common.message import LauncherMessage
 import common.net_tools as net
 
 import obci_log_engine
-import obci_log_model
+import obci_log_model_dummy
 
 class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
@@ -163,6 +163,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.engine.saver_msg.connect(self._saver_msg)
         self.reset.connect(self.engine.reset_launcher)
         self.start.connect(self.engine.start_experiment)
+        self.start.connect(self.log_engine.experiment_started)
         self.stop.connect(self.engine.stop_experiment)
         self.stop.connect(self.log_engine.experiment_stopped)
         self.save_as.connect(self.engine.save_scenario_as)
@@ -585,7 +586,7 @@ class ExperimentGuiState(object):
         self.expanded_peers = set()
         if old_exp is None:
             self.store_options = None
-            self.log_model = obci_log_model.LogModel()
+            self.log_model = obci_log_model_dummy.DummyLogModel()
             self.log_model.update_log.connect(log_engine.update_log)
         else:
             self.store_options = old_exp.store_options
