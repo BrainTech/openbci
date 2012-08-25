@@ -28,10 +28,10 @@ class RealLogModel(obci_log_model.LogModel):
 
     def start_running(self, exp):
         port = self._init_socket()
-        exp.add_peer('logger_mati', 'obci_control/gui/obci_log_peer.py', 
-                      config_sources=None, launch_deps=None, custom_config_path=None, machine='mati-laptop')
+        exp.add_peer('logger', 'obci_control/gui/obci_log_peer.py', 
+                      config_sources=None, launch_deps=None, custom_config_path=None, machine=None)
+        #TODO - ustawic machine na local
         exp.update_peer_param('logger_mati', 'port', str(port))
-        print("Update port: "+str(port))
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
