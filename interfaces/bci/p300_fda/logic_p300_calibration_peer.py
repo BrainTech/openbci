@@ -25,6 +25,7 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         super(LogicP300Calibration, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_P300_CALIBRATION)
         self.blinking_ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config")).config_to_message()
+        self.status_ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("status_config")).config_to_message()
         self.hi_text = self.config.get_param("hi_text")
         self.hi_text_2 = self.config.get_param("hi_text_2")
         self.hi_text_3 = self.config.get_param("hi_text_3")
@@ -75,6 +76,7 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
             LOGGER.info("Got unrecognised ugm engine message: "+str(m.key))
 
     def begin(self):
+        ugm_helper.send_config(self.conn, self.status_ugm)
         ugm_helper.send_status(self.conn, self.hi_text)
         time.sleep(5)
         ugm_helper.send_status(self.conn, self.hi_text_2)
@@ -96,7 +98,8 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
     
     def blinking_stopped(self):
         time.sleep(1)
-        ugm_helper.send_text(self.conn, self.break_text)
+        ugm_helper.send_config(self.conn, self.status_ugm)
+        ugm_helper.send_status(self.conn, self.break_text)
         time.sleep(self.break_duration)
         ugm_helper.send_config(self.conn, self.blinking_ugm)
         time.sleep(1)
