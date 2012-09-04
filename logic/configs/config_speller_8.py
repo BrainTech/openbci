@@ -35,7 +35,7 @@ class Config(object):
         self.letters[3] = ["M","N","O","P","R","S","  skasuj  \nbackspace", u"wróć\nback"]
         self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \nbackspace", u"wróć\nback"]
         self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[6] = ["_ \nspace",", \ncomma",". \nperiod","; \nsemicolon","? \nquestion","! \nexclamation","  skasuj  \nbackspace", u"wróć\nback"]
+        self.letters[6] = ["_ \nspace",", \ncomma",". \nperiod","; \nsemicolon","?????","!!!!!","  skasuj  \nbackspace", u"wróć\nback"]
         self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "backspace", "back"]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]

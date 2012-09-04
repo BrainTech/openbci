@@ -91,7 +91,8 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         ugm_helper.send_start_blinking(self.conn)
 
     def end(self):
-        ugm_helper.send_text(self.conn, self.bye_text)
+        ugm_helper.send_config(self.conn, self.status_ugm)
+        ugm_helper.send_status(self.conn, self.bye_text)
         #acquire some more data
         time.sleep(2)
         acquisition_helper.send_finish_saving(self.conn)

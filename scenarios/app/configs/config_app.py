@@ -60,7 +60,7 @@ class Config(object):
                              "run_ext('qdbus org.mpris.amarok /Player Stop')"
                              ])
         self.letters.append([u"Play",u"Pause", "Next", "Prev",
-                             u"Loud", u"Medium", u"Silient", u"Back"])
+                             u"Loud", u"Medium", u"Quiet", u"Back"])
         self.state[zero_state][-1] = 0 #GOTO MENU
         zero_state += 1
 
