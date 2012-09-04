@@ -83,7 +83,11 @@ def obci_pythonpath():
 
     lib_python_dir = ''.join(['python', str(sys.version_info[0]), '.',
                                             str(sys.version_info[1])])
-    mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
+    try:
+        import multiplexer.multiplexer_constants
+        mx_python_path = ""
+    except ImportError:
+    	mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
                                     lib_python_dir, 'site-packages')
     obci_control_path = os.path.join(root, 'obci_control')
 
@@ -102,7 +106,7 @@ def update_pythonpath(obci_paths=None):
 
 
 def mx_path():
-    return os.path.join(obci_root(), 'multiplexer-install', 'bin', 'mxcontrol')
+    return os.path.join('/usr/bin', 'mxcontrol')
 
 def mx_rules_path():
     return os.path.join(obci_root(), 'obci_configs', 'multiplexer.rules')
