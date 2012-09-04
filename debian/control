@@ -1,4 +1,4 @@
-Source: openbci-source
+Source: openbci
 Section: science
 Priority: extra
 Maintainer: Karol Auguštin <karol@augustin.pl>
@@ -10,10 +10,7 @@ Vcs-Browser: http://git.braintech.pl/openbci.git
 
 Package: openbci
 Architecture: all
-Depends:
-      python,
-      python-dev,
-      bash
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, openbci-dummy-amplifier, openbci-file-amplifier, openbci-libmultiplexer0, openbci-multiplexer, openbci-multiplexer-python, openbci-tmsi-amplifier, libbluetooth-dev, libprotobuf7 (>= 2.4.1), xsel, python-serial, python-pygame, python-scipy, python-numpy, python-sip, python-qt4, python-bluetooth, python-xlib, python-zmq, python-pyaudio
 Description: openBCI Framework is used to...
  Something
  .
