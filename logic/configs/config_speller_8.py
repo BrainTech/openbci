@@ -30,13 +30,13 @@ class Config(object):
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [u"A B C\nD E F",u"G H I\nJ K L",u"M N O\nP R S",u"T U W\nX Y Z",u"Ą Ę Ł\nŃ Ó Ś", u"_,.;?!", u" akcje\nactions", u"  wróć\n  back    "]
-        self.letters[1] = ["A","B","C","D","E","F","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[2] = ["G","H","I","J","K","L","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[3] = ["M","N","O","P","R","S","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[6] = ["_ \nspace",", \ncomma",". \nperiod","; \nsemicolon","?????","!!!!!","  skasuj  \nbackspace", u"wróć\nback"]
-        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "backspace", "back"]
+        self.letters[1] = ["A","B","C","D","E","F","  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[2] = ["G","H","I","J","K","L","  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[3] = ["M","N","O","P","R","S","  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[6] = ["_ \nspace",", \ncomma",". \nperiod","; \nsemicolon","?????","!!!!!","  skasuj  \ndelete", u"wróć\nback"]
+        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "delete", "back"]
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
         
