@@ -20,7 +20,7 @@ class Config(object):
         self.actions.append([
                 "",
                 "start_robot_feedback()", 
-                "run_ext('amarok &')", 
+                "", 
                 "", 
                 "", "", "", "transform_scenario('main_menu')"])
         self.state.append([0]*self.number_of_decisions)
