@@ -10,8 +10,19 @@ Vcs-Browser: http://git.braintech.pl/openbci.git
 
 Package: openbci
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, openbci-dummy-amplifier, openbci-file-amplifier, openbci-libmultiplexer0, openbci-multiplexer, openbci-multiplexer-python, openbci-tmsi-amplifier, libbluetooth-dev, libprotobuf7 (>= 2.4.1), xsel, python-serial, python-pygame, python-scipy, python-numpy, python-sip, python-qt4, python-bluetooth, python-xlib, python-zmq, python-pyaudio
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, openbci-libmultiplexer0, openbci-multiplexer, openbci-multiplexer-python, libbluetooth-dev, libprotobuf7 (>= 2.4.1), xsel, python-serial, python-pygame, python-scipy, python-numpy, python-sip, python-qt4, python-bluetooth, python-xlib, python-zmq, python-pyaudio
 Description: openBCI Framework is used to...
  Something
  .
  Something2
+
+
+Package: openbci-all
+Architecture: all
+Depends: openbci, openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier
+Description: Master package containing whole OpenBCI framework.
+ Something
+ .
+ Something2
+
+
