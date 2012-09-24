@@ -6,6 +6,6 @@ export DISPLAY=:0
 
 if [ -z $OBCI_INSTALL_DIR ]
 then
-	direc=$HOME/dev/openbci
+	direc=/usr/share/openbci
 fi
 python $direc/obci_control/launcher/obci_script.py $@
