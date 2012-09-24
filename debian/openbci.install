@@ -1,14 +1,21 @@
 acquisition/	  /usr/share/openbci
 analysis/	  /usr/share/openbci
 devices/	  /usr/share/openbci
+drivers/eeg/*.py	  /usr/share/openbci/drivers/eeg
+drivers/eeg/*.ini	  /usr/share/openbci/drivers/eeg
+drivers/eeg/*.info	  /usr/share/openbci/drivers/eeg
+drivers/eeg/*.dat	  /usr/share/openbci/drivers/eeg
+drivers/eeg/driver_discovery	  /usr/share/openbci/drivers/eeg
+drivers/eeg/cpp_amplifiers/configs	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
+drivers/eeg/cpp_amplifiers/*.py	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
+drivers/eeg/cpp_amplifiers/*.ini	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
 drivers/*.py	  /usr/share/openbci/drivers
-drivers/*.ini	  /usr/share/openbci/drivers
-drivers/*.info	  /usr/share/openbci/drivers
-drivers/*.dat	  /usr/share/openbci/drivers
-drivers/driver_discovery	  /usr/share/openbci/drivers
-drivers/cpp_amplifiers/configs	  /usr/share/openbci/drivers/cpp_amplifiers
-drivers/cpp_amplifiers/*.py	  /usr/share/openbci/drivers/cpp_amplifiers
-drivers/cpp_amplifiers/*.ini	  /usr/share/openbci/drivers/cpp_amplifiers
+drivers/balance	  /usr/share/openbci/drivers
+drivers/etr	  /usr/share/openbci/drivers
+drivers/switch	  /usr/share/openbci/drivers
+
+
+
 
 obci_control/launcher/obci /usr/bin
 obci_control/gui/obci_gui  /usr/bin
