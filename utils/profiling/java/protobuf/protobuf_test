@@ -1,3 +1,4 @@
+#!/bin/bash
 export CLASSPATH=~/.m2/repository/multiplexer/jmx/0.9.1/jmx-0.9.1.jar:~/.m2/repository/com/google/protobuf/protobuf-java/2.4.1/protobuf-java-2.4.1.jar:~/.m2/repository/com/google/collections/google-collections/1.0-rc2/google-collections-1.0-rc2.jar:~/.m2/repository/org/jboss/netty/netty/3.1.0.GA/netty-3.1.0.GA.jar:~/.m2/repository/trove/trove/2.1.1/trove-2.1.1.jar:/home/mati/.m2/repository/org/slf4j/slf4j-api/1.5.8/slf4j-api-1.5.8.jar:~/.m2/repository/org/slf4j/slf4j-jdk14/1.5.8/slf4j-jdk14-1.5.8.jar:../../../../new_svarog/target/classes:.:$CLASSPATH
 
 
