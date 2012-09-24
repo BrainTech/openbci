@@ -1,7 +1,17 @@
 acquisition/	  /usr/share/openbci
 analysis/	  /usr/share/openbci
 devices/	  /usr/share/openbci
-drivers/	  /usr/share/openbci
+drivers/*.py	  /usr/share/openbci/drivers
+drivers/*.ini	  /usr/share/openbci/drivers
+drivers/*.info	  /usr/share/openbci/drivers
+drivers/*.dat	  /usr/share/openbci/drivers
+drivers/driver_discovery	  /usr/share/openbci/drivers
+drivers/cpp_amplifiers/configs	  /usr/share/openbci/drivers/cpp_amplifiers
+drivers/cpp_amplifiers/*.py	  /usr/share/openbci/drivers/cpp_amplifiers
+drivers/cpp_amplifiers/*.ini	  /usr/share/openbci/drivers/cpp_amplifiers
+
+obci_control/launcher/obci /usr/bin
+obci_control/gui/obci_gui  /usr/bin
 exps/		  /usr/share/openbci
 gui/		  /usr/share/openbci
 __init__.py	  /usr/share/openbci
