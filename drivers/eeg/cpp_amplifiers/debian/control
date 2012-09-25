@@ -37,3 +37,9 @@ Depends:
       tmsi-dkms
 Description: Reads samples from the TMSi amplifier kernel driver
   Uses multiplexer to transfer the samples to the receivers.
+
+Package: openbci-amplifiers
+Architecture: amd64 i386
+Depends: openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier
+Description: Master package containing all OpenBCI amplifier packages.
+  Installs openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier.
