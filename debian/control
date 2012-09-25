@@ -11,18 +11,13 @@ Vcs-Browser: http://git.braintech.pl/openbci.git
 Package: openbci
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, openbci-libmultiplexer0, openbci-multiplexer, openbci-multiplexer-python, libbluetooth-dev, libprotobuf7 (>= 2.4.1), xsel, python-serial, python-pygame, python-scipy, python-numpy, python-sip, python-qt4, python-bluetooth, python-xlib, python-zmq, python-pyaudio
-Description: openBCI Framework is used to...
- Something
- .
- Something2
+Description: Framework used to build Brain Computer Interfaces and psychological experiments.
+ Platform for Brain Computer Interfaces. This software contains tools which allow you to build a complete Brain Computer Interface based on EEG, and perform some experiments collecting EEG and other biomedical data signals.
 
 
 Package: openbci-all
 Architecture: all
-Depends: openbci, openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier
+Depends: openbci, openbci-amplifiers
 Description: Master package containing whole OpenBCI framework.
- Something
- .
- Something2
-
+ Platform for Brain Computer Interfaces. This software contains tools which allow you to build a complete Brain Computer Interface based on EEG, and perform some experiments collecting EEG and other biomedical data signals.
 
