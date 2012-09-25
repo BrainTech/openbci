@@ -1,0 +1,4 @@
+/usr/share/openbci /usr/lib/python2.7/dist-packages/obci
+/usr/share/openbci/obci_control/launcher/obci /usr/bin/obci
+/usr/share/openbci/obci_control/gui/obci_gui /usr/bin/obci_gui
+

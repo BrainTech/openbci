@@ -13,12 +13,6 @@ drivers/*.py	  /usr/share/openbci/drivers
 drivers/balance	  /usr/share/openbci/drivers
 drivers/etr	  /usr/share/openbci/drivers
 drivers/switch	  /usr/share/openbci/drivers
-
-
-
-
-obci_control/launcher/obci /usr/bin
-obci_control/gui/obci_gui  /usr/bin
 exps/		  /usr/share/openbci
 gui/		  /usr/share/openbci
 __init__.py	  /usr/share/openbci
