@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, time, socket
+import sys, time, socket, subprocess, os
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_client import ConfiguredClient
@@ -11,8 +11,14 @@ from drivers import drivers_logging as logger
 
 LOGGER = logger.get_logger("etr_calibration", "info")
 
-from camera import Camera
+#~ from camera import Camera
 import numpy as np
+
+#~ from threading import Thread
+#~ 
+#~ class Cam(Thread):
+    #~ def run(self):
+        #~ self.cam = Camera()
 
 class EtrCalibration(ConfiguredClient):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
@@ -27,27 +33,34 @@ class EtrCalibration(ConfiguredClient):
         self.ready()
         LOGGER.info("Start initializin etr amplifier...")
         
-        self.cam = Camera()
+        #~ self.thread = Cam()
+        #~ self.thread.run()
+        
+        LOGGER.info("\n"*10 +"I don't fancy you"+ "\n"*10)
 
     def __del__(self):
         self.socket.close()        
 
-
     def run(self):
         try:
             while True:
+                
                 conn, addr = self.socket.accept()
                 l_data = conn.recv(1024)
                 msg = variables_pb2.Variable()
                 msg.ParseFromString(l_data)
-                
+                os.system("touch " + os.path.expanduser("~/obci/interfaces/etr/natural/calibFlag"))
+                time.sleep(0.4)
+                print "\n"*10 + "*"*10 + "\n"*10
                 print "msg: ", msg.key, ' / ', msg.value
                 #~ l_msg = None #tu bedzie parsowanie wiadomosci o starcie i koncu kalibracji
                 #~ if l_msg is not None:
                     #~ pass
 
-                #~ self.invS = self.camera.calibrationStart()
-                self.invS = self.fakeMatrix()
+                self.invH = np.load(os.path.expanduser("~/obci/interfaces/etr/natural/calibMat.npy"))
+                print self.invH
+                #~ self.invH = self.calibrationStart()
+                #~ self.invH = self.fakeMatrix()
                 self._send_results()
 
         finally:
@@ -59,7 +72,7 @@ class EtrCalibration(ConfiguredClient):
     def _send_results(self):
         r = variables_pb2.Sample()
         r.timestamp = time.time()
-        for val in self.invS.flatten().tolist():
+        for val in self.invH.flatten().tolist():
             r.channels.append(val)
         LOGGER.info("sending matrix: " + str(self.invS.flatten().tolist()) )
         print "types.ETR_CALIBRATION_RESULTS: ", types.ETR_CALIBRATION_RESULTS
@@ -68,4 +81,5 @@ class EtrCalibration(ConfiguredClient):
 
 
 if __name__ == "__main__":
+    subprocess.Popen(["python", "/home/brain/obci/interfaces/etr/natural/camera.py"])
     EtrCalibration(settings.MULTIPLEXER_ADDRESSES).run()

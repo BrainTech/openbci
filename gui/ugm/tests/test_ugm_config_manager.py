@@ -1,4 +1,4 @@
-#!/Usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # OpenBCI - framework for Brain-Computer Interfaces based on EEG signal

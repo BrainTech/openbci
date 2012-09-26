@@ -123,15 +123,11 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         trgTags = data.get_p300_tags(idx=[1,7])
         ntrgTags = data.get_not_p300_tags(idx=[1,7])
         
-
-        m = max([trgTags[-1], ntrgTags[-1]])
-        # ?!?!?!?!?!?!?!?! Why blinks are <0
-        trgTags = trgTags[trgTags>0]
-        ntrgTags = ntrgTags[ntrgTags>0]
         trgTags = trgTags[trgTags<Signal.shape[1]-fs]
         ntrgTags = ntrgTags[ntrgTags<Signal.shape[1]-fs]
+        trgTags = trgTags[trgTags>0]
+        ntrgTags = ntrgTags[ntrgTags>0]
 
-        
         target, nontarget = data.getTargetNontarget(Signal, trgTags, ntrgTags)
         
         ## Get params from file
