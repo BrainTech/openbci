@@ -1,7 +1,12 @@
 PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\([0-9]\+\).*/\1.\2/')
 CPP_AMPLIFIERS = ..
 ROOTDIR		= $(abspath ../../../../)
-AZOUKDIR	=
+ifneq ($(wildcard $(ROOTDIR)/multiplexer-install),)
+   AZOUKDIR = $(abspath $(ROOTDIR)/multiplexer-install)
+else
+   AZOUKDIR =
+endif
+
 BASEDIR	:= $(CPP_AMPLIFIERS)/base
 BUILD = $(CPP_AMPLIFIERS)/build
 BIN = $(CPP_AMPLIFIERS)/bin
