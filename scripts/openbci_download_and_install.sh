@@ -27,8 +27,8 @@ then
 fi
 
 cd
-git clone git://escher.fuw.edu.pl/git/azouk-libraries
-git clone git://escher.fuw.edu.pl/git/openbci obci
+git clone git://gir.braintech.pl/azouk-libraries.git
+git clone git://git.braintech.pl/openbci.git obci
 cd ~/obci
 cd scripts/
 ./install_mx_and_drivers.sh
