@@ -102,7 +102,7 @@ class DataAnalysis(object):
         temp[:r] = s[:r]
         for i in range(r):
             temp[r:L] += s[r-i:L-i]
-        return temp/r
+        return temp/float(r)
 
 if __name__ == "__main__":
     sp = DataAnalysis(128.)
