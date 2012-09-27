@@ -13,7 +13,7 @@ def get_data_from_smart_tag(p_smart_tag):
     return l_string_data
 def run(p_files_name, p_files_path):
     
-    l_tags_def = smart_tags.SmartTagDefinition(...)
+    l_tags_def = smart_tags.SmartTagDefinition()
     l_st_mgr = smart_tags.SmartTagsManager(l_tags_def)
 
     l_csv_writer = csv_manager.Writer(
@@ -26,5 +26,5 @@ def run(p_files_name, p_files_path):
         l_csv_writer.write_row(l_data_list)
     l_csv_writer.close()
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     run()
