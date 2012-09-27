@@ -72,7 +72,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         density for each epoch.
         """
         m = np.array(m)
-        m = np.exp(-m**2)
+        m = np.exp(-m**2)*100.
         self.metricBuffor = np.hstack((self.metricBuffor[:,1:],m[np.newaxis].T))
     
     def _calc_pdf(self):

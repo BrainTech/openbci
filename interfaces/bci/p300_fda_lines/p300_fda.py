@@ -509,7 +509,7 @@ class P300_analysis(object):
         
         else:
             return -1
-                
+            
 
     def forceDecision(self):
         print " ++ forceDecision ++ "

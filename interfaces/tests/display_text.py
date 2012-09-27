@@ -21,7 +21,7 @@ LOGGER = logger.get_logger("text_display", "debug")
 class TextDisplay(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(TextDisplay, self).__init__(addresses=addresses,
-                                     type=peers.RESULTS_ANALYSIS)        
+                                     type=peers.P300_ANALYSIS)        
 
         self.initConst()
         self.ready()    
@@ -32,17 +32,30 @@ class TextDisplay(ConfiguredMultiplexerServer):
         
         self.dec = -1
         self.last_time = time.time() + 1        
+        
+        LOGGER.debug("\n"*2)
+        LOGGER.debug("Init complete!")
+        LOGGER.debug("\n"*2)
 
     def handle_message(self, mxmsg):
 
         if mxmsg.type == types.BLINK_MESSAGE:
+            LOGGER.debug("\n"*2)
+            LOGGER.debug("Received blink message!")
             if self.dec > self.decCount:
                 return
-                
+            
+            LOGGER.debug("\n"*2)
+            LOGGER.debug("!(self.dec > self.decCount)")
+            
+            
             if time.time() - self.last_time < self.display_time:
                 return
+            LOGGER.debug("\n"*2)
+            LOGGER.debug("!(time.time() - self.last_time < self.display_time)")
             
             self.dec += 1
+            self.last_time = time.time()
             self.conn.send_message(message = str(self.dec), type = types.DECISION_MESSAGE, flush=True)
             
         self.no_response()

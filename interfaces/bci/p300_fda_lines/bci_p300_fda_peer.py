@@ -49,14 +49,15 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
 
-        #~ row = cfg['row'] = int(self.config.get_param('row_count'))
-        #~ col = cfg['col'] = int(self.config.get_param('col_count'))
-        row = cfg['row_count'] = 6
-        col = cfg['col_count'] = 6
+        cfg['row'] = int(self.config.get_param('row_count'))
+        cfg['col'] = int(self.config.get_param('col_count'))
+        row, col = cfg['row'], cfg['col']
+        #~ row = cfg['row_count'] = 6
+        #~ col = cfg['col_count'] = 6
       
-        print "\n"*3
+        print "\n"*5
         LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
-        print "\n"*3
+        print "\n"*5
 
         
         montage_matrix = self._get_montage_matrix(cfg)
