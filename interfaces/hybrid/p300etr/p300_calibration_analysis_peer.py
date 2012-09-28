@@ -132,10 +132,10 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         print "last ntrg: ", ntrgTags[-1]
         m = max([trgTags[-1], ntrgTags[-1]])
         # ?!?!?!?!?!?!?!?! Why blinks are <0
-        trgTags = trgTags[trgTags>0]
-        ntrgTags = ntrgTags[ntrgTags>0]
         trgTags = trgTags[trgTags<Signal.shape[1]-fs]
         ntrgTags = ntrgTags[ntrgTags<Signal.shape[1]-fs]
+        trgTags = trgTags[trgTags>0]
+        ntrgTags = ntrgTags[ntrgTags>0]
         print "last trg: ", trgTags[-1]
         print "last ntrg: ", ntrgTags[-1]
 

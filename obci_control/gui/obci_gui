@@ -5,7 +5,7 @@ direc=$OBCI_INSTALL_DIR
 
 if [ -z $OBCI_INSTALL_DIR ]
 then
-	direc=$HOME/dev/openbci
+	direc=/usr/share/openbci
 fi
 
 obci srv &

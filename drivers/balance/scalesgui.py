@@ -96,11 +96,6 @@ else:
 wiimote.rpt_mode = cwiid.RPT_BALANCE | cwiid.RPT_BTN
 wiimote.request_status()
 
-if wiimote.state['ext_type'] != cwiid.EXT_BALANCE:
-	print 'This program only supports the Wii Balance Board'
-	wiimote.close()
-	sys.exit(1)
-
 balance_calibration = wiimote.get_balance_cal()
 named_calibration = { 'right_top': balance_calibration[0],
 					  'right_bottom': balance_calibration[1],

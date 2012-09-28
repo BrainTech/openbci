@@ -17,7 +17,7 @@ import scipy.stats as st
 from interfaces import interfaces_logging as logger
 from gui.ugm import ugm_helper
 
-LOGGER = logger.get_logger("p300_etr_decision", "info")
+LOGGER = logger.get_logger("p300_etr_decision", "debug")
 
 
 class P300EtrDecision(ConfiguredMultiplexerServer):
@@ -58,10 +58,8 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
             LOGGER.debug("GOT P300 ANALYSIS RESULTS: "+str(res.channels))
-            
-            print "pdf_p300: ", res.channels
+        
             self.pdf_p300 = np.array( res.channels )
-
 
             # Probabilty from etr
             pdf_etr = self.pdf_etr            
@@ -70,7 +68,8 @@ class P300EtrDecision(ConfiguredMultiplexerServer):
             pdf_p300 = self.pdf_p300
             
             # Hybryd probability
-            pdf = self.alpha*pdf_etr + (1-self.alpha)*pdf_p300
+            pdf = self.alpha*pdf_etr + (1.-self.alpha)*pdf_p300
+            pdf *= 0.01
             
             # Debugging leftouts...
             LOGGER.debug("pdf_etr: " +str(pdf_etr))

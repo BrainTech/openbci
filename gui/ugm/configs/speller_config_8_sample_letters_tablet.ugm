@@ -53,7 +53,7 @@ sg13
 (dp20
 S'font_size'
 p21
-I30
+I18
 sg7
 S'center'
 p22
@@ -90,7 +90,7 @@ p35
 sa(dp36
 S'image_path'
 p37
-Vgui.ugm.resources.bci.png
+Vgui.ugm.resources.bci_small.png
 p38
 sg7
 I10
@@ -112,7 +112,7 @@ S'aligned'
 p43
 sa(dp44
 g37
-Vgui.ugm.resources.titanis2.png
+Vgui.ugm.resources.titanis_small.png
 p45
 sg7
 S'right'

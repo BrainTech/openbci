@@ -98,11 +98,13 @@ class DataAnalysis(object):
         
     def movingAvr(self, s, r):
         L, r = len(s), int(r)
-        temp = np.zeros(L)
-        temp[:r] = s[:r]
-        for i in range(r):
-            temp[r:L] += s[r-i:L-i]
-        return temp/r
+        temp = np.zeros(L+r)
+        temp[:r] = s[0]
+        temp[r:] = s
+        for i in range(1,r):
+            s += temp[r-i:L+r-i]
+        s = np.array(s)
+        return s/float(r)
 
 if __name__ == "__main__":
     sp = DataAnalysis(128.)

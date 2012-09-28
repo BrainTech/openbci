@@ -1,17 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import zmq
 import socket
-import struct
-import fcntl
 import os
 import ConfigParser
 import threading
 import logging
 import time
 
-from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
+from common.obci_control_settings import INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
 from common.config_helpers import OBCISystemError
 
 
@@ -94,6 +91,7 @@ def __parser_main_config_file():
         with open(fpath) as f:
             parser.readfp(f)
     else:
+
         print "Main config file not found in {0}".format(directory)
         raise OBCISystemError()
     return parser

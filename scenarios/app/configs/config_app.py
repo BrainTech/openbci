@@ -47,10 +47,27 @@ class Config(object):
         self.actions[zero_state][-1] = "stop_robot_feedback()"
         zero_state += len(robot.state)
 
+        #MEDIA
+        media_state = zero_state
+        self.state.append([media_state]*self.number_of_decisions)
+        self.actions.append(["run_ext('qdbus org.mpris.amarok /Player Play')", 
+                             "run_ext('qdbus org.mpris.amarok /Player Pause')", 
+                             "run_ext('qdbus org.mpris.amarok /Player Next')", 
+                             "run_ext('qdbus org.mpris.amarok /Player Prev')",
+                             "run_ext('qdbus org.mpris.amarok /Player VolumeSet 100')", 
+                             "run_ext('qdbus org.mpris.amarok /Player VolumeSet 50')", 
+                             "run_ext('qdbus org.mpris.amarok /Player VolumeSet 20')", 
+                             "run_ext('qdbus org.mpris.amarok /Player Stop')"
+                             ])
+        self.letters.append([u"Play",u"Pause", "Next", "Prev",
+                             u"Loud", u"Medium", u"Quiet", u"Back"])
+        self.state[zero_state][-1] = 0 #GOTO MENU
+        zero_state += 1
 
+        #OTHER SETTINGS
         self.state[menu_state][0] = speller_state
         self.state[menu_state][1] = robot_state
-
+        self.state[menu_state][2] = media_state
 
         self.number_of_states = zero_state
         self.states_configs = ['state', 'letters', 'actions', 'letters_solver', 'actions_solver']

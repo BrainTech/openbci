@@ -1,7 +1,12 @@
 PYTHON_VERSION	:= $(shell python --version 2>&1 | sed 's/^[^0-9]*\([0-9]\+\)\.\([0-9]\+\).*/\1.\2/')
 CPP_AMPLIFIERS = ..
 ROOTDIR		= $(abspath ../../../../)
-AZOUKDIR	= $(abspath $(ROOTDIR)/multiplexer-install)
+ifneq ($(wildcard $(ROOTDIR)/multiplexer-install),)
+   AZOUKDIR = $(abspath $(ROOTDIR)/multiplexer-install)
+else
+   AZOUKDIR =
+endif
+
 BASEDIR	:= $(CPP_AMPLIFIERS)/base
 BUILD = $(CPP_AMPLIFIERS)/build
 BIN = $(CPP_AMPLIFIERS)/bin
@@ -13,12 +18,19 @@ GENERALFLAGS	+= $(O) -Wall \
 
 
 CXXFLAGS	+= $(GENERALFLAGS) -fpermissive
-INCLUDEDIRS = -I$(BASEDIR) -I$(AZOUKDIR)/include -I/usr/share/multiplexer/src -I$(BUILD)
+INCLUDEDIRS = -I$(BASEDIR) -I/usr/share/multiplexer/src -I$(BUILD)
+ifdef AZOUKDIR
+   INCLUDEDIRS += -I$(AZOUKDIR)/include
+endif
 
 AMPLIFIER = Amplifier.o AmplifierDescription.o Logger.o
 AMPLIFIER_SERVER =$(AMPLIFIER) AmplifierServer.o run_server.o variables.pb.o
 AMPLIFIER_LIBS = -lboost_program_options -lboost_date_time
-SERVER_LIBS = -lboost_signals -lboost_system -L$(AZOUKDIR)/lib -lmultiplexer -Wl,--rpath,$(AZOUKDIR)/lib -lprotobuf
+SERVER_LIBS = -lboost_signals -lboost_system -lprotobuf
+ifdef AZOUKDIR
+    SERVER_LIBS += -L$(AZOUKDIR)/lib -Wl,--rpath,$(AZOUKDIR)/lib
+endif
+SERVER_LIBS += -lmultiplexer
 
 
 CHECK_BUILD = $(BUILD)/.tmp

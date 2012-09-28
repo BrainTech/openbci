@@ -22,26 +22,31 @@ class OBCIProxy(NetstringReceiver):
         req_sock.connect(self.factory.zmq_rep_addr)
         req = unicode(string, encoding='utf-8')
         print "twisted got:", req
-
-        parsed = self.factory.mtool.unpack_msg(req)
-        if parsed.type in self.factory.long_rqs:
-            sock, port = self.factory.long_rqs[parsed.type]
-            pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
-            parsed.client_push_address = pull_addr
-
-        send_msg(req_sock, parsed.SerializeToString())
+        bad = False
+        try:
+            parsed = self.factory.mtool.unpack_msg(req)
+        except ValueError:
+            send_msg(req_sock, req)
+            bad = True
+        else:
+            if parsed.type in self.factory.long_rqs:
+                sock, port = self.factory.long_rqs[parsed.type]
+                pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
+                parsed.client_push_address = pull_addr
+                send_msg(req_sock, parsed.SerializeToString())
 
         pl = PollingObject()
         msg, det = pl.poll_recv(req_sock, timeout=5000)
         if not msg:
             msg = self.factory.mtool.fill_msg("rq_error", details=det)
 
-        if parsed.type in self.factory.long_rqs:
-            sock, port = self.factory.long_rqs[parsed.type]
-            msg, det = pl.poll_recv(sock, timeout=20000)
-            if not msg:
-                msg = self.factory.mtool.fill_msg("rq_error", details=det)
-                return
+        if not bad:
+            if parsed.type in self.factory.long_rqs:
+                sock, port = self.factory.long_rqs[parsed.type]
+                msg, det = pl.poll_recv(sock, timeout=20000)
+                if not msg:
+                    msg = self.factory.mtool.fill_msg("rq_error", details=det)
+                    return
 
         encmsg = msg.encode('utf-8')
         self.sendString(encmsg)
@@ -58,8 +63,8 @@ class OBCIProxyFactory(Factory):
         self.zmq_rep_addr = zmq_rep_addr
         self.long_rqs = {}
 
-        for msgtype in ["find_eeg_experiments", 
-                        "find_eeg_amplifiers", 
+        for msgtype in ["find_eeg_experiments",
+                        "find_eeg_amplifiers",
                         "start_eeg_signal"]:
             self.long_rqs[msgtype] = self._make_pull_sock()
 

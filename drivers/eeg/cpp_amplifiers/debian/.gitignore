@@ -1,0 +1,4 @@
+/files
+/openbci*.debhelper.log
+/openbci*.substvars
+/openbci-*-amplifier/
