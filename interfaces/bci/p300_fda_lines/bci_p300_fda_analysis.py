@@ -30,8 +30,8 @@ class BCIP300FdaAnalysis(object):
         avrM = cfg['avrM']
         conN = cfg['conN']
         
-        self.cols = cfg['col_count']
-        self.rows = cfg['row_count']
+        self.cols = cfg['col']
+        self.rows = cfg['row']
         self.nPole = np.zeros(self.cols+self.rows)
         
         #~ print "cfg['w']: ", cfg['w']

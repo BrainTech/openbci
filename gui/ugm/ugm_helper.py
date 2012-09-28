@@ -54,7 +54,13 @@ def send_stop_blinking(conn):
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
-
+def send_hide(conn):
+    msg = variables_pb2.Variable()
+    msg.key = 'hide'
+    msg.value = ''
+    conn.send_message(message=msg.SerializeToString(), 
+                      type=types.UGM_CONTROL_MESSAGE,
+                      flush=True)
 
 class UgmColorUpdater(object):
   def __init__(self, ugm_config, ids, color='g'):

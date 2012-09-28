@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-#
+#    
+
 import os.path, sys, time, os
 from gui.ugm import ugm_helper
 from logic import logic_logging as logger
@@ -14,6 +15,9 @@ class SpellerEngine(object):
         self._message = ""
         self.text_id = int(configs["ugm_text_id"])
         self.text_ids = [int(i) for i in configs["ugm_text_ids"].split(';')]
+        
+        self.dec_bank = []
+        self.bankSize = 100
 
     # --------------------------------------------------------------------------
     # ------------------ actions available in config ---------------------------
@@ -22,6 +26,7 @@ class SpellerEngine(object):
         A place where this action is defined to be fired
         is speller config file.
         """
+        self.updateDecBank("backspace%i"%n)
         self._message = self._message[:len(self._message) - n]
 
     def say(self, msg=None):
@@ -30,6 +35,7 @@ class SpellerEngine(object):
         A place where this action is defined to be fired
         is speller config file.
         """
+        self.updateDecBank("say")
         if not msg:
             msg = self._message
         LOGGER.info("TRYING TO SAY: "+msg)
@@ -40,14 +46,25 @@ class SpellerEngine(object):
                     " &"
                  ]))
 
+    def updateDecBank(self, dec):
+        self.dec_bank.append(dec)
+        self.dec_bank = self.dec_bank[-self.bankSize:]
+
     def msg(self, p_message):
         """Update stored message."""
+        self.updateDecBank(p_message)
         self._message = u''.join([self._message, p_message])
 
     def clear(self):
         """Update stored message as empty
         """
+        self.updateDecBank('clear')
         self._message = u''
+
+    def retrieve(self):
+        """Restores previous command
+        """
+        self.updateDecBank('retrieve')
 
     def close_dasher(self):
         self._message = os.popen('xsel -b').read().decode('utf-8')

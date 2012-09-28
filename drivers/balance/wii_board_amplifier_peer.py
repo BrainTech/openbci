@@ -23,10 +23,6 @@ class WiiBoardAmplifier(ConfiguredClient):
 	self.wiimote = cwiid.Wiimote()
         self.wiimote.rpt_mode = cwiid.RPT_BALANCE | cwiid.RPT_BTN
         self.wiimote.request_status()
-        if self.wiimote.state['ext_type'] != cwiid.EXT_BALANCE:
-            LOGGER.error('This program only supports the Wii Balance Board')
-            self.wiimote.close()
-            sys.exit(1)
 
         balance_calibration = self.wiimote.get_balance_cal()
         self.named_calibration = {'right_top': balance_calibration[0],
@@ -66,7 +62,7 @@ class WiiBoardAmplifier(ConfiguredClient):
 
 
         l_msg = variables_pb2.Sample2D()
-        l_msg.x = x_balance
+        l_msg.x = 0.5-x_balance
         l_msg.y = y_balance
         l_msg.timestamp = time.time()
 
@@ -76,7 +72,7 @@ class WiiBoardAmplifier(ConfiguredClient):
         while True:
             l_msg = self._get_msg()
             self.conn.send_message(message = l_msg.SerializeToString(), 
-                                   type = types.WII_BOARD_SIGNAL_MESSAGE, flush=True)
+                                   type = types.ETR_SIGNAL_MESSAGE, flush=True)
             LOGGER.debug("Send wii board msg:"+str(l_msg.x)+" / "+str(l_msg.y))
             time.sleep(0.05)
 

@@ -19,8 +19,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
     ugm pyqt structure so that it can refresh."""
     def __init__(self, p_config_manager, p_connection):
         """Store config manager."""
-        super(UgmBlinkingEngine, self).__init__(p_config_manager)
-        self.connection = p_connection
+        super(UgmBlinkingEngine, self).__init__(p_config_manager, p_connection)
         self.time_mgr = ugm_blinking_time_manager.UgmBlinkingTimeManager()
         self.id_mgr = ugm_blinking_id_manager.UgmBlinkingIdManager()
         self.ugm_mgr = ugm_blinking_ugm_manager.UgmBlinkingUgmManager()
@@ -38,6 +37,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         assert(self._blink_duration > 0)
 
     def control(self, msg):
+        super(UgmBlinkingEngine, self).control(msg)
         msg_type = msg.key
         if msg_type == 'start_blinking':
             self.start_blinking()
@@ -123,8 +123,3 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         if self._run_on_start:
             self.start_blinking()
 
-    def mousePressEvent(self, event):
-        self.connection.send_mouse_event(event.button())
-
-    def keyPressEvent(self, event):
-        self.connection.send_keyboard_event(event.key())
