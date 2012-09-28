@@ -1,3 +1,9 @@
+openbci (1.7.1-1) precise; urgency=low
+
+  * Upstream release.
+
+ -- Karol Auguštin <karolaug@dell>  Fri, 28 Sep 2012 16:49:18 +0200
+
 openbci (1.7-1) precise; urgency=low
 
   * Initial packaging.
