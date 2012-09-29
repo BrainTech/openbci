@@ -19,7 +19,7 @@ Depends:
       ${misc:Depends},
       ${shlibs:Depends}
 Description: Generates a fake signal
-  Uses multiplexer to transfer the samples to the receivers.
+ Uses multiplexer to transfer the samples to the receivers.
 
 Package: openbci-file-amplifier
 Architecture: amd64 i386
@@ -27,7 +27,7 @@ Depends:
       ${misc:Depends},
       ${shlibs:Depends}
 Description: Reads samples from a file
-  Uses multiplexer to transfer the samples to the receivers.
+ Uses multiplexer to transfer the samples to the receivers.
 
 Package: openbci-tmsi-amplifier
 Architecture: amd64 i386
@@ -36,10 +36,11 @@ Depends:
       ${shlibs:Depends},
       tmsi-dkms
 Description: Reads samples from the TMSi amplifier kernel driver
-  Uses multiplexer to transfer the samples to the receivers.
+ Uses multiplexer to transfer the samples to the receivers.
 
 Package: openbci-amplifiers
 Architecture: amd64 i386
 Depends: openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier
 Description: Master package containing all OpenBCI amplifier packages.
-  Installs openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier.
+ Installs openbci-dummy-amplifier, openbci-tmsi-amplifier, 
+ openbci-file-amplifier.
