@@ -1,14 +1,15 @@
 openbci (1.7.1-2) precise; urgency=low
 
   * Changelog typo fix.
+  * Package description update.
 
- -- Karol Auguštin <karolaug@dell>  Sat, 29 Sep 2012 10:47:20 +0200
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 29 Sep 2012 10:47:20 +0200
 
 openbci (1.7.1-1) precise; urgency=low
 
   * Upstream release.
 
- -- Karol Auguštin <karolaug@dell>  Fri, 28 Sep 2012 16:49:18 +0200
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 28 Sep 2012 16:49:18 +0200
 
 openbci (1.7-1) precise; urgency=low
 
