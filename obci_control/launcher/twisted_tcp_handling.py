@@ -26,14 +26,15 @@ class OBCIProxy(NetstringReceiver):
         try:
             parsed = self.factory.mtool.unpack_msg(req)
         except ValueError:
-            send_msg(req_sock, req)
             bad = True
-        else:
+	if not bad:
             if parsed.type in self.factory.long_rqs:
                 sock, port = self.factory.long_rqs[parsed.type]
                 pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
                 parsed.client_push_address = pull_addr
                 send_msg(req_sock, parsed.SerializeToString())
+            else:
+                send_msg(req_sock, req)
 
         pl = PollingObject()
         msg, det = pl.poll_recv(req_sock, timeout=5000)
@@ -65,6 +66,7 @@ class OBCIProxyFactory(Factory):
 
         for msgtype in ["find_eeg_experiments",
                         "find_eeg_amplifiers",
+                        #"join_experiment",
                         "start_eeg_signal"]:
             self.long_rqs[msgtype] = self._make_pull_sock()
 
