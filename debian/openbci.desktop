@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=OpenBCI GUI
+Name=OpenBCI
+Exec=obci_gui %F
+TryExec=obci_gui
+Type=Application
+Terminal=false
+Categories=Programming;Science;MedicalSoftware;Development;IDE;
+Icon=openbci.png
