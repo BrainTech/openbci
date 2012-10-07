@@ -10,4 +10,4 @@ fi
 
 obci srv &
 export PYTHONPATH=`python $direc/obci_control/launcher/launcher_tools.py`
-python $direc/obci_control/gui/obciLauncher.py $@
+exec python $direc/obci_control/gui/obciLauncher.py $@
