@@ -16,7 +16,7 @@ from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_csp import bci_p300_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
-from utils import streaming_debug
+from obci_utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "debug")
 DEBUG = True

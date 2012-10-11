@@ -14,7 +14,7 @@ from gui.ugm import ugm_helper
 from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from logic import logic_helper
-from utils import tags_helper
+from obci_utils import tags_helper
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("ssvep_csp", 'info')

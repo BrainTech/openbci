@@ -12,7 +12,7 @@ from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 
-from utils import streaming_debug
+from obci_utils import streaming_debug
 import devices.pyrovio.rovio as rovio
 from common.obci_control_settings import DEFAULT_SANDBOX_DIR
 

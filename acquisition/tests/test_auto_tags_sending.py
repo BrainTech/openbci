@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-from utils import tagger
+from obci_utils import tagger
 import time
 
 TAGGER = tagger.get_tagger()

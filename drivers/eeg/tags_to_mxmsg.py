@@ -5,7 +5,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 from multiplexer.multiplexer_constants import peers, types
-from utils import tags_helper
+from obci_utils import tags_helper
 from obci_configs import variables_pb2
 
 import Queue
