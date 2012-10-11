@@ -39,7 +39,7 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
         self.index = 0
         self.imgpath = self.paths[self.index]
         self._last_time = time.time()
-        self.is_on = False
+        self.is_on = int(self.config.get_param("is_on"))
         if DEBUG:
             self.debug = streaming_debug.Debug(128,
                                                LOGGER,
