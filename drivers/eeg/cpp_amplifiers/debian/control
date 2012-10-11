@@ -10,7 +10,9 @@ Build-Depends: debhelper (>= 7),
       libboost-signals-dev,
       libboost-system-dev,
       libprotobuf-dev (>= 2.4.1),
-      libstdc++-dev
+      libstdc++-dev,
+      openbci-libmultiplexer-dev,
+      libbluetooth-dev
 Standards-Version: 3.9.3
 
 Package: openbci-dummy-amplifier
