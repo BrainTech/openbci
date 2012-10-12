@@ -21,6 +21,6 @@ logic/		  /usr/share/openbci
 obci_configs/	  /usr/share/openbci
 obci_control/	  /usr/share/openbci
 scenarios/	  /usr/share/openbci
-utils/		  /usr/share/openbci
+obci_utils/		  /usr/share/openbci
 debian/openbci.desktop usr/share/applications
 debian/openbci.png usr/share/pixmaps

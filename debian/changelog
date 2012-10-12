@@ -1,6 +1,13 @@
+openbci (1.7.2-1) precise; urgency=low
+
+  * New upstream release.
+  * Change utils module to obci_utils.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 12 Oct 2012 17:43:25 +0200
+
 openbci (1.7.1-4) precise; urgency=low
 
-  * Add menu entry
+  * Add menu entry.
   * Startup scripts fixes.
 
  -- Karol Auguštin <karol@augustin.pl>  Sun, 07 Oct 2012 22:50:42 +0200
