@@ -8,7 +8,7 @@ from multiplexer.multiplexer_constants import peers, types
 from analysis.obci_signal_processing import types_utils
 
 from obci_configs import variables_pb2
-from utils import openbci_logging as logger
+from obci_utils import openbci_logging as logger
 
 LOGGER = logger.get_logger('tags_helper', 'info')
 

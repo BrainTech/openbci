@@ -18,7 +18,7 @@ from gui.ugm import ugm_helper
 from interfaces import interfaces_logging as logger
 
 import numpy as np
-from utils import streaming_debug
+from obci_utils import streaming_debug
 
 LOGGER = logger.get_logger("etr_analysis", "info")
 

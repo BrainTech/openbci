@@ -20,7 +20,7 @@ from analysis.buffers import auto_blink_buffer
 from interfaces.hybrid.p300etr import p300_analysis_data_peer
 import csp_helper
 
-from utils import streaming_debug
+from obci_utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
 DEBUG = True

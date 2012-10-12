@@ -4,7 +4,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import time
-from utils import tags_helper
+from obci_utils import tags_helper
 from multiplexer.multiplexer_constants import peers, types
 from logic import logic_helper
 from logic.logic_decision_peer import LogicDecision

@@ -10,8 +10,8 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from obci_configs import settings, variables_pb2
-from utils import tags_helper
-from utils import openbci_logging as logger
+from obci_utils import tags_helper
+from obci_utils import openbci_logging as logger
 LOGGER = logger.get_logger("blink_catcher_peer", 'info')
 
 class BlinkCatcher(ConfiguredMultiplexerServer):
