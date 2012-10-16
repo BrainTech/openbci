@@ -7,4 +7,4 @@ TryExec=obci_gui
 Type=Application
 Terminal=false
 Categories=Programming;Science;MedicalSoftware;Development;IDE;
-Icon=openbci.svg
+Icon=openbci.png
