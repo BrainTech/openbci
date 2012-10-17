@@ -34,7 +34,10 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 		close(fd[0]);
 		close(1);
 		dup2(fd[1],1);
-		execl(simple_driver_path.c_str(),"simple_gtec_driver",name,s_rate.str().c_str(),NULL);
+        if (name!=NULL)
+            execl(simple_driver_path.c_str(),"simple_gtec_driver","-n",name,"-s",s_rate.str().c_str(),"-c","sampling",NULL);
+        else
+            execl(simple_driver_path.c_str(),"simple_gtec_driver",NULL);
 		cerr << "Could not run "<<simple_driver_path<<":"<<strerror(errno)<<"\n";
 		exit(-1);
 	}
