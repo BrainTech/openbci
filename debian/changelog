@@ -1,3 +1,9 @@
+openbci (1.7.3-1) precise; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 29 Oct 2012 11:57:09 +0100
+
 openbci (1.7.2-3) precise; urgency=low
 
   * Change openbci launching icon format to png.
