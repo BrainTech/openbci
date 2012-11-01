@@ -22,7 +22,7 @@ from launcher.launcher_messages import message_templates
 from launcher.launcher_tools import obci_root
 from common.message import OBCIMessageTool, send_msg, recv_msg
 
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 class ConfigServer(BaseMultiplexerServer):
 

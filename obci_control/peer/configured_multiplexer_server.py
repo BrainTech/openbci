@@ -8,7 +8,7 @@ from obci_configs import settings, variables_pb2
 
 from peer.peer_control import PeerControl
 import common.config_message as cmsg
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):
     def __init__(self, addresses, type=None, external_config_file=None):
