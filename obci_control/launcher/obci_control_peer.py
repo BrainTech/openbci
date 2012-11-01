@@ -19,7 +19,7 @@ import common.obci_control_settings as settings
 
 from subprocess_monitor import SubprocessMonitor
 from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 class HandlerCollection(object):
     def __init__(self):

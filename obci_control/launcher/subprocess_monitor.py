@@ -12,7 +12,7 @@ import zmq
 from common.message import OBCIMessageTool, PollingObject, send_msg
 from launcher_messages import message_templates
 
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 from process_io_handler import start_stdio_handler
 from local_process import LocalProcess

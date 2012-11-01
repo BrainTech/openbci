@@ -34,7 +34,7 @@ from peer.peer_config import PeerConfig
 
 import twisted_tcp_handling
 
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 REGISTER_TIMEOUT = 25
 

@@ -10,7 +10,7 @@ from common.message import OBCIMessageTool, PollingObject, send_msg
 from launcher_messages import message_templates
 import common.net_tools as net
 
-from utils.openbci_logging import get_logger
+from obci_utils.openbci_logging import get_logger
 
 UNKNOWN = 'unknown'
 RUNNING = 'running'
