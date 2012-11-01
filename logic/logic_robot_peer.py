@@ -20,6 +20,7 @@ class LogicRobot(LogicSpeller, RobotEngine):
     def __init__(self, addresses):
         LogicSpeller.__init__(self, addresses=addresses)
         RobotEngine.__init__(self, self.config.param_values())
+        self.ready()
 
 if __name__ == "__main__":
     LogicRobot(settings.MULTIPLEXER_ADDRESSES).loop()

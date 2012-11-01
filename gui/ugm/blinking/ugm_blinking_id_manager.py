@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-from utils import sequence_provider
+from obci_utils import sequence_provider
 class DummyProvider(object):
     def get_value(self):
         return 0

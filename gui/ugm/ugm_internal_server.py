@@ -7,7 +7,7 @@
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, time, sys
 
-from utils import tagger
+from obci_utils import tagger
 from gui import gui_logging as logger
 from obci_configs import variables_pb2
 

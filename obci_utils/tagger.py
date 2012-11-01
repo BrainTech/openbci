@@ -7,7 +7,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_client import ConfiguredClient
 from obci_configs import variables_pb2, settings
 
-from utils import tags_helper
+from obci_utils import tags_helper
 
 class Tagger(ConfiguredClient):
     def __init__(self, addresses):

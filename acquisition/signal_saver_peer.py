@@ -81,7 +81,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._init_saving_session()
         self.debug_on = int(self.config.get_param('debug_on'))
         if self.debug_on:
-            from utils import streaming_debug
+            from obci_utils import streaming_debug
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), 
                                                LOGGER,
                                                self._samples_per_vector
