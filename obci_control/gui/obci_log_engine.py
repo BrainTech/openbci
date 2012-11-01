@@ -49,9 +49,9 @@ class LogEngine(QtCore.QObject):
 
     def update_log(self, log):
         try:
-            ind = self._model.get_peer_ind(log[QtCore.QString('peer_id')])
+            ind = self._model.get_peer_ind(log['peer_id'])
             w = self.tab_widget.widget(ind+1)
-            w.append('\n'.join([str(l) for l in log[QtCore.QString('logs')]]))
+            w.append('\n'.join([str(l) for l in log['logs']]))
         except ValueError:
             pass
 
