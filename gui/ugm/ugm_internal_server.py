@@ -8,11 +8,11 @@ ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, time, sys
 
 from obci_utils import tagger
+from obci_utils import context as ctx
 from gui import gui_logging as logger
 from obci_configs import variables_pb2
 
 BUF = 2**19
-LOGGER = logger.get_logger('ugm_internal_server')
 
 class UdpServer(object):
     """The class solves a problem with PyQt - it`s main window MUST be 
@@ -22,8 +22,9 @@ class UdpServer(object):
     then multiplexer won`t work ... To solve this i fire ugm_engine in the 
     main thread, fire multiplexer in separate PROCESS and create TcpServer
     to convey data from multiplexer to ugm_engine."""
-    def __init__(self, p_ugm_engine, p_ip, p_use_tagger):
+    def __init__(self, p_ugm_engine, p_ip, p_use_tagger, context=ctx.get_dummy_context('UdpServer')):
         """Init server and store ugm engine."""
+        self.context = context
         self._ugm_engine = p_ugm_engine
         self._use_tagger = p_use_tagger
         if self._use_tagger:
@@ -53,15 +54,17 @@ class UdpServer(object):
                 raise Exception("UgmUpdate message len is 0. Assumed parse error!!!")
             l_time = time.time()
             self._ugm_engine.queue_message(l_msg)
+            self.context['logger'].debug("Got ugm update message: ")
+            self.context['logger'].debug(l_msg.value)
             if self._use_tagger:
                 self._tagger.send_tag(l_time, l_time, "ugm_update", 
                                       {"ugm_config":str(l_msg.value)})
         except:
-            LOGGER.info("PARSER ERROR, too big ugm update message or not UGM_UPDATE_MESSAGE... Try UGM_CONTROL_MESSAGE")
+            self.context['logger'].info("PARSER ERROR, too big ugm update message or not UGM_UPDATE_MESSAGE... Try UGM_CONTROL_MESSAGE")
             l_msg = variables_pb2.Variable()
             try:
                 l_msg.ParseFromString(message)
-                LOGGER.info("Properly parsed UGM_CONTROL_MESSAGE...")
+                self.context['logger'].info("Properly parsed UGM_CONTROL_MESSAGE...")
                 self._ugm_engine.control(l_msg)
             except:
-                LOGGER.info("PARSER ERROR, too big ugm control message  or not UGM_CONTROL_MESSAGE... Do noting!")
+                self.context['logger'].info("PARSER ERROR, too big ugm control message  or not UGM_CONTROL_MESSAGE... Do nothing!")

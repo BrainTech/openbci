@@ -9,9 +9,6 @@ from obci_configs import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from gui import gui_logging as logger
-LOGGER = logger.get_logger("ugm_server")
-
 class UgmServer(ConfiguredMultiplexerServer):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
     to ugm_engine using udp. That level of comminication is needed, as
@@ -40,7 +37,7 @@ class UgmServer(ConfiguredMultiplexerServer):
             try:
                 self.socket.sendto(mxmsg.message, (self.ip, self.port))
             except Exception, l_exc:
-                LOGGER.error("An error occured while sending data to ugm_engine")
+                self.context['logger'].error("An error occured while sending data to ugm_engine")
                 self.socket.close()
                 raise(l_exc)
         self.no_response() 
