@@ -107,7 +107,7 @@ class AmplifierFile(BinaryDriverWrapper):
     def do_sampling(self):
         self.logger.info("Stat waiting on drivers output...")
         while True:
-            try:
+            try: #read tags from stdout
                 v = self.driver_out_q.get_nowait()
                 try:
                     ts = float(v)
@@ -118,13 +118,17 @@ class AmplifierFile(BinaryDriverWrapper):
                     else:
                         self.logger.warning("Got unrecognised message from driver: "+v)
                 else:
-                    self.logger.debug("Got trigger with ts: "+repr(ts)+" / real ts: "+repr(time.time()))
+                    self.logger.info("Got trigger with ts: "+repr(ts)+" / real ts: "+repr(time.time()))
                     self.got_trigger(ts)
-
-            except Queue.Empty:
+            except Queue.Empty: #try reading other log from stderr
+                try:
+                    v = self.driver_err_q.get_nowait()
+                    self.logger.info(v)
+                except Queue.Empty:
+                    pass
                 time.sleep(self.sleep_on_out)
 
-        sys.exit(self.driver.returncode)
+        super(AmplifierFile, self).do_sampling()
 
 if __name__ == "__main__":
     srv = AmplifierFile(settings.MULTIPLEXER_ADDRESSES)

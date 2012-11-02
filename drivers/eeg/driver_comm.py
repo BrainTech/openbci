@@ -64,6 +64,13 @@ class DriverComm(object):
         self.driver_out_thr.daemon = True # thread dies with the program
         self.driver_out_thr.start()
 
+        self.driver_err_q = Queue()
+        self.driver_err_thr = Thread(target=enqueue_output,
+                                    args=(self.driver.stderr, self.driver_err_q))
+        self.driver_err_thr.daemon = True # thread dies with the program
+        self.driver_err_thr.start()
+
+
         if catch_signals:
             signal.signal(signal.SIGTERM, self.signal_handler())
             signal.signal(signal.SIGINT, self.signal_handler())
@@ -79,7 +86,7 @@ class DriverComm(object):
 
     def run_driver(self, run_args):        
         self.logger.info("Executing: "+' '.join(run_args))
-        return Popen(run_args,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+        return Popen(run_args,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def get_driver_description(self):
         return self._communicate()
@@ -197,10 +204,26 @@ class DriverComm(object):
 timeout " + str(timeout_s) + "s passed. ABORTING!!!")
         return out
 
-    def do_sampling(self):
+    def do_samplingg(self):
         self.driver.wait()
         self.logger.info("Driver finished working with code " + str(self.driver.returncode))
         sys.exit(self.driver.returncode)
+
+    def do_sampling(self):
+        self.logger.info("Stat waiting on drivers output....")
+        while True: #read and log data from sterr and stoout of the driver...
+            try:
+                v = self.driver_err_q.get_nowait()
+                self.logger.info(v)
+            except Empty:
+                pass
+            try:
+                v = self.driver_out_q.get_nowait()
+                self.logger.info(v)
+            except Empty:
+                time.sleep(0.1)
+        sys.exit(self.driver.returncode)
+
 
 
 def enqueue_output(out, queue):
