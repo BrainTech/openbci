@@ -10,9 +10,11 @@
 #include <signal.h>
 #include <gAPI.h>
 #include <vector>
+#include <math.h>
 using namespace std;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
+#include "simple_gtec_driver.h"
 //#define DEBUG
 
 //------------------------------------------------------------------------------
@@ -156,9 +158,11 @@ bool openDevice(){
 
 struct channel_calib_data{
   vector<float> max,min;
+  vector<float> samples;
   float last,last_p;
-  uint max_count,min_count;
-  double max_sum,min_sum,max_avg,min_avg;
+  uint max_count,min_count,count;
+  double max_sum,min_sum,max_avg,min_avg, sum;
+
 };
 class calib_data{
  public:
@@ -177,12 +181,15 @@ void gatherDataCallback(void * ptr){
 	while (i<data){
 	  float val = *((float*)(usr_buffer_master+i));	  
 	  channel_calib_data& c = c_data->channel[c_data->cur_channel];	  
-	  if (c_data->gather)
+	  if (c_data->gather){
 		  if (c.last_p <= c.last && c.last > val && val>0)
 			{c.max.push_back(c.last);c.max_count++;c.max_sum+=c.last;}
-	  if (c_data->gather)
 		  if (c.last_p >= c.last && c.last < val && val<0)
 			{c.min.push_back(c.last);c.min_count++;c.min_sum+=c.last;}
+		  c.sum+=val;
+		  c.count++;
+		  c.samples.push_back(val);
+	  }
 	  c.last_p=c.last;
 	  c.last = val;
 	  c_data->cur_channel=(c_data->cur_channel+1)%16;
@@ -211,14 +218,18 @@ void computeCalibration(gt_usbamp_channel_calibration &calibration){
 	cout <<"Calibration Results"<<"\n";
 	for (uint i=0;i<16;i++){
 	  channel_calib_data c= c_data.channel[i];
-	  
-          double max_avg=c.max_avg = c.max_sum/c.max_count;
+	  double avg = c.sum/c.count;
+	  double sq_sum = 0;
+	  for (uint j=0;j<c.samples.size();j++)
+		  sq_sum+=(c.samples[j]-avg)*(c.samples[j]-avg);
+	  double rms = sqrt(sq_sum/c.count);
+      double max_avg=c.max_avg = c.max_sum/c.max_count;
 	  double min_avg=c.min_avg = c.min_sum/c.min_count;
-	  printf("Channel %d: max_avg:%f (%f/%d), min_avg:%f (%f/%d)\n",i,max_avg,c.max_sum,c.max_count,c.min_avg,c.min_sum,c.min_count);
+	  printf("Channel %d: max_avg:%f (%d), min_avg:%f (%d), avg:%f, rms:%f\n",i,max_avg,c.max_count,c.min_avg,c.min_count,avg,rms);
 	  double amp_max = CALIB_AMP*1000;
-          double amp_min = -CALIB_AMP*1000;
-	  double o=(min_avg*amp_max-amp_min*max_avg)/(amp_max-amp_min);
-	  double s=amp_max/(max_avg-o);	  
+      double amp_min = -CALIB_AMP*1000;
+	  double o=avg;
+	  double s=calib_params.amplitude*1000/(rms*sqrt(2));
 	  calibration.offset[i]=o;
 	  calibration.scale[i]=s;
 	  cout <<"  Scale: "<<s<<" offset:"<<o<<"\n";	  
@@ -252,6 +263,7 @@ int checkCalibration(){
 }
 int calibrate(){
 	gt_usbamp_channel_calibration calibration;
+	calib_params.shape=GT_ANALOGOUT_SINE;
 	mode = GT_MODE_CALIBRATE;
 	if (!openDevice())
 	  return -1;
@@ -299,47 +311,9 @@ void doSampling() {
 	write(1, (char*) data, CHUNK * sizeof(float));
 
 }
-po::options_description get_options() {
-	po::options_description options("Gtec Driver Options");
-	options.add_options()
-			("device_name,n",po::value<string>(),
-					"Amplifer to use")
-			("device_index,i",po::value<int>()->default_value(1),
-					"Amplifier index from list (starting from 1)")
-			("sampling_rate,s",	po::value<uint>()->default_value(512),
-					"Sampling rate to use")
-			("command,c", po::value<string>()->default_value("show"),
-					"Command to execute. Available commands:\n"
-					"  show: \tShow list of available devices\n"
-					"  calibrate: \tCalibrate device\n"
-					"  reset: \tReset devices scales and offsets to 1 and 0\n"
-					"  sampling: \tStart sampling and write sample data on stdin\n"
-					"  measure: \t Print calibration accuracy\n")
-			("mode,m",po::value<string>()->default_value("counter"),
-					"Data mode of amplifier:\n"
-					"  normal: \treturn all channels\n"
-					"  counter: \t return sample counter on last channel\n"
-					"  function: \t return function on all channel\n")
-			("function,f",po::value<string>()->default_value("sinus"),
-					"Function on all channels:\n"
-					"  sinus: \t Sinus function\n"
-					"  saw: \t Saw (triangle function)\n"
-					"  square: \t Square function \n"
-					"  noise: \t Noise\n")
-			("amplitude,a",po::value<int>()->default_value(1),
-					"Amplitude of a function in mV, integer in range [-250,250]")
-			("frequency,h",po::value<int>()->default_value(10),
-					"Frequency of a function in Hz, integer in range [1,100]")
-			("offset,o",po::value<int>()->default_value(0),
-					"Offset of a function in mV, integer in range [-200,200]")
-			("calib_duration,d",po::value<int>()->default_value(60),
-					"Duration of calibration");
-			
 
-	return options;
-}
 int main(int argc, char** argv) {
-	po::options_description desc=get_options();
+	po::options_description desc=get_simple_options();
 	cerr <<desc;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);

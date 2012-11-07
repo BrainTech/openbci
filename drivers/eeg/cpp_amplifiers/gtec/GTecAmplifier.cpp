@@ -10,8 +10,10 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include "simple_gtec_driver.h"
 #define MAX_DRIVERS 100000
 #define SAMPLES_SIZE 16*4
+namespace po=boost::program_options;
 void GTecAmplifier::wait_simple_driver(){
 	int status;
 	if (simple_driver_id>0)
@@ -46,21 +48,22 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 		simple_driver_output=fd[0];
 	}
 }
-
 GTecAmplifier::GTecAmplifier():Amplifier(),simple_driver_id(-1),simple_driver_output(-1) {
 }
-boost::program_options::options_description GTecAmplifier::get_options(){
-	boost::program_options::options_description options=Amplifier::get_options();
+po::options_description GTecAmplifier::get_options(){
+	po::options_description options=Amplifier::get_options();
 	options.add_options()
 			("device_index,i",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
 			("available_devices,a","Print available devices and exit")
-			("simple_driver_path,d",boost::program_options::value<string>()->default_value("simple_gtec_driver"),"Path to the simple_gtec_driver");
+			("simple_driver_path,d",boost::program_options::value<string>()->default_value("simple_gtec_driver"),"Path to the simple_gtec_driver")
+			("run_simple,r","Run Simple Gtec Driver with remaining command line parameters. Can be used for signal generation or calibration. See 'Gtec Simple Driver Options' for available parameters");
+	options.add(get_simple_options());
 	return options;
 }
 void get_data_callback(void * driver){
 	((GTecAmplifier *)driver)->get_data();
 }
-void GTecAmplifier::init(boost::program_options::variables_map &vm){
+void GTecAmplifier::init(po::variables_map &vm){
 	size_t list_size = 0;
 	char drivers[MAX_DRIVERS];
 	simple_driver_path=vm["simple_driver_path"].as<string>();	
@@ -137,5 +140,23 @@ double GTecAmplifier::next_samples(bool synchronize){
 }
 GTecAmplifier::~GTecAmplifier() {
 	wait_simple_driver();
+}
+bool GTecAmplifier::run_simple(int argc,char** argv){
+	po::options_description options = get_options();
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc,argv,options),vm);
+	if (!vm.count("run_simple")){
+		return false;
+	}
+	for (uint j=0;j<argc;j++){
+		string str=argv[j];
+		if (str=="-r" || str=="--run_simple"){
+			argv[j]="simple_driver_path";
+			string path =vm["simple_driver_path"].as<string>();
+			execv(path.c_str(),argv+j);
+			perror("Could not run Simple Gtec Driver:");
+		}
+	}
+	return false;
 }
 

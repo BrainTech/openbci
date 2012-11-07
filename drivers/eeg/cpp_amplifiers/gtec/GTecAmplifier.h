@@ -29,6 +29,7 @@ public:
 	double next_samples(bool synchrnize=true);
 	virtual ~GTecAmplifier();
 	void get_data();
+	bool run_simple(int argc,char** argv);
 };
 
 #endif /* GTECDRIVER_H_ */
