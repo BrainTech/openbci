@@ -34,7 +34,7 @@ po::options_description get_simple_options() {
 					"Frequency of a function in Hz, integer in range [1,100]")
 			("offset,o",po::value<int>()->default_value(0),
 					"Offset of a function in mV, integer in range [-200,200]")
-			("calib_duration,d",po::value<int>()->default_value(60),
+			("calib_duration,d",po::value<int>()->default_value(120),
 					"Duration of calibration");
 	return options;
 }
