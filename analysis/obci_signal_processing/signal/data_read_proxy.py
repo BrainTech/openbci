@@ -16,7 +16,7 @@ class DataReadProxy(object):
     def __init__(self, p_file_path, sample_type='DOUBLE'):
         self._file_path = p_file_path
         self._sample_size = SAMPLE_SIZES[sample_type]
-        self._sample_struct_type = SAMPLE_STRUCT_TYPES[sample_type]
+        self._sample_struct_type = '<'+SAMPLE_STRUCT_TYPES[sample_type]
         self.start_reading()
         
     def start_reading(self):
@@ -39,11 +39,10 @@ class DataReadProxy(object):
             LOGGER.info(''.join(["Remained samples ", str(f_len - ch_len*self._sample_size*p_channels_num), " .Should be 0."]))
 
         vals = scipy.zeros((p_channels_num, ch_len))
-        dtype = scipy.dtype('<f8')
         k = 0
         while True:
             try:
-                r = scipy.fromfile(self._data_file, dtype, p_channels_num)
+                r = scipy.fromfile(self._data_file, self._sample_struct_type, p_channels_num)
             except MemoryError:
                 break
             if len(r) < p_channels_num:

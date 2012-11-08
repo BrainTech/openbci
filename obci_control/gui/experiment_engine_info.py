@@ -334,6 +334,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         if not store_options:
             return
 
+        if int(store_options['append_timestamp']):
+            store_options = dict(store_options)
+            store_options['save_file_name'] = store_options['save_file_name']+"_"+str(time.time())
+
         for peer, peer_path in SIGNAL_STORAGE_PEERS.iteritems():
             if peer not in self.exp_config.peers:
                 self.add_peer(peer, peer_path)
@@ -348,6 +352,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         client.leave_experiment(self.uuid, "storage_control")
         join_response = client.join_experiment(
                                 self.uuid, "storage_control", STORAGE_CONTROL)
+        if join_response is None:
+            print "connection timeout!"
+            return
+            
         if not join_response.type == "rq_ok":
             print "join error"
             return

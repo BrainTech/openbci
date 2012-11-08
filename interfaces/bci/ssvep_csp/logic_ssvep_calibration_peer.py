@@ -12,9 +12,9 @@ from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 from devices import appliance_helper
-from utils import keystroke
-from utils import tags_helper
-from utils import sequence_provider
+from obci_utils import keystroke
+from obci_utils import tags_helper
+from obci_utils import sequence_provider
 
 from acquisition import acquisition_helper
 
@@ -27,6 +27,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         super(LogicSSVEPCalibration, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_SSVEP_CALIBRATION)
         self.ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config")).config_to_message()
+        self.raw_ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config"))
         self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
         self.text_id = int(self.config.get_param('ugm_text_id'))
         self.hi_text = self.config.get_param("hi_text")
@@ -37,9 +38,14 @@ class LogicSSVEPCalibration(ConfiguredClient):
         self.break_times = [float(i) for i in self.config.get_param("break_times").split(';')]
         assert(len(self.break_texts)==len(self.break_times))
         self.target_time = float(self.config.get_param("target_time"))
+        self.target_fancy = int(self.config.get_param("target_fancy"))
         self.feed_time = float(self.config.get_param("feed_time"))
         self.feed_text = self.config.get_param("feed_text")
         self._init_sequence()
+
+        self._curr_fancy_x = 0.4
+        self._curr_fancy_y = 0.4
+
         self.ready()
 
     def _init_sequence(self):
@@ -209,7 +215,40 @@ class LogicSSVEPCalibration(ConfiguredClient):
                               'field':target_ind,
                               'duration':self.target_time
                               })
-        time.sleep(self.target_time)
+        if self.target_fancy:
+            self._send_fancy_target(target_ind)
+        else:
+            time.sleep(self.target_time)
+
+    def _send_fancy_target(self, target_ind):
+        t = time.time()
+        target_config = str([self.raw_ugm.get_config_for(self.text_ids[target_ind])])
+        while time.time() - t < self.target_time:
+            self._curr_fancy_x += (random.random()-0.5)/25.0
+            self._curr_fancy_y += (random.random()-0.5)/25.0
+            if self._curr_fancy_x < 0.4:
+                self._curr_fancy_x = 0.4
+            elif self._curr_fancy_x > 0.6:
+                self._curr_fancy_x = 0.6
+            if self._curr_fancy_y < 0.4:
+                self._curr_fancy_y = 0.4
+            elif self._curr_fancy_y > 0.6:
+                self._curr_fancy_y = 0.6
+            l_str_config = str([
+                {'id':self.text_ids[target_ind],
+                 'message':self.feed_text,
+                 'position_horizontal_type':'relative',
+                 'position_vertical_type':'relative',
+                 'position_horizontal':self._curr_fancy_x,
+                 'position_vertical':self._curr_fancy_y,
+                 #'font_size':15,
+                 'message':self.feed_text
+                 }
+                ])
+            ugm_helper.send_config(self.conn, l_str_config, 1)
+            time.sleep(0.1)
+        ugm_helper.send_config(self.conn, target_config, 1)
+            
 
     def _send_breaks(self):
         t = time.time()

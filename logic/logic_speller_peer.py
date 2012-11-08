@@ -4,7 +4,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import time
-from utils import tags_helper
+from obci_utils import tags_helper
 from multiplexer.multiplexer_constants import peers, types
 from logic import logic_helper
 from logic.logic_decision_peer import LogicDecision
@@ -24,14 +24,6 @@ class LogicSpeller(LogicDecision, SpellerEngine):
 
     def _run_post_actions(self, p_decision):
         self._update_letters()
-
-    def start_test(self):
-        t = time.time()
-        tags_helper.send_tag(
-            self.conn, t, t, 
-            "startTest",
-            {})
-        
 
 if __name__ == "__main__":
     LogicSpeller(settings.MULTIPLEXER_ADDRESSES).loop()

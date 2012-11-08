@@ -8,7 +8,7 @@ from obci_control.peer.configured_client import ConfiguredClient
 from obci_configs import settings
 from multiplexer.multiplexer_constants import types, peers
 
-from utils import tags_helper
+from obci_utils import tags_helper
 from acquisition import acquisition_helper
 
 class ExpsHelper(ConfiguredClient):

@@ -12,13 +12,15 @@ from drivers import drivers_logging as logger
 from gui.ugm import ugm_engine
 from gui.ugm import ugm_internal_server
 from gui.ugm import ugm_config_manager
+from gui.ugm.blinking import ugm_blinking_connection
 
 class UgmEnginePeer(ConfiguredClient):
     def __init__(self, addresses):
         super(UgmEnginePeer, self).__init__(addresses=addresses, type=peers.UGM_ENGINE_PEER)
-
+        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
         ENG = ugm_engine.UgmEngine(
-            ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')))
+            ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
+            connection)
         srv = ugm_internal_server.UdpServer(
             ENG, 
             self.get_param('internal_ip'),

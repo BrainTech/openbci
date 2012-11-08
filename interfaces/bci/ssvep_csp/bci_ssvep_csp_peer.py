@@ -16,8 +16,8 @@ from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
-from utils import streaming_debug
-from utils import tags_helper
+from obci_utils import streaming_debug
+from obci_utils import tags_helper
 
 LOGGER = logger.get_logger("bci_ssve_csp", "info")
 DEBUG = False

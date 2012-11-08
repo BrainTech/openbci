@@ -54,6 +54,11 @@ class OBCILauncherEngine(QtCore.QObject):
         self.preset_path = os.path.join(launcher_tools.obci_root(), PRESETS)
         self.user_preset_path = USER_PRESETS
 
+        # create home preset directory if it does not exists
+        preset_dir = os.path.basename(self.user_preset_path)
+        if not os.path.exists(os.path.expanduser(preset_dir)):
+            os.makedirs(preset_dir)
+
         self.experiments = self.prepare_experiments()
 
         self.obci_poller = zmq.Poller()
@@ -369,7 +374,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             exp = self.experiments[index]
             exp.name = msg.name
             exp.launch_file_path = msg.launch_file_path
-            
+
     def _handle_obci_peer_dead(self, msg):
         uid = msg.experiment_id
         index = self.index_of(uid)

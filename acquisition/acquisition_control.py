@@ -7,7 +7,7 @@ from multiplexer.clients import BaseMultiplexerServer
 
 from obci_configs import settings, variables_pb2
 
-from utils import debug_helper
+from obci_utils import debug_helper
 from acquisition import acquisition_logging as logger
 LOGGER = logger.get_logger("acquisition_control", 'info')
 

@@ -39,7 +39,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     '''
     classdocs
     '''
-    start = pyqtSignal(str, dict)
+    start = pyqtSignal(str, object)
     stop = pyqtSignal(str, bool)
     reset = pyqtSignal(str)
 
@@ -217,8 +217,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 treecat.setText(0, QString(str(cat)))
                 self.categories.append(treecat)
                 self.scenarios.addTopLevelItem(treecat)
-                treecat.setExpanded(True)
-                self.scenarios.expandItem(treecat)
+                treecat.setExpanded(False)
             else:
                 treecat = self.categories[names.index(cat)]
             name = ObciTreeWidgetItem([s.name, s.status.status_name], s.uuid)
@@ -339,12 +338,12 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if self.store_checkBox.isChecked():
             store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
                              u'save_file_path': unicode(self.store_dir.text().toUtf8(), 'utf-8'),
-                             u'append_timestamps':  unicode(1 if self.store_ts_checkBox.isChecked() else 0),
+                             u'append_timestamp':  unicode(1 if self.store_ts_checkBox.isChecked() else 0),
                              u'store_locally': 1 if self.store_local_checkBox.isChecked() else 0
                              }
             self.exp_states[uid].store_options = store_options
         else:
-            store_options = {}
+            store_options = None
         self.start.emit(uid, store_options)
 
     def _stop(self):
@@ -557,7 +556,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if store_options is not None:
             self.store_file.setText(store_options[u'save_file_name'])
             self.store_dir.setText(store_options[u'save_file_path'])
-            self.store_ts_checkBox.setChecked(int(store_options[u'append_timestamps']))
+            self.store_ts_checkBox.setChecked(int(store_options[u'append_timestamp']))
             # self.store_local_checkBox.setChecked(store_options[u'store_locally'])
             self.store_checkBox.setChecked(True)
             self.store_container.show()

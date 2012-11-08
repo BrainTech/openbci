@@ -5,9 +5,9 @@ direc=$OBCI_INSTALL_DIR
 
 if [ -z $OBCI_INSTALL_DIR ]
 then
-	direc=$HOME/dev/openbci
+	direc=/usr/share/openbci
 fi
 
 obci srv &
 export PYTHONPATH=`python $direc/obci_control/launcher/launcher_tools.py`
-python $direc/obci_control/gui/obciLauncher.py $@
+exec python $direc/obci_control/gui/obciLauncher.py $@

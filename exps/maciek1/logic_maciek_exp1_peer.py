@@ -12,9 +12,9 @@ from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
 from devices import appliance_helper
-from utils import keystroke
-from utils import tags_helper
-from utils import sequence_provider
+from obci_utils import keystroke
+from obci_utils import tags_helper
+from obci_utils import sequence_provider
 
 from acquisition import acquisition_helper
 import pygame
@@ -118,7 +118,8 @@ class LogicSSVEPCalibration(ConfiguredClient):
     def run(self):
         #process intro
         ugm_helper.send_text(self.conn, self.hi_text)
-        keystroke.wait([" "])
+        #keystroke.wait([" "])
+        time.sleep(90)
 
         ugm_helper.send_config(self.conn, self.ugm)
 
@@ -151,9 +152,9 @@ class LogicSSVEPCalibration(ConfiguredClient):
         #ugm_helper.send_text(self.conn, self.bye_text)
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.bye_text)
         #acquire some more data
-        time.sleep(2)
-        LOGGER.info("Send finish saving and finish ...")
-        acquisition_helper.send_finish_saving(self.conn)
+        #time.sleep(2)
+        #LOGGER.info("Send finish saving and finish ...")
+        #acquisition_helper.send_finish_saving(self.conn)
 
     def _run(self):
         self._send_exp_info()

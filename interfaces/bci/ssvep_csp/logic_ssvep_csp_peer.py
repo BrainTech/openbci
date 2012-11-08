@@ -14,7 +14,7 @@ from gui.ugm import ugm_helper
 from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from logic import logic_helper
-from utils import tags_helper
+from obci_utils import tags_helper
 
 from logic import logic_logging as logger
 LOGGER = logger.get_logger("ssvep_csp", 'info')
@@ -92,6 +92,14 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
         if self.mode == 'offline':
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+        elif self.mode == 'always_pass':
+            self._determine_means(cfg)#for debug only
+            self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+            time.sleep(5)
+            self._shuffle_freqs(cfg)
+            self._send_csp_info(cfg)
+            ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
+            self._run_next_scenario()
         elif self.mode == 'manual':
             self._show_configs(cfg, suffix=u'Suggested frequencies:')
             self._edit_configs(cfg)
@@ -138,6 +146,9 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
     def _shuffle_freqs(self, cfg):
         """Move second best freq to the last field..."""
+        if not int(self.config.get_param('shuffle_freqs')):
+            return
+
         freqs = [int(i) for i in cfg['freqs'].split(';')]
         new_freqs = []
         new_freqs.append(freqs[0])

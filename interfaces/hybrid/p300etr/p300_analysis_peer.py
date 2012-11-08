@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-#
+"""
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import random, time, pickle
 
@@ -18,7 +20,7 @@ from analysis.buffers import auto_blink_buffer
 from interfaces.hybrid.p300etr import p300_analysis_data_peer
 import csp_helper
 
-from utils import streaming_debug
+from obci_utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_csp", "info")
 DEBUG = True
@@ -29,18 +31,14 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
         LOGGER.info("Sending dec message: "+str(pdf))
-        self._last_dec_time = time.time()
 
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
-        self.buffer.clear_blinks()
-        ugm_helper.send_stop_blinking(self.conn)
 
         r = variables_pb2.Sample()
         r.timestamp = time.time()
         for i in range(len(pdf)): r.channels.append(pdf[i])
         self.conn.send_message(message = r.SerializeToString(),     
-                        type = types.P300_ANALYSIS_RESULTS, flush=True)            
-        #~ self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+                        type = types.P300_ANALYSIS_RESULTS, flush=True)
 
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
@@ -53,12 +51,12 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         cfg['nMax'] = int(self.config.get_param("n_max"))
         cfg['nLast'] = int(self.config.get_param("n_last"))
         
+        # If debug=1, then all additional plots are drawn
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
-
-        #~ row = cfg['row'] = int(self.config.get_param('row_count'))
-        #~ col = cfg['col'] = int(self.config.get_param('col_count'))
-        row = cfg['row_count'] = 6
-        col = cfg['col_count'] = 6
+        
+        # Shape of grid
+        row = cfg['row_count'] = int(self.config.get_param('row_count'))
+        col = cfg['col_count'] = int(self.config.get_param('col_count'))
       
         print "\n"*3
         LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
@@ -67,8 +65,6 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         
         montage_matrix = self._get_montage_matrix(cfg)
             
-        #dec_count = int(self.config.get_param('dec_count'))
-
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision, cfg, montage_matrix)
 
@@ -117,6 +113,14 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             else:
                 self.no_response()
                 return
+        
+        # What to do after everything is done...
+        if mxmsg.type == types.DECISION_MESSAGE:
+            self.buffer.clear_blinks()
+            self._last_dec_time = time.time()
+            self.analysis.newEpoch()
+            ugm_helper.send_stop_blinking(self.conn)
+            
 
         if mxmsg.type == types.BLINK_MESSAGE:
             l_msg = variables_pb2.Blink()

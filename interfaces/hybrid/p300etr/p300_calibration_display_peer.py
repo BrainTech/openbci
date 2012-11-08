@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
+"""
+Helps analyse data and sends it to decision making module.
+
+Author: Dawid Laszuk
+Contact: laszukdawid@gmail.com
+"""
 
 import os.path, sys, time
 
@@ -11,8 +15,8 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_config_manager
 from gui.ugm import ugm_helper
-from utils import keystroke
-from utils import tags_helper
+from obci_utils import keystroke
+from obci_utils import tags_helper
 
 from acquisition import acquisition_helper
 

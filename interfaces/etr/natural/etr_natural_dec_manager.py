@@ -47,9 +47,10 @@ class EtrDecManager(object):
 
     def getRealData(self, msg):
         x, y = msg.x, msg.y
+        print "{},{}".format(x, y)
         Xp = np.matrix( [x, y,1]).T
         X = self.invS*Xp
-        #~ print "newX: ", X
+        print "newX: ", X
         msg.x, msg.y = float(X[0]), float(X[1])
         
         # Should it return anything?
@@ -58,10 +59,11 @@ class EtrDecManager(object):
         
 
     def updateTransformationMatrix(self, data):
-        
+        print "\n"*5
         print "dostalem: ", data
+        print "\n"*5
         data = np.array(data)
-        data[:6] = data[:6]*self.scaleValue
+        data = data*self.scaleValue
         invS = np.array( data).reshape((3,3))
         #~ S = np.random.random( (3,3))
         #~ invS = np.linalg.inv(S)

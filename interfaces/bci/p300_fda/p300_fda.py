@@ -467,8 +467,6 @@ class P300_analysis(object):
             s[con*self.avrM:(con+1)*self.avrM] = self.prepareSignal(np.dot(self.P[:,con], signal))
         
         # Data projection on Fisher's space
-        #~ print "w.shape: ", self.w.shape
-        #~ print "s.shape: ", s.shape
         self.d = np.dot(s,self.w) - self.c
         self.dArr[blink] += self.d
         self.dArrTotal[blink] = np.append(self.d, self.dArrTotal[blink])
@@ -480,13 +478,12 @@ class P300_analysis(object):
         
     def isItEnought(self):
         print "self.flashCount: ", self.flashCount
-        if (self.flashCount < self.nMin).any():
+        if (self.flashCount <= self.nMin).any():
             return -1
-        elif (self.flashCount > self.nMax).all():
+        elif (self.flashCount >= self.nMax).all():
             self.forceDecision()
         else:
             return self.testSignificances()
-        
         
     def testSignificances(self):
         """
@@ -500,7 +497,6 @@ class P300_analysis(object):
         print "++ testSignificances ++ "
         
         dMean = np.zeros(self.fields)
-        nMin = self.flashCount.min()
         
         for i in range(self.fields):
             dMean[i] = self.dArrTotal[i][:self.nLast].mean()
@@ -513,7 +509,6 @@ class P300_analysis(object):
 
         # If only one value is significantly distant
         if np.sum(self.per > self.pPer) == 1:
-            #~ return True
             self.dec = np.arange(self.fields)[self.per==self.per.max()]
             self.dec = np.int(self.dec[0])
             print "wybrano -- {0}".format(self.dec)

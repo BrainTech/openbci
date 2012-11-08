@@ -14,12 +14,12 @@ from acquisition import acquisition_logging as logger
 
 LOGGER = logger.get_logger("wii_board_saver", 'info')
 
-DATA_FILE_EXTENSION = '.wii_board.raw'
+DATA_FILE_EXTENSION = '.wii_board.txt'
 
 class WiiBoardSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(WiiBoardSaver, self).__init__(addresses=addresses, 
-                                          type=peers.WII_BOARD_SAVER)
+                                          type=peers.ETR_SAVER)
         LOGGER.info("Request system settings ...")
 
         f_dir = os.path.expanduser(os.path.normpath(self.config.get_param("save_file_path")))
@@ -28,13 +28,13 @@ class WiiBoardSaver(ConfiguredMultiplexerServer):
              os.mkdir(f_dir)
         f_path = os.path.normpath(os.path.join(
                f_dir, f_name + DATA_FILE_EXTENSION))
-        self._data_proxy = data_write_proxy.get_proxy(f_path)
+        self._data_proxy = data_write_proxy.get_proxy(f_path, format=self.config.get_param("format"))
 
         self.ready()
         LOGGER.info("WiiSaver init finished!")
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.WII_BOARD_SIGNAL_MESSAGE:
+        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
 	    l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
             self._data_proxy.data_received(l_msg.x)

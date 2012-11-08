@@ -18,7 +18,7 @@ from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_fda_lines import bci_p300_fda_analysis
 import csp_helper
 
-from utils import streaming_debug
+from obci_utils import streaming_debug
 
 LOGGER = logger.get_logger("bci_p300_fda", "info")
 DEBUG = True
@@ -42,21 +42,22 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
                                           type=peers.P300_ANALYSIS)
         #get stats from file
         cfg = self._get_csp_config()
-        cfg['pVal'] = float(self.config.get_param('analysis_treshold'))
+        cfg['pPercent'] = float(self.config.get_param('analysis_treshold'))
         cfg['nMin'] = int(self.config.get_param("n_min"))
         cfg['nMax'] = int(self.config.get_param("n_max"))
         cfg['nLast'] = int(self.config.get_param("n_last"))
         
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
 
-        #~ row = cfg['row'] = int(self.config.get_param('row_count'))
-        #~ col = cfg['col'] = int(self.config.get_param('col_count'))
-        row = cfg['row_count'] = 6
-        col = cfg['col_count'] = 6
+        cfg['row'] = int(self.config.get_param('row_count'))
+        cfg['col'] = int(self.config.get_param('col_count'))
+        row, col = cfg['row'], cfg['col']
+        #~ row = cfg['row_count'] = 6
+        #~ col = cfg['col_count'] = 6
       
-        print "\n"*3
+        print "\n"*5
         LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
-        print "\n"*3
+        print "\n"*5
 
         
         montage_matrix = self._get_montage_matrix(cfg)

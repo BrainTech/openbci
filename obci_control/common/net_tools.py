@@ -1,16 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import zmq
 import socket
-import struct
-import fcntl
 import os
 import ConfigParser
 import threading
 import time
 
-from common.obci_control_settings import PORT_RANGE, INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
+from common.obci_control_settings import INSTALL_DIR, OBCI_HOME_DIR, MAIN_CONFIG_NAME
 from common.config_helpers import OBCISystemError
 
 
@@ -93,6 +90,7 @@ def __parser_main_config_file():
         with open(fpath) as f:
             parser.readfp(f)
     else:
+
         print "Main config file not found in {0}".format(directory)
         raise OBCISystemError()
     return parser
@@ -227,7 +225,7 @@ class DNS(object):
         if len(parts) > 0:
             addr = parts[0]
         print "aaaa",addr
-        print self.__servers
+        # print self.__servers
         return addr == self.this_addr_network() or addr == self.this_addr_local()
 
     def update(self, ip, hostname, uuid, rep_port, pub_port, http_port=None):
