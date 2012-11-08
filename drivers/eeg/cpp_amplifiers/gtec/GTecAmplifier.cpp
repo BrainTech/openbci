@@ -144,7 +144,7 @@ GTecAmplifier::~GTecAmplifier() {
 bool GTecAmplifier::run_simple(int argc,char** argv){
 	po::options_description options = get_options();
 	po::variables_map vm;
-	po::store(po::parse_command_line(argc,argv,options),vm);
+	po::store(po::command_line_parser(argc,argv).options(options).allow_unregistered().run(),vm);
 	if (!vm.count("run_simple")){
 		return false;
 	}
