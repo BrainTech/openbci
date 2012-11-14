@@ -12,8 +12,8 @@ from acquisition import acquisition_logging as logger
 LOGGER = logger.get_logger("acquisition_control", 'info')
 
 
-def finish_saving():
-    ctr = AcquisitionControl(settings.MULTIPLEXER_ADDRESSES)
+def finish_saving(mx_addresses=settings.MULTIPLEXER_ADDRESSES):
+    ctr = AcquisitionControl(mx_addresses)
     ctr.send_finish_saving()
     ctr.loop()
     return ctr.result
