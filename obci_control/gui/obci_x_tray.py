@@ -55,7 +55,7 @@ class ServerController(QObject):
         if not self.isServerRunning():
             self.startingStartTime = QTime.currentTime()
             self.startingServer = True
-            self.process.start(self.programName)
+            os.system('obci srv')
     
     def stopServer(self):
         if self.isServerRunning():
