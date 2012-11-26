@@ -4,6 +4,7 @@ import obci_log_model
 import time
 import socket
 import select
+import json
 
 BUF = 2**15
 class RealLogModel(obci_log_model.LogModel):
@@ -24,7 +25,18 @@ class RealLogModel(obci_log_model.LogModel):
             return None, None
 
     def _process_log(self, data):
-        return 'amplifier', data
+        try:
+            d = json.loads(data)
+        except Exception:
+            print("Error while loading log as json....!")
+            return None, None
+        else:
+            try:
+                return d['name'], ' - '.join([str(d['asctime']), str(d['message'])])#'amplifier', data
+            except Exception:
+                print("Error while reading logs fields: name, asctime, message!")
+                return None, None
+                
 
     def start_running(self, exp):
         port = self._init_socket()
