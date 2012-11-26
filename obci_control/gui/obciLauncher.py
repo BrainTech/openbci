@@ -20,6 +20,7 @@ import codecs
 import json
 import sys
 import os
+import sip
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
@@ -137,13 +138,19 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if self.engine is not None:
                 self.engine.cleanup()
                 self._disconnect_signals()
-                self.engine.deleteLater()
+
+                # self.engine.deleteLater()
+                sip.delete(self.engine)
+                del self.engine
+                self.engine = None
+
 
             client = obci_script.client_server_prep(server_ip=self.server_ip,
                                                     zmq_ctx=ctx,
                                                     start_srv=True)
             if client is None:
                 self.quit()
+            self.exp_states = {}
             self.engine = OBCILauncherEngine(client, self.server_ip)
             self._connect_signals()
 
@@ -356,6 +363,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             store_options = None
         self.log_engine.on_experiment_start(self.exp_states[uid].exp)
+        print "-------------   ", self.exp_states[uid].exp 
         self.start.emit(uid, store_options)
 
     def _stop(self):
@@ -472,6 +480,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 curr_uid = curr_exp.exp_config.uuid
         else:
             print "not found", curr_uid, curr_exp
+            current_sc = None
 
         new_states = {}
         for exp in scenarios:
