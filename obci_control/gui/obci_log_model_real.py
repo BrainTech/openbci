@@ -31,7 +31,7 @@ class RealLogModel(obci_log_model.LogModel):
         exp.add_peer('logger', 'obci_control/gui/obci_log_peer.py', 
                       config_sources=None, launch_deps=None, custom_config_path=None, machine=None)
         #TODO - ustawic machine na local
-        exp.update_peer_param('logger_mati', 'port', str(port))
+        exp.update_peer_param('logger', 'port', str(port))
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
