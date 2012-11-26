@@ -142,7 +142,7 @@ def cmd_config(args):
     disp.view(response)
 
 def cmd_info(args):
-    client = client_server_prep()
+    client = client_server_prep(start_srv=False)
     if not client:
         sys.exit(1)
     if not args.experiment:
