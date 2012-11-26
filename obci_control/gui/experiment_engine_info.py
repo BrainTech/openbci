@@ -300,6 +300,7 @@ class ExperimentEngineInfo(QtCore.QObject):
     def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None, 
                                              custom_config_path=None, machine=None):
         override = peer_id in self.exp_config.peers
+        machine = machine or ""
 
         self.exp_config.add_peer(peer_id)
         cfg, cfg_parser = launch_file_parser.parse_peer_default_config(
@@ -311,6 +312,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         self.exp_config.set_peer_config(peer_id, cfg)
         self.exp_config.set_peer_path(peer_id, peer_path)
+        self.exp_config.set_peer_machine(peer_id, machine)
 
         if config_sources:
             for src_name, src_id in config_sources.iteritems():

@@ -140,6 +140,8 @@ class LaunchFileSerializerJSON(LaunchFileSerializer):
 
             peer_cfg["config"] = json.loads(peer_json)
 
+            peer_cfg["machine"] = descriptor.machine
+
             self._dump_peer_config_sources(peer, descriptor.config.config_sources)
             self._dump_peer_launch_deps(peer, descriptor.config.launch_deps)
 
