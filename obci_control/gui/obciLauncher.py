@@ -175,6 +175,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.engine.update_ui.disconnect()
         self.engine.rq_error.disconnect()
         self.engine.obci_state_change.disconnect()
+        self.engine.saver_msg.disconnect()
         self.reset.disconnect()
         self.start.disconnect()
         self.stop.disconnect()
