@@ -303,7 +303,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         self.exp_config.add_peer(peer_id)
         cfg, cfg_parser = launch_file_parser.parse_peer_default_config(
-                                                peer_id, peer_path)
+                                                peer_id, peer_path, apply_globals=True)
         if custom_config_path:
             with codecs.open(custom_config_path, "r", "utf8") as f:
                 print "parsing _custom_ config for peer  ", peer_id, custom_config_path

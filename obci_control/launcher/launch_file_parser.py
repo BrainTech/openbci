@@ -128,15 +128,14 @@ class LaunchFileParser(ScenarioParser):
 
     def _parse_peer_config(self, peer_id, config_path, peer_program_path):
         peer_cfg, peer_parser = parse_peer_default_config(
-                                                peer_id, peer_program_path, self.logger)
+                                                peer_id, peer_program_path, self.logger,
+                                                self._apply_globals)
         #print "Trying to parse {0} for {1}".format(config_path, peer_id)
         if config_path:
             with codecs.open(config_path, "r", "utf8") as f:
                 self.logger.info("parsing _custom_ config for peer %s, %s ", peer_id, config_path)
                 peer_parser.parse(f, peer_cfg)
-        if self._apply_globals:
-            for param, value in CONFIG_DEFAULTS.iteritems():
-                peer_cfg.add_local_param(param, value)
+
 
         self.config.set_peer_config(peer_id, peer_cfg)
 
@@ -268,12 +267,15 @@ class LaunchJSONParser(ScenarioParser):
         return section
 
 
-def parse_peer_default_config(peer_id, peer_program_path, logger=None):
+def parse_peer_default_config(peer_id, peer_program_path, logger=None, apply_globals=False):
     #print "Trying to find default config for {0}, path: {1}".format(
     #                                            peer_id, peer_program_path)
     peer_parser = peer_config_parser.parser("ini")
     peer_cfg = peer_config.PeerConfig(peer_id)
     conf_path = default_config_path(peer_program_path)
+    if apply_globals:
+        for param, value in CONFIG_DEFAULTS.iteritems():
+            peer_cfg.add_local_param(param, value)
     if conf_path:
 
         with codecs.open(conf_path, "r", "utf8") as f:
@@ -281,5 +283,6 @@ def parse_peer_default_config(peer_id, peer_program_path, logger=None):
                 logger.info("parsing default config "
                                 "for peer %s, %s ", peer_id, conf_path)
             peer_parser.parse(f, peer_cfg)
+
 
     return peer_cfg, peer_parser
