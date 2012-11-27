@@ -30,7 +30,7 @@ message_templates = {
         peer_id='',
         peer_type=''),
     "get_experiment_scenario" : dict(),
-    "experiment_scenario" : dict(scenario='', launch_file_path=''),
+    "experiment_scenario" : dict(scenario='', launch_file_path='', uuid=''),
     "set_experiment_scenario" : dict(scenario='', launch_file_path=''),
 
     "obci_control_message" : dict(peer_name='', peer_type='',severity='', msg_code='',

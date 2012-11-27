@@ -129,9 +129,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         self.exp_config.uuid = launcher_data['uuid']
         self.exp_config.origin_machine = launcher_data['origin_machine']
 
-        self.exp_config.launch_file_path = self.launch_file
+        
         self.uuid = self.exp_config.uuid
 
+        self.exp_config.launch_file_path = self.launch_file
         result, details = self._get_experiment_scenario()
         self.exp_config.status(self.status)
         self.status.set_status(launcher_data['status_name'], details=launcher_data['details'])
@@ -139,6 +140,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         self._get_experiment_details()
         self._set_public_params()
 
+    def update_scenario(self, launch_file_path, scenario):
+        self.exp_config.launch_file_path = launch_file_path
+        self._process_experiment_scenario(scenario)
+        self.exp_config.status(self.status)
 
     def _set_public_params(self):
         for par in self.public_params:
@@ -188,11 +193,15 @@ class ExperimentEngineInfo(QtCore.QObject):
         if not response:
             return False, "No response from experient"
         print "GOT SCENARIO", response.scenario
+        return self._process_experiment_scenario(response.scenario)
+        
 
+    def _process_experiment_scenario(self, json_scenario):
         jsonpar = launch_file_parser.LaunchJSONParser(
                         launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
-        inbuf = io.BytesIO(response.scenario.encode('utf-8'))
+        inbuf = io.BytesIO(json_scenario.encode('utf-8'))
         jsonpar.parse(inbuf, self.exp_config)
+        print "MY PEEEEERS:", self.exp_config.peers.keys()
         rd, details = self.exp_config.config_ready()
         if rd:
             self.status.set_status(launcher_tools.READY_TO_LAUNCH)
