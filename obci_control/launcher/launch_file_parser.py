@@ -286,3 +286,17 @@ def parse_peer_default_config(peer_id, peer_program_path, logger=None, apply_glo
 
 
     return peer_cfg, peer_parser
+
+def extend_experiment_config(exp_config, peer_id, peer_path, 
+                                            config_sources=None, launch_deps=None, 
+                                             custom_config_path=None, machine=None, apply_globals=True):
+    peer_cfg, cfg_parser = parse_peer_default_config(
+                                    peer_id, peer_path, apply_globals=apply_globals)
+    if custom_config_path:
+        with codecs.open(custom_config_path, "r", "utf8") as f:
+            print "parsing _custom_ config for peer  ", peer_id, custom_config_path
+            cfg_parser.parse(f, peer_cfg)
+
+    return exp_config.extend_with_peer(peer_id, peer_path, peer_cfg, 
+                                            config_sources, launch_deps, 
+                                             custom_config_path, machine)

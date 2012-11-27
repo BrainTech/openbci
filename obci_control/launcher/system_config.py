@@ -75,6 +75,36 @@ class OBCIExperimentConfig(object):
     def update_peer_machine(self, peer_id, machine_ip):
         self.peers[peer_id].machine = machine_ip
 
+    def extend_with_peer(self, peer_id, peer_path, peer_cfg, 
+                                            config_sources=None, launch_deps=None, 
+                                             custom_config_path=None, machine=None):
+        override = peer_id in self.peers
+        machine = machine or ""
+
+        self.add_peer(peer_id)
+
+        self.set_peer_config(peer_id, peer_cfg)
+        self.set_peer_path(peer_id, peer_path)
+        self.set_peer_machine(peer_id, machine)
+
+        if config_sources:
+            for src_name, src_id in config_sources.iteritems():
+                self.set_config_source(peer_id, src_name, src_id)
+        else:
+            for src in peer_cfg.config_sources:
+                if src in self.peers:
+                    self.set_config_source(peer_id, src, src)
+
+        if launch_deps:            
+            for dep_name, dep_id in launch_deps.iteritems():
+                self.set_launch_dependency(peer_id, dep_name, dep_id)
+        else:
+            for dep in peer_cfg.launch_deps:
+                if dep in self.peers:
+                    self.set_launch_dependency(peer_id, dep, dep)
+            
+        return override
+
     def add_peer(self, peer_id):
         self.peers[peer_id] = PeerConfigDescription(peer_id, self.uuid)
 
@@ -107,7 +137,6 @@ class OBCIExperimentConfig(object):
     def set_peer_machine(self, peer_id, machine_name):
         if peer_id not in self.peers:
             raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
-
         self.peers[peer_id].machine = machine_name
 
     def all_param_values(self, peer_id):

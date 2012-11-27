@@ -299,38 +299,11 @@ class ExperimentEngineInfo(QtCore.QObject):
 
     def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None, 
                                              custom_config_path=None, machine=None):
-        override = peer_id in self.exp_config.peers
-        machine = machine or ""
 
-        self.exp_config.add_peer(peer_id)
-        cfg, cfg_parser = launch_file_parser.parse_peer_default_config(
-                                                peer_id, peer_path, apply_globals=True)
-        if custom_config_path:
-            with codecs.open(custom_config_path, "r", "utf8") as f:
-                print "parsing _custom_ config for peer  ", peer_id, custom_config_path
-                cfg_parser.parse(f, cfg)
+        return launch_file_parser.extend_experiment_config(self.exp_config, peer_id, peer_path,
+                     config_sources, launch_deps,
+                    custom_config_path, machine, apply_globals=True)
 
-        self.exp_config.set_peer_config(peer_id, cfg)
-        self.exp_config.set_peer_path(peer_id, peer_path)
-        self.exp_config.set_peer_machine(peer_id, machine)
-
-        if config_sources:
-            for src_name, src_id in config_sources.iteritems():
-                self.exp_config.set_config_source(peer_id, src_name, src_id)
-        else:
-            for src in cfg.config_sources:
-                if src in self.exp_config.peers:
-                    self.exp_config.set_config_source(peer_id, src, src)
-
-        if launch_deps:            
-            for dep_name, dep_id in launch_deps.iteritems():
-                self.exp_config.set_launch_dependency(peer_id, dep_name, dep_id)
-        else:
-            for dep in cfg.launch_deps:
-                if dep in self.exp_config.peers:
-                    self.exp_config.set_launch_dependency(peer_id, dep, dep)
-            
-        return override
 
     def enable_signal_storing(self, store_options):
         if not store_options:
