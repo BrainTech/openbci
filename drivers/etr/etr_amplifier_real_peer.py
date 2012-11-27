@@ -45,27 +45,27 @@ class EtrAmplifierReal(etr_amplifier.EtrAmplifier):
         lst = p_data.split()
 
         if (len(lst) != 4):
-            LOGGER.info("WARNING! Received data length != 4. Message ommited.")
+            self.logger.info("WARNING! Received data length != 4. Message ommited.")
             return None
 
         if lst[0] == 'x':
             try:
                 l_msg.x = float(str(lst[1]).replace(",","."))
             except:
-                LOGGER.info("WARNING! Error while unpacking x message. Message ommited.")                
+                self.logger.info("WARNING! Error while unpacking x message. Message ommited.")                
                 return None
         else:
-            LOGGER.info("WARNING! received key different from x. Meesage ommited.")
+            self.logger.info("WARNING! received key different from x. Meesage ommited.")
             return None
 
         if lst[2] == 'y':
             try:
                 l_msg.y = float(str(lst[3]).replace(",","."))
             except:
-                LOGGER.info("WARNING! Error while unpacking y message. Message ommited.")
+                self.logger.info("WARNING! Error while unpacking y message. Message ommited.")
                 return None
         else:
-            LOGGER.info("WARNING! received key different from y. Meesage ommited.")
+            self.logger.info("WARNING! received key different from y. Meesage ommited.")
             return None
         l_msg.timestamp = time.time()
         return l_msg

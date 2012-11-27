@@ -15,14 +15,12 @@ from obci_configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
 from gui.ugm import ugm_helper
-from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.hybrid.p300etr import p300_analysis_data_peer
 import csp_helper
+from obci_utils import context as ctx
 
 from obci_utils import streaming_debug
-
-LOGGER = logger.get_logger("bci_p300_csp", "info")
 DEBUG = True
 
 
@@ -30,7 +28,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
     def send_decision(self, pdf):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
-        LOGGER.info("Sending dec message: "+str(pdf))
+        self.logger.info("Sending dec message: "+str(pdf))
 
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
 
@@ -59,7 +57,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         col = cfg['col_count'] = int(self.config.get_param('col_count'))
       
         print "\n"*3
-        LOGGER.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
+        self.logger.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
         print "\n"*3
 
         
@@ -85,13 +83,13 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         if DEBUG:
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
-                                               LOGGER,
+                                               self.logger,
                                                int(self.config.get_param('samples_per_packet')))
                                                    
         self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
         ugm_helper.send_start_blinking(self.conn)
         self.ready()
-        LOGGER.info("BCIAnalysisServer init finished!")
+        self.logger.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         #always buffer signal
@@ -136,11 +134,14 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         - set_configs(configs)
         - analyse(data)
         """
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
         return p300_analysis_data_peer.BCIP300FdaAnalysis(
             send_func,
             cfg,
             montage_matrix,
-            int(self.config.get_param('sampling_rate')))
+            int(self.config.get_param('sampling_rate')),
+            context)
 
 
     def _get_csp_config(self):

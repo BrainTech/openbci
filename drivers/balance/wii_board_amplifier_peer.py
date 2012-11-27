@@ -7,20 +7,21 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_client import ConfiguredClient
 
 from obci_configs import settings, variables_pb2
-from drivers import drivers_logging as logger
-
 import cwiid
-
-LOGGER = logger.get_logger("wii_board_amplifier", "debug")
 
 class WiiBoardAmplifier(ConfiguredClient):
     def __init__(self, addresses):
         super(WiiBoardAmplifier, self).__init__(addresses=addresses, type=peers.WII_BOARD_AMPLIFIER)
-        LOGGER.info("Start initializing wii board amplifier...")
-        LOGGER.info("Please press the red 'connect' button on the balance board, inside the battery compartment.")
-        LOGGER.info("Do not step on the balance board.")
+        time.sleep(1)
+        self.logger.info("Start initializing wii board amplifier...")
+        self.logger.info("Please press the red 'connect' button on the balance board, inside the battery compartment.")
+        self.logger.info("Do not step on the balance board.")
 
-	self.wiimote = cwiid.Wiimote()
+        try:
+            self.wiimote = cwiid.Wiimote()
+        except RuntimeError:
+            self.logger.error("Balance board not found!!! Aborting!!!")
+            sys.exit(1)
         self.wiimote.rpt_mode = cwiid.RPT_BALANCE | cwiid.RPT_BTN
         self.wiimote.request_status()
 
@@ -73,7 +74,7 @@ class WiiBoardAmplifier(ConfiguredClient):
             l_msg = self._get_msg()
             self.conn.send_message(message = l_msg.SerializeToString(), 
                                    type = types.ETR_SIGNAL_MESSAGE, flush=True)
-            LOGGER.debug("Send wii board msg:"+str(l_msg.x)+" / "+str(l_msg.y))
+            self.logger.debug("Send wii board msg:"+str(l_msg.x)+" / "+str(l_msg.y))
             time.sleep(0.05)
 
 

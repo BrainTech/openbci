@@ -27,8 +27,7 @@ class UgmBlinkingEnginePeer(ConfiguredClient):
         context = ctx.get_new_context()
         context['logger'] = self.logger
         connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES,
-                                                                   context
-                                                                   )
+                                                                   context)
         ENG = ugm_blinking_engine.UgmBlinkingEngine(
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
             connection,

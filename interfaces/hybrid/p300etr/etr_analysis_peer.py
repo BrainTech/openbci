@@ -15,13 +15,8 @@ import random, time, sys
 
 from interfaces.etr import etr_ugm_manager
 from gui.ugm import ugm_helper
-from interfaces import interfaces_logging as logger
-
 import numpy as np
 from obci_utils import streaming_debug
-
-LOGGER = logger.get_logger("etr_analysis", "info")
-
 
 class EtrAnalysis(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -99,12 +94,12 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         return np.sqrt(self.lambX*(self.cX-x)**2 + self.lambY*(self.cY-y)**2)
         
     def handle_message(self, mxmsg):
-        #~ LOGGER.info("EtrAnalysis\n")
+        #~ self.logger.info("EtrAnalysis\n")
         if mxmsg.type == types.ETR_CALIBRATION_RESULTS:
         #### What to do when receive ETR_MATRIX information
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
+            self.logger.debug("GOT ETR CALIBRATION RESULTS: "+str(res.channels))
 
         #process blinks only when hold_time passed
         if self._last_dec_time > 0:
@@ -124,7 +119,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         #### What to do when receive ETR_SIGNAL information
             msg = variables_pb2.Sample2D()
             msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT MESSAGE: "+str(msg))
+            self.logger.debug("GOT MESSAGE: "+str(msg))
 
             # Save positions
             x, y = msg.x, msg.y            
@@ -151,7 +146,7 @@ class EtrAnalysis(ConfiguredMultiplexerServer):
         #### What to do when receive BLINK_NO information
             #~ blink = variables_pb2.Blink()
             #~ blink.ParseFromString(mxmsg.message)
-            #~ LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
+            #~ self.logger.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
             
 
         self.no_response()

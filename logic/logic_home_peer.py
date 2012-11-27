@@ -9,10 +9,7 @@ import os.path, sys, time, os
 from multiplexer.multiplexer_constants import peers, types
 
 from obci_configs import settings, variables_pb2
-from logic import logic_logging as logger
 from logic import logic_speller_peer
-
-LOGGER = logger.get_logger("logic_home", "info")
 
 class LogicHome(logic_speller_peer.LogicSpeller):
     """A class for creating a manifest file with metadata."""

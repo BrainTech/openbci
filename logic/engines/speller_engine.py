@@ -7,11 +7,11 @@
 import os.path, sys, time, os
 from gui.ugm import ugm_helper
 from logic import logic_logging as logger
-LOGGER = logger.get_logger("speller_engine", "info")
-
+from obci_utils import context as ctx
 
 class SpellerEngine(object):
-    def __init__(self, configs):
+    def __init__(self, configs, context=ctx.get_dummy_context('SpellerEngine')):
+        self.logger = context['logger']
         self._message = ""
         self.text_id = int(configs["ugm_text_id"])
         self.text_ids = [int(i) for i in configs["ugm_text_ids"].split(';')]
@@ -38,7 +38,7 @@ class SpellerEngine(object):
         self.updateDecBank("say")
         if not msg:
             msg = self._message
-        LOGGER.info("TRYING TO SAY: "+msg)
+        self.info("TRYING TO SAY: "+msg)
         self.run_ext(u''.join(
                 [#u'milena_say ', msg, u" &"
                     u'echo "', msg,'" | ',
@@ -75,7 +75,7 @@ class SpellerEngine(object):
         """Sent to self._server current logic data:
         - current message,
         """
-        LOGGER.info("UPDATE MESSAGE: "+self._message)
+        self.logger.info("UPDATE MESSAGE: "+self._message)
         l_config = []
 
         l_letters = self._compute_current_letters()
@@ -86,7 +86,7 @@ class SpellerEngine(object):
         l_config.append({'id':self.text_id,
                          'message':self._message})
         l_str_config = str(l_config)
-        LOGGER.info("UPDATE: "+l_str_config)
+        self.logger.info("UPDATE: "+l_str_config)
         ugm_helper.send_config(self.conn, l_str_config, 1)
             
 

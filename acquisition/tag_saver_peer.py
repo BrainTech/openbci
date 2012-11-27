@@ -7,14 +7,10 @@ from multiplexer.multiplexer_constants import peers, types
 
 import sys, os.path, time
 from obci_configs import settings, variables_pb2
-
-from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.tags import tags_file_writer as tags_writer
 from analysis.obci_signal_processing.tags import tag_utils
 
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-
-LOGGER = logger.get_logger("tags_saver", 'info')
 
 TAG_FILE_EXTENSION = ".obci.tag"
 
@@ -50,7 +46,7 @@ class TagSaver(ConfiguredMultiplexerServer):
             l_tag = tag_utils.pack_tag_to_dict(str_tag.start_timestamp, str_tag.end_timestamp,
                                                     str_tag.name, tag_desc, str_tag.channels)
 
-            LOGGER.info(''.join(['Tag saver got tag: ',
+            self.logger.info(''.join(['Tag saver got tag: ',
                                 'start_timestamp:',
                                 repr(l_tag['start_timestamp']),
                                 ', end_timestamp: ', 
@@ -59,22 +55,22 @@ class TagSaver(ConfiguredMultiplexerServer):
                                 l_tag['name'],
                                 '. <Change debug level to see desc.>']))
                                   
-            LOGGER.debug("Signal saver got tag: "+str(l_tag))
+            self.logger.debug("Signal saver got tag: "+str(l_tag))
             self._tag_received(l_tag)
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             ctr = mxmsg.message
             if ctr == 'finish':
                 if not self._session_is_active:
-                    LOGGER.error("Attempting to finish saving tags while session is not active.!")
+                    self.logger.error("Attempting to finish saving tags while session is not active.!")
                     return 
                 self._session_is_active = False
-                LOGGER.info("Got finish saving message. Waiting for saver_finished message...")
+                self.logger.info("Got finish saving message. Waiting for saver_finished message...")
             else:
-                LOGGER.warning("Tag saver got unknown control message "+ctr+"!")                
+                self.logger.warning("Tag saver got unknown control message "+ctr+"!")                
             
         elif mxmsg.type == types.SIGNAL_SAVER_FINISHED:
             if self._session_is_active:
-                LOGGER.warning("Got saver_finished before getting saver control message... This shouldn`t happen, but continue anyway...")
+                self.logger.warning("Got saver_finished before getting saver control message... This shouldn`t happen, but continue anyway...")
                 self._session_is_active = False
 
             l_vec = variables_pb2.VariableVector()
@@ -86,7 +82,7 @@ class TagSaver(ConfiguredMultiplexerServer):
                     self._finish_saving(float(i_var.value))
                     time.sleep(3)
                     sys.exit(0)
-            LOGGER.error("Got saver finished message without first_sample_timestamp. Do noting ...")
+            self.logger.error("Got saver finished message without first_sample_timestamp. Do noting ...")
         self.no_response()
 
 
@@ -96,7 +92,7 @@ class TagSaver(ConfiguredMultiplexerServer):
         of a first sample stored by signal saver (p_first_sample_ts)."""
 
         # Save tags
-        LOGGER.info("Finish saving with first sample ts: "+str(p_first_sample_ts))
+        self.logger.info("Finish saving with first sample ts: "+str(p_first_sample_ts))
         l_file_path = self._tags_proxy.finish_saving(p_first_sample_ts)
 
         l_vec = variables_pb2.VariableVector()
@@ -108,7 +104,7 @@ class TagSaver(ConfiguredMultiplexerServer):
             message=l_vec.SerializeToString(),
             type=types.TAG_SAVER_FINISHED, flush=True)
 
-        LOGGER.info("Tags file saved to: "+l_file_path)
+        self.logger.info("Tags file saved to: "+l_file_path)
         return l_file_path
 
     def _tag_received(self, p_tag_dict):

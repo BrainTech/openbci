@@ -9,6 +9,7 @@ from obci_control.peer.configured_client import ConfiguredClient
 
 from obci_configs import settings, variables_pb2
 from drivers import drivers_logging as logger
+from obci_utils import context as ctx
 from gui.ugm import ugm_engine
 from gui.ugm import ugm_internal_server
 from gui.ugm import ugm_config_manager
@@ -17,14 +18,20 @@ from gui.ugm.blinking import ugm_blinking_connection
 class UgmEnginePeer(ConfiguredClient):
     def __init__(self, addresses):
         super(UgmEnginePeer, self).__init__(addresses=addresses, type=peers.UGM_ENGINE_PEER)
-        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
+
+        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES,
+                                                                   context)
         ENG = ugm_engine.UgmEngine(
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
-            connection)
+            connection,
+            context)
         srv = ugm_internal_server.UdpServer(
             ENG, 
             self.get_param('internal_ip'),
-            int(self.get_param('use_tagger'))
+            int(self.get_param('use_tagger')),
+            context
             )
         self.set_param('internal_port', str(srv.socket.getsockname()[1]))
         thread.start_new_thread(

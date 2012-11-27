@@ -8,18 +8,17 @@ import os.path, sys, time, os
 
 from multiplexer.multiplexer_constants import peers, types
 from obci_configs import settings, variables_pb2
-
+from obci_utils import context as ctx
 from logic.logic_speller_peer import LogicSpeller
 from logic.engines.robot_engine import RobotEngine
-
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_robot", "info")
 
 class LogicRobot(LogicSpeller, RobotEngine):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
-        LogicSpeller.__init__(self, addresses=addresses)
-        RobotEngine.__init__(self, self.config.param_values())
+        LogicSpeller.__init__(self, addresses=addresses, context)
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
+        RobotEngine.__init__(self, self.config.param_values(), context)
         self.ready()
 
 if __name__ == "__main__":

@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import random, time
-from interfaces import interfaces_logging as logger
 import numpy as np
 
 from interfaces.bci.p300_fda.p300_fda import P300_analysis
 from interfaces.bci.p300_fda.p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
+from obci_utils import context as ctx
 
-LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
-    def __init__(self, send_func, cfg, montage_matrix, sampling):
-        
+    def __init__(self, send_func, cfg, montage_matrix, sampling,
+                 context=ctx.get_dummy_context('BCIP300FdaAnalysis')):
+        self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
@@ -70,8 +70,8 @@ class BCIP300FdaAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
-        LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
+        self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
         
         # Get's montaged signal
@@ -95,7 +95,7 @@ class BCIP300FdaAnalysis(object):
         print "dec: ", dec
 
         if dec != -1:
-            LOGGER.info("Decision from P300: " +str(dec) )
+            self.logger.info("Decision from P300: " +str(dec) )
             
             if self.debugFlag:
                 self.p300_draw.savePlotsSignal(self.p300.getSignal(), 'signal_%i_%i.png' %(self.epochNo,dec) )
@@ -108,4 +108,4 @@ class BCIP300FdaAnalysis(object):
             
             self.send_func(dec)
         else:
-            LOGGER.info("Got -1 ind- no decision")
+            self.logger.info("Got -1 ind- no decision")

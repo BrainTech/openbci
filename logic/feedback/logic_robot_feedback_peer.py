@@ -16,10 +16,6 @@ from gui.ugm import ugm_helper
 import devices.pyrovio.rovio as rovio
 from common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
-
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_robot_feedback", "info")
-
 class LogicRobotFeedback(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
@@ -45,18 +41,18 @@ class LogicRobotFeedback(ConfiguredClient):
             try:
                 image = self._robot.get_image()
             except:
-                LOGGER.error("Could not connect to ROBOT. Feedback is OFF!")
+                self.logger.error("Could not connect to ROBOT. Feedback is OFF!")
             else:
                 try:
                     with open(imgpath, 'w') as fil:
                         fil.write(image)
                         fil.close()
                         ugm_helper.send_config_for(self.conn, self.robot_image_id, 'image_path', imgpath)
-                        LOGGER.debug("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
+                        self.logger.debug("Robot image sent " + imgpath + ' id: ' + str(self.robot_image_id))
                         index = int(not index)
                         imgpath = self.paths[index]
                 except:
-                    LOGGER.error("An error occured while writing image to file!")
+                    self.logger.error("An error occured while writing image to file!")
                 time.sleep(0.05)
 
 if __name__ == "__main__":

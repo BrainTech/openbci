@@ -8,8 +8,6 @@ from gui.ugm import ugm_helper
 from interfaces.etr import hci_etr
 from interfaces.etr.natural import etr_natural_dec_manager
 from interfaces.etr import etr_ugm_manager
-from interfaces import interfaces_logging as logger
-LOGGER = logger.get_logger("hci_etr_classic", "info")
 
 class HciEtrNatural(hci_etr.HciEtr):
     def __init__(self, addresses):
@@ -38,7 +36,7 @@ class HciEtrNatural(hci_etr.HciEtr):
         
 
     def handle_etr_message(self, msg):
-        LOGGER.debug("Got etr msg: "+str(msg))
+        self.logger.debug("Got etr msg: "+str(msg))
         
         msg = self.dec_mgr.getRealData(msg)
         
@@ -55,7 +53,7 @@ class HciEtrNatural(hci_etr.HciEtr):
         Handles massage that informs when was calibration processed.
         """
         #### What to do when receive ETR_MATRIX information
-        LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
+        self.logger.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
         self.dec_mgr.updateTransformationMatrix(data)
 
 if __name__ == "__main__":

@@ -19,9 +19,6 @@ import p300
 import matplotlib.pyplot as plt
 from logic import logic_helper
 
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("p300_csp", 'info')
-
 class LogicP300Csp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
@@ -61,14 +58,14 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.TAG_SAVER_FINISHED:
             self._tags_finished = True
         else:
-            LOGGER.warning("Unrecognised message received!!!!")
+            self.logger.warning("Unrecognised message received!!!!")
         self.no_response()
 
         if self._all_ready():
             self.run()
 
     def run(self):
-        LOGGER.info("START CSP...")
+        self.logger.info("START CSP...")
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
         in_file = acquisition_helper.get_file_path(f_dir, f_name)
@@ -86,7 +83,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
 			except:
 				pass
 
-        LOGGER.info("USE CHANNELS: "+str(self.use_channels))
+        self.logger.info("USE CHANNELS: "+str(self.use_channels))
         csp_time=[0.0,0.7]
         data = p300.p300_train(
             in_file+'.obci',
@@ -97,7 +94,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         mean, left, right = data.get_mean(new_tags, m_time=csp_time, plot_mean=True)
         buffer_start = int(-csp_time[0]*fs)
         buffer_len = len(mean)
-        LOGGER.info("Computer buffer start / len: "+str(buffer_start)+" / "+str(buffer_len))
+        self.logger.info("Computer buffer start / len: "+str(buffer_start)+" / "+str(buffer_len))
         mean[:left] = 0
         mean[right:] = 0
 	t_vec = data.show_mean_CSP(csp_time, new_tags)
@@ -135,7 +132,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
         ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-        LOGGER.info("CSP DONE")
+        self.logger.info("CSP DONE")
         if not self.run_offline:
             self._run_next_scenario()
 
@@ -144,7 +141,7 @@ class LogicP300Csp(ConfiguredMultiplexerServer):
         if len(path) > 0:
             logic_helper.restart_scenario(path)
         else:
-            LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
+            self.logger.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
 
 if __name__ == "__main__":

@@ -10,10 +10,8 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from obci_configs import settings, variables_pb2
-from acquisition import acquisition_logging as logger
 from analysis.obci_signal_processing.signal import info_file_proxy
 
-LOGGER = logger.get_logger("info_saver", 'info')
 INFO_FILE_EXTENSION = ".obci.xml"
 
 class InfoSaver(ConfiguredMultiplexerServer):
@@ -45,7 +43,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         * signal_saver_control_message - a message from signal saver
         being a signal to finish saving."""
         if mxmsg.type == types.SIGNAL_SAVER_FINISHED:
-            LOGGER.info("Got signal saver finished!")
+            self.logger.info("Got signal saver finished!")
             l_vec = variables_pb2.VariableVector()
             l_vec.ParseFromString(mxmsg.message)
             l_num_of_samples = None
@@ -95,7 +93,7 @@ class InfoSaver(ConfiguredMultiplexerServer):
         l_log = "Finished saving info with values:\n"
         for i_key, i_value in l_signal_params.iteritems():
             l_log = ''.join([l_log, i_key, " : ", str(i_value), "\n"])
-        LOGGER.info(l_log)
+        self.logger.info(l_log)
 
         self._info_proxy.finish_saving(l_signal_params)
         l_msg = self._serialise_finished_msg(l_signal_params)
