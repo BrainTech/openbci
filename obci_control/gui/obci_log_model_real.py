@@ -41,8 +41,7 @@ class RealLogModel(obci_log_model.LogModel):
     def start_running(self, exp):
         port = self._init_socket()
         exp.add_peer('logger', 'obci_control/gui/obci_log_peer.py', 
-                      config_sources=None, launch_deps=None, custom_config_path=None, machine=None)
-        #TODO - ustawic machine na local
+                      config_sources=None, launch_deps=None, custom_config_path=None, machine=socket.gethostname())
         exp.update_peer_param('logger', 'port', str(port))
         super(RealLogModel, self).start_running(exp)
 

@@ -21,7 +21,7 @@ class LogModel(QtCore.QObject):
         self._start_thread(exp)
 
     def _start_thread(self, exp):
-        self._exp = exp
+        #self._exp = exp
         self._run = True
         self._is_running = True
         thread.start_new_thread(
