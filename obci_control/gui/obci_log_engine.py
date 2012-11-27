@@ -71,7 +71,6 @@ class LogEngine(QtCore.QObject):
 
     def experiment_stopped(self):
         print 'experiment stopped'
-        self._model.stop_running()
 
     def experiment_started(self):
         print 'experiment started'
