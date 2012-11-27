@@ -11,8 +11,6 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from obci_configs import settings, variables_pb2
 from obci_utils import tags_helper
-from obci_utils import openbci_logging as logger
-LOGGER = logger.get_logger("diode_catcher_peer", 'debug')
 
 class DiodeCatcher(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -24,7 +22,7 @@ class DiodeCatcher(ConfiguredMultiplexerServer):
         if mxmsg.type == types.DIODE_MESSAGE:
             msg = variables_pb2.Diode()
             msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT DIODE: "+repr(msg.timestamp)+" / "+str(msg.value))
+            self.logger.debug("GOT DIODE: "+repr(msg.timestamp)+" / "+str(msg.value))
             tags_helper.send_tag(self.conn, msg.timestamp, msg.timestamp, "diode",
                                  {"freqs" : msg.value})
         self.no_response()
