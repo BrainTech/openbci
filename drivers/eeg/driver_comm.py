@@ -8,19 +8,17 @@ import signal
 import time
 import socket
 
-from drivers import drivers_logging as logger
 from launcher.launcher_tools import obci_root
 
 from subprocess import Popen
 from threading  import Thread
+from obci_utils import context as ctx
 
 try:
     from Queue import Queue, Empty
 except ImportError:
     from queue import Queue, Empty  # python 3.x
 
-
-LOGGER = logger.get_logger("DriverComm", "info")
 SEP = ';'
 
 class DriverComm(object):
@@ -44,7 +42,8 @@ class DriverComm(object):
         >>> driv.terminate_driver()
     """
     
-    def __init__(self, peer_config, mx_addresses=[('localhost', 41921)], catch_signals=True):
+    def __init__(self, peer_config, mx_addresses=[('localhost', 41921)], catch_signals=True,
+                 context=ctx.get_dummy_context('DriverComm')):
         """ *peer_config* - parameter provider. Should respond to get_param(param_name, value)
         and has_param(param_name) calls. PeerConfig and PeerControl objects are suitable.
         *mx_addresses* - list of (host, port) pairs. Port value None means using default
@@ -55,7 +54,8 @@ class DriverComm(object):
             # FIXME
             self._mx_addresses = mx_addresses
         if not hasattr(self, "logger"):
-            self.logger = LOGGER
+            self.logger = context['logger']
+
         self.driver = self.run_driver(self.get_run_args((socket.gethostbyname(
                                 self._mx_addresses[0][0]), self._mx_addresses[0][1])))
         self.driver_out_q = Queue()

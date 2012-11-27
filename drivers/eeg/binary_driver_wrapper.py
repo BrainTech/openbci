@@ -7,6 +7,7 @@ from multiplexer.multiplexer_constants import peers, types
 from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from drivers.eeg.driver_comm import DriverComm
 from obci_configs import settings
+from obci_utils import context as ctx
 
 import json
 
@@ -33,7 +34,9 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
         super(BinaryDriverWrapper, self).__init__(addresses=addresses, type=type)
         self._init_got_configs()
         self._mx_addresses = addresses
-        DriverComm.__init__(self, self.config, addresses)
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
+        DriverComm.__init__(self, self.config, addresses, context)
 
         desc = self.get_driver_description()
         if desc.startswith('DEVICE OPEN ERROR'):

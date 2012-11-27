@@ -8,9 +8,6 @@ from drivers.switch import external_audio_switch as audio_switch
 from obci_configs import settings, variables_pb2
 import random, time, sys
 
-from drivers import drivers_logging as logger
-LOGGER = logger.get_logger("external_switch_amplifier_peer", "info")
-
 class ExternalSwitchAmplifier(ConfiguredClient):
     def __init__(self, addresses):
         super(ExternalSwitchAmplifier, self).__init__(addresses=addresses,
@@ -22,11 +19,12 @@ class ExternalSwitchAmplifier(ConfiguredClient):
         while True:
             dec = self.driver.next()
             if dec:
-                LOGGER.info("Send switch message")
+                self.logger.info("Send switch message")
                 self.conn.send_message(message = "",
                                        type = types.SWITCH_MESSAGE, flush=True)            
             else:
-                LOGGER.debug("No decision. Keep on...")
+                self.logger.debug("No decision. Keep on...")
+            time.sleep(0.1)
 if __name__ == "__main__":
     ExternalSwitchAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
 
