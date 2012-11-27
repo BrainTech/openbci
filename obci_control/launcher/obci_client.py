@@ -210,6 +210,26 @@ class OBCIClient(object):
         send_msg(sock, self.mtool.fill_msg("join_experiment",
                                         peer_id=peer_id, path=path, peer_type='obci_peer'))
         response, details = self.poll_recv(sock, 5000)
+        sock.close()
+        return response
+
+    def add_peer(self, strname, peer_id, path, machine, param_overwrites=None, 
+                        custom_config_path=None, config_sources=None, launch_dependencies=None,
+                        apply_globals=True):
+        response = self.get_experiment_contact(strname)
+
+        if response.type == "rq_error":
+            return response
+
+        sock = self.ctx.socket(zmq.REQ)
+        self._connect(sock, response.rep_addrs)
+        send_msg(sock, self.mtool.fill_msg("add_peer",
+                                        peer_id=peer_id, peer_path=path, peer_type='obci_peer',
+                                        machine=machine, param_overwrites=param_overwrites,
+                                        custom_config_path=custom_config_path, config_sources=config_sources,
+                                        launch_dependencies=launch_dependencies, apply_globals=apply_globals))
+        response, details = self.poll_recv(sock, 5000)
+        sock.close()
         return response
 
     def _connect(self, sock, addr_list):

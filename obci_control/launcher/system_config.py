@@ -77,7 +77,7 @@ class OBCIExperimentConfig(object):
 
     def extend_with_peer(self, peer_id, peer_path, peer_cfg, 
                                             config_sources=None, launch_deps=None, 
-                                             custom_config_path=None, machine=None):
+                                            param_overwrites=None, machine=None):
         override = peer_id in self.peers
         machine = machine or ""
 
@@ -102,6 +102,10 @@ class OBCIExperimentConfig(object):
             for dep in peer_cfg.launch_deps:
                 if dep in self.peers:
                     self.set_launch_dependency(peer_id, dep, dep)
+
+        if param_overwrites:
+            for par, val in param_overwrites.iteritems():
+                self.update_local_param(peer_id, par, val)
             
         return override
 

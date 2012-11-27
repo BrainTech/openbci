@@ -9,6 +9,8 @@ import codecs
 import os
 import socket
 import uuid
+import io
+import json
 
 import common.net_tools as net
 from common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
@@ -17,6 +19,9 @@ from launcher.launcher_messages import message_templates
 import launcher.obci_script as obci_script
 import launcher.launcher_tools as launcher_tools
 from launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
+
+from peer.peer_config_parser import PeerConfigParserDict
+from peer.peer_config import PeerConfig
 
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
 DEFAULT_CATEGORY, USER_CATEGORY
@@ -99,6 +104,9 @@ class OBCILauncherEngine(QtCore.QObject):
         self.monitor_push.close()#linger=0)
         for exp in self.experiments:
             exp.cleanup()
+            exp.setParent(None)
+            exp.deleteLater()
+
         self.experiments = []
         self.obci_monitor_thr.join()
 
@@ -241,6 +249,8 @@ class OBCILauncherEngine(QtCore.QObject):
             self._handle_experiment_transformation(launcher_message)
         elif type_ == 'nearby_machines':
             self._handle_nearby_machines(launcher_message)
+        elif type_ == "new_peer_added":
+            self._handle_new_peer_added(launcher_message)
         else:
             handled = False
 
@@ -399,6 +409,22 @@ experiments is possible only when launcher is running (command: obci srv)')))
 
     def _handle_nearby_machines(self, msg):
         self._cached_nearby_machines = msg.nearby_machines
+
+    def _handle_new_peer_added(self, msg):
+        # add new peer status and configuration so it is visible in GUI
+        peer_id = msg.peer_id
+        index = self.index_of(msg.uuid)
+        if index is not None:
+            exp = self.experiments[index]
+            par = PeerConfigParserDict()
+            conf = PeerConfig(peer_id)
+            dic_conf = json.loads(msg.config)
+
+            par.parse(dic_conf, conf)
+            exp.exp_config.extend_with_peer(peer_id, msg.peer_path, conf)
+            exp.status.peers_status[peer_id] = launcher_tools.PeerStatus(peer_id, 
+                                                    status_name=msg.status_name)
+        print msg
 
     def list_experiments(self):
         return self.experiments

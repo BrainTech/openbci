@@ -61,7 +61,7 @@ message_templates = {
     "kill_sent" : dict(experiment_id=''),
 
     "start_mx" : dict(args=''),
-    "start_peers" : dict(mx_data=''),
+    "start_peers" : dict(mx_data='', add_launch_data=''),
     "manage_peers" : dict(kill_peers='', start_peers_data=''),
     "dead_process" : dict(machine='', pid='', status=''),
 
@@ -73,6 +73,11 @@ message_templates = {
 
     "join_experiment" : dict(peer_id='', peer_type='', path=''),
     "leave_experiment" : dict(peer_id=''),
+
+    "add_peer": dict(peer_id='', peer_path='', peer_type='', machine='', param_overwrites='', 
+                                custom_config_path='', config_sources='', launch_dependencies='',
+                                 apply_globals=''),
+    "new_peer_added": dict(uuid='', peer_id='', config='', peer_path='', machine='',status_name=''),
 
     "obci_peer_params_changed" : dict(peer_id='', params=''),
     "obci_peer_registered" : dict(peer_id='', params=''),

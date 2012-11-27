@@ -289,7 +289,8 @@ def parse_peer_default_config(peer_id, peer_program_path, logger=None, apply_glo
 
 def extend_experiment_config(exp_config, peer_id, peer_path, 
                                             config_sources=None, launch_deps=None, 
-                                             custom_config_path=None, machine=None, apply_globals=True):
+                                             custom_config_path=None, param_overwrites=None, 
+                                             machine=None, apply_globals=True):
     peer_cfg, cfg_parser = parse_peer_default_config(
                                     peer_id, peer_path, apply_globals=apply_globals)
     if custom_config_path:
@@ -299,4 +300,4 @@ def extend_experiment_config(exp_config, peer_id, peer_path,
 
     return exp_config.extend_with_peer(peer_id, peer_path, peer_cfg, 
                                             config_sources, launch_deps, 
-                                             custom_config_path, machine)
+                                            param_overwrites, machine)

@@ -186,7 +186,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             md[0] = tuple(mx_addr)
             self.mx_data = tuple(md)
             self.env = self.peer_env(self.mx_data)
-        self._launch_processes(self.launch_data)
+        if message.add_launch_data:
+            if self.machine in  message.add_launch_data:
+                self._launch_processes(message.add_launch_data[self.machine])
+        else:
+            self._launch_processes(self.launch_data)
 
 
     @msg_handlers.handler("manage_peers")

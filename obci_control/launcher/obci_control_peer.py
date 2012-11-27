@@ -502,7 +502,7 @@ class RegistrationDescription(object):
         self.other = other
 
     def info(self):
-        return dict(machine=self.machine, pid=self.pid, uuid=self.uuid, name=self.name,
+        return dict(machine=self.machine_ip, pid=self.pid, uuid=self.uuid, name=self.name,
                         rep_addrs=self.rep_addrs, pub_addrs=self.pub_addrs, other=self.other)
 
 

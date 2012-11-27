@@ -292,17 +292,18 @@ class ExperimentEngineInfo(QtCore.QObject):
                     args += ['-p', arg, self.exp_config.param_value(peer_id, arg)]
         pack = peer_cmd.peer_overwrites_pack(args)
         d['overwrites'] = pack
+        print "overwrites pack!!!!!!!!!!!!!!!!!!!!!  ", pack
         return d
 
     def peer_info(self, peer_id):
         return self.exp_config.peers[peer_id]
 
     def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None, 
-                                             custom_config_path=None, machine=None):
+                                             custom_config_path=None, param_overwrites=None,machine=None):
 
         return launch_file_parser.extend_experiment_config(self.exp_config, peer_id, peer_path,
                      config_sources, launch_deps,
-                    custom_config_path, machine, apply_globals=True)
+                    custom_config_path, param_overwrites, machine, apply_globals=True)
 
 
     def enable_signal_storing(self, store_options):

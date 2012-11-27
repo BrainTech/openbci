@@ -18,6 +18,9 @@ TERMINATED = 'terminated'
 EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED]
 
+POST_RUN_STATUSES = [FINISHED, FAILED, TERMINATED, FAILED_LAUNCH]
+RUN_STATUSES = [LAUNCHING, RUNNING]
+
 
 class ExperimentStatus(object):
     def __init__(self):
@@ -45,9 +48,9 @@ class ExperimentStatus(object):
 
 
 class PeerStatus(object):
-    def __init__(self, peer_id):
+    def __init__(self, peer_id, status_name=NOT_READY):
         self.peer_id = peer_id
-        self.status_name = NOT_READY
+        self.status_name = status_name
         self.details = {}
 
     def set_status(self, status_name, details=()):
