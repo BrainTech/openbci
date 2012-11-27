@@ -5,20 +5,18 @@ sys.path.append("../../../multiplexer-install/lib/python2.6/site-packages/")
 sys.path.append("../../../obci_control")
 sys.path.append("../../../")
 sys.path.append("../../")
-from openbci.core import  core_logging as logger
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import peer.peer_config_control
 from subprocess import Popen
 import json
-LOGGER = logger.get_logger("DriverServer","info")
 class DriverServer(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(DriverServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
         self.config = peer.peer_config_control.PeerControl(self)
         self.config.initialize_config(self.conn)
         args=self.get_run_args(addresses[0])
-        LOGGER.info("Executing: "+' '.join(args))
+        self.logger.info("Executing: "+' '.join(args))
         self.driver=Popen(args,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
         out = self._communicate()
         self.load_params(out)
@@ -55,28 +53,28 @@ class DriverServer(BaseMultiplexerServer):
         self.driver.wait()    
     
     def set_sampling_rate(self,sampling_rate):
-        LOGGER.info("Set sampling rate: %s "%sampling_rate)
+        self.logger.info("Set sampling rate: %s "%sampling_rate)
         error=self._communicate("sampling_rate "+str(sampling_rate))
         if error:
             print error
     def set_active_channels(self,active_channels):
-        LOGGER.info("Set Active channels: %s"%active_channels)
+        self.logger.info("Set Active channels: %s"%active_channels)
         error=self._communicate("active_channels "+str(active_channels))
         if error:
             print error
     def start_sampling(self):
         signal.signal(signal.SIGINT, self.stop_sampling)
-        LOGGER.info("Start sampling")
+        self.logger.info("Start sampling")
         error=self._communicate("start")
         if error:
             print error
-        LOGGER.info("Sampling started")
+        self.logger.info("Sampling started")
     def stop_sampling(self,_1=None,_2=None):
         sys.stderr.write("stop sampling")
-        LOGGER.info("Stop sampling")
+        self.logger.info("Stop sampling")
         signal.signal(signal.SIGINT, signal.SIG_DFL)
         self.driver.send_signal(signal.SIGINT)
-        LOGGER.info("Sampling stopped")
+        self.logger.info("Sampling stopped")
     def _communicate(self,command=""):
         out=""
         self.driver.stdin.write(command+"\n")
