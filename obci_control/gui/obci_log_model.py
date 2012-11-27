@@ -61,7 +61,7 @@ class LogModel(QtCore.QObject):
         while self._run:
             peer_id, log = self.next_log()
             if peer_id is None:
-                print ("obci_log_model - ERROR IN RECEIVING LOG ON SOCKET OR TIMEOUT!")
+                #print ("obci_log_model - ERROR IN RECEIVING LOG ON SOCKET OR TIMEOUT!")
                 time.sleep(0.1)
             else:
                 self._mutex.lock()

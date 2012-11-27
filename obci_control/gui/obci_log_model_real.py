@@ -8,16 +8,18 @@ import json
 
 BUF = 2**15
 class RealLogModel(obci_log_model.LogModel):
-    def __init__(self):
+    def __init__(self, srv_client):
         super(RealLogModel, self).__init__()
+        self.srv_client = srv_client
 
     def next_log(self):
         try:
-            print("log model - waiting on socket ...")
+            #print("log model - waiting on socket ...")
             ready = select.select([self.socket], [], [], 0.5)
             if ready[0]:
                 data = self.socket.recv(BUF)  
-                print("log model - got log!!!!!! "+str(data))
+                #print("log model - got log!!!!!! "+str(data))
+                print("log model - got log")
                 return self._process_log(data)
             else:
                 raise Exception("Socket timeout!")
@@ -46,9 +48,11 @@ class RealLogModel(obci_log_model.LogModel):
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
+        print("COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
         port = self._init_socket()
-        #TODO - join logger to experiment
-
+        res = self.srv_client.add_peer(exp.uuid, 'logger_'+str(time.time()), 'obci_control/gui/obci_log_peer.py',
+                                       socket.gethostname(), param_overwrites={'port':str(port)})
+        print("Srv client status add: "+str(res))
         super(RealLogModel, self).connect_running(exp)
 
 

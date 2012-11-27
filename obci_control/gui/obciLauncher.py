@@ -486,6 +486,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for exp in scenarios:
             if exp.uuid not in self.exp_states:
                 st = new_states[exp.uuid] = ExperimentGuiState(
+                    self.engine.client,
                     exp, 
                     self.log_engine,
                     self.exp_states.get(exp.old_uid, None)
@@ -592,13 +593,13 @@ class ObciTreeWidgetItem(QTreeWidgetItem):
         super(ObciTreeWidgetItem, self).__init__(header_list)
 
 class ExperimentGuiState(object):
-    def __init__(self, engine_experiment, log_engine, old_exp=None):
+    def __init__(self, srv_client, engine_experiment, log_engine, old_exp=None):
 
         self.exp = engine_experiment
         self.expanded_peers = set()
         if old_exp is None:
             self.store_options = None
-            self.log_model = obci_log_model_real.RealLogModel()
+            self.log_model = obci_log_model_real.RealLogModel(srv_client)
             self.log_model.update_log.connect(log_engine.update_log)
         else:
             self.store_options = old_exp.store_options
