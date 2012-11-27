@@ -10,9 +10,6 @@ from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from analysis.obci_signal_processing.signal import data_write_proxy
 from obci_configs import settings, variables_pb2
-from acquisition import acquisition_logging as logger
-
-LOGGER = logger.get_logger("etr_saver", 'info')
 
 DATA_FILE_EXTENSION = '.etr.raw'
 
@@ -20,7 +17,7 @@ class EtrSaver(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
         super(EtrSaver, self).__init__(addresses=addresses, 
                                           type=peers.ETR_SAVER)
-        LOGGER.info("Request system settings ...")
+        self.logger.info("Request system settings ...")
 
         f_dir = os.path.expanduser(os.path.normpath(self.config.get_param("save_file_path")))
         f_name = self.config.get_param("save_file_name")
@@ -31,7 +28,7 @@ class EtrSaver(ConfiguredMultiplexerServer):
         self._data_proxy = data_write_proxy.get_proxy(f_path)
 
         self.ready()
-        LOGGER.info("EtrSaver init finished!")
+        self.logger.info("EtrSaver init finished!")
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
