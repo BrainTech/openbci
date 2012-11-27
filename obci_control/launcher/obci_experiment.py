@@ -522,7 +522,8 @@ class OBCIExperiment(OBCIControlPeer):
             send_msg(sock, self.mtool.fill_msg('rq_ok'))
             send_msg(self._publish_socket, self.mtool.fill_msg('experiment_scenario',
                                             scenario=message.scenario,
-                                            launch_file_path=message.launch_file_path))
+                                            launch_file_path=message.launch_file_path,
+                                            uuid=self.uuid))
             send_msg(self.source_req_socket, self.mtool.fill_msg('experiment_info_change', uuid=self.uuid,
                 name=self.name, launch_file_path=message.launch_file_path))
             self.poller.poll_recv(self.source_req_socket, timeout=8000)

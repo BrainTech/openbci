@@ -222,7 +222,8 @@ class OBCILauncherEngine(QtCore.QObject):
         handled = True
         if type_ == 'experiment_created':
             self._handle_experiment_created(launcher_message)
-
+        elif type_ == 'experiment_scenario':
+            self._handle_experiment_scenario_set(launcher_message)
         elif type_ == 'launcher_shutdown':
             self._handle_launcher_shutdown(launcher_message)
 
@@ -273,6 +274,12 @@ class OBCILauncherEngine(QtCore.QObject):
             exps.append(self.make_exp_obj(launcher_data=msg.dict(), ctx=self.ctx))
 
         self._exp_connect(msg.dict())
+
+    def _handle_experiment_scenario_set(self, msg):
+        index = self.index_of(msg.uuid)
+        if index is not None:
+            exp = self.experiments[index]
+            exp.update_scenario(msg.launch_file_path, msg.scenario)
 
     def _handle_experiment_transformation(self, msg):
         exps = self.experiments
