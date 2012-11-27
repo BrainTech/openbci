@@ -5,29 +5,26 @@
 #
 
 import random, time, pickle
-
+from obci_utils import context as ctx
 from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from obci_configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
-from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_ring_buffer
 from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci_utils import streaming_debug
 from obci_utils import tags_helper
 
-LOGGER = logger.get_logger("bci_ssvep_fast_csp", "info")
 DEBUG = False
-
 
 class BCISsvepCsp(ConfiguredMultiplexerServer):
     def send_decision(self, dec):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
-        LOGGER.info("Sending dec message: "+str(dec))
+        self.logger.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
         self.buffer.clear()
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
@@ -51,7 +48,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
 
         freqs = [int(f) for f in cfg['freqs'].split(';')]
         str_freqs = [str(f) for f in freqs]
-        LOGGER.info("freqs:"+str(freqs))
+        self.logger.info("freqs:"+str(freqs))
 
         sampling = int(self.config.get_param('sampling_rate'))
         buffer = int(float(cfg['buffer'])*sampling)
@@ -59,7 +56,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         if len(maybe_buffer) > 0:
             old_buffer = buffer
             buffer = int(float(maybe_buffer)*sampling)
-            LOGGER.info("Overwrite buffer from csp:"+str(old_buffer)+" with from config:"+str(buffer))
+            self.logger.info("Overwrite buffer from csp:"+str(old_buffer)+" with from config:"+str(buffer))
             
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision, freqs, cfg, montage_matrix)
@@ -81,12 +78,12 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         if DEBUG:
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
-                                               LOGGER,
+                                               self.logger,
                                                int(self.config.get_param('samples_per_packet')))
         self._last_dec_time = time.time() + 5 #sleep 5 first seconds..
         self.ready()
         appliance_helper.send_freqs(self.conn, str_freqs)
-        LOGGER.info("BCIAnalysisServer init finished!")
+        self.logger.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         if self._last_dec_time > 0:
@@ -116,12 +113,16 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         - set_configs(configs)
         - analyse(data)
         """
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
         return bci_ssvep_csp_analysis.BCISsvepCspAnalysis(
             send_func,
             freqs,
             cfg,
             montage_matrix,
-            int(self.config.get_param('sampling_rate')))
+            int(self.config.get_param('sampling_rate')),
+            True,
+            context)
 
 
     def _get_csp_config(self):

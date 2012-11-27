@@ -16,9 +16,6 @@ from obci_utils import tags_helper
 
 from acquisition import acquisition_helper
 
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_p300_calibration", "info")
-
 class LogicP300Calibration(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
@@ -44,13 +41,13 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.BLINK_MESSAGE:
             self._handle_blink(mxmsg.message)
         else:
-            LOGGER.warning("Got unrecognised message type: "+mxmsg.type)
+            self.logger.warning("Got unrecognised message type: "+mxmsg.type)
         self.no_response()
 
     def _handle_blink(self, msg):
         b = variables_pb2.Blink()
         b.ParseFromString(msg)
-        LOGGER.debug("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
+        self.logger.debug("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
         tags_helper.send_tag(self.conn, 
                              b.timestamp, b.timestamp+self.blink_duration, "blink",
                              {"index" : b.index,
@@ -61,24 +58,24 @@ class LogicP300Calibration(ConfiguredMultiplexerServer):
         m = variables_pb2.Variable()
         m.ParseFromString(msg)
         if m.key == "blinking_stopped":
-            LOGGER.info("Got blinking stopped message!")
+            self.logger.info("Got blinking stopped message!")
             self._trials_counter -= 1
             if self._trials_counter <= 0:
-                LOGGER.info("All trials passed")
+                self.logger.info("All trials passed")
                 self.end()
             else:
-                LOGGER.info("Blinking stopped...")
+                self.logger.info("Blinking stopped...")
                 self.blinking_stopped()
         else:
-            LOGGER.info("Got unrecognised ugm engine message: "+str(m.key))
+            self.logger.info("Got unrecognised ugm engine message: "+str(m.key))
 
     def begin(self):
         ugm_helper.send_text(self.conn, self.hi_text)
         #keystroke.wait([" "])
         time.sleep(5)
-        LOGGER.info("Send begin config ...")
+        self.logger.info("Send begin config ...")
         ugm_helper.send_config(self.conn, self.blinking_ugm)
-        LOGGER.info("Send start blinking on begin ...")
+        self.logger.info("Send start blinking on begin ...")
         ugm_helper.send_start_blinking(self.conn)
 
     def end(self):

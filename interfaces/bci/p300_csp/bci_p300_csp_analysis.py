@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import random, time, pickle, os.path
-from interfaces import interfaces_logging as logger
 import numpy as np
 import scipy.signal as ss
 from scipy.signal import hamming
 from analysis.csp.filtfilt import filtfilt
 from analysis.csp.artifactClassifier import artifactsClasifier
 import p300
+from obci_utils import context as ctx
 
-LOGGER = logger.get_logger("bci_p300_csp_analysis", "debug")
 DEBUG = False
 
 class BCIP300CspAnalysis(object):
-    def __init__(self, send_func, cfg, montage_matrix, sampling):
+    def __init__(self, send_func, cfg, montage_matrix, sampling,
+                 context=ctx.get_dummy_context('BCIP300CspAnalysis')):
+        self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
@@ -52,14 +53,14 @@ class BCIP300CspAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
-        LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
-        LOGGER.debug("DATA SIZE: "+str(data.shape))
-        LOGGER.debug("BLINK index / ts / real_ts: "+str(blink.index)+" / "+str(blink.timestamp)+" / "+str(time.time()))
+        self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
+        self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        self.logger.debug("DATA SIZE: "+str(data.shape))
+        self.logger.debug("BLINK index / ts / real_ts: "+str(blink.index)+" / "+str(blink.timestamp)+" / "+str(time.time()))
         self.last_time = time.time()
         #Wszystko dalej powinno się robić dla każdego nowego sygnału
         signal = np.dot(self.montage_matrix.T, data)                      
-        LOGGER.debug("AFTER MONTAGE SIGNAL SIZE: "+str(signal.shape))
+        self.logger.debug("AFTER MONTAGE SIGNAL SIZE: "+str(signal.shape))
         tmp_sig = np.zeros(signal.shape)
         for e in xrange(len(self.montage_matrix.T)):
             tmp = filtfilt(self.b,self.a, signal[e, :])
@@ -74,6 +75,6 @@ class BCIP300CspAnalysis(object):
             if ix >= 0:
                 self.send_func(ix)
             else:
-                LOGGER.info("Got -1 ind- no decision")
+                self.logger.info("Got -1 ind- no decision")
         else:
-            LOGGER.info("Got -1 ind- no decision")
+            self.logger.info("Got -1 ind- no decision")

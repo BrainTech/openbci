@@ -12,13 +12,11 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci_configs import settings, variables_pb2
 from devices import appliance_helper
 from acquisition import acquisition_helper
-from interfaces import interfaces_logging as logger
 from analysis.buffers import auto_blink_buffer
 from interfaces.bci.p300_csp import bci_p300_csp_analysis
 from interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci_utils import streaming_debug
 
-LOGGER = logger.get_logger("bci_p300_csp", "debug")
 DEBUG = True
 
 
@@ -26,7 +24,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
     def send_decision(self, dec):
         """Send dec message to the system (probably to LOGIC peer).
         dec is of integer type."""
-        LOGGER.info("Sending dec message: "+str(dec))
+        self.logger.info("Sending dec message: "+str(dec))
         self._last_dec_time = time.time()
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
@@ -64,12 +62,12 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         if DEBUG:
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
-                                               LOGGER,
+                                               self.logger,
                                                int(self.config.get_param('samples_per_packet')))
                                                    
         self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
         self.ready()
-        LOGGER.info("BCIAnalysisServer init finished!")
+        self.logger.info("BCIAnalysisServer init finished!")
 
     def handle_message(self, mxmsg):
         #always buffer signal
@@ -95,7 +93,7 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
 	    l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
             blink = l_msg
-            LOGGER.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
+            self.logger.debug("GOT BLINK: "+str(blink.index)+" / "+str(blink.timestamp))
             self.buffer.handle_blink(l_msg)
             
         self.no_response()
@@ -107,11 +105,14 @@ class BCIP300Csp(ConfiguredMultiplexerServer):
         - set_configs(configs)
         - analyse(data)
         """
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
         return bci_p300_csp_analysis.BCIP300CspAnalysis(
             send_func,
             cfg,
             montage_matrix,
-            int(self.config.get_param('sampling_rate')))
+            int(self.config.get_param('sampling_rate')),
+            context)
 
 
     def _get_csp_config(self):

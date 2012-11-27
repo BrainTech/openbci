@@ -7,8 +7,6 @@ from gui.ugm import ugm_helper
 from interfaces.etr import hci_etr
 from interfaces.etr.nesw import etr_nesw_dec_manager
 from interfaces.etr import etr_ugm_manager
-from interfaces import interfaces_logging as logger
-LOGGER = logger.get_logger("hci_etr_classic", "info")
 
 class HciEtrNESW(hci_etr.HciEtr):
     def __init__(self, addresses):

@@ -7,11 +7,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_client import ConfiguredClient
 
 from obci_configs import settings, variables_pb2
-from drivers import drivers_logging as logger
-
 from cam import Camera
-
-LOGGER = logger.get_logger("etr_calibration", "info")
 
 class EtrCalibration(ConfiguredClient):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
@@ -27,7 +23,7 @@ class EtrCalibration(ConfiguredClient):
         self.socket.listen(1)
         self.conn, addr = self.socket.accept()
         self.ready()
-        LOGGER.info("Start initializin etr amplifier...")
+        self.logger.info("Start initializin etr amplifier...")
         
         self.init()
         self.initCamera()

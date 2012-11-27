@@ -16,9 +16,9 @@ from obci_configs import settings, variables_pb2
 class LogicTransform(LogicDecision, SpellerEngine, TransformEngine):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
+        LogicDecision.__init__(self, addresses=addresses)
         context = ctx.get_new_context()
         context['logger'] = self.logger
-        LogicDecision.__init__(self, addresses=addresses, context)
         SpellerEngine.__init__(self, self.config.param_values(), context)
         TransformEngine.__init__(self, self.config.param_values(), context)
         self.ready()

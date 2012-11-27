@@ -7,11 +7,6 @@ from obci_configs import settings, variables_pb2
 from gui.ugm import ugm_helper
 import random, time, sys
 
-from interfaces import interfaces_logging as logger
-
-LOGGER = logger.get_logger("hci_etr", "info")
-
-
 class HciEtr(ConfiguredMultiplexerServer):
     def __init__(self, addresses, p_type = peers.ETR_ANALYSIS):
         super(HciEtr, self).__init__(addresses=addresses,
@@ -24,31 +19,31 @@ class HciEtr(ConfiguredMultiplexerServer):
             res = variables_pb2.Sample()
             res.ParseFromString(mxmsg.message)
             data = res.channels
-            LOGGER.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
+            self.logger.debug("GOT ETR CALIBRATION RESULTS: "+str(data))
             
             self.handle_calibration_mesage(data)
             
         elif mxmsg.type == types.ETR_SIGNAL_MESSAGE:
             l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT MESSAGE: "+str(l_msg))
+            self.logger.debug("GOT MESSAGE: "+str(l_msg))
 
             dec, ugm = self.handle_etr_message(l_msg)
             if dec >= 0:
-                LOGGER.debug("Sending dec message...")
+                self.logger.debug("Sending dec message...")
                 self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
             elif ugm is not None:
-                LOGGER.debug("Sending ugm message...")
+                self.logger.debug("Sending ugm message...")
                 ugm_helper.send_config(self.conn, ugm, 1)
             else:
-                LOGGER.info("Got notihing from manager...")
+                self.logger.info("Got notihing from manager...")
 
         self.no_response()
 
     def handle_etr_message(self, msg):
-        LOGGER.error("TO BE SUBCLASSED!!!")
+        self.logger.error("TO BE SUBCLASSED!!!")
         return None, None
 
     def handle_calibration_mesage(self, msg):
-        LOGGER.error("TO BE SUBCLASSED!!!")
+        self.logger.error("TO BE SUBCLASSED!!!")
         return None 

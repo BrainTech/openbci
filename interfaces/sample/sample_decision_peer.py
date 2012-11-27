@@ -10,10 +10,6 @@ from multiplexer.multiplexer_constants import peers, types
 from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci_configs import settings, variables_pb2
 
-from interfaces import interfaces_logging as logger
-#LOGGER = logger.get_logger("sample_analysis", "info")
-LOGGER = logger.get_logger("sample_analysis", "debug")
-
 class SampleAnalysis(ConfiguredMultiplexerServer):
     """A class responsible for handling signal message and making proper decision.
     The class inherits from generic class for convinience - all technical stuff
@@ -23,7 +19,7 @@ class SampleAnalysis(ConfiguredMultiplexerServer):
         super(SampleAnalysis, self).__init__(addresses=addresses,
                                           type=peers.ANALYSIS)
         self.ready()
-        LOGGER.info("Sample analysis init finished!")
+        self.logger.info("Sample analysis init finished!")
 
     def handle_message(self, mxmsg):
         """The only required function in the class
@@ -42,14 +38,14 @@ class SampleAnalysis(ConfiguredMultiplexerServer):
                 # Every sample has two fields:
                 # timestamp - system clock time of a moment of Sample`s creation
                 # channels - a list of values - one for every channel
-                LOGGER.debug("Got sample with timestamp: "+str(s.timestamp))
+                self.logger.debug("Got sample with timestamp: "+str(s.timestamp))
 
                 # One can copy samples to numpy array ...
                 a = numpy.array(s.channels)
 
                 # Or just iterate over values ...
                 for ch in s.channels:
-                    LOGGER.debug(ch)
+                    self.logger.debug(ch)
 
             # Having a new bunch of values one can fire some magic analysis and 
             # generate decision ....
@@ -64,7 +60,7 @@ class SampleAnalysis(ConfiguredMultiplexerServer):
                                        type = types.DECISION_MESSAGE, 
                                        flush=True)
         else:
-            LOGGER.warning("Got unrecognised message type: "+str(mxmsg.type))
+            self.logger.warning("Got unrecognised message type: "+str(mxmsg.type))
 
         # Tell the system 'I`ll not respond to this message, I`m just receiving'
         self.no_response()
