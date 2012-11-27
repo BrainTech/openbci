@@ -13,8 +13,6 @@ from gui.ugm import ugm_helper
 from logic.engines.speller_engine import SpellerEngine
 
 from obci_configs import settings, variables_pb2
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_speller", "info")
 
 class LogicWordSpeller(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -68,7 +66,7 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
         l_config.append({'id':self.text_id,
                          'message':self._message})
         l_str_config = str(l_config)
-        LOGGER.info("UPDATE: "+l_str_config)
+        self.logger.info("UPDATE: "+l_str_config)
         ugm_helper.send_config(self.conn, l_str_config, 1)
         
     def msg(self, dec):
