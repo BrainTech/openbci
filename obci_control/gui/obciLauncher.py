@@ -21,6 +21,7 @@ import json
 import sys
 import os
 import sip
+import time
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
@@ -111,6 +112,21 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.setupActions()
         self.update_user_interface(None)
         self.showMaximized()
+
+    def closeEvent(self, e):
+        progress = QProgressDialog(self,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        progress.setLabelText("Finishing...")
+        progress.setRange(0,5)
+        progress.setCancelButton(None)
+        progress.show()
+
+        for i, st in self.exp_states.iteritems():
+            st.log_model.stop_running()
+
+        for i in range(5):
+            time.sleep(1)
+            progress.setValue(i+1)
+        e.accept()
 
     def engine_server_setup(self, server_ip_host=None):
         server_ip, server_name = server_ip_host or (None, None)
@@ -250,10 +266,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         experiment = experiment.exp
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
-            #print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-            #print(experiment.origin_machine)
-
-            parent = QTreeWidgetItem([peer_id, st])
+            mch = str(peer.machine) or str(experiment.origin_machine)
+            parent = QTreeWidgetItem([peer_id, st, mch])
             parent.setFirstColumnSpanned(True)
 
             parent.setBackground(0, QBrush(QColor(STATUS_COLORS[st])))
@@ -368,6 +382,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _stop(self):
         uid = str(self.scenarios.currentItem().uuid)
+        self.exp_states[uid].log_model.stop_running()
         self.stop.emit(uid, self.exp_states[uid].store_options is not None)
         self.exp_states[uid].store_options = None
 

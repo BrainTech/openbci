@@ -74,7 +74,7 @@ class LogModel(QtCore.QObject):
                     self.update_log.emit(e)
                 self._mutex.unlock()
 
-        print ("model stop running ")
+        print ("obci log model - model stoped running ")
         self.post_run()
         self._is_running = False
 

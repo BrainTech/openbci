@@ -11,15 +11,16 @@ class RealLogModel(obci_log_model.LogModel):
     def __init__(self, srv_client):
         super(RealLogModel, self).__init__()
         self.srv_client = srv_client
+        self.peer_name = ''
 
     def next_log(self):
         try:
-            #print("log model - waiting on socket ...")
+            #print("log model real - waiting on socket ...")
             ready = select.select([self.socket], [], [], 0.5)
             if ready[0]:
                 data = self.socket.recv(BUF)  
-                #print("log model - got log!!!!!! "+str(data))
-                print("log model - got log")
+                #print("log model real - got log!!!!!! "+str(data))
+                #print("log model real - got log")
                 return self._process_log(data)
             else:
                 raise Exception("Socket timeout!")
@@ -45,14 +46,16 @@ class RealLogModel(obci_log_model.LogModel):
         exp.add_peer('logger', 'obci_control/gui/obci_log_peer.py', 
                       config_sources=None, launch_deps=None, custom_config_path=None, machine=socket.gethostname())
         exp.update_peer_param('logger', 'port', str(port))
+        self.peer_name = exp.name
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
-        print("COOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
+        print("log model real - connect running")
         port = self._init_socket()
         res = self.srv_client.add_peer(exp.uuid, 'logger_'+str(time.time()), 'obci_control/gui/obci_log_peer.py',
                                        socket.gethostname(), param_overwrites={'port':str(port)})
-        print("Srv client status add: "+str(res))
+        self.peer_name = exp.name
+        print("log model real - Srv client status add: "+str(res))
         super(RealLogModel, self).connect_running(exp)
 
 
@@ -60,8 +63,11 @@ class RealLogModel(obci_log_model.LogModel):
         self.socket = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
         self.socket.bind(('127.0.0.1', 0))
         self.socket.setblocking(0)
-        return self.socket.getsockname()[1]
+        s = self.socket.getsockname()[1]
+        print("log model real - start socket: "+str(s))
+        return s
 
     def post_run(self):
-        print("Close socket ")
+        print("log model real - close socket "+str(self.socket.getsockname()[1]))
         self.socket.close()
+        #remove self.peer_name
