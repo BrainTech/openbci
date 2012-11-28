@@ -77,6 +77,8 @@ message_templates = {
     "add_peer": dict(peer_id='', peer_path='', peer_type='', machine='', param_overwrites='', 
                                 custom_config_path='', config_sources='', launch_dependencies='',
                                  apply_globals=''),
+    "kill_peer": dict(peer_id='', remove_config=''),
+    "_kill_peer": dict(peer_id='', machine=''),
     "new_peer_added": dict(uuid='', peer_id='', config='', peer_path='', machine='',status_name=''),
 
     "obci_peer_params_changed" : dict(peer_id='', params=''),

@@ -650,7 +650,29 @@ class OBCIExperiment(OBCIControlPeer):
                 send_msg(self._publish_socket, self.mtool.fill_msg("start_peers", mx_data=self.mx_args(), 
                                                         add_launch_data={machine : ldata}))
 
-        
+    @msg_handlers.handler("kill_peer")
+    def handle_kill_peer(self, message, sock):
+        peer_id = message.peer_id
+        peer = self.exp_config.peers.get(message.peer_id, None)
+        if not peer:
+            send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(), 
+                err_code="peer_id_not_found"))
+            return
+
+        del self.exp_config.peers[peer_id]
+        rd, details = self.exp_config.config_ready()
+        self.exp_config.peers[peer_id] = peer
+        if not rd:
+            send_msg(sock, self.mtool.fill_msg('rq_error', request=message.dict(), 
+                err_code="config_dependencies_error", details=details))
+            return
+        if message.remove_config:
+            peer.del_after_stop = True
+
+        send_msg(sock, self.mtool.fill_msg("rq_ok"))
+        send_msg(self._publish_socket, self.mtool.fill_msg("_kill_peer", peer_id=peer_id, 
+            machine=(peer.machine or self.origin_machine)))
+
 
     @msg_handlers.handler("obci_peer_registered")
     def handle_obci_peer_registered(self, message, sock):
@@ -735,6 +757,9 @@ class OBCIExperiment(OBCIControlPeer):
         elif not self.status.peer_status_exists(launcher_tools.RUNNING) and\
                 (self.status.status_name not in [launcher_tools.FAILED, launcher_tools.FAILED_LAUNCH]):
             self.status.set_status(status)
+        if self.exp_config.peers[message.peer_id].del_after_stop:
+            del self.exp_config.peers[message.peer_id]
+            self.status.del_peer_status(message.peer_id)
         message.experiment_id = self.uuid
         send_msg(self._publish_socket, message.SerializeToString())
         self.status_changed(self.status.status_name, self.status.details)

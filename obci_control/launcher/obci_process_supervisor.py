@@ -352,6 +352,12 @@ class OBCIProcessSupervisor(OBCIControlPeer):
     def handle_stop_all(self, message, sock):
         self.subprocess_mgr.killall(force=True)
 
+    @msg_handlers.handler("_kill_peer")
+    def handle_kill_peer(self, message, sock):
+        proc = self.processes.get(message.peer_id, None)
+        if proc is not None: # is on this machine
+            proc.kill_with_force()
+
     @msg_handlers.handler("rq_ok")
     def handle_rq_ok(self, message, sock):
         self.rqs += 1

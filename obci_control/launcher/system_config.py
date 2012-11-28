@@ -311,6 +311,7 @@ class PeerConfigDescription(object):
         self.machine = machine
         self.public_params = []
         self.logger = logger or logging.getLogger("ObciExperimentConfig.peer_id")
+        self.del_after_stop = False
 
     def __str__(self):
         return self.peer_id

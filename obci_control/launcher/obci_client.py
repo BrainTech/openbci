@@ -232,6 +232,20 @@ class OBCIClient(object):
         sock.close()
         return response
 
+    def kill_peer(self, exp_strname, peer_id, remove_config=False):
+        response = self.get_experiment_contact(exp_strname)
+
+        if response.type == "rq_error":
+            return response
+
+        sock = self.ctx.socket(zmq.REQ)
+        self._connect(sock, response.rep_addrs)
+        send_msg(sock, self.mtool.fill_msg("kill_peer",
+                                        peer_id=peer_id, remove_config=remove_config))
+        response, details = self.poll_recv(sock, 5000)
+        sock.close()
+        return response
+
     def _connect(self, sock, addr_list):
         print "****  ", addr_list
         this = self._is_this_machine(addr_list)

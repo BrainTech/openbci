@@ -46,6 +46,9 @@ class ExperimentStatus(object):
     def peer_status_exists(self, status_name):
         return status_name in [st.status_name for st in self.peers_status.values()]
 
+    def del_peer_status(self, peer_id):
+        del self.peers_status[peer_id]
+
 
 class PeerStatus(object):
     def __init__(self, peer_id, status_name=NOT_READY):
