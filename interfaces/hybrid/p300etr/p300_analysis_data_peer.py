@@ -8,7 +8,6 @@ Contact: laszukdawid@gmail.com
 """
 
 import random, time
-from interfaces import interfaces_logging as logger
 import numpy as np
 
 from p300_fda import P300_analysis
@@ -16,7 +15,6 @@ from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 from obci_utils import context as ctx
 
-LOGGER = logger.get_logger("p300_analysis_data_peer", "info")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):

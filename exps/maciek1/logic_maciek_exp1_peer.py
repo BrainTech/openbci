@@ -20,9 +20,6 @@ from acquisition import acquisition_helper
 import pygame
 pygame.init()
 
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_ssvep_calibration", "debug")
-
 class LogicSSVEPCalibration(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):

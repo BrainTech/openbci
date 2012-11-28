@@ -11,8 +11,6 @@ from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from obci_configs import settings, variables_pb2
 from obci_utils import tags_helper
-from obci_utils import openbci_logging as logger
-LOGGER = logger.get_logger("blink_catcher_peer", 'info')
 
 class BlinkCatcher(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -25,7 +23,7 @@ class BlinkCatcher(ConfiguredMultiplexerServer):
         if mxmsg.type == types.BLINK_MESSAGE:
             b = variables_pb2.Blink()
             b.ParseFromString(mxmsg.message)
-            LOGGER.debug("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
+            self.logger.debug("GOT BLINK: "+str(b.timestamp)+" / "+str(b.index))
             tags_helper.send_tag(self.conn, 
                                  b.timestamp, b.timestamp+self.blink_duration, "blink",
                                  {"index" : b.index})
