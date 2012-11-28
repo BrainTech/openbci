@@ -11,6 +11,7 @@ class RealLogModel(obci_log_model.LogModel):
     def __init__(self, srv_client):
         super(RealLogModel, self).__init__()
         self.srv_client = srv_client
+        self.exp_name = ''
         self.peer_name = ''
 
     def next_log(self):
@@ -42,19 +43,24 @@ class RealLogModel(obci_log_model.LogModel):
                 
 
     def start_running(self, exp):
+        print("log model real - start running")
         port = self._init_socket()
-        exp.add_peer('logger', 'obci_control/gui/obci_log_peer.py', 
+        self.exp_name = exp.name
+        self.peer_name = 'logger'
+        exp.add_peer(self.peer_name, 'obci_control/gui/obci_log_peer.py', 
                       config_sources=None, launch_deps=None, custom_config_path=None, machine=socket.gethostname())
         exp.update_peer_param('logger', 'port', str(port))
-        self.peer_name = exp.name
+
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
         print("log model real - connect running")
+        self.exp_name = exp.name
+        self.peer_name = 'logger_'+str(time.time())
         port = self._init_socket()
-        res = self.srv_client.add_peer(exp.uuid, 'logger_'+str(time.time()), 'obci_control/gui/obci_log_peer.py',
+        res = self.srv_client.add_peer(exp.uuid, self.peer_name, 'obci_control/gui/obci_log_peer.py',
                                        socket.gethostname(), param_overwrites={'port':str(port)})
-        self.peer_name = exp.name
+        self.exp_name = exp.name
         print("log model real - Srv client status add: "+str(res))
         super(RealLogModel, self).connect_running(exp)
 
@@ -70,4 +76,4 @@ class RealLogModel(obci_log_model.LogModel):
     def post_run(self):
         print("log model real - close socket "+str(self.socket.getsockname()[1]))
         self.socket.close()
-        #remove self.peer_name
+        self.srv_client.kill_peer(self.exp_name, self.peer_name, remove_config=True) 

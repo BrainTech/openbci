@@ -120,13 +120,16 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         progress.setCancelButton(None)
         progress.show()
 
-        for i, st in self.exp_states.iteritems():
-            st.log_model.stop_running()
+        self.stop_logs()
 
         for i in range(5):
             time.sleep(1)
             progress.setValue(i+1)
         e.accept()
+
+    def stop_logs(self):
+        for i, st in self.exp_states.iteritems():
+            st.log_model.stop_running()
 
     def engine_server_setup(self, server_ip_host=None):
         server_ip, server_name = server_ip_host or (None, None)
@@ -377,7 +380,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             store_options = None
         self.log_engine.on_experiment_start(self.exp_states[uid].exp)
-        print "-------------   ", self.exp_states[uid].exp 
+        print "obciLauncher - _start(), exp:  ", self.exp_states[uid].exp 
         self.start.emit(uid, store_options)
 
     def _stop(self):
@@ -417,6 +420,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if self.machines_dialog.exec_():
             new_ip, new_name = self.machines_dialog.chosen_machine
             self.engine_reinit.emit((new_ip, new_name))
+            self.stop_logs()
+            time.sleep(1)
             self.update_user_interface(None)
 
     def _save_current_as(self):
