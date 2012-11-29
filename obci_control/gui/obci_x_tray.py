@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, subprocess, time, getopt
+import sys, os, subprocess, time
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
