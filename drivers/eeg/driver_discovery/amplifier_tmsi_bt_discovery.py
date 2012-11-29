@@ -15,7 +15,7 @@ _BT_DESCS = {
                 'MobiMini' : 'amplifier_mobimini.json',
                 'Mobi5' : 'amplifier_mobi5.json'
             }
-_AMP_PEER = 'drivers/eeg/c_tmsi_amplifier/amplifier_tmsi.py'
+_AMP_PEER = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
 _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 def _find_bluetooth_amps():
