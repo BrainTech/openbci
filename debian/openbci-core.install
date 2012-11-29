@@ -22,7 +22,7 @@ obci_configs/	  /usr/share/openbci
 obci_control/	  /usr/share/openbci
 scenarios/	  /usr/share/openbci
 obci_utils/		  /usr/share/openbci
-multiplexer_install	  /usr/share/openbci
+multiplexer-install/	  /usr/share/openbci
 
 debian/openbci.desktop usr/share/applications
 debian/openbci.svg usr/share/pixmaps
