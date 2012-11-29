@@ -324,10 +324,45 @@ class MainWidget(QWidget):
             if ret == QMessageBox.Yes:
                 qApp.quit()
 
+def pidfile():
+#    path = '~/.obci'
+    lockfile = '~/.obci/tray.lock'
+
+#    try:
+#        os.makedirs(os.path.expanduser(path))
+#    except OSError as exception:
+#        if exception.errno != errno.EEXIST:
+#            raise
+
+
+    if os.access(os.path.expanduser(lockfile), os.F_OK):
+        #if the lockfile is already there then check the PID number 
+        #in the lock file
+        pidfile = open(os.path.expanduser(lockfile), "r")
+        pidfile.seek(0)
+        old_pd = pidfile.readline()
+        # Now we check the PID from lock file matches to the current
+        # process PID
+        if os.path.exists("/proc/%s" % old_pd):
+                print "You already have an instance of the program running"
+                print "It is running as process %s," % old_pd
+                sys.exit(1)
+        else:
+                print "File is there but the program is not running"
+                print "Removing lock file for the: %s as it can be there because of the program last time it was run" % old_pd
+                os.remove(os.path.expanduser(lockfile))
+
+#This is part of code where we put a PID file in the lock file
+    pidfile = open(os.path.expanduser(lockfile), "w")
+    pidfile.write("%s" % os.getpid())
+    pidfile.close
+
+
 def main():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     mainWidget = MainWidget()
+
     
     #TODO: add parameter to start server by default
     
@@ -335,4 +370,8 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
+    try:
+        pidfile()
+    except:
+        pass
     main()
