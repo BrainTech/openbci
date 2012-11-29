@@ -15,7 +15,7 @@ _TYPES = ['Porti7']
 
 _USB_DESCS = { 'Porti7' : 'amplifier_porti7_usb.json',
                 'SynFi' : 'amplifier_tmsi_synfi.json'}
-_AMP_PEER = 'drivers/eeg/c_tmsi_amplifier/amplifier_tmsi.py'
+_AMP_PEER = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
 _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 
