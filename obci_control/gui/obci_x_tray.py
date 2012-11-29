@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, subprocess, time
+import sys, os, subprocess, time, getopt
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
@@ -24,10 +24,34 @@ class ServerController(QObject):
 
     def __init__(self, parent=None):
         super(ServerController, self).__init__(parent)
-        
+        #Parsing command line options
+
+        self.easyMode = False
+        self.Gui = False
+        self.autostartServer = False
+        opts, args = getopt.getopt(sys.argv[1:],"egs",['easy','gui','startserver'])
+        for opt, arg in opts:
+            if opt in ('--easy'):
+                self.easyMode = True
+            elif opt in ("--gui"):
+                self.Gui = True
+            elif opt in ("--startserver"):
+                self.autostartServer = True
+
+        instance = True
+        try:
+            instance = pidfile()
+        except:
+            pass
+
+        if instance == False and self.Gui == True:
+            os.execl('obci_gui','')
+            sys.exit(0)
+        elif instance == False:
+            sys.exit(1)
+
         self.process = QProcess()
         self.programName = 'obci srv'
-
         #self.process.started.connect(self.processStarted)
         
         self.startingStartTime = QTime.currentTime()
@@ -37,8 +61,8 @@ class ServerController(QObject):
         self.startingServer = False
         self.terminatingServer = False
         self.responding = False
-
-        self.startServer()
+        if self.autostartServer or self.easyMode:
+            self.startServer()
         time.sleep(2)
         self.startPinging()
 
@@ -162,6 +186,8 @@ class MainWidget(QWidget):
         self.terminatingIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_TrashIcon))
         self.serverDownIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxCritical))
 
+        self.controller = ServerController()
+
         self.menu.addAction(self.runGuiAction)
         self.menu.addSeparator()
         self.menu.addAction(self.runSvarogAction)
@@ -173,8 +199,9 @@ class MainWidget(QWidget):
         self.menu.addSeparator()
         self.menu.addAction(self.startAction)
         self.menu.addAction(self.stopAction)
-        #self.menu.addSeparator()
-        #self.menu.addAction(self.quitAction)
+        if not self.controller.easyMode:
+            self.menu.addSeparator()
+            self.menu.addAction(self.quitAction)
         
         self.trayIcon = QSystemTrayIcon(self.serverDownIcon)
         self.trayIcon.setContextMenu(self.menu)
@@ -188,7 +215,6 @@ class MainWidget(QWidget):
         self.runEeglabAction.triggered.connect(self.runEeglab)
         self.quitAction.triggered.connect(self.quit_tray)
 
-        self.controller = ServerController()
         
         self.trayIcon.setIcon(self.serverDownIcon)
         self.setStoppedUi()
@@ -203,6 +229,9 @@ class MainWidget(QWidget):
         self.controller.serverTerminated.       connect(self.serverTerminated)
         self.controller.serverShuttingDownError.connect(self.shuttingDownError)
         self.controller.serverUnexpectedlyDied. connect(self.serverUnexpectedlyDied)
+
+        if self.controller.Gui:
+            self.runGui()
 
     #---------------------------------------------------------------------------
 
@@ -336,23 +365,18 @@ def pidfile():
 
 
     if os.access(os.path.expanduser(lockfile), os.F_OK):
-        #if the lockfile is already there then check the PID number 
-        #in the lock file
         pidfile = open(os.path.expanduser(lockfile), "r")
         pidfile.seek(0)
         old_pd = pidfile.readline()
-        # Now we check the PID from lock file matches to the current
-        # process PID
         if os.path.exists("/proc/%s" % old_pd):
                 print "You already have an instance of the program running"
                 print "It is running as process %s," % old_pd
-                sys.exit(1)
+                return False
         else:
                 print "File is there but the program is not running"
                 print "Removing lock file for the: %s as it can be there because of the program last time it was run" % old_pd
                 os.remove(os.path.expanduser(lockfile))
 
-#This is part of code where we put a PID file in the lock file
     pidfile = open(os.path.expanduser(lockfile), "w")
     pidfile.write("%s" % os.getpid())
     pidfile.close
@@ -362,16 +386,8 @@ def main():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     mainWidget = MainWidget()
-
-    
-    #TODO: add parameter to start server by default
-    
     
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    try:
-        pidfile()
-    except:
-        pass
     main()

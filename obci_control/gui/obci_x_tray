@@ -8,4 +8,4 @@ if [ -z $OBCI_INSTALL_DIR ]
 then
 	direc=/usr/share/openbci
 fi
-exec python $direc/obci_control/gui/obci_x_tray.py
+exec python $direc/obci_control/gui/obci_x_tray.py "$@"
