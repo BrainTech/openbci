@@ -3,8 +3,8 @@
 
 from multiplexer.clients import connect_client
 
-from peer.peer_control import PeerControl, ConfigNotReadyError
-import common.config_message as cmsg
+from obci.obci_control.peer.peer_control import PeerControl, ConfigNotReadyError
+import obci.obci_control.common.config_message as cmsg
 
 class ConfiguredClient(object):
 

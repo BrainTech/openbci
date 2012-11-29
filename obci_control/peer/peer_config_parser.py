@@ -6,8 +6,8 @@ import json
 import io
 
 
-import peer.peer_config as pc
-import common.config_helpers as helpers
+import obci.obci_control.peer.peer_config as pc
+import obci.obci_control.common.config_helpers as helpers
 
 
 

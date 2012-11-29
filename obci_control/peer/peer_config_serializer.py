@@ -3,7 +3,7 @@
 import json
 import ConfigParser
 
-import common.config_helpers as helpers
+import obci.obci_control.common.config_helpers as helpers
 
 class PeerConfigSerializer(object):
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import types
-import common.cfg_messages_pb2 as templates
+import obci.obci_control.common.cfg_messages_pb2 as templates
 import json
 from google.protobuf.message import Message
 

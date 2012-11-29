@@ -11,9 +11,9 @@ import peer_config
 import peer_config_parser
 from peer_cmd import PeerCmd
 
-import common.config_message as cmsg
+import obci.obci_control.common.config_message as cmsg
 
-from obci_configs import settings
+from obci.obci_configs import settings
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
 from azouk._allinone import OperationFailed, OperationTimedOut
@@ -45,7 +45,6 @@ class PeerControl(object):
                 self.initialize_config(self.connection)
             else:
                 self.initialize_config_locally()
-
 
 
     def initialize_config(self, connection):

@@ -3,7 +3,7 @@
 
 import warnings
 
-from common.config_helpers import *
+from obci.obci_control.common.config_helpers import *
 
 class PeerConfig(object):
     """

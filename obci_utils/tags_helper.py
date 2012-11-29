@@ -5,10 +5,10 @@
 #
 
 from multiplexer.multiplexer_constants import peers, types
-from analysis.obci_signal_processing import types_utils
+from obci.analysis.obci_signal_processing import types_utils
 
-from obci_configs import variables_pb2
-from obci_utils import openbci_logging as logger
+from obci.obci_configs import variables_pb2
+from obci.obci_utils import openbci_logging as logger
 
 LOGGER = logger.get_logger('tags_helper', 'info')
 
