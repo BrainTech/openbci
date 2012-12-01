@@ -12,6 +12,7 @@ import threading
 import time
 
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
+from obci.acquisition import acquisition_helper
 from launcher.launcher_messages import message_templates
 import launcher.system_config as system_config
 import launcher.launch_file_parser as launch_file_parser
@@ -34,7 +35,6 @@ SIGNAL_STORAGE_PEERS = {
     "tag_saver" : "acquisition/tag_saver_peer.py",
     "info_saver" : "acquisition/info_saver_peer.py"
 }
-STORAGE_CONTROL = "exps/exps_helper.py"
 
 class ExperimentEngineInfo(QtCore.QObject):
     exp_saver_msg = QtCore.pyqtSignal(object)
@@ -334,32 +334,16 @@ class ExperimentEngineInfo(QtCore.QObject):
                 params[opt] = val
 
     def stop_storing(self, client):
-        client.leave_experiment(self.uuid, "storage_control")
-        join_response = client.join_experiment(
-                                self.uuid, "storage_control", STORAGE_CONTROL)
+        client.leave_experiment(self.uuid, "dummy_module")
+        t = "dummy_module_"+str(time.time())
+        join_response = client.join_experiment(self.uuid, t, "exps/exps_helper.py")
         if join_response is None:
-            print "connection timeout!"
+            print "experiment engine info - ERROR - connection timeout on stop signal storing!"
             return
-            
         if not join_response.type == "rq_ok":
-            print "join error"
+            print "experiment engine info - ERROR - join error on stop signal storing!"            
             return
-    
-        mx_addr = join_response.params["mx_addr"]
-        os.environ["MULTIPLEXER_ADDRESSES"] = mx_addr
-        pth = os.path.join(launcher_tools.obci_root(), "exps", "exps_helper.py")
-        proc = subprocess.Popen(["python", pth, "storage_control"], env=os.environ.copy())
+        mx_addr = join_response.params["mx_addr"].split(':')
+        #hang and wait ...
+        acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
 
-        def check_proc(proc, time_):
-            secs = time_
-            while proc.returncode is None and secs > 0:
-                time.sleep(0.5)
-                secs -= 0.5
-                proc.poll()
-            return proc.returncode
-
-        while proc.returncode is None:
-            if check_proc(proc, 5) is None:
-                self.exp_saver_msg.emit(proc)
-        print ":---)"
-        proc.wait()

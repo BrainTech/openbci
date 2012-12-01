@@ -3,7 +3,7 @@
 # Author:
 #      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
-import inspect, os
+import inspect, os, time
 from obci.control.peer.configured_client import ConfiguredClient
 from obci.configs import settings
 from multiplexer.multiplexer_constants import types, peers
@@ -33,4 +33,4 @@ class ExpsHelper(ConfiguredClient):
 
 if __name__ == '__main__':
     helper = ExpsHelper()
-    helper.finish_saving()
+    time.sleep(100000)

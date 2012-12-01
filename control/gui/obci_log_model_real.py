@@ -46,22 +46,23 @@ class RealLogModel(obci_log_model.LogModel):
         print("log model real - start running")
         port = self._init_socket()
         self.exp_name = exp.name
-        self.peer_name = 'logger'
+        self.peer_name = 'logger_'+str(time.time())
         exp.add_peer(self.peer_name, 'control/gui/obci_log_peer.py', 
                       config_sources=None, launch_deps=None, custom_config_path=None, machine=socket.gethostname())
-        exp.update_peer_param('logger', 'port', str(port))
+        exp.update_peer_param(self.peer_name, 'port', str(port))
 
         super(RealLogModel, self).start_running(exp)
 
     def connect_running(self, exp):
         print("log model real - connect running")
+        port = self._init_socket()
         self.exp_name = exp.name
         self.peer_name = 'logger_'+str(time.time())
-        port = self._init_socket()
         res = self.srv_client.add_peer(exp.uuid, self.peer_name, 'control/gui/obci_log_peer.py',
                                        socket.gethostname(), param_overwrites={'port':str(port)})
         self.exp_name = exp.name
         print("log model real - Srv client status add: "+str(res))
+
         super(RealLogModel, self).connect_running(exp)
 
 

@@ -13,6 +13,7 @@ LOGGER = logger.get_logger("acquisition_control", 'info')
 
 
 def finish_saving(mx_addresses=settings.MULTIPLEXER_ADDRESSES):
+    print("DUUUPA:" + str(mx_addresses))
     ctr = AcquisitionControl(mx_addresses)
     ctr.send_finish_saving()
     ctr.loop()

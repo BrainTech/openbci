@@ -20,6 +20,7 @@ import codecs
 import json
 import sys
 import os
+import os.path
 import sip
 import time
 
@@ -123,7 +124,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.stop_logs()
 
         for i in range(5):
-            time.sleep(1)
+            time.sleep(0.4)
             progress.setValue(i+1)
         e.accept()
 
@@ -418,10 +419,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.machines_dialog.set_nearby_machines(self._nearby_machines,
                                     self.server_hostname, self.server_ip)
         if self.machines_dialog.exec_():
+            self.stop_logs()
             new_ip, new_name = self.machines_dialog.chosen_machine
             self.engine_reinit.emit((new_ip, new_name))
-            self.stop_logs()
-            time.sleep(1)
             self.update_user_interface(None)
 
     def _save_current_as(self):
@@ -681,13 +681,17 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
         super(ConnectToMachine, self).accept()
 
 
-
 if __name__ == '__main__':
     app = QApplication([])
+    p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
+    s = QSplashScreen(p)
+    s.show()
+    s.showMessage("OpenBCI - free as in freedom.")
     dialog = ObciLauncherWindow()
 
     import sys
     dialog.start.connect(lambda name:sys.stderr.write('Start %s \n' % name))
     dialog.stop.connect(lambda name:sys.stderr.write('Stop %s \n' % name))
+    s.finish(dialog)
 
     sys.exit(app.exec_())
