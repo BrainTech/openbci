@@ -4,7 +4,7 @@ import sys
 import os.path
 import math
 from obci.analysis.obci_signal_processing import read_manager
-from analysis import analysis_logging as logger
+from obci.analysis import analysis_logging as logger
 LOGGER = logger.get_logger("lost_samples_test", "debug")
 
 

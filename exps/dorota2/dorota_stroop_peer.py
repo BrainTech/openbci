@@ -166,8 +166,8 @@ CONDITIONS_FILE='~/obci/exps/dorota2/trialTypes.csv'
 BASELINE_DURATION=5
 
 try:
-    from exps import exps_helper
-    from exps.dorota2 import dorota_helper
+    from obci.exps import exps_helper
+    from obci.exps.dorota2 import dorota_helper
     import time, sys
     H = exps_helper.ExpsHelper(config_module=sys.modules[__name__])
 

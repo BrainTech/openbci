@@ -6,14 +6,11 @@
 import sys, os.path, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from acquisition import acquisition_logging as logger
-from analysis.obci_signal_processing.signal import data_write_proxy
-from analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
-
-LOGGER = logger.get_logger("signal_saver", 'info')
+from obci.configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.signal import data_write_proxy
+from obci.analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
 
 DATA_FILE_EXTENSION = ".obci.raw"
 class SignalSaver(ConfiguredMultiplexerServer):
@@ -26,7 +23,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         try:
             self._data_proxy.data_received(p_data)
         except data_storage_exceptions.BadSampleFormat, e:
-            LOGGER.error("Received sample is not of a good size. Writing aborted!")
+            self.logger.error("Received sample is not of a good size. Writing aborted!")
             sys.exit(1)
 
 
@@ -40,12 +37,12 @@ class SignalSaver(ConfiguredMultiplexerServer):
         msg = p_data
         l_vec = variables_pb2.SampleVector()
         l_vec.ParseFromString(msg)
-        LOGGER.info("REAL SAMPLES PER PACKET: "+str(len(l_vec.samples)))
+        self.logger.info("REAL SAMPLES PER PACKET: "+str(len(l_vec.samples)))
         for i_sample in l_vec.samples:
             self._first_sample_timestamp = i_sample.timestamp
-            LOGGER.info("First sample sample ts:" + repr(self._first_sample_timestamp))
-            LOGGER.info("First sample system ts:" + repr(time.time()))
-            LOGGER.info("REAL NUM OF CHANNELS:"+str(len(i_sample.channels)))
+            self.logger.info("First sample sample ts:" + repr(self._first_sample_timestamp))
+            self.logger.info("First sample system ts:" + repr(time.time()))
+            self.logger.info("REAL NUM OF CHANNELS:"+str(len(i_sample.channels)))
             break
 
 
@@ -53,7 +50,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             #break
 
         self._data_proxy.set_data_len(len(p_data), self._samples_per_vector)
-        LOGGER.info("Data len: "+str(len(p_data)))
+        self.logger.info("Data len: "+str(len(p_data)))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! below operation changes self._data_received method
         # from _first_sample_timestamp to _all_but_first_data_received
@@ -81,9 +78,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._init_saving_session()
         self.debug_on = int(self.config.get_param('debug_on'))
         if self.debug_on:
-            from obci_utils import streaming_debug
+            from obci.utils import streaming_debug
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), 
-                                               LOGGER,
+                                               self.logger,
                                                self._samples_per_vector
                                                )
 
@@ -109,20 +106,20 @@ class SignalSaver(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             ctr = mxmsg.message
             if ctr == 'finish':
-                LOGGER.info("Signal saver got finish saving _message.")
-                LOGGER.info("Last sample ts ~ "+repr(time.time()))
+                self.logger.info("Signal saver got finish saving _message.")
+                self.logger.info("Last sample ts ~ "+repr(time.time()))
                 self._finish_saving_session()
                 time.sleep(3)
                 sys.exit(0)
             else:
-                LOGGER.warning("Signal saver got unknown control message "+ctr+"!")                
+                self.logger.warning("Signal saver got unknown control message "+ctr+"!")                
         self.no_response()
 
     def _init_saving_session(self):
         """Start storing data..."""
 
         if self._session_is_active:
-            LOGGER.error("Attempting to start saving signal to file while not closing previously opened file!")
+            self.logger.error("Attempting to start saving signal to file while not closing previously opened file!")
             return
         append_ts = int(self.config.get_param("append_timestamps"))
         use_tmp_file = int(self.config.get_param("use_tmp_file"))
@@ -150,7 +147,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         number of samples and first sample timestamp (for tag_saver and info_saver).
         Also perform .finish_saving on data_proxy - it might be a long operation..."""
         if not self._session_is_active:
-            LOGGER.error("Attempting to stop saving signal to file while no file being opened!")
+            self.logger.error("Attempting to stop saving signal to file while no file being opened!")
             return
         self._session_is_active = False
 
@@ -174,7 +171,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             message=l_vec.SerializeToString(),
             type=types.SIGNAL_SAVER_FINISHED, flush=True)
 
-        LOGGER.info("Saved file "+str(l_files))
+        self.logger.info("Saved file "+str(l_files))
         return l_files
 
 if __name__ == "__main__":

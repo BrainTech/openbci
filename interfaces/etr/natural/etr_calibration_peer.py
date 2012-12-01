@@ -4,12 +4,9 @@
 import sys, time, socket, subprocess, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
-from drivers import drivers_logging as logger
-
-LOGGER = logger.get_logger("etr_calibration", "info")
+from obci.configs import settings, variables_pb2
 
 #~ from camera import Camera
 import numpy as np
@@ -31,12 +28,12 @@ class EtrCalibration(ConfiguredClient):
         self.socket.bind((self.get_param('rcv_ip'),int(self.get_param('rcv_port'))))
         self.socket.listen(1)
         self.ready()
-        LOGGER.info("Start initializin etr amplifier...")
+        self.logger.info("Start initializin etr amplifier...")
         
         #~ self.thread = Cam()
         #~ self.thread.run()
         
-        LOGGER.info("\n"*10 +"I don't fancy you"+ "\n"*10)
+        self.logger.info("\n"*10 +"I don't fancy you"+ "\n"*10)
 
     def __del__(self):
         self.socket.close()        
@@ -74,7 +71,7 @@ class EtrCalibration(ConfiguredClient):
         r.timestamp = time.time()
         for val in self.invH.flatten().tolist():
             r.channels.append(val)
-        LOGGER.info("sending matrix: " + str(self.invS.flatten().tolist()) )
+        self.logger.info("sending matrix: " + str(self.invS.flatten().tolist()) )
         print "types.ETR_CALIBRATION_RESULTS: ", types.ETR_CALIBRATION_RESULTS
         self.conn.send_message(message = r.SerializeToString(), 
                                type = types.ETR_CALIBRATION_RESULTS, flush=False)

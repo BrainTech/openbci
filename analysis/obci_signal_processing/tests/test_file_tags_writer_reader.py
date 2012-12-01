@@ -6,9 +6,9 @@
 #
 
 """
->>> from analysis.obci_signal_processing.tags import tags_file_writer as p
+>>> from obci.analysis.obci_signal_processing.tags import tags_file_writer as p
 
->>> from analysis.obci_signal_processing.tags import tags_file_reader as t
+>>> from obci.analysis.obci_signal_processing.tags import tags_file_reader as t
 
 >>> px = p.TagsFileWriter('./tescik.obci.tags')
 

@@ -6,9 +6,9 @@
 import random, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 
 class SpellerLogicTest(ConfiguredClient):
     def __init__(self, addresses):
@@ -25,7 +25,7 @@ class SpellerLogicTest(ConfiguredClient):
             ind = random.randint(0, self.count-1)
             decision = self.decs[ind]
             time.sleep(self.times[ind])
-            self.conn.send_message(message = decision, type = l_msg_type, flush=True)
+            self.conn.send_message(message = str(decision), type = l_msg_type, flush=True)
 if __name__ == "__main__":
     SpellerLogicTest(settings.MULTIPLEXER_ADDRESSES).run()
 

@@ -5,7 +5,7 @@ import json
 import bluetooth
 import os
 
-from launcher.launcher_tools import obci_root, READY_TO_LAUNCH
+from obci.control.launcher.launcher_tools import obci_root, READY_TO_LAUNCH
 
 _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 

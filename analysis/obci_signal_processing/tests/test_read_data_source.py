@@ -6,7 +6,7 @@
 #
 
 """
->>> from analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
+>>> from obci.analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
 
 >>> import os.path, os
 
@@ -30,7 +30,7 @@
 
 >>> f = './tescik.obci.dat'
 
->>> from analysis.obci_signal_processing.signal import read_data_source as s
+>>> from obci.analysis.obci_signal_processing.signal import read_data_source as s
 
 >>> # TEST MEMORY DATA SOURCE **************************************************
 

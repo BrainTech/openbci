@@ -9,11 +9,8 @@
 import time 
 
 from multiplexer.multiplexer_constants import peers, types
-from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from obci_configs import settings, variables_pb2
-
-from devices import devices_logging as logger
-LOGGER = logger.get_logger('diode_control_peer')
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.configs import settings, variables_pb2
 
 class DiodeControl(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -46,7 +43,7 @@ class DiodeControl(ConfiguredMultiplexerServer):
         try:
             self.freqs = [int(i) for i in freqs_str.split(";")]
         except ValueError: #'' in freqs - means turn diodes on
-            LOGGER.warning("Got nonumeric freqs. Set to -1")
+            self.logger.warning("Got nonumeric freqs. Set to -1")
             self.freqs = [-1 for i in freqs_str.split(";")]
 
     def start_blinking(self):
@@ -79,10 +76,10 @@ class DiodeControl(ConfiguredMultiplexerServer):
 	    l_msg = variables_pb2.Variable()
             l_msg.ParseFromString(mxmsg.message)
             if l_msg.key == 'stop':
-                LOGGER.info("Stop blinker!")
+                self.logger.info("Stop blinker!")
                 self.diodes_on()
             elif l_msg.key == 'start':
-                LOGGER.info("Start blinker!")
+                self.logger.info("Start blinker!")
                 self.start_blinking()
             elif l_msg.key == 'update':
                 self.update_freqs(l_msg.value)
@@ -91,7 +88,7 @@ class DiodeControl(ConfiguredMultiplexerServer):
                 else:
                     self.start_blinking()
             else:
-                LOGGER.warning("Unrecognised blink control message! "+str(l_msg.key))
+                self.logger.warning("Unrecognised blink control message! "+str(l_msg.key))
         self.no_response()
 
     def _send_diode_message(self, freqs_str):

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import random, time
-from interfaces import interfaces_logging as logger
+from obci.interfaces import interfaces_logging as logger
 import numpy as np
 
-from interfaces.bci.p300_fda.p300_fda import P300_analysis
-from interfaces.bci.p300_fda.p300_draw import P300_draw
+from obci.interfaces.bci.p300_fda.p300_fda import P300_analysis
+from obci.interfaces.bci.p300_fda.p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
 
 LOGGER = logger.get_logger("bci_p300_fda_analysis", "info")

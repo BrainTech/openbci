@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-from obci_utils import tagger
+from obci.utils import tagger
 import time
 
 TAGGER = tagger.get_tagger()
@@ -11,9 +11,9 @@ COLORS = ['czerwony', 'zielony', 'niebieski', 'bialy']
 NAMES = ['pozytywny', 'negatywny', 'neutralny']
 import random
 
-from peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
-from obci_configs import settings
+from obci.configs import settings
 
 class AutoTagGenerator(ConfiguredClient):
     def __init__(self, addresses):

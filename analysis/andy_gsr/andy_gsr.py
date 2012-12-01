@@ -7,14 +7,14 @@
 import sys, os
 import numpy as np
 #sys.path.insert(1, '/home/mati/obci/')
-from acquisition import csv_manager
+from obci.acquisition import csv_manager
 import csv as CCC
 
-from analysis.obci_signal_processing.tags import smart_tag_definition
-from analysis.obci_signal_processing import smart_tags_manager
-from analysis import offline_analysis_logging as logger
-from analysis.obci_signal_processing import read_manager
-from analysis.obci_signal_processing.signal import data_write_proxy
+from obci.analysis.obci_signal_processing.tags import smart_tag_definition
+from obci.analysis.obci_signal_processing import smart_tags_manager
+from obci.analysis import offline_analysis_logging as logger
+from obci.analysis.obci_signal_processing import read_manager
+from obci.analysis.obci_signal_processing.signal import data_write_proxy
 LOGGER = logger.get_logger("andy_gsr", "debug")
 
 def exp_dat_csv(p_files):

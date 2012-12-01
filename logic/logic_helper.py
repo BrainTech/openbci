@@ -4,15 +4,15 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 import os
 import subprocess
-import common.config_message as cmsg
-from common.message import OBCIMessageTool
-from launcher.launcher_messages import message_templates
-from launcher.launcher_tools import obci_root
+import obci.control.common.config_message as cmsg
+from obci.control.common.message import OBCIMessageTool
+from obci.control.launcher.launcher_messages import message_templates
+from obci.control.launcher.launcher_tools import obci_root
 import peer.peer_cmd as peer_cmd
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client
-from obci_configs import settings
+from obci.configs import settings
 
 mtool = OBCIMessageTool(message_templates)
 
