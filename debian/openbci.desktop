@@ -2,8 +2,7 @@
 Encoding=UTF-8
 GenericName=OpenBCI GUI
 Name=OpenBCI
-Exec=obci_gui %F
-TryExec=obci_gui
+Exec=obci_gui --tray
 Type=Application
 Terminal=false
 Categories=Programming;Science;MedicalSoftware;Development;IDE;
