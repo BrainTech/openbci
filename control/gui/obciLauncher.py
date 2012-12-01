@@ -23,6 +23,7 @@ import os
 import os.path
 import sip
 import time
+import getopt
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
@@ -682,6 +683,11 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
 
 
 if __name__ == '__main__':
+    opts, args = getopt.getopt(sys.argv[1:],"t",['tray'])
+    for opt, arg in opts:
+        if opt in ('--tray'):
+            os.system('obci_x_tray&')
+
     app = QApplication([])
     p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
     s = QSplashScreen(p)
