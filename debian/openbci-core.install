@@ -18,10 +18,10 @@ gui/		  /usr/share/openbci
 __init__.py	  /usr/share/openbci
 interfaces/	  /usr/share/openbci
 logic/		  /usr/share/openbci
-obci_configs/	  /usr/share/openbci
-obci_control/	  /usr/share/openbci
+configs/	  /usr/share/openbci
+control/	  /usr/share/openbci
 scenarios/	  /usr/share/openbci
-obci_utils/		  /usr/share/openbci
+utils/		  /usr/share/openbci
 multiplexer-install/	  /usr/share/openbci
 
 debian/openbci.desktop usr/share/applications
