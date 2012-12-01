@@ -6,15 +6,15 @@
 import sys, os, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-from interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
-from interfaces.bci.ssvep_csp import ssvep_csp_helper
-from logic import logic_helper
-from obci_utils import context as ctx
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
+from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
+from obci.logic import logic_helper
+from obci.utils import context as ctx
 
 class LogicSsvepCsp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""

@@ -4,15 +4,15 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import time, random
-from obci_utils import tags_helper
+from obci.utils import tags_helper
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from logic import logic_helper
-from gui.ugm import ugm_helper
-from logic.engines.speller_engine import SpellerEngine
+from obci.logic import logic_helper
+from obci.gui.ugm import ugm_helper
+from obci.logic.engines.speller_engine import SpellerEngine
 
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 
 class LogicWordSpeller(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""

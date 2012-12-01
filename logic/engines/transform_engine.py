@@ -5,10 +5,10 @@
 #
 #import os.path, sys, time, os
 import time
-from logic import logic_helper
-from gui.ugm import ugm_helper
-from devices import diode_helper
-from obci_utils import context as ctx
+from obci.logic import logic_helper
+from obci.gui.ugm import ugm_helper
+from obci.devices import diode_helper
+from obci.utils import context as ctx
 
 class TransformEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('TransformEngine')):

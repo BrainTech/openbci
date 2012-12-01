@@ -5,10 +5,10 @@ import random, time, pickle, os.path
 import numpy as np
 import scipy.signal as ss
 from scipy.signal import hamming
-from analysis.csp.filtfilt import filtfilt
-from analysis.csp.artifactClassifier import artifactsClasifier
+from obci.analysis.csp.filtfilt import filtfilt
+from obci.analysis.csp.artifactClassifier import artifactsClasifier
 import p300
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 DEBUG = False
 

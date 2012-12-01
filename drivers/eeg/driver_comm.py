@@ -8,11 +8,11 @@ import signal
 import time
 import socket
 
-from launcher.launcher_tools import obci_root
+from obci.control.launcher.launcher_tools import obci_root
 
 from subprocess import Popen
 from threading  import Thread
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 try:
     from Queue import Queue, Empty
@@ -27,7 +27,7 @@ class DriverComm(object):
         which fully support INI file configuration.
 
         Example:
-        >>> from peer.peer_config import PeerConfig
+        >>> from obci.control.peer.peer_config import PeerConfig
         >>> import json
 
         >>> conf = PeerConfig('amplifier')
@@ -233,7 +233,7 @@ def enqueue_output(out, queue):
 
 
 if __name__ == "__main__":
-    from peer.peer_config import PeerConfig
+    from obci.control.peer.peer_config import PeerConfig
     import json
 
     conf = PeerConfig('amplifier')

@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import time
-from obci_control.peer.configured_client import ConfiguredClient
-from acquisition import acquisition_helper
-from obci_configs import settings, variables_pb2
+from obci.control.peer.configured_client import ConfiguredClient
+from obci.acquisition import acquisition_helper
+from obci.configs import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 
 class SaverControl(ConfiguredClient):

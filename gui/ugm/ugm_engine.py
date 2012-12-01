@@ -8,11 +8,11 @@ import sys
 from PyQt4 import QtGui, QtCore, Qt
 import Queue
 
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_stimuluses
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_stimuluses
 
-from gui import gui_logging as logger
-from obci_utils import context as ctx
+
+from obci.utils import context as ctx
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
     """For now, just to express it..."""

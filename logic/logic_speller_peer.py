@@ -4,13 +4,13 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import time
-from obci_utils import tags_helper
+from obci.utils import tags_helper
 from multiplexer.multiplexer_constants import peers, types
-from logic import logic_helper
-from logic.logic_decision_peer import LogicDecision
-from logic.engines.speller_engine import SpellerEngine
-from obci_utils import context as ctx
-from obci_configs import settings, variables_pb2
+from obci.logic import logic_helper
+from obci.logic.logic_decision_peer import LogicDecision
+from obci.logic.engines.speller_engine import SpellerEngine
+from obci.utils import context as ctx
+from obci.configs import settings, variables_pb2
 
 class LogicSpeller(LogicDecision, SpellerEngine):
     """A class for creating a manifest file with metadata."""

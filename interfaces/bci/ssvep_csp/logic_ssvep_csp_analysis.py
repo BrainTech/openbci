@@ -6,11 +6,10 @@
 import sys, time, os.path, pickle
 import pylab
 
-from analysis.obci_signal_processing import read_manager
-from analysis.csp import modCSPv2 as csp
-from analysis.csp import signalParser as sp
-
-from interfaces import interfaces_logging as logger
+from obci.analysis.obci_signal_processing import read_manager
+from obci.analysis.csp import modCSPv2 as csp
+from obci.analysis.csp import signalParser as sp
+from obci.utils import context as ctx
 
 def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_stats=True,
 	context=ctx.get_dummy_context('UgmBlinkingConnection')):

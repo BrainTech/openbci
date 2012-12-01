@@ -13,7 +13,7 @@ import numpy as np
 from p300_fda import P300_analysis
 from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 DEBUG = False
 

@@ -6,11 +6,11 @@
 from multiplexer.multiplexer_constants import peers, types
 
 import sys, os.path, time
-from obci_configs import settings, variables_pb2
-from analysis.obci_signal_processing.tags import tags_file_writer as tags_writer
-from analysis.obci_signal_processing.tags import tag_utils
+from obci.configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.tags import tags_file_writer as tags_writer
+from obci.analysis.obci_signal_processing.tags import tag_utils
 
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 TAG_FILE_EXTENSION = ".obci.tag"
 

@@ -7,7 +7,7 @@
 """
 >>> import os
 
->>> from analysis.obci_signal_processing.signal import info_file_proxy as p
+>>> from obci.analysis.obci_signal_processing.signal import info_file_proxy as p
 
 >>> px = p.InfoFileWriteProxy('./tescik.obci.svarog.info')
 

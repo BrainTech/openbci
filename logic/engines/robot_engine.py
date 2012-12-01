@@ -4,10 +4,10 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import os.path, sys, time, os
-from gui.ugm import ugm_helper
+from obci.gui.ugm import ugm_helper
 import devices.pyrovio.rovio as rovio
 from multiplexer.multiplexer_constants import peers, types
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 class RobotEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('RobotEngine')):

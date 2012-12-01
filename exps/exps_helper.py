@@ -4,11 +4,11 @@
 #      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
 import inspect, os
-from obci_control.peer.configured_client import ConfiguredClient
-from obci_configs import settings
+from obci.control.peer.configured_client import ConfiguredClient
+from obci.configs import settings
 from multiplexer.multiplexer_constants import types, peers
 
-from obci_utils import tags_helper
+from obci.utils import tags_helper
 from acquisition import acquisition_helper
 
 class ExpsHelper(ConfiguredClient):

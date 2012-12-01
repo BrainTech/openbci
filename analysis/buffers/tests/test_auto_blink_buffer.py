@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 
 """
->>> from analysis.buffers import auto_blink_buffer as R
+>>> from obci.analysis.buffers import auto_blink_buffer as R
 
 >>> per, ch, sm = (4, 3, 20)
 
@@ -176,7 +176,7 @@ def zero_count():
     global COUNT
     COUNT = 0
 
-from obci_configs import variables_pb2
+from obci.configs import variables_pb2
 import time
 COUNT = 0
 

@@ -8,8 +8,8 @@ import os.path, sys, time, os
 
 from multiplexer.multiplexer_constants import peers, types
 
-from obci_configs import settings, variables_pb2
-from logic import logic_speller_peer
+from obci.configs import settings, variables_pb2
+from obci.logic import logic_speller_peer
 
 class LogicHome(logic_speller_peer.LogicSpeller):
     """A class for creating a manifest file with metadata."""

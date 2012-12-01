@@ -1,10 +1,10 @@
 import sys
 import subprocess
 import signal
-sys.path.append("../../../multiplexer-install/lib/python2.6/site-packages/")
-sys.path.append("../../../obci_control")
-sys.path.append("../../../")
-sys.path.append("../../")
+#sys.path.append("../../../multiplexer-install/lib/python2.6/site-packages/")
+#sys.path.append("../../../obci_control")
+#sys.path.append("../../../")
+#sys.path.append("../../")
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 import peer.peer_config_control

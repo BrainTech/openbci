@@ -5,7 +5,7 @@ import random, time, pickle, os.path
 import numpy as np
 from scipy.signal import hamming
 import scipy.stats as st
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 DEBUG = False
 

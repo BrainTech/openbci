@@ -5,15 +5,14 @@ import sys
 import thread, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
-from drivers import drivers_logging as logger
-from obci_utils import context as ctx
-from gui.ugm import ugm_engine
-from gui.ugm import ugm_internal_server
-from gui.ugm import ugm_config_manager
-from gui.ugm.blinking import ugm_blinking_connection
+from obci.configs import settings, variables_pb2
+from obci.utils import context as ctx
+from obci.gui.ugm import ugm_engine
+from obci.gui.ugm import ugm_internal_server
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm.blinking import ugm_blinking_connection
 
 class UgmEnginePeer(ConfiguredClient):
     def __init__(self, addresses):

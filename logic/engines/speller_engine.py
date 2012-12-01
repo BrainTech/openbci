@@ -5,9 +5,8 @@
 #    
 
 import os.path, sys, time, os
-from gui.ugm import ugm_helper
-from logic import logic_logging as logger
-from obci_utils import context as ctx
+from obci.gui.ugm import ugm_helper
+from obci.utils import context as ctx
 
 class SpellerEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('SpellerEngine')):

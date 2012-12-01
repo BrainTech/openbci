@@ -7,8 +7,8 @@
 import random, time, numpy
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from obci_configs import settings, variables_pb2
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.configs import settings, variables_pb2
 
 class SampleAnalysis(ConfiguredMultiplexerServer):
     """A class responsible for handling signal message and making proper decision.

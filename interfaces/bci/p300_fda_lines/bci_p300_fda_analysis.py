@@ -4,10 +4,10 @@
 import random, time
 import numpy as np
 
-from interfaces.bci.p300_fda_lines.p300_fda import P300_analysis
-from interfaces.bci.p300_fda_lines.p300_draw import P300_draw
+from obci.interfaces.bci.p300_fda_lines.p300_fda import P300_analysis
+from obci.interfaces.bci.p300_fda_lines.p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 DEBUG = False
 

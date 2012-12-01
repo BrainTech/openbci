@@ -7,10 +7,9 @@
 ugm as a part of openbci (with multiplexer and all that stuff)."""
 import socket, time, sys
 
-from obci_utils import tagger
-from obci_utils import context as ctx
-from gui import gui_logging as logger
-from obci_configs import variables_pb2
+from obci.utils import tagger
+from obci.utils import context as ctx
+from obci.configs import variables_pb2
 
 BUF = 2**19
 

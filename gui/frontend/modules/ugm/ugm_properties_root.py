@@ -6,7 +6,7 @@
 #
 """Tree element, that represents root in properties tree"""
 
-from gui.frontend.modules.ugm.ugm_tree_element import UGMTreeElement, NAME
+from obci.gui.frontend.modules.ugm.ugm_tree_element import UGMTreeElement, NAME
 
 class UGMPropertiesRoot(UGMTreeElement):
     """Tree element, that represents root in properties tree"""

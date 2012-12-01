@@ -5,18 +5,18 @@
 #
 
 import random, time, pickle
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from devices import appliance_helper
-from acquisition import acquisition_helper
-from analysis.buffers import auto_ring_buffer
-from interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
-from interfaces.bci.ssvep_csp import ssvep_csp_helper
-from obci_utils import streaming_debug
-from obci_utils import tags_helper
+from obci.configs import settings, variables_pb2
+from obci.devices import appliance_helper
+from obci.acquisition import acquisition_helper
+from obci.analysis.buffers import auto_ring_buffer
+from obci.interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
+from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
+from obci.utils import streaming_debug
+from obci.utils import tags_helper
 
 DEBUG = False
 

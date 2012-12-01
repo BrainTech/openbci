@@ -6,15 +6,15 @@
 import os.path, sys, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_helper
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_helper
 
-from obci_utils import streaming_debug
+from obci.utils import streaming_debug
 import devices.pyrovio.rovio as rovio
-from common.obci_control_settings import DEFAULT_SANDBOX_DIR
+from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
 DEBUG = False
 

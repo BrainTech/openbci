@@ -5,9 +5,9 @@
 
 import socket
 
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
-from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 class UgmServer(ConfiguredMultiplexerServer):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)

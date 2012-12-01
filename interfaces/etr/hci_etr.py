@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_helper
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_helper
 import random, time, sys
 
 class HciEtr(ConfiguredMultiplexerServer):

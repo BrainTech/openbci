@@ -6,9 +6,8 @@ import time
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
-from obci_configs import variables_pb2
-from obci_utils import context as ctx
-from gui import gui_logging as logger
+from obci.configs import variables_pb2
+from obci.utils import context as ctx
 
 class UgmBlinkingConnection(object):
     """Provides connection for engine to 'external' wold - other MX modules."""

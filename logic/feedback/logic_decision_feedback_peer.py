@@ -3,10 +3,10 @@
 import time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from gui.ugm import ugm_helper
-from obci_configs import settings, variables_pb2
+from obci.gui.ugm import ugm_helper
+from obci.configs import settings, variables_pb2
 
 class LogicDecisionFeedback(ConfiguredMultiplexerServer):
     def __init__(self, addresses):

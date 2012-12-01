@@ -7,10 +7,10 @@ import os.path, time
 import sys
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from analysis.obci_signal_processing.signal import info_file_proxy
+from obci.configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.signal import info_file_proxy
 
 INFO_FILE_EXTENSION = ".obci.xml"
 

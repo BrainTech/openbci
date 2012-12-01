@@ -3,11 +3,11 @@
 import random, time, sys
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_helper
-from interfaces.etr import hci_etr
-from interfaces.etr.natural import etr_natural_dec_manager
-from interfaces.etr import etr_ugm_manager
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.etr import hci_etr
+from obci.interfaces.etr.natural import etr_natural_dec_manager
+from obci.interfaces.etr import etr_ugm_manager
 
 class HciEtrNatural(hci_etr.HciEtr):
     def __init__(self, addresses):

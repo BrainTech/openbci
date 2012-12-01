@@ -6,10 +6,10 @@
 import os
 
 from multiplexer.multiplexer_constants import peers, types
-from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from analysis.obci_signal_processing.signal import data_write_proxy
-from obci_configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.signal import data_write_proxy
+from obci.configs import settings, variables_pb2
 
 DATA_FILE_EXTENSION = '.wii_board.txt'
 

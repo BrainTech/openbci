@@ -6,11 +6,11 @@
 import os.path, sys, time, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from obci_utils import context as ctx
-from logic import state_machine
-from logic import logic_helper
-from obci_configs import settings, variables_pb2
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.utils import context as ctx
+from obci.logic import state_machine
+from obci.logic import logic_helper
+from obci.configs import settings, variables_pb2
 
 class LogicDecision(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""

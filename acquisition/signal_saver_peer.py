@@ -6,11 +6,11 @@
 import sys, os.path, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from analysis.obci_signal_processing.signal import data_write_proxy
-from analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
+from obci.configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.signal import data_write_proxy
+from obci.analysis.obci_signal_processing.signal import signal_exceptions as  data_storage_exceptions
 
 DATA_FILE_EXTENSION = ".obci.raw"
 class SignalSaver(ConfiguredMultiplexerServer):
@@ -78,7 +78,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._init_saving_session()
         self.debug_on = int(self.config.get_param('debug_on'))
         if self.debug_on:
-            from obci_utils import streaming_debug
+            from obci.utils import streaming_debug
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), 
                                                self.logger,
                                                self._samples_per_vector

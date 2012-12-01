@@ -18,7 +18,7 @@
 
 >>> tags.append({'start_timestamp':1008.0, 'end_timestamp':1009.0, 'name': 'nic3', 'channels':'A B C', 'desc': {'x':12345, 'y':45678, 'z': 789}})
 
->>> from analysis.obci_signal_processing.tags import read_tags_source
+>>> from obci.analysis.obci_signal_processing.tags import read_tags_source
 
 >>> s = read_tags_source.MemoryTagsSource(tags)
 

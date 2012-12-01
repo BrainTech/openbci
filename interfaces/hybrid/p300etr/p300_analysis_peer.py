@@ -9,18 +9,18 @@ Contact: laszukdawid@gmail.com
 import random, time, pickle
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from devices import appliance_helper
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-from analysis.buffers import auto_blink_buffer
-from interfaces.hybrid.p300etr import p300_analysis_data_peer
+from obci.configs import settings, variables_pb2
+from obci.devices import appliance_helper
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+from obci.analysis.buffers import auto_blink_buffer
+from obci.interfaces.hybrid.p300etr import p300_analysis_data_peer
 import csp_helper
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
-from obci_utils import streaming_debug
+from obci.utils import streaming_debug
 DEBUG = True
 
 

@@ -10,15 +10,15 @@ Contact: laszukdawid@gmail.com
 import os.path, sys, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_helper
-from obci_utils import keystroke
-from obci_utils import tags_helper
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_helper
+from obci.utils import keystroke
+from obci.utils import tags_helper
 
-from acquisition import acquisition_helper
+from obci.acquisition import acquisition_helper
 
 class LogicP300Calibration(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""

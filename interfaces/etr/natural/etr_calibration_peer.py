@@ -4,9 +4,9 @@
 import sys, time, socket, subprocess, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 
 #~ from camera import Camera
 import numpy as np

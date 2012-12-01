@@ -6,7 +6,7 @@ import random, time
 import socket
 
 from drivers.etr import etr_amplifier
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 
 class EtrAmplifierReal(etr_amplifier.EtrAmplifier):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)

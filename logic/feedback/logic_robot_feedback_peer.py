@@ -6,15 +6,15 @@
 import os.path, sys, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_helper
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_helper
 
 
-import devices.pyrovio.rovio as rovio
-from common.obci_control_settings import DEFAULT_SANDBOX_DIR
+import obci.devices.pyrovio.rovio as rovio
+from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
 class LogicRobotFeedback(ConfiguredClient):
     """A class for creating a manifest file with metadata."""

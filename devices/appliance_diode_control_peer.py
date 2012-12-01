@@ -8,7 +8,7 @@ from devices import diode_control_peer
 from devices import appliance1
 from devices import appliance2
 from devices import appliance_dummy
-from obci_configs import settings
+from obci.configs import settings
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):
     def __init__(self, addresses):

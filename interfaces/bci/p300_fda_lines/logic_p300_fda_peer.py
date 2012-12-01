@@ -8,18 +8,18 @@ import numpy as np
 import scipy.stats as st
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 
-from analysis.obci_signal_processing import read_manager
-from analysis.obci_signal_processing.tags import smart_tag_definition as df
-from analysis.obci_signal_processing import smart_tags_manager as sgr
-from obci_configs import settings
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-from interfaces.bci.p300_fda_lines import csp_helper
+from obci.analysis.obci_signal_processing import read_manager
+from obci.analysis.obci_signal_processing.tags import smart_tag_definition as df
+from obci.analysis.obci_signal_processing import smart_tags_manager as sgr
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.bci.p300_fda_lines import csp_helper
 
-from logic import logic_helper
+from obci.logic import logic_helper
 
 import signalParser as sp
 from p300_draw import P300_draw

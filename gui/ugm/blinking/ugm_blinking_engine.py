@@ -6,12 +6,12 @@
 import time
 from PyQt4 import QtCore
 
-from gui.ugm import ugm_engine
+from obci.gui.ugm import ugm_engine
 import ugm_blinking_time_manager
 import ugm_blinking_id_manager
 import ugm_blinking_count_manager
 import ugm_blinking_ugm_manager
-from obci_utils import context as ctx
+from obci.utils import context as ctx
 
 from PyQt4 import QtCore
 class UgmBlinkingEngine(ugm_engine.UgmEngine):

@@ -4,13 +4,13 @@
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import time, sys, signal
-from obci_configs import settings
+from obci.configs import settings
 
 from devices import appliance1
 from devices import appliance2
 from devices import appliance_dummy
 from devices import appliance_diode_control_peer
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
 
 class ApplianceCleaner(ConfiguredClient):

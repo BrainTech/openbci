@@ -2,7 +2,7 @@
 #!/usr/bin/env python
 
 """
->>> from analysis.buffers import ring_buffer_numpy_channels as R
+>>> from obci.analysis.buffers import ring_buffer_numpy_channels as R
 
 >>> r = R.RingBufferNumpyChannels(10, 5, False)
 
@@ -51,7 +51,7 @@ array([[  1.10000000e+01,   1.20000000e+01],
 """
 
 
-from obci_configs import variables_pb2
+from obci.configs import variables_pb2
 def get_sample(v, ch):
     sample = variables_pb2.Sample()
     mult = 1
