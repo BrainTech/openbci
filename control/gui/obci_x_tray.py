@@ -352,18 +352,11 @@ class MainWidget(QWidget):
                                       QMessageBox.Yes | QMessageBox.No,
                                       QMessageBox.No)
             if ret == QMessageBox.Yes:
+                self.controller.stopServer()
                 qApp.quit()
 
 def pidfile():
-#    path = '~/.obci'
     lockfile = '~/.obci/tray.lock'
-
-#    try:
-#        os.makedirs(os.path.expanduser(path))
-#    except OSError as exception:
-#        if exception.errno != errno.EEXIST:
-#            raise
-
 
     if os.access(os.path.expanduser(lockfile), os.F_OK):
         pidfile = open(os.path.expanduser(lockfile), "r")
