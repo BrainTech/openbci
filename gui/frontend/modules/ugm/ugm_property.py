@@ -7,7 +7,7 @@
 """UGM properties tree element, that represents single property of some field or
 stimulues in model"""
 
-from gui.frontend.modules.ugm.ugm_tree_element import UGMTreeElement, NAME, VALUE
+from obci.gui.frontend.modules.ugm.ugm_tree_element import UGMTreeElement, NAME, VALUE
 
 class UGMProperty(UGMTreeElement):
     """UGM properties tree element, that represents single property of some field or

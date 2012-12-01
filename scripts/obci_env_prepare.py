@@ -39,7 +39,7 @@ if __name__ == '__main__':
 		print 'config_dir: ', config_path
 		make_obci_config_dir(config_path)
 	
-	config_template = os.path.join(obci_dir, 'obci_control', 'templates', 'main_config.ini')
+	config_template = os.path.join(obci_dir, 'control', 'templates', 'main_config.ini')
 	print 'config_template', config_template
 	shutil.copyfile(config_template, admin_main)
 	config = ConfigParser.RawConfigParser()
@@ -80,12 +80,16 @@ if __name__ == '__main__':
 
 	if not os.path.exists('/usr/bin/obci'):
 		print "linking obci command"
-		os.symlink(os.path.join(obci_dir, 'obci_control', 'launcher', 'obci'),
+		os.symlink(os.path.join(obci_dir, 'control', 'launcher', 'obci'),
 				'/usr/bin/obci')
 	if not os.path.exists('/usr/bin/obci_gui'):
 		print "linking obci_gum command"
-		os.symlink(os.path.join(obci_dir, 'obci_control', 'gui', 'obci_gui'),
+		os.symlink(os.path.join(obci_dir, 'control', 'gui', 'obci_gui'),
 				'/usr/bin/obci_gui')
+	if not os.path.exists('/usr/bin/obci_x_tray'):
+		print "linking obci_x_tray command"
+		os.symlink(os.path.join(obci_dir, 'control', 'gui', 'obci_x_tray'),
+				'/usr/bin/obci_x_tray')
 
 
 		

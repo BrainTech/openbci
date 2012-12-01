@@ -4,16 +4,14 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import os.path, sys, time, os
-from gui.ugm import ugm_helper
+from obci.gui.ugm import ugm_helper
 import devices.pyrovio.rovio as rovio
 from multiplexer.multiplexer_constants import peers, types
-
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("robot_engine", "info")
-
+from obci.utils import context as ctx
 
 class RobotEngine(object):
-    def __init__(self, configs):
+    def __init__(self, configs, context=ctx.get_dummy_context('RobotEngine')):
+        self.logger = context['logger']
         self._robot = rovio.Rovio('', configs['robot_ip'])
         self._rc = rovio.RovioController(self._robot)
         self._rc.start()
@@ -28,7 +26,7 @@ class RobotEngine(object):
                 res = method()
                 result += str(res) + '.'
             # result = self._rc.enqueue_all([[900, self._robot.forward]])
-            LOGGER.info(result + "   command: " + command)
+            self.logger.info(result + "   command: " + command)
 
     def robot(self, command):
         t = time.time()
@@ -43,23 +41,23 @@ class RobotEngine(object):
                 self._robot_cmd(self._robot.right, command)
             elif command == 'camera_up':
                 result = self._robot.head_up()
-                LOGGER.info(str(result) + "command: " + command)
+                self.logger.info(str(result) + "command: " + command)
             elif command == 'camera_middle':
                 result = self._robot.head_middle()
-                LOGGER.info(str(result) + "command: " + command)
+                self.logger.info(str(result) + "command: " + command)
             elif command == 'camera_down':
                 result = self._robot.head_down()
-                LOGGER.info(str(result) + "command: " + command)
+                self.logger.info(str(result) + "command: " + command)
             else:
-                LOGGER.error('(rovio handling) Command ' + command + ' not supported.')
+                self.logger.error('(rovio handling) Command ' + command + ' not supported.')
         except:
-            LOGGER.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!! In time: "+str(time.time()-t))
+            self.logger.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!! In time: "+str(time.time()-t))
             ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
             time.sleep(0.5)
 
     def start_robot_feedback(self):
         """Called eg. in mult-logic just after starting robot logic."""
-        LOGGER.info("Start robot feed...")
+        self.logger.info("Start robot feed...")
         self.conn.send_message(
             message = "start",
             type=types.ROBOT_FEEDBACK_CONTROL, 
@@ -67,7 +65,7 @@ class RobotEngine(object):
 
     def stop_robot_feedback(self):
         """Called eg. in mult-logic just after finishing robot logic."""
-        LOGGER.info("Stop robot feed...")
+        self.logger.info("Stop robot feed...")
         self.conn.send_message(
             message = "stop",
             type=types.ROBOT_FEEDBACK_CONTROL, 

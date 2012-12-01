@@ -3,13 +3,14 @@
 # Author:
 #      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
-import inspect, os
-from obci.obci_control.peer.configured_client import ConfiguredClient
-from obci.obci_configs import settings
-from multiplexer.multiplexer_constants import peers
+import inspect, os, time
+from obci.control.peer.configured_client import ConfiguredClient
+from obci.configs import settings
+from multiplexer.multiplexer_constants import types, peers
 
-from obci.obci_utils import tags_helper
-from obci.acquisition import acquisition_helper
+from obci.utils import tags_helper
+from acquisition import acquisition_helper
+
 
 class ExpsHelper(ConfiguredClient):
     def __init__(self, addresses=settings.MULTIPLEXER_ADDRESSES, config_module=None):
@@ -33,4 +34,4 @@ class ExpsHelper(ConfiguredClient):
 
 if __name__ == '__main__':
     helper = ExpsHelper()
-    helper.finish_saving()
+    time.sleep(100000)

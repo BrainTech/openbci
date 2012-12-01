@@ -6,9 +6,9 @@
 #
 
 """
->>> from analysis.obci_signal_processing.signal.data_read_proxy import DataReadProxy
+>>> from obci.analysis.obci_signal_processing.signal.data_read_proxy import DataReadProxy
 
->>> from analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
+>>> from obci.analysis.obci_signal_processing.signal.data_raw_write_proxy import DataRawWriteProxy
 
 >>> import os.path, os
 

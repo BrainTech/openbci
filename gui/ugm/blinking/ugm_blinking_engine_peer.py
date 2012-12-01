@@ -5,14 +5,14 @@ import sys
 import thread, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
-from drivers import drivers_logging as logger
-from gui.ugm import ugm_internal_server
-from gui.ugm import ugm_config_manager
-from gui.ugm.blinking import ugm_blinking_engine
-from gui.ugm.blinking import ugm_blinking_connection
+from obci.configs import settings, variables_pb2
+from obci.utils import context as ctx
+from obci.gui.ugm import ugm_internal_server
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm.blinking import ugm_blinking_engine
+from obci.gui.ugm.blinking import ugm_blinking_connection
 
 class DummyClient(object):
     def __init__(self, params):
@@ -23,15 +23,20 @@ class DummyClient(object):
 class UgmBlinkingEnginePeer(ConfiguredClient):
     def __init__(self, addresses):
         super(UgmBlinkingEnginePeer, self).__init__(addresses=addresses, type=peers.UGM_ENGINE_PEER)
-        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES)
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
+        connection = ugm_blinking_connection.UgmBlinkingConnection(settings.MULTIPLEXER_ADDRESSES,
+                                                                   context)
         ENG = ugm_blinking_engine.UgmBlinkingEngine(
             ugm_config_manager.UgmConfigManager(self.config.get_param('ugm_config')),
-            connection)
+            connection,
+            context)
         ENG.set_configs(DummyClient(self.config.param_values()))
         srv = ugm_internal_server.UdpServer(
             ENG, 
             self.config.get_param('internal_ip'),
-            int(self.config.get_param('use_tagger'))
+            int(self.config.get_param('use_tagger')),
+            context
             )
         self.set_param('internal_port', str(srv.socket.getsockname()[1]))
         thread.start_new_thread(

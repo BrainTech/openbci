@@ -6,20 +6,21 @@
 import time
 from PyQt4 import QtCore
 
-from gui.ugm import ugm_engine
+from obci.gui.ugm import ugm_engine
 import ugm_blinking_time_manager
 import ugm_blinking_id_manager
 import ugm_blinking_count_manager
 import ugm_blinking_ugm_manager
+from obci.utils import context as ctx
 
 from PyQt4 import QtCore
 class UgmBlinkingEngine(ugm_engine.UgmEngine):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
     ugm pyqt structure so that it can refresh."""
-    def __init__(self, p_config_manager, p_connection):
+    def __init__(self, p_config_manager, p_connection, context=ctx.get_dummy_context('UgmBlinkingEngine')):
         """Store config manager."""
-        super(UgmBlinkingEngine, self).__init__(p_config_manager, p_connection)
+        super(UgmBlinkingEngine, self).__init__(p_config_manager, p_connection, context)
         self.time_mgr = ugm_blinking_time_manager.UgmBlinkingTimeManager()
         self.id_mgr = ugm_blinking_id_manager.UgmBlinkingIdManager()
         self.ugm_mgr = ugm_blinking_ugm_manager.UgmBlinkingUgmManager()
@@ -69,7 +70,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         t = 1000*(curr_time - (time.time()-start_time))
         if t < 0:
             t = 0.0
-            print("BLINKER WARNING: time between blinks to short for that computer ...")
+            self.context['logger'].warning("BLINKER WARNING: time between blinks to short for that computer ...")
         self._blink_timer.start(t)
 
     def stop_blinking(self):
@@ -85,7 +86,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         t = 1000*(self._blink_duration - (time.time() - start_time))
         if t < 0:
             t = 0.0
-            print("BLINKER WARNING: blink duration to short for that computer ...")
+            self.context['logger'].warning("BLINKER WARNING: blink duration to short for that computer ...")
         self._unblink_timer.start(t)
 
 

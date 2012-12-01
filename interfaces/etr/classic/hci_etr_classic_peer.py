@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 import random, time, sys
 
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_helper
-from interfaces.etr import hci_etr
-from interfaces.etr.classic import etr_classic_dec_manager
-from interfaces.etr import etr_ugm_manager
-from interfaces import interfaces_logging as logger
-LOGGER = logger.get_logger("hci_etr_classic", "info")
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.etr import hci_etr
+from obci.interfaces.etr.classic import etr_classic_dec_manager
+from obci.interfaces.etr import etr_ugm_manager
 
 class HciEtrClassic(hci_etr.HciEtr):
     def __init__(self, addresses):
@@ -34,7 +32,7 @@ class HciEtrClassic(hci_etr.HciEtr):
         self.ready()
 
     def handle_etr_message(self, msg):
-        LOGGER.debug("Got etr msg: "+str(msg))
+        self.logger.debug("Got etr msg: "+str(msg))
         area_id = self.ugm_mgr.get_pushed_area_id(msg)
         self.dec_mgr.area_pushed(area_id, msg)
         dec, feeds = self.dec_mgr.get_feedbacks()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from logic.configs import config_speller_8
-from logic.configs import config_robot_8
+from obci.logic.configs import config_speller_8
+from obci.logic.configs import config_robot_8
 class Config(object):
     def __init__(self):
         self.number_of_decisions = 8

@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
-from gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_config_manager
 class _SingleUgmManager(object):
     def __init__(self, configs):
         mgr = ugm_config_manager.UgmConfigManager(configs.get_param('ugm_config'))

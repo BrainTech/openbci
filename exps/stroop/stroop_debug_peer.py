@@ -57,7 +57,7 @@ word=visual.TextStim(win=win, ori=0, name='word',
     pos=[0, 0], height=0.2,wrapWidth=None,
     color=1.0, colorSpace='rgb', opacity=1,
     depth=0.0)
-from exps import exps_helper
+from obci.exps import exps_helper
 import time
 H = exps_helper.ExpsHelper()
 

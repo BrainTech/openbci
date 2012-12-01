@@ -4,10 +4,10 @@
 import os
 import sys
 #from multiplexer.multiplexer_constants import peers, types
-from drivers import drivers_logging as logger
-from obci_configs import settings
-#from peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from launcher.launcher_tools import obci_root
+from obci.drivers import drivers_logging as logger
+from obci.configs import settings
+#from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.launcher.launcher_tools import obci_root
 import json
 
 DISCOVERY_MODULE_NAMES = [

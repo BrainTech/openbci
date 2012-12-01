@@ -3,15 +3,13 @@
 
 import os, os.path, sys, Queue, time
 from multiplexer.multiplexer_constants import peers, types
-from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
-from drivers import drivers_logging as logger
-from obci_configs import settings
-from launcher.launcher_tools import obci_root
-from drivers.eeg import tags_to_mxmsg
-from analysis.obci_signal_processing.signal import read_info_source
-from analysis.obci_signal_processing.tags import read_tags_source
+from obci.drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
+from obci.configs import settings
+from obci.control.launcher.launcher_tools import obci_root
+from obci.drivers.eeg import tags_to_mxmsg
+from obci.analysis.obci_signal_processing.signal import read_info_source
+from obci.analysis.obci_signal_processing.tags import read_tags_source
 
-LOGGER = logger.get_logger("AmplifierFile", "info")
 
 class AmplifierFile(BinaryDriverWrapper):
     def __init__(self, addresses):
@@ -70,7 +68,7 @@ class AmplifierFile(BinaryDriverWrapper):
              '-o', self.all_offsets,
              '-s', self.get_param('sampling_rate')
               ])
-        LOGGER.info("Extended arguments: "+str(args))
+        self.logger.info("Extended arguments: "+str(args))
         return args
 
     def set_driver_params(self):
@@ -86,9 +84,9 @@ class AmplifierFile(BinaryDriverWrapper):
         self.msg_mgr = tags_to_mxmsg.TagsToMxmsg(tags, self.config.get_param('tags_rules'))
         tss = ';'.join([repr(t['start_timestamp']) for t in tags])
         self._communicate("tags_start", timeout_s=0.1, timeout_error=False)
-        LOGGER.info("Start sending tss to driver...")
+        self.logger.info("Start sending tss to driver...")
         self._communicate(tss, timeout_s=0.1, timeout_error=False)
-        LOGGER.info("Finished sending tss to driver!")
+        self.logger.info("Finished sending tss to driver!")
         self._communicate("tags_end", timeout_s=0.1, timeout_error=False)
 
     def got_trigger(self, ts):
@@ -98,35 +96,39 @@ class AmplifierFile(BinaryDriverWrapper):
         #...
         tp, msg = self.msg_mgr.next_message(ts)
         if tp is None:
-            LOGGER.warning("No tags left but got trigger. Should not happen!!!")
+            self.logger.warning("No tags left but got trigger. Should not happen!!!")
         else:
-            LOGGER.info("Send msg of type: "+str(tp))
+            self.logger.info("Send msg of type: "+str(tp))
             self.conn.send_message(
                 message = msg,
                 type=tp,
                 flush=True)
 
     def do_sampling(self):
-        LOGGER.info("Stat waiting on drivers output...")
+        self.logger.info("Stat waiting on drivers output...")
         while True:
-            try:
+            try: #read tags from stdout
                 v = self.driver_out_q.get_nowait()
                 try:
                     ts = float(v)
                 except ValueError:
                     if v.startswith('start OK'):
-                        LOGGER.info("Driver finished!!!")
+                        self.logger.info("Driver finished!!!")
                         break
                     else:
-                        LOGGER.warning("Got unrecognised message from driver: "+v)
+                        self.logger.warning("Got unrecognised message from driver: "+v)
                 else:
-                    LOGGER.debug("Got trigger with ts: "+repr(ts)+" / real ts: "+repr(time.time()))
+                    self.logger.info("Got trigger with ts: "+repr(ts)+" / real ts: "+repr(time.time()))
                     self.got_trigger(ts)
-
-            except Queue.Empty:
+            except Queue.Empty: #try reading other log from stderr
+                try:
+                    v = self.driver_err_q.get_nowait()
+                    self.logger.info(v)
+                except Queue.Empty:
+                    pass
                 time.sleep(self.sleep_on_out)
 
-        sys.exit(self.driver.returncode)
+        super(AmplifierFile, self).do_sampling()
 
 if __name__ == "__main__":
     srv = AmplifierFile(settings.MULTIPLEXER_ADDRESSES)

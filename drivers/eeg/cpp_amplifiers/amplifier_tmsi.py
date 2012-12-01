@@ -3,11 +3,8 @@
 
 import os
 from multiplexer.multiplexer_constants import peers, types
-from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
-from drivers import drivers_logging as logger
-from obci_configs import settings
-
-LOGGER = logger.get_logger("AmplifierTMSI", "info")
+from obci.drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
+from obci.configs import settings
 
 class AmplifierTMSI(BinaryDriverWrapper):
     def __init__(self, addresses):

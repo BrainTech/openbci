@@ -6,22 +6,19 @@
 import os.path, sys, time, Queue, random
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.control.peer.configured_client import ConfiguredClient
 
-from obci_configs import settings, variables_pb2
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_helper
+from obci.configs import settings, variables_pb2
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_helper
 from devices import appliance_helper
-from obci_utils import keystroke
-from obci_utils import tags_helper
-from obci_utils import sequence_provider
+from obci.utils import keystroke
+from obci.utils import tags_helper
+from obci.utils import sequence_provider
 
 from acquisition import acquisition_helper
 import pygame
 pygame.init()
-
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_ssvep_calibration", "debug")
 
 class LogicSSVEPCalibration(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
@@ -72,7 +69,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
             try:
                 target_ind_provider = sequence_provider.PROVIDERS[target_ind](0, fields_count)
             except KeyError:
-                LOGGER.error("Incorrect target_id param. Cant find "+target_id+" sequence provieder!!!")
+                self.logger.error("Incorrect target_id param. Cant find "+target_id+" sequence provieder!!!")
                 sys.exit(1)
 
         #A list of (assumingly field_count-1) freqs for 'non-target' freqs or 'random' literal
@@ -108,11 +105,11 @@ class LogicSSVEPCalibration(ConfiguredClient):
                         sequence_values.append((ret_freqs, target_ind))
             random.shuffle(sequence_values) #we don`t want one target freq to occur in a sequence - shuffle it
             for v in sequence_values:
-                LOGGER.debug("SEQUENCE: "+str(v))
+                self.logger.debug("SEQUENCE: "+str(v))
                 self.sequence.put(v)
-            LOGGER.info("SEQUENCE - number of trials for freqs: "+str(f_list))
-            LOGGER.info(len(sequence_values))
-        LOGGER.info("SEQUENCE - number of all trials: "+str(self.sequence.qsize()))
+            self.logger.info("SEQUENCE - number of trials for freqs: "+str(f_list))
+            self.logger.info(len(sequence_values))
+        self.logger.info("SEQUENCE - number of all trials: "+str(self.sequence.qsize()))
         
         
     def run(self):
@@ -141,7 +138,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.ready_text)
         time.sleep(3)
         #keystroke.wait([" "])
-        LOGGER.info("Send begin config ...")
+        self.logger.info("Send begin config ...")
         #ugm_helper.send_config(self.conn, self.ugm)
         """
         #process trials
@@ -153,7 +150,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.bye_text)
         #acquire some more data
         #time.sleep(2)
-        #LOGGER.info("Send finish saving and finish ...")
+        #self.logger.info("Send finish saving and finish ...")
         #acquisition_helper.send_finish_saving(self.conn)
 
     def _run(self):
@@ -164,7 +161,7 @@ class LogicSSVEPCalibration(ConfiguredClient):
             except:
                 # sequence empty
                 return
-            LOGGER.debug("NExt freqs: "+str(freqs)+" and target_ind: "+str(target_ind))
+            self.logger.debug("NExt freqs: "+str(freqs)+" and target_ind: "+str(target_ind))
             self._send_breaks()
             self._send_ugm()
             self._send_feed(target_ind)

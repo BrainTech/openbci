@@ -8,11 +8,11 @@ import sys
 from PyQt4 import QtGui, QtCore, Qt
 import Queue
 
-from gui.ugm import ugm_config_manager
-from gui.ugm import ugm_stimuluses
+from obci.gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_stimuluses
 
-from gui import gui_logging as logger
-LOGGER = logger.get_logger("ugm_engine", "warning")
+
+from obci.utils import context as ctx
 
 class UgmField(ugm_stimuluses.UgmRectStimulus):
     """For now, just to express it..."""
@@ -121,9 +121,10 @@ class UgmEngine(QtCore.QObject):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
     ugm pyqt structure so that it can refresh."""
-    def __init__(self, p_config_manager, p_connection):
+    def __init__(self, p_config_manager, p_connection, context=ctx.get_dummy_context('UgmBlinkingEngine')):
         """Store config manager."""
         super(UgmEngine, self).__init__()
+        self.context = context
         self.connection = p_connection
         self._config_manager = p_config_manager
         self.ugm_rebuild = QtCore.pyqtSignal()
@@ -165,7 +166,7 @@ class UgmEngine(QtCore.QObject):
             self.mutex.unlock()
             return
         elif (self.queue.qsize() > 5):
-            LOGGER.warning("Warning! Queue size is: "+str(self.queue.qsize()))
+            self.context['logger'].warning("Warning! Queue size is: "+str(self.queue.qsize()))
 
         while True:
             try:
@@ -183,14 +184,14 @@ class UgmEngine(QtCore.QObject):
         try:
             self.connection.send_mouse_event(event.button())
         except Exception, e:
-           LOGGER.error("Could send mouse event to connection. Error: "+str(e)) 
+            self.context['logger'].error("Could send mouse event to connection. Error: "+str(e)) 
 
     @QtCore.pyqtSlot(QtGui.QKeyEvent)
     def keyPressEvent(self, event):
         try:
             self.connection.send_keyboard_event(event.key())
         except Exception, e:
-           LOGGER.error("Could send keyboard event to connection. Error: "+str(e)) 
+           self.context['logger'].error("Could send keyboard event to connection. Error: "+str(e)) 
 
 
     def run(self):
@@ -198,7 +199,7 @@ class UgmEngine(QtCore.QObject):
         Refire when app is being closed. (This is justified as if 
         ugm_config_manager has changed its state remarkably main window
         needs to be completely rebuilt."""
-        LOGGER.info("ugm_engine run")
+        self.context['logger'].info("ugm_engine run")
         l_app = QtGui.QApplication(sys.argv)
         self._window = UgmMainWindow(self._config_manager)
         self._window.showFullScreen()
@@ -208,10 +209,10 @@ class UgmEngine(QtCore.QObject):
         self._window.keyPressSignal.connect(self.keyPressEvent)
         self._window.mousePressSignal.connect(self.mousePressEvent)
         l_app.exec_()
-        LOGGER.info('ugm_engine main window has closed')
+        self.context['logger'].info('ugm_engine main window has closed')
 
     def control(self, ctr):
-        LOGGER.info("Got control message "+str(ctr))
+        self.context['logger'].info("Got control message "+str(ctr))
         if ctr.key == 'hide':
             self._window.hide()
 
@@ -223,18 +224,18 @@ class UgmEngine(QtCore.QObject):
         they should only redraw."""
         self.mgr_mutex.lock()
         if self._config_manager.update_message_is_full(p_msg_type):
-            LOGGER.info('ugm_engine got full message to update.')
+            self.context['logger'].info('ugm_engine got full message to update.')
             self._config_manager.set_full_config_from_message(p_msg_value)
             self.update_or_rebuild()
             self.mgr_mutex.unlock()
         elif self._config_manager.update_message_is_simple(p_msg_type):
-            LOGGER.info('ugm_engine got simple message to update.')
+            self.context['logger'].info('ugm_engine got simple message to update.')
             self._config_manager.set_config_from_message(p_msg_value)
             self.update()
             self.mgr_mutex.unlock()
         else:
             self.mgr_mutex.unlock()
-            LOGGER.error("Wrong UgmUpdate message type!")
+            self.context['logger'].error("Wrong UgmUpdate message type!")
             raise Exception("Wrong UgmUpdate message type!")
 
     def update_from(self, p_ugm_configs):
@@ -253,7 +254,7 @@ class UgmEngine(QtCore.QObject):
     def update(self):
         """Fired when self._config_manager has changed its state, but only 
         stimuluses`es attributes, not their number or ids."""
-        LOGGER.debug("ugm_engine update")
+        self.context['logger'].debug("ugm_engine update")
         self.emit(QtCore.SIGNAL("ugm_update"))
 
     def rebuild(self):
@@ -261,7 +262,7 @@ class UgmEngine(QtCore.QObject):
         considerably - eg number of stimuluses or its ids changed.
         In that situation we need to rebuild gui, not only refresh.
         Send signal, as we need gui to be rebuilt in the main thread."""
-        LOGGER.info("ugm_engine rebuild")
+        self.context['logger'].info("ugm_engine rebuild")
         self.emit(QtCore.SIGNAL("ugm_rebuild"))
 
     def ugm_rebuild_signal(self):

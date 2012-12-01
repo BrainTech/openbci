@@ -3,9 +3,9 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
-from obci_configs import variables_pb2
+from obci.configs import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
-from gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_config_manager
 
 TEXT_SCREEN_MGR = ugm_config_manager.UgmConfigManager('text_neg')
 TEXT_ID = 101
