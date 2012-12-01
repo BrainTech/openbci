@@ -15,6 +15,7 @@ from obci.interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.logic import logic_helper
 from obci.utils import tags_helper
+from obci.utils import context as ctx
 
 class LogicSsvepCsp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -78,7 +79,6 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.montage,
             self.montage_channels,
             self.mode in ['offline', 'manual'],
-            True,
             context)
 
         maybe_buffer = self.config.get_param('buffer_len')

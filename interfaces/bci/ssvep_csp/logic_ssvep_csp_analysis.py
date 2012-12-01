@@ -13,7 +13,7 @@ from obci.utils import context as ctx
 
 def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_stats=True,
 	context=ctx.get_dummy_context('UgmBlinkingConnection')):
-	self.logger = context['logger']
+	logger = context['logger']
 	mgr = read_manager.ReadManager(
 		in_file+'.obci.xml',
 		in_file+'.obci.raw',
@@ -36,29 +36,29 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
 
         data = sp.signalParser(in_file+'.obci')
         train_tags = data.get_train_tags(trial_separator_name='diodes', screen=True)
-	self.logger.info("Run csp with: use_channels: "+str(use_channels)+" motage: "+str(montage)+" montage_channels: "+str(montage_channels))
+	logger.info("Run csp with: use_channels: "+str(use_channels)+" motage: "+str(montage)+" montage_channels: "+str(montage_channels))
         q = csp.modCSP(in_file+'.obci', freqs, use_channels, montage, montage_channels)
         q.start_CSP(to_signal, to_frequency, baseline = False, filt='cheby', method = 'regular', train_tags = train_tags)#liczenie CSP
         time = pylab.linspace(1, to_signal, 7)
         t1, t2 = q.time_frequency_selection(to_frequency, train_tags, time=time, frequency_no=dec_count, plt=False)
 
-        self.logger.info("Got times t1: "+str(t1)+ " and t2: "+str(t2))
-	self.logger.info("Set buffer time:"+str(t2))
+        logger.info("Got times t1: "+str(t1)+ " and t2: "+str(t2))
+	logger.info("Set buffer time:"+str(t2))
         value, mu, sigma, means, stds, out_top, out_bottom = q.count_stats(to_signal, to_frequency, train_tags, plt=plot_stats)#Liczenie statystyk
-        self.logger.info("For freqs: "+str(freqs))
-        self.logger.info("Got means: "+str(means))
+        logger.info("For freqs: "+str(freqs))
+        logger.info("Got means: "+str(means))
         
         pairs = zip(means, freqs)
         pairs.sort(reverse=True)
-        self.logger.info("Sorted: "+str(pairs))
+        logger.info("Sorted: "+str(pairs))
 	best = [i[1] for i in pairs]
         best_means = [i[0] for i in pairs]
-        self.logger.info("Best freqs: "+str(best))
+        logger.info("Best freqs: "+str(best))
         
-        self.logger.info("Finished CSP with stats:")
-        self.logger.info(str(value) + " / " + str(mu) + " / " + str(sigma))
-        self.logger.info("And q:")
-        self.logger.info(str(q))
+        logger.info("Finished CSP with stats:")
+        logger.info(str(value) + " / " + str(mu) + " / " + str(sigma))
+        logger.info("And q:")
+        logger.info(str(q))
         
         d = {'value': value,
              'mu': mu,
