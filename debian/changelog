@@ -1,3 +1,10 @@
+openbci (1.8.1-1) precise; urgency=low
+
+  * New upstream release.
+  * Some code refactoring.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 01 Dec 2012 17:32:16 +0100
+
 openbci (1.7.5-1) precise; urgency=low
 
   * New upstream release.
