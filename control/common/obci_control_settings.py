@@ -38,8 +38,10 @@ MAIN_CONFIG_TEMPLATE_PATH = os.path.join(__template_dir, MAIN_CONFIG_NAME)
 
 if not os.path.exists(OBCI_HOME_DIR):
     os.makedirs(OBCI_HOME_DIR)
+if not os.path.exists(DEFAULT_SANDBOX_DIR):
     os.mkdir(DEFAULT_SANDBOX_DIR)
+if not os.path.exists(DEFAULT_SCENARIO_DIR):
     os.mkdir(DEFAULT_SCENARIO_DIR)
+if not os.path.exists(os.path.join(OBCI_HOME_DIR, MAIN_CONFIG_NAME)):
     shutil.copyfile(MAIN_CONFIG_TEMPLATE_PATH, os.path.join(OBCI_HOME_DIR, MAIN_CONFIG_NAME))
-
 
