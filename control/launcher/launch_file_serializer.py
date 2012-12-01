@@ -13,7 +13,7 @@ import peer.peer_config_serializer as peer_config_serializer
 from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
 from launcher_tools import expand_path, default_config_path
 from launch_file_parser import parse_peer_default_config
-import common.obci_control_settings as settings
+import obci.control.common.obci_control_settings as settings
 import launcher_tools
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"

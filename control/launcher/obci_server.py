@@ -21,8 +21,8 @@ find_new_experiments_and_push_results
 from start_eeg_signal import start_eeg_signal_experiment
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
-import common.obci_control_settings as settings
-import common.net_tools as net
+import obci.control.common.obci_control_settings as settings
+import obci.control.common.net_tools as net
 from obci.control.peer import peer_cmd
 
 import obci_experiment

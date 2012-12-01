@@ -117,7 +117,7 @@ error_codes = ["invalid_supervisor_data",
                 "create_supervisor_error"]
 
 if __name__ == '__main__':
-    import common.message as msg
+    import obci.control.common.message as msg
     import json
     tool = msg.OBCIMessageTool(message_templates)
     used = []

@@ -20,8 +20,8 @@ launcher_tools.update_pythonpath()
 
 import obci_server
 import obci_client
-import common.obci_control_settings as settings
-import common.net_tools as net
+import obci.control.common.obci_control_settings as settings
+import obci.control.common.net_tools as net
 import view
 from obci.control.common.config_helpers import OBCISystemError
 from obci.control.peer.peer_cmd import PeerCmd

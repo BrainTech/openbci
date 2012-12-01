@@ -6,7 +6,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 
 from multiplexer.clients import connect_client
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 
 class SomethingThatChangesConfigs(object):
 

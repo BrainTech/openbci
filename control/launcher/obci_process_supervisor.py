@@ -13,8 +13,8 @@ import socket
 
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 from launcher_messages import message_templates
-import common.net_tools as net
-import common.obci_control_settings as settings
+import obci.control.common.net_tools as net
+import obci.control.common.obci_control_settings as settings
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser

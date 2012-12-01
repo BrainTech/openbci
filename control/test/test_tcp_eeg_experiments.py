@@ -6,7 +6,7 @@ import socket
 import time
 
 from obci.control.common.message import OBCIMessageTool
-import common.net_tools as net
+import obci.control.common.net_tools as net
 
 from launcher.launcher_messages import message_templates
 

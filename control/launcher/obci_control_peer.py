@@ -14,8 +14,8 @@ import argparse
 
 from launcher_messages import message_templates
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
-import common.net_tools as net
-import common.obci_control_settings as settings
+import obci.control.common.net_tools as net
+import obci.control.common.obci_control_settings as settings
 
 from subprocess_monitor import SubprocessMonitor
 from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE

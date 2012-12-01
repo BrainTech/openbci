@@ -19,8 +19,8 @@ import launcher.launch_file_parser as launch_file_parser
 import launcher.launcher_tools as launcher_tools
 import launcher.subprocess_monitor as subprocess_monitor
 import peer.peer_cmd as peer_cmd
-import common.net_tools as net
-import common.obci_control_settings as settings
+import obci.control.common.net_tools as net
+import obci.control.common.obci_control_settings as settings
 
 MODE_BASIC = 'basic'
 MODE_ADVANCED = 'advanced'

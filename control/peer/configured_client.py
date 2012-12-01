@@ -4,7 +4,7 @@
 from multiplexer.clients import connect_client
 
 from obci.control.peer.peer_control import PeerControl, ConfigNotReadyError
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 from obci.utils.openbci_logging import get_logger
 import sys
 

@@ -34,9 +34,9 @@ import launcher.obci_script as obci_script
 from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
 
-import common.obci_control_settings as settings
+import obci.control.common.obci_control_settings as settings
 from obci.control.common.message import LauncherMessage
-import common.net_tools as net
+import obci.control.common.net_tools as net
 
 import obci_log_engine
 #import obci_log_model_dummy

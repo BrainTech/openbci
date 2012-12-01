@@ -7,7 +7,7 @@ from multiplexer.clients import BaseMultiplexerServer
 from obci.configs import settings, variables_pb2
 
 from obci.control.peer.peer_control import PeerControl
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 from obci.utils.openbci_logging import get_logger
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):

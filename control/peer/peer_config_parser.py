@@ -7,7 +7,7 @@ import io
 
 
 import peer.peer_config as pc
-import common.config_helpers as helpers
+import obci.control.common.config_helpers as helpers
 
 
 

@@ -7,7 +7,7 @@ import argparse
 from obci.control.common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_SOURCES,\
                             PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES, CS, LP, LD, EP
 
-import common.obci_control_settings
+import obci.control.common.obci_control_settings
 import peer_config_parser
 import peer_config_serializer
 import peer_config

@@ -16,7 +16,7 @@ from obci.control.peer.peer_cmd import PeerCmd
 from obci.configs import settings
 
 
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
 from launcher.launcher_messages import message_templates
 from launcher.launcher_tools import obci_root

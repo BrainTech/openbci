@@ -13,7 +13,7 @@ import time
 
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.clients import connect_client
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 from azouk._allinone import OperationFailed, OperationTimedOut
 
 class TestClient2(ConfiguredClient):

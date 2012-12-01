@@ -14,8 +14,8 @@ from launcher_messages import message_templates, error_codes
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 from obci.control.peer import peer_config_parser
 
-import common.obci_control_settings as settings
-import common.net_tools as net
+import obci.control.common.obci_control_settings as settings
+import obci.control.common.net_tools as net
 
 class OBCIClient(object):
 

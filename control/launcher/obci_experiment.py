@@ -10,8 +10,8 @@ import zmq
 
 from obci.control.common.message import  send_msg, recv_msg, PollingObject
 from launcher_messages import message_templates
-import common.net_tools as net
-import common.obci_control_settings as settings
+import obci.control.common.net_tools as net
+import obci.control.common.obci_control_settings as settings
 from obci.control.peer.peer_config_serializer import PeerConfigSerializerJSON
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser

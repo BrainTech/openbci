@@ -12,7 +12,7 @@ import uuid
 import io
 import json
 
-import common.net_tools as net
+import obci.control.common.net_tools as net
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 
 from launcher.launcher_messages import message_templates
@@ -26,7 +26,7 @@ from obci.control.peer.peer_config import PeerConfig
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
 DEFAULT_CATEGORY, USER_CATEGORY
 
-import common.obci_control_settings as settings
+import obci.control.common.obci_control_settings as settings
 
 PRESETS = 'control/gui/presets.ini'
 

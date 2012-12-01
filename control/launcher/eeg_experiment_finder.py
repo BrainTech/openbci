@@ -6,7 +6,7 @@ import zmq
 import time
 import socket
 
-import common.net_tools as net
+import obci.control.common.net_tools as net
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 from launcher.launcher_messages import message_templates, error_codes
 

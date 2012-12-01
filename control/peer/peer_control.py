@@ -13,7 +13,7 @@ import peer_config_parser
 from obci.control.peer.peer_cmd import PeerCmd
 from config_defaults import CONFIG_DEFAULTS
 
-import common.config_message as cmsg
+import obci.control.common.config_message as cmsg
 
 from obci.configs import settings
 from multiplexer.multiplexer_constants import peers, types

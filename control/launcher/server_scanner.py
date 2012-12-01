@@ -14,7 +14,7 @@ from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, Pol
 from launcher.launcher_messages import message_templates, error_codes
 
 from obci.control.common.obci_control_settings import PORT_RANGE
-import common.net_tools as net
+import obci.control.common.net_tools as net
 
 
 UPDATE_INTERVAL = 8
