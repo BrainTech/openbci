@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, subprocess, time, getopt
-import sys, os, subprocess, time
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+
 
 class ServerController(QObject):
 
     # all values in miliseconds
-    serverPingDelay    = 2000
-    serverReadyTimeout = 5*serverPingDelay
-    serverDiedTiemout = 5*serverPingDelay
+    serverPingDelay    = 4000
+    serverReadyTimeout = 3*serverPingDelay
+    serverDiedTiemout = 3*serverPingDelay
     
     serverShutdownTimeout = 1000#10*1000
 
@@ -122,7 +122,7 @@ class ServerController(QObject):
             else:
                 print("terminatingOnKill.COULD NOT TERMINATE")
                 self.terminatingServer = False
-                self.serverShuttingDownError.emit(self.tr('Couldn`t shut down OpenBCI. Aborting!!!!!!'))
+                self.serverShuttingDownError.emit(self.tr('Couldn`t shut down OpenBCI. Aborting!'))
                 return
 
     def _startingOnPing(self):
@@ -139,7 +139,7 @@ class ServerController(QObject):
             else:
                 print("startingOnPing.COULD NOT START")
                 self.startingServer = False
-                self.serverStartingUpError.emit(self.tr('Couldn`t start OpenBCI. Aborting!!!!!'))
+                self.serverStartingUpError.emit(self.tr('Couldn`t start OpenBCI. Aborting!'))
                 return
 
     def _runningOnPing(self):
@@ -157,11 +157,11 @@ class ServerController(QObject):
         else:
             if not self.responding:
                 print("notRunningOnPing.Delay passed, just pass....")
-                QTimer.singleShot(self.serverPingDelay, self.pingServer)
+                QTimer.singleShot(self.serverPingDelay*3, self.pingServer)
             else:
                 print("notRunningOnPing.Delay passed for the first time")
                 self.responding = False
-                self.serverUnexpectedlyDied.emit(self.tr('OpenBCI is not responding:('))
+                self.serverUnexpectedlyDied.emit(self.tr('OpenBCI is not responding!'))
                 QTimer.singleShot(self.serverPingDelay, self.pingServer)
 
 
@@ -177,10 +177,11 @@ class MainWidget(QWidget):
         self.startAction   = QAction(self.tr("&Start OpenBCI server"), self)
         self.stopAction    = QAction(self.tr("S&top OpenBCI server"),  self)
         self.quitAction    = QAction(self.tr("&Close OpenBCI tray"), self)
-        self.runGuiAction  = QAction(self.tr("&Run Control Panel (OpenBCI)..."),  self)
-        self.runSvarogAction  = QAction(self.tr("&Run Signal Viewer (Svarog)..."),  self)
-        self.runPsychopyAction  = QAction(self.tr("&Run Experiment Designer (Psychopy)..."),  self)
-        self.runEeglabAction  = QAction(self.tr("&Run Analysis Tool (EegLab)..."),  self)
+        self.runGuiAction  = QAction(self.tr("&Run Control Panel (OpenBCI)"),  self)
+        self.runSvarogAction  = QAction(self.tr("&Run Signal Viewer (Svarog)"),  self)
+        self.runPsychopyAction  = QAction(self.tr("&Run Experiment Designer (Psychopy)"),  self)
+        self.runEeglabAction  = QAction(self.tr("&Run Analysis Tool (EEGLAB)"),  self)
+        self.runMatlabAction  = QAction(self.tr("&Run Analysis Tool (Matlab)"),  self)
 
         self.runningIcon     = QIcon(qApp.style().standardPixmap(QStyle.SP_ComputerIcon))
         self.startingUpIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxInformation))
@@ -188,14 +189,29 @@ class MainWidget(QWidget):
         self.serverDownIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxCritical))
 
         self.controller = ServerController()
+        
+        self.guiCommand = which('obci_gui')
+        self.svarogCommand = which('svarog')
+        self.psychopyCommand = which('psychopy')
+        self.eeglabCommand = which('eeglab')
+        self.matlabCommand = which('matlab')
 
-        self.menu.addAction(self.runGuiAction)
-        self.menu.addSeparator()
-        self.menu.addAction(self.runSvarogAction)
-        self.menu.addSeparator()
-        self.menu.addAction(self.runPsychopyAction)
-        self.menu.addSeparator()
-        self.menu.addAction(self.runEeglabAction)
+        if self.guiCommand:
+            self.menu.addAction(self.runGuiAction)
+            self.menu.addSeparator()
+        if self.svarogCommand:
+            self.menu.addAction(self.runSvarogAction)
+            self.menu.addSeparator()
+        if self.psychopyCommand:
+            self.menu.addAction(self.runPsychopyAction)
+        if self.controller.easyMode:
+            if self.eeglabCommand:
+                self.menu.addSeparator()
+                self.menu.addAction(self.runEeglabAction)
+        else:
+            if self.matlabCommand:
+                self.menu.addSeparator()
+                self.menu.addAction(self.runMatlabAction)
         self.menu.addSeparator()
         self.menu.addSeparator()
         self.menu.addAction(self.startAction)
@@ -214,8 +230,8 @@ class MainWidget(QWidget):
         self.runSvarogAction.triggered.connect(self.runSvarog)
         self.runPsychopyAction.triggered.connect(self.runPsychopy)
         self.runEeglabAction.triggered.connect(self.runEeglab)
+        self.runMatlabAction.triggered.connect(self.runMatlab)
         self.quitAction.triggered.connect(self.quit_tray)
-
         
         self.trayIcon.setIcon(self.serverDownIcon)
         self.setStoppedUi()
@@ -224,7 +240,8 @@ class MainWidget(QWidget):
         self.svarogProcess = QProcess()
         self.psychopyProcess = QProcess()
         self.eeglabProcess = QProcess()
-            
+        self.matlabProcess = QProcess()
+
         self.controller.serverReady.            connect(self.serverReady)
         self.controller.serverStartingUpError.  connect(self.startingUpError)
         self.controller.serverTerminated.       connect(self.serverTerminated)
@@ -327,20 +344,25 @@ class MainWidget(QWidget):
 
     def runGui(self):
         if self.guiProcess.state() == QProcess.NotRunning:
-            self.guiProcess.start('obci_gui')
+            self.guiProcess.start(self.guiCommand)
 
     def runSvarog(self):
         if self.svarogProcess.state() == QProcess.NotRunning:
-            self.svarogProcess.start('svarog')
+            self.svarogProcess.start(self.svarogCommand)
 
     def runPsychopy(self):
         if self.psychopyProcess.state() == QProcess.NotRunning:
-            self.psychopyProcess.start('psychopy')
+            self.psychopyProcess.start(self.psychopyCommand)
 
     def runEeglab(self):
         if self.eeglabProcess.state() == QProcess.NotRunning:
-            self.eeglabProcess.start('eeglab')
-       
+            self.eeglabProcess.start(self.matlabCommand)
+
+    def runMatlab(self):
+        if self.matlabProcess.state() == QProcess.NotRunning:
+            self.matlabProcess.start(self.matlabCommand+' -desktop')
+
+
     #---------------------------------------------------------------------------
 
     def quit_tray(self):
@@ -348,15 +370,40 @@ class MainWidget(QWidget):
             qApp.quit()
         else:
             ret = QMessageBox.warning(None, self.tr('OpenBCI'), 
-                                      self.tr('Really quit? This will violently kill the server!'),
+                                      self.tr('Really quit? This will stop the server!'),
                                       QMessageBox.Yes | QMessageBox.No,
                                       QMessageBox.No)
             if ret == QMessageBox.Yes:
                 self.controller.stopServer()
                 qApp.quit()
 
+def which(program):
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    def ext_candidates(fpath):
+        yield fpath
+        for ext in os.environ.get("PATHEXT", "").split(os.pathsep):
+            yield fpath + ext
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            for candidate in ext_candidates(exe_file):
+                if is_exe(candidate):
+                    return candidate
+    return False
+
 def pidfile():
-    lockfile = '~/.obci/tray.lock'
+    
+    OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
+    lockfile = os.path.join(OBCI_HOME_DIR, 'tray.lock')
+    if not os.path.exists(OBCI_HOME_DIR):
+        os.makedirs(OBCI_HOME_DIR)
 
     if os.access(os.path.expanduser(lockfile), os.F_OK):
         pidfile = open(os.path.expanduser(lockfile), "r")
