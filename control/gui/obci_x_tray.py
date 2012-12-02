@@ -236,12 +236,6 @@ class MainWidget(QWidget):
         self.trayIcon.setIcon(self.serverDownIcon)
         self.setStoppedUi()
     
-        self.guiProcess = QProcess()
-        self.svarogProcess = QProcess()
-        self.psychopyProcess = QProcess()
-        self.eeglabProcess = QProcess()
-        self.matlabProcess = QProcess()
-
         self.controller.serverReady.            connect(self.serverReady)
         self.controller.serverStartingUpError.  connect(self.startingUpError)
         self.controller.serverTerminated.       connect(self.serverTerminated)
@@ -343,24 +337,19 @@ class MainWidget(QWidget):
     #---------------------------------------------------------------------------
 
     def runGui(self):
-        if self.guiProcess.state() == QProcess.NotRunning:
-            self.guiProcess.start(self.guiCommand)
+        os.system(self.guiCommand+'&')
 
     def runSvarog(self):
-        if self.svarogProcess.state() == QProcess.NotRunning:
-            self.svarogProcess.start(self.svarogCommand)
+        os.system(self.svarogCommand+'&')
 
     def runPsychopy(self):
-        if self.psychopyProcess.state() == QProcess.NotRunning:
-            self.psychopyProcess.start(self.psychopyCommand)
+        os.system(self.psychopyCommand+'&')
 
     def runEeglab(self):
-        if self.eeglabProcess.state() == QProcess.NotRunning:
-            self.eeglabProcess.start(self.matlabCommand)
+        os.system(self.matlabCommand+'&')
 
     def runMatlab(self):
-        if self.matlabProcess.state() == QProcess.NotRunning:
-            self.matlabProcess.start(self.matlabCommand+' -desktop')
+        os.system(self.matlabCommand+' -desktop&')
 
 
     #---------------------------------------------------------------------------
