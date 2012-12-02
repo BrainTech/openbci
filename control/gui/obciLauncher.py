@@ -27,6 +27,7 @@ import getopt
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
+from obci.utils.filesystem import checkpidfile
 
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from obci_launcher_constants import STATUS_COLORS
@@ -687,6 +688,8 @@ if __name__ == '__main__':
     for opt, arg in opts:
         if opt in ('--tray'):
             os.system('obci_x_tray&')
+    if checkpidfile('gui.pid'):
+        sys.exit(0)
 
     app = QApplication([])
     p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
