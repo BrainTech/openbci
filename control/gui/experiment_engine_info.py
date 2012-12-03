@@ -334,9 +334,7 @@ class ExperimentEngineInfo(QtCore.QObject):
                 params[opt] = val
 
     def stop_storing(self, client):
-        client.leave_experiment(self.uuid, "dummy_module")
-        t = "dummy_module_"+str(time.time())
-        join_response = client.join_experiment(self.uuid, t, "exps/exps_helper.py")
+        join_response = client.join_experiment(self.uuid, "dummy_module_"+str(time.time()), "")
         if join_response is None:
             print "experiment engine info - ERROR - connection timeout on stop signal storing!"
             return
