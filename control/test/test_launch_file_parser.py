@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import io
 
-from launcher import system_config, launch_file_parser
+from obci.control.launcher.import system_config, launch_file_parser
 
 class TestLaunchFileParser(object):
 

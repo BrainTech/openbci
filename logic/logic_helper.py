@@ -8,7 +8,7 @@ import obci.control.common.config_message as cmsg
 from obci.control.common.message import OBCIMessageTool
 from obci.control.launcher.launcher_messages import message_templates
 from obci.control.launcher.launcher_tools import obci_root
-import peer.peer_cmd as peer_cmd
+import obci.control.peer.peer_cmd as peer_cmd
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer, connect_client

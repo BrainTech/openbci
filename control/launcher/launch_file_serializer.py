@@ -8,13 +8,13 @@ import codecs
 import io
 import json
 
-import peer.peer_config as peer_config
-import peer.peer_config_serializer as peer_config_serializer
-from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
-from launcher_tools import expand_path, default_config_path
-from launch_file_parser import parse_peer_default_config
+import obci.control.peer.peer_config as peer_config
+import obci.control.peer.peer_config_serializer as peer_config_serializer
+from obci.control.launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
+from obci.control.launcher.launcher_tools import expand_path, default_config_path
+from obci.control.launcher.launch_file_parser import parse_peer_default_config
 import obci.control.common.obci_control_settings as settings
-import launcher_tools
+import obci.control.launcher.launcher_tools as launcher_tools
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"
 LAUNCH_DEPS = "launch_dependencies"

@@ -10,7 +10,7 @@ import socket
 import zmq
 
 from obci.control.common.message import OBCIMessageTool, PollingObject, send_msg
-from launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 
 from obci.utils.openbci_logging import get_logger
 

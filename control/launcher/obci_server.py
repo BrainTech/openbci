@@ -14,8 +14,8 @@ import socket
 import zmq
 
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
-from launcher_messages import message_templates, error_codes
-from launcher_tools import module_path
+from obci.control.launcher.launcher_messages import message_templates, error_codes
+from obci.control.launcher.launcher_tools import module_path
 from eeg_experiment_finder import find_eeg_experiments_and_push_results,\
 find_new_experiments_and_push_results
 from start_eeg_signal import start_eeg_signal_experiment

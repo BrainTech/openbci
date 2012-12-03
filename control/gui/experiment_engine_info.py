@@ -13,12 +13,12 @@ import time
 
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 from obci.acquisition import acquisition_helper
-from launcher.launcher_messages import message_templates
-import launcher.system_config as system_config
-import launcher.launch_file_parser as launch_file_parser
-import launcher.launcher_tools as launcher_tools
-import launcher.subprocess_monitor as subprocess_monitor
-import peer.peer_cmd as peer_cmd
+from obci.control.launcher.launcher_messages import message_templates
+import obci.control.launcher.system_config as system_config
+import obci.control.launcher.launch_file_parser as launch_file_parser
+import obci.control.launcher.launcher_tools as launcher_tools
+import obci.control.launcher.subprocess_monitor as subprocess_monitor
+import obci.control.peer.peer_cmd as peer_cmd
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 
@@ -334,9 +334,7 @@ class ExperimentEngineInfo(QtCore.QObject):
                 params[opt] = val
 
     def stop_storing(self, client):
-        client.leave_experiment(self.uuid, "dummy_module")
-        t = "dummy_module_"+str(time.time())
-        join_response = client.join_experiment(self.uuid, t, "exps/exps_helper.py")
+        join_response = client.join_experiment(self.uuid, "dummy_module_"+str(time.time()), "")
         if join_response is None:
             print "experiment engine info - ERROR - connection timeout on stop signal storing!"
             return

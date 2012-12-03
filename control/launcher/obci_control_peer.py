@@ -12,7 +12,7 @@ import socket
 
 import argparse
 
-from launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings

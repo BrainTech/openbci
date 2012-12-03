@@ -3,7 +3,7 @@
 
 import zmq
 import time
-import launcher.obci_script as obci_script
+import obci.control.launcher.obci_script as obci_script
 
 
 ctx = zmq.Context()

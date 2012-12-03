@@ -5,7 +5,7 @@ import ConfigParser
 import json
 import io
 
-import peer.peer_config as pc
+import obci.control.peer.peer_config as pc
 import obci.control.common.config_helpers as helpers
 
 

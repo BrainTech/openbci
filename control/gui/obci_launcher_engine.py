@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from PyQt4 import QtCore
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 import zmq
 import threading
 import ConfigParser
@@ -11,14 +13,15 @@ import socket
 import uuid
 import io
 import json
+import time
 
 import obci.control.common.net_tools as net
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 
-from launcher.launcher_messages import message_templates
-import launcher.obci_script as obci_script
-import launcher.launcher_tools as launcher_tools
-from launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
+from obci.control.launcher.launcher_messages import message_templates
+import obci.control.launcher.obci_script as obci_script
+import obci.control.launcher.launcher_tools as launcher_tools
+from obci.control.launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
 
 from obci.control.peer.peer_config_parser import PeerConfigParserDict
 from obci.control.peer.peer_config import PeerConfig
@@ -456,6 +459,12 @@ experiments is possible only when launcher is running (command: obci srv)')))
         self.experiments = self.prepare_experiments()
 
     def stop_experiment(self, msg, stop_storing=False):
+        progress = QProgressDialog(None,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        progress.setLabelText("Stopping...")
+        progress.setRange(0,5)
+        progress.setCancelButton(None)
+        progress.show()
+
         print "STOP EXPERIMENT!!!!"
         uid = str(msg)
         index = self.index_of(uid)
@@ -471,6 +480,10 @@ experiments is possible only when launcher is running (command: obci srv)')))
                             in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
             print "STOP STORING"
             exp.stop_storing(self.client)
+            for i in range(4):
+                time.sleep(0.6)#FIXME - without it some problem with below kill...
+                progress.setValue(i+1)
+        progress.setValue(5)
         self._process_response(self.client.kill_exp(exp.uuid))
 
     def start_experiment(self, msg, store_options=None):

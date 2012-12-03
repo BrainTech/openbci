@@ -14,7 +14,7 @@ import socket
 
 import zmq
 
-import launcher_tools
+from obci.control.launcher import launcher_tools
 launcher_tools.update_obci_syspath()
 launcher_tools.update_pythonpath()
 
@@ -25,7 +25,7 @@ import obci.control.common.net_tools as net
 import view
 from obci.control.common.config_helpers import OBCISystemError
 from obci.control.peer.peer_cmd import PeerCmd
-import peer.peer_cmd as peer_cmd
+import obci.control.peer.peer_cmd as peer_cmd
 
 
 disp = view.OBCIViewText()

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-#from launcher.subprocess_monitor import SubprocessMonitor, RETURNCODE
+#from obci.control.launcher.subprocess_monitor import SubprocessMonitor, RETURNCODE
 import time
 import subprocess
 import sys

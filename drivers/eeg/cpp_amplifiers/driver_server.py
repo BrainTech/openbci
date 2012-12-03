@@ -7,7 +7,7 @@ import signal
 #sys.path.append("../../")
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import peer.peer_config_control
+import obci.control.peer.peer_config_control
 from subprocess import Popen
 import json
 class DriverServer(BaseMultiplexerServer):
