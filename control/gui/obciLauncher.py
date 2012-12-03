@@ -32,8 +32,8 @@ from obci.utils.filesystem import checkpidfile
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from obci_launcher_constants import STATUS_COLORS
 from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
-import launcher.obci_script as obci_script
-from launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
+import obci.control.launcher.obci_script as obci_script
+from obci.control.launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
 
 import obci.control.common.obci_control_settings as settings

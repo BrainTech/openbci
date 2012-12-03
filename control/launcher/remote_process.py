@@ -4,7 +4,7 @@
 import zmq
 
 from obci.control.common.message import OBCIMessageTool, PollingObject, send_msg, recv_msg
-from launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 
 from process_io_handler import DEFAULT_TAIL_RQ
 

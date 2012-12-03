@@ -10,8 +10,8 @@ import socket
 import zmq
 
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
-from launcher_messages import message_templates, error_codes
-from obci_control_peer import OBCIControlPeer, basic_arg_parser
+from obci.control.launcher.launcher_messages import message_templates, error_codes
+from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
 from obci.control.peer import peer_config_parser
 
 import obci.control.common.obci_control_settings as settings

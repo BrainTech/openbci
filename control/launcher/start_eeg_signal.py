@@ -8,11 +8,11 @@ import socket
 
 import obci.control.common.net_tools as net
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
-from launcher.launcher_messages import message_templates, error_codes
-from launcher.obci_client import OBCIClient
+from obci.control.launcher.launcher_messages import message_templates, error_codes
+from obci.control.launcher.obci_client import OBCIClient
 
-import launcher.launcher_logging as logger
-import launcher.launcher_tools
+import obci.control.launcher.launcher_logging as logger
+import obci.control.launcher.launcher_tools
 from obci.control.common.obci_control_settings import PORT_RANGE
 from obci.control.peer import peer_cmd
 

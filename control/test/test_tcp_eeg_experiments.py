@@ -8,9 +8,9 @@ import time
 from obci.control.common.message import OBCIMessageTool
 import obci.control.common.net_tools as net
 
-from launcher.launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 
-from launcher.plain_tcp_handling import make_unicode_netstring, recv_unicode_netstring
+from obci.control.launcher.plain_tcp_handling import make_unicode_netstring, recv_unicode_netstring
 
 
 mtool = OBCIMessageTool(message_templates)

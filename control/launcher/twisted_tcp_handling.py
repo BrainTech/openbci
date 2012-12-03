@@ -10,7 +10,7 @@ import socket
 import threading
 
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, PollingObject
-from launcher.launcher_messages import message_templates, error_codes
+from obci.control.launcher.launcher_messages import message_templates, error_codes
 
 from obci.control.common.obci_control_settings import PORT_RANGE
 import obci.control.common.net_tools as net

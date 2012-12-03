@@ -9,24 +9,24 @@ import io
 import zmq
 
 from obci.control.common.message import  send_msg, recv_msg, PollingObject
-from launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 from obci.control.peer.peer_config_serializer import PeerConfigSerializerJSON
 
-from obci_control_peer import OBCIControlPeer, basic_arg_parser
+from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
-from obci_control_peer import RegistrationDescription
+from obci.control.launcher.obci_control_peer import RegistrationDescription
 import subprocess_monitor
 
 import launch_file_parser
 from launch_file_serializer import serialize_scenario_json
-import launcher_tools
+import obci.control.launcher.launcher_tools as launcher_tools
 import system_config
 import obci_process_supervisor
 
-import peer.peer_cmd as peer_cmd
+import obci.control.peer.peer_cmd as peer_cmd
 
 import twisted_tcp_handling
 

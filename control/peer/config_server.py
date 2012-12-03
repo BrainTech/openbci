@@ -18,8 +18,8 @@ from obci.configs import settings
 
 import obci.control.common.config_message as cmsg
 from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
-from launcher.launcher_messages import message_templates
-from launcher.launcher_tools import obci_root
+from obci.control.launcher.launcher_messages import message_templates
+from obci.control.launcher.launcher_tools import obci_root
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 
 from obci.utils.openbci_logging import get_logger

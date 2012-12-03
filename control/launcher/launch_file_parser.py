@@ -8,11 +8,11 @@ import codecs
 import json
 import logging
 
-import peer.peer_config as peer_config
-import peer.peer_config_parser as peer_config_parser
+import obci.control.peer.peer_config as peer_config
+import obci.control.peer.peer_config_parser as peer_config_parser
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
-from launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
-from launcher_tools import expand_path, default_config_path
+from obci.control.launcher.system_config import OBCIExperimentConfig, OBCISystemConfigError
+from obci.control.launcher.launcher_tools import expand_path, default_config_path
 
 PEERS = "peers"
 CONFIG_SRCS = "config_sources"

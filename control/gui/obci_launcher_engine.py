@@ -18,10 +18,10 @@ import time
 import obci.control.common.net_tools as net
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 
-from launcher.launcher_messages import message_templates
-import launcher.obci_script as obci_script
-import launcher.launcher_tools as launcher_tools
-from launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
+from obci.control.launcher.launcher_messages import message_templates
+import obci.control.launcher.obci_script as obci_script
+import obci.control.launcher.launcher_tools as launcher_tools
+from obci.control.launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
 
 from obci.control.peer.peer_config_parser import PeerConfigParserDict
 from obci.control.peer.peer_config import PeerConfig

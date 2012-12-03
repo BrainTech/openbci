@@ -12,13 +12,13 @@ import zmq
 import socket
 
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
-from launcher_messages import message_templates
+from obci.control.launcher.launcher_messages import message_templates
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
-from obci_control_peer import OBCIControlPeer, basic_arg_parser
-import launcher_tools
+from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
+import obci.control.launcher.launcher_tools as launcher_tools
 
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
