@@ -9,7 +9,7 @@ from obci.configs import settings
 from multiplexer.multiplexer_constants import types, peers
 
 from obci.utils import tags_helper
-from acquisition import acquisition_helper
+from obci.acquisition import acquisition_helper
 
 
 class ExpsHelper(ConfiguredClient):
