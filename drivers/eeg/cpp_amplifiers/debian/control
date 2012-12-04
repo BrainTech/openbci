@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 7),
       libboost-system-dev,
       libprotobuf-dev (>= 2.4.1),
       libstdc++-dev,
-      openbci-libmultiplexer-dev,
+      openbci-libmultiplexer-dev (>= 0.1.3),
       libbluetooth-dev
 Standards-Version: 3.9.3
 
@@ -42,7 +42,7 @@ Description: Reads samples from the TMSi amplifier kernel driver
 
 Package: openbci-amplifiers
 Architecture: amd64 i386
-Depends: openbci-dummy-amplifier, openbci-tmsi-amplifier, openbci-file-amplifier
+Depends: openbci-dummy-amplifier (>= 1.8.4), openbci-tmsi-amplifier (>= 1.8.4), openbci-file-amplifier (>= 1.8.4)
 Description: Master package containing all OpenBCI amplifier packages.
  Installs openbci-dummy-amplifier, openbci-tmsi-amplifier, 
  openbci-file-amplifier.
