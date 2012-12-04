@@ -584,6 +584,7 @@ class OBCIExperiment(OBCIControlPeer):
         """Add new peer to existing scenario. It may run on a different machine than 
         already running peers. add_peer works at runtime and before runtime.
         """
+        self.logger.info("Handle add peer: "+str(message))
         machine = message.machine or self.origin_machine
         peer_id = message.peer_id
         _launching = None  # state of the (maybe ongoing) launching process 
@@ -591,14 +592,17 @@ class OBCIExperiment(OBCIControlPeer):
         if (self.status.status_name in launcher_tools.POST_RUN_STATUSES) or\
             self.status.status_name == launcher_tools.READY_TO_LAUNCH and\
                  self.status.peer_status_exists(launcher_tools.LAUNCHING):
+            self.logger.warning("add peer - experiment status incompatible!")
             send_msg(sock, self.mtool.fill_msg('rq_error',  request=message.dict(), 
                 err_code='experiment_status_incompatible'))
             return
 
         if peer_id in self.exp_config.peers:
+            self.logger.warning("add peer - peer id in use!")
             send_msg(sock, self.mtool.fill_msg('rq_error',  request=message.dict(), 
                 err_code='peer_id_in_use'))
         try:
+            self.logger.info("add peer - try extending config...")
             _launching = len(self.supervisors) == len(self.exp_config.peer_machines())
             launch_file_parser.extend_experiment_config(self.exp_config, peer_id,
                 message.peer_path, config_sources=message.config_sources, 
@@ -606,12 +610,15 @@ class OBCIExperiment(OBCIControlPeer):
                 param_overwrites=message.param_overwrites,
                 machine=machine, apply_globals=message.apply_globals)
         except Exception, e:
+            self.logger.warning("add peer - problem with extending config!")
             send_msg(sock, self.mtool.fill_msg('rq_error', details=str(e), request=message.dict(), 
                 err_code='problem_with_extending_config'))
             return
         else:
+            self.logger.info("add peer - check config valid ...")
             rd, details = self.exp_config.config_ready()
             if rd:
+                self.logger.info("add peer - config is valid!")
                 # config is valid, we can proceed
                 send_msg(sock, self.mtool.fill_msg('rq_ok'))
 
@@ -624,9 +631,11 @@ class OBCIExperiment(OBCIControlPeer):
                 peer_conf = unicode(bt.getvalue())
 
                 # broadcast message about scenario modification
+                self.logger.info("add peer - bradcast scenario mods...")
                 send_msg(self._publish_socket, self.mtool.fill_msg("new_peer_added", peer_id=peer_id, machine=machine,
                     uuid=self.uuid, status_name=launcher_tools.READY_TO_LAUNCH, config=peer_conf, peer_path=message.peer_path))
             else:
+                self.logger.warning("add peer - config invalid!")
                 send_msg(sock, self.mtool.fill_msg('rq_error', 
                                     err_code='config_incomplete', details=details, request=message.dict()))
                 return
@@ -636,10 +645,12 @@ class OBCIExperiment(OBCIControlPeer):
         else:
             # ...do actual work
             if machine not in self.supervisors and _launching:
+                self.logger.info("add peer - start supervisor on machine: "+str(machine))
                 self._exp_extension = { machine : [peer_id] }
                 self._start_obci_process_supervisors([machine])
             elif not _launching:
                 # the peer data will be sent to process supervisor in launch_data, so we do nothing
+                self.logger.info("add peer - not _lauching, nothing else to do")
                 pass
 
             elif self.status.peer_status('mx').status_name == launcher_tools.RUNNING:
@@ -647,8 +658,12 @@ class OBCIExperiment(OBCIControlPeer):
                 # new peer
                 ldata = {}
                 ldata[peer_id] = self.exp_config.launch_data(machine)[peer_id]
+                self.logger.info("add peer - send start_peers...")
                 send_msg(self._publish_socket, self.mtool.fill_msg("start_peers", mx_data=self.mx_args(), 
                                                         add_launch_data={machine : ldata}))
+            else:
+                self.logger.info("add peer - last else, nothing else to do")
+        self.logger.info("add peer - ALL DONE!")
 
     @msg_handlers.handler("kill_peer")
     def handle_kill_peer(self, message, sock):

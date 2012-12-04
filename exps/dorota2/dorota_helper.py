@@ -3,7 +3,7 @@
 # Author:
 #      Mateusz Kruszynski <mateusz.kruszynski@titanis.pl>
 #
-from acquisition import csv_manager
+from obci.acquisition import csv_manager
 import random, os
 
 def _get_control_rows(keys_map, count):

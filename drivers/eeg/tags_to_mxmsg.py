@@ -11,7 +11,7 @@ from obci.configs import variables_pb2
 import Queue
 
 
-from drivers import drivers_logging as logger
+from obci.drivers import drivers_logging as logger
 LOGGER = logger.get_logger("tags_to_mxmsg", "info")
 
 class TagMsg(object):

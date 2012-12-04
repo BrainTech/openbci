@@ -361,7 +361,7 @@ sg13
 (dp108
 S'image_path'
 p109
-S'gui.ugm.resources.button3D.png'
+S'obci.gui.ugm.resources.button3D.png'
 p110
 sg7
 S'center'
@@ -472,7 +472,7 @@ S'aligned'
 p139
 sa(dp140
 g109
-S'gui.ugm.resources.button2D.png'
+S'obci.gui.ugm.resources.button2D.png'
 p141
 sg7
 S'center'

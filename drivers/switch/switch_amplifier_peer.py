@@ -6,7 +6,7 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 import random, time, sys
 
-from drivers import drivers_logging as logger
+from obci.drivers import drivers_logging as logger
 
 class SwitchAmplifier(ConfiguredMultiplexerServer):
     def __init__(self, addresses):

@@ -41,6 +41,9 @@ class RealLogModel(obci_log_model.LogModel):
                 print("Error while reading logs fields: name, asctime, message!")
                 return None, None
                 
+    def stop_running(self):
+        self.srv_client.kill_peer(self.exp_name, self.peer_name, remove_config=True) 
+        super(RealLogModel, self).stop_running()
 
     def start_running(self, exp):
         print("log model real - start running")
@@ -77,4 +80,4 @@ class RealLogModel(obci_log_model.LogModel):
     def post_run(self):
         print("log model real - close socket "+str(self.socket.getsockname()[1]))
         self.socket.close()
-        self.srv_client.kill_peer(self.exp_name, self.peer_name, remove_config=True) 
+

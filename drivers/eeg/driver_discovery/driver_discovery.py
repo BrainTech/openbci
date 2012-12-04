@@ -14,7 +14,7 @@ DISCOVERY_MODULE_NAMES = [
                         'amplifier_virtual_discovery',
                         'amplifier_tmsi_bt_discovery',
                         'amplifier_tmsi_usb_discovery']
-BASE_MODULE = 'drivers.eeg.driver_discovery'
+BASE_MODULE = 'obci.drivers.eeg.driver_discovery'
 
 discovery_modules = []
 

@@ -3,7 +3,7 @@
 
 import os
 from multiplexer.multiplexer_constants import peers, types
-from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
+from obci.drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from obci.configs import settings
 from obci.control.launcher.launcher_tools import obci_root
 

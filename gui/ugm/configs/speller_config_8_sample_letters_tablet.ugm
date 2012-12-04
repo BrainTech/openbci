@@ -90,7 +90,7 @@ p35
 sa(dp36
 S'image_path'
 p37
-Vgui.ugm.resources.bci_small.png
+Vobci.gui.ugm.resources.bci_small.png
 p38
 sg7
 I10
@@ -112,7 +112,7 @@ S'aligned'
 p43
 sa(dp44
 g37
-Vgui.ugm.resources.titanis_small.png
+Vobci.gui.ugm.resources.titanis_small.png
 p45
 sg7
 S'right'

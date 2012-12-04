@@ -5,7 +5,7 @@
 import random, time
 import socket
 
-from drivers.etr import etr_amplifier
+from obci.drivers.etr import etr_amplifier
 from obci.configs import settings, variables_pb2
 
 class EtrAmplifierReal(etr_amplifier.EtrAmplifier):

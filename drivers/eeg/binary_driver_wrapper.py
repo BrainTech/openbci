@@ -5,7 +5,7 @@ import sys
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-from drivers.eeg.driver_comm import DriverComm
+from obci.drivers.eeg.driver_comm import DriverComm
 from obci.configs import settings
 from obci.utils import context as ctx
 

@@ -11,10 +11,10 @@ from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, Pol
 from obci.control.launcher.launcher_messages import message_templates, error_codes
 
 import obci.control.launcher.launcher_logging as logger
-import obci.control.launcher.launcher_tools
+import obci.control.launcher.launcher_tools as launcher_tools
 from obci.control.common.obci_control_settings import PORT_RANGE
 
-from drivers.eeg.driver_discovery.driver_discovery import find_drivers, \
+from obci.drivers.eeg.driver_discovery.driver_discovery import find_drivers, \
 find_bluetooth_amps, find_virtual_amps, find_usb_amps
 
 LOGGER = logger.get_logger("eeg_experiment_finder", "info")
@@ -41,8 +41,8 @@ class EEGExperimentFinder(object):
         exps = exp_list.exp_data
         running = []
         for exp in exps.values():
-            if exp['status_name'] == launcher.launcher_tools.RUNNING or \
-                    exp['status_name'] == launcher.launcher_tools.LAUNCHING:
+            if exp['status_name'] == launcher_tools.RUNNING or \
+                    exp['status_name'] == launcher_tools.LAUNCHING:
                 running.append(exp)
         return running
 

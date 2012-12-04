@@ -11,7 +11,6 @@ from obci.control.common.config_helpers import *
 import obci.control.launcher.launcher_tools as launcher_tools
 from obci.control.peer.peer_config_serializer import PeerConfigSerializerCmd
 from obci.control import peer
-import obci.control.peer.peer_config_parser as peer_config_parser
 from obci.control.peer.peer_config import PeerConfig
 
 from obci.control.common.graph import Graph, Vertex
