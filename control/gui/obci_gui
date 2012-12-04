@@ -9,5 +9,6 @@ then
 fi
 
 obci srv &
+sleep 1
 export PYTHONPATH=`python $direc/control/launcher/launcher_tools.py`
 exec python $direc/control/gui/obciLauncher.py $@

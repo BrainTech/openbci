@@ -7,13 +7,13 @@ import signal
 #sys.path.append("../../")
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
-import obci.control.peer.peer_config_control
+import obci.control.peer.peer_config_control as peer_config_control
 from subprocess import Popen
 import json
 class DriverServer(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(DriverServer, self).__init__(addresses=addresses, type=peers.ETR_SERVER)
-        self.config = peer.peer_config_control.PeerControl(self)
+        self.config = peer_config_control.PeerControl(self)
         self.config.initialize_config(self.conn)
         args=self.get_run_args(addresses[0])
         self.logger.info("Executing: "+' '.join(args))

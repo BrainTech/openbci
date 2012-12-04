@@ -5,7 +5,7 @@
 #
 import os.path, sys, time, os
 from obci.gui.ugm import ugm_helper
-import devices.pyrovio.rovio as rovio
+import obci.devices.pyrovio.rovio as rovio
 from multiplexer.multiplexer_constants import peers, types
 from obci.utils import context as ctx
 
@@ -71,5 +71,5 @@ class RobotEngine(object):
             type=types.ROBOT_FEEDBACK_CONTROL, 
             flush=True)
         time.sleep(0.5)#make sure(?) robot feedback will not overwrite below
-        ugm_helper.send_logo(self.conn, 'gui.ugm.resources.bci.png')
+        ugm_helper.send_logo(self.conn, 'obci.gui.ugm.resources.bci.png')
 

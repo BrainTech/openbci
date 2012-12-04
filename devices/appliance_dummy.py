@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 # Author:
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
-
-from devices import devices_logging as logger
+import sys
+from obci.devices import devices_logging as logger
 LOGGER = logger.get_logger('appliance_dummy', 'info')
-
 class Blinker(object):
     def __init__(self):
         LOGGER.info("Init")

@@ -13,7 +13,7 @@ from obci.gui.ugm import ugm_config_manager
 from obci.gui.ugm import ugm_helper
 
 from obci.utils import streaming_debug
-import devices.pyrovio.rovio as rovio
+import obci.devices.pyrovio.rovio as rovio
 from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
 
 DEBUG = False
@@ -51,7 +51,7 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
             elif mxmsg.message == 'stop':
                 self.logger.info("Got stop message. Stop robot feedback!!!")
                 self.is_on = False
-                ugm_helper.send_logo(self.conn, 'gui.ugm.resources.bci.png')#todo - CEBIT fix... should be done somewhere in logic, but to ensure that robot feed will not overwrite log do it here...
+                ugm_helper.send_logo(self.conn, 'obci.gui.ugm.resources.bci.png')#todo - CEBIT fix... should be done somewhere in logic, but to ensure that robot feed will not overwrite log do it here...
             else:
                 self.logger.warning("Unrecognised control message:" + str(mxmsg.message))
 

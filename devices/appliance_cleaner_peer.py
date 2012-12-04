@@ -6,10 +6,10 @@
 import time, sys, signal
 from obci.configs import settings
 
-from devices import appliance1
-from devices import appliance2
-from devices import appliance_dummy
-from devices import appliance_diode_control_peer
+from obci.devices import appliance1
+from obci.devices import appliance2
+from obci.devices import appliance_dummy
+from obci.devices import appliance_diode_control_peer
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
 

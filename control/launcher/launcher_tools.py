@@ -85,15 +85,11 @@ def obci_root_relative(path):
 
 def obci_pythonpath():
     root = obci_root()
-    obci_path = os.path.join(root, 'openbci')
-
     lib_python_dir = ''.join(['python', str(sys.version_info[0]), '.',
                                             str(sys.version_info[1])])
     mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
                                     lib_python_dir, 'site-packages')
-    #obci_control_path = os.path.join(root, 'control')
-
-    return os.pathsep.join([root, obci_path, mx_python_path])
+    return mx_python_path#os.pathsep.join([root, mx_python_path])
 
 def update_obci_syspath(paths_str=None):
     paths_str = paths_str or obci_pythonpath()

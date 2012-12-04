@@ -11,12 +11,12 @@ from obci.control.peer.configured_client import ConfiguredClient
 from obci.configs import settings, variables_pb2
 from obci.gui.ugm import ugm_config_manager
 from obci.gui.ugm import ugm_helper
-from devices import appliance_helper
+from obci.devices import appliance_helper
 from obci.utils import keystroke
 from obci.utils import tags_helper
 from obci.utils import sequence_provider
 
-from acquisition import acquisition_helper
+from obci.acquisition import acquisition_helper
 import pygame
 pygame.init()
 

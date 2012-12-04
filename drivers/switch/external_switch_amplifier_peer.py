@@ -3,7 +3,7 @@
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
-from drivers.switch import external_audio_switch as audio_switch
+from obci.drivers.switch import external_audio_switch as audio_switch
 
 from obci.configs import settings, variables_pb2
 import random, time, sys

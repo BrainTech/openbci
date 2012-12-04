@@ -4,9 +4,9 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 import random, time, os.path, sys
 
-from drivers.etr import etr_amplifier
+from obci.drivers.etr import etr_amplifier
 from obci.configs import settings, variables_pb2
-from analysis.obci_signal_processing.signal import data_read_proxy
+from obci.analysis.obci_signal_processing.signal import data_read_proxy
 
 class EtrAmplifierFile(etr_amplifier.EtrAmplifier):
     def __init__(self, addresses):

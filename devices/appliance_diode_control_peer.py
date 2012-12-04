@@ -4,10 +4,10 @@
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import time
-from devices import diode_control_peer
-from devices import appliance1
-from devices import appliance2
-from devices import appliance_dummy
+from obci.devices import diode_control_peer
+from obci.devices import appliance1
+from obci.devices import appliance2
+from obci.devices import appliance_dummy
 from obci.configs import settings
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):

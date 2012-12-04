@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys, os, copy
-#~ from configs import settings, variables_pb2
 
 import ugm_config_manager
 

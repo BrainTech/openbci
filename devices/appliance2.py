@@ -4,7 +4,7 @@
 #      Magdalena Michalska <jezzy.nietoperz@gmail.com>
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
-from devices import appliance1
+from obci.devices import appliance1
 
 class Blinker(appliance1.Blinker):
     def set_intensity(self, v):
