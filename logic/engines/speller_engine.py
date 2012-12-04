@@ -37,7 +37,7 @@ class SpellerEngine(object):
         self.updateDecBank("say")
         if not msg:
             msg = self._message
-        self.info("TRYING TO SAY: "+msg)
+        self.logger.info("TRYING TO SAY: "+msg)
         self.run_ext(u''.join(
                 [#u'milena_say ', msg, u" &"
                     u'echo "', msg,'" | ',

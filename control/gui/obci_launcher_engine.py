@@ -218,7 +218,6 @@ class OBCILauncherEngine(QtCore.QObject):
 
         for sock in _all:
             sock.close()#linger=0)
-        print "monitoring thr finished!"
 
     def handle_obci_state_change(self, launcher_message):
         type_ = launcher_message.type
