@@ -3,8 +3,8 @@
 import time
 from obci.control.peer.configured_client import ConfiguredClient
 from obci.acquisition import acquisition_helper
-from obci.configs import settings, variables_pb2
-from multiplexer.multiplexer_constants import peers, types
+from obci.configs import settings
+from multiplexer.multiplexer_constants import peers
 
 class SaverControl(ConfiguredClient):
 	def __init__(self, addresses):
