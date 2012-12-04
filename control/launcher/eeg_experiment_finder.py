@@ -41,7 +41,6 @@ class EEGExperimentFinder(object):
         exps = exp_list.exp_data
         running = []
         for exp in exps.values():
-            print("SRAKA")
             if exp['status_name'] == launcher_tools.RUNNING or \
                     exp['status_name'] == launcher_tools.LAUNCHING:
                 running.append(exp)
