@@ -488,7 +488,8 @@ class OBCIControlPeer(object):
         pass
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
-        pass
+        for sock in self._all_sockets:
+            sock.close()
 
 
 class RegistrationDescription(object):

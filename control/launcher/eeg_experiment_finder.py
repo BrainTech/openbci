@@ -81,10 +81,13 @@ class EEGExperimentFinder(object):
                                 str(rep_addr) + ", PUB -- " + str(pub_addr))
 
         req_sock = self.ctx.socket(zmq.REQ)
-        req_sock.connect(rep_addr)
-
-        send_msg(req_sock, self.mtool.fill_msg('get_experiment_info'))
-        res, details = self.poll_recv(req_sock, 4000)
+        try:
+            req_sock.connect(rep_addr)
+    
+            send_msg(req_sock, self.mtool.fill_msg('get_experiment_info'))
+            res, details = self.poll_recv(req_sock, 4000)
+        finally:
+            req_sock.close()
 
         if not res:
             LOGGER.error("Connection failed (experiment " + exp_desc['name'] + \
