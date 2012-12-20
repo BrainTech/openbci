@@ -1,4 +1,4 @@
-openbci-amplifiers (1.8.4-2) precise; urgency=low
+openbci-amplifiers (1.8.4-2) unstable; urgency=low
 
   * Proper build for different releases.
 
