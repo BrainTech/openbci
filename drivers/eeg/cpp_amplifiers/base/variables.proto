@@ -1,0 +1,57 @@
+package variables;
+
+message Variable {
+    required string key = 1;
+    required string value = 2;
+}
+
+message VariableVector {
+	repeated Variable variables = 1;
+}
+
+message Blink {
+    required int32 index = 1;
+    required double timestamp = 2;
+}
+
+message Diode {
+    required string value = 1;
+    required double timestamp = 2;
+}
+
+
+message BlinkVector {
+    repeated Blink blinks = 1;  
+}
+
+message Sample {
+    required double timestamp = 1;
+    repeated float channels = 2;
+}
+
+message Sample2D {
+    required double x = 1;
+    required double y = 2;
+    required double timestamp = 3;
+}
+
+message SampleVector {
+    repeated Sample samples = 1;
+}
+
+message UgmUpdate {
+	required int32 type = 1;
+	required string value = 2;
+}
+
+message Tag {
+	required double start_timestamp = 1;
+	required double end_timestamp = 2;
+	required string name = 3;
+	required string channels = 4;
+	optional VariableVector desc = 5;
+}
+
+message TagVector {
+    repeated Tag tags = 1;
+}
