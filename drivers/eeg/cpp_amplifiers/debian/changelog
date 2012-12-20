@@ -1,6 +1,7 @@
 openbci-amplifiers (1.8.4-2) unstable; urgency=low
 
   * Proper build for different releases.
+  * Add missing protobuf-compiler depency
 
  -- Karol Auguštin <karol@augustin.pl>  Wed, 19 Dec 2012 15:38:53 +0100
 
