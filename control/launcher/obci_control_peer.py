@@ -269,7 +269,7 @@ class OBCIControlPeer(object):
                     sock.bind(addr)
         except Exception, e:
             self.logger.critical("CRITICAL error: %s", str(e))
-            sys.exit(0)
+            raise(e)
 
         advertised_addrs = []
         for addr in addresses:
@@ -341,7 +341,6 @@ class OBCIControlPeer(object):
                     socks = dict(poller.poll())
                 except zmq.ZMQError, e:
                     self.logger.error(": zmq.poll(): " +str(    e.strerror))
-
                 for sock in socks:
                     if socks[sock] == zmq.POLLIN:
                         more = True
@@ -349,7 +348,6 @@ class OBCIControlPeer(object):
                             try:
                                 msg = recv_msg(sock, flags=zmq.NOBLOCK)
                             except zmq.ZMQError, e:
-
                                 if e.errno == zmq.EAGAIN or sock.getsockopt(zmq.TYPE) == zmq.REP:
                                     more = False
                                 else:
@@ -362,6 +360,8 @@ class OBCIControlPeer(object):
                                     break
                             else:
                                 self.handle_message(msg, sock)
+                    else:
+                        self.logger.warning("sock not zmq.POLLIN! Ignore !")
 
                 if self.interrupted:
                     break
@@ -488,7 +488,8 @@ class OBCIControlPeer(object):
         pass
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
-        pass
+        for sock in self._all_sockets:
+            sock.close()
 
 
 class RegistrationDescription(object):

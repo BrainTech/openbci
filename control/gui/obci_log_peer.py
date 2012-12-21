@@ -22,15 +22,15 @@ class OBCILogCollector(ConfiguredMultiplexerServer):
             return
 
         if mxmsg.type == types.OBCI_LOG_MESSAGE:
-            print("obci collector - GOT log, sending to socket...")
+            self.logger.debug("obci collector - GOT log, sending to socket...")
             try:
                 self.socket.sendto(mxmsg.message, 
                                    (self.ip, self.port))
             except Exception, l_exc:
-                print("An error occured while sending log to socket")
+                self.logger.error("An error occured while sending log to socket")
                 self.socket.close()
         else:
-            print("Warning! unrecognised message type "+str(mxmsg.type))
+            self.logger.warning("Warning! unrecognised message type "+str(mxmsg.type))
         self.no_response() 
 
 

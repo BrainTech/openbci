@@ -1050,9 +1050,11 @@ class OBCIExperiment(OBCIControlPeer):
 
 
     def cleanup_before_net_shutdown(self, kill_message, sock=None):
+        
         send_msg(self._publish_socket,
                         self.mtool.fill_msg("kill", receiver="", sender=self.uuid))
         self.logger.info('sent KILL to supervisors')
+        super(OBCIExperiment, self).cleanup_before_net_shutdown(kill_message, sock)
 
     def clean_up(self):
         self.logger.info("exp cleaning up")

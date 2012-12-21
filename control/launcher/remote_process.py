@@ -49,11 +49,14 @@ class RemoteProcess(process.Process):
         if not self._ctx:
             self._ctx = zmq.Context()
         rq_sock = self._ctx.socket(zmq.REQ)
-        rq_sock.connect(self.rq_address)
-        mtool = OBCIMessageTool(message_templates)
-        poller = PollingObject()
-        send_msg(rq_sock, mtool.fill_msg("kill_process", pid=self.pid, machine=self.machine_ip))
-        res, _ = poller.poll_recv(rq_sock, timeout=5000)
+        try:
+            rq_sock.connect(self.rq_address)
+            mtool = OBCIMessageTool(message_templates)
+            poller = PollingObject()
+            send_msg(rq_sock, mtool.fill_msg("kill_process", pid=self.pid, machine=self.machine_ip))
+            res, _ = poller.poll_recv(rq_sock, timeout=5000)
+        finally:
+            rq_sock.close()
         if res:
             res = mtool.unpack_msg(res)
             print "Response to kill request: ", res
