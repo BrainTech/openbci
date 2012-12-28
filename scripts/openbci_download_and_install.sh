@@ -27,7 +27,7 @@ then
 fi
 
 cd
-git clone git://gir.braintech.pl/azouk-libraries.git
+git clone git://git.braintech.pl/azouk-libraries.git
 git clone git://git.braintech.pl/openbci.git obci
 cd ~/obci
 cd scripts/
