@@ -12,7 +12,12 @@ class ApplianceDiodeControl(diode_control_peer.DiodeControl):
         super(ApplianceDiodeControl, self).__init__(addresses=addresses)
 
     def _init_blinker(self):
-        app = settings.current_appliance()
+        #local config overwrites global, if exists
+        app = self.config.get_param('current_appliance')
+        if len(app) == 0:
+            app = settings.current_appliance()
+            self.config.set_param('current_appliance', app)
+
         if app == 'appliance1':
             self.blinker = blinker_factory.get_blinker(
                 app,
