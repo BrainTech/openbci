@@ -1,3 +1,9 @@
+openbci (1.8.5-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 13 Jan 2013 16:29:20 +0100
+
 openbci (1.8.4-3) unstable; urgency=low
 
   * Add missing python-twisted dependency.
