@@ -13,6 +13,7 @@ import json
 DISCOVERY_MODULE_NAMES = [
                         'amplifier_virtual_discovery',
                         'amplifier_tmsi_bt_discovery',
+			'amplifier_gtec_usb_discovery',
                         'amplifier_tmsi_usb_discovery']
 BASE_MODULE = 'obci.drivers.eeg.driver_discovery'
 
@@ -51,32 +52,7 @@ def find_virtual_amps():
     modules = _filter_modules('virtual')
     return _find_amps(modules)
 
-# class DriverDiscovery(ConfiguredMultiplexerServer):
-#     def __init__(self, addresses):
-#         super(DriverDiscovery, self).__init__(addresses=addresses, type=peers.DRIVER_DISCOVERY)
-
-#         self._mx_addresses = addresses
-
-#         self.drivers = find_drivers()
-#         self.serialize_drivers_info(self.drivers)
-
-#         self.ready()
-
-#         # 00:A0:96:1B:48:4B       Mobi5 0925100001
-#         # 00:A0:96:1B:42:DC       MobiMini 0931080004
-#         # 00:A0:96:1B:48:DB       Porti7-24e4b4at 0207090008
-
-
-#     def _add_driver(self, driver_desc):
-#         desc = json.loads(driver_desc)
-#         self.drivers.append(desc)
-
-#     def serialize_drivers_info(self, driver_list):
-#         self.set_param('available_drivers', driver_list)
-
-
 if __name__ == '__main__':
-    # DriverDiscovery(settings.MULTIPLEXER_ADDRESSES).loop()
     drivers = find_drivers()
     import json
     print json.dumps(drivers, indent=4)

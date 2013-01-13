@@ -2,5 +2,6 @@
 #include "GTecAmplifier.h"
 int main(int argc,char** argv){
 	GTecAmplifier amp;
-	test_driver(argc,argv,&amp);
+	if (!amp.run_simple(argc,argv))
+		test_driver(argc,argv,&amp);
 }

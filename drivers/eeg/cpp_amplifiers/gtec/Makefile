@@ -3,7 +3,7 @@ include ../base/Makefile.common
 LIBS = -l:libgusbampapi.so.1.11
 OBJS = $(BUILD)/simple_gtec_driver.o
 SIMPLE = $(BIN)/simple_gtec_driver
-BOOST_LIBS = signals thread regex date_time
+BOOST_LIBS = signals thread regex date_time program_options
 BOOST_VERSION= 1.42.0
 BOOST_LIBS_PATHS = $(addsuffix .so.$(BOOST_VERSION), $(addprefix lib/libboost_, $(BOOST_LIBS)))
 API_INSTALLED = /usr/include/gAPI.h
