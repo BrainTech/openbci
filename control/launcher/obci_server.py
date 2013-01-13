@@ -360,7 +360,7 @@ class OBCIServer(OBCIControlPeer):
 
     @msg_handlers.handler("get_experiment_contact")
     def handle_get_experiment_contact(self, message, sock):
-        self.logger.info("##### rq contact for: %s", message.strname)
+        self.logger.debug("##### rq contact for: %s", message.strname)
 
         info = self._handle_match_name(message, sock)
         if info:
