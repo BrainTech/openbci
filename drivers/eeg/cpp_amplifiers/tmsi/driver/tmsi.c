@@ -11,6 +11,8 @@
  *          
  * ChangeLog
  * ---------
+ * v1.8 - 13-01-2013 Maciej Pawlisz
+ *              * err() replaced by pr_err()
  * v1.7 - 02-06-2012 Maciej Pawlisz
  * 		* PACKET_BUFFER_SIZE changed to 2MB
  * 		+ Support for unlocked_ioctl
@@ -63,7 +65,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.7.3"
+#define DRIVER_VERSION                  "1.8.0"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -165,7 +167,7 @@ static int tmsi_open(struct inode *inode, struct file *file) {
     mutex_lock(&driver_lock);
     interface = usb_find_interface(&tmsi_driver, subminor);
     if (!interface) {
-        err("%s - error, can't find device for minor %d", __FUNCTION__, subminor);
+        pr_err("%s - error, can't find device for minor %d", __FUNCTION__, subminor);
         retval = -ENODEV;
         goto exit;
     }
@@ -213,7 +215,7 @@ static int tmsi_open(struct inode *inode, struct file *file) {
         usb_fill_bulk_urb(dev->bulk_recv_urb[i], dev->udev, pipe, dev->bulk_recv_buffer[i], dev->bulk_recv_endpoint->wMaxPacketSize, (usb_complete_t) tmsi_read_bulk_callback, dev);
         retval = usb_submit_urb(dev->bulk_recv_urb[i], GFP_KERNEL);
         if (retval)
-            err("%s - failed submitting bulk read urb[%d], error %d", __FUNCTION__, i, retval);
+            pr_err("%s - failed submitting bulk read urb[%d], error %d", __FUNCTION__, i, retval);
     }
 
     // Setup initial isochronous receive URB's and submit
@@ -239,7 +241,7 @@ static int tmsi_open(struct inode *inode, struct file *file) {
 
         retval = usb_submit_urb(dev->isoc_recv_urb[i], GFP_KERNEL);
         if (retval)
-            err("%s - failed submitting isochronous read urb[%d], error %d", __FUNCTION__, i, retval);
+            pr_err("%s - failed submitting isochronous read urb[%d], error %d", __FUNCTION__, i, retval);
     }
     dev->fifo_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
     sema_init(dev->fifo_sem, 0);
@@ -364,7 +366,7 @@ static ssize_t tmsi_write_data(struct tmsi_data* dev, char * buf, size_t count) 
     /* Send the data out the bulk port */
     retval = usb_submit_urb(urb, GFP_KERNEL);
     if (retval) {
-        err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
+        pr_err("%s - failed submitting write urb, error %d", __FUNCTION__, retval);
         goto error;
     }  
     /* release our reference to this urb, the USB core will eventually free it entirely */
@@ -448,7 +450,7 @@ static void tmsi_write_bulk_callback(struct urb *urb, struct pt_regs *regs) {
     dev = (struct tmsi_data*) urb->context;
     /* sync/async unlink faults aren't errors */
     if (urb->status && !(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN))
-        err("%s - nonzero write bulk status received: %d", __FUNCTION__, urb->status);
+        pr_err("%s - nonzero write bulk status received: %d", __FUNCTION__, urb->status);
 
     /* free up our allocated buffer */
     kfree(urb->transfer_buffer);
@@ -518,7 +520,7 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
         // Submit the URB
         retval = usb_submit_urb(urb, GFP_ATOMIC);
         if (retval)
-            err("%s - failed submitting bulk_recv_urb, error %d", __FUNCTION__, retval);
+            pr_err("%s - failed submitting bulk_recv_urb, error %d", __FUNCTION__, retval);
     }
 }
 
@@ -541,7 +543,7 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
             default:
             {
                 // Unknown error. Log to syslog
-                err("%s: Unknown USB error occurred (status %d)", __FUNCTION__, status);
+                pr_err("%s: Unknown USB error occurred (status %d)", __FUNCTION__, status);
                 break;
             }
         }
@@ -553,7 +555,7 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
         // Submit the URB
       retval = usb_submit_urb(urb, GFP_ATOMIC);
         if (retval)
-            err("%s - failed submitting isoc_recv_urb, error %d", __FUNCTION__, retval);
+            pr_err("%s - failed submitting isoc_recv_urb, error %d", __FUNCTION__, retval);
     }
 }
 
@@ -603,7 +605,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
     // Allocate memory for our device state and initialize it
     dev = kmalloc(sizeof (struct tmsi_data), GFP_KERNEL);
     if (dev == NULL) {
-        err("Out of memory");
+        pr_err("Out of memory");
         goto error;
     }
     memset(dev, 0x00, sizeof (*dev));
@@ -641,13 +643,13 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
 
     /* Check if all required endpoints are present */
     if (!(dev->bulk_recv_endpoint->bEndpointAddress && dev->bulk_send_endpoint->bEndpointAddress && dev->isoc_recv_endpoint->bEndpointAddress)) {
-        err("Could not find the required USB endpoints (bulk in/out, isochronous in)");
+        pr_err("Could not find the required USB endpoints (bulk in/out, isochronous in)");
         goto error;
     }
 
     /* Check if device is attached to an USB2 interface */
     if (dev->udev->speed != USB_SPEED_HIGH) {
-        err("Device is not attached to an USB2 bus");
+        pr_err("Device is not attached to an USB2 bus");
         goto error;
     }
 
@@ -658,7 +660,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
     retval = usb_register_dev(interface, &tmsi_class);
     if (retval) {
         /* something prevented us from registering this driver */
-        err("Not able to get a minor for this device.");
+        pr_err("Not able to get a minor for this device.");
         usb_set_intfdata(interface, NULL);
         goto error;
     }
@@ -721,7 +723,7 @@ static int __init usb_tmsi_init(void) {
     int result;
     result = usb_register(&tmsi_driver);
     if (result)
-        err("%s: Registration of tmsi driver failed. (error %d)", __FUNCTION__, result);
+        pr_err("%s: Registration of tmsi driver failed. (error %d)", __FUNCTION__, result);
     return result;
 }
 
