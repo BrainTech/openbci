@@ -20,24 +20,28 @@ class OBCIProxy(NetstringReceiver):
     def stringReceived(self, string):
         req_sock = self.factory.ctx.socket(zmq.REQ)
         req_sock.connect(self.factory.zmq_rep_addr)
-        req = unicode(string, encoding='utf-8')
-        print "twisted got:", req
-        bad = False
         try:
-            parsed = self.factory.mtool.unpack_msg(req)
-        except ValueError:
-            bad = True
-	if not bad:
-            if parsed.type in self.factory.long_rqs:
-                sock, port = self.factory.long_rqs[parsed.type]
-                pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
-                parsed.client_push_address = pull_addr
-                send_msg(req_sock, parsed.SerializeToString())
-            else:
-                send_msg(req_sock, req)
-
-        pl = PollingObject()
-        msg, det = pl.poll_recv(req_sock, timeout=5000)
+            req = unicode(string, encoding='utf-8')
+            print "twisted got:", req
+            bad = False
+            try:
+                parsed = self.factory.mtool.unpack_msg(req)
+            except ValueError:
+                bad = True
+            if not bad:
+                if parsed.type in self.factory.long_rqs:
+                    sock, port = self.factory.long_rqs[parsed.type]
+                    pull_addr = 'tcp://' + socket.gethostname() + ':' + str(port)
+                    parsed.client_push_address = pull_addr
+                    send_msg(req_sock, parsed.SerializeToString())
+                else:
+                    send_msg(req_sock, req)
+    
+            pl = PollingObject()
+            msg, det = pl.poll_recv(req_sock, timeout=5000)
+        finally:
+            req_sock.close()
+       
         if not msg:
             msg = self.factory.mtool.fill_msg("rq_error", details=det)
 

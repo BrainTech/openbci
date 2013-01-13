@@ -184,22 +184,25 @@ class Process(object):
 
     def ping_monitor(self):
         is_alive = True
-        while not self._stop_monitoring and is_alive:
-            time.sleep(2)
-            if self.rq_sock is not None:
-                send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
-                result = None
-                while self._ping_retries and not result and not self._stop_monitoring:
-                    result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
-                if not result and not self._stop_monitoring:
-                    self.logger.info("%s %s %s", 
-                            self.proc_type, self.name, "NO RESPONSE TO PING!")
-                    with self._status_lock:
-                        if self._status not in [FAILED, FINISHED]:
-                            self._status = NON_RESPONSIVE
-                            self._status_details = 'ping response timeout'
-                        print "status:", self._status
-                        is_alive = False
+        try:
+            while not self._stop_monitoring and is_alive:
+                time.sleep(2)
+                if self.rq_sock is not None:
+                    send_msg(self.rq_sock, self._mtool.fill_msg('ping'))
+                    result = None
+                    while self._ping_retries and not result and not self._stop_monitoring:
+                        result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
+                    if not result and not self._stop_monitoring:
+                        self.logger.info("%s %s %s", 
+                                self.proc_type, self.name, "NO RESPONSE TO PING!")
+                        with self._status_lock:
+                            if self._status not in [FAILED, FINISHED]:
+                                self._status = NON_RESPONSIVE
+                                self._status_details = 'ping response timeout'
+                            print "status:", self._status
+                            is_alive = False
+        finally:
+            self.rq_sock.close(linger=0)
 
 
     def returncode_monitor(self):

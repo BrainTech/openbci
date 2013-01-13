@@ -129,9 +129,12 @@ class OBCIPeerRequestHandler(SocketServer.StreamRequestHandler):
     def handle(self):
         message = recv_unicode_netstring(self.rfile)
         srv_sock = self.make_srv_sock()
-        send_msg(srv_sock, message)
-        pl = PollingObject()
-        response, det = pl.poll_recv(srv_sock, timeout=5000)
+        try:
+            send_msg(srv_sock, message)
+            pl = PollingObject()
+            response, det = pl.poll_recv(srv_sock, timeout=5000)
+        finally:
+            srv_sock.close()
         if not response:
             self.bad_response(self.wfile, det)
         self.rfile.write(make_unicode_netstring(response))
@@ -153,10 +156,14 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.server.pull_port)
             parsed.client_push_address = pull_addr
+            
         srv_sock = self.make_srv_sock()
-        send_msg(srv_sock, parsed.SerializeToString())
-
-        response, det = pl.poll_recv(srv_sock, timeout=5000)
+        try:
+            send_msg(srv_sock, parsed.SerializeToString())
+            response, det = pl.poll_recv(srv_sock, timeout=5000)
+        finally:
+            srv_sock.close()
+        
         print "passed msg and got result:  ", response
         if not response:
             self.bad_response(self.wfile, det)

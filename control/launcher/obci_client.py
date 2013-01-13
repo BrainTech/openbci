@@ -64,18 +64,21 @@ class OBCIClient(object):
         response = self.get_experiment_contact(exp_strname)
         exp_sock = self.ctx.socket(zmq.REQ)
 
-        if response.type == "rq_error":
+        try:
+            if response.type == "rq_error":
+                return response
+            for addr in response.rep_addrs:
+                exp_sock.connect(addr)
+    
+    
+            msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
+                                    name=name, overwrites=overwrites, leave_on=leave_on)
+            send_msg(exp_sock, msg)
+    
+            response, details = self.poll_recv(exp_sock, 6000)
             return response
-        for addr in response.rep_addrs:
-            exp_sock.connect(addr)
-
-
-        msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
-                                name=name, overwrites=overwrites, leave_on=leave_on)
-        send_msg(exp_sock, msg)
-
-        response, details = self.poll_recv(exp_sock, 6000)
-        return response
+        finally:
+            exp_sock.close()
 
     def _addr_connectable(self, addr, machine):
         return machine == socket.gethostname() or \
@@ -91,13 +94,17 @@ class OBCIClient(object):
 
     def send_start_experiment(self, exp_addrs):
         exp_sock = self.ctx.socket(zmq.REQ)
-        for addr in exp_addrs:
-            exp_sock.connect(addr)
+        try:
+            for addr in exp_addrs:
+                exp_sock.connect(addr)
 
-        send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
-        reply, details =  self.poll_recv(exp_sock, 20000)
-        print reply
-        return reply
+                send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
+                reply, details =  self.poll_recv(exp_sock, 20000)
+        
+                #print reply
+                return reply
+        finally:
+            exp_sock.close()
 
     def force_kill_experiment(self, strname):
         pass
@@ -145,18 +152,21 @@ class OBCIClient(object):
 
         if response.type == "rq_error":
             return response
-
+        
         sock = self.ctx.socket(zmq.REQ)
-        for addr in response.rep_addrs:
-            sock.connect(addr)
-
-        if peer_id:
-            send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
-        else:
-            send_msg(sock, self.mtool.fill_msg("get_experiment_info"))
-        response, details = self.poll_recv(sock, 2000)
-
-        return response
+        try:
+            for addr in response.rep_addrs:
+                sock.connect(addr)
+    
+            if peer_id:
+                send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
+            else:
+                send_msg(sock, self.mtool.fill_msg("get_experiment_info"))
+            response, details = self.poll_recv(sock, 2000)
+    
+            return response
+        finally:
+            sock.close()
 
     def configure_peer(self, exp_strname, peer_id, config_overrides, override_files=None):
         response = self.get_experiment_contact(exp_strname)
@@ -164,24 +174,26 @@ class OBCIClient(object):
         if response.type == "rq_error":
             return response
 
-
         sock = self.ctx.socket(zmq.REQ)
-        for addr in response.rep_addrs:
-            sock.connect(addr)
-
-        if override_files:
-            send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
+        try:
+            for addr in response.rep_addrs:
+                sock.connect(addr)
+    
+            if override_files:
+                send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
+                response, details = self.poll_recv(sock, 2000)
+                if response.type is 'rq_error':
+                    return response
+    
+            msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
+                                                                    **config_overrides)
+    
+            send_msg(sock, msg)
+            #print msg
             response, details = self.poll_recv(sock, 2000)
-            if response.type is 'rq_error':
-                return response
-
-        msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
-                                                                **config_overrides)
-
-        send_msg(sock, msg)
-        print msg
-        response, details = self.poll_recv(sock, 2000)
-        return response
+            return response
+        finally:
+            sock.close()
 
             # "update_peer_config" : dict(peer_id='', local_params='',
             #                 external_params='', launch_dependencies='', config_sources=''),
@@ -205,13 +217,17 @@ class OBCIClient(object):
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        self._connect(sock, response.rep_addrs)
-
-        send_msg(sock, self.mtool.fill_msg("join_experiment",
-                                        peer_id=peer_id, path=path, peer_type='obci_peer'))
-        response, details = self.poll_recv(sock, 5000)
-        sock.close()
-        return response
+        
+        try:
+            self._connect(sock, response.rep_addrs)
+    
+            send_msg(sock, self.mtool.fill_msg("join_experiment",
+                                            peer_id=peer_id, path=path, peer_type='obci_peer'))
+            response, details = self.poll_recv(sock, 5000)
+            sock.close()
+            return response
+        finally:
+            sock.close()
 
     def add_peer(self, strname, peer_id, path, machine, param_overwrites=None, 
                         custom_config_path=None, config_sources=None, launch_dependencies=None,
@@ -222,15 +238,17 @@ class OBCIClient(object):
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        self._connect(sock, response.rep_addrs)
-        send_msg(sock, self.mtool.fill_msg("add_peer",
-                                        peer_id=peer_id, peer_path=path, peer_type='obci_peer',
-                                        machine=machine, param_overwrites=param_overwrites,
-                                        custom_config_path=custom_config_path, config_sources=config_sources,
-                                        launch_dependencies=launch_dependencies, apply_globals=apply_globals))
-        response, details = self.poll_recv(sock, 5000)
-        sock.close()
-        return response
+        try:
+            self._connect(sock, response.rep_addrs)
+            send_msg(sock, self.mtool.fill_msg("add_peer",
+                                            peer_id=peer_id, peer_path=path, peer_type='obci_peer',
+                                            machine=machine, param_overwrites=param_overwrites,
+                                            custom_config_path=custom_config_path, config_sources=config_sources,
+                                            launch_dependencies=launch_dependencies, apply_globals=apply_globals))
+            response, details = self.poll_recv(sock, 5000)
+            return response
+        finally:
+            sock.close()
 
     def kill_peer(self, exp_strname, peer_id, remove_config=False):
         response = self.get_experiment_contact(exp_strname)
@@ -238,13 +256,15 @@ class OBCIClient(object):
         if response.type == "rq_error":
             return response
 
-        sock = self.ctx.socket(zmq.REQ)
-        self._connect(sock, response.rep_addrs)
-        send_msg(sock, self.mtool.fill_msg("kill_peer",
-                                        peer_id=peer_id, remove_config=remove_config))
-        response, details = self.poll_recv(sock, 5000)
-        sock.close()
-        return response
+        try:
+            sock = self.ctx.socket(zmq.REQ)
+            self._connect(sock, response.rep_addrs)
+            send_msg(sock, self.mtool.fill_msg("kill_peer",
+                                            peer_id=peer_id, remove_config=remove_config))
+            response, details = self.poll_recv(sock, 5000)
+            return response
+        finally:
+            sock.close()
 
     def _connect(self, sock, addr_list):
         print "****  ", addr_list
@@ -273,13 +293,16 @@ class OBCIClient(object):
         if response.type == "rq_error":
             return response
 
-        sock = self.ctx.socket(zmq.REQ)
-        self._connect(sock, response.rep_addrs)
-
-        send_msg(sock, self.mtool.fill_msg("leave_experiment",
-                                        peer_id=peer_id))
-        response, details = self.poll_recv(sock, 5000)
-        return response
+        try:
+            sock = self.ctx.socket(zmq.REQ)
+            self._connect(sock, response.rep_addrs)
+    
+            send_msg(sock, self.mtool.fill_msg("leave_experiment",
+                                            peer_id=peer_id))
+            response, details = self.poll_recv(sock, 5000)
+            return response
+        finally:
+            sock.close()
 
 
     def get_tail(self, strname, peer_id, len_):
@@ -289,13 +312,16 @@ class OBCIClient(object):
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        for addr in response.rep_addrs:
-            sock.connect(addr)
-
-        send_msg(sock, self.mtool.fill_msg("get_tail", peer_id=peer_id, len=len_))
-        response, details = self.poll_recv(sock, 4000)
-
-        return response
+        try:
+            for addr in response.rep_addrs:
+                sock.connect(addr)
+    
+            send_msg(sock, self.mtool.fill_msg("get_tail", peer_id=peer_id, len=len_))
+            response, details = self.poll_recv(sock, 4000)
+    
+            return response
+        finally:
+            sock.close()
 
     def poll_recv(self, socket, timeout):
         result, details = self.poller.poll_recv(socket, timeout)
