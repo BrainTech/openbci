@@ -5,10 +5,7 @@
 
 import time, sys, signal
 from obci.configs import settings
-
-from obci.devices import appliance1
-from obci.devices import appliance2
-from obci.devices import appliance_dummy
+from obci.devices import blinker_factory
 from obci.devices import appliance_diode_control_peer
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
@@ -22,16 +19,14 @@ class ApplianceCleaner(ConfiguredClient):
 
     def init_blinker(self):
         app = self.config.get_param('current_appliance')
-        if app == 'appliance1':
-            self.blinker = appliance1.Blinker(self.config.get_param("device_path"))
-        elif app == 'appliance2':
-            self.blinker = appliance2.Blinker(self.config.get_param("device_path"))
+        if app == 'appliance1' or app == 'appliance2':
+            self.blinker = blinker_factory.get_blinker(
+                app,
+                self.config.get_param("device_path"))
         elif app == 'dummy':
-            self.blinker = appliance_dummy.Blinker()
+            self.blinker = blinker_factory.get_blinker(app)
         else:
             self.logger.error("Unrecognised appliance name: "+str(app))
-            sys.exit(1)
-        self.blinker.open()
 
     def init_signals(self):
         self.logger.info("INIT SIGNALS IN APPLIANCE CLEANER")

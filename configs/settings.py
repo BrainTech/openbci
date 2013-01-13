@@ -17,6 +17,20 @@ import os.path, sys
 MAIN_DIR = ''.join([os.path.split(
     os.path.realpath(os.path.dirname(__file__)))[0], '/'])
 
+
+def current_appliance():
+    """Return string defining current bci-ssvep appliance.
+    Correct values: dummy, appliance1, appliance2
+    app = 'dummy'"""
+    try:
+        app = x #read appliance name from global config
+    except:
+        app = 'dummy'
+
+    return app
+      
+        
+
 def module_abs_path():
     """This method returns absolute path to directory containing a module
     that imported and fired the method.
