@@ -1,3 +1,9 @@
+tmsi (1.8-0~) unstable; urgency=low
+
+  * Fix module for 3.5 kernel.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 13 Jan 2013 15:43:09 +0100
+
 tmsi (1.7-0~) precise; urgency=low
 
   * Automatically packaged by DKMS.
