@@ -194,7 +194,10 @@ class DriverComm(object):
                 time.sleep(get_timeout)
                 pass
             if line is None:
-                continue
+                if self.driver_is_running():
+                    continue
+                else:
+                    raise Exception("Driver is dead. ABORTING!!!")
             elif len(line) == 0:
                 self.abort("Got empty string from driver. ABORTING...!!!")
             elif line=="\n":

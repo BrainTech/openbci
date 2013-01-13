@@ -5,9 +5,9 @@ import json
 import bluetooth
 import os
 
-from launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
-from peer.peer_config import PeerConfig
-from drivers.eeg.driver_comm import DriverComm
+from obci.control.launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
+from obci.control.peer.peer_config import PeerConfig
+from obci.drivers.eeg.driver_comm import DriverComm
 
 _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 
@@ -55,8 +55,11 @@ def driver_descriptions():
                                     'sampling_rate' : ''},
             }
 
-
-    chan_inf = get_description_from_driver()
+    chan_inf = None
+    try:
+        chan_inf = get_description_from_driver()
+    except:
+        pass
     if chan_inf is None:
         # amplifier busy or an error occurred
         pass
