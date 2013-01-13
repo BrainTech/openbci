@@ -37,7 +37,7 @@ void GTecAmplifier::spawn_simple_driver(const char* name){
 		close(1);
 		dup2(fd[1],1);
         if (name!=NULL)
-            execl(simple_driver_path.c_str(),"simple_gtec_driver","-n",name,"-s",s_rate.str().c_str(),"-c","sampling",NULL);
+            execl(simple_driver_path.c_str(),"simple_gtec_driver","-i",name,"-s",s_rate.str().c_str(),"-c","sampling",NULL);
         else
             execl(simple_driver_path.c_str(),"simple_gtec_driver",NULL);
 		cerr << "Could not run "<<simple_driver_path<<":"<<strerror(errno)<<"\n";
@@ -56,8 +56,8 @@ po::options_description GTecAmplifier::get_options(){
 			("device_index,i",boost::program_options::value<uint>()->default_value(1),"Index of GTec device")
 			("available_devices,a","Print available devices and exit")
 			("simple_driver_path,d",boost::program_options::value<string>()->default_value("simple_gtec_driver"),"Path to the simple_gtec_driver")
-			("run_simple,r","Run Simple Gtec Driver with remaining command line parameters. Can be used for signal generation or calibration. See 'Gtec Simple Driver Options' for available parameters");
-	options.add(get_simple_options());
+			("run_simple","Run Simple Gtec Driver with remaining command line parameters. Can be used for signal generation or calibration")
+			("simple_options","Show available Simple GtecDriver Options");
 	return options;
 }
 void get_data_callback(void * driver){
@@ -101,7 +101,6 @@ void GTecAmplifier::start_sampling(){
 	stringstream name;
 	name << ((GTecDescription*)this->description)->device_index+1;	
 	spawn_simple_driver(name.str().c_str());
-	return;
 	char msg[50];
 	read(simple_driver_output,msg,2);
 	msg[2]=0;
@@ -145,13 +144,16 @@ bool GTecAmplifier::run_simple(int argc,char** argv){
 	po::options_description options = get_options();
 	po::variables_map vm;
 	po::store(po::command_line_parser(argc,argv).options(options).allow_unregistered().run(),vm);
+	if (vm.count("simple_options")){
+		cout << get_simple_options();
+	}	
 	if (!vm.count("run_simple")){
 		return false;
 	}
 	for (uint j=0;j<argc;j++){
 		string str=argv[j];
 		if (str=="-r" || str=="--run_simple"){
-			argv[j]="simple_driver_path";
+			argv[j]="simple_gtec_driver";
 			string path =vm["simple_driver_path"].as<string>();
 			execv(path.c_str(),argv+j);
 			perror("Could not run Simple Gtec Driver:");

@@ -55,18 +55,23 @@ size_t getSamples(){
 	}
 	return read;
 }
-
-void sendCallBack() {
+bool first_samples=true;
+void sendCallBack(void *) {
 	size_t read=getSamples();
-	if (read > 0)
+	if (read > 0){
+	if (first_samples){
+		first_samples=false;
+                write(1,"OK",2);	
+	}
 		write(1, usr_buffer_master, read);
+	}
 }
 
 string getDeviceList(bool print = false,uint amp=0) {
 	char** device_list = 0;
 	string name;
 #ifdef DEBUG
-	cout<<"Amp1\nAmp2";
+	cout<<"Amp1:1.0574;1.0506;1.0607;1.05776;1.0578;1.05702;1.05723;1.05892;1.05596;1.06086;1.05601;1.0543;1.05579;1.05741;1.05839;1.05715;:-508.797;-485.906;-670.641;-409.11;-1103.14;-598.157;-1236.43;-1011.43;-994.906;-646.509;-830.82;-1063.1;-701.673;-621.619;-292.877;-777.172;\nAmp2:1.0574;1.0506;1.0607;1.05776;1.0578;1.05702;1.05723;1.05892;1.05596;1.06086;1.05601;1.0543;1.05579;1.05741;1.05839;1.05715;:-508.797;-485.906;-670.641;-409.11;-1103.14;-598.157;-1236.43;-1011.43;-994.906;-646.509;-830.82;-1063.1;-701.673;-621.619;-292.877;-777.172;";
 	return "Amp1";
 #endif
 	size_t list_size = 0;
@@ -199,14 +204,14 @@ void gatherDataCallback(void * ptr){
 }
 
 
-void computeCalibration(gt_usbamp_channel_calibration &calibration){
+int computeCalibration(gt_usbamp_channel_calibration &calibration){
 	calib_data c_data(name);
 	
 	GT_SetDataReadyCallBack(name,&gatherDataCallback,(void*) &c_data);
 	if (!GT_StartAcquisition(name)) {
 		cerr<< "Start failed\n";
-		return;
-	}
+		return -1;
+	} 
 	cerr <<"Waiting...(2 seconds)\n";
 	sleep(2);
 	c_data.gather=true;
@@ -225,15 +230,16 @@ void computeCalibration(gt_usbamp_channel_calibration &calibration){
 	  double rms = sqrt(sq_sum/c.count);
       double max_avg=c.max_avg = c.max_sum/c.max_count;
 	  double min_avg=c.min_avg = c.min_sum/c.min_count;
-	  printf("Channel %d: max_avg:%f (%d), min_avg:%f (%d), avg:%f, rms:%f\n",i,max_avg,c.max_count,c.min_avg,c.min_count,avg,rms);
-	  double amp_max = CALIB_AMP*1000;
-      double amp_min = -CALIB_AMP*1000;
+	  printf("Channel %d: max_avg:%f (%d), min_avg:%f (%d), avg:%f, rms:%f\n",i,max_avg,c.max_count,min_avg,c.min_count,avg,rms);
+	  //double amp_max = CALIB_AMP*1000;
+      	  //double amp_min = -CALIB_AMP*1000;
 	  double o=avg;
 	  double s=calib_params.amplitude*1000/(rms*sqrt(2));
 	  calibration.offset[i]=o;
 	  calibration.scale[i]=s;
 	  cout <<"  Scale: "<<s<<" offset:"<<o<<"\n";	  
 	}
+	return 0;
 	
 }
 int resetCalibration(bool open=false){
@@ -253,6 +259,7 @@ int resetCalibration(bool open=false){
 	cout <<"done.\n";
 	if (open)
 	   GT_CloseDevice(name);
+        return 0;
 }
 int checkCalibration(){
     mode = GT_MODE_CALIBRATE;
@@ -260,6 +267,7 @@ int checkCalibration(){
     gt_usbamp_channel_calibration calibration;
     computeCalibration(calibration);
     GT_CloseDevice(name);
+    return 0;
 }
 int calibrate(){
 	gt_usbamp_channel_calibration calibration;
@@ -276,7 +284,7 @@ int calibrate(){
 	computeCalibration(calibration);
 		
 	GT_CloseDevice(name);
-	return true;
+	return 0;
 }
 
 bool startSampling(uint sample_rate) {
@@ -297,7 +305,7 @@ bool startSampling(uint sample_rate) {
 #define CHUNK CHANNELS*256
 int counter = 0;
 void doSampling() {
-	sleep(1);	
+	sleep(1);
 #ifndef DEBUG
 	return;
 #endif
@@ -314,9 +322,12 @@ void doSampling() {
 
 int main(int argc, char** argv) {
 	po::options_description desc=get_simple_options();
-	cerr <<desc;
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
+	if (vm.count("help"))
+		cerr << desc;
+	else
+		cerr << "Use --help for available options" <<"\n";
 	calib_duration = vm["calib_duration"].as<int>();
 	sample_rate = vm["sampling_rate"].as<uint>();
 	string shape=vm["function"].as<string>();
@@ -341,7 +352,6 @@ int main(int argc, char** argv) {
 	string s_name;
 	show_debug(GT_FALSE);
 	int a = 0x12345678;
-	uint amp=0;
 	unsigned char *c = (unsigned char*) (&a);
 	if (*c != 0x78)
 		big_endian = true;

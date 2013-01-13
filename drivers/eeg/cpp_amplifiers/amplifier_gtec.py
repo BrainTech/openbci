@@ -23,7 +23,7 @@ class AmplifierGtec(BinaryDriverWrapper):
         device_no = self.config.get_param('device_index')
         args = [exe, "-h" , str(host), '-p', str(port), '-v', v, "-d", simple_driver,
                     '-s', str(rate), '-c', channels, '-i', device_no]
-	    self.logger.info("ARGUMENTS: "+ str(args))
+	self.logger.info("ARGUMENTS: "+ str(args))
         return args
 
 if __name__ == "__main__":

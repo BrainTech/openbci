@@ -4,6 +4,7 @@ namespace po = boost::program_options;
 po::options_description get_simple_options() {
 	po::options_description options("Gtec Simple Driver Options");
 	options.add_options()
+			("help,h","Show this message")
 			("device_name,n",po::value<string>(),
 					"Amplifer to use")
 			("device_index,i",po::value<int>()->default_value(1),
@@ -34,7 +35,7 @@ po::options_description get_simple_options() {
 					"Frequency of a function in Hz, integer in range [1,100]")
 			("offset,o",po::value<int>()->default_value(0),
 					"Offset of a function in mV, integer in range [-200,200]")
-			("calib_duration,d",po::value<int>()->default_value(120),
+			("calib_duration,u",po::value<int>()->default_value(120),
 					"Duration of calibration");
 	return options;
 }
