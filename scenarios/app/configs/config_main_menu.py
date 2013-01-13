@@ -22,7 +22,7 @@ class Config(object):
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [u"Switch",u"P300",u"SSVEP",u"",
-                           u"", u"   P300  \ncalibrate", u" SSVEP  \ncalibrate", ""]
+                           u"", u"   P300  \ncalibrate", u" SSVEP  \ncalibrate", u"SSVEP buf\ncalibrate"]
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
         
         # thanks to corresponding values from actions_solver obci will decide which program to use.
@@ -34,6 +34,7 @@ class Config(object):
                            "",
                            "transform_scenario('p300_calib')",
                            "transform_scenario('ssvep_calib')",
-                           ""]
+                           "transform_scenario('ssvep_buff_calib')",
+                           ]
 
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
