@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from gui.ugm import ugm_config_manager
+from obci.gui.ugm import ugm_config_manager
 import math
 
 class AreaConfig(object):

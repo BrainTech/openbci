@@ -4,12 +4,9 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 import random, time, os.path, sys
 
-from drivers.etr import etr_amplifier
-from obci_configs import settings, variables_pb2
-from analysis.obci_signal_processing.signal import data_read_proxy
-from drivers import drivers_logging as logger
-
-LOGGER = logger.get_logger("etr_amplifier", "debug")
+from obci.drivers.etr import etr_amplifier
+from obci.configs import settings, variables_pb2
+from obci.analysis.obci_signal_processing.signal import data_read_proxy
 
 class EtrAmplifierFile(etr_amplifier.EtrAmplifier):
     def __init__(self, addresses):
@@ -26,7 +23,7 @@ class EtrAmplifierFile(etr_amplifier.EtrAmplifier):
         while True:
             time.sleep(self._sleep_s)
             if self.file_buf_ind == len(self.file_buf[0]):
-                LOGGER.info("END OF FILE!")
+                self.logger.info("END OF FILE!")
                 sys.exit(0)
             else:
                 l_msg = variables_pb2.Sample2D()

@@ -7,7 +7,7 @@
 import csv
 import codecs
 import cStringIO
-from analysis.obci_signal_processing import types_utils
+
 DELIMITER = ';'
 STRING = '"'
 
@@ -45,6 +45,7 @@ class Writer(object):
         self._file.write(data)
         # empty queue
         self._queue.truncate(0)
+        return
 
     def close(self):
         self._file.close()

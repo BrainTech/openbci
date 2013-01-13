@@ -5,9 +5,9 @@ import json
 import bluetooth
 import os
 
-from launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
-from peer.peer_config import PeerConfig
-from drivers.eeg.driver_comm import DriverComm
+from obci.control.launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
+from obci.control.peer.peer_config import PeerConfig
+from obci.drivers.eeg.driver_comm import DriverComm
 
 _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 
@@ -15,7 +15,7 @@ _TYPES = ['Porti7']
 
 _USB_DESCS = { 'Porti7' : 'amplifier_porti7_usb.json',
                 'SynFi' : 'amplifier_tmsi_synfi.json'}
-_AMP_PEER = 'drivers/eeg/c_tmsi_amplifier/amplifier_tmsi.py'
+_AMP_PEER = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
 _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 

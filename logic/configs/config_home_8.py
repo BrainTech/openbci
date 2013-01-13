@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from launcher.launcher_tools import obci_root
+from obci.control.launcher.launcher_tools import obci_root
 import os.path
 
 class Config(object):

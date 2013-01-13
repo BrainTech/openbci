@@ -6,17 +6,15 @@
 import sys, os, time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from obci_configs import settings
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-from interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
-from interfaces.bci.ssvep_csp import ssvep_csp_helper
-from logic import logic_helper
-
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("ssvep_fast_csp", 'info')
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
+from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
+from obci.logic import logic_helper
+from obci.utils import context as ctx
 
 class LogicSsvepCsp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -62,7 +60,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.TAG_SAVER_FINISHED:
             self._tags_finished = True
         else:
-            LOGGER.warning("Unrecognised message received!!!!")
+            self.logger.warning("Unrecognised message received!!!!")
         self.no_response()
 
         if self._all_ready():
@@ -71,17 +69,21 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def run(self):
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
+        context = ctx.get_new_context()
+        context['logger'] = self.logger
         cfg = logic_ssvep_csp_fast_analysis.run(
             acquisition_helper.get_file_path(f_dir, f_name),
             self.use_channels,
             self.ignore_channels,
             self.montage,
             self.montage_channels,
-            self.mode in ['offline', 'manual'])
+            self.mode in ['offline', 'manual'],
+            True,
+            context)
 
         maybe_buffer = self.config.get_param('buffer_len')
         if len(maybe_buffer) > 0:
-            LOGGER.info("Overwrite csp buffer len:"+str(cfg['buffer'])+"with from config:"+str(maybe_buffer))
+            self.logger.info("Overwrite csp buffer len:"+str(cfg['buffer'])+"with from config:"+str(maybe_buffer))
             cfg['buffer'] = float(maybe_buffer)
 
         self.finish(cfg)
@@ -92,7 +94,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         if self.mode == 'offline':
             self._determine_means(cfg)#just for debug
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-            LOGGER.info("Calibration saved!!!")
+            self.logger.info("Calibration saved!!!")
         elif self.mode == 'manual':
             self._show_configs(cfg, suffix=u'Suggested frequencies:')
             self._edit_configs(cfg)
@@ -119,15 +121,15 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 time.sleep(15)
                 sys.exit(1)
         else:
-            LOGGER.warning("Unrecognised mode: "+self.mode)
+            self.logger.warning("Unrecognised mode: "+self.mode)
                 
     def _determine_means(self, cfg):
         """Return true if means are ok"""
         all_means = [float(i) for i in cfg['all_means'].split(';')]
         ret = all_means[cfg['dec_count']-1] >= cfg['value'][0]
-        LOGGER.info("Freqs and dec count:"+str(cfg['freqs'])+" / "+str(cfg['dec_count']))
-        LOGGER.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value'][0]))
-        LOGGER.info("Is smallest mean bigger than treshold?: "+str(ret))
+        self.logger.info("Freqs and dec count:"+str(cfg['freqs'])+" / "+str(cfg['dec_count']))
+        self.logger.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value'][0]))
+        self.logger.info("Is smallest mean bigger than treshold?: "+str(ret))
         return ret
 
     def _show_configs(self, cfg, suffix=u""):
@@ -150,13 +152,13 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def _edit_configs(self, cfg):
         buffer = float(cfg['buffer'])
         freqs = [int(i) for i in cfg['freqs'].split(';')]
-        LOGGER.info("Configs before edit:")
-        LOGGER.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
+        self.logger.info("Configs before edit:")
+        self.logger.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
         buffer, freqs = ssvep_csp_helper.edit_csp_configs(buffer, freqs)
         cfg['buffer'] = buffer
         cfg['freqs'] = ';'.join([str(i) for i in freqs])
-        LOGGER.info("Configs after edit:")
-        LOGGER.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
+        self.logger.info("Configs after edit:")
+        self.logger.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
 
 
     def _run_next_scenario(self):
@@ -170,7 +172,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             logic_helper.restart_scenario(self.conn, path,
                                           leave_on=['amplifier'])
         else:
-            LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
+            self.logger.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
 
         

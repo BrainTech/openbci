@@ -8,19 +8,19 @@ Contact: laszukdawid@gmail.com
 """
 
 import random, time
-from interfaces import interfaces_logging as logger
 import numpy as np
 
 from p300_fda import P300_analysis
 from p300_draw import P300_draw
 from signalAnalysis import DataAnalysis
+from obci.utils import context as ctx
 
-LOGGER = logger.get_logger("p300_analysis_data_peer", "info")
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
-    def __init__(self, send_func, cfg, montage_matrix, sampling):
-        
+    def __init__(self, send_func, cfg, montage_matrix, sampling,
+                 context=ctx.get_dummy_context('BCIP300CspAnalysis')):
+        self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling

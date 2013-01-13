@@ -4,18 +4,14 @@
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import time, sys, signal
-from obci_configs import settings
+from obci.configs import settings
 
-from devices import appliance1
-from devices import appliance2
-from devices import appliance_dummy
-from devices import appliance_diode_control_peer
-from obci_control.peer.configured_client import ConfiguredClient
+from obci.devices import appliance1
+from obci.devices import appliance2
+from obci.devices import appliance_dummy
+from obci.devices import appliance_diode_control_peer
+from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
-
-from devices import devices_logging as logger
-LOGGER = logger.get_logger('appliance_cleaner')
-
 
 class ApplianceCleaner(ConfiguredClient):
     def __init__(self, addresses):
@@ -33,18 +29,18 @@ class ApplianceCleaner(ConfiguredClient):
         elif app == 'dummy':
             self.blinker = appliance_dummy.Blinker()
         else:
-            LOGGER.error("Unrecognised appliance name: "+str(app))
+            self.logger.error("Unrecognised appliance name: "+str(app))
             sys.exit(1)
         self.blinker.open()
 
     def init_signals(self):
-        LOGGER.info("INIT SIGNALS IN APPLIANCE CLEANER")
+        self.logger.info("INIT SIGNALS IN APPLIANCE CLEANER")
         signal.signal(signal.SIGTERM, self.signal_handler())
         signal.signal(signal.SIGINT, self.signal_handler())
         
     def signal_handler(self):
         def handler(signum, frame):
-            LOGGER.info("Got signal " + str(signum) + "!!! Sending diodes ON!")
+            self.logger.info("Got signal " + str(signum) + "!!! Sending diodes ON!")
             self.blinker.on()
             sys.exit(-signum)
         return handler

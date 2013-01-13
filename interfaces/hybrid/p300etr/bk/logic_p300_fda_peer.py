@@ -7,20 +7,20 @@ import sys, os, time
 import numpy as np
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 
-from analysis.obci_signal_processing import read_manager
-from analysis.obci_signal_processing.tags import smart_tag_definition as df
-from analysis.obci_signal_processing import smart_tags_manager as sgr
-from obci_configs import settings
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-#from interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
-from interfaces.bci.ssvep_csp import ssvep_csp_helper
+from obci.analysis.obci_signal_processing import read_manager
+from obci.analysis.obci_signal_processing.tags import smart_tag_definition as df
+from obci.analysis.obci_signal_processing import smart_tags_manager as sgr
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+#from obci.interfaces.bci.ssvep_csp import logic_ssvep_csp_analysis
+from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 
-from logic import logic_helper
-from logic import logic_logging as logger
+from obci.logic import logic_helper
+from obci.logic import logic_logging as logger
 
 import signalParser as sp
 from p300_draw import P300_draw

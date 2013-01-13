@@ -3,7 +3,7 @@
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
-from obci_configs import variables_pb2
+from obci.configs import variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 
 def send_stop(conn):

@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import random, time, pickle, os.path
-from interfaces import interfaces_logging as logger
 import numpy as np
 from scipy.signal import hamming
 import scipy.stats as st
+from obci.utils import context as ctx
 
-LOGGER = logger.get_logger("bci_ssvep_csp_analysis", "info")
 DEBUG = False
 
 class BCISsvepCspAnalysis(object):
-    def __init__(self, send_func, freqs, cfg, montage_matrix, sampling):
+    def __init__(self, send_func, freqs, cfg, montage_matrix, sampling, 
+                 context=ctx.get_dummy_context('BCISsvepCspAnalysis')):
+        self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
@@ -26,10 +27,10 @@ class BCISsvepCspAnalysis(object):
                 k += 1
         self.freqs = self.indexMap.keys()
 
-        LOGGER.info("Have freqs:")
-        LOGGER.info(str(self.freqs))
-        LOGGER.info("indexMap:")
-        LOGGER.info(str(self.indexMap))
+        self.logger.info("Have freqs:")
+        self.logger.info(str(self.freqs))
+        self.logger.info("indexMap:")
+        self.logger.info(str(self.indexMap))
 
 
         self.value = cfg['value']
@@ -61,8 +62,8 @@ class BCISsvepCspAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        LOGGER.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
-        LOGGER.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
+        self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
         #print("P: "+str(self.q.P[:,0].shape))
         #print("montage: "+str(self.montage_matrix.shape))
@@ -72,14 +73,14 @@ class BCISsvepCspAnalysis(object):
         csp_sig -= csp_sig.mean()#normujemy
         csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
         freq, feeds = self._analyse(csp_sig)
-        LOGGER.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
+        self.logger.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
         if DEBUG:
             if random.random() > 0.5:
                 freq = random.choice(self.indexMap.keys())
         if freq > 0:
             self.send_func(self.indexMap[freq])
         else:
-            LOGGER.info("Got 0 freq - no decision")
+            self.logger.info("Got 0 freq - no decision")
 
 
     def _analyse(self, signal):

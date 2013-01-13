@@ -3,9 +3,9 @@
 
 import json
 import os
-from launcher.launcher_tools import READY_TO_LAUNCH
-from peer.peer_config import PeerConfig
-from drivers.eeg.driver_comm import DriverComm
+from obci.control.launcher.launcher_tools import READY_TO_LAUNCH
+from obci.control.peer.peer_config import PeerConfig
+from obci.drivers.eeg.driver_comm import DriverComm
 
 
 DESC_FILE = 'amplifier_virtual.json'

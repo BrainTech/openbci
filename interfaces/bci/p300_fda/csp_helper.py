@@ -6,10 +6,10 @@
 import pickle
 import numpy as np
 
-from interfaces import interfaces_logging as logger
+from obci.interfaces import interfaces_logging as logger
 LOGGER = logger.get_logger("csp_helper")
 
-from acquisition import acquisition_helper
+from obci.acquisition import acquisition_helper
 
 
 def get_csp_config(path, name):

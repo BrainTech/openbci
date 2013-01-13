@@ -6,15 +6,15 @@
 """Dock widget for configuring UGM"""
 
 from PyQt4 import QtCore, QtGui
-from gui.frontend.modules.ugm.UGMMain import Ui_UGMMainWidget
-from gui.frontend.modules.ugm.ugm_properties_model import UGMPropertiesModel
-from gui.frontend.modules.ugm.ugm_properties_delegate import UGMPropertiesDelegate
-from gui.ugm.ugm_config_manager import UgmConfigManager
+from obci.gui.frontend.modules.ugm.UGMMain import Ui_UGMMainWidget
+from obci.gui.frontend.modules.ugm.ugm_properties_model import UGMPropertiesModel
+from obci.gui.frontend.modules.ugm.ugm_properties_delegate import UGMPropertiesDelegate
+from obci.gui.ugm.ugm_config_manager import UgmConfigManager
 import os
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client 
-from obci_configs import variables_pb2
-from obci_configs import settings
+from obci.configs import variables_pb2
+from obci.configs import settings
 
 class UGMModuleDockWidget(QtGui.QDockWidget):
     """Dock widget which is used to configure all UGM properties"""

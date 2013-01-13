@@ -7,13 +7,13 @@
 "Piotr Milanowski, Feb. 2012, Warsaw
 """
 import numpy as np
-from analysis.csp import signalParser as sp
+from obci.analysis.csp import signalParser as sp
 import matplotlib.pyplot as plt
 from scipy.linalg import eig
 import scipy.signal as ss
-from analysis.csp.filtfilt import filtfilt
-from analysis.csp.MLogit import logit
-from analysis.csp.artifactClassifier import artifactsCalibration
+from obci.analysis.csp.filtfilt import filtfilt
+from obci.analysis.csp.MLogit import logit
+from obci.analysis.csp.artifactClassifier import artifactsCalibration
 
 
 class p300_train(object):

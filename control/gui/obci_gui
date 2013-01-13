@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+direc=$OBCI_INSTALL_DIR
+
+if [ -z $OBCI_INSTALL_DIR ]
+then
+	direc=/usr/share/openbci
+fi
+
+obci srv &
+sleep 1
+export PYTHONPATH=`python $direc/control/launcher/launcher_tools.py`
+exec python $direc/control/gui/obciLauncher.py $@

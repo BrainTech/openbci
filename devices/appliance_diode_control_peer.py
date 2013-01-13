@@ -4,14 +4,11 @@
 #      Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 
 import time
-from devices import diode_control_peer
-from devices import appliance1
-from devices import appliance2
-from devices import appliance_dummy
-from obci_configs import settings
-
-from devices import devices_logging as logger
-LOGGER = logger.get_logger('appliance_diode_control')
+from obci.devices import diode_control_peer
+from obci.devices import appliance1
+from obci.devices import appliance2
+from obci.devices import appliance_dummy
+from obci.configs import settings
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):
     def __init__(self, addresses):
@@ -33,7 +30,7 @@ class ApplianceDiodeControl(diode_control_peer.DiodeControl):
             self.blinker.open()
 
         else:
-            LOGGER.error("Unrecognised appliance name: "+str(app))
+            self.logger.error("Unrecognised appliance name: "+str(app))
 
 if __name__ == "__main__":
     ApplianceDiodeControl(settings.MULTIPLEXER_ADDRESSES).loop()

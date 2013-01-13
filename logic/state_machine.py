@@ -6,7 +6,7 @@
 #
 import os
 import imp
-from launcher.launcher_tools import expand_path
+from obci.control.launcher.launcher_tools import expand_path
 
 class StateMachine(object):
     """A facade between config file and logic_engine class.
@@ -35,6 +35,7 @@ class StateMachine(object):
             else:
                 mod = p_config_file[:dot]
                 cls = p_config_file[dot+1:]
+            print("DUPA: "+str(p_config_file))
             tmp = __import__(mod, globals(), locals(), [cls], -1)
             reload(tmp)
             l_logic_config = tmp.__dict__[cls]()

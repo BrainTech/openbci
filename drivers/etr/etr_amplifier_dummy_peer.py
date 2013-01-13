@@ -4,8 +4,8 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
 import random, time
 
-from drivers.etr import etr_amplifier
-from obci_configs import settings, variables_pb2
+from obci.drivers.etr import etr_amplifier
+from obci.configs import settings, variables_pb2
 
 class EtrAmplifierDummy(etr_amplifier.EtrAmplifier):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)

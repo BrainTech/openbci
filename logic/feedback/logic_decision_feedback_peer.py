@@ -3,13 +3,10 @@
 import time
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
-from gui.ugm import ugm_helper
-from obci_configs import settings, variables_pb2
-from logic import logic_logging as logger
-LOGGER = logger.get_logger("logic_decision_feedback")
-
+from obci.gui.ugm import ugm_helper
+from obci.configs import settings, variables_pb2
 
 class LogicDecisionFeedback(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -32,7 +29,7 @@ class LogicDecisionFeedback(ConfiguredMultiplexerServer):
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DECISION_MESSAGE:
             dec = int(mxmsg.message)
-            LOGGER.info("Got decision: "+str(dec))
+            self.logger.info("Got decision: "+str(dec))
             assert(dec < self.dec_count)
             assert(dec >= 0)
             dec_time = time.time()
@@ -47,7 +44,7 @@ class LogicDecisionFeedback(ConfiguredMultiplexerServer):
                 ugm_helper.send_config(self.conn, ugm_config, 1)
                 break
             else:
-                LOGGER.debug("t="+str(t)+"FEED: "+str(t/self.feed_time))
+                self.logger.debug("t="+str(t)+"FEED: "+str(t/self.feed_time))
                 ugm_config = self.feed_manager.update_ugm(dec, 1-(t/self.feed_time))
                 ugm_helper.send_config(self.conn, ugm_config, 1)
                 time.sleep(0.05)

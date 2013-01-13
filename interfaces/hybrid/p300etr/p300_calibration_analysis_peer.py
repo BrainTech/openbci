@@ -12,26 +12,22 @@ import numpy as np
 import scipy.stats as st
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 
-from analysis.obci_signal_processing import read_manager
-from analysis.obci_signal_processing.tags import smart_tag_definition as df
-from analysis.obci_signal_processing import smart_tags_manager as sgr
-from obci_configs import settings
-from acquisition import acquisition_helper
-from gui.ugm import ugm_helper
-from interfaces.bci.p300_fda_lines import csp_helper
+from obci.analysis.obci_signal_processing import read_manager
+from obci.analysis.obci_signal_processing.tags import smart_tag_definition as df
+from obci.analysis.obci_signal_processing import smart_tags_manager as sgr
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+from obci.gui.ugm import ugm_helper
+from obci.interfaces.bci.p300_fda_lines import csp_helper
 
-from logic import logic_helper
-from logic import logic_logging as logger
+from obci.logic import logic_helper
 
 import signalParser as sp
 from p300_draw import P300_draw
 from p300_fda import P300_train
-
-
-LOGGER = logger.get_logger("p300_fda", 'info')
 
 class LogicP300Fda(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -78,14 +74,14 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.TAG_SAVER_FINISHED:
             self._tags_finished = True
         else:
-            LOGGER.warning("Unrecognised message received!!!!")
+            self.logger.warning("Unrecognised message received!!!!")
         self.no_response()
 
         if self._all_ready():
             self.run()
 
     def run(self):
-        LOGGER.info("START FDA...")
+        self.logger.info("START FDA...")
 
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
@@ -118,8 +114,8 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             self.montage_channels = []
 
 
-        LOGGER.info("USE CHANNELS: "+str(self.use_channels))
-        LOGGER.info("CHANNELS NAMES: "+str(mgr.get_param('channels_names')))
+        self.logger.info("USE CHANNELS: "+str(self.use_channels))
+        self.logger.info("CHANNELS NAMES: "+str(mgr.get_param('channels_names')))
         
         ## Get data and tags
         data.setMontage(self.montage_channels)
@@ -157,7 +153,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         ## Define buffer
         buffer = 1.1*fs
-        LOGGER.info("Computer buffer len: "+str(buffer))
+        self.logger.info("Computer buffer len: "+str(buffer))
 
         
         ## Make montage matrix
@@ -189,8 +185,8 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             for k in KEY:
                 exec "{0}_tmp = {1}".format(k, d[idxN][k]) in globals(), locals()
 
-            LOGGER.info("Zestaw: {0} / {1}".format(idxN, N))
-            LOGGER.info(str(d[idxN]))
+            self.logger.info("Zestaw: {0} / {1}".format(idxN, N))
+            self.logger.info(str(d[idxN]))
                 
             p300 = P300_train(channels, fs, avrM_tmp, conN_tmp, csp_time_tmp, pPer)
             l[idxN] = p300.valid_kGroups(Signal, target, nontarget, 2)
@@ -200,10 +196,10 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             if debugFlag:
                 p300.saveDist2File("target_%i"%idxN, "nontarget_%i"%idxN)
             
-            LOGGER.info("Test score: " + str(l[idxN]))
+            self.logger.info("Test score: " + str(l[idxN]))
 
 
-        LOGGER.info("Calibration passed")
+        self.logger.info("Calibration passed")
         #################################
         
         if debugFlag:
@@ -217,8 +213,8 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         #################################
         # Finding best    
 
-        LOGGER.info("\n"*5)
-        LOGGER.info( "L: " + str(l) )
+        self.logger.info("\n"*5)
+        self.logger.info( "L: " + str(l) )
         
         P, conN, avrM, csp_time = None, None, None, None
         BEST = -1
@@ -267,7 +263,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
             p300_draw.plotSignal()
             #~ p300_draw.plotSignal_ds()
         
-        LOGGER.info("FDA classifier -- DONE")
+        self.logger.info("FDA classifier -- DONE")
         if not self.run_offline:
             self._run_next_scenario()
 
@@ -276,7 +272,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         if len(path) > 0:
             logic_helper.restart_scenario(self.conn, path, leave_on=['amplifier'])
         else:
-            LOGGER.info("NO NEXT SCENARIO!!! Finish!!!")
+            self.logger.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
     
     def _get_montage_matrix(self, use_channels, montage, montage_channels, channels_names):

@@ -3,12 +3,9 @@
 
 import os
 from multiplexer.multiplexer_constants import peers, types
-from drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
-from drivers import drivers_logging as logger
-from obci_configs import settings
-from launcher.launcher_tools import obci_root
-
-LOGGER = logger.get_logger("AmplifierVirtual", "info")
+from obci.drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
+from obci.configs import settings
+from obci.control.launcher.launcher_tools import obci_root
 
 class AmplifierGtec(BinaryDriverWrapper):
     def __init__(self, addresses):
@@ -26,7 +23,7 @@ class AmplifierGtec(BinaryDriverWrapper):
         device_no = self.config.get_param('device_index')
         args = [exe, "-h" , str(host), '-p', str(port), '-v', v, "-d", simple_driver,
                     '-s', str(rate), '-c', channels, '-i', device_no]
-        print args
+	    self.logger.info("ARGUMENTS: "+ str(args))
         return args
 
 if __name__ == "__main__":

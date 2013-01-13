@@ -6,15 +6,11 @@
 import os.path, sys, time, os
 
 from multiplexer.multiplexer_constants import peers, types
-from obci_control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-
-from logic import state_machine
-from logic import logic_helper
-#from import speller_graphics_manager as sgm
-from obci_configs import settings, variables_pb2
-from logic import logic_logging as logger
-
-LOGGER = logger.get_logger("logic_decision", "info")
+from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.utils import context as ctx
+from obci.logic import state_machine
+from obci.logic import logic_helper
+from obci.configs import settings, variables_pb2
 
 class LogicDecision(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
@@ -26,7 +22,7 @@ class LogicDecision(ConfiguredMultiplexerServer):
     def handle_message(self, mxmsg):
         if (mxmsg.type == types.DECISION_MESSAGE):
             l_decision = int(mxmsg.message)
-            LOGGER.info("Got decision: "+str(l_decision))
+            self.logger.info("Got decision: "+str(l_decision))
             # Fire an action for current state and current decision
             self._run_pre_actions(l_decision)
 
@@ -40,7 +36,7 @@ class LogicDecision(ConfiguredMultiplexerServer):
             self._run_post_actions(l_decision)
             
         else:
-            LOGGER.info("Got unrecognised message type: "+mxmsg.type)
+            self.logger.info("Got unrecognised message type: "+mxmsg.type)
 
         self.no_response()
 
@@ -61,11 +57,11 @@ class LogicDecision(ConfiguredMultiplexerServer):
         try:
             os.system(p_program_string)
         except Exception, e:
-            LOGGER.error("Couldnt run external "+p_program_string+" with error:")
-            LOGGER.error(str(e))
+            self.logger.error("Couldnt run external "+p_program_string+" with error:")
+            self.logger.error(str(e))
 
     def finish(self):
-        LOGGER.info("Finish LOGIC")
+        self.logger.info("Finish LOGIC")
         #sys.exit(1)
 
             

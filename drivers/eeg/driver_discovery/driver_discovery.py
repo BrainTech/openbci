@@ -3,17 +3,19 @@
 
 import os
 import sys
-from drivers import drivers_logging as logger
-from obci_configs import settings
-from launcher.launcher_tools import obci_root
+#from multiplexer.multiplexer_constants import peers, types
+from obci.drivers import drivers_logging as logger
+from obci.configs import settings
+#from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.launcher.launcher_tools import obci_root
 import json
 
 DISCOVERY_MODULE_NAMES = [
                         'amplifier_virtual_discovery',
                         'amplifier_tmsi_bt_discovery',
-                        'amplifier_tmsi_usb_discovery',
-                        'amplifier_gtec_usb_discovery']
-BASE_MODULE = 'drivers.eeg.driver_discovery'
+						'amplifier_gtec_usb_discovery'
+                        'amplifier_tmsi_usb_discovery']
+BASE_MODULE = 'obci.drivers.eeg.driver_discovery'
 
 discovery_modules = []
 
@@ -53,5 +55,4 @@ def find_virtual_amps():
 if __name__ == '__main__':
     drivers = find_drivers()
     import json
-    with open("dump.txt", 'w') as f:
-        f.write(json.dumps(drivers, indent=4))
+    print json.dumps(drivers, indent=4)

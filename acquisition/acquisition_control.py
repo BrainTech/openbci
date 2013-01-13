@@ -1,19 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import time
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import BaseMultiplexerServer
 
-from obci_configs import settings, variables_pb2
+from obci.configs import settings, variables_pb2
 
-from obci_utils import debug_helper
-from acquisition import acquisition_logging as logger
+from obci.utils import debug_helper
+
+from obci.acquisition import acquisition_logging as logger
 LOGGER = logger.get_logger("acquisition_control", 'info')
 
 
-def finish_saving():
-    ctr = AcquisitionControl(settings.MULTIPLEXER_ADDRESSES)
+def finish_saving(mx_addresses=settings.MULTIPLEXER_ADDRESSES):
+    ctr = AcquisitionControl(mx_addresses)
     ctr.send_finish_saving()
     ctr.loop()
     return ctr.result
