@@ -1,4 +1,5 @@
 import os
+from ConfigParser import SafeConfigParser
 
 addrs = os.environ.get('MULTIPLEXER_ADDRESSES', '').split(',')
 addr_tuples = []
@@ -23,7 +24,9 @@ def current_appliance():
     Correct values: dummy, appliance1, appliance2
     app = 'dummy'"""
     try:
-        app = x #read appliance name from global config
+        parser = SafeConfigParser()
+        parser.read('/etc/default/openbci')
+        app = parser.get('diodes', 'appliance')
     except:
         app = 'dummy'
 
