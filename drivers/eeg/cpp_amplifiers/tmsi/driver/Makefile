@@ -1,5 +1,5 @@
 KDIR	:= /lib/modules/$(shell uname -r)/build
-UDEVDIR	:= /etc/udev/rules.d
+UDEVDIR	:= /lib/udev/rules.d
 FWDIR	:= /lib/firmware
 
 obj-m	+= tmsi.o
@@ -17,12 +17,12 @@ install: default
 	fi
 	$(MAKE) -C $(KDIR) SUBDIRS=`pwd` modules_install
 	/sbin/depmod -a
-	cp -f tmsi.rules $(UDEVDIR)
+	cp -f 90-tmsi.rules $(UDEVDIR)
 	cp -f synfi_init_data $(FWDIR)
 	cp -f fusbi.hex $(FWDIR)
 	make clean
 uninstall:
-	rm -f $(FWDIR)/synfi_init_data $(UDEVDIR)/tmsi.rules $(FWDIR)/fusbi.hex
+	rm -f $(FWDIR)/synfi_init_data $(UDEVDIR)/90-tmsi.rules $(FWDIR)/fusbi.hex
 	rmmod tmsi || echo 'doesnt matter'
 	modprobe -r tmsi || echo 'doesnt matter'
 	rm -f `find /lib/ -name 'tmsi*'` || echo 'doesnt matter'
