@@ -421,7 +421,7 @@ class OBCIControlPeer(object):
         try:
             msg = self.mtool.unpack_msg(message)
             if msg.type != "ping" and msg.type != "rq_ok":
-                self.logger.info("got message: {0}".format(msg.type))
+                self.logger.debug("got message: {0}".format(msg.type))
                 if msg.type == "get_tail":
                     print self.msg_handlers
         except ValueError, e:

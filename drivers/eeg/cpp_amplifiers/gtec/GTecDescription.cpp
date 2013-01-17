@@ -18,7 +18,7 @@ GTecDescription::GTecDescription(string name,Amplifier *driver,uint device_index
 	vector<string> gains = split_string(device[1],';');
 	vector<string> offsets = split_string(device[2],';');
 	for (uint i=0;i<GT_USBAMP_NUM_ANALOG_IN;i++)
-	add_channel(new GTecChannel(i,atof(gains[i].c_str()),atof(offsets[i].c_str()),driver));
+		add_channel(new GTecChannel(i,atof(gains[i].c_str()),atof(offsets[i].c_str()),driver));
 	this->get_channels()[GT_USBAMP_NUM_ANALOG_IN-1]->name = "Saw";
 	add_channel(new SawChannel(driver));
 	this->device_index = device_index;

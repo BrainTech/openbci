@@ -34,11 +34,15 @@ int _test_driver(int argc, char ** argv, Amplifier *amp){
 			("saw",po::value<int>(&saw)->default_value(0),"Set expected Saw difference. If set driver will monitor samples lost")
 			("time",po::value<double>(&time_diff)->default_value(0.0),"Monitor time difference. Display error, when difference between expected timestamps is bigger then give value");
 	options.add(amp->get_options());
-	cout << options <<"\n";
+	
 
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc,argv,options),vm);
 	po::notify(vm);
+	if (vm.count("help"))
+		cout << options;
+	else
+		cout << "Use --help for available options" <<"\n";
 	amp->init(vm);
 
 	cout << amp->get_description()->get_json()<<"\n";

@@ -15,7 +15,8 @@ int main(int argc, char**argv)
 	GTecAmplifier driver;
 	AmplifierServer server(&driver);
 	try{
-	run_server(argc,argv,&server);
+		if (!driver.run_simple(argc,argv))
+			run_server(argc,argv,&server);
 	}
 	catch (exception &e){
 		cerr << "Exception: "<<e.what();

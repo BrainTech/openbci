@@ -28,7 +28,7 @@ vector<Channel*> AmplifierDescription::get_channels() {
 AmplifierDescription::~AmplifierDescription() {
 	clear_channels();
 }
-AmplifierDescription::AmplifierDescription(string name,Amplifier *driver):name(name),physical_channels(0),driver(driver) {}
+AmplifierDescription::AmplifierDescription(string name,Amplifier *driver):physical_channels(0),driver(driver),name(name) {}
 vector<uint> AmplifierDescription::get_sampling_rates() {
 	return sampling_rates;
 }
