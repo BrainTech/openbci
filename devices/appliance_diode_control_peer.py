@@ -6,6 +6,7 @@
 from obci.devices import diode_control_peer
 from obci.configs import settings
 from obci.devices import blinker_factory
+import time
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):
     def __init__(self, addresses):
