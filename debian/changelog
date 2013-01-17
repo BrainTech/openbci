@@ -1,3 +1,9 @@
+openbci (1.8.8-1) unstable; urgency=low
+
+  * Fix experiment finder - open again socket that was closed during refactoring.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 17 Jan 2013 21:12:17 +0100
+
 openbci (1.8.7-1) unstable; urgency=low
 
   * Fix missing imports.
