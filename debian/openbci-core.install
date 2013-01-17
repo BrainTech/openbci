@@ -26,3 +26,4 @@ multiplexer-install/	  /usr/share/openbci
 
 debian/openbci.desktop usr/share/applications
 debian/openbci.png usr/share/pixmaps
+debian/conf/openbci etc/default
