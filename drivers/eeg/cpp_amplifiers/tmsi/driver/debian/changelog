@@ -1,4 +1,4 @@
-tmsi (1.8.1-0~) unstable; urgency=low
+tmsi (1.8-1~) unstable; urgency=low
 
   * Fix udev rule to match debian sid fxload version.
 
