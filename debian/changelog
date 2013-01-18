@@ -1,3 +1,9 @@
+openbci (1.8.9-1) unstable; urgency=low
+
+  * Fix pidfile check.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 18 Jan 2013 11:40:36 +0100
+
 openbci (1.8.8-1) unstable; urgency=low
 
   * Fix experiment finder - open again socket that was closed during refactoring.
