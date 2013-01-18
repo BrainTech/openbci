@@ -34,14 +34,19 @@ def checkpidfile(file):
         pidfile = open(os.path.expanduser(lockfile), "r")
         pidfile.seek(0)
         old_pd = pidfile.readline()
-        if os.path.exists("/proc/%s" % old_pd):
-                print "You already have an instance of the program running"
-                print "It is running as process %s," % old_pd
-                return True
+        if os.path.exists("/proc/%s/comm" % old_pd):
+                comm = open("/proc/%s/comm" % old_pd)
+                command = comm.readline()
+                if command == 'python':
+                    print "You already have an instance of the program running"
+                    print "It is running as process %s," % old_pd
+                    return True
+                else:
+                    #print "File is there but the program is not running"
+                    #print "Removing lock file for the: %s as it can be there because of the program last time it was run" % old_pd
+                    os.remove(os.path.expanduser(lockfile))
         else:
-                print "File is there but the program is not running"
-                print "Removing lock file for the: %s as it can be there because of the program last time it was run" % old_pd
-                os.remove(os.path.expanduser(lockfile))
+            os.remove(os.path.expanduser(lockfile))
 
     pidfile = open(os.path.expanduser(lockfile), "w")
     pidfile.write("%s" % os.getpid())
