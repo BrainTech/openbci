@@ -109,16 +109,22 @@ class EEGExperimentFinder(object):
                                                 " -- no amplifier.")
             return None
 
-        for peer in maybe_amps:
-            info, params = self._get_amp_info(req_sock, peer)
-            if not self._is_amplifier(info, params):
-                LOGGER.info("Experiment "+ exp_desc['name'] + \
-                                " -- peer " + str(peer) + "is not an amplifier.")
-                continue
-            else:
-                exp_data = self._create_exp_data(exp_info, info, params['param_values'],
-                                            rep_addr, pub_addr, tcp_addr)
-                amp_options.append(exp_data)
+        req_sock = self.ctx.socket(zmq.REQ)
+        try:
+            req_sock.connect(rep_addr)
+            for peer in maybe_amps:
+                info, params = self._get_amp_info(req_sock, peer)
+                if not self._is_amplifier(info, params):
+                    LOGGER.info("Experiment "+ exp_desc['name'] + \
+                                    " -- peer " + str(peer) + "is not an amplifier.")
+                    continue
+                else:
+                    exp_data = self._create_exp_data(exp_info, info, params['param_values'],
+                                                     rep_addr, pub_addr, tcp_addr)
+                    amp_options.append(exp_data)
+        finally:
+            req_sock.close()
+
         return amp_options
 
     def _get_amp_info(self, exp_sock, peer_id):
