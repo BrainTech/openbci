@@ -37,7 +37,7 @@ def checkpidfile(file):
         if os.path.exists("/proc/%s/comm" % old_pd):
                 comm = open("/proc/%s/comm" % old_pd)
                 command = comm.readline()
-                if command == 'python':
+                if command == 'python\n':
                     print "You already have an instance of the program running"
                     print "It is running as process %s," % old_pd
                     return True
