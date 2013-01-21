@@ -32,7 +32,7 @@ else
 To install OpenBCI master branch and compile multiplexer and drivers type:
 obci_local_copy directory_name master'
 echo 'If you only want to edit python part of OpenBCI install drivers from deb package,
-type apt-get install openbci-amplifiers or check http://deb.braintech.pl/ for instructions'
+type apt-get install openbci-amplifiers or check http://deb.braintech.pl/ for instructions.'
 	 exit 1
          fi
    elif [ $type == "master" ]
@@ -59,8 +59,14 @@ echo 'Generating scripts...'
 mkdir -p ~/bin
 rm -rf ~/bin/obci
 rm -rf ~/bin/obci_gui
+rm -rf ~/bin/obci_local_copy
+rm -rf ~/bin/obci_local_remove
+
 ln -s $pwd/$1/control/launcher/obci ~/bin/obci
 ln -s $pwd/$1/control/gui/obci_gui ~/bin/obci_gui
+ln -s $pwd/$1/scripts/obci_local_copy ~/bin/obci_local_copy
+ln -s $pwd/$1/scripts/obci_local_remove ~/bin/obci_local_remove
+
 echo ''
 echo 'Operation complete, remember to restart your X session!'
 echo ''
