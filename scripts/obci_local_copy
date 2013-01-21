@@ -37,8 +37,8 @@ obci_local_copy directory_name git'
 	echo 'Cloning openBCI source form git repository...'
 	 git clone git://git.braintech.pl/openbci.git $pwd/$1
 	 cd $pwd/$1/scripts
-	 echo 'Installing local copy of mx and kernel module...'
-	 #./install_mx_and_drivers.sh
+	 echo 'Installing local copy of mx...'
+	 ./install_mx.sh
 	 mkdir -p ~/bin
 	 rm -rf ~/bin/obci
 	 rm -rf ~/bin/obci_gui

@@ -115,6 +115,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.setupActions()
         self.update_user_interface(None)
         self.showMaximized()
+        if os.environ.get('OBCI_INSTALL_DIR') != None:
+            PyQt4.QtGui.QMessageBox.information(self, "Non standard OpenBCI directory",
+                                                "OpenBCI is launched from local directory: "+os.environ.get('OBCI_INSTALL_DIR')+', to start default package version launch "obci_local_remove" in terminal.')
+
+
 
     def closeEvent(self, e):
         progress = QProgressDialog(self,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
