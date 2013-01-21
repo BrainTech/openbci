@@ -3,12 +3,12 @@ type=$2
 echo ""
 if [ -z "$1" ]
 then
-        echo "Usage: obci_local_copy directory_name [git | package]"
+        echo "Usage: obci_local_copy directory_name [(local) | master]"
 	exit 1
 fi
 if [ -z "$2" ]
 then
-       type="package"
+       type="local"
 fi
 
 
@@ -20,45 +20,50 @@ It's OK if you already have OpenBCI source in that directory.
 If you don't, delete it first and run command again!"
 
 else
-    if [ $type == "package" ]
+    if [ $type == "local" ]
     then
-         if [ -d /usr/share/openbci ]
+         if dpkg -s "openbci-amplifiers" 2>/dev/null 1>/dev/null
          then
-	    echo 'Copying OpenBCI source to '$pwd/$1
-            cp -R /usr/share/openbci/ $pwd/$1/
+	    echo 'Cloning branch local from git repository to '$pwd/$1
+	    echo 'This branch is prepared to work with package versions of multiplexer and drivers that are installed.'
+            git clone git://git.braintech.pl/openbci.git $pwd/$1 -b local
          else
-	 echo 'It appears that you dont have openbci package installed.
-To install OpenBCI from git source type:
-obci_local_copy directory_name git'
+	 echo 'It appears that you dont have multiplexer and drivers installed.
+To install OpenBCI master branch and compile multiplexer and drivers type:
+obci_local_copy directory_name master'
+echo 'If you only want to edit python part of OpenBCI install drivers from deb package,
+type apt-get install openbci-amplifiers or check http://deb.braintech.pl/ for instructions'
 	 exit 1
          fi
-   elif [ $type == "git" ]
+   elif [ $type == "master" ]
    then
 	echo 'Cloning openBCI source form git repository...'
-	 git clone git://git.braintech.pl/openbci.git $pwd/$1
-	 cd $pwd/$1/scripts
-	 echo 'Installing local copy of mx...'
-	 ./install_mx.sh
-	 mkdir -p ~/bin
-	 rm -rf ~/bin/obci
-	 rm -rf ~/bin/obci_gui
-	 echo 'Generating scripts...'
-	 ln -s $pwd/$1/control/launcher/obci ~/bin/obci
-	 ln -s $pwd/$1/control/gui/obci_gui ~/bin/obci_gui
+	git clone git://git.braintech.pl/openbci.git $pwd/$1
+	cd $pwd/$1/scripts
+	echo 'Installing local copy of multiplexer and drivers...'
+	./install_mx_and_drivers.sh
    else
-      echo "Usage: obci_local_copy directory_name [git | package]"
-      exit 1
+	echo "Usage: obci_local_copy directory_name [git | package]"
+	exit 1
   fi
 fi
 
 rm -rf  ~/.local/lib/python2.7/site-packages/obci
 sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
-echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.bashrc
+sed -i '/OBCI_INSTALL_DIR/d' ~/.profile
+echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.profile
 mkdir -p ~/.local/lib/python2.7/site-packages/
 ln -s $pwd/$1 ~/.local/lib/python2.7/site-packages/obci
+
+echo 'Generating scripts...'
+mkdir -p ~/bin
+rm -rf ~/bin/obci
+rm -rf ~/bin/obci_gui
+ln -s $pwd/$1/control/launcher/obci ~/bin/obci
+ln -s $pwd/$1/control/gui/obci_gui ~/bin/obci_gui
 echo ''
 echo 'Operation complete, remember to restart your X session!'
 echo ''
-echo 'You can reverse system changes by lounchng obci_local_remove script.
-It will not remove '$1' directory, you have to remove it yourself if you want.'
+echo 'You can reverse system changes by launchng obci_local_remove script.
+It wont remove '$1' directory, you have to remove it yourself if you want.'
 echo ''
