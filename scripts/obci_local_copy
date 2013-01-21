@@ -1,0 +1,64 @@
+#!/bin/bash
+type=$2
+echo ""
+if [ -z "$1" ]
+then
+        echo "Usage: obci_local_copy directory_name [git | package]"
+	exit 1
+fi
+if [ -z "$2" ]
+then
+       type="package"
+fi
+
+
+pwd=`pwd`
+if [ -d $pwd/$1 ]
+then
+       echo "Directory "$1" exists, not copying OpenBCI source!
+It's OK if you already have OpenBCI source in that directory.
+If you don't, delete it first and run command again!"
+
+else
+    if [ $type == "package" ]
+    then
+         if [ -d /usr/share/openbci ]
+         then
+	    echo 'Copying OpenBCI source to '$pwd/$1
+            cp -R /usr/share/openbci/ $pwd/$1/
+         else
+	 echo 'It appears that you dont have openbci package installed.
+To install OpenBCI from git source type:
+obci_local_copy directory_name git'
+	 exit 1
+         fi
+   elif [ $type == "git" ]
+   then
+	echo 'Cloning openBCI source form git repository...'
+	 git clone git://git.braintech.pl/openbci.git $pwd/$1
+	 cd $pwd/$1/scripts
+	 echo 'Installing local copy of mx and kernel module...'
+	 #./install_mx_and_drivers.sh
+	 mkdir -p ~/bin
+	 rm -rf ~/bin/obci
+	 rm -rf ~/bin/obci_gui
+	 echo 'Generating scripts...'
+	 ln -s $pwd/$1/control/launcher/obci ~/bin/obci
+	 ln -s $pwd/$1/control/gui/obci_gui ~/bin/obci_gui
+   else
+      echo "Usage: obci_local_copy directory_name [git | package]"
+      exit 1
+  fi
+fi
+
+rm -rf  ~/.local/lib/python2.7/site-packages/obci
+sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
+echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.bashrc
+mkdir -p ~/.local/lib/python2.7/site-packages/
+ln -s $pwd/$1 ~/.local/lib/python2.7/site-packages/obci
+echo ''
+echo 'Operation complete, remember to restart your X session!'
+echo ''
+echo 'You can reverse system changes by lounchng obci_local_remove script.
+It will not remove '$1' directory, you have to remove it yourself if you want.'
+echo ''
