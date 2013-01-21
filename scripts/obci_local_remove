@@ -4,6 +4,7 @@ rm -rf  ~/.local/lib/python2.7/site-packages/obci
 rm -rf ~/bin/obci
 rm -rf ~/bin/obci_gui
 sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
+sed -i '/OBCI_INSTALL_DIR/d' ~/.profile
 echo 'You can now remove local openbci directory if you want.'
 echo 'Operation complete, remember to restart your X session!'
 echo ''
