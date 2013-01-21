@@ -27,3 +27,5 @@ multiplexer-install/	  /usr/share/openbci
 debian/openbci.desktop usr/share/applications
 debian/openbci.png usr/share/pixmaps
 debian/conf/openbci etc/default
+scripts/obci_local_copy /usr/bin
+scripts/obci_local_remove /usr/bin

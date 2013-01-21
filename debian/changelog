@@ -1,3 +1,9 @@
+openbci (1.8.9-2) unstable; urgency=low
+
+  * New install scripts and tools.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 21 Jan 2013 23:11:12 +0100
+
 openbci (1.8.9-1) unstable; urgency=low
 
   * Fix pidfile check.
