@@ -52,6 +52,7 @@ rm -rf  ~/.local/lib/python2.7/site-packages/obci
 sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
 sed -i '/OBCI_INSTALL_DIR/d' ~/.profile
 echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.profile
+echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.bashrc
 mkdir -p ~/.local/lib/python2.7/site-packages/
 ln -s $pwd/$1 ~/.local/lib/python2.7/site-packages/obci
 
