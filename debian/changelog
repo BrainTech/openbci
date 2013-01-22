@@ -1,3 +1,9 @@
+openbci (1.8.9-3) unstable; urgency=low
+
+  * Install scripts improvements.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 22 Jan 2013 01:02:21 +0100
+
 openbci (1.8.9-2) unstable; urgency=low
 
   * New install scripts and tools.
