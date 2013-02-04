@@ -1,3 +1,9 @@
+openbci (1.8.9-4) unstable; urgency=low
+
+  * Fix obci_local scripts.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 04 Feb 2013 11:05:56 +0100
+
 openbci (1.8.9-3) unstable; urgency=low
 
   * Install scripts improvements.
