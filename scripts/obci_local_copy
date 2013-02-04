@@ -71,7 +71,7 @@ rm -rf ~/bin/obci_gui
 rm -rf ~/bin/obci_local_copy
 rm -rf ~/bin/obci_local_remove
 
-if [$type == "master" ]
+if [ $type == "master" ]
 then
 ln -s $pwd/$1/multiplexer-install/lib/python2.7/site-packages/multiplexer ~/.local/lib/python2.7/site-packages/multiplexer
 ln -s $pwd/$1/multiplexer-install/lib/python2.7/site-packages/azouk ~/.local/lib/python2.7/site-packages/azouk
