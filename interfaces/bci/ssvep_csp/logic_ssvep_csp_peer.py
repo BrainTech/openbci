@@ -70,6 +70,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def run(self):
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
+        dec_count = int(self.config.get_param("dec_count"))
         context = ctx.get_new_context()
         context['logger'] = self.logger
         cfg = logic_ssvep_csp_analysis.run(
@@ -78,6 +79,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.ignore_channels,
             self.montage,
             self.montage_channels,
+            dec_count,
             self.mode in ['offline', 'manual'],
             context)
 

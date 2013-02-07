@@ -10,6 +10,15 @@ class _SingleUgmManager(object):
         start_id = int(configs.get_param('blink_ugm_id_start'))
         count = int(configs.get_param('blink_ugm_id_count'))
         dec_count = int(configs.get_param('blink_id_count'))
+
+        ugm_text_ids_ = configs.get_param('ugm_text_ids').split(';')
+        ugm_text_ids = [int(ids) for ids in ugm_text_ids_]
+        blink_field_ids = configs.get_param('blink_field_ids').split(';')
+        blink_field_ids = [int(ids) for ids in blink_field_ids]
+        active_field_text_ids = [ugm_text_ids[ids] for ids in blink_field_ids]
+
+        assert(start_id in active_field_text_ids) 
+
         assert(start_id >= 0)
         assert(count >= 0)
         assert(count == dec_count)
@@ -17,8 +26,8 @@ class _SingleUgmManager(object):
         self.blink_ugm = []
         self.unblink_ugm = []
 
-        for dec in range(count):
-            cfg = mgr.get_config_for(start_id+dec)
+        for dec in range(dec_count):
+            cfg = mgr.get_config_for(active_field_text_ids[dec])
             new_blink_cfg = {'id':cfg['id'],
                              configs.get_param('blink_ugm_key'):configs.get_param('blink_ugm_value')
                              }
@@ -66,7 +75,7 @@ class _ClassicUgmManager(object):
         self.blink_ugm = []
         self.unblink_ugm = []
 
-        for dec in range(dec_count):
+        for dec in rang(dec_count):
             if dec < cols:
                 blink_cfgs = []
                 unblink_cfgs = []
