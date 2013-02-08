@@ -2,11 +2,29 @@
 # -*- coding: utf-8 -*-
 import os
 
+def which_binary(program):
+    binary = which(program)
+    if binary:
+        return binary
+    binary = os.path.split(program)[-1]
+    if os.environ.get('OBCI_INSTALL_DIR'):
+        mx = os.path.join(os.getenv('OBCI_INSTALL_DIR'), 'multiplexer-install', 'bin', 'mxcontrol')
+        amplifiers = os.path.join(os.getenv('OBCI_INSTALL_DIR'), 'drivers', 'eeg', 'cpp_amplifiers')
+        if binary == 'mxcontrol':
+            if is_exe(mx):
+                return mx
+        elif binary == 'tmsi_amplifier' or binary == 'file_amplifier' or binary == 'dummy_amplifier' or binary == 'gtec_amplifier':
+            path = os.path.join(amplifiers, binary)
+            if is_exe(path):
+                return path
+    return which(binary)
+
+def is_exe(fpath):
+    return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
 
 def which(program):
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
+    
     def ext_candidates(fpath):
         yield fpath
         for ext in os.environ.get("PATHEXT", "").split(os.pathsep):
