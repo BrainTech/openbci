@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.4-3) unstable; urgency=low
+
+  * Added links to amplifiers binary in openbci directory.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 08 Feb 2013 16:45:57 +0100
+
 openbci-amplifiers (1.8.4-2) unstable; urgency=low
 
   * Proper build for different releases.
