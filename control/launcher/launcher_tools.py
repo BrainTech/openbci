@@ -87,7 +87,11 @@ def obci_pythonpath():
     root = obci_root()
     lib_python_dir = ''.join(['python', str(sys.version_info[0]), '.',
                                             str(sys.version_info[1])])
-    mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
+    try:
+        import multiplexer.multiplexer_constants
+        mx_python_path = ""
+    except ImportError:
+        mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
                                     lib_python_dir, 'site-packages')
     return mx_python_path#os.pathsep.join([root, mx_python_path])
 
