@@ -14,7 +14,7 @@ _SCENARIO = 'scenarios/amplifier/virtual_amp_signal.ini'
 
 def get_description_from_driver():
     conf = PeerConfig('amplifier')
-    conf.add_local_param('driver_executable', '/usr/bin/dummy_amplifier')
+    conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/dummy_amplifier')
     conf.add_local_param('samples_per_packet', '4')
 
     driv = DriverComm(conf, catch_signals=False)

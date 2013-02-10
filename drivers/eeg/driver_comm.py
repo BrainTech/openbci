@@ -244,7 +244,7 @@ if __name__ == "__main__":
     import json
 
     conf = PeerConfig('amplifier')
-    conf.add_local_param('driver_executable', '/usr/bin/tmsi_amplifier')
+    conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/tmsi_amplifier')
     conf.add_local_param('samples_per_packet', '4')
     conf.add_local_param('bluetooth_device', '')
     conf.add_local_param('usb_device', '/dev/tmsi0')
