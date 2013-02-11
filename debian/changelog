@@ -1,3 +1,9 @@
+openbci (1.8.10-2) UNRELEASED; urgency=low
+
+  * Helper scripts update.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 17:03:03 +0100
+
 openbci (1.8.10-1) unstable; urgency=low
 
   * Change paths to amplifiers and mxcontrol in scenarios.
