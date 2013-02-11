@@ -22,23 +22,35 @@ If you don't, delete it first and run command again!"
 else
     if [ $type == "local" ]
     then
-         if dpkg -s "openbci-amplifiers" 2>/dev/null 1>/dev/null
+	echo 'Cloning branch master from git repository to '$pwd/$1
+	git clone git://git.braintech.pl/openbci.git $pwd/$1
+         if dpkg -s "openbci-multiplexer" 2>/dev/null 1>/dev/null
          then
-	    echo 'Cloning branch local from git repository to '$pwd/$1
-	    echo 'This branch is prepared to work with package versions of multiplexer and drivers that are installed.'
-            git clone git://git.braintech.pl/openbci.git $pwd/$1 -b local
+	     mkdir -p $pwd/$1/multiplexer-install/bin/
+	     ln -s /usr/bin/mxcontrol $pwd/$1/multiplexer-install/bin/mxcontrol
+	 else
+	     sudo apt-get update && sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost-all-dev libbluetooth-dev fxload xsel python-dev python-serial python-pygame python-scipy python-numpy python-sip python-qt4 python-bluetooth gnulib python-xlib screen libzmq-dev python-zmq unzip python-pyaudio
+	     
+	     cd $pwd/$1/scripts
+	     ./install_mx.sh
+	 fi
+
+	 if dpkg -s "openbci-amplifiers" 2>/dev/null 1>/dev/null
+	 then
+	     ln -s /usr/bin/tmsi_amplifier $pwd/$1/drivers/eeg/cpp_amplifiers/tmsi_amplifier
+	     ln -s /usr/bin/dummy_amplifier $pwd/$1/drivers/eeg/cpp_amplifiers/dummy_amplifier
+	     ln -s /usr/bin/file_amplifier $pwd/$1/drivers/eeg/cpp_amplifiers/file_amplifier
          else
-	 echo 'It appears that you dont have multiplexer and drivers installed.
-To install OpenBCI master branch and compile multiplexer and drivers type:
-obci_local_copy directory_name master'
-echo 'If you only want to edit python part of OpenBCI install drivers from deb package,
-type apt-get install openbci-amplifiers or check http://deb.braintech.pl/ for instructions.'
-	 exit 1
+	     echo 'Cloning azouk-libraries form git repository'
+	     git clone git://git.braintech.pl/azouk-libraries.git
+	     sudo apt-get update && sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost-all-dev libbluetooth-dev fxload xsel python-dev python-serial python-pygame python-scipy python-numpy python-sip python-qt4 python-bluetooth gnulib python-xlib screen libzmq-dev python-zmq unzip python-pyaudio
+	     cd $pwd/$1/scripts
+	     ./install_drivers.sh
          fi
-   elif [ $type == "master" ]
+
+   elif [ $type == "compile" ]
    then
 	sudo apt-get update && sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost-all-dev libbluetooth-dev fxload xsel python-dev python-serial python-pygame python-scipy python-numpy python-sip python-qt4 python-bluetooth gnulib python-xlib screen libzmq-dev python-zmq unzip python-pyaudio
-
 
 	echo 'Cloning openBCI source form git repository...'
 	git clone git://git.braintech.pl/openbci.git $pwd/$1
@@ -46,9 +58,11 @@ type apt-get install openbci-amplifiers or check http://deb.braintech.pl/ for in
 	git clone git://git.braintech.pl/azouk-libraries.git
 	cd $pwd/$1/scripts
 	echo 'Installing local copy of multiplexer and drivers...'
-	./install_mx_and_drivers.sh
+	./install_mx.sh
+	./install_drivers.sh
+	#./install_mx_and_drivers.sh
    else
-	echo "Usage: obci_local_copy directory_name [git | package]"
+	echo "Usage: obci_local_copy directory_name [compile]"
 	exit 1
   fi
 fi
@@ -56,7 +70,7 @@ fi
 rm -rf ~/.local/lib/python2.7/site-packages/multiplexer
 rm -rf ~/.local/lib/python2.7/site-packages/azouk
 rm -rf ~/.local/lib/python2.7/site-packages/azlib
-rm -rf  ~/.local/lib/python2.7/site-packages/obci
+rm -rf ~/.local/lib/python2.7/site-packages/obci
 sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
 sed -i '/OBCI_INSTALL_DIR/d' ~/.profile
 echo 'export OBCI_INSTALL_DIR='$pwd/$1 >> ~/.profile
@@ -71,7 +85,7 @@ rm -rf ~/bin/obci_gui
 rm -rf ~/bin/obci_local_copy
 rm -rf ~/bin/obci_local_remove
 
-if [ $type == "master" ]
+if [ $type == "compile" ]
 then
 ln -s $pwd/$1/multiplexer-install/lib/python2.7/site-packages/multiplexer ~/.local/lib/python2.7/site-packages/multiplexer
 ln -s $pwd/$1/multiplexer-install/lib/python2.7/site-packages/azouk ~/.local/lib/python2.7/site-packages/azouk
