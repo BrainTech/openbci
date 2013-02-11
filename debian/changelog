@@ -1,3 +1,9 @@
+openbci (1.8.10-1) unstable; urgency=low
+
+  * Change paths to amplifiers and mxcontrol in scenarios.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 09:05:15 +0100
+
 openbci (1.8.9-4) unstable; urgency=low
 
   * Fix obci_local scripts.
