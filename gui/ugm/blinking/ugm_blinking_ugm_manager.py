@@ -11,13 +11,9 @@ class _SingleUgmManager(object):
         count = int(configs.get_param('blink_ugm_id_count'))
         dec_count = int(configs.get_param('blink_id_count'))
 
-        ugm_text_ids_ = configs.get_param('ugm_text_ids').split(';')
-        ugm_text_ids = [int(ids) for ids in ugm_text_ids_]
-        blink_field_ids = configs.get_param('blink_field_ids').split(';')
-        blink_field_ids = [int(ids) for ids in blink_field_ids]
-        active_field_text_ids = [ugm_text_ids[ids] for ids in blink_field_ids]
-
-        assert(start_id in active_field_text_ids) 
+        ugm_text_ids = configs.get_param('ugm_text_ids').split(';')
+        ugm_text_ids = [int(ids) for ids in ugm_text_ids]
+        assert(start_id in ugm_text_ids) 
 
         assert(start_id >= 0)
         assert(count >= 0)
@@ -27,7 +23,7 @@ class _SingleUgmManager(object):
         self.unblink_ugm = []
 
         for dec in range(dec_count):
-            cfg = mgr.get_config_for(active_field_text_ids[dec])
+            cfg = mgr.get_config_for(ugm_text_ids[dec])
             new_blink_cfg = {'id':cfg['id'],
                              configs.get_param('blink_ugm_key'):configs.get_param('blink_ugm_value')
                              }
