@@ -15,7 +15,7 @@ from obci.logic.engines.robot_dron_engine import RobotEngine
 class LogicRobot(LogicSpeller, RobotEngine):
     """A class for creating a manifest file with metadata."""
     def __init__(self, addresses):
-        LogicSpeller.__init__(self, addresses=addresses, context)
+        LogicSpeller.__init__(self, addresses=addresses)
         context = ctx.get_new_context()
         context['logger'] = self.logger
         RobotEngine.__init__(self, context)
