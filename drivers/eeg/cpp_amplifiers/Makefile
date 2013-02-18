@@ -44,7 +44,7 @@ $(TMSI): force_look
 $(FILE): force_look
 	@cd file;$(MAKE_BIN)
 	$(LN)
-	
+
 $(GTEC):: force_look
 	cd gtec;$(MAKE_BIN)
 	$(LN)
@@ -55,19 +55,18 @@ $(GTEC)::
 $(RECEIVER): force_look
 	@cd receiver;$(MAKE_BIN)
 	$(LN)
-	
+
 $(INSTALL) : force_look
 
 install_gtec:
 	@cd gtec;make $@
-    
+
 install_tmsi:
 	@cd tmsi;make $@
-    
-	
+
 force_look:
 	@true
 
 clean:
 	rm -rf build
-	rm $(TARGETS) $(TESTS) $(RECEIVER)
+	rm -f $(TARGETS) $(TESTS) $(RECEIVER)
