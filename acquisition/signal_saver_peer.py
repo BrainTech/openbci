@@ -131,13 +131,19 @@ class SignalSaver(ConfiguredMultiplexerServer):
         l_f_dir = self.config.get_param("save_file_path")
         self._number_of_samples = 0
         l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))
-        if not os.access(l_f_dir, os.F_OK):
-             os.mkdir(l_f_dir)
+    
+        if (os.access(os.path.join(l_f_dir,l_f_name), os.F_OK) and int(self.config.get_param("name_from_file"))):
+            l_f_name = open(os.path.normpath(os.path.join( l_f_dir, l_f_name)),'r').read()
+            l_f_name = l_f_name + self.config.get_param("addition_to_name")
+        else:
+            if not os.access(l_f_dir, os.F_OK):
+                os.mkdir(l_f_dir)
+                
         self._file_path = os.path.normpath(os.path.join(
-               l_f_dir, l_f_name + DATA_FILE_EXTENSION))
-
-        self._data_proxy = data_write_proxy.get_proxy(
-            self._file_path, append_ts, use_tmp_file, use_own_buffer, signal_type)
+                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
+    
+        self._data_proxy = data_write_proxy.get_proxy(self._file_path,append_ts, 
+                                                      use_tmp_file, use_own_buffer, signal_type)
 
         self._mx_signal_type = types.__dict__[self.config.get_param("mx_signal_type")]
 

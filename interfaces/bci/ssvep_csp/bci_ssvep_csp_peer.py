@@ -35,7 +35,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             {'decision':str(dec)})
         self.conn.send_message(message = str(self.active_field_ids[dec]), type = types.DECISION_MESSAGE, flush=True)
         #appliance_helper.send_stop(self.conn)#, self.str_freqs)
-	send_freqs(self.conn, self.active_field)
+	appliance_helper.send_freqs(self.conn, self.str_freqs)
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCISsvepCsp, self).__init__(addresses=addresses,
@@ -49,12 +49,14 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         dec_count = int(self.config.get_param('dec_count'))
         active_field_ids = self.config.get_param('active_field_ids')
 	str_freqs = [0]*field_count
-        self.active_field = [0]*field_count
         self.active_field_ids = [int(f) for f in active_field_ids.split(';')]
 	for index1, index2 in enumerate(self.active_field_ids):
             str_freqs[index2] = freqs[index1]
-            self.active_field[index2] = -1
         str_freqs = [str(f) for f in str_freqs]
+
+	self.str_freqs = ''
+	for freq in str_freqs:
+            self.str_freqs += str(freq)
         
         if len(freqs) != dec_count:
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from obci.analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))

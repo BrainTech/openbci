@@ -22,6 +22,10 @@ class TagSaver(ConfiguredMultiplexerServer):
         # Get file path data
         l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
+        l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))
+        if (os.access(os.path.join(l_f_dir,l_f_name), os.F_OK) and int(self.config.get_param("name_from_file"))):
+            l_f_name = open(os.path.normpath(os.path.join( l_f_dir, l_f_name)),'r').read()
+            l_f_name = l_f_name + self.config.get_param("addition_to_name")
         self._file_path = os.path.expanduser(os.path.normpath(os.path.join(
                l_f_dir, l_f_name + TAG_FILE_EXTENSION)))
 
