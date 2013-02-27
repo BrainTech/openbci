@@ -31,7 +31,6 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, dec_c
 	exp_info = mgr.get_tags('experimentInfo')[0]['desc']
         to_signal = float(exp_info['target_time'])
         freqs = [int(i) for i in exp_info['all_freqs'].split(';')]
-	#dec_count = int(exp_info['fields_count'])
 
 
         data = sp.signalParser(in_file+'.obci')

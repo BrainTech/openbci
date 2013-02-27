@@ -23,11 +23,6 @@ class InfoSaver(ConfiguredMultiplexerServer):
         #local params
         l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
-        l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))
-        if (os.path.join(l_f_dir,l_f_name), os.F_OK) and int(self.config.get_param("name_from_file"))):
-            l_f_name = open(os.path.normpath(os.path.join( l_f_dir, l_f_name)),'r').read()
-            l_f_name = l_f_name + self.config.get_param("addition_to_name")
-
         self._file_path = os.path.expanduser(os.path.normpath(os.path.join(
                l_f_dir, l_f_name + INFO_FILE_EXTENSION)))
         self._info_proxy = info_file_proxy.InfoFileWriteProxy(self._file_path)
