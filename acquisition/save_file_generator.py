@@ -19,7 +19,7 @@ class SaveFileGenerator(ConfiguredMultiplexerServer):
         self.file_name_addition = self.config.get_param('additon_to_name')
         self._init_save_file_name()
         self.ready()
-    
+            
     def _init_save_file_name(self):
 
         save_file_name = open(get_file_path(self.file_with_name_path, self.file_with_name),'r').read()
