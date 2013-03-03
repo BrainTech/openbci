@@ -164,6 +164,8 @@ class UgmStimulusFactory(object):
         l_stim = p_stim_config['stimulus_type']
         if l_stim == 'feedback':
             return UgmFeedbackStimulus(p_parent, p_stim_config)
+        if l_stim == 'maze':
+            return UgmMazeStimulus(p_parent, p_stim_config)
         elif l_stim == 'rectangle':
             return UgmRectStimulus(p_parent, p_stim_config)
         elif l_stim == 'image':
@@ -423,3 +425,59 @@ class UgmRectStimulus(UgmStimulus, UgmRectConfig):
             
 
         
+class UgmMazeStimulus(UgmStimulus, UgmRectConfig):
+    """Feedback stimulus definition. See ugm_config_manager to see 
+    configuration options.
+    Attributes:
+    (From UgmRectconfig):
+    - height
+    - width
+    - position_x
+    - position_y
+    - color
+    - feedback_level - float in [0;1] representing percentage of 'hit'
+    """
+    def _set_config(self, p_parent, p_config_dict):
+        """Set positioning and presentation configuration 
+        from p_config_dict."""
+        self._set_rect_config(p_parent, p_config_dict)
+
+        self._user_x = int(self.width*p_config_dict['maze_user_x'])#0-1
+        self._user_y = int(self.height*p_config_dict['maze_user_y'])#0-1
+        self._user_direction = p_config_dict['maze_user_direction'] #NESW
+        self._user_color = p_config_dict['maze_user_color'] #NESW
+
+    def paintEvent(self, event):
+        """Draw rectangle from attributes set in self _set_config.
+        Draw BAR regargind self._feed_px."""
+
+        #start of painting
+        paint = QtGui.QPainter()
+        paint.begin(self)
+
+        #paint berlin-like maze ...............................
+
+        #background
+        bg_color = QtGui.QColor(0, 0, 0)
+        bg_color.setNamedColor(self.color)
+        paint.setBrush(bg_color)
+        paint.drawRect(0, 0, self.width, self.height)
+        #paint.end()
+        #paint = QtGui.QPainter()
+        #paint.begin(self)
+
+        line_color = QtGui.QColor(0, 0, 0)
+        line_color.setNamedColor('#0000FF')
+        paint.setBrush(line_color)
+        paint.drawLine(0,0, self.width/3.0, self.height/4.0)
+        #... TODO
+
+        #paint user............................................
+        user_color = QtGui.QColor(0, 0, 0)
+        user_color.setNamedColor(self._user_color)
+        paint.setBrush(user_color)
+        paint.drawRect(self._user_x, self._user_y, 50, 50)
+        #... TODO
+
+        #end of painting
+        paint.end()
