@@ -32,12 +32,8 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
         ugm_helper.send_stop_blinking(self.conn)
-        if dec in self.blink_field_ids:
-            self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
-        else:
-            self.logger.warning("can't send dec message, because isn't in blink_field_ids")
-            pass
-
+        self.conn.send_message(message = str(self.blink_field_ids[dec]), type = types.DECISION_MESSAGE, flush=True)
+       
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCIP300Fda, self).__init__(addresses=addresses,
