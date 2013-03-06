@@ -19,12 +19,14 @@ class LogicGiveID(ConfiguredClient):
         self.file_id_path = self.config.get_param("file_id_path")
         self.file_id_name = self.config.get_param("file_id_name")
         self.text_id = int(self.config.get_param("ugm_text_id"))
+        self.s_id = self.config.get_param("scenarios_id")
         self._init_id()
         self._init_id_file()
+        time.sleep(3)
         self.ready()
         
     def _init_id(self):
-        self.ID = ("").join(str(part) for part in time.localtime())
+        self.ID = self.s_id + '_'+ ("").join(str(part) for part in time.localtime()[1:5])
     def _init_id_file(self):
         file_dir = os.path.expanduser(os.path.normpath(self.file_id_path))
         id_file = open(os.path.normpath(os.path.join(file_dir, 
