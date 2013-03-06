@@ -11,7 +11,7 @@ from google.protobuf import descriptor_pb2
 DESCRIPTOR = descriptor.FileDescriptor(
   name='cfg_messages.proto',
   package='cfg_messages',
-  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"L\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\"U\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x01(\t\x12#\n\x06params\x18\x03 \x03(\x0b\x32\x13.cfg_messages.Param\"\x1f\n\x0cPeerIdentity\x12\x0f\n\x07peer_id\x18\x01 \x02(\t\".\n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x0c\n\x04\x64\x65ps\x18\x02 \x03(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08\"@\n\x0b\x43onfigError\x12\x0f\n\x07rq_type\x18\x01 \x01(\t\x12\x11\n\terror_str\x18\x02 \x01(\t\x12\r\n\x05\x65rrno\x18\x03 \x01(\t\"9\n\x0fLauncherCommand\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x16\n\x0eserialized_msg\x18\x02 \x02(\t')
+  serialized_pb='\n\x12\x63\x66g_messages.proto\x12\x0c\x63\x66g_messages\"$\n\x05Param\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05value\x18\x02 \x02(\t\"u\n\x13\x43onfigParamsRequest\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x13\n\x0bparam_names\x18\x03 \x03(\t\x12\'\n\next_params\x18\x04 \x03(\x0b\x32\x13.cfg_messages.Param\"~\n\x0c\x43onfigParams\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x01(\t\x12#\n\x06params\x18\x03 \x03(\x0b\x32\x13.cfg_messages.Param\x12\'\n\next_params\x18\x04 \x03(\x0b\x32\x13.cfg_messages.Param\"\x1f\n\x0cPeerIdentity\x12\x0f\n\x07peer_id\x18\x01 \x02(\t\".\n\x0ePeerReadyQuery\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x0c\n\x04\x64\x65ps\x18\x02 \x03(\t\"8\n\x0fPeerReadyStatus\x12\x10\n\x08receiver\x18\x01 \x02(\t\x12\x13\n\x0bpeers_ready\x18\x02 \x02(\x08\"@\n\x0b\x43onfigError\x12\x0f\n\x07rq_type\x18\x01 \x01(\t\x12\x11\n\terror_str\x18\x02 \x01(\t\x12\r\n\x05\x65rrno\x18\x03 \x01(\t\"9\n\x0fLauncherCommand\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x16\n\x0eserialized_msg\x18\x02 \x02(\t')
 
 
 
@@ -79,6 +79,13 @@ _CONFIGPARAMSREQUEST = descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    descriptor.FieldDescriptor(
+      name='ext_params', full_name='cfg_messages.ConfigParamsRequest.ext_params', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -89,7 +96,7 @@ _CONFIGPARAMSREQUEST = descriptor.Descriptor(
   is_extendable=False,
   extension_ranges=[],
   serialized_start=74,
-  serialized_end=150,
+  serialized_end=191,
 )
 
 
@@ -121,6 +128,13 @@ _CONFIGPARAMS = descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    descriptor.FieldDescriptor(
+      name='ext_params', full_name='cfg_messages.ConfigParams.ext_params', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -130,8 +144,8 @@ _CONFIGPARAMS = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=152,
-  serialized_end=237,
+  serialized_start=193,
+  serialized_end=319,
 )
 
 
@@ -158,8 +172,8 @@ _PEERIDENTITY = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=239,
-  serialized_end=270,
+  serialized_start=321,
+  serialized_end=352,
 )
 
 
@@ -193,8 +207,8 @@ _PEERREADYQUERY = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=272,
-  serialized_end=318,
+  serialized_start=354,
+  serialized_end=400,
 )
 
 
@@ -228,8 +242,8 @@ _PEERREADYSTATUS = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=320,
-  serialized_end=376,
+  serialized_start=402,
+  serialized_end=458,
 )
 
 
@@ -270,8 +284,8 @@ _CONFIGERROR = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=378,
-  serialized_end=442,
+  serialized_start=460,
+  serialized_end=524,
 )
 
 
@@ -305,11 +319,13 @@ _LAUNCHERCOMMAND = descriptor.Descriptor(
   options=None,
   is_extendable=False,
   extension_ranges=[],
-  serialized_start=444,
-  serialized_end=501,
+  serialized_start=526,
+  serialized_end=583,
 )
 
+_CONFIGPARAMSREQUEST.fields_by_name['ext_params'].message_type = _PARAM
 _CONFIGPARAMS.fields_by_name['params'].message_type = _PARAM
+_CONFIGPARAMS.fields_by_name['ext_params'].message_type = _PARAM
 DESCRIPTOR.message_types_by_name['Param'] = _PARAM
 DESCRIPTOR.message_types_by_name['ConfigParamsRequest'] = _CONFIGPARAMSREQUEST
 DESCRIPTOR.message_types_by_name['ConfigParams'] = _CONFIGPARAMS
