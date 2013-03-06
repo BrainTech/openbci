@@ -10,6 +10,7 @@ class _SingleUgmManager(object):
         start_id = int(configs.get_param('blink_ugm_id_start'))
         count = int(configs.get_param('blink_ugm_id_count'))
         dec_count = int(configs.get_param('blink_id_count'))
+        active_field_ids = [int(field) for field in configs.get_param('active_field_ids').split(';')]
     
         assert(start_id >= 0)
         assert(count >= 0)
@@ -17,7 +18,7 @@ class _SingleUgmManager(object):
 
         self.blink_ugm = []
         self.unblink_ugm = []
-        for dec in range(count):
+        for dec in active_field_ids:#range(count):
             cfg = mgr.get_config_for(start_id+dec)
             new_blink_cfg = {'id':cfg['id'],
                              configs.get_param('blink_ugm_key'):configs.get_param('blink_ugm_value')

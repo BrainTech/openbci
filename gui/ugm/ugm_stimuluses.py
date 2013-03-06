@@ -138,6 +138,7 @@ class UgmMissingConfigKey(Exception):
     def __init__(self, p_key, p_config_dict):
         """Store key and config."""
         self._key = p_key
+
         self._config_dict = p_config_dict
     def __str__(self):
         """Return exception message."""
@@ -468,15 +469,15 @@ class UgmMazeStimulus(UgmStimulus, UgmRectConfig):
 
         line_color = QtGui.QColor(0, 0, 0)
         line_color.setNamedColor('#0000FF')
-        paint.setBrush(line_color)
-        paint.drawLine(0,0, self.width/3.0, self.height/4.0)
+        #paint.setBrush(line_color)
+        #paint.drawLine(0,0, self.width/3.0, self.height/4.0)
         #... TODO
 
         #paint user............................................
         user_color = QtGui.QColor(0, 0, 0)
         user_color.setNamedColor(self._user_color)
-        paint.setBrush(user_color)
-        paint.drawRect(self._user_x, self._user_y, 50, 50)
+        #paint.setBrush(user_color)
+        #paint.drawRect(self._user_x, self._user_y, 50, 50)
         #... TODO
 
         #end of painting

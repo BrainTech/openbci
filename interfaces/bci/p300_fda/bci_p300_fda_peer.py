@@ -54,7 +54,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         montage_matrix = self._get_montage_matrix(cfg)
         blink_field_ids = self.config.get_param('blink_field_ids').split(';')
         self.blink_field_ids = [int(ids) for ids in blink_field_ids]
-        #dec_count = int(self.config.get_param('dec_count'))
+        
 
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision, cfg, montage_matrix)
@@ -126,6 +126,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             cfg,
             montage_matrix,
             int(self.config.get_param('sampling_rate')),
+            int(self.config.get_param('dec_count')),
             context)
 
 
