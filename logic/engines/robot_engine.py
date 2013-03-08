@@ -48,6 +48,12 @@ class RobotEngine(object):
             elif command == 'camera_down':
                 result = self._robot.head_down()
                 self.logger.info(str(result) + "command: " + command)
+                
+            elif command == 'rotate_right':
+                self._robot.rotate_right(angle=7)
+            elif command == 'rotate_left':
+                self._robot.rotate_left(angle=7)
+                
             else:
                 self.logger.error('(rovio handling) Command ' + command + ' not supported.')
         except:

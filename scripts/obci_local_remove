@@ -1,5 +1,8 @@
 #!/bin/bash
 echo ''
+rm -rf ~/.local/lib/python2.7/site-packages/multiplexer
+rm -rf ~/.local/lib/python2.7/site-packages/azouk
+rm -rf ~/.local/lib/python2.7/site-packages/azlib
 rm -rf  ~/.local/lib/python2.7/site-packages/obci
 rm -rf ~/bin/obci
 rm -rf ~/bin/obci_gui
