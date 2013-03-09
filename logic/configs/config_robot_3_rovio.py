@@ -15,7 +15,7 @@ class Config(object):
         self.letters_solver = self.number_of_states * [self.number_of_decisions
                                                        * [""]]
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = [u"robot('left')" ,u"",  u"robot('right')",u"",u"",
+        self.actions[0] = [u"robot('rotate_left')" ,u"",  u"robot('rotate_right')",u"",u"",
                            u"robot('forward')",u"",u""]
         self.actions_solver = self.number_of_states * [self.number_of_decisions
                                                        * [""]]
