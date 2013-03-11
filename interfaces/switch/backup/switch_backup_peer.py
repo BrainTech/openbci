@@ -20,6 +20,7 @@ class SwitchBackup(ConfiguredMultiplexerServer):
             self.time = time.time()
             self.logger.info("Got switch message, transform scenario!")
             acquisition_helper.send_finish_saving(self.conn)
+            time.sleep(3)
             logic_helper.restart_scenario(
                 self.conn, 
                 self.config.get_param('new_scenario'), 

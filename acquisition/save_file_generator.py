@@ -17,14 +17,17 @@ class SaveFileGenerator(ConfiguredMultiplexerServer):
         self.file_with_name = self.config.get_param('file_with_name')
         self.file_with_name_path = self.config.get_param('path_file_with_name')
         self.file_name_addition = self.config.get_param('additon_to_name')
+        self.config_name_addition = self.config.get_param('addition_to_config')
         self._init_save_file_name()
         self.ready()
             
     def _init_save_file_name(self):
 
-        save_file_name = open(get_file_path(self.file_with_name_path, self.file_with_name),'r').read()
-        full_save_file_name = save_file_name + self.file_name_addition
+        file_name = open(get_file_path(self.file_with_name_path, self.file_with_name),'r').read()
+        full_save_file_name = file_name + self.file_name_addition
+        full_config_name = file_name + self.config_name_addition
         self.config.set_param('save_file_name', full_save_file_name)
+        self.config.set_param('config_file_name', full_config_name)
     
 if __name__ == "__main__":
     SaveFileGenerator(settings.MULTIPLEXER_ADDRESSES).loop()
