@@ -13,6 +13,7 @@ Wanna define a new type of stimulus??
 - use new stimulus in ugm config (as described in ugm_config_manager)
 """
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import QPoint as P
 import os.path
 
 
@@ -423,7 +424,6 @@ class UgmRectStimulus(UgmStimulus, UgmRectConfig):
         # Self`s size is (self.width, self.height) so we paint from (0,0)
         paint.drawRect(0, 0, self.width, self.height)
         paint.end()
-            
 
         
 class UgmMazeStimulus(UgmStimulus, UgmRectConfig):
@@ -443,42 +443,168 @@ class UgmMazeStimulus(UgmStimulus, UgmRectConfig):
         from p_config_dict."""
         self._set_rect_config(p_parent, p_config_dict)
 
-        self._user_x = int(self.width*p_config_dict['maze_user_x'])#0-1
-        self._user_y = int(self.height*p_config_dict['maze_user_y'])#0-1
-        self._user_direction = p_config_dict['maze_user_direction'] #NESW
+        self._user_x = int(p_config_dict['maze_user_x'])#0-4
+        self._user_y = int(p_config_dict['maze_user_y'])#0-4
+        self._user_direction = p_config_dict['maze_user_direction'] #
         self._user_color = p_config_dict['maze_user_color'] #NESW
+        
+        #assume wider than higher
+        self._maze_wall_width = 5 #px
+        self._maze_zero_x = int((self.width - self.height)/2.0)
+        self._maze_zero_y = self._maze_wall_width
+        self._maze_size = self.height - self._maze_wall_width*2
+        self._maze_field_size = self._maze_size/5
 
     def paintEvent(self, event):
-        """Draw rectangle from attributes set in self _set_config.
-        Draw BAR regargind self._feed_px."""
+        painter = QtGui.QPainter()
+        painter.begin(self)
+        self._paint_maze(painter)
+        self._paint_user(painter)
+        painter.end()
 
-        #start of painting
-        paint = QtGui.QPainter()
-        paint.begin(self)
-
-        #paint berlin-like maze ...............................
-
+    def _paint_maze(self, painter):
         #background
+        pen = QtGui.QPen()
+        pen.setWidth(5)
+        painter.setPen(pen)
         bg_color = QtGui.QColor(0, 0, 0)
         bg_color.setNamedColor(self.color)
-        paint.setBrush(bg_color)
-        paint.drawRect(0, 0, self.width, self.height)
-        #paint.end()
-        #paint = QtGui.QPainter()
-        #paint.begin(self)
+        painter.setBrush(bg_color)
+        painter.drawRect(self._maze_zero_x, self._maze_zero_y, 
+                         self._maze_size, self._maze_size)
+        
+        #walls - vertical
+        x = self._maze_zero_x + 2*(self._maze_field_size)
+        y1 = self._maze_zero_y
+        y2 = self._maze_zero_y+self._maze_field_size
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
+        x = self._maze_zero_x + 3*(self._maze_field_size)
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
 
-        line_color = QtGui.QColor(0, 0, 0)
-        line_color.setNamedColor('#0000FF')
-        #paint.setBrush(line_color)
-        #paint.drawLine(0,0, self.width/3.0, self.height/4.0)
-        #... TODO
 
-        #paint user............................................
+        x = self._maze_zero_x + self._maze_field_size
+        y1 = self._maze_zero_y + self._maze_field_size
+        y2 = self._maze_zero_y + 3*self._maze_field_size
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
+        x = self._maze_zero_x + 4*self._maze_field_size
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
+
+        x = self._maze_zero_x + 2*self._maze_field_size
+        y1 = self._maze_zero_y + 3*self._maze_field_size
+        y2 = self._maze_zero_y + 5*self._maze_field_size
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
+        x = self._maze_zero_x + 3*self._maze_field_size
+        painter.drawLine(x,
+                         y1,
+                         x,
+                         y2)
+
+        #walls - horizontal
+        y = self._maze_zero_y + 2*self._maze_field_size
+        painter.drawLine(self._maze_zero_x + self._maze_field_size,
+                         y,
+                         self._maze_zero_x + 4*self._maze_field_size,
+                         y)
+
+        y = self._maze_zero_y + 4*self._maze_field_size
+        painter.drawLine(self._maze_zero_x,
+                         y,
+                         self._maze_zero_x + 2*self._maze_field_size,
+                         y)
+        painter.drawLine(self._maze_zero_x + 3*self._maze_field_size,
+                         y,
+                         self._maze_zero_x + 5*self._maze_field_size,
+                         y)
+
+        # start
+        x = self._maze_zero_x + int(2.5*self._maze_field_size) - 3
+        y = self._maze_zero_y + int(4.5*self._maze_field_size) - 3
+        for i in range(6):
+            painter.drawLine(x,
+                             y+i,
+                             x+6,
+                             y+i)
+
+        # stop
+        x1 = self._maze_zero_x + int(2.25*self._maze_field_size)
+        x2 = self._maze_zero_x + int(2.75*self._maze_field_size)
+        y1 = self._maze_zero_y + int(0.25*self._maze_field_size)
+        y2 = self._maze_zero_y + int(0.75*self._maze_field_size)
+        painter.drawLine(x1,
+                         y1,
+                         x2,
+                         y2)
+        painter.drawLine(x2,
+                         y1,
+                         x1,
+                         y2)
+
+    def _paint_user(self, painter):
+        pen = QtGui.QPen()
+        pen.setWidth(2)
+        painter.setPen(pen)
         user_color = QtGui.QColor(0, 0, 0)
         user_color.setNamedColor(self._user_color)
-        #paint.setBrush(user_color)
-        #paint.drawRect(self._user_x, self._user_y, 50, 50)
-        #... TODO
+        painter.setBrush(user_color)
+        painter.drawConvexPolygon(*self._get_user_points())
+        #painter.drawPoints(*self._get_user_points())
 
-        #end of painting
-        paint.end()
+    def _get_user_points(self):
+        x = self._user_x
+        y = self._user_y
+        dir = self._user_direction
+
+        # get bar of 25 points at to-be-user's position
+        b = self._get_bar_points(self._maze_zero_x + x*self._maze_field_size, 
+                                 self._maze_zero_y + y*self._maze_field_size)
+
+        # choose some points so that user looks like arrow directed to dir
+        if dir == 'UP':
+            points = [b[2], b[14], b[13], b[23], b[21], b[11], b[10]]
+        elif dir == 'RIGHT':
+            points = [b[14], b[22], b[17], b[15], b[5], b[7], b[2]]
+        elif dir == 'LEFT':
+            points = [b[10], b[2], b[7], b[9], b[19], b[17], b[22]]
+        else:
+            raise Exception("UGM MAZE ERROR - Unrecognised user direction: "+str(dir))
+
+        return points
+        
+    def _get_bar_points(self, x_off, y_off):
+        #1/6 away from from field's edge 
+        x = self._maze_field_size/6
+        y = self._maze_field_size/6
+
+        # size of bar's step
+        size = self._maze_field_size - 2*x
+
+        # nuber of bar's steps
+        step = size/4
+
+        #add offset - position bar in proper place on canvas
+        x = x + x_off
+        y = y + y_off
+
+        #create bar
+        points = []
+        for i in range(5):
+            for j in range(5):
+                points.append(P(x+j*step, y+i*step))
+
+        return points
+                         

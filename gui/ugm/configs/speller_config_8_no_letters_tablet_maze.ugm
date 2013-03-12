@@ -261,13 +261,13 @@ S'relative'
 p87
 sS'maze_user_x'
 p88
-F0.5
+I2
 sS'height_type'
 p89
 g87
 sS'color'
 p90
-S'#AAA333'
+S'#ffffff'
 p91
 sS'stimulus_type'
 p92
@@ -279,7 +279,7 @@ S'center'
 p95
 sS'maze_user_y'
 p96
-F0.5
+I4
 sS'height'
 p97
 F1.0
@@ -298,7 +298,7 @@ p103
 g95
 sS'maze_user_direction'
 p104
-S'N'
+S'UP'
 p105
 sS'id'
 p106
