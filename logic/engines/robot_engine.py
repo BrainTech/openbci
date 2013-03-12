@@ -54,9 +54,11 @@ class RobotEngine(object):
                 self._robot.rotate_left(angle=7)
             elif command == 'left_forward':
                 self.robot('rotate_left')
+                time.sleep(1)
                 self.robot('forward')
             elif command == 'right_forward':
                 self.robot('rotate_right')
+                time.sleep(1)
                 self.robot('forward')
             else:
                 self.logger.error('(rovio handling) Command ' + command + ' not supported.')

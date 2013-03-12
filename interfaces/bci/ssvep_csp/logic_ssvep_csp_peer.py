@@ -164,7 +164,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             new_freqs.append(freqs[1])
 
         elif self.config.get_param('shuffle_freqs') == 'random':
-            new_freq = [int(i) for i in cfg['freqs'].split(';')]
+            new_freqs = [int(i) for i in cfg['freqs'].split(';')]
             random.shuffle(new_freqs)
         
         cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
