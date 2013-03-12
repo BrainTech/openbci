@@ -11,11 +11,11 @@ class Config(object):
         self.state = self.number_of_states * [self.number_of_decisions * [0]]
         self.state[0] = [0, 0, 0, 0, 0, 0, 0, 0]
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"Left",u"", u"Right",u"",u"", u"Fwd",u"",u""]
+        self.letters[0] = [u"Lewo",u"", u"Prawo",u"",u"", u"Prosto",u"",u""]
         self.letters_solver = self.number_of_states * [self.number_of_decisions
                                                        * [""]]
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = [u"robot('rotate_left')" ,u"",  u"robot('rotate_right')",u"",u"",
+        self.actions[0] = [u"robot('left_forward')" ,u"",  u"robot('right_forward')",u"",u"",
                            u"robot('forward')",u"",u""]
         self.actions_solver = self.number_of_states * [self.number_of_decisions
                                                        * [""]]

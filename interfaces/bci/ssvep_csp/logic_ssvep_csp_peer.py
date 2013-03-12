@@ -4,6 +4,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 import sys, os, time
+import random
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -148,18 +149,24 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         return ret
 
     def _shuffle_freqs(self, cfg):
-        """Move second best freq to the last field..."""
-        if not int(self.config.get_param('shuffle_freqs')):
+   
+        if self.config.get_param('shuffle_freqs') == '0':
             return
 
-        freqs = [int(i) for i in cfg['freqs'].split(';')]
-        new_freqs = []
-        new_freqs.append(freqs[0])
-        for f in freqs[3:]:
-            new_freqs.append(f)
-        new_freqs.append(freqs[2])
-        new_freqs.append(freqs[1])
+        elif self.config.get_param('shuffle_freqs') == '1':
+             #Move second best freq to the last field...
+            freqs = [int(i) for i in cfg['freqs'].split(';')]
+            new_freqs = []
+            new_freqs.append(freqs[0])
+            for f in freqs[3:]:
+                new_freqs.append(f)
+            new_freqs.append(freqs[2])
+            new_freqs.append(freqs[1])
 
+        elif self.config.get_param('shuffle_freqs') == 'random':
+            new_freq = [int(i) for i in cfg['freqs'].split(';')]
+            random.shuffle(new_freqs)
+        
         cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
         
     def _show_configs(self, cfg, suffix=u""):
