@@ -13,6 +13,7 @@ class RobotEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('RobotEngine')):
         self.logger = context['logger']
         self._robot = rovio.Rovio('', configs['robot_ip'])
+        self.robot_info = int(configs['robot_info'])
         self._rc = rovio.RovioController(self._robot)
         self._rc.start()
         
@@ -64,7 +65,8 @@ class RobotEngine(object):
                 self.logger.error('(rovio handling) Command ' + command + ' not supported.')
         except:
             self.logger.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!! In time: "+str(time.time()-t))
-            ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
+            if self.robot_info:
+                ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
             time.sleep(0.5)
 
     def start_robot_feedback(self):
