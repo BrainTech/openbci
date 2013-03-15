@@ -12,7 +12,7 @@ from obci.utils import context as ctx
 FWD_T = u'Wciśnij przód'
 LEFT_T = u'Wciśnij lewo'
 RIGHT_T = u'Wciśnij prawo'
-CONGRATULATIONS = 'grats'
+CONGRATULATIONS = 'Gratulacje!'
 #'move' - which move is available from decision
 #'dir' - direction of user`new position arrow
 #'x' - user`s new x position
@@ -37,9 +37,24 @@ LEFT_LINE = [
     {'move':'RIGHT', 'dir':'RIGHT', 'x':1, 'y':0, 'robot':'right_forward', 'tooltip':RIGHT_T},
     {'move':'RIGHT', 'dir':'DOWN', 'x':1, 'y':1, 'robot':'right_forward', 'tooltip':LEFT_T},
     {'move':'LEFT', 'dir':'RIGHT', 'x':2, 'y':1, 'robot':'left_forward', 'tooltip':LEFT_T},
-    {'move':'LEFT', 'dir':'UP', 'x':2, 'y':0, 'robot':'forward', 'tooltip':CONGRATULATIONS}
+    {'move':'LEFT', 'dir':'UP', 'x':2, 'y':0, 'robot':'forward', 'tooltip':CONGRATULATIONS},
+    {'move':'NO_MOVE'}
     ]
-RIGHT_LINE = [1]
+RIGHT_LINE = [
+    {},
+    {},
+    {'move':'RIGHT', 'dir':'RIGHT', 'x':3, 'y':2, 'robot':'right_forward', 'tooltip':RIGHT_T},
+    {'move':'RIGHT', 'dir':'DOWN', 'x':3, 'y':3, 'robot':'right_forward', 'tooltip':LEFT_T},
+    {'move':'LEFT', 'dir':'RIGHT', 'x':4, 'y':3, 'robot':'left_forward', 'tooltip':LEFT_T},
+    {'move':'LEFT', 'dir':'UP', 'x':4, 'y':2, 'robot':'left_forward', 'tooltip':FWD_T},
+    {'move':'UP', 'dir':'UP', 'x':4, 'y':1, 'robot':'forward', 'tooltip':FWD_T},
+    {'move':'UP', 'dir':'UP', 'x':4, 'y':0, 'robot':'forward', 'tooltip':LEFT_T},
+    {'move':'LEFT', 'dir':'LEFT', 'x':3, 'y':0, 'robot':'left_forward', 'tooltip':LEFT_T},
+    {'move':'LEFT', 'dir':'DOWN', 'x':3, 'y':1, 'robot':'left_forward', 'tooltip':RIGHT_T},
+    {'move':'RIGHT', 'dir':'LEFT', 'x':2, 'y':1, 'robot':'right_forward', 'tooltip':RIGHT_T},
+    {'move':'RIGHT', 'dir':'UP', 'x':2, 'y':0, 'robot':'forward', 'tooltip':CONGRATULATIONS},
+    {'move':'NO_MOVE'}
+    ]
 
 class MazeEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('MazeEngine')):
