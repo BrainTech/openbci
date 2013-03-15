@@ -574,12 +574,20 @@ class UgmMazeStimulus(UgmStimulus, UgmRectConfig):
                                  self._maze_zero_y + y*self._maze_field_size)
 
         # choose some points so that user looks like arrow directed to dir
+        # * * 02 * * 
+        # * * 07 * *
+        # * * 12 * *
+        # * * 17 * *
+        # * * 22 * *
+        
         if dir == 'UP':
             points = [b[2], b[14], b[13], b[23], b[21], b[11], b[10]]
         elif dir == 'RIGHT':
             points = [b[14], b[22], b[17], b[15], b[5], b[7], b[2]]
         elif dir == 'LEFT':
             points = [b[10], b[2], b[7], b[9], b[19], b[17], b[22]]
+        elif dir == 'DOWN':
+            points = [b[22], b[10], b[11], b[1], b[3], b[13], b[14]]
         else:
             raise Exception("UGM MAZE ERROR - Unrecognised user direction: "+str(dir))
 
