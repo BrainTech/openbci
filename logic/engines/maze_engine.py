@@ -9,7 +9,7 @@ from obci.logic import logic_helper
 from obci.gui.ugm import ugm_helper
 from obci.utils import context as ctx
 
-FWD_T = u'Wciśnij przód'
+FWD_T = u'Wciśnij prosto'
 LEFT_T = u'Wciśnij lewo'
 RIGHT_T = u'Wciśnij prawo'
 CONGRATULATIONS = 'Gratulacje!'
