@@ -22,7 +22,7 @@ CONGRATULATIONS = 'Gratulacje!'
 
 START_LINE = [
     {'move':'UP', 'dir':'UP', 'x':2, 'y':3, 'robot':'forward', 'tooltip':FWD_T},
-    {'move':'UP', 'dir':'UP', 'x':2, 'y':2, 'robot':'forward', 'tooltip':u'Jedź w prawo lub w lewo'},
+    {'move':'UP', 'dir':'UP', 'x':2, 'y':2, 'robot':'forward', 'tooltip':u'Wciśnij prawo lub w lewo'},
     {'move':'NO_MOVE'}
     ]
 LEFT_LINE = [
