@@ -81,7 +81,6 @@ class MazeEngine(object):
                                          'maze_user_y':info['y']}
                                         ]), 1)
             #send to robot
-            ugm_helper.send_status(self.conn, '...')
             self.robot(info['robot'])
             ugm_helper.send_config_for(self.conn, '1986', 'maze_user_color', '#222777')
             ugm_helper.send_status(self.conn, info['tooltip'])
