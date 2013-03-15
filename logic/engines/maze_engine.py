@@ -83,7 +83,8 @@ class MazeEngine(object):
             #send to robot
             self.robot(info['robot'])
             ugm_helper.send_config_for(self.conn, '1986', 'maze_user_color', '#222777')
-            ugm_helper.send_status(self.conn, info['tooltip'])
+            #ugm_helper.send_status(self.conn, info['tooltip'])
+            self._message = info['tooltip']
             if len(self._line) > 4 and self._curr == len(self._line) - 2:
                 self._maze_success = True
             self._curr = self._curr + 1

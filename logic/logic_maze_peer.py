@@ -31,7 +31,7 @@ class LogicMaze(LogicDecision, SpellerEngine, RobotEngine, MazeEngine):
         self._update_letters()
 
     def _run_post_actions(self, p_decision):
-        #self._update_letters()
+        self._update_letters()
         if not self._maze_finished and self._maze_success:
             self._maze_finished = True
             time.sleep(5)
