@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import time
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
 
@@ -15,6 +15,7 @@ class LogicFinish(ConfiguredClient):
         self.ugm = ugm_config_manager.UgmConfigManager(self.config.get_param("ugm_config")).config_to_message()
         self.text_id = int(self.config.get_param("ugm_text_id"))
         self.text = self.config.get_param("text")
+        time.sleep(3)
         self.ready()
 
     def run(self):

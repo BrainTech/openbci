@@ -50,6 +50,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         active_field_ids = self.config.get_param('active_field_ids')
         self.active_field_ids = [str(f) for f in active_field_ids.split(';')]
         str_freqs = [str(0)] * len(self.get_param('ugm_field_ids').split(';'))
+        str_freqs[1] = str(100)
 	for index1, index2 in enumerate(self.active_field_ids):
             str_freqs[int(index2)] = str(freqs[index1])
 

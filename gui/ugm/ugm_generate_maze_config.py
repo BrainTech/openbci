@@ -23,8 +23,8 @@ MAZE = {'id':'1986',
         }
 
 def run(maze_parent_id=102,
-        output_path='configs/speller_config_8_no_letters_tablet_maze.ugm',
-        template='speller_config_8_no_letters_tablet'):
+        output_path='configs/brain2013_config_8_fields_tablet',
+        template='brain2013_config_8_fields_tablet_no_maze'):
     mgr = m.UgmConfigManager(template)
     parent = mgr.get_config_for(maze_parent_id)
     parent['stimuluses'].append(MAZE)
