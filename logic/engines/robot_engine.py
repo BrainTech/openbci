@@ -23,7 +23,7 @@ class RobotEngine(object):
 
     def _robot_cmd(self, method, command):
             result = ''
-            for i in range(14):
+            for i in range(10):
                 res = method()
                 result += str(res) + '.'
             # result = self._rc.enqueue_all([[900, self._robot.forward]])
