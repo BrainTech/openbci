@@ -37,7 +37,7 @@ LEFT_LINE = [
     {'move':'RIGHT', 'dir':'RIGHT', 'x':1, 'y':0, 'robot':'right_forward', 'tooltip':RIGHT_T},
     {'move':'RIGHT', 'dir':'DOWN', 'x':1, 'y':1, 'robot':'right_forward', 'tooltip':LEFT_T},
     {'move':'LEFT', 'dir':'RIGHT', 'x':2, 'y':1, 'robot':'left_forward', 'tooltip':LEFT_T},
-    {'move':'LEFT', 'dir':'UP', 'x':2, 'y':0, 'robot':'forward', 'tooltip':CONGRATULATIONS},
+    {'move':'LEFT', 'dir':'UP', 'x':2, 'y':0, 'robot':'left_forward', 'tooltip':CONGRATULATIONS},
     {'move':'NO_MOVE'}
     ]
 RIGHT_LINE = [
@@ -52,7 +52,7 @@ RIGHT_LINE = [
     {'move':'LEFT', 'dir':'LEFT', 'x':3, 'y':0, 'robot':'left_forward', 'tooltip':LEFT_T},
     {'move':'LEFT', 'dir':'DOWN', 'x':3, 'y':1, 'robot':'left_forward', 'tooltip':RIGHT_T},
     {'move':'RIGHT', 'dir':'LEFT', 'x':2, 'y':1, 'robot':'right_forward', 'tooltip':RIGHT_T},
-    {'move':'RIGHT', 'dir':'UP', 'x':2, 'y':0, 'robot':'forward', 'tooltip':CONGRATULATIONS},
+    {'move':'RIGHT', 'dir':'UP', 'x':2, 'y':0, 'robot':'right_forward', 'tooltip':CONGRATULATIONS},
     {'move':'NO_MOVE'}
     ]
 
