@@ -28,6 +28,7 @@ class LogicMaze(LogicDecision, SpellerEngine, RobotEngine, MazeEngine):
         self._maze_success = False
         MazeEngine.__init__(self, self.config.param_values(), context)
         self.ready()
+        time.sleep(2)
         self._update_letters()
 
     def _run_post_actions(self, p_decision):

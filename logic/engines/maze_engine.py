@@ -20,6 +20,7 @@ CONGRATULATIONS = 'Gratulacje!'
 #'robot' - robot command
 #'tooltip' - tooltip for new user`s position
 
+INITIAL_TOOLTIP = FWD_T
 START_LINE = [
     {'move':'UP', 'dir':'UP', 'x':2, 'y':3, 'robot':'forward', 'tooltip':FWD_T},
     {'move':'UP', 'dir':'UP', 'x':2, 'y':2, 'robot':'forward', 'tooltip':u'Wciśnij prawo lub w lewo'},
@@ -59,8 +60,9 @@ RIGHT_LINE = [
 class MazeEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('MazeEngine')):
         self.logger = context['logger']
-        self._curr = 0#int(configs['initial_field'])
+        self._curr = 0
         self._line = START_LINE
+        self._message = INITIAL_TOOLTIP
         
     def maze_move(self, direction):
         if self._curr == 2:
@@ -80,11 +82,13 @@ class MazeEngine(object):
                                          'maze_user_x':info['x'], 
                                          'maze_user_y':info['y']}
                                         ]), 1)
+            #add tooltip
+            self._message = info['tooltip']
+            self._update_letters()
             #send to robot
             self.robot(info['robot'])
             ugm_helper.send_config_for(self.conn, '1986', 'maze_user_color', '#222777')
-            #ugm_helper.send_status(self.conn, info['tooltip'])
-            self._message = info['tooltip']
+
             if len(self._line) > 4 and self._curr == len(self._line) - 2:
                 self._maze_success = True
             self._curr = self._curr + 1
