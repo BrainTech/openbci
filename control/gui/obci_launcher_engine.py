@@ -474,9 +474,15 @@ experiments is possible only when launcher is running (command: obci srv)')))
         if not exp.launcher_data:
             print "this exp is not running...", uid
             return
-        if stop_storing or ("signal_saver" in exp.exp_config.peers and\
-                exp.status.peer_status("signal_saver").status_name \
-                            in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
+        if stop_storing:
+            #stop storing ONLY if the experiment was fired from this very obci gui
+            #otherwise the data is lost ....
+            #below code was to stop storing every time signal saver is in scenarios`es modules
+            #but it sometimes hangs forever eg. when we are using morph extensively ...
+            #`
+            #or ("signal_saver" in exp.exp_config.peers and\
+            #    exp.status.peer_status("signal_saver").status_name \
+            #                in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
             print "STOP STORING"
             exp.stop_storing(self.client)
             for i in range(4):
