@@ -98,41 +98,41 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
         elif self.mode == 'always_pass':
             self._determine_means(cfg)#for debug only
-            self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+            self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
             time.sleep(5)
             self._shuffle_freqs(cfg)
             self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
         elif self.mode == 'manual':
-            self._show_configs(cfg, suffix=u'Suggested frequencies:')
+            self._show_configs(cfg, suffix=self.config.get_param('propose_freqs_text'))
             self._edit_configs(cfg)
             self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
         elif self.mode == 'retry_on_failure':
             if self._determine_means(cfg):
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
                 self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
-                self._show_configs(cfg, suffix=u'Calibration FAILED, Try again with another freqs...')
+                self._show_configs(cfg, suffix=self.config.get_param('first_faild_calibration_text'))
                 time.sleep(5)
                 self._send_csp_info(cfg)
                 self._run_prev_scenario()
         elif self.mode == 'abort_on_failure':
             if self._determine_means(cfg):            
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
                 self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
-                self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
+                self._show_configs(cfg, suffix=self.config.get_param('second_faild_calibration_text'))
                 time.sleep(5)
                 self._send_csp_info(cfg)
                 #sys.exit(1)
@@ -175,7 +175,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         all_means = cfg['all_means'].split(';')
         ugm_helper.send_config_for(
             self.conn, text_id, 'message',
-            u''.join([u"Best frequencies:"# i ich sila:",
+            u''.join([self.config.get_param('show_freqs_text'),# i ich sila:,
                      '\n',
                      #' '.join([all_freqs[i]+" ("+all_means[i]+")" for i in range(len(all_freqs))]),
                       ' '.join([all_freqs[i] for i in range(len(all_freqs))]),
