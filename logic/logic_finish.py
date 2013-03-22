@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 import time
 
-from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
 from obci.utils import context as ctx
 from obci.configs import settings,variables_pb2
 from obci.gui.ugm import ugm_config_manager
 from obci.gui.ugm import ugm_helper
 
-class LogicFinish(ConfiguredMultiplexerServer):
+class LogicFinish(ConfiguredClient):
     def __init__(self, addresses, type=peers.LOGIC_P300_CALIBRATION):
         super(LogicFinish, self).__init__(addresses=addresses,
                                           type=type)
@@ -24,5 +24,5 @@ class LogicFinish(ConfiguredMultiplexerServer):
         ugm_helper.send_config_for(self.conn, self.text_id, 'message', self.text)
 
 if __name__ == "__main__":
-    LogicFinish(settings.MULTIPLEXER_ADDRESSES).run()    
+    LogicFinish(settings.MULTIPLEXER_ADDRESSES).run()
     

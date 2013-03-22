@@ -16,7 +16,7 @@ class SwitchBackup(ConfiguredMultiplexerServer):
         self.ready()
 
     def handle_message(self, mxmsg):
-        if (mxmsg.type == types.SWITCH_MESSAGE and time.time() - self.time > 15):
+        if (mxmsg.type == types.SWITCH_MESSAGE  and time.time() - self.time > 5):
             self.time = time.time()
             self.logger.info("Got switch message, transform scenario!")
             if int(self.config.get_param('finish_saving')):
