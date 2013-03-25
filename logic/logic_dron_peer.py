@@ -18,8 +18,12 @@ class LogicRobot(LogicSpeller, RobotEngine):
         LogicSpeller.__init__(self, addresses=addresses)
         context = ctx.get_new_context()
         context['logger'] = self.logger
-        RobotEngine.__init__(self, context)
+        RobotEngine.__init__(self,  self.config.param_values(), context)
         self.ready()
+        self._update_letters()
+
+    def _run_post_actions(self, p_decision):
+        self._update_letters()
 
 if __name__ == "__main__":
     LogicRobot(settings.MULTIPLEXER_ADDRESSES).loop()
