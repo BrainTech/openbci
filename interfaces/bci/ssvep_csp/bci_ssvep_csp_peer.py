@@ -60,7 +60,12 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from obci.analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
 
         sampling = int(self.config.get_param('sampling_rate'))
-        buffer = int(float(cfg['buffer'])*sampling)
+        tmp_buf = float(cfg['buffer'])
+        if tmp_buf < 2.0:
+            self.logger.warning("CSP config has buf len smaller than 2.0!, precisely: "+str(tmp_buf)+" Lets make it 2.0...")
+            tmp_buf = 2.0
+
+        buffer = int(tmp_buf*sampling)
         maybe_buffer = self.config.get_param('buffer_len')
         if len(maybe_buffer) > 0:
             old_buffer = buffer
