@@ -41,10 +41,10 @@ class RobotEngine(object):
         t = time.time()
         self._robot.hover()
         if command == 'forward':
-            self._robot_cmd(self._robot.move_forward, command, 0.5)
+            self._robot_cmd(self._robot.move_forward, command, 1.0)
             
         elif command == 'backward':
-            self._robot_cmd(self._robot.move_backward, command, 0.5)
+            self._robot_cmd(self._robot.move_backward, command, 1.0)
             
         elif command == 'left':
             self._robot_cmd(self._robot.move_left, command, 2.5)
@@ -77,8 +77,10 @@ class RobotEngine(object):
                 self._robot.takeoff()
                 time.sleep(0.1)
             self.logger.info("takeoff()" + "   command: " + command)
-            self.robot('up')
-            
+            #for step in range(10):
+            #    self.robot('up')
+            #    time.sleep(1)
+               
         elif command == 'reset':
             self._robot.reset()
             self.logger.info("reset()" + "   command: " + command)

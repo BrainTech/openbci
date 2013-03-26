@@ -10,7 +10,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 from obci.utils import context as ctx
 from obci.logic.logic_speller_peer import LogicSpeller
-from obci.logic.engines.robot_dron_engine import RobotEngine
+from obci.logic.engines.robot_drone_engine import RobotEngine
 
 class LogicRobot(LogicSpeller, RobotEngine):
     """A class for creating a manifest file with metadata."""
