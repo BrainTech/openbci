@@ -10,7 +10,7 @@ class Config(object):
         self.other_configs = []
         self.state = self.number_of_states * [self.number_of_decisions * [0]]
         self.state[0] = [1, 1, 1, 0, 0, 1, 0, 0]
-        self.state[1] = [1, 1, 1, 1, 1, 1, 1, 0]
+        self.state[1] = [1, 1, 1, 1, 1, 1, 1, 1]
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
         self.letters[0] = [u"Start", u"Start",u"Start", u"",u"",u"Start", u"", u""]
         #self.letters[0] = [u"Lewo", u"Prosto",u"Prawo", u"",u"",u"Tył", u"", u""]
