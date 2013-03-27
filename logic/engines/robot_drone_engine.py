@@ -11,7 +11,6 @@ class RobotEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('RobotEngine')):
          self.logger = context['logger']
          self._robot = dron.ARDrone(configs['drone_ip'], configs['drone_speed'])
-         self._robot.reset()
          self.init_signals()
         
     def init_signals(self):
@@ -31,8 +30,6 @@ class RobotEngine(object):
             t = time.time()
             while time.time() - t < duration:
                 res = method()
-                result += str(res) + '.'
-            #result = self._rc.enqueue_all([[900, self._robot.forward]])
             self.logger.info(result + "   command: " + command)
             if result is None:
                 print "DUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUPA"
@@ -41,10 +38,10 @@ class RobotEngine(object):
         t = time.time()
         self._robot.hover()
         if command == 'forward':
-            self._robot_cmd(self._robot.move_forward, command, 1.0)
+            self._robot_cmd(self._robot.move_forward, command, 0.4)
             
         elif command == 'backward':
-            self._robot_cmd(self._robot.move_backward, command, 1.0)
+            self._robot_cmd(self._robot.move_backward, command, 0.4)
             
         elif command == 'left':
             self._robot_cmd(self._robot.move_left, command, 2.5)
@@ -53,16 +50,16 @@ class RobotEngine(object):
             self._robot_cmd(self._robot.move_right, command, 2.5)
             
         elif command == 'up':
-            self._robot_cmd(self._robot.move_up, command, 1.0)
+            self._robot_cmd(self._robot.move_up, command, 4.0)
             
         elif command == 'down':
             self._robot_cmd(self._robot.move_down, command, 1.0)
             
         elif command == 'turn_right':
-            self._robot_cmd(self._robot.turn_right, command, 2.5)
+            self._robot_cmd(self._robot.turn_right, command, 2.7)
             
         elif command == 'turn_left':
-            self._robot_cmd(self._robot.turn_left, command, 2.5)
+            self._robot_cmd(self._robot.turn_left, command, 2.7)
 
         elif command == 'land':
             for i in range(10):
@@ -76,10 +73,10 @@ class RobotEngine(object):
                 print("******************************************* TaKE OFF "+str(i))
                 self._robot.takeoff()
                 time.sleep(0.1)
+            time.sleep(3)
             self.logger.info("takeoff()" + "   command: " + command)
-            #for step in range(10):
-            #    self.robot('up')
-            #    time.sleep(1)
+            self.robot('up')
+            time.sleep(1)
                
         elif command == 'reset':
             self._robot.reset()
