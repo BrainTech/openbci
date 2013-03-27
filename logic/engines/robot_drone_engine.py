@@ -38,10 +38,10 @@ class RobotEngine(object):
         t = time.time()
         self._robot.hover()
         if command == 'forward':
-            self._robot_cmd(self._robot.move_forward, command, 0.4)
+            self._robot_cmd(self._robot.move_forward, command, 0.7)
             
         elif command == 'backward':
-            self._robot_cmd(self._robot.move_backward, command, 0.4)
+            self._robot_cmd(self._robot.move_backward, command, 0.7)
             
         elif command == 'left':
             self._robot_cmd(self._robot.move_left, command, 2.5)
