@@ -24,12 +24,13 @@ SERVER_CONTACT_NAME = '.obci_server_contact'
 MAIN_CONFIG_NAME = 'main_config.ini'
 
 def __obci_install_dir():
-    f = __file__
-    dirname = os.path.dirname(f)
-    if dirname.endswith('control/common'):
-        ind = dirname.rfind('control/common')
-        return f[:ind]
-    else: return None
+    dirname = os.path.abspath(os.path.dirname(__file__))
+    test_suffix = os.path.join('control', 'common')
+    if dirname.endswith(test_suffix):
+        return dirname[:-len(test_suffix)]
+    else:
+        # TODO: better raise an exception
+        return None
 
 INSTALL_DIR = __obci_install_dir()
 
