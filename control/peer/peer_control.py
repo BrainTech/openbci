@@ -16,6 +16,8 @@ from config_defaults import CONFIG_DEFAULTS
 import obci.control.common.config_message as cmsg
 
 from obci.configs import settings
+from obci.utils.openbci_logging import log_crash
+
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
@@ -204,12 +206,14 @@ class PeerControl(object):
         else:
             return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR
 
+    @log_crash
     def get_param(self, p_name):
         return self.core.get_param(p_name)
 
+    @log_crash
     def has_param(self, p_name):
         return self.core.has_param(p_name)
-
+    @log_crash
     def set_param(self, p_name, p_value):
         result = self.core.update_local_param(p_name, p_value)
         #TODO let know other peers...
@@ -223,7 +227,7 @@ class PeerControl(object):
             val_short = str(p_value)[:300] + '[...]'
             self.logger.info(' param update:: %s %s', p_name, val_short)
         else:
-            self.logger.warning('param updated locally %s, %s, %s', 
+            self.logger.warning('param updated locally %s, %s, %s',
                                     p_name, val_short, str(result))
 
         return result
@@ -255,7 +259,7 @@ class PeerControl(object):
             self.logger.error('config registration unsuccesful!!!! %s',
                                                              str(reply))
         elif not reply.type == types.PEER_REGISTERED:
-            self.logger.error('config registration unsuccesful!!!! %s', 
+            self.logger.error('config registration unsuccesful!!!! %s',
                                                             str(reply))
 
 

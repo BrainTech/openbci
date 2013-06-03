@@ -5,11 +5,12 @@ from multiplexer.clients import connect_client
 
 from obci.control.peer.peer_control import PeerControl, ConfigNotReadyError
 import obci.control.common.config_message as cmsg
-from obci.utils.openbci_logging import get_logger
+from obci.utils.openbci_logging import get_logger, log_crash
 import sys
 
 class ConfiguredClient(object):
 
+    @log_crash
     def __init__(self, addresses, type, external_config_file=None):
 
         self.conn = connect_client(addresses=addresses, type=type)
@@ -38,22 +39,25 @@ class ConfiguredClient(object):
         else:
             self.validate_params(self.config.param_values())
 
+    @log_crash
     def get_param(self, param_name):
         return self.config.get_param(param_name)
 
+    @log_crash
     def set_param(self, param_name, param_value):
         self.config.set_param(param_name, param_value)
 
+    @log_crash
     def ready(self):
         self.ready_to_work = True
         self.config.register_config(self.conn)
         self.config.send_peer_ready(self.conn)
 
-
     def validate_params(self, params):
         self.logger.info("VALIDATE PARAMS, {0}".format(params))
         return True
 
+    @log_crash
     def params_changed(self, params):
         self.logger.info("PARAMS CHAnGED, {0}".format(params))
         return True

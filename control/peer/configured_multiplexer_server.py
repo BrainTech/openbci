@@ -8,9 +8,10 @@ from obci.configs import settings, variables_pb2
 
 from obci.control.peer.peer_control import PeerControl
 import obci.control.common.config_message as cmsg
-from obci.utils.openbci_logging import get_logger
+from obci.utils.openbci_logging import get_logger, log_crash
 
 class ConfiguredMultiplexerServer(BaseMultiplexerServer):
+    @log_crash
     def __init__(self, addresses, type=None, external_config_file=None):
         super(ConfiguredMultiplexerServer, self).__init__(addresses, type)
 
@@ -29,7 +30,7 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
         self.config.connection = self.conn
         self.config.peer_validate_params = self.validate_params
         self.config.peer_params_changed = self.params_changed
-        
+
         result, details = self.config.initialize_config(self.conn)
 
 
@@ -74,3 +75,10 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
     def shut_down(self):
         self.clean_up()
         sys.exit(0)
+
+    def loop(self):
+        try:
+            super(ConfiguredMultiplexerServer, self).loop()
+        except Exception, e:
+            self.logger.critical('in "loop": PEER CRASHED!!! %s', str(e))
+            raise(e)
