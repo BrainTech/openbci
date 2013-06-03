@@ -17,9 +17,9 @@ from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, Pol
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 
-from subprocess_monitor import SubprocessMonitor
-from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
-from obci.utils.openbci_logging import get_logger
+from obci.control.launcher.subprocess_monitor import SubprocessMonitor
+from obci.control.launcher.process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
+from obci.utils.openbci_logging import get_logger, log_crash
 
 class HandlerCollection(object):
     def __init__(self):
@@ -367,10 +367,16 @@ class OBCIControlPeer(object):
                     break
                 self._update_poller(poller, poll_sockets)
         except Exception, e:
-            self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
-                                self.name, e, e.args, vars(e))
+            from urllib2 import HTTPError
+            try:
+                self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
+                                    self.name, e, e.args, vars(e), exc_info=True,
+                                    extra={'stack': True})
+            except HTTPError, e:
+                self.logger.info('sentry sending failed....')
+        finally:
 
-        self._clean_up()
+            self._clean_up()
 
 
     def _update_poller(self, poller, curr_sockets):
