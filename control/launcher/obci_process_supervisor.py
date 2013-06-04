@@ -30,6 +30,7 @@ TEST_PACKS = 100000
 
 class OBCIProcessSupervisor(OBCIControlPeer):
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
+
     @log_crash
     def __init__(self, sandbox_dir,
                                         source_addresses=None,
@@ -255,9 +256,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 self.logger.info("PYTHONPATH UPDATED  for " + peer +\
                          "!!!!!!!!   " + str(self.env["PYTHONPATH"]))
             args = data['args']
+            args += ['-p', 'experiment_uuid', self.experiment_uuid]
             if peer.startswith('config_server'):
                 args += ['-p', 'launcher_socket_addr', self.cs_addr]
-                args += ['-p', 'experiment_uuid', self.experiment_uuid]
 
                 if restore_config:
                     args += ['-p', 'restore_peers', ' '.join(restore_config)]
@@ -432,6 +433,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.processes = {}
         self.subprocess_mgr.killall(force=True)
         self.subprocess_mgr.delete_all()
+
+    def _crash_extra_data(self, exception=None):
+        data = super(OBCIExperiment, self)._crash_extra_data(exception)
+        data.update({
+            'experiment_uuid': self.experiment_uuid,
+            'name': self.name
+            })
+        return data
 
 
 def process_supervisor_arg_parser():
