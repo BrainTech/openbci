@@ -11,8 +11,7 @@ import sys
 import traceback
 import logging
 import logging.handlers
-import log_mx_handler
-
+import obci.utils.log_mx_handler as log_mx_handler
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -71,7 +70,8 @@ def get_dummy_logger(p_name, p_level='info'):
 
 
 def get_logger(name, file_level='debug', stream_level='warning',
-                            mx_level='warning', conn=None, log_dir=None):
+                            mx_level='warning', sentry_level='error',
+                            conn=None, log_dir=None):
     """Return logger with name as name. And logging level p_level.
     p_level should be in (starting with the most talkactive):
     'debug', 'info', 'warning', 'error', 'critical'."""
@@ -117,34 +117,68 @@ def get_logger(name, file_level='debug', stream_level='warning',
             # memhandler.setLevel(LEVELS file_level])
             logger.addHandler(fhandler)
         if USE_SENTRY:
-            logger.addHandler(_sentry_handler())
+            h = _sentry_handler()
+            if h:
+                h.setLevel(LEVELS[sentry_level])
+                logger.addHandler(h)
 
     return logger
 
 
 def log_crash(meth):
-    def _fun_with_exc_logging(self, *args, **kwargs):
+    def _fun_with_exc_logging(*args, **kwargs):
         try:
-            meth(self, *args, **kwargs)
+            return meth(*args, **kwargs)
         except Exception, e:
+            self = args[0]
             if hasattr(self, 'logger'):
                 info = sys.exc_info()
-                format = traceback.format_exception(info[0], info[1], info[2])
-                fmt_str = ''.join(format)
-                self.logger.critical("Peer crashed with exception %s, .... %s",
-                                                                 str(e), fmt_str)
+                msg = crash_log_msg(meth, args, kwargs, self, info, e)
+                extra = { 'data' : {}, 'tags' : {}}
+                extra['data'].update(crash_log_data(e, self))
+                extra['tags'].update(crash_log_tags(e, self))
+                self.logger.critical(msg, exc_info=True, extra=extra)
                 del info
+
             raise(e)
     return _fun_with_exc_logging
+    # return meth
 
+def crash_log_tags(exception, callee):
+    if hasattr(callee, '_crash_extra_tags'):
+        return callee._crash_extra_tags(exception)
+    else:
+        return {}
 
+def crash_log_msg(func, args, kwargs, callee=None, exc_info=None, exception=None):
+    msg = ' \n\n  CRASH INFO:\n'
+    if exception:
+        msg += "Peer crashed with exception %s\n" % str(exception)
+    if exc_info:
+        fmt = traceback.format_exception(exc_info[0], exc_info[1], exc_info[2])
+        fmt_str = ''.join(fmt)
+        msg += fmt_str
+
+    msg += "\nfunction/method  %s called with  args: %s" % (func, args)
+    msg += "\n\nkwargs:  %s" % kwargs
+
+    if hasattr(callee, '_crash_extra_description'):
+        msg += "\n\n" + callee._crash_extra_description(exception)
+    del exc_info
+    return msg
+
+def crash_log_data(exception, callee):
+    if hasattr(callee, '_crash_extra_data'):
+        return callee._crash_extra_data(exception)
+    else:
+        return {}
 
 def _sentry_handler(sentry_key=None):
     try:
         client = Client(sentry_key, auto_log_stacks=True)
     except ValueError, e:
         print('logging setup: initializing sentry failed - ', e.args)
+        return None
     handler = SentryHandler(client)
-    handler.setLevel(logging.WARNING)
     setup_logging(handler)
     return handler
