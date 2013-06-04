@@ -110,6 +110,18 @@ class OBCIControlPeer(object):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
                     stream_level=net_tools.peer_loglevel())
+            err_f = self.logger.error
+            def _logger_error(*args, **kwargs):
+                extra = kwargs.get('extra', {})
+                tags = extra.get('tags', {})
+                data = extra.get('data', {})
+                tags.update(self._crash_extra_tags())
+                data.update(self._crash_extra_data())
+                extra['tags'] = tags
+                extra['data'] = data
+                kwargs['extra'] = extra
+                return err_f(*args, **kwargs)
+            self.logger.error = _logger_error
 
         self.mtool = self.message_tool()
 
@@ -328,6 +340,7 @@ class OBCIControlPeer(object):
     def _set_poll_sockets(self):
         self._poll_sockets = self.all_sockets()
 
+    @log_crash
     def run(self):
         self.pre_run()
         poller = zmq.Poller()
@@ -368,17 +381,25 @@ class OBCIControlPeer(object):
                     break
                 self._update_poller(poller, poll_sockets)
         except Exception, e:
-            from urllib2 import HTTPError
-            try:
-                self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
-                                    self.name, e, e.args, vars(e), exc_info=True,
-                                    extra={'stack': True})
-            except HTTPError, e:
-                self.logger.info('sentry sending failed....')
-        finally:
-
+            # from urllib2 import HTTPError
+            # try:
+            #     self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
+            #                         self.name, e, e.args, vars(e), exc_info=True,
+            #                         extra={'stack': True})
+            # except HTTPError, e:
+            #     self.logger.info('sentry sending failed....')
             self._clean_up()
+            raise(e)
 
+
+    def _crash_extra_description(self, exception=None):
+        return ""
+
+    def _crash_extra_data(self, exception=None):
+        return {}
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'launcher'}
 
     def _update_poller(self, poller, curr_sockets):
         self._set_poll_sockets()

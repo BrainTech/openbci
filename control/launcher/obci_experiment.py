@@ -27,7 +27,7 @@ import system_config
 import obci_process_supervisor
 
 import obci.control.peer.peer_cmd as peer_cmd
-from obci.utils.openbci_logging import get_logger, log_crash
+from obci.utils.openbci_logging import log_crash
 
 import twisted_tcp_handling
 
@@ -36,6 +36,7 @@ REGISTER_TIMEOUT = 25
 class OBCIExperiment(OBCIControlPeer):
 
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
+
     @log_crash
     def __init__(self, sandbox_dir, launch_file=None,
                                         source_addresses=None,
@@ -770,6 +771,7 @@ class OBCIExperiment(OBCIControlPeer):
                         self.mtool.fill_msg("stop_all", receiver=""))
             self.status.set_status(launcher_tools.FAILED,
                                     details='Failed process ' + message.peer_id)
+            self.logger.error("Experiment failed: (process: %s)" % message.peer_id)
         elif not self.status.peer_status_exists(launcher_tools.RUNNING) and\
                 (self.status.status_name not in [launcher_tools.FAILED, launcher_tools.FAILED_LAUNCH]):
             self.status.set_status(status)
@@ -1095,6 +1097,17 @@ class OBCIExperiment(OBCIControlPeer):
         if self.client_rq:
             if message.peer_id == self.client_rq[0].peer_id:
                 send_msg(self.client_rq[1], message.SerializeToString())
+
+    def _crash_extra_data(self, exception=None):
+        import json
+        data = super(OBCIExperiment, self)._crash_extra_data(exception)
+        data.update({
+            'experiment_uuid': self.uuid,
+            'launch_file_path': self.launch_file,
+            'name': self.name,
+            'config': json.loads(serialize_scenario_json(self.exp_config))
+            })
+        return data
 
 
 def experiment_arg_parser():

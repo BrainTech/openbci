@@ -35,7 +35,7 @@ from server_scanner import update_nearby_servers, broadcast_server
 
 import twisted_tcp_handling
 
-from obci.utils.openbci_logging import get_logger, log_crash
+from obci.utils.openbci_logging import log_crash
 
 REGISTER_TIMEOUT = 6
 
@@ -592,6 +592,14 @@ class OBCIServer(OBCIControlPeer):
             return None, details
 
         return sv_obj, False
+
+    def _crash_extra_data(self, exception=None):
+        import json
+        data = super(OBCIServer, self)._crash_extra_data(exception)
+        data.update({
+            'experiments': [e.info() for e in self.experiments.values()]
+            })
+        return data
 
 
 class ExperimentInfo(object):
