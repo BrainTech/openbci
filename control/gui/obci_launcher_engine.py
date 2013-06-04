@@ -26,6 +26,8 @@ from obci.control.launcher.launch_file_serializer import LaunchFileSerializerINI
 from obci.control.peer.peer_config_parser import PeerConfigParserDict
 from obci.control.peer.peer_config import PeerConfig
 
+from obci.utils.openbci_logging import get_logger, log_crash
+
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
 DEFAULT_CATEGORY, USER_CATEGORY
 
@@ -46,10 +48,10 @@ class OBCILauncherEngine(QtCore.QObject):
         '_user_set_scenario' : dict(uuid='')
     }
 
-
+    @log_crash
     def __init__(self, obci_client, server_ip=None):
         super(OBCILauncherEngine, self).__init__()
-
+        self.logger = get_logger('launcherGUIEngine')
         self.server_ip = server_ip
         self.client = obci_client
         self.ctx = obci_client.ctx
@@ -100,6 +102,7 @@ class OBCILauncherEngine(QtCore.QObject):
         print "_SAVER_MSG"
         self.saver_msg.emit(killer_proc)
 
+    @log_crash
     def cleanup(self):
         print "CLEANUP!!!!"
         self._stop_monitoring = True
@@ -125,6 +128,7 @@ class OBCILauncherEngine(QtCore.QObject):
         else:
             return None
 
+    @log_crash
     def prepare_experiments(self):
         experiments = []
         presets = self._parse_presets(self.preset_path)
@@ -153,7 +157,7 @@ class OBCILauncherEngine(QtCore.QObject):
         return machine == socket.gethostname() or \
                     (net.is_ip(addr) and not net.addr_is_local(addr))
 
-
+    @log_crash
     def _exp_connect(self, exp_data):
         for addr in exp_data['pub_addrs']:
             if not addr.startswith('tcp://localhost') and self._addr_connectable(addr, exp_data['origin_machine']):
@@ -176,7 +180,7 @@ class OBCILauncherEngine(QtCore.QObject):
             presets.append(pres)
         return presets
 
-
+    @log_crash
     def obci_monitor(self, ctx, pull_addr, server_ip=None):
         pull = ctx.socket(zmq.PULL)
         pull.connect(pull_addr)
@@ -219,6 +223,7 @@ class OBCILauncherEngine(QtCore.QObject):
         for sock in _all:
             sock.close()#linger=0)
 
+    @log_crash
     def handle_obci_state_change(self, launcher_message):
         type_ = launcher_message.type
         handled = True
@@ -261,6 +266,7 @@ class OBCILauncherEngine(QtCore.QObject):
             self.update_ui.emit(launcher_message)
             print "----engine signalled", type_
 
+    @log_crash
     def _handle_experiment_created(self, msg, exp_list=None):
         exps = exp_list if exp_list else self.experiments
 
@@ -277,12 +283,14 @@ class OBCILauncherEngine(QtCore.QObject):
 
         self._exp_connect(msg.dict())
 
+    @log_crash
     def _handle_experiment_scenario_set(self, msg):
         index = self.index_of(msg.uuid)
         if index is not None:
             exp = self.experiments[index]
             exp.update_scenario(msg.launch_file_path, msg.scenario)
 
+    @log_crash
     def _handle_experiment_transformation(self, msg):
         exps = self.experiments
         old_index, old_exp = None, None
@@ -332,7 +340,7 @@ class OBCILauncherEngine(QtCore.QObject):
             old_exp.preset_data = None
             self.experiments.append(old_exp)
 
-
+    @log_crash
     def _handle_launcher_shutdown(self, msg):
         self.experiments = []
         presets = self._parse_presets(self.preset_path)
@@ -345,6 +353,7 @@ class OBCILauncherEngine(QtCore.QObject):
                                         details='Launcher (obci_server) shut down. Starting \
 experiments is possible only when launcher is running (command: obci srv)')))
 
+    @log_crash
     def _handle_kill_sent(self, msg):
         uid = msg.experiment_id
         index = self.index_of(uid)
@@ -362,6 +371,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
     def _handle_kill(self, msg):
         pass
 
+    @log_crash
     def _handle_obci_control_message(self, msg):
         uid = msg.sender
         index = self.index_of(uid)
@@ -375,6 +385,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                                             val,
                                             runtime=True)
 
+    @log_crash
     def _handle_experiment_status_change(self, msg):
         uid = msg.uuid
         index = self.index_of(uid)
@@ -386,6 +397,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 for peer, status in msg.peers.iteritems():
                     exp.status.peer_status(peer).set_status(status)
 
+    @log_crash
     def _handle_experiment_info_change(self, msg):
         uid = msg.uuid
         index = self.index_of(uid)
@@ -394,6 +406,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             exp.name = msg.name
             exp.launch_file_path = msg.launch_file_path
 
+    @log_crash
     def _handle_obci_peer_dead(self, msg):
         uid = msg.experiment_id
         index = self.index_of(uid)
@@ -405,6 +418,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             st = exp.status
             st.peer_status(msg.peer_id).set_status(status_name, details)
 
+    @log_crash
     def _handle_launch_error(self, msg):
         peer_id = msg.details["peer_id"]
         index = self.index_of(msg.sender)
@@ -416,9 +430,11 @@ experiments is possible only when launcher is running (command: obci srv)')))
             st = exp.status
             st.peer_status(peer_id).set_status(status_name, details)
 
+    @log_crash
     def _handle_nearby_machines(self, msg):
         self._cached_nearby_machines = msg.nearby_machines
 
+    @log_crash
     def _handle_new_peer_added(self, msg):
         # add new peer status and configuration so it is visible in GUI
         peer_id = msg.peer_id
@@ -431,13 +447,14 @@ experiments is possible only when launcher is running (command: obci srv)')))
 
             par.parse(dic_conf, conf)
             exp.exp_config.extend_with_peer(peer_id, msg.peer_path, conf)
-            exp.status.peers_status[peer_id] = launcher_tools.PeerStatus(peer_id, 
+            exp.status.peers_status[peer_id] = launcher_tools.PeerStatus(peer_id,
                                                     status_name=msg.status_name)
         print msg
 
     def list_experiments(self):
         return self.experiments
 
+    @log_crash
     def _list_experiments(self):
         exp_list = self.client.send_list_experiments()
         exps = []
@@ -447,6 +464,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 exps.append(exp_data)
         return exps
 
+    @log_crash
     def reset_launcher(self, msg):
 
         self.client.srv_kill()
@@ -457,6 +475,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         self.client = obci_script.client_server_prep()
         self.experiments = self.prepare_experiments()
 
+    @log_crash
     def stop_experiment(self, msg, stop_storing=False):
         progress = QProgressDialog(None,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         progress.setLabelText("Stopping...")
@@ -485,6 +504,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         progress.setValue(5)
         self._process_response(self.client.kill_exp(exp.uuid))
 
+    @log_crash
     def start_experiment(self, msg, store_options=None):
         print "START EXPERIMENT!!!!"
         uid = str(msg)
@@ -528,6 +548,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         self._process_response(reply)
         exp_sock.close()
 
+    @log_crash
     def nearby_machines(self):
         nearby_machines = {}
         if not self._cached_nearby_machines:
@@ -538,6 +559,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             nearby_machines[mach["ip"]] = mach["hostname"]
         return nearby_machines
 
+    @log_crash
     def save_scenario_as(self, filename_and_experiment):
         filename, exp = filename_and_experiment
         filename = str(filename)
@@ -549,6 +571,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         strmsg = self.mtool.fill_msg("_user_set_scenario", uuid=new_exp.exp_config.uuid)
         self.update_ui.emit(self.mtool.unpack_msg(strmsg))
 
+    @log_crash
     def _update_experiments(self, scenario_path, replace=False):
         scenario_path = str(scenario_path)
         preset_data = self._create_preset_data(scenario_path)
@@ -585,16 +608,19 @@ experiments is possible only when launcher is running (command: obci srv)')))
         data["category"] = USER_CATEGORY
         return data
 
+    @log_crash
     def remove_preset(self, experiment):
         self.experiments.remove(experiment)
         self._update_user_presets()
         self.update_ui.emit(None)
 
+    @log_crash
     def import_scenario(self, filename):
         new_exp = self._update_experiments(filename)
         strmsg = self.mtool.fill_msg("_user_set_scenario", uuid=new_exp.exp_config.uuid)
         self.update_ui.emit(self.mtool.unpack_msg(strmsg))
 
+    @log_crash
     def _update_user_presets(self):
         user_presets = []
         for exp in self.experiments:
@@ -603,6 +629,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
                     user_presets.append(exp.preset_data)
         self._save_presets(user_presets, self.user_preset_path)
 
+    @log_crash
     def _save_presets(self, preset_list, preset_path):
         parser = ConfigParser.RawConfigParser()
         for pre in preset_list:
@@ -612,6 +639,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         with codecs.open(preset_path, "w", "utf-8") as f:
             parser.write(f)
 
+    @log_crash
     def _process_response(self, response):
         is_ok = False
         if response is None:
