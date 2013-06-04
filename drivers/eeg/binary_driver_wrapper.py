@@ -8,6 +8,7 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.drivers.eeg.driver_comm import DriverComm
 from obci.configs import settings
 from obci.utils import context as ctx
+from obci.utils.openbci_logging import log_crash
 
 import json
 
@@ -21,13 +22,14 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
                         sampling_rates='sampling_rates',
                         channels_info='channels')
 
+    @log_crash
     def __init__(self, addresses, type):
         """Do:
         1) run super constructor to receive configs
         2) run DriverComm constructor that fires binary driver
         3) get json description from the driver (desc_params are required)
         4) store that description in self.configs to share it with other modules
-        5) if autostart is set to true: 
+        5) if autostart is set to true:
         6) set driver params from config (sampling_rate and active_channels)
         7) start sampling
         """
@@ -102,7 +104,7 @@ class BinaryDriverWrapper(ConfiguredMultiplexerServer, DriverComm):
     def abort(self, error_msg):
         self.set_param('error_details', error_msg)
         DriverComm.abort(self, error_msg)
-        
+
     def handle_message(self, mxmsg):
         # handle something
         self.no_response()
@@ -120,4 +122,4 @@ if __name__ == "__main__":
     # import settings as settings
 
     # srv = BinaryDriverWrapper(settings.MULTIPLEXER_ADDRESSES)
-   
+
