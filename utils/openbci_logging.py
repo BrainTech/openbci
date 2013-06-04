@@ -137,6 +137,7 @@ def log_crash(meth):
                 extra = { 'data' : {}, 'tags' : {}}
                 extra['data'].update(crash_log_data(e, self))
                 extra['tags'].update(crash_log_tags(e, self))
+                extra['culprit'] = str(meth.__module__) + '.' + str(meth.__name__)
                 self.logger.critical(msg, exc_info=True, extra=extra)
                 del info
 
