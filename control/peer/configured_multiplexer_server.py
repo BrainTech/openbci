@@ -23,6 +23,7 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
                             file_level=self.get_param('file_log_level'),
                             stream_level=self.get_param('console_log_level'),
                             mx_level=self.get_param('mx_log_level'),
+                            sentry_level=self.get_param('sentry_log_level'),
                             conn=self.conn,
                             log_dir=self.get_param('log_dir'))
         self.config.logger = self.logger
@@ -76,9 +77,26 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
         self.clean_up()
         sys.exit(0)
 
+    @log_crash
     def loop(self):
-        try:
-            super(ConfiguredMultiplexerServer, self).loop()
-        except Exception, e:
-            self.logger.critical('in "loop": PEER CRASHED!!! %s', str(e))
-            raise(e)
+        super(ConfiguredMultiplexerServer, self).loop()
+
+    def _crash_extra_description(self, exc):
+        """This method is called when the peer crashes, to provide additional
+        peer description to the crash report.
+        Should return string."""
+        return "peer '%s' config params: %s" % (self.config.peer_id,
+                                            self.config.param_values())
+
+    def _crash_extra_data(self, exc):
+        """This method is called when the peer crashes, to provide additional
+        peer data to the crash report.
+        Should return a dictionary."""
+        return {
+            "config_params" : self.config.param_values(),
+            "peer_id": self.config.peer_id,
+            "experiment_uuid": self.get_param("experiment_uuid")
+        }
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'obci'}

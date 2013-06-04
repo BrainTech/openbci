@@ -22,10 +22,10 @@ from obci.control.launcher.launcher_messages import message_templates
 from obci.control.launcher.launcher_tools import obci_root
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 
-from obci.utils.openbci_logging import get_logger
+from obci.utils.openbci_logging import get_logger, log_crash
 
 class ConfigServer(BaseMultiplexerServer):
-
+    @log_crash
     def __init__(self, addresses):
         super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
         self._configs = {}
@@ -65,7 +65,7 @@ class ConfigServer(BaseMultiplexerServer):
                 self.launcher_sock = None
             else:
                 self.logger.info("OK: connected to " + self.addr)
-                
+
     def _config_path(self):
         peer_file = inspect.getfile(self.__init__)
         base_name = os.path.basename(peer_file).rsplit('.', 1)[0]
@@ -115,7 +115,7 @@ class ConfigServer(BaseMultiplexerServer):
         else:
             self.logger.info("changed permissions to " + base_config_path + " to 777")
 
-
+    @log_crash
     def handle_message(self, mxmsg):
 
         message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)

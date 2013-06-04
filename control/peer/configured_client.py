@@ -22,6 +22,7 @@ class ConfiguredClient(object):
                             file_level=self.get_param('file_log_level'),
                             stream_level=self.get_param('console_log_level'),
                             mx_level=self.get_param('mx_log_level'),
+                            sentry_level=self.get_param('sentry_log_level'),
                             conn=self.conn,
                             log_dir=self.get_param('log_dir'))
         self.config.logger = self.logger
@@ -61,3 +62,20 @@ class ConfiguredClient(object):
     def params_changed(self, params):
         self.logger.info("PARAMS CHAnGED, {0}".format(params))
         return True
+
+    def _crash_extra_description(self, exc):
+        return "peer %s config params: %s" % (self.config.peer_id,
+                                                self.config.param_values())
+
+    def _crash_extra_data(self, exc):
+        """This method is called when the peer crashes, to provide additional
+        peer data to the crash report.
+        Should return a dictionary."""
+        return {
+            "config_params" : self.config.param_values(),
+            "peer_id": self.config.peer_id,
+            "experiment_uuid": self.get_param("experiment_uuid")
+        }
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'obci'}
