@@ -22,7 +22,7 @@ except ImportError:
 SEP = ';'
 
 class DriverComm(object):
-    """ Start, stop and communicate with amplifier driver binaries. 
+    """ Start, stop and communicate with amplifier driver binaries.
         Note: To run amplifier as OBCI experiment peer, use subclasses of BinaryDriverWrapper
         which fully support INI file configuration.
 
@@ -41,7 +41,7 @@ class DriverComm(object):
         >>> time.sleep(3)
         >>> driv.terminate_driver()
     """
-    
+
     def __init__(self, peer_config, mx_addresses=[('localhost', 41921)], catch_signals=True,
                  context=ctx.get_dummy_context('DriverComm')):
         """ *peer_config* - parameter provider. Should respond to get_param(param_name, value)
@@ -84,7 +84,7 @@ class DriverComm(object):
             sys.exit(-signum)
         return handler
 
-    def run_driver(self, run_args):        
+    def run_driver(self, run_args):
         self.logger.info("Executing: "+' '.join(run_args))
         return Popen(run_args,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -114,7 +114,7 @@ class DriverComm(object):
                 args.extend(["-b", self.config.get_param("bluetooth_device")])
             else:
                 raise Exception("usb_device or bluetooth_device is required")
-        
+
         if self.config.has_param("amplifier_responses"):
             if self.config.get_param("amplifier_responses"):
                 args.extend(["-r", self.config.get_param("amplifier_responses")])
@@ -122,7 +122,7 @@ class DriverComm(object):
             if self.config.get_param("dump_responses"):
                 args.extend(["--save_responses", self.config.get_param("dump_responses")])
 
-        #FIXME FIXME 
+        #FIXME FIXME
         if "gtec" in exe:
             args.extend(["-d", os.path.join(os.path.dirname(exe), "simple_gtec_driver")])
         return args
