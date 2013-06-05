@@ -35,6 +35,45 @@ try:
     from raven.conf import setup_logging
 except ImportError:
     USE_SENTRY = False
+    def _sentry_handler(sentry_key=None, obci_peer=None):
+        return None
+else:
+    class OBCISentryClient(Client):
+
+        def __init__(self, dsn=None, obci_peer=None, **options):
+            super(OBCISentryClient, self).__init__(dsn, **options)
+            self.peer = obci_peer
+
+        def build_msg(self, event_type, data=None, date=None,
+                  time_spent=None, extra=None, stack=None, public_key=None,
+                  tags=None, **kwargs):
+            data = super(OBCISentryClient, self).build_msg(event_type, data, date, time_spent,
+                extra, stack, public_key, tags, **kwargs)
+
+            if hasattr(self.peer, '_crash_extra_tags'):
+                data['tags'].update(self.peer._crash_extra_tags())
+
+            if hasattr(self.peer, '_crash_extra_data'):
+                dt = data['extra'].get('data', {})
+                up = self.peer._crash_extra_data()
+                if dt:
+                    data['extra']['data'].update(up)
+                else:
+                    data['extra']['data'] = up
+
+            return data
+
+    def _sentry_handler(sentry_key=None, obci_peer=None):
+        try:
+            client = OBCISentryClient(sentry_key, obci_peer=obci_peer, auto_log_stacks=True)
+        except ValueError, e:
+            print('logging setup: initializing sentry failed - ', e.args)
+            return None
+        handler = SentryHandler(client)
+        handler.set_name('sentry_handler')
+        setup_logging(handler)
+        return handler
+
 
 # print("logging setup: found raven and sentry key - %s" % USE_SENTRY)
 
@@ -132,8 +171,6 @@ def get_logger(name, file_level='debug', stream_level='warning',
 @decorator.decorator
 def log_crash(meth, *args, **kwargs):
     try:
-        print "Method: ", meth, "args:", args, "kwargs", kwargs, meth.__module__
-
         return meth(*args, **kwargs)
     except Exception, e:
         self = args[0]
@@ -195,18 +232,6 @@ def crash_log_data(exception, callee):
     else:
         return {}
 
-def _sentry_handler(sentry_key=None, obci_peer=None):
-    try:
-        client = OBCISentryClient(sentry_key, obci_peer=obci_peer, auto_log_stacks=True)
-    except ValueError, e:
-        print('logging setup: initializing sentry failed - ', e.args)
-        return None
-    handler = SentryHandler(client)
-    handler.set_name('sentry_handler')
-    setup_logging(handler)
-    return handler
-
-
 
 def caller_name(skip=2):
     """Get a name of a caller in the format module.class.method
@@ -215,6 +240,7 @@ def caller_name(skip=2):
        name. skip=1 means "who calls me", skip=2 "who calls my caller" etc.
 
        An empty string is returned if skipped levels exceed stack height
+       copied from gist:  https://gist.github.com/techtonik/2151727
     """
     stack = inspect.stack()
     start = 0 + skip
@@ -241,29 +267,4 @@ def caller_name(skip=2):
     return ".".join(name)
 
 
-if USE_SENTRY:
-    class OBCISentryClient(Client):
 
-        def __init__(self, dsn=None, obci_peer=None, **options):
-            super(OBCISentryClient, self).__init__(dsn, **options)
-            self.peer = obci_peer
-
-        def build_msg(self, event_type, data=None, date=None,
-                  time_spent=None, extra=None, stack=None, public_key=None,
-                  tags=None, **kwargs):
-            data = super(OBCISentryClient, self).build_msg(event_type, data, date, time_spent,
-                extra, stack, public_key, tags, **kwargs)
-
-            print "\n\n\ncalling subclassed build_msg!!!!!!!   \n\n\n", self.peer
-            if hasattr(self.peer, '_crash_extra_tags'):
-                data['tags'].update(self.peer._crash_extra_tags())
-
-            if hasattr(self.peer, '_crash_extra_data'):
-                dt = data['extra'].get('data', {})
-                up = self.peer._crash_extra_data()
-                if dt:
-                    data['extra']['data'].update(up)
-                else:
-                    data['extra']['data'] = up
-
-            return data
