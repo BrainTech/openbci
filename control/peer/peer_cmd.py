@@ -24,6 +24,9 @@ class PeerCmd(object):
                                                 parents=[self.conf_parser])
         self.parser.add_argument('peer_id',
                                     help="Unique name for this instance of this peer")
+        self.parser.add_argument('base_config_file', type=path_to_file,
+                                    help="Base and mandatory configuration file for this peer.\n\
+                            (there should be a your_module_name.ini in the same directory as your_module_name.")
 
 
     def configure_argparser(self, parser):
@@ -44,7 +47,7 @@ class PeerCmd(object):
                                     help="Launch dependency ID assignment: dep_name peer_id")
 
         parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
-                                    help="Additional configuration file (overrides): path_to_file.")
+                                    help="Additional configuration files: [path_to_file].ini")
         # parser.add_argument('--wait-ready-signal', action='store_true',
         #                             help="Wait for init configuration message.")
 
@@ -107,7 +110,7 @@ def path_to_file(string):
     if not os.path.exists(string):
         msg = "{} -- path not found!".format(string)
         raise argparse.ArgumentTypeError(msg)
-    return string
+    return os.path.realpath(os.path.expanduser(string))
 
 # -----------------------------------------------------------------------------
 
