@@ -27,6 +27,7 @@ CONFIG_FILE_EXT = 'ini'
 WAIT_READY_SIGNAL = "wait_ready_signal"
 CONFIG_FILE = "config_file"
 PEER_ID = "peer_id"
+BASE_CONF = "base_config_file"
 
 LOGGER = logging.getLogger("peer_control_default_logger")
 
@@ -40,6 +41,7 @@ class PeerControl(object):
         self.peer_params_changed = param_change_method
 
         self.peer_id = None
+        self.base_config_path = None
         self.connection = connection
         self.query_conn = conn = connect_client(type=peers.CONFIGURER,
                                             addresses=settings.MULTIPLEXER_ADDRESSES)
@@ -96,6 +98,7 @@ class PeerControl(object):
     def process_command_line(self):
         cmd_ovr, other_params = PeerCmd().parse_cmd()
         self.peer_id = self.core.peer_id = other_params[PEER_ID]
+        self.base_config_path = other_params[BASE_CONF]
         if other_params[CONFIG_FILE] is not None:
             self.file_list = other_params[CONFIG_FILE]
         self.cmd_overrides = cmd_ovr
@@ -118,12 +121,12 @@ class PeerControl(object):
         if self.peer is None:
             raise NoPeerError
 
-        peer_file = inspect.getfile(self.peer.__init__)
-        base_name = peer_file.rsplit('.', 1)[0]
-        base_config_path = '.'.join([base_name, CONFIG_FILE_EXT])
+        # peer_file = self.base_config_path #inspect.getfile(self.peer.__init__)
+        # base_name = peer_file.rsplit('.', 1)[0]
+        # base_config_path = '.'.join([base_name, CONFIG_FILE_EXT])
         #print "Peer {0} base config path: {1}".format(self.peer_id, base_config_path)
 
-        self._load_config_from_file(base_config_path, CONFIG_FILE_EXT)
+        self._load_config_from_file(self.base_config_path, CONFIG_FILE_EXT)
         #print "Peer {0} base config: {1}".format(self.peer_id, self.core)
 
 
@@ -359,7 +362,7 @@ class PeerControl(object):
             reply = conn.query(message=msg,
                                     type=msgtype)
         except OperationFailed:
-            self.logger.error("Could not connect to config server")
+            self.logger.warning("Could not connect to config server")
             reply = None
         except OperationTimedOut:
             self.logger.error("Operation timed out! (could not connect to config server)")
