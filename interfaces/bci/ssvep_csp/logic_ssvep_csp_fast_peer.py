@@ -15,9 +15,12 @@ from obci.interfaces.bci.ssvep_csp import logic_ssvep_csp_fast_analysis
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.logic import logic_helper
 from obci.utils import context as ctx
+from obci.utils.openbci_logging import log_crash
 
 class LogicSsvepCsp(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+
+    @log_crash
     def __init__(self, addresses):
         super(LogicSsvepCsp, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_SSVEP_CSP)
@@ -41,7 +44,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
         self.mode = self.config.get_param("mode")
         self.ready()
-        
+
         if self.mode == 'offline':
             self.run()
         else:
@@ -87,6 +90,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             cfg['buffer'] = float(maybe_buffer)
 
         self.finish(cfg)
+
     def finish(self, cfg):
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
@@ -111,7 +115,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 time.sleep(5)
                 self._run_prev_scenario()
         elif self.mode == 'abort_on_failure':
-            if self._determine_means(cfg):            
+            if self._determine_means(cfg):
                 self._show_configs(cfg, suffix=u'Calibration passed, wait to start BCI app...')
                 time.sleep(5)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
@@ -122,7 +126,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                 sys.exit(1)
         else:
             self.logger.warning("Unrecognised mode: "+self.mode)
-                
+
     def _determine_means(self, cfg):
         """Return true if means are ok"""
         all_means = [float(i) for i in cfg['all_means'].split(';')]
@@ -163,7 +167,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
 
     def _run_next_scenario(self):
         self._run_scenario(self.config.get_param('next_scenario_path'))
-        
+
     def _run_prev_scenario(self):
         self._run_scenario(self.config.get_param('prev_scenario_path'))
 
@@ -175,10 +179,10 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.logger.info("NO NEXT SCENARIO!!! Finish!!!")
             sys.exit(0)
 
-        
+
 
 if __name__ == "__main__":
     LogicSsvepCsp(settings.MULTIPLEXER_ADDRESSES).loop()
 
 
-        
+

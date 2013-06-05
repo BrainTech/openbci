@@ -21,6 +21,7 @@ import csp_helper
 from obci.utils import context as ctx
 
 from obci.utils import streaming_debug
+from obci.utils.openbci_logging import log_crash
 DEBUG = True
 
 
@@ -35,9 +36,10 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         r = variables_pb2.Sample()
         r.timestamp = time.time()
         for i in range(len(pdf)): r.channels.append(pdf[i])
-        self.conn.send_message(message = r.SerializeToString(),     
+        self.conn.send_message(message = r.SerializeToString(),
                         type = types.P300_ANALYSIS_RESULTS, flush=True)
 
+    @log_crash
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCIP300Fda, self).__init__(addresses=addresses,
@@ -48,22 +50,22 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         cfg['nMin'] = int(self.config.get_param("n_min"))
         cfg['nMax'] = int(self.config.get_param("n_max"))
         cfg['nLast'] = int(self.config.get_param("n_last"))
-        
+
         # If debug=1, then all additional plots are drawn
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
-        
+
         # Shape of grid
         row = cfg['row_count'] = int(self.config.get_param('row_count'))
         col = cfg['col_count'] = int(self.config.get_param('col_count'))
-      
+
         print "\n"*3
         self.logger.info("COL = " + str(col) + "\n" + "ROW = " +str(row) )
         print "\n"*3
 
-        
+
         montage_matrix = self._get_montage_matrix(cfg)
-            
-        #Create analysis object to analyse data 
+
+        #Create analysis object to analyse data
         self.analysis = self._get_analysis(self.send_decision, cfg, montage_matrix)
 
         #Initialise round buffer that will supply analysis with data
@@ -79,13 +81,13 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             ret_format=self.config.get_param('buffer_ret_format'),
             copy_on_ret=int(self.config.get_param('buffer_copy_on_ret'))
             )
-        
+
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         if DEBUG:
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
                                                self.logger,
                                                int(self.config.get_param('samples_per_packet')))
-                                                   
+
         self._last_dec_time = time.time() + 1 #sleep 5 first seconds..
         ugm_helper.send_start_blinking(self.conn)
         self.ready()
@@ -111,20 +113,20 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             else:
                 self.no_response()
                 return
-        
+
         # What to do after everything is done...
         if mxmsg.type == types.DECISION_MESSAGE:
             self.buffer.clear_blinks()
             self._last_dec_time = time.time()
             self.analysis.newEpoch()
             ugm_helper.send_stop_blinking(self.conn)
-            
+
 
         if mxmsg.type == types.BLINK_MESSAGE:
             l_msg = variables_pb2.Blink()
             l_msg.ParseFromString(mxmsg.message)
             self.buffer.handle_blink(l_msg)
-            
+
         self.no_response()
 
     def _get_analysis(self, send_func, cfg, montage_matrix):
@@ -155,7 +157,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             cfg['use_channels'].split(';'),
             cfg['montage'],
             cfg['montage_channels'].split(';'))
-        
+
 
 if __name__ == "__main__":
     BCIP300Fda(settings.MULTIPLEXER_ADDRESSES).loop()
