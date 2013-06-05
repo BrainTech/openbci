@@ -81,6 +81,7 @@ class HandlerCollection(object):
 
 
 
+
 class OBCIControlPeer(object):
 
     msg_handlers = HandlerCollection()
@@ -110,18 +111,6 @@ class OBCIControlPeer(object):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
                     stream_level=net_tools.peer_loglevel())
-            err_f = self.logger.error
-            def _logger_error(*args, **kwargs):
-                extra = kwargs.get('extra', {})
-                tags = extra.get('tags', {})
-                data = extra.get('data', {})
-                tags.update(self._crash_extra_tags())
-                data.update(self._crash_extra_data())
-                extra['tags'] = tags
-                extra['data'] = data
-                kwargs['extra'] = extra
-                return err_f(*args, **kwargs)
-            self.logger.error = _logger_error
 
         self.mtool = self.message_tool()
 
@@ -354,7 +343,7 @@ class OBCIControlPeer(object):
                 try:
                     socks = dict(poller.poll())
                 except zmq.ZMQError, e:
-                    self.logger.error(": zmq.poll(): " +str(    e.strerror))
+                    self.logger.warning(": zmq.poll(): " +str(    e.strerror))
                 for sock in socks:
                     if socks[sock] == zmq.POLLIN:
                         more = True

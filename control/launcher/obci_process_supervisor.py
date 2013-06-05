@@ -256,6 +256,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                 self.logger.info("PYTHONPATH UPDATED  for " + peer +\
                          "!!!!!!!!   " + str(self.env["PYTHONPATH"]))
             args = data['args']
+            args = self._attach_base_config_path(path, args)
             args += ['-p', 'experiment_uuid', self.experiment_uuid]
             if peer.startswith('config_server'):
                 args += ['-p', 'launcher_socket_addr', self.cs_addr]
@@ -322,6 +323,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                             path=path,
                                             args=args))
         return proc, details
+
+    def _attach_base_config_path(self, launch_path, launch_args):
+        peer_id = launch_args[0]
+        base = launch_path.rsplit('.', 1)[0]
+        ini = '.'.join([base, 'ini'])
+        return [peer_id, ini] + launch_args[1:]
+
 
     @msg_handlers.handler("get_tail")
     def handle_get_tail(self, message, sock):
