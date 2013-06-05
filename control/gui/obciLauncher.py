@@ -66,7 +66,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         '''
         QMainWindow.__init__(self)
 
-        self.logger = get_logger('launcherGUI')
+        self.logger = get_logger('launcherGUI', obci_peer=self)
 
         self.setupUi(self)
         self.basic_title = self.windowTitle()
@@ -138,6 +138,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             time.sleep(0.4)
             progress.setValue(i+1)
         e.accept()
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'launcher'}                }
 
     def stop_logs(self):
         for i, st in self.exp_states.iteritems():

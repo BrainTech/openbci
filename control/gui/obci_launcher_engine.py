@@ -51,7 +51,7 @@ class OBCILauncherEngine(QtCore.QObject):
     @log_crash
     def __init__(self, obci_client, server_ip=None):
         super(OBCILauncherEngine, self).__init__()
-        self.logger = get_logger('launcherGUIEngine')
+        self.logger = get_logger('launcherGUIEngine', obci_peer=self)
         self.server_ip = server_ip
         self.client = obci_client
         self.ctx = obci_client.ctx
@@ -92,6 +92,9 @@ class OBCILauncherEngine(QtCore.QObject):
                 self._exp_connect(exp.launcher_data)
 
         self.details_mode = MODE_ADVANCED
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'launcher'}
 
     def make_exp_obj(self, *args, **kwargs):
         exp = ExperimentEngineInfo(*args, **kwargs)
