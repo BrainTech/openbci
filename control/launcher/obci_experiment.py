@@ -1108,6 +1108,15 @@ class OBCIExperiment(OBCIControlPeer):
             'config': json.loads(serialize_scenario_json(self.exp_config))
             })
         return data
+    def _crash_extra_tags(self, exception=None):
+        tags = super(OBCIExperiment, self)._crash_extra_tags(exception)
+        tags.update({
+            'experiment_uuid': self.uuid
+
+            })
+        return tags
+
+
 
 
 def experiment_arg_parser():

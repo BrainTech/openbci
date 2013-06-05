@@ -109,19 +109,7 @@ class OBCIControlPeer(object):
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
-                                    stream_level='debug')
-            err_f = self.logger.error
-            def _logger_error(*args, **kwargs):
-                extra = kwargs.get('extra', {})
-                tags = extra.get('tags', {})
-                data = extra.get('data', {})
-                tags.update(self._crash_extra_tags())
-                data.update(self._crash_extra_data())
-                extra['tags'] = tags
-                extra['data'] = data
-                kwargs['extra'] = extra
-                return err_f(*args, **kwargs)
-            self.logger.error = _logger_error
+                                    stream_level='debug', obci_peer=self)
 
         self.mtool = self.message_tool()
 
