@@ -11,7 +11,11 @@ import sys
 import traceback
 import logging
 import logging.handlers
+
 import obci.utils.log_mx_handler as log_mx_handler
+import decorator
+import inspect
+
 
 LEVELS = {'debug': logging.DEBUG,
           'info': logging.INFO,
@@ -71,7 +75,7 @@ def get_dummy_logger(p_name, p_level='info'):
 
 def get_logger(name, file_level='debug', stream_level='warning',
                             mx_level='warning', sentry_level='error',
-                            conn=None, log_dir=None):
+                            conn=None, log_dir=None, obci_peer=None):
     """Return logger with name as name. And logging level p_level.
     p_level should be in (starting with the most talkactive):
     'debug', 'info', 'warning', 'error', 'critical'."""
@@ -117,7 +121,7 @@ def get_logger(name, file_level='debug', stream_level='warning',
             # memhandler.setLevel(LEVELS file_level])
             logger.addHandler(fhandler)
         if USE_SENTRY:
-            h = _sentry_handler()
+            h = _sentry_handler(obci_peer=obci_peer)
             if h:
                 h.setLevel(LEVELS[sentry_level])
                 logger.addHandler(h)
@@ -125,25 +129,42 @@ def get_logger(name, file_level='debug', stream_level='warning',
     return logger
 
 
-def log_crash(meth):
-    def _fun_with_exc_logging(*args, **kwargs):
-        try:
-            return meth(*args, **kwargs)
-        except Exception, e:
-            self = args[0]
-            if hasattr(self, 'logger'):
-                info = sys.exc_info()
-                msg = crash_log_msg(meth, args, kwargs, self, info, e)
-                extra = { 'data' : {}, 'tags' : {}}
-                extra['data'].update(crash_log_data(e, self))
-                extra['tags'].update(crash_log_tags(e, self))
-                extra['culprit'] = str(meth.__module__) + '.' + str(meth.__name__)
-                self.logger.critical(msg, exc_info=True, extra=extra)
-                del info
+@decorator.decorator
+def log_crash(meth, *args, **kwargs):
+    try:
+        print "Method: ", meth, "args:", args, "kwargs", kwargs, meth.__module__
 
-            raise(e)
-    return _fun_with_exc_logging
-    # return meth
+        return meth(*args, **kwargs)
+    except Exception, e:
+        self = args[0]
+        # print "self:   ", self
+        if hasattr(self, 'logger'):
+            info = sys.exc_info()
+            frames = inspect.getouterframes(info[2].tb_frame)
+            extra_obj = _find_extra_obj(frames)
+
+            msg = crash_log_msg(meth, args, kwargs, extra_obj, info, e)
+            extra = { 'data' : {}, 'tags' : {}}
+            extra['data'].update(crash_log_data(e, extra_obj))
+            extra['tags'].update(crash_log_tags(e, extra_obj))
+            extra['culprit'] = caller_name(skip=2)
+            self.logger.critical(msg, exc_info=True, extra=extra)
+            del info
+            del frames
+
+        raise(e)
+
+
+def _find_extra_obj(frames):
+    for frame in frames:
+        arg_info = inspect.getargvalues(frame[0])
+        if len(arg_info.args) > 0 and arg_info.args[0] == 'self':
+            callee = arg_info.locals['self']
+            if hasattr(callee, '_crash_extra_tags'):
+                return callee
+    return None
+
+
 
 def crash_log_tags(exception, callee):
     if hasattr(callee, '_crash_extra_tags'):
@@ -174,12 +195,75 @@ def crash_log_data(exception, callee):
     else:
         return {}
 
-def _sentry_handler(sentry_key=None):
+def _sentry_handler(sentry_key=None, obci_peer=None):
     try:
-        client = Client(sentry_key, auto_log_stacks=True)
+        client = OBCISentryClient(sentry_key, obci_peer=obci_peer, auto_log_stacks=True)
     except ValueError, e:
         print('logging setup: initializing sentry failed - ', e.args)
         return None
     handler = SentryHandler(client)
+    handler.set_name('sentry_handler')
     setup_logging(handler)
     return handler
+
+
+
+def caller_name(skip=2):
+    """Get a name of a caller in the format module.class.method
+
+       `skip` specifies how many levels of stack to skip while getting caller
+       name. skip=1 means "who calls me", skip=2 "who calls my caller" etc.
+
+       An empty string is returned if skipped levels exceed stack height
+    """
+    stack = inspect.stack()
+    start = 0 + skip
+    if len(stack) < start + 1:
+        return ''
+    parentframe = stack[start][0]
+
+    name = []
+    module = inspect.getmodule(parentframe)
+    # `modname` can be None when frame is executed directly in console
+    # TODO(techtonik): consider using __main__
+    if module:
+        name.append(module.__name__)
+    # detect classname
+    if 'self' in parentframe.f_locals:
+        # I don't know any way to detect call from the object method
+        # XXX: there seems to be no way to detect static method call - it will
+        #      be just a function call
+        name.append(parentframe.f_locals['self'].__class__.__name__)
+    codename = parentframe.f_code.co_name
+    if codename != '<module>':  # top level usually
+        name.append( codename ) # function or a method
+    del parentframe
+    return ".".join(name)
+
+
+if USE_SENTRY:
+    class OBCISentryClient(Client):
+
+        def __init__(self, dsn=None, obci_peer=None, **options):
+            super(OBCISentryClient, self).__init__(dsn, **options)
+            self.peer = obci_peer
+
+        def build_msg(self, event_type, data=None, date=None,
+                  time_spent=None, extra=None, stack=None, public_key=None,
+                  tags=None, **kwargs):
+            data = super(OBCISentryClient, self).build_msg(event_type, data, date, time_spent,
+                extra, stack, public_key, tags, **kwargs)
+
+            print "\n\n\ncalling subclassed build_msg!!!!!!!   \n\n\n", self.peer
+            if hasattr(self.peer, '_crash_extra_tags'):
+                data['tags'].update(self.peer._crash_extra_tags())
+
+            if hasattr(self.peer, '_crash_extra_data'):
+                dt = data['extra'].get('data', {})
+                up = self.peer._crash_extra_data()
+                if dt:
+                    data['extra']['data'].update(up)
+                else:
+                    data['extra']['data'] = up
+
+            return data
