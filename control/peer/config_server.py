@@ -34,7 +34,9 @@ class ConfigServer(BaseMultiplexerServer):
         self.spare_conn = connect_client(addresses=addresses, type=peers.CONFIGURER)
         self.mtool = OBCIMessageTool(message_templates)
         self.launcher_sock = None
+        print "before....."
         params, other_params = PeerCmd().parse_cmd()
+        print "after....", params, other_params
 
         self.addr = params['local_params'].get('launcher_socket_addr', '')
 
@@ -47,7 +49,6 @@ class ConfigServer(BaseMultiplexerServer):
                                 stream_level=params['local_params'].get('console_log_level', None))
         self._old_configs = self._stored_config()
         self._restore_peers = params['local_params'].get('restore_peers', '').split()
-
 
         for peer in self._restore_peers:
             if peer in self._old_configs:
@@ -251,6 +252,9 @@ class ConfigServer(BaseMultiplexerServer):
 
     def handle_launcher_command(self, message_obj):
         return None, None, message_obj.serialized_msg
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'obci'}
 
 
 
