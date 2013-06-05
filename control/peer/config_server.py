@@ -34,9 +34,7 @@ class ConfigServer(BaseMultiplexerServer):
         self.spare_conn = connect_client(addresses=addresses, type=peers.CONFIGURER)
         self.mtool = OBCIMessageTool(message_templates)
         self.launcher_sock = None
-        print "before....."
         params, other_params = PeerCmd().parse_cmd()
-        print "after....", params, other_params
 
         self.addr = params['local_params'].get('launcher_socket_addr', '')
 
