@@ -65,7 +65,7 @@ class OBCIProxyFactory(Factory):
     def __init__(self, address, zmq_ctx, zmq_rep_addr):
         self.srv_address = address
         self.ctx = zmq_ctx
-        self.zmq_rep_addr = zmq_rep_addr
+        self.zmq_rep_addr = zmq_rep_addr.replace("*", socket.gethostname())
         self.long_rqs = {}
 
         for msgtype in ["find_eeg_experiments",
