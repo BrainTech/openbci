@@ -37,7 +37,10 @@ def _filter_modules(pattern):
 def _find_amps(module_list):
     descriptions = []
     for mod in module_list:
-        descriptions += mod.driver_descriptions()
+        try:
+            descriptions += mod.driver_descriptions()
+        except Exception as e:
+            LOGGER.warning("Discovery failed: " +  str(mod))
     return descriptions
 
 def find_usb_amps():
