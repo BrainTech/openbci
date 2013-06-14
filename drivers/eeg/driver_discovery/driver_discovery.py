@@ -28,7 +28,7 @@ for mod_name in DISCOVERY_MODULE_NAMES:
     try:
         __import__(name)
         discovery_modules.append(sys.modules[name])
-        LOADED_MODULE_NAMES.append(name)
+        LOADED_MODULE_NAMES.append(mod_name)
     except:
         LOGGER.warning("Failed to load discovery module: " + mod_name)
 
@@ -36,8 +36,7 @@ def find_drivers():
     return _find_amps(discovery_modules)
 
 def _filter_modules(pattern):
-    return [sys.modules[BASE_MODULE + '.' + mod] for mod in \
-                            LOADED_MODULE_NAMES if pattern in mod]
+    return [sys.modules[BASE_MODULE + '.' + mod] for mod in LOADED_MODULE_NAMES if pattern in mod]
 
 def _find_amps(module_list):
     descriptions = []
