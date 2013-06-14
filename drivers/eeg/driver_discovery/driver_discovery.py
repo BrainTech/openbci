@@ -19,13 +19,15 @@ BASE_MODULE = 'obci.drivers.eeg.driver_discovery'
 
 discovery_modules = []
 
+LOGGER = logger.get_logger("DriverDiscovery", "info")
 
 for mod_name in DISCOVERY_MODULE_NAMES:
     name = BASE_MODULE + '.' + mod_name
-    __import__(name)
-    discovery_modules.append(sys.modules[name])
-
-LOGGER = logger.get_logger("DriverDiscovery", "info")
+    try:
+        __import__(name)
+        discovery_modules.append(sys.modules[name])
+    except:
+        LOGGER.warning("Failed to load discovery module: " + mod_name)
 
 def find_drivers():
     return _find_amps(discovery_modules)

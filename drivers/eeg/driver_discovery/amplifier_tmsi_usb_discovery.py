@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-import bluetooth
 import os
 
 from obci.control.launcher.launcher_tools import obci_root,  READY_TO_LAUNCH
