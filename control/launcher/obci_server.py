@@ -657,6 +657,7 @@ def server_arg_parser(add_help=False):
 
     parser.add_argument('--name', default='obci_server',
                        help='Human readable name of this process')
+    parser.add_argument('--win-silent', help='Use pythonw instead of python', action='store_true')
     return parser
 
 
