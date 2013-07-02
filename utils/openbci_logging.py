@@ -137,6 +137,7 @@ def get_logger(name, file_level='debug', stream_level='warning',
         logger.addHandler(shandler)
 
         if conn is not None:
+            import obci.utils.log_mx_handler as log_mx_handler
             mxhandler = log_mx_handler.LogMXHandler(conn)
             mxhandler.setLevel(LEVELS[mx_level])
             mxhandler.setFormatter(mx_formatter())
