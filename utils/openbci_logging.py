@@ -12,7 +12,6 @@ import traceback
 import logging
 import logging.handlers
 
-import obci.utils.log_mx_handler as log_mx_handler
 import decorator
 import inspect
 
