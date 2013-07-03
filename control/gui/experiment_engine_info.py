@@ -10,9 +10,11 @@ import codecs
 import subprocess
 import threading
 import time
+import sys
 
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
-from obci.acquisition import acquisition_helper
+if sys.platform != 'win32':
+    from obci.acquisition import acquisition_helper
 from obci.control.launcher.launcher_messages import message_templates
 import obci.control.launcher.system_config as system_config
 import obci.control.launcher.launch_file_parser as launch_file_parser
@@ -129,7 +131,7 @@ class ExperimentEngineInfo(QtCore.QObject):
         self.exp_config.uuid = launcher_data['uuid']
         self.exp_config.origin_machine = launcher_data['origin_machine']
 
-        
+
         self.uuid = self.exp_config.uuid
 
         self.exp_config.launch_file_path = self.launch_file
@@ -194,7 +196,7 @@ class ExperimentEngineInfo(QtCore.QObject):
             return False, "No response from experient"
         print "GOT SCENARIO", response.scenario
         return self._process_experiment_scenario(response.scenario)
-        
+
 
     def _process_experiment_scenario(self, json_scenario):
         jsonpar = launch_file_parser.LaunchJSONParser(
@@ -307,7 +309,7 @@ class ExperimentEngineInfo(QtCore.QObject):
     def peer_info(self, peer_id):
         return self.exp_config.peers[peer_id]
 
-    def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None, 
+    def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None,
                                              custom_config_path=None, param_overwrites=None,machine=None):
 
         return launch_file_parser.extend_experiment_config(self.exp_config, peer_id, peer_path,
@@ -339,9 +341,10 @@ class ExperimentEngineInfo(QtCore.QObject):
             print "experiment engine info - ERROR - connection timeout on stop signal storing!"
             return
         if not join_response.type == "rq_ok":
-            print "experiment engine info - ERROR - join error on stop signal storing!"            
+            print "experiment engine info - ERROR - join error on stop signal storing!"
             return
         mx_addr = join_response.params["mx_addr"].split(':')
         #hang and wait ...
-        acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
+        if sys.platform != 'win32':
+            acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
 
