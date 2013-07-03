@@ -140,7 +140,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         e.accept()
 
     def _crash_extra_tags(self, exception=None):
-        return {'obci_part' : 'launcher'}                }
+        return {'obci_part' : 'launcher'}
 
     def stop_logs(self):
         for i, st in self.exp_states.iteritems():
