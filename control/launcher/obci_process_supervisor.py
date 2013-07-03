@@ -244,6 +244,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             p = os.path.expanduser(data['path'])
             if not os.path.isabs(p):
                 path = os.path.join(launcher_tools.obci_root(), p)
+                path = os.path.abspath(path)
             else:
                 path = os.path.realpath(p)
 
