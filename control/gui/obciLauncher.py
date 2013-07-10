@@ -27,7 +27,7 @@ import getopt
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
-from obci.utils.filesystem import checkpidfile
+from obci.utils.filesystem import checkpidfile, removepidfile
 from obci.utils.openbci_logging import get_logger, log_crash
 
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
@@ -131,9 +131,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         progress.setRange(0,5)
         progress.setCancelButton(None)
         progress.show()
-
         self.stop_logs()
-
+        removepidfile('gui.pid')
+        
         for i in range(5):
             time.sleep(0.4)
             progress.setValue(i+1)
