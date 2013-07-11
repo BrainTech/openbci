@@ -95,7 +95,7 @@ class ConfiguredMultiplexerServer(BaseMultiplexerServer):
         return "peer '%s' config params: %s" % (self.config.peer_id,
                                             self._param_vals())
 
-    def _crash_extra_data(self, exc):
+    def _crash_extra_data(self, exc=None):
         """This method is called when the peer crashes, to provide additional
         peer data to the crash report.
         Should return a dictionary."""
