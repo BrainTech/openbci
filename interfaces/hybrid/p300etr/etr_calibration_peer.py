@@ -8,11 +8,13 @@ from obci.control.peer.configured_client import ConfiguredClient
 
 from obci.configs import settings, variables_pb2
 from cam import Camera
+from obci.utils.openbci_logging import log_crash
 
 class EtrCalibration(ConfiguredClient):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
     to ugm_engine using udp. That level of comminication is needed, as
     pyqt won`t work with multithreading..."""
+    @log_crash
     def __init__(self, addresses):
         super(EtrCalibration, self).__init__(addresses=addresses, type=peers.ETR_CALIBRATION)
         

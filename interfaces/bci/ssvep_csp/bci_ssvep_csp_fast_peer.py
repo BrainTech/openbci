@@ -17,6 +17,7 @@ from obci.interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.utils import streaming_debug
 from obci.utils import tags_helper
+from obci.utils.openbci_logging import log_crash
 
 DEBUG = False
 
@@ -35,7 +36,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             {'decision':str(dec)})
 
 
-
+    @log_crash
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCISsvepCsp, self).__init__(addresses=addresses,

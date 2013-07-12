@@ -7,11 +7,13 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.configs import settings, variables_pb2
 from obci.interfaces import interfaces_logging as logger
+from obci.utils.openbci_logging import log_crash
  
 class SampleAnalysis(ConfiguredMultiplexerServer):
     """A class responsible for handling signal message and making proper decision.
     The class inherits from generic class for convinience - all technical stuff
     is being done in this super-class"""
+    @log_crash
     def __init__(self, addresses):
         """Initialization - super() and ready() calls are required..."""
         super(SampleAnalysis, self).__init__(addresses=addresses,

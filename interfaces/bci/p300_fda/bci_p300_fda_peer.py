@@ -19,6 +19,7 @@ from obci.utils import context as ctx
 import csp_helper
 
 from obci.utils import streaming_debug
+from obci.utils.openbci_logging import log_crash
 
 DEBUG = True
 
@@ -34,6 +35,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         ugm_helper.send_stop_blinking(self.conn)
         self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
+    @log_crash
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCIP300Fda, self).__init__(addresses=addresses,

@@ -14,6 +14,7 @@ from obci.utils import tags_helper
 
 class DiodeCatcher(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
+
         super(DiodeCatcher, self).__init__(addresses=addresses,
                                           type=peers.DIODE_CATCHER)
         self.ready()

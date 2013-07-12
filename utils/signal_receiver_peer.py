@@ -10,10 +10,12 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from obci.configs import settings, variables_pb2
 from obci.utils import streaming_debug
+from obci.utils.openbci_logging import log_crash
 
 DEBUG = True
 
 class SignalReceiver(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(SignalReceiver, self).__init__(addresses=addresses,
                                           type=peers.SIGNAL_STREAMER)
