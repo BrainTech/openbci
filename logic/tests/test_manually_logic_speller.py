@@ -9,8 +9,10 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
 
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
 
 class SpellerLogicTest(ConfiguredClient):
+    @log_crash
     def __init__(self, addresses):
         super(SpellerLogicTest, self).__init__(addresses=addresses, type=peers.ANALYSIS)
         self.times = [float(i) for i in self.config.get_param('times').split(';')]

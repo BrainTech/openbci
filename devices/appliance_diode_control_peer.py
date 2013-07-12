@@ -7,8 +7,10 @@ from obci.devices import diode_control_peer
 from obci.configs import settings
 from obci.devices import blinker_factory
 import time
+from obci.utils.openbci_logging import log_crash
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):
+    @log_crash
     def __init__(self, addresses):
         super(ApplianceDiodeControl, self).__init__(addresses=addresses)
 

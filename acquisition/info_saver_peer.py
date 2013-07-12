@@ -11,11 +11,13 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from obci.configs import settings, variables_pb2
 from obci.analysis.obci_signal_processing.signal import info_file_proxy
+from obci.utils.openbci_logging import log_crash
 
 INFO_FILE_EXTENSION = ".obci.xml"
 
 class InfoSaver(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(InfoSaver, self).__init__(addresses=addresses,
                                           type=peers.INFO_SAVER)

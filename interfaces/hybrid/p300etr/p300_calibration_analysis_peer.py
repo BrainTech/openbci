@@ -22,6 +22,7 @@ from obci.configs import settings
 from obci.acquisition import acquisition_helper
 from obci.gui.ugm import ugm_helper
 from obci.interfaces.bci.p300_fda_lines import csp_helper
+from obci.utils.openbci_logging import log_crash
 
 from obci.logic import logic_helper
 
@@ -31,6 +32,7 @@ from p300_fda import P300_train
 
 class LogicP300Fda(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(LogicP300Fda, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_P300_CSP)

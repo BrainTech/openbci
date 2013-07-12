@@ -15,8 +15,10 @@ import numpy as np
 import scipy.stats as st
 
 from obci.gui.ugm import ugm_helper
+from obci.utils.openbci_logging import log_crash
 
 class P300EtrDecision(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(P300EtrDecision, self).__init__(addresses=addresses,
                                      type=peers.RESULTS_ANALYSIS)        

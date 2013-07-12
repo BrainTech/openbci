@@ -7,9 +7,11 @@ from obci.control.peer.configured_client import ConfiguredClient
 from obci.configs import settings
 from obci.utils import tags_helper
 from obci.acquisition import acquisition_helper
+from obci.utils.openbci_logging import log_crash
 
 class ObciClient(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(ObciClient, self).__init__(addresses=addresses,
                                           type=peers.TAGS_SENDER)

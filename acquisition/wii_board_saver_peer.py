@@ -10,10 +10,12 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 
 from obci.analysis.obci_signal_processing.signal import data_write_proxy
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
 
 DATA_FILE_EXTENSION = '.wii_board.txt'
 
 class WiiBoardSaver(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(WiiBoardSaver, self).__init__(addresses=addresses, 
                                           type=peers.ETR_SAVER)
