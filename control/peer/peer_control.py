@@ -263,7 +263,7 @@ class PeerControl(object):
                                                             str(reply))
 
 
-    def _request_ext_params(self, connection, retries=300):
+    def _request_ext_params(self, connection, retries=400):
         #TODO set timeout and retry count
         self.logger.info("requesting external parameters")
         if self.peer is None:

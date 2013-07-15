@@ -4,6 +4,7 @@
 import os
 import argparse
 import socket
+import time
 import io
 
 import zmq
@@ -415,6 +416,8 @@ class OBCIExperiment(OBCIControlPeer):
             self._wait_register = len(self.exp_config.peer_machines())
             self.status.peer_status(message.name).set_status(
                                             launcher_tools.RUNNING)
+            # tmp.synchro workaround: give MX some time to initialize
+            time.sleep(0.3)
             send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
                                             mx_data=self.mx_args()))
         elif message.name == 'config_server':
