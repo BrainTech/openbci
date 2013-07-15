@@ -5,11 +5,13 @@ import sys, time
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
+from obci.utils.openbci_logging import log_crash
 
 from obci.configs import settings, variables_pb2
 import cwiid
 
 class WiiBoardAmplifier(ConfiguredClient):
+    @log_crash
     def __init__(self, addresses):
         super(WiiBoardAmplifier, self).__init__(addresses=addresses, type=peers.WII_BOARD_AMPLIFIER)
         time.sleep(1)

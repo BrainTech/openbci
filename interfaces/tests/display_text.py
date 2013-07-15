@@ -14,11 +14,13 @@ import random, time, sys
 
 from obci.interfaces import interfaces_logging as logger
 from obci.gui.ugm import ugm_helper
+from obci.utils.openbci_logging import log_crash
 
 LOGGER = logger.get_logger("text_display", "debug")
 
 
 class TextDisplay(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(TextDisplay, self).__init__(addresses=addresses,
                                      type=peers.P300_ANALYSIS)        
