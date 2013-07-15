@@ -33,6 +33,7 @@ try:
     from raven.handlers.logging import SentryHandler
     from raven.conf import setup_logging
 except ImportError:
+    print "sdkfuhzdkljfhklzsdjfhlkzdjfg!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
     USE_SENTRY = False
     def _sentry_handler(sentry_key=None, obci_peer=None):
         return None

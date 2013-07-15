@@ -5,9 +5,12 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.logic import logic_helper
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
+
 import random, time, sys
 
 class SwitchBackup(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(SwitchBackup, self).__init__(addresses=addresses,
                                         type=peers.SWITCH_ANALYSIS)

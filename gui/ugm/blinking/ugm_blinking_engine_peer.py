@@ -13,6 +13,7 @@ from obci.gui.ugm import ugm_internal_server
 from obci.gui.ugm import ugm_config_manager
 from obci.gui.ugm.blinking import ugm_blinking_engine
 from obci.gui.ugm.blinking import ugm_blinking_connection
+from obci.utils.openbci_logging import log_crash
 
 class DummyClient(object):
     def __init__(self, params):
@@ -21,6 +22,7 @@ class DummyClient(object):
         return self.params[key]
 
 class UgmBlinkingEnginePeer(ConfiguredClient):
+    @log_crash
     def __init__(self, addresses):
         super(UgmBlinkingEnginePeer, self).__init__(addresses=addresses, type=peers.UGM_ENGINE_PEER)
         context = ctx.get_new_context()

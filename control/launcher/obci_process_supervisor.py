@@ -189,6 +189,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             md[0] = tuple(mx_addr)
             self.mx_data = tuple(md)
             self.env = self.peer_env(self.mx_data)
+            # tmp.workaround: wait for mx and config_server on other machine to initialize
+            time.sleep(0.5)
         if message.add_launch_data:
             if self.machine in  message.add_launch_data:
                 self._launch_processes(message.add_launch_data[self.machine])
@@ -264,7 +266,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
                 if restore_config:
                     args += ['-p', 'restore_peers', ' '.join(restore_config)]
-                wait = 0.4
+                wait = 0.5
             if "log_dir" in args:
                 idx = args.index("log_dir") + 1
                 log_dir = args[idx]

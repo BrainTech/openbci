@@ -15,6 +15,7 @@ from obci.gui.ugm import ugm_helper
 from obci.utils import streaming_debug
 import obci.devices.pyrovio.rovio as rovio
 from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
+from obci.utils.openbci_logging import log_crash
 
 DEBUG = False
 
@@ -22,6 +23,7 @@ class LogicRobotFeedback2(ConfiguredMultiplexerServer):
     """Use with some signal source ON, that fires often self._Handle_message.
     Eg. amplifier... Unlike LogicRobotFeedback, this feedback handles control messages.
     Used in multiple apps..."""
+    @log_crash
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(LogicRobotFeedback2, self).__init__(addresses=addresses,
