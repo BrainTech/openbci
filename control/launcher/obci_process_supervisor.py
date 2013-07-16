@@ -156,7 +156,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             "MULTIPLEXER_PASSWORD": '',#mx_data[1],
             "MULTIPLEXER_RULES": str(launcher_tools.mx_rules_path())
         }
-        self.logger.warning("THESE ARE THE RULES:  %s" % _env["MULTIPLEXER_RULES"])
+        self.logger.debug("THESE ARE THE MX RULES:  %s" % _env["MULTIPLEXER_RULES"])
         env.update(_env)
         return env
 
@@ -303,7 +303,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def _launch_process(self, path, args, proc_type, name,
                                     env=None, capture_io=NO_STDIO):
-        self.logger.info("launching..... %s %s %s", path, args, env)
+        self.logger.debug("launching..... %s %s", path, args)
         proc, details = self.subprocess_mgr.new_local_process(path, args,
                                                         proc_type=proc_type,
                                                         name=name,
