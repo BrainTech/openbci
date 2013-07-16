@@ -147,13 +147,13 @@ class Process(object):
         if self._ping_thread is not None:
             self.logger.info("%s, %s, %s",
                             self.proc_type, self.name ,"Joining ping thread")
-            
+
             self._ping_thread.join()
         if self._returncode_thread is not None:
             self.logger.info("%s  %s  %s",
                             self.proc_type,self.name, "joining returncode thread")
             self._returncode_thread.join()
-        self.logger.info("monitor for: %s, %s, %s", 
+        self.logger.info("monitor for: %s, %s, %s",
                     self.proc_type,self.name, "  ...monitoring threads stopped.")
 
     def finished(self):
@@ -193,7 +193,7 @@ class Process(object):
                     while self._ping_retries and not result and not self._stop_monitoring:
                         result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
                     if not result and not self._stop_monitoring:
-                        self.logger.info("%s %s %s", 
+                        self.logger.info("%s %s %s",
                                 self.proc_type, self.name, "NO RESPONSE TO PING!")
                         with self._status_lock:
                             if self._status not in [FAILED, FINISHED]:
@@ -202,7 +202,8 @@ class Process(object):
                             print "status:", self._status
                             is_alive = False
         finally:
-            self.rq_sock.close(linger=0)
+            if self.rq_sock is not None:
+                self.rq_sock.close(linger=0)
 
 
     def returncode_monitor(self):

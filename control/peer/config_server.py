@@ -31,7 +31,6 @@ class ConfigServer(BaseMultiplexerServer):
         self._configs = {}
         self._ready_peers = []
         self.__to_all = False
-        self.spare_conn = connect_client(addresses=addresses, type=peers.CONFIGURER)
         self.mtool = OBCIMessageTool(message_templates)
         self.launcher_sock = None
         params, other_params = PeerCmd().parse_cmd()
@@ -58,12 +57,17 @@ class ConfigServer(BaseMultiplexerServer):
             self.launcher_sock = self.ctx.socket(zmq.PUSH)
             try:
                 self.launcher_sock.connect(self.addr)
+
             except Exception, e:
                 self.logger.error("failed to connect to address " +\
                                              self.addr + " !!!")
                 self.launcher_sock = None
             else:
                 self.logger.info("OK: connected to " + self.addr)
+
+                send_msg(self.launcher_sock, self.mtool.fill_msg("config_server_ready"))
+        self.logger.info("connections count ::::::::: %s", self.conn.connections_count())
+
 
     def _config_path(self):
         base_config_path = "config_server.ini"

@@ -418,11 +418,13 @@ class OBCIExperiment(OBCIControlPeer):
                                             launcher_tools.RUNNING)
             # tmp.synchro workaround: give MX some time to initialize
             time.sleep(0.3)
-            send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
-                                            mx_data=self.mx_args()))
+            send_msg(self._publish_socket, self.mtool.fill_msg('start_config_server', mx_data=self.mx_args()))
         elif message.name == 'config_server':
             self.status.peer_status(message.name).set_status(
                                             launcher_tools.RUNNING)
+            time.sleep(0.3)
+            send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
+                                            mx_data=self.mx_args()))
         elif message.proc_type == 'obci_peer':
 
             self.status.peer_status(message.name).set_status(
