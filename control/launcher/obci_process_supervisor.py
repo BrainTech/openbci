@@ -152,10 +152,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             addr = socket.gethostname()
 
         _env = {
-            "MULTIPLEXER_ADDRESSES": addr + ':' + str(port),
+            "MULTIPLEXER_ADDRESSES": str(addr) + ':' + str(port),
             "MULTIPLEXER_PASSWORD": '',#mx_data[1],
-            "MULTIPLEXER_RULES": launcher_tools.mx_rules_path()
+            "MULTIPLEXER_RULES": str(launcher_tools.mx_rules_path())
         }
+        self.logger.warning("THESE ARE THE RULES:  %s" % _env["MULTIPLEXER_RULES"])
         env.update(_env)
         return env
 
@@ -189,8 +190,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             md[0] = tuple(mx_addr)
             self.mx_data = tuple(md)
             self.env = self.peer_env(self.mx_data)
-            # tmp.workaround: wait for mx and config_server on other machine to initialize
-            time.sleep(0.5)
+        # tmp.workarounds: wait for mx and config_server on other machine to initialize
+            time.sleep(0.75)
+        elif 'config_server' not in self.launch_data:
+            time.sleep(0.75)
         if message.add_launch_data:
             if self.machine in  message.add_launch_data:
                 self._launch_processes(message.add_launch_data[self.machine])
@@ -300,7 +303,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
 
     def _launch_process(self, path, args, proc_type, name,
                                     env=None, capture_io=NO_STDIO):
-        self.logger.debug("launching..... %s %s", path, args)
+        self.logger.info("launching..... %s %s %s", path, args, env)
         proc, details = self.subprocess_mgr.new_local_process(path, args,
                                                         proc_type=proc_type,
                                                         name=name,
