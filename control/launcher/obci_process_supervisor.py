@@ -228,9 +228,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
     def handle_manage_peers(self, message, sock):
         if not message.receiver == self.uuid:
             return
-        message.kill_peers.append('config_server')
 
-        message.start_peers_data['config_server'] = dict(self.launch_data['config_server'])
         restore_config = [peer for peer in self.processes if peer not in message.kill_peers]
         for peer in message.kill_peers:
             proc = self.processes.get(peer, None)
