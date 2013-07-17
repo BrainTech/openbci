@@ -423,8 +423,18 @@ class OBCIExperiment(OBCIControlPeer):
             self.status.peer_status(message.name).set_status(
                                             launcher_tools.RUNNING)
             time.sleep(0.3)
-            send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
-                                            mx_data=self.mx_args()))
+            if self._kill_and_launch:
+                launch_data = self._kill_and_launch[1]
+                for machine in launch_data:
+                if machine not in kill_data and machine not in new_supervisors:
+                    to_kill = []
+                    to_launch = launch_data[machine]
+                    send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
+                                                    kill_peers=to_kill, start_peers_data=to_launch,
+                                                    receiver=self.supervisors[machine].uuid))
+            else:
+                send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
+                                                mx_data=self.mx_args()))
         elif message.proc_type == 'obci_peer':
 
             self.status.peer_status(message.name).set_status(
@@ -1003,13 +1013,9 @@ class OBCIExperiment(OBCIControlPeer):
             send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
                                                 kill_peers=to_kill, start_peers_data=to_launch,
                                                 receiver=self.supervisors[machine].uuid))
-        for machine in launch_data:
-            if machine not in kill_data and machine not in new_supervisors:
-                to_kill = []
-                to_launch = launch_data[machine]
-                send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
-                                                kill_peers=to_kill, start_peers_data=to_launch,
-                                                receiver=self.supervisors[machine].uuid))
+
+        send_msg(self._publish_socket, self.mtool.fill_msg("start_config_server", mx_data=self.mx_args()))
+
 
 
     def _kill_unused_supervisors(self):
