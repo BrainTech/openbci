@@ -157,6 +157,15 @@ def server_tcp_proxy_port():
         port = '12012'
     return port
 
+def peer_loglevel():
+    parser = __parser_main_config_file()
+    try:
+        loglevel = parser.get("mx", "peer_loglevel")
+    except Exception:
+        print "[ WARNING! WARNING! ] Config file is not up to date. Taking default peer_loglevel value!"
+        loglevel = "debug"
+    return loglevel
+
 class DNS(object):
     def __init__(self, allowed_silence_time=45, logger=None):
         self.__lock = threading.RLock()
