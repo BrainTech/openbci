@@ -20,11 +20,10 @@ import tobii.eye_tracking_io.eyetracker
 import tobii.eye_tracking_io.mainloop
 import tobii.eye_tracking_io.browsing
 import tobii.eye_tracking_io.types
-import pygame.display
 
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer import multiplexer_constants
-#from obci.configs import settings
+from obci.configs import settings
 import logging
 import threading
 import random
@@ -53,7 +52,6 @@ class EtrCalibrationTobii(ConfiguredClient):
     def signal_handler(self):
         def handler(signum, _frame):
             self.logger.info("Got signal " + str(signum) + ": terminating")
-            #
             sys.exit(-signum)
         return handler
 
@@ -123,7 +121,7 @@ class CalibrationViewMainWidget(QtGui.QWidget):
             print "Great success!"
         self.eyetracker.StopCalibration(None)
     
-    def save_calibration(self, error, data):
+    def save_calibration(self, _error, data):
         calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
         calibration_file.write(data)
         calibration_file.close()
@@ -246,7 +244,7 @@ class CalibrationConnector(object):
 
 
 if __name__ == "__main__":
-    #EtrCalibrationTobii(settings.MULTIPLEXER_ADDRESSES).run()
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.NOTSET)
-    connector = CalibrationConnector()
+    EtrCalibrationTobii(settings.MULTIPLEXER_ADDRESSES).run()
+    #logging.basicConfig()
+    #logging.getLogger().setLevel(logging.NOTSET)
+    #connector = CalibrationConnector()
