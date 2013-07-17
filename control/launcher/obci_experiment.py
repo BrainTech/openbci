@@ -386,7 +386,7 @@ class OBCIExperiment(OBCIControlPeer):
             self._wait_register -= 1
             if self._wait_register == 0:
                 if self._kill_and_launch:
-                    kill, launch = self._kill_and_launch
+                    kill, launch, new_supervisors = self._kill_and_launch
                     to_launch = launch[machine]
                     to_kill = kill.get(machine, [])
                     send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
@@ -424,14 +424,14 @@ class OBCIExperiment(OBCIControlPeer):
                                             launcher_tools.RUNNING)
             time.sleep(0.3)
             if self._kill_and_launch:
-                launch_data = self._kill_and_launch[1]
+                kill_data, launch_data, new_supervisors = self._kill_and_launch
                 for machine in launch_data:
-                if machine not in kill_data and machine not in new_supervisors:
-                    to_kill = []
-                    to_launch = launch_data[machine]
-                    send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
-                                                    kill_peers=to_kill, start_peers_data=to_launch,
-                                                    receiver=self.supervisors[machine].uuid))
+                    if  machine not in new_supervisors:
+                        to_kill = []
+                        to_launch = launch_data[machine]
+                        send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
+                                                        kill_peers=to_kill, start_peers_data=to_launch,
+                                                        receiver=self.supervisors[machine].uuid))
             else:
                 send_msg(self._publish_socket, self.mtool.fill_msg('start_peers',
                                                 mx_data=self.mx_args()))
@@ -993,12 +993,14 @@ class OBCIExperiment(OBCIControlPeer):
                     launch_data[machine][peer] = ldata[peer]
                     self._ready_register += 1
 
-        self._kill_and_launch = (kill_data, launch_data)
+
 
         new_supervisors = []
         for machine in launch_data:
             if machine not in old_config.peer_machines():
                 new_supervisors.append(machine)
+
+        self._kill_and_launch = (kill_data, launch_data, new_supervisors)
         if new_supervisors:
             self._wait_register = len(new_supervisors)
 
@@ -1006,10 +1008,8 @@ class OBCIExperiment(OBCIControlPeer):
 #--------------------------------------------------------------------------------------
         for machine in kill_data:
             to_kill = kill_data[machine]
-            if machine in launch_data:
-                to_launch = launch_data[machine]
-            else:
-                to_launch = {}
+            to_launch = {}
+
             send_msg(self._publish_socket, self.mtool.fill_msg("manage_peers",
                                                 kill_peers=to_kill, start_peers_data=to_launch,
                                                 receiver=self.supervisors[machine].uuid))
@@ -1036,6 +1036,7 @@ class OBCIExperiment(OBCIControlPeer):
                                         not peer in ['mx', 'config_server']:
                 kill_list.append(peer)
                 launch_list.append(peer)
+        kill_list.append('config_server')
         return kill_list, launch_list
 
 
