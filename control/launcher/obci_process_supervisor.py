@@ -54,6 +54,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self._running_peer_order = []
         self._current_part = None
         self.__cfg_launch_info = None
+        self.__cfg_morph = False
         self.experiment_uuid = experiment_uuid
         self.peers_to_launch = []
         self.processes = {}
@@ -192,9 +193,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             self.env = self.peer_env(self.mx_data)
         if "config_server" in self.launch_data:
             proc, details, wait, info_obj = \
-                self.launch_process("config_server", self.launch_data["config_server"])
+                self.launch_process("config_server", self.launch_data["config_server"],
+                    restore_config=message.restore_config)
             tim = threading.Timer(1.5, self.__if_config_server_conn_didnt_work)
             tim.start()
+
 
     def __if_config_server_conn_didnt_work(self):
         with self.__cfg_lock:
@@ -229,7 +232,6 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         if not message.receiver == self.uuid:
             return
 
-        restore_config = [peer for peer in self.processes if peer not in message.kill_peers]
         for peer in message.kill_peers:
             proc = self.processes.get(peer, None)
             if not proc:
@@ -245,7 +247,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             self.launch_data[peer] = data
         self.restarting = [peer for peer in message.start_peers_data if peer in message.kill_peers]
 
-        self._launch_processes(message.start_peers_data, restore_config=restore_config)
+        self._launch_processes(message.start_peers_data)
 
     def _launch_processes(self, launch_data, restore_config=[]):
         proc, details, info_obj = None, None, None
@@ -408,7 +410,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
     @msg_handlers.handler("_kill_peer")
     def handle_kill_peer(self, message, sock):
         proc = self.processes.get(message.peer_id, None)
+
         if proc is not None: # is on this machine
+            if message.morph and message.peer_id == 'config_server':
+                self.__cfg_morph = True
             proc.kill_with_force()
 
     @msg_handlers.handler("rq_ok")
@@ -443,6 +448,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                 ))
             if name in self.restarting:
                 self.restarting.remove(name)
+            if self.__cfg_morph and name == 'config_server':
+                self.__cfg_morph = False
 
     @msg_handlers.handler("obci_peer_registered")
     def handle_obci_peer_registered(self, message, sock):
@@ -526,3 +533,4 @@ if __name__ == '__main__':
                             experiment_uuid=args.experiment_uuid,
                             name=args.name)
     process_sv.run()
+

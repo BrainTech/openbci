@@ -19,7 +19,7 @@ mtool = OBCIMessageTool(message_templates)
 def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwrites=[]):
 	"""
 	new_scenario: scenario_path relative to obci_root
-	overwrites:   {'peer_id' : ['-p', 'param_name', 'param_value', 
+	overwrites:   {'peer_id' : ['-p', 'param_name', 'param_value',
 									'-p', 'etc', 'etc',
 								'-f' 'config_ini_file_path_relative_to_obci_root']}
 
@@ -83,14 +83,15 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 					# 	print params[i]
 
 
-					ovr_list += ['--peer', peer]
+					ovr_list += ['--peer', peer, os.path.join(obci_root(), "utils","tagger.ini")]
+								#this "tagger.ini" is just to fill a required parameter, it doesn't get processed into peer's config
 					ovr_list += params
 
 				# leave_on_str = '' if not leave_on else ' --leave_on ' + ' '.join(leave_on)
 				# overwr_str = '' if not overwrites else ' '.join(ovr_list)
 				# command = "sleep 0.5 && obci morph " + str(uid) + " " + new_scenario + \
 				# 		" " + leave_on_str  + overwr_str + " &"
-				
+
 
 				subpr_call = ['obci', 'morph', str(uid), new_scenario, '--leave_on'] + leave_on + ovr_list
 				print "---------------\n", subpr_call, "\n--------------"
@@ -98,4 +99,4 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 				# os.system(command)
 
 
-    #os.system("sleep 0.5 && obci srv_kill && sleep 10 && obci launch "+new_scenario+" &")    
+    #os.system("sleep 0.5 && obci srv_kill && sleep 10 && obci launch "+new_scenario+" &")

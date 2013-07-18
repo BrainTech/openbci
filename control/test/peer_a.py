@@ -15,12 +15,12 @@ class TestServer2(ConfiguredMultiplexerServer):
         super(TestServer2, self).__init__(addresses=addresses, type=peers.CONFIGURER)
         self.ready()
         print "RRRRRRRRRRRREADY!!!"
-        time.sleep(2)
-        logic_helper.restart_scenario(self.conn, "scenarios/morph_test_b.ini",
+        time.sleep(5)
+        logic_helper.restart_scenario(self.conn, "scenarios/tests/morph_test_b.ini",
                                         leave_on=['peer1', 'amplifier'],
                                             overwrites=dict(
                                                 peer2=['-p', 'text', 'dupa dupa dupa',
-                                                    '-p', 'zzz', '12345'],
+                                                     '-p', 'zzz', '12345'],
                                                 peer3=['-f', 'control/test/custom_peer_b.ini']
                                                 ))
 
