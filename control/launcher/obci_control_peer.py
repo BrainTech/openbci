@@ -186,7 +186,7 @@ class OBCIControlPeer(object):
                 for key, status in dead.iteritems():
                     send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
                                                         pid=key[1], status=status))
-            time.sleep(1)
+            time.sleep(0.5)
         push_sock.close()
 
 

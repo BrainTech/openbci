@@ -157,7 +157,7 @@ class PeerControl(object):
             return None, None
 
     def _handle_params_changed(self, p_msg):
-        self.logger.info("PARAMS CHANGED - ", p_msg.sender)
+        self.logger.info("PARAMS CHANGED - %s" % p_msg.sender)
         params = cmsg.params2dict(p_msg)
         param_owner = p_msg.sender
 
