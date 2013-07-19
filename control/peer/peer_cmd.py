@@ -8,6 +8,7 @@ from obci.control.common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_
                             PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES, CS, LP, LD, EP
 
 import obci.control.common.obci_control_settings
+from obci.control.launcher.launcher_tools import expand_path
 
 import peer_config_parser
 import peer_config_serializer
@@ -107,10 +108,11 @@ class LaunchDepAction(PeerParamAction):
     pass
 
 def path_to_file(string):
-    if not os.path.exists(string):
-        msg = "{} -- path not found!".format(string)
+    pth = expand_path(string)
+    if not os.path.exists(pth):
+        msg = "{} -- path not found!".format(pth)
         raise argparse.ArgumentTypeError(msg)
-    return os.path.realpath(os.path.expanduser(string))
+    return pth
 
 # -----------------------------------------------------------------------------
 
