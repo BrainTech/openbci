@@ -287,6 +287,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine) or str(experiment.origin_machine)
+            print mch, peer_id
             parent = QTreeWidgetItem([peer_id, st, mch])
             parent.setFirstColumnSpanned(True)
 
@@ -337,7 +338,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         return self._params
 
     def _itemDoubleClicked(self, item, column):
-        if item.parent() is None:
+        if item.parent() is None and column != 2:
             uid = str(self.scenarios.currentItem().uuid)
             #self.exp_states[uid].exp.exp_config.peers[
             self.log_engine.show_log(item.text(0), uid)
@@ -355,16 +356,27 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 item.setFlags(Qt.ItemIsSelectable)
 
     def _itemChanged(self, item, column):
+        changed = False
         if item.parent() is None:
-            return
-        exp_state = self._params
-        peer_id = unicode(item.parent().text(0))
-        param = unicode(item.text(0))
-        val = unicode(item.text(1))
+            if column == 2:
+                machine = unicode(item.text(2))
+                peer_id = unicode(item.text(0))
+                old_ma = self._params.exp.exp_config.peer_machine(peer_id)
+                if old_ma != machine:
+                    self._params.exp.exp_config.update_peer_machine(peer_id, machine)
+                    changed = True
+        else:
+            exp_state = self._params
+            peer_id = unicode(item.parent().text(0))
+            param = unicode(item.text(0))
+            val = unicode(item.text(1))
 
-        old_val = exp_state.exp.exp_config.param_value(peer_id, param)
-        if old_val != unicode(item.text(1)):
-            exp_state.exp.update_peer_param(peer_id, param, val)
+            old_val = exp_state.exp.exp_config.param_value(peer_id, param)
+            if old_val != unicode(item.text(1)):
+                exp_state.exp.update_peer_param(peer_id, param, val)
+                changed = True
+
+        if changed:
             self._getParams()
             self._setParams(self._params)
 
