@@ -17,7 +17,7 @@ class TestServer2(ConfiguredMultiplexerServer):
         self.ready()
         print "RRRRRRRRRRRREADY!!!"
         time.sleep(5)
-        logic_helper.restart_scenario(self.conn, os.path.join("scenarios", "tests", "morph_test_b.ini"),
+        logic_helper.restart_scenario(self.conn, self.get_param('transform_to'),
                                         leave_on=['peer1', 'amplifier'],
                                             overwrites=dict(
                                                 peer2=['-p', 'text', 'dupa dupa dupa',
