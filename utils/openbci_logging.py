@@ -50,6 +50,9 @@ else:
             data = super(OBCISentryClient, self).build_msg(event_type, data, date, time_spent,
                 extra, stack, public_key, tags, **kwargs)
 
+            tst = data.get('tags', None)
+            if not tst:
+                data['tags'] = {}
             if hasattr(self.peer, '_crash_extra_tags'):
                 data['tags'].update(self.peer._crash_extra_tags())
 

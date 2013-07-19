@@ -292,6 +292,7 @@ class OBCIExperiment(OBCIControlPeer):
                 self.logger.info("launch file opened " + launch_file)
                 launch_parser.parse(f, exp_config, apply_globals=True)
         except Exception as e:
+            self.logger.critical("Launch file invalid....." + launch_file)
             status.set_status(launcher_tools.NOT_READY, details=str(e))
 
             return False, str(e)
@@ -536,7 +537,7 @@ class OBCIExperiment(OBCIControlPeer):
 
             inbuf = io.BytesIO(message.scenario.encode('utf-8'))
             jsonpar.parse(inbuf, self.exp_config)
-            print "set experiment scenario...............", message.scenario
+            self.logger.info("set experiment scenario............... %s" % message.scenario)
 
             rd, details = self.exp_config.config_ready()
             if rd:
@@ -785,7 +786,10 @@ class OBCIExperiment(OBCIControlPeer):
     @msg_handlers.handler('obci_peer_dead')
     def handle_obci_peer_dead(self, message, sock):
         if not message.peer_id in self.exp_config.peers:
-            self.logger.error("peer_id" + str(message.peer_id) + "not found!")
+            # during experiment transformation, 'obci_peer_dead' messages may come
+            # after explicitly terminating peers and removing them from experiment peers
+            # configuration
+            self.logger.warning("peer_id" + str(message.peer_id) + "not found!")
             return
         status = message.status[0]
         details = message.status[1]

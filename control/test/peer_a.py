@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 from obci.logic import logic_helper
@@ -16,12 +17,12 @@ class TestServer2(ConfiguredMultiplexerServer):
         self.ready()
         print "RRRRRRRRRRRREADY!!!"
         time.sleep(5)
-        logic_helper.restart_scenario(self.conn, "scenarios/tests/morph_test_b.ini",
+        logic_helper.restart_scenario(self.conn, os.path.join("scenarios", "tests", "morph_test_b.ini"),
                                         leave_on=['peer1', 'amplifier'],
                                             overwrites=dict(
                                                 peer2=['-p', 'text', 'dupa dupa dupa',
                                                      '-p', 'zzz', '12345'],
-                                                peer3=['-f', 'control/test/custom_peer_b.ini']
+                                                peer3=['-f', os.path.join('control', 'test', 'custom_peer_b.ini')]
                                                 ))
 
 
