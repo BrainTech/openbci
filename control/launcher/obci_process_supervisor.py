@@ -499,7 +499,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.subprocess_mgr.delete_all()
 
     def _crash_extra_data(self, exception=None):
-        data = super(OBCIExperiment, self)._crash_extra_data(exception)
+        data = super(OBCIProcessSupervisor, self)._crash_extra_data(exception)
         data.update({
             'experiment_uuid': self.experiment_uuid,
             'name': self.name
