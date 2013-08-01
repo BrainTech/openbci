@@ -3,7 +3,7 @@
 
 import time
 import signal
-
+import sys
 from process_io_handler import DEFAULT_TAIL_RQ
 
 import process
@@ -67,13 +67,21 @@ class LocalProcess(process.Process):
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                self.popen_obj.terminate()
+                if sys.platform == "win32":
+                    self.logger.info("[win] sending CTRL_C_EVENT.............. %s", self.name)
+                    self.popen_obj.send_signal(signal.CTRL_C_EVENT)
+                else:
+                    self.popen_obj.terminate()
         time.sleep(timeout_s)
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                self.logger.info("KILLING -9 PROCESS %s %s", self.pid, self.name)
-                self.popen_obj.send_signal(signal.SIGKILL)
+                if sys.platform == "win32":
+                    self.logger.info("[win] terminating process %s", self.name)
+                    self.popen_obj.terminate()
+                else:
+                    self.logger.info("KILLING -9 PROCESS %s %s", self.pid, self.name)
+                    self.popen_obj.send_signal(signal.SIGKILL)
             self.popen_obj.wait()
             if not self._status == NON_RESPONSIVE:
                 self._status_details = -(self.popen_obj.returncode)
