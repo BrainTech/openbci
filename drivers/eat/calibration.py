@@ -21,6 +21,12 @@ import tobii.eye_tracking_io.mainloop
 import tobii.eye_tracking_io.browsing
 import tobii.eye_tracking_io.types
 
+#import eye_tracking_io.eyetracker
+#import eye_tracking_io.mainloop
+#import eye_tracking_io.browsing
+#import eye_tracking_io.types
+
+
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer import multiplexer_constants
 from obci.configs import settings
@@ -29,6 +35,7 @@ import threading
 import random
 import os.path
 from PyQt4 import QtGui, QtCore
+import time
 
 
 class EatException(Exception):
@@ -82,14 +89,15 @@ class CalibrationViewMainWidget(QtGui.QWidget):
         if event.key() == QtCore.Qt.Key_Escape:
             self.close()
         elif event.key() == QtCore.Qt.Key_Space:
-            
+            print "calibrate"
             self.do_calibration()
     
     def do_calibration(self):
         self.state = "calibrating"
-        self.eyetracker.StartCalibration()
+        self.eyetracker.StartCalibration(None)
         self.points = [(0.1, 0.1), (0.1, 0.9), (0.9, 0.1), (0.9, 0.9), (0.5, 0.5)]
         random.shuffle(self.points)
+        time.sleep(2)
         self.next_point()
         
     def next_point(self):
@@ -98,6 +106,7 @@ class CalibrationViewMainWidget(QtGui.QWidget):
             self.points = self.points[1:]
         else:
             self.point = None
+        print self.point
         self.repaint()
         if self.point:
             QtCore.QTimer.singleShot(1000, self.record_data)
@@ -120,10 +129,12 @@ class CalibrationViewMainWidget(QtGui.QWidget):
         else:
             print "Great success!"
         self.eyetracker.StopCalibration(None)
+        self.save_calibration()
     
-    def save_calibration(self, _error, data):
+    def save_calibration(self):
+        data = self.eyetracker.GetCalibration()
         calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
-        calibration_file.write(data)
+        calibration_file.write(str(data))
         calibration_file.close()
     
     def paintEvent(self, _event):
@@ -163,7 +174,6 @@ class BrowseThread(threading.Thread):
     
     def browsing_callback(self, _id, msg, eyetracker_info):
         logging.getLogger('eat_amplifier').info(str(msg))
-        print "msg"
         if msg == 'Found':
             with self.discovery:
                 logging.getLogger("eat_amplifier").info("Got eyetracker info: " + str(eyetracker_info))
@@ -186,13 +196,14 @@ class ConnectThread(threading.Thread):
     
     def run(self):
         self.mainloop = eye_tracking_io.mainloop.Mainloop()
-        #eye_tracking_io.eyetracker.Eyetracker.create_async(self.mainloop, self.eyetracker_info, self.eyetracker_callback)
+        eye_tracking_io.eyetracker.Eyetracker.create_async(self.mainloop, self.eyetracker_info, self.eyetracker_callback)
         #self.eyetracker = DummyEtr.create_async(self.mainloop, self.eyetracker_info, self.eyetracker_callback)
         self.mainloop.run()
     
     def eyetracker_callback(self, _error, eyetracker):
-        logging.getLogger('eat_amplifier').info("WHOA!")
-        self.eyetracker = eyetracker
+        with self.established:
+            self.eyetracker = eyetracker
+            self.established.notify()
         
     def kill(self):
         self.mainloop.quit()
@@ -208,7 +219,6 @@ class CalibrationConnector(object):
         self._detect_eyetracker()
         self._connect_to_eyetracker()
         self._wait_for_key()
-        #self._perform_calibration()
 
     def _detect_eyetracker(self):
         browse_thread = BrowseThread()
@@ -217,24 +227,20 @@ class CalibrationConnector(object):
             browse_thread.discovery.wait(7)
             browse_thread.kill()
             if browse_thread.eyetracker_info:
-                self.logger.info("Found")
                 self.eyetracker_info = browse_thread.eyetracker_info
                 print self.eyetracker_info
             else:
-                self.logger.info("Timeoutd")
                 raise EatException("No eyetracker found")
     
     def _connect_to_eyetracker(self):
         self.eyetracker_thread = ConnectThread(self.eyetracker_info)
         self.eyetracker_thread.start()
-        eye_tracking_io.eyetracker.Eyetracker.create_async(self.eyetracker_thread.mainloop, self.eyetracker_thread.eyetracker_info, self.eyetracker_thread.eyetracker_callback)
+        #eye_tracking_io.eyetracker.Eyetracker.create_async(self.eyetracker_thread.mainloop, self.eyetracker_thread.eyetracker_info, self.eyetracker_thread.eyetracker_callback)
         with self.eyetracker_thread.established:
             self.eyetracker_thread.established.wait(11)
             if self.eyetracker_thread.eyetracker:
-                self.logger.info("Connectd")
                 self.eyetracker = self.eyetracker_thread.eyetracker
             else:
-                self.logger.info("Timeoutdd")
                 raise EatException("Could not connect to eyetracker")
     
     def _wait_for_key(self):
