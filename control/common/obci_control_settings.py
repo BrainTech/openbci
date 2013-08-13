@@ -8,9 +8,7 @@ import os.path
 import shutil
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
-
 OBCI_CONTROL_LOG_DIR = os.path.join(CONFIG_DEFAULTS["log_dir"], "control")
-
 
 USE_ZMQ = False
 
