@@ -46,6 +46,12 @@ class EtrAmplifierTobii(ConfiguredClient):
         self._init_signals()
         self.connector = TrackingConnector()
         self.ready()
+        self.apply_calibration()
+    
+    def apply_calibration(self):
+        calibration_data_path = self.get_param("calibration_data_path")
+        if calibration_data_path:
+            self.connector.upload_calibration(calibration_data_path)
 
     def _process_message(self, msg):
         self.logger.debug("ETR sending message...")
@@ -169,6 +175,11 @@ class TrackingConnector(object):
         with self.tracking_context.condition:
             self.tracking_context.last_sample = gaze
             self.tracking_context.condition.notify()
+
+    def upload_calibration(self, path):
+        calibration_file = open(path, "rb")
+        calibration = eye_tracking_io.converters.Calibration(calibration_file.read())
+        self.eyetracker.SetCalibration(calibration)
 
 
 if __name__ == "__main__":

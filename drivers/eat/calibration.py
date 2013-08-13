@@ -3,8 +3,6 @@
 """
 TODO: make the message disappear during calibration
 TODO: add some notification when searching for eyetrackers
-TODO: eyetracker choice
-TODO: save calibration data (but where?)
 TODO: get rid of time.sleep
 TODO: add animation (moving & shrinking)
 TODO: remove logic from connector and view and put it in CalibrationLogic
@@ -15,16 +13,12 @@ TODO: proper logging messages
 import signal
 import sys
 
-from tobii import eye_tracking_io
-import tobii.eye_tracking_io.eyetracker
-import tobii.eye_tracking_io.mainloop
-import tobii.eye_tracking_io.browsing
-import tobii.eye_tracking_io.types
+#from tobii import eye_tracking_io
 
-#import eye_tracking_io.eyetracker
-#import eye_tracking_io.mainloop
-#import eye_tracking_io.browsing
-#import eye_tracking_io.types
+import eye_tracking_io.eyetracker
+import eye_tracking_io.mainloop
+import eye_tracking_io.browsing
+import eye_tracking_io.types
 
 
 from obci.control.peer.configured_client import ConfiguredClient
@@ -132,9 +126,9 @@ class CalibrationViewMainWidget(QtGui.QWidget):
         self.save_calibration()
     
     def save_calibration(self):
-        data = self.eyetracker.GetCalibration()
+        calibration = self.eyetracker.GetCalibration()
         calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
-        calibration_file.write(str(data))
+        calibration_file.write(calibration.rawData)
         calibration_file.close()
     
     def paintEvent(self, _event):
@@ -182,8 +176,10 @@ class BrowseThread(threading.Thread):
     
     def kill(self):
         logging.getLogger("eat_amplifier").info("killed")
-        self.browser.stop()
-        self.mainloop.quit()
+        if self.browser:
+            self.browser.stop()
+        if self.mainloop:
+            self.mainloop.quit()
 
 
 class ConnectThread(threading.Thread):
