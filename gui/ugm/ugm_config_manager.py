@@ -123,8 +123,13 @@ class UgmAttributesManager(object):
             # It is reasonable, as we might want to position some stimuluses
             # relative to other specific 'containing' stimuluses
 
-            'feedback_level':{'value':'float'}
+            'feedback_level':{'value':'float'},
             # Feedback level for feedback stimulus (float in [0;1]
+
+            'maze_user_x':{'value':'float'},
+            'maze_user_y':{'value':'float'},
+            'maze_user_color':{'value':'color'},
+            'maze_user_direction':{'value':'string'},
 
             }
     # TODO: Stimuluses as attribute?
@@ -147,7 +152,13 @@ class UgmAttributesManager(object):
             'feedback':['id', 'width_type', 'width', 'height_type',
                          'height', 'position_horizontal_type',
                          'position_horizontal', 'position_vertical_type',
-                         'position_vertical', 'color', 'feedback_level']
+                         'position_vertical', 'color', 'feedback_level'],
+            'maze':['id', 'width_type', 'width', 'height_type',
+                    'height', 'position_horizontal_type',
+                    'position_horizontal', 'position_vertical_type',
+                    'position_vertical', 'color', 
+                    'maze_user_x', 'maze_user_y', 'maze_user_direction', 'maze_user_color']
+
 
                 
             }

@@ -249,6 +249,14 @@ class PeerControl(object):
 
         params = self.core.local_params
         cmsg.dict2params(params, msg)
+        ext_params = self.core.ext_param_defs
+        # register also external param definitions: param_name <---> (peer_id_of_config_source, param_name)
+        for par in ext_params:
+            ext_def = ext_params[par]
+            symname = ext_def[0]
+            ext_params[par] = (self.core.config_sources[symname], ext_def[1])
+
+        cmsg.dict2params(ext_params, msg, field_name="ext_params")
 
         #connection.send_message(message=msg, type=types.REGISTER_PEER_CONFIG)
         reply = self.__query(connection, cmsg.pack_msg(msg),

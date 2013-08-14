@@ -282,9 +282,9 @@ if __name__ == '__main__':
     finally:
         # Run ugm engin from default config or config from prompt
         if CONF == '':
-            UgmEngine(ugm_config_manager.UgmConfigManager()).run()
+            UgmEngine(ugm_config_manager.UgmConfigManager(), None).run()
         else:
-            UgmEngine(ugm_config_manager.UgmConfigManager(CONF)).run()
+            UgmEngine(ugm_config_manager.UgmConfigManager(CONF), None).run()
 
 
 

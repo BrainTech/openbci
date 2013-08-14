@@ -12,6 +12,7 @@ class SomethingThatChangesConfigs(object):
 
     def run(self):
         conn = connect_client(type=peers.CONFIGURER, addresses=settings.MULTIPLEXER_ADDRESSES)
+        time.sleep(4)
         for i in range(5):
             msg = cmsg.fill_msg(types.UPDATE_PARAMS, sender="p_a")
             params = dict(p=str(i))
