@@ -123,12 +123,15 @@ class SubprocessMonitor(object):
         try:
             if sys.platform == "win32":
                 crflags = subprocess.CREATE_NEW_PROCESS_GROUP
+                popen_obj = subprocess.Popen(launch_args,
+                                             stdout=out, stderr=err, stdin=stdin,
+                                             bufsize=1, close_fds=ON_POSIX, env=env,
+                                             creationflags=crflags)
             else:
-                crflags = None
-            popen_obj = subprocess.Popen(launch_args,
-                                        stdout=out, stderr=err, stdin=stdin,
-                                        bufsize=1, close_fds=ON_POSIX, env=env,
-                                        creationflags=crflags)
+                popen_obj = subprocess.Popen(launch_args,
+                                             stdout=out, stderr=err, stdin=stdin,
+                                             bufsize=1, close_fds=ON_POSIX, env=env)
+
             details = "Popen constructor finished for " +\
                                                  str(launch_args[:3]) + "(...)"
             self.logger.info(details)

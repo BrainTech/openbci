@@ -78,6 +78,9 @@ class RealLogModel(obci_log_model.LogModel):
         return s
 
     def post_run(self):
-        print("log model real - close socket "+str(self.socket.getsockname()[1]))
-        self.socket.close()
+        try:
+            print("log model real - close socket "+str(self.socket.getsockname()[1]))
+            self.socket.close()
+        except socket.error:
+            print("log model real - warning - could close socket properly!!!")
 
