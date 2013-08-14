@@ -90,22 +90,23 @@ def __param2msg(param, value):
     return __pb2_construct(templates.Param(), name=param, value=value)
 
 
-def params2dict(config_params_msg):
+def params2dict(config_params_msg, field_name="params"):
     """Take parameters from the config_params_msg,
     put them in a dictionary (with decoded values from json) and return it.
     The message should have a 'params' attribute"""
     dic = {}
-    for par_msg in config_params_msg.params:
-        dic[par_msg.name] = str2val(par_msg.value)
+    if hasattr(config_params_msg, field_name):
+        for par_msg in getattr(config_params_msg, field_name):
+            dic[par_msg.name] = str2val(par_msg.value)
     return dic
 
 
-def dict2params(dic, config_params_msg):
+def dict2params(dic, config_params_msg, field_name="params"):
     """Take parameters from the dictionary dic, encode values to json and
     put them in the config_params_msg. The message should have
     a 'params' attribute"""
     for name in dic:
-        par_msg = config_params_msg.params.add()
+        par_msg = getattr(config_params_msg, field_name).add()
         par_msg.name = name
         par_msg.value = val2str(dic[name])
 

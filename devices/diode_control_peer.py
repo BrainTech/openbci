@@ -84,6 +84,8 @@ class DiodeControl(ConfiguredMultiplexerServer):
                 self.logger.info("Start blinker!")
                 self.start_blinking()
             elif l_msg.key == 'update':
+                self.logger.info('Update blinker!')
+                self.logger.info(l_msg.value)
                 self.update_freqs(l_msg.value)
                 if self.freqs[0] == -1:
                     self.diodes_on()

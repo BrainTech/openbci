@@ -29,6 +29,7 @@ class ConfigServer(BaseMultiplexerServer):
     def __init__(self, addresses):
         super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
         self._configs = {}
+        self._ext_configs = {}
         self._ready_peers = []
         self.__to_all = False
         self.mtool = OBCIMessageTool(message_templates)
@@ -48,9 +49,11 @@ class ConfigServer(BaseMultiplexerServer):
         self._restore_peers = params['local_params'].get('restore_peers', '').split()
 
         for peer in self._restore_peers:
-            if peer in self._old_configs:
-                self._configs[peer] = dict(self._old_configs[peer])
+            if peer in self._old_configs["local"]:
+                self._configs[peer] = dict(self._old_configs["local"][peer])
                 self._ready_peers.append(peer)
+            if peer in self._old_configs["ext"]:
+                self._ext_configs[peer] = dict(self._old_configs["ext"][peer])
 
         if self.addr != '':
             self.ctx = zmq.Context()
@@ -103,7 +106,7 @@ class ConfigServer(BaseMultiplexerServer):
         if not parser.has_section('local_params'):
             parser.add_section('local_params')
 
-        parser.set('local_params', 'stored_config', json.dumps(self._configs))
+        parser.set('local_params', 'stored_config', json.dumps({"local":self._configs, "ext":self._ext_configs}))
         parser.set('local_params', 'launcher_socket_addr', '')
         parser.set('local_params', 'experiment_uuid', '')
         parser.set('local_params', 'restore_peers', '')
@@ -165,22 +168,44 @@ class ConfigServer(BaseMultiplexerServer):
         if param_owner == 'config_server':
             params = dict(experiment_uuid=self.exp_uuid)
 
-        elif param_owner not in self._configs:
-            return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
+        # elif param_owner not in self._configs:
+        #     return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
         else:
             #TODO error when param_name does not exist?
-            params = {}
-            for name in names:
-                if name in self._configs[param_owner]:
-                    params[name] = self._configs[param_owner][name]
+            # params = {}
+            # for name in names:
+            #     if name in self._configs[param_owner]:
+            #         params[name] = self._configs[param_owner][name]
+            params = self._get_params(param_owner, names)
+            if isinstance(params, tuple):
+                return params
 
         mtype = types.CONFIG_PARAMS
         msg = cmsg.fill_msg(mtype, sender=param_owner)
         cmsg.dict2params(params, msg)
         return msg, mtype, None
 
+    def _get_params(self, param_owner, names, params=None):
+        if params is None:
+            params = {}
+        self.logger.info("looking for %s, param names=%s" % (param_owner, str(names)))
+        if param_owner not in self._configs:
+            self.logger.info("%s not in %s" % (param_owner, str(self._configs)))
+            return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR, None
+
+        for name in names:
+            if name in self._configs[param_owner]:
+                params[name] = self._configs[param_owner][name]
+            elif name in self._ext_configs[param_owner]:
+                owner, name = self._ext_configs[param_owner][name]
+                params = self._get_params(owner, [name], params)
+        return params
+
+
     def handle_register_peer_config(self, message_obj):
         params = cmsg.params2dict(message_obj)
+        ext_params = cmsg.params2dict(message_obj, field_name="ext_params")
+
         peer_id = message_obj.sender
         launcher_msg = None
 
@@ -189,6 +214,7 @@ class ConfigServer(BaseMultiplexerServer):
             msg = cmsg.fill_msg(mtype)
         else:
             self._configs[peer_id] = params
+            self._ext_configs[peer_id] = ext_params
             mtype = types.PEER_REGISTERED
             msg = cmsg.fill_msg(mtype, peer_id=peer_id)
             launcher_msg = self.mtool.fill_msg('obci_peer_registered',

@@ -11,12 +11,14 @@ message ConfigParamsRequest {
     required string sender = 1;
     required string receiver = 2;
     repeated string param_names = 3;
+    repeated Param ext_params = 4;
 }
 
 message ConfigParams {
     required string sender = 1;
     optional string receiver = 2;
     repeated Param params = 3;
+    repeated Param ext_params = 4;
 }
 
 message PeerIdentity {

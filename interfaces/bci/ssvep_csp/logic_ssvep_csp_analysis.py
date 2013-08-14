@@ -11,7 +11,7 @@ from obci.analysis.csp import modCSPv2 as csp
 from obci.analysis.csp import signalParser as sp
 from obci.utils import context as ctx
 
-def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_stats=True,
+def run(in_file, use_channels, ignore_channels, montage, montage_channels, dec_count, plot_stats=True,
 	context=ctx.get_dummy_context('UgmBlinkingConnection')):
 	logger = context['logger']
 	mgr = read_manager.ReadManager(
@@ -31,7 +31,6 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
 	exp_info = mgr.get_tags('experimentInfo')[0]['desc']
         to_signal = float(exp_info['target_time'])
         freqs = [int(i) for i in exp_info['all_freqs'].split(';')]
-	dec_count = int(exp_info['fields_count'])
 
 
         data = sp.signalParser(in_file+'.obci')
@@ -54,7 +53,8 @@ def run(in_file, use_channels, ignore_channels, montage, montage_channels, plot_
 	best = [i[1] for i in pairs]
         best_means = [i[0] for i in pairs]
         logger.info("Best freqs: "+str(best))
-        
+	logger.info("dec_count: "+str(dec_count))
+        logger.info("freqs: " + str(best[:dec_count]))
         logger.info("Finished CSP with stats:")
         logger.info(str(value) + " / " + str(mu) + " / " + str(sigma))
         logger.info("And q:")
