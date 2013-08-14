@@ -109,7 +109,7 @@ class OBCIControlPeer(object):
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
-                    stream_level=net_tools.peer_loglevel())
+                                    stream_level=net_tools.peer_loglevel(), obci_peer=self)
 
         self.mtool = self.message_tool()
 

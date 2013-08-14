@@ -12,7 +12,7 @@ from obci.utils import context as ctx
 DEBUG = False
 
 class BCIP300FdaAnalysis(object):
-    def __init__(self, send_func, cfg, montage_matrix, sampling,
+    def __init__(self, send_func, cfg, montage_matrix, sampling, dec_count,
                  context=ctx.get_dummy_context('BCIP300FdaAnalysis')):
         self.logger = context['logger']
         self.send_func = send_func
@@ -21,7 +21,7 @@ class BCIP300FdaAnalysis(object):
         self.montage_matrix = montage_matrix
         use_channels = cfg['use_channels']
 
-        self.nPole = np.zeros(8)
+        self.nPole = np.zeros( dec_count)
         self.nMin = cfg['nMin']
         self.nMax = cfg['nMax']
 
@@ -35,7 +35,7 @@ class BCIP300FdaAnalysis(object):
         conN = cfg['conN']
         
         print "cfg['w']: ", cfg['w']
-        self.p300 = P300_analysis(sampling, cfg, fields=8)
+        self.p300 = P300_analysis(sampling, cfg, fields= dec_count)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
         self.debugFlag = cfg['debug_flag']

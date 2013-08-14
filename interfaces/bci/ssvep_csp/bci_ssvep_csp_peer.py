@@ -34,7 +34,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             self.conn, t, t,
             "decision",
             {'decision':str(dec)})
-        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
+        self.conn.send_message(message = str(self.active_field_ids[dec]), type = types.DECISION_MESSAGE, flush=True)
         appliance_helper.send_stop(self.conn)#, self.str_freqs)
 
     @log_crash
@@ -49,13 +49,27 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
 
 
         freqs = [int(f) for f in cfg['freqs'].split(';')]
-        str_freqs = [str(f) for f in freqs]
+
         dec_count = int(self.config.get_param('dec_count'))
+        active_field_ids = self.config.get_param('active_field_ids')
+        self.active_field_ids = [str(f) for f in active_field_ids.split(';')]
+        str_freqs = [str(0)] * len(self.get_param('ugm_field_ids').split(';'))
+        str_freqs[1] = str(100) #TODO fix fix fix, useful only for ssvep maze app .....
+        for index1, index2 in enumerate(self.active_field_ids):
+            str_freqs[int(index2)] = str(freqs[index1])
+
+        self.str_freqs = (';').join(str_freqs)
+            
         if len(freqs) != dec_count:
             raise Exception("Configuration inconsistency! logic dec_count is different from number of decisions to-be-sent from obci.analysis (len(freqs))...."+str(len(freqs))+" != "+str(dec_count))
 
         sampling = int(self.config.get_param('sampling_rate'))
-        buffer = int(float(cfg['buffer'])*sampling)
+        tmp_buf = float(cfg['buffer'])
+        if tmp_buf < 2.0:
+            self.logger.warning("CSP config has buf len smaller than 2.0!, precisely: "+str(tmp_buf)+" Lets make it 2.0...")
+            tmp_buf = 2.0
+
+        buffer = int(tmp_buf*sampling)
         maybe_buffer = self.config.get_param('buffer_len')
         if len(maybe_buffer) > 0:
             old_buffer = buffer
