@@ -20,6 +20,7 @@ import obci.control.common.obci_control_settings as settings
 from obci.control.launcher.subprocess_monitor import SubprocessMonitor
 from obci.control.launcher.process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
 from obci.utils.openbci_logging import get_logger, log_crash
+from obci.control.common import net_tools
 
 class HandlerCollection(object):
     def __init__(self):
@@ -80,7 +81,6 @@ class HandlerCollection(object):
 
 
 
-
 class OBCIControlPeer(object):
 
     msg_handlers = HandlerCollection()
@@ -109,7 +109,7 @@ class OBCIControlPeer(object):
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
-                                    stream_level='debug', obci_peer=self)
+                                    stream_level=net_tools.peer_loglevel(), obci_peer=self)
 
         self.mtool = self.message_tool()
 
@@ -379,6 +379,7 @@ class OBCIControlPeer(object):
             self._clean_up()
             raise(e)
 
+        self._clean_up()
 
     def _crash_extra_description(self, exception=None):
         return ""
