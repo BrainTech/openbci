@@ -1,0 +1,13 @@
+Instrukcja instalacji OBCI:
+1. Zainstalować Python 2.7
+2. Zainstalować MinGW
+3. Zainstalować pyzmq przez easy_install (https://pypi.python.org/pypi/pyzmq)
+4. W konsoli:
+git clone git://git.braintech.pl/openbci.git
+cd openbci
+git checkout-index -a -f --prefix=$HOME/obci/
+git checkout-index -a -f --prefix=/c/Python27/Lib/site-packages/
+5. Skrypt obci znajduje się w katalogu $HOME/obci/control/launcher
+6. Opcjonalnie można zainstalować PyQt4 i PySide i korzystać z obci_gui
+
+autor: Piotr Iwaniuk piotr.iwaniuk@titanis.pl

@@ -9,5 +9,5 @@ curr=`pwd`
 top=`cd ../;pwd`
 cd $az_path
 ./bootstrap.sh
-./configure RULES=$top/configs/multiplexer.rules --prefix=$top/multiplexer-install && make -j4 && make install 
+./configure RULES=$top/configs/multiplexer.rules --prefix=$top/multiplexer-install && make && make install 
 cd $curr
