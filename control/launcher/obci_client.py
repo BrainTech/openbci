@@ -17,14 +17,13 @@ from obci.control.peer import peer_config_parser
 import obci.control.common.obci_control_settings as settings
 import obci.control.common.net_tools as net
 
+class EmptyResponse(object):
+    def __init__(self, details):
+        self.type = "no_data"
+        self.details = details
+
 class OBCIClient(object):
-
     default_timeout=5000
-
-    class EmptyResponse(object):
-        def __init__(self, details):
-            self.type = "no_data"
-            self.details = details
 
     def __init__(self, server_addresses, zmq_context=None):
         self.ctx = zmq_context if zmq_context else zmq.Context()
