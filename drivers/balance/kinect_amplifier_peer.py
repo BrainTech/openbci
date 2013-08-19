@@ -92,6 +92,7 @@ class KinectAmplifier(ConfiguredClient):
 
 	def finish(self):
 		cv2.destroyAllWindows()
+		self.recorder.stop()
 		self.recorder.destroy()
 		self.color.destroy()
 		self.depth.destroy()
@@ -124,22 +125,22 @@ class KinectAmplifier(ConfiguredClient):
 
 		self.color = VideoStream()
 		self.depth = VideoStream()
-		if self.device.hasSensor(SENSOR_COLOR):
-			rc = self.color.create(self.device, SENSOR_COLOR)
-			if rc != OPENNI_STATUS_OK:
-				self.logger.error("Color stream create failed.")
-			rc = self.color.start()
-			if rc != OPENNI_STATUS_OK:
-				self.logger.error("Color stream start failed.")
-				self.color.destroy()
-		if self.device.hasSensor(SENSOR_DEPTH):
-			rc = self.depth.create(self.device, SENSOR_DEPTH)
-			if rc != OPENNI_STATUS_OK:
-				self.logger.error("Depth stream create failed.")
-			rc = self.depth.start()
-			if rc != OPENNI_STATUS_OK:
-				self.logger.error("Depth stream start failed.")
-				self.depth.destroy()
+
+		rc = self.color.create(self.device, SENSOR_COLOR)
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Color stream create failed.")
+		rc = self.color.start()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Color stream start failed.")
+			self.color.destroy()
+
+		rc = self.depth.create(self.device, SENSOR_DEPTH)
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Depth stream create failed.")
+		rc = self.depth.start()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Depth stream start failed.")
+			self.depth.destroy()
 
 		if self.device.isFile():
 			playback = self.device.getPlaybackControl()
@@ -183,8 +184,6 @@ class KinectAmplifier(ConfiguredClient):
 
 		while True:
 			k = cv2.waitKey(10)
-			if k == 27:
-				break
 
 			rc, color_frame = self.color.readFrame()
 			if rc != OPENNI_STATUS_OK:
@@ -237,12 +236,13 @@ class KinectAmplifier(ConfiguredClient):
 	def init_signals(self):
 		self.logger.info("INIT SIGNALS IN APPLIANCE CLEANER")
 		signal.signal(signal.SIGTERM, self.signal_handler())
-
 		signal.signal(signal.SIGINT, self.signal_handler())
+		if sys.platform == 'win32':
+			signal.signal(signal.SIGBREAK, self.signal_handler())
         
 	def signal_handler(self):
 		def handler(signum, frame):
-			self.logger.warning("Got aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaasignal " + str(signum) + "!!! Sending diodes ON!")
+			self.logger.warning("Got signal " + str(signum) + "!!! Sending diodes ON!")
 			self.finish()
 			sys.exit(-signum)
 		return handler

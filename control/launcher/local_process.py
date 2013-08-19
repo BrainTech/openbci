@@ -58,7 +58,7 @@ class LocalProcess(process.Process):
                 self._status_details = -(self.popen_obj.returncode)
             self._status = TERMINATED
 
-    def kill_with_force(self, timeout_s=0.3):
+    def kill_with_force(self, timeout_s=0.5):
         self.stop_monitoring()
 
         if self.io_handler is not None:
@@ -70,8 +70,8 @@ class LocalProcess(process.Process):
             if self.popen_obj.returncode is None:
                 if sys.platform == "win32":
                     self.logger.info("[win] sending CTRL_C_EVENT.............. %s", self.name)
-                    # self.popen_obj.send_signal(signal.CTRL_C_EVENT)
-                    os.kill(self.popen_obj.pid, signal.CTRL_C_EVENT)
+                    #self.popen_obj.send_signal(signal.SIGINT)
+                    os.kill(self.popen_obj.pid, signal.CTRL_BREAK_EVENT)
                 else:
                     self.popen_obj.terminate()
         time.sleep(timeout_s)
