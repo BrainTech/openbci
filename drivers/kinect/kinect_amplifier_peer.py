@@ -21,6 +21,8 @@ class KinectAmplifier(ConfiguredClient):
 		device_uri = str(self.get_param('device_uri'))
 		file_name = str(self.get_param('file_name'))
 		directory = str(self.get_param('directory'))
+		if not directory:
+			directory = os.path.expanduser("~")
 		if not os.path.exists(directory):
 			self.logger.error("Directory doesn't exist.")
 			sys.exit(1)
