@@ -17,27 +17,34 @@ DISCOVERY_MODULE_NAMES = [
                         'amplifier_tmsi_usb_discovery']
 BASE_MODULE = 'obci.drivers.eeg.driver_discovery'
 
+LOADED_MODULE_NAMES = []
+
 discovery_modules = []
 
+LOGGER = logger.get_logger("DriverDiscovery", "info")
 
 for mod_name in DISCOVERY_MODULE_NAMES:
     name = BASE_MODULE + '.' + mod_name
-    __import__(name)
-    discovery_modules.append(sys.modules[name])
-
-LOGGER = logger.get_logger("DriverDiscovery", "info")
+    try:
+        __import__(name)
+        discovery_modules.append(sys.modules[name])
+        LOADED_MODULE_NAMES.append(mod_name)
+    except:
+        LOGGER.warning("Failed to load discovery module: " + mod_name)
 
 def find_drivers():
     return _find_amps(discovery_modules)
 
 def _filter_modules(pattern):
-    return [sys.modules[BASE_MODULE + '.' + mod] for mod in \
-                            DISCOVERY_MODULE_NAMES if pattern in mod]
+    return [sys.modules[BASE_MODULE + '.' + mod] for mod in LOADED_MODULE_NAMES if pattern in mod]
 
 def _find_amps(module_list):
     descriptions = []
     for mod in module_list:
-        descriptions += mod.driver_descriptions()
+        try:
+            descriptions += mod.driver_descriptions()
+        except Exception as e:
+            LOGGER.warning("Discovery failed: " +  str(mod))
     return descriptions
 
 def find_usb_amps():

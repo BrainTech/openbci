@@ -8,15 +8,13 @@ import os.path
 import shutil
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
-
 OBCI_CONTROL_LOG_DIR = os.path.join(CONFIG_DEFAULTS["log_dir"], "control")
-
 
 USE_ZMQ = False
 
 PORT_RANGE = (30000, 60000)
 
-OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
+OBCI_HOME_DIR = os.path.join(os.path.expanduser('~'), '.obci')
 DEFAULT_SANDBOX_DIR = os.path.join(OBCI_HOME_DIR, 'sandbox')
 DEFAULT_SCENARIO_DIR = os.path.join(OBCI_HOME_DIR, 'scenarios')
 
@@ -24,12 +22,13 @@ SERVER_CONTACT_NAME = '.obci_server_contact'
 MAIN_CONFIG_NAME = 'main_config.ini'
 
 def __obci_install_dir():
-    f = __file__
-    dirname = os.path.dirname(f)
-    if dirname.endswith('control/common'):
-        ind = dirname.rfind('control/common')
-        return f[:ind]
-    else: return None
+    dirname = os.path.abspath(os.path.dirname(__file__))
+    test_suffix = os.path.join('control', 'common')
+    if dirname.endswith(test_suffix):
+        return dirname[:-len(test_suffix)]
+    else:
+        # TODO: better raise an exception
+        return None
 
 INSTALL_DIR = __obci_install_dir()
 

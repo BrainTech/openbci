@@ -72,16 +72,16 @@ class ReadManager(object):
 
         path = os.path.join(p_dir, p_name)
         #store tags
-        tags_writer = tags_file_writer.TagsFileWriter(path+'.obci.tags')
+        tags_writer = tags_file_writer.TagsFileWriter(path+'.obci.tag')
         for tag in tags:
             tags_writer.tag_received(tag)
 
         #store info
-        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.obci.info')
+        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.obci.xml')
         info_writer.set_attributes(params)
 
         #store data
-        data_writer = data_raw_write_proxy.DataRawWriteProxy(path+'.obci.dat')
+        data_writer = data_raw_write_proxy.DataRawWriteProxy(path+'.obci.raw')
         for sample in self.iter_samples():
             for d in sample:
                 data_writer.data_received(d)

@@ -16,6 +16,7 @@ from obci.gui.ugm import ugm_helper
 from obci.analysis.buffers import auto_blink_buffer
 from obci.interfaces.bci.p300_fda import bci_p300_fda_analysis
 from obci.utils import context as ctx
+from obci.utils import tags_helper
 import csp_helper
 
 from obci.utils import streaming_debug
@@ -32,8 +33,13 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
         ugm_helper.send_stop_blinking(self.conn)
-        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
-
+        t = time.time()
+        tags_helper.send_tag(
+            self.conn, t, t, 
+            "decision",
+            {'decision':str(dec)})
+        self.conn.send_message(message = str(self.blink_field_ids[dec]), type = types.DECISION_MESSAGE, flush=True)
+       
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCIP300Fda, self).__init__(addresses=addresses,
@@ -48,8 +54,9 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         cfg['debug_flag'] = int(self.config.get_param('debug_flag'))
         
         montage_matrix = self._get_montage_matrix(cfg)
-            
-        #dec_count = int(self.config.get_param('dec_count'))
+        blink_field_ids = self.config.get_param('blink_field_ids').split(';')
+        self.blink_field_ids = [int(ids) for ids in blink_field_ids]
+        
 
         #Create analysis object to analyse data 
         self.analysis = self._get_analysis(self.send_decision, cfg, montage_matrix)
@@ -121,6 +128,7 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
             cfg,
             montage_matrix,
             int(self.config.get_param('sampling_rate')),
+            int(self.config.get_param('dec_count')),
             context)
 
 
