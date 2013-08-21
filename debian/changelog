@@ -1,8 +1,9 @@
-openbci (1.8.10-2) UNRELEASED; urgency=low
+openbci (1.8.11-1) unstable; urgency=low
 
   * Helper scripts update.
+  * New update release.
 
- -- Karol Auguštin <karol@augustin.pl>  Mon, 11 Feb 2013 17:03:03 +0100
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 21 Aug 2013 15:48:47 +0200
 
 openbci (1.8.10-1) unstable; urgency=low
 
