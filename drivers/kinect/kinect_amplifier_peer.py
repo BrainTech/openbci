@@ -65,7 +65,8 @@ class KinectAmplifier(ConfiguredClient):
 	  		JOINT_RIGHT_SHOULDER,
 	  		JOINT_TORSO)
 
-		f_name = 'test.dat'
+		f_name = file_name.split('.')
+		f_name = f_name[0]
 		self.data_file = open(os.path.join(directory, f_name), 'wb')
 		
 		rc = OpenNI.initialize()
@@ -160,6 +161,22 @@ class KinectAmplifier(ConfiguredClient):
 			s = struct.pack(ffm, *data)
 			self.data_file.write(s)
 
+	def deserialize_skeleton(self, filename):
+		ffm = 'i??' + 2*'ifffff' + 'ifff' + 15*'iffffff'
+		f = open(filename, 'rb')
+		frame_size = struct.calcsize(ffm)
+		totalBytes = os.path.getsize(filename)	
+		buf = f.read(frame_size)
+		if not buf: return
+		data = struct.unpack(ffm, buf)
+		return data
+
+	def draw_from_file(self, filename, data_rgb):
+		frame = deserialize_skeleton(filename)
+		#x_new, y_new = 
+		
+		#cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1) /////TODO
+
 	def run(self):
 
 		self.color = VideoStream()
@@ -236,6 +253,8 @@ class KinectAmplifier(ConfiguredClient):
 				self.frame_id = color_frame.frameIndex
 			elif depth_frame.isValid():
 				self.frame_id = depth_frame.frameIndex
+
+			print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2', self.frame_id
 
 			if color_frame is not None and color_frame.isValid():
 				data_rgb = color_frame.data
@@ -317,7 +336,7 @@ class KinectAmplifier(ConfiguredClient):
 					else:
 						joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-				self.serialize_skeleton(self.frame_id_hands, joints_coordinates, hands_coordinates)
+				self.serialize_skeleton(self.frame_id, joints_coordinates, hands_coordinates)
 			
 			elif self.hand_tracking:
 				hands_coordinates = []
@@ -345,7 +364,7 @@ class KinectAmplifier(ConfiguredClient):
 						hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
 					else:
 						hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-				self.serialize_skeleton(self.frame_id_hands, None, hands_coordinates)
+				self.serialize_skeleton(self.frame_id, None, hands_coordinates)
 
 			elif self.skeleton_tracking:
 				joints_coordinates = []
@@ -362,13 +381,19 @@ class KinectAmplifier(ConfiguredClient):
 							joints_coordinates.extend([i, joint.positionConfidence, joint.position.x, joint.position.y, joint.position.z, x_new, y_new])	
 					else:
 						joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-				self.serialize_skeleton(self.frame_id_skeleton, joints_coordinates, None)
+				self.serialize_skeleton(self.frame_id, joints_coordinates, None)
 
 			else:
 				self.serialize_skeleton(self.frame_id, None, None)
 
 			if self.video_type_rgb:
-				cv2.imshow('color', data_rgb)
+				if self.device.isFile():
+					if self.skeleton_tracking or self.hand_tracking:
+						self.draw_from_file(filename, data_rgb)
+						cv2.imshow('color', data_rgb)
+					cv2.imshow('color', data_rgb)
+				else:
+					cv2.imshow('color', data_rgb)
 			if self.video_type_depth:
 				cv2.imshow('depth', data_depth)
 
