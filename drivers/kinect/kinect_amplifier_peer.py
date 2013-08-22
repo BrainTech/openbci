@@ -144,83 +144,142 @@ class KinectAmplifier(ConfiguredClient):
 			except ValueError:
 				pass
 
-	def serialize_skeleton(self, frame_id, joints_coordinates, hands_coordinates):
-		ffm = 'i??' + 2*'ifffff' + 'ifff' + 15*'iffffff'				
+	def serialize_skeleton(self, joints_coordinates, hands_coordinates, header):
+		ffm = '??ifiQiQiQiQ' + 2*'ifffff' + 'ifff' + 15*'iffffff'				
 		if joints_coordinates is not None and hands_coordinates is not None:
-			header = [frame_id, 1, 1]
+			tracking = [1, 1]
+			tracking.extend(header)
 			data = []		
-			data.extend(header + hands_coordinates + joints_coordinates)	
+			data.extend(tracking + hands_coordinates + joints_coordinates)	
 			s = struct.pack(ffm, *data)
 			self.data_file.write(s)
 		elif joints_coordinates is not None:
-			header = [frame_id, 1, 0]
+			tracking = [1, 0]
+			tracking.extend(header)
 			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
 			data = []		
-			data.extend(header + hands_coordinates + joints_coordinates)
+			data.extend(tracking + hands_coordinates + joints_coordinates)
 			s = struct.pack(ffm, *data)
 			self.data_file.write(s)
 		elif hands_coordinates is not None:
-			header = [frame_id, 0, 1]
+			tracking = [0, 1]
+			tracking.extend(header)
 			joints_coordinates = []
 			data = []
 			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			data.extend(header + hands_coordinates + joints_coordinates)	
+			data.extend(tracking + hands_coordinates + joints_coordinates)	
 			s = struct.pack(ffm, *data)
 			self.data_file.write(s)
 		else:
-			header = [frame_id, 0, 0]
+			tracking = [0, 0]
+			tracking.extend(header)
 			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
 			joints_coordinates = []
 			data = []
 			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			data.extend(header + hands_coordinates + joints_coordinates)	
+			data.extend(tracking + hands_coordinates + joints_coordinates)	
 			s = struct.pack(ffm, *data)
 			self.data_file.write(s)
 
 	def deserialize_skeleton(self):
-		ffm = 'i??' + 2*'ifffff' + 'ifff' + 15*'iffffff'
+		ffm = '??ifiQiQiQiQ' + 2*'ifffff' + 'ifff' + 15*'iffffff'
 		frame_size = struct.calcsize(ffm)
 		buf = self.data_file.read(frame_size)
 		if not buf: return
 		data = struct.unpack(ffm, buf)
 		return data
 
-	def draw_from_file(self, frame, img):
-		if frame[1] and frame[2]:
-			center = (frame[7], frame[8])
-			if center[0] and center[1]:
-				cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
+	# def draw_from_file(self, frame, img):
+	# 	if frame[1] and frame[2]:
+	# 		center = (frame[7], frame[8])
+	# 		if center[0] and center[1]:
+	# 			cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
 
-			# if frame[9]:
+	# 		# if frame[9]:
 
-			# 	center2 = (frame[13], frame[14])
-			# 	if center2[0] and center2[1]:
-			# 		try:
-			# 			cv2.circle(img, (int(center2[0]), int(center2[1])), 8, (0, 255, 0), -1)
-			# 		except TypeError:
-			# 			pass
-			if frame[15]:
-				head = (frame[21], frame[22])
-				cv2.circle(img, (int(head[0]), int(head[1])), 8, (0, 255, 0), -1)
+	# 		# 	center2 = (frame[13], frame[14])
+	# 		# 	if center2[0] and center2[1]:
+	# 		# 		try:
+	# 		# 			cv2.circle(img, (int(center2[0]), int(center2[1])), 8, (0, 255, 0), -1)
+	# 		# 		except TypeError:
+	# 		# 			pass
+	# 		if frame[15]:
+	# 			head = (frame[21], frame[22])
+	# 			cv2.circle(img, (int(head[0]), int(head[1])), 8, (0, 255, 0), -1)
 
-		elif frame[1]:	
-			j = frame[17:]
-			for i in xrange(14):
-				center = (j[(i+1)*7], j[(i+1)*7+1])
-				cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
+	# 	elif frame[1]:	
+	# 		j = frame[17:]
+	# 		for i in xrange(14):
+	# 			center = (j[(i+1)*7], j[(i+1)*7+1])
+	# 			cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
 
-		elif frame[2]: 
-			center = (frame[7], frame[8])
+	# 	elif frame[2]: 
+	# 		center = (frame[7], frame[8])
 
-			cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
+	# 		cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
 
-			if frame[9]:
-				center = (frame[13], frame[14])
-				if center[0] and center[1]:
-					try:
-						cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
-					except ValueError:
-						pass
+	# 		if frame[9]:
+	# 			center = (frame[13], frame[14])
+	# 			if center[0] and center[1]:
+	# 				try:
+	# 					cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
+	# 				except ValueError:
+	# 					pass
+
+	def get_hands_coordinates(self):
+		hands_coordinates = []
+		if len(self.hands) == 0:
+			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		elif len(self.hands) == 1:
+			hand = self.hands[0]
+			if hand.isTracking():
+				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(hand.position.x, hand.position.y, hand.position.z)
+				hands_coordinates.extend([hand.id, hand.position.x, hand.position.y, hand.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
+			else:
+				hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		else:
+			if self.hands[0].isTracking() and self.hands[1].isTracking():
+				for h in self.hands[:2]:
+					rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+					hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new])
+			elif self.hands[0].isTracking():
+				h = self.hands[0]
+				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+				hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
+			elif self.hands[1].isTracking():
+				h = self.hands[1]
+				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+				hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
+			else:
+				hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		return hands_coordinates
+
+	def get_joints_coordinates(self):
+		joints_coordinates = []
+		if len(self.users) == 0:
+			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+		else:
+			u = self.users[0]
+			if u.skeleton.state == SKELETON_TRACKED:
+				x, y, z = u.centerOfMass
+				joints_coordinates.extend([u.id, x, y, z])
+				for i,j in enumerate(self.joints):
+					joint = u.skeleton.getJoint(j)
+					rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
+					joints_coordinates.extend([i, joint.positionConfidence, joint.position.x, joint.position.y, joint.position.z, x_new, y_new])	
+			else:
+				joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+		return joints_coordinates
+
+	def get_frames(self):
+		frames = []
+		if self.color_frame.isValid() and self.depth_frame.isValid():
+			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, self.depth_frame.frameIndex, self.depth_frame.timestamp])
+		elif self.depth_frame.isValid():
+			frames.extend([0, 0, 0, self.depth_frame.frameIndex, self.depth_frame.timestamp])
+		elif self.color_frame.isValid():
+			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, 0, 0])
+		return frames
 
 	def run(self):
 
@@ -270,6 +329,7 @@ class KinectAmplifier(ConfiguredClient):
 			rc = self.recorder.start()
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Recorder start error.")
+			time_rec_start = time.time()
 		
 		if self.hand_tracking and not self.device.isFile():
 			self.ht = HandTracker()
@@ -286,35 +346,26 @@ class KinectAmplifier(ConfiguredClient):
 			if rc != NITE_STATUS_OK:
 				self.logger.error('Creating user tracker failed.')
 
-		flag = False
 		licznik = 0
 
 		while True:
 			k = cv2.waitKey(10)
 
-			rc, color_frame = self.color.readFrame()
+			rc, self.color_frame = self.color.readFrame()
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Error reading color frame.")
 
-			rc, depth_frame = self.depth.readFrame()
+			rc, self.depth_frame = self.depth.readFrame()
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Error reading depth frame.")
 			
 			licznik += 1
-			if not flag:
-				zero = color_frame.timestamp
-				flag = True
 
-			if color_frame.isValid():
-				self.frame_id = color_frame.frameIndex
-			elif depth_frame.isValid():
-				self.frame_id = depth_frame.frameIndex
-
-			if color_frame is not None and color_frame.isValid():
-				data_rgb = color_frame.data
+			if self.color_frame is not None and self.color_frame.isValid():
+				data_rgb = self.color_frame.data
 				data_rgb = cv2.cvtColor(data_rgb, cv2.COLOR_BGR2RGB)		
-			if depth_frame is not None and depth_frame.isValid():
-				data_depth = depth_frame.data
+			if self.depth_frame is not None and self.depth_frame.isValid():
+				data_depth = self.depth_frame.data
 				data_depth = np.float32(data_depth)
 				data_depth = data_depth * (-255.0/3200.0) + (800.0*255.0/3200.0)
 				data_depth = data_depth.astype('uint8')
@@ -329,7 +380,7 @@ class KinectAmplifier(ConfiguredClient):
 					if g.isComplete():
 						rc, newId = self.ht.startHandTracking(g.currentPosition)
 				self.hands = frame.hands
-				self.time_hand = frame.timestamp
+				self.time_hands = frame.timestamp
 				self.frame_id_hands = frame.frameIndex
 				self.draw_hands(data_depth, self.hands)
 				self.draw_hands(data_rgb, self.hands)
@@ -339,7 +390,7 @@ class KinectAmplifier(ConfiguredClient):
 				if rc != OPENNI_STATUS_OK:
 					self.logger.error('Error reading user tracker frame')
 				self.frame_id_skeleton = frame.frameIndex
-				self.time_skel = frame.timestamp
+				self.time_skeleton = frame.timestamp
 				self.users = frame.users
 				for u in self.users:
 					if u.isNew():
@@ -348,109 +399,41 @@ class KinectAmplifier(ConfiguredClient):
 						self.draw_user(data_rgb, u.skeleton)
 						self.draw_user(data_depth, u.skeleton)
 
-			#print '###################',(self.time_skel-zero)*10**(-6), (self.time_hand-zero)*10**(-6), (color_frame.timestamp-zero)*10**(-6)
-
 			if not self.device.isFile() and self.recorder.isValid():
 				if self.hand_tracking and self.skeleton_tracking:
-					hands_coordinates = []
-					joints_coordinates = []
-					if len(self.hands) == 0:
-						hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-					elif len(self.hands) == 1:
-						hand = self.hands[0]
-						if hand.isTracking():
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(hand.position.x, hand.position.y, hand.position.z)
-							hands_coordinates.extend([hand.id, hand.position.x, hand.position.y, hand.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						else:
-							hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-					else:
-						if self.hands[0].isTracking() and self.hands[1].isTracking():
-							for h in self.hands[:2]:
-								rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-								hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new])
-						elif self.hands[0].isTracking():
-							h = self.hands[0]
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-							hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						elif self.hands[1].isTracking():
-							h = self.hands[1]
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-							hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						else:
-							hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-					if len(self.users) == 0:
-						joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-					else:
-						u = self.users[0]
-						if u.skeleton.state == SKELETON_TRACKED:
-							x, y, z = u.centerOfMass
-							joints_coordinates.extend([u.id, x, y, z])
-							for i,j in enumerate(self.joints):
-								joint = u.skeleton.getJoint(j)
-								rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
-								joints_coordinates.extend([i, joint.positionConfidence, joint.position.x, joint.position.y, joint.position.z, x_new, y_new])	
-						else:
-							joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-					self.serialize_skeleton(self.frame_id, joints_coordinates, hands_coordinates)
-				
+					header = [licznik, time_rec_start, self.frame_id_hands, self.time_hands, self.frame_id_skeleton, self.time_skeleton]
+					frames = self.get_frames()
+					header.extend(frames)
+					hands_coordinates = self.get_hands_coordinates()
+					joints_coordinates = self.get_joints_coordinates()
+					self.serialize_skeleton(joints_coordinates, hands_coordinates, header)			
 				elif self.hand_tracking:
-					hands_coordinates = []
-					if len(self.hands) == 0:
-						hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-					elif len(self.hands) == 1:
-						hand = self.hands[0]
-						if hand.isTracking():
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(hand.position.x, hand.position.y, hand.position.z)
-							hands_coordinates.extend([hand.id, hand.position.x, hand.position.y, hand.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						else:
-							hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-					else:
-						if self.hands[0].isTracking() and self.hands[1].isTracking():
-							for h in self.hands[:2]:
-								rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-								hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new])
-						elif self.hands[0].isTracking():
-							h = self.hands[0]
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-							hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						elif self.hands[1].isTracking():
-							h = self.hands[1]
-							rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-							hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-						else:
-							hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-					self.serialize_skeleton(self.frame_id, None, hands_coordinates)
-
+					header = [licznik, time_rec_start, self.frame_id_hands, self.time_hands, 0, 0]
+					frames = self.get_frames()
+					header.extend(frames)
+					hands_coordinates = self.get_hands_coordinates()
+					self.serialize_skeleton(None, hands_coordinates, header)
 				elif self.skeleton_tracking:
-					joints_coordinates = []
-					if len(self.users) == 0:
-						joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-					else:
-						u = self.users[0]
-						if u.skeleton.state == SKELETON_TRACKED:
-							x, y, z = u.centerOfMass
-							joints_coordinates.extend([u.id, x, y, z])
-							for i,j in enumerate(self.joints):
-								joint = u.skeleton.getJoint(j)
-								rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
-								joints_coordinates.extend([i, joint.positionConfidence, joint.position.x, joint.position.y, joint.position.z, x_new, y_new])	
-						else:
-							joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-					self.serialize_skeleton(self.frame_id, joints_coordinates, None)
-
+					header = [licznik, time_rec_start, 0, 0, self.frame_id_skeleton, self.time_skeleton]
+					frames = self.get_frames()
+					header.extend(frames)
+					joints_coordinates = self.get_joints_coordinates()
+					self.serialize_skeleton(joints_coordinates, None, header)
 				else:
-					self.serialize_skeleton(self.frame_id, None, None)
+					header = [licznik, 0, 0, 0, 0]
+					frames = self.get_frames()
+					header.extend(frames)
+					self.serialize_skeleton(self.frame_id, None, None, header)
 
 			if self.video_type_rgb:
 				if self.device.isFile():
 					if self.skeleton_tracking or self.hand_tracking:
 						data = self.deserialize_skeleton()
 						#if not data: break
-						try:
-							self.draw_from_file(data, data_rgb)
-						except ValueError:
-							pass
+						# try:
+						# 	self.draw_from_file(data, data_rgb)
+						# except ValueError:
+						# 	pass
 						cv2.imshow('color', data_rgb)					
 					cv2.imshow('color', data_rgb)
 				else:
