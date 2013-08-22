@@ -420,7 +420,7 @@ class KinectAmplifier(ConfiguredClient):
 					joints_coordinates = self.get_joints_coordinates()
 					self.serialize_skeleton(joints_coordinates, None, header)
 				else:
-					header = [licznik, 0, 0, 0, 0]
+					header = [licznik, time_rec_start, 0, 0, 0, 0]
 					frames = self.get_frames()
 					header.extend(frames)
 					self.serialize_skeleton(self.frame_id, None, None, header)
