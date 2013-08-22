@@ -115,6 +115,7 @@ class KinectAmplifier(ConfiguredClient):
 		for h in hands:
 			if h.isTracking():
 				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+				# print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$', x_new, y_new
 				try:
 					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
 				except ValueError:
@@ -189,20 +190,25 @@ class KinectAmplifier(ConfiguredClient):
 		data = struct.unpack(ffm, buf)
 		return data
 
-	# def draw_from_file(self, frame, img):
-	# 	if frame[1] and frame[2]:
-	# 		center = (frame[7], frame[8])
-	# 		if center[0] and center[1]:
-	# 			cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
+	def draw_point(self, center, img, color):
+		if center[0] and center[1]:
+			try:
+				cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
+			except ValueError:
+				return
 
-	# 		# if frame[9]:
+	def draw_from_file(self, frame, img):
+		try:
+			if frame[0] and frame[1]:
+				center = (frame[16], frame[17])
+				print '&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&', center
+				self.draw_point(center, img, (0, 180, 247))
+				if frame[18]:
+					center = (frame[22], frame[23])
+					self.draw_point(center, img, (0, 180, 247))
+		except TypeError:
+			return
 
-	# 		# 	center2 = (frame[13], frame[14])
-	# 		# 	if center2[0] and center2[1]:
-	# 		# 		try:
-	# 		# 			cv2.circle(img, (int(center2[0]), int(center2[1])), 8, (0, 255, 0), -1)
-	# 		# 		except TypeError:
-	# 		# 			pass
 	# 		if frame[15]:
 	# 			head = (frame[21], frame[22])
 	# 			cv2.circle(img, (int(head[0]), int(head[1])), 8, (0, 255, 0), -1)
@@ -347,6 +353,7 @@ class KinectAmplifier(ConfiguredClient):
 				self.logger.error('Creating user tracker failed.')
 
 		licznik = 0
+		flaga = True
 
 		while True:
 			k = cv2.waitKey(10)
@@ -360,6 +367,7 @@ class KinectAmplifier(ConfiguredClient):
 				self.logger.error("Error reading depth frame.")
 			
 			licznik += 1
+			print '######################################', licznik
 
 			if self.color_frame is not None and self.color_frame.isValid():
 				data_rgb = self.color_frame.data
@@ -423,19 +431,32 @@ class KinectAmplifier(ConfiguredClient):
 					header = [licznik, time_rec_start, 0, 0, 0, 0]
 					frames = self.get_frames()
 					header.extend(frames)
-					self.serialize_skeleton(self.frame_id, None, None, header)
+					self.serialize_skeleton(None, None, header)
 
 			if self.video_type_rgb:
 				if self.device.isFile():
 					if self.skeleton_tracking or self.hand_tracking:
-						data = self.deserialize_skeleton()
-						#if not data: break
-						# try:
-						# 	self.draw_from_file(data, data_rgb)
-						# except ValueError:
-						# 	pass
-						cv2.imshow('color', data_rgb)					
-					cv2.imshow('color', data_rgb)
+						try: 
+							data
+						except NameError:
+							pass
+						else:
+							self.draw_from_file(data, data_rgb)
+					try:
+						if flaga:		
+							data = self.deserialize_skeleton()
+							current_frame = data[6]
+							flaga = False
+							cv2.imshow('color', data_rgb)
+							data = self.deserialize_skeleton()
+						elif data[6] != current_frame+1:
+							current_frame += 1
+						elif data[6] == current_frame+1:
+							cv2.imshow('color', data_rgb)
+							current_frame = data[6]
+							data = self.deserialize_skeleton()
+					except TypeError:
+						pass				
 				else:
 					cv2.imshow('color', data_rgb)
 			if self.video_type_depth:
