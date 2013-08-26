@@ -11,7 +11,230 @@ from nite2 import *
 import cv2
 import numpy as np
 
+g_exiting = False
+
+class JointStruct(struct.Struct):
+	def __init__(self):
+		super(JointStruct, self).__init__('iffffff')
+
+class HandStruct(struct.Struct):
+	def __init__(self):
+		super(HandStruct, self).__init__('ifffff')
+
+class UserStruct(struct.Struct):
+	def __init__(self):
+		super(UserStruct, self).__init__('hfffi')
+
+class FrameStruct(struct.Struct):
+	def __init__(self):
+		super(FrameStruct, self).__init__('iQ')
+
+class HeaderStruct(struct.Struct):
+	def __init__(self):
+		super(HeaderStruct, self).__init__('i??fiQiQ')
+
+class Point3Mock(object):
+	def __init__(self, x, y, z):
+		self.x = x
+		self.y = y
+		self.z = z
+
+class JointMock(object):
+	def __init__(self, joint_id, positionConfidence, point, x_converted, y_converted):
+		self.id = joint_id
+		self.positionConfidence = positionConfidence
+		self.x = point.x
+		self.y = point.y
+		self.z = point.z
+		self.x_converted = x_converted
+		self.y_converted = y_converted
+
+class SkeletonFrameMock(object):
+	def __init__(self, frame_id, frame_timestamp, user_id, point, user_state, joints):
+		self.frame_id = frame_id
+		self.frame_timestamp = frame_timestamp
+		self.user_id = user_id
+		self.user_x = point.x
+		self.user_y = point.y
+		self.user_z = point.z
+		self.user_state = user_state
+		self.joints = joints
+
+class HandDataMock(object):
+	def __init__(self, hand_id, point, x_converted, y_converted):
+		self.id = hand_id
+		self.x = point.x
+		self.y = point.y
+		self.z = point.z
+		self.x_converted = x_converted
+		self.y_converted = y_converted
+
+class HandFrameMock(object):
+	def __init__(self, frame_id, frame_timestamp, hands):
+		self.id = frame_id
+		self.frame_timestamp = frame_timestamp
+		self.hands = hands
+
+class Serialization:
+	def __init__(self):
+		self.joint_s = JointStruct()
+		self.hand_s = HandStruct()
+		self.user_s = UserStruct()
+		self.frame_s = FrameStruct()
+		self.header_s = HeaderStruct()
+
+	def serialize_frame(self, header, hand_frame, user_frame):
+		buf = self.header_s.pack(*header)
+		buf += self.serialize_skeleton(user_frame)
+		buf += self.serialize_hands(hand_frame)
+		return buf
+
+	def unserialize_frame(self, data_file):
+		data = []
+		try:
+			data += self.header_s.unpack(data_file.read(self.header_s.size))
+			data.append(self.unserialize_skeleton(data_file))
+			data.append(self.unserialize_hands(data_file))
+		except struct.error:
+			return
+		return data
+
+	def register_hand_coordinates(self, convert_hand_coordinates):
+		self.convert_hand_coordinates = convert_hand_coordinates
+
+	def register_joint_coordinates(self, convert_joint_coordinates):
+		self.convert_joint_coordinates = convert_joint_coordinates
+
+	def serialize_hands(self, hand_frame):
+		if hand_frame is not None:
+			buf = self.frame_s.pack(hand_frame.frameIndex, 
+									hand_frame.timestamp)
+			hands = hand_frame.hands
+			if hands:
+				if len(hands) == 1:
+					hand = hands[0]
+					if hand.isTracking():
+						rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
+						buf += self.hand_s.pack(hand.id,
+												hand.position.x, 
+												hand.position.y, 
+												hand.position.z, 
+												x_new, 
+												y_new)
+					else:
+						buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
+					buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
+				else:
+					for hand in hands[:2]:
+						rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
+						buf += self.hand_s.pack(hand.id, 
+												hand.position.x, 
+										   		hand.position.y, 
+										   		hand.position.z, 
+										   		x_new, 
+										   		y_new)
+			else:
+				for i in range(2):
+					buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
+		else:
+			for i in range(2):
+				buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
+		return buf
+
+	def serialize_joint(self, joint):
+		if joint is not None:
+			rc, x_new, y_new = self.convert_joint_coordinates(joint.position.x, joint.position.y, joint.position.z)
+			return self.joint_s.pack(joint.type, 
+	    						joint.positionConfidence,
+	    						joint.position.x,
+	    						joint.position.y,
+	    						joint.position.z,
+	    						x_new,
+	    						y_new)
+		else:
+			return self.joint_s.pack(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+	def serialize_skeleton(self, user_frame):
+		if user_frame is not None:
+			buf = self.frame_s.pack(user_frame.frameIndex, 
+									user_frame.timestamp)
+			users = user_frame.users
+			if users:
+				user = users[0]
+				user_coordinates = user.centerOfMass
+				state = int(user.skeleton.state)
+				buf += self.user_s.pack(user.id, 
+										user_coordinates.x, 
+										user_coordinates.y, 
+										user_coordinates.z, 
+										state)
+				for i in xrange(15):
+					buf += self.serialize_joint(user.skeleton[JointType(i)])
+			else:
+				buf += self.user_s.pack(0, 0, 0, 0, 0)
+				for i in xrange(15):
+					buf += self.serialize_joint(None)
+		else:
+			buf = self.frame_s.pack(0, 0)
+			buf += self.user_s.pack(0, 0, 0, 0, 0)
+			for i in xrange(15):
+				buf += self.serialize_joint(None)
+		return buf
+
+	def unserialize_hands(self, f):
+		v = self.frame_s.unpack(f.read(self.frame_s.size))
+		data = []
+		for i in xrange(2):
+			hands = self.hand_s.unpack(f.read(self.hand_s.size))
+			data.append(HandDataMock(hands[0], Point3Mock(hands[1], hands[2], hands[3]), hands[4], hands[5]))
+		return HandFrameMock(v[0], v[1], data)
+
+	def unserialize_joint(self, f):
+		v = self.joint_s.unpack(f.read(self.joint_s.size))
+		return JointMock(v[0], v[1], Point3Mock(v[2], v[3], v[4]), v[5], v[6])
+	                       
+	def unserialize_skeleton(self, f):
+		v = []
+		v += self.frame_s.unpack(f.read(self.frame_s.size))
+		v += self.user_s.unpack(f.read(self.user_s.size))
+		joints = []
+		for i in xrange(15):
+			joints.append(self.unserialize_joint(f))
+		return SkeletonFrameMock(v[0], v[1], v[2], Point3Mock(v[3], v[4], v[5]), v[6], joints)
+
 class KinectAmplifier(ConfiguredClient):
+
+	connections = [(JOINT_HEAD, JOINT_NECK),
+	       		   (JOINT_NECK, JOINT_TORSO),
+	       		   (JOINT_TORSO, JOINT_LEFT_SHOULDER),
+	       		   (JOINT_TORSO, JOINT_RIGHT_SHOULDER),
+	       	       (JOINT_LEFT_SHOULDER, JOINT_LEFT_ELBOW),
+	       		   (JOINT_RIGHT_SHOULDER, JOINT_RIGHT_ELBOW),
+	       	       (JOINT_LEFT_ELBOW, JOINT_LEFT_HAND),
+	       		   (JOINT_RIGHT_ELBOW, JOINT_RIGHT_HAND),
+	       		   (JOINT_TORSO, JOINT_LEFT_HIP),
+	       		   (JOINT_TORSO, JOINT_RIGHT_HIP),
+	       		   (JOINT_LEFT_HIP, JOINT_LEFT_KNEE),
+	       		   (JOINT_RIGHT_HIP, JOINT_RIGHT_KNEE),
+	       		   (JOINT_LEFT_KNEE, JOINT_LEFT_FOOT),
+	       		   (JOINT_RIGHT_KNEE, JOINT_RIGHT_FOOT)]
+
+	joints = [JOINT_HEAD,
+			  JOINT_LEFT_ELBOW,
+			  JOINT_LEFT_FOOT,
+	 		  JOINT_LEFT_HAND,
+	  		  JOINT_LEFT_HIP,
+	  		  JOINT_LEFT_KNEE,
+	  		  JOINT_LEFT_SHOULDER,
+	  		  JOINT_NECK,
+	  		  JOINT_RIGHT_ELBOW,
+	  		  JOINT_RIGHT_FOOT,
+	  		  JOINT_RIGHT_HAND,
+	  		  JOINT_RIGHT_HIP,
+	  		  JOINT_RIGHT_KNEE,
+	  		  JOINT_RIGHT_SHOULDER,
+	  		  JOINT_TORSO]
+
 	def __init__(self, addresses):
 		super(KinectAmplifier, self).__init__(addresses=addresses, type=peers.AMPLIFIER_SERVER)
 
@@ -27,48 +250,17 @@ class KinectAmplifier(ConfiguredClient):
 			self.logger.error("Directory doesn't exist.")
 			sys.exit(1)
 
-		self.rgb_capture = eval(self.get_param('rgb_capture'))
-		self.depth_capture = eval(self.get_param('depth_capture'))
-		self.hand_tracking = eval(self.get_param('hand_tracking'))
-		self.skeleton_tracking = eval(self.get_param('skeleton_tracking'))
-		self.video_type_rgb = eval(self.get_param('video_type_rgb'))
-		self.video_type_depth = eval(self.get_param('video_type_depth'))
-
-		self.connections = ((JOINT_HEAD, JOINT_NECK),
-	       (JOINT_NECK, JOINT_TORSO),
-	       (JOINT_TORSO, JOINT_LEFT_SHOULDER),
-	       (JOINT_TORSO, JOINT_RIGHT_SHOULDER),
-	       (JOINT_LEFT_SHOULDER, JOINT_LEFT_ELBOW),
-	       (JOINT_RIGHT_SHOULDER, JOINT_RIGHT_ELBOW),
-	       (JOINT_LEFT_ELBOW, JOINT_LEFT_HAND),
-	       (JOINT_RIGHT_ELBOW, JOINT_RIGHT_HAND),
-	       (JOINT_TORSO, JOINT_LEFT_HIP),
-	       (JOINT_TORSO, JOINT_RIGHT_HIP),
-	       (JOINT_LEFT_HIP, JOINT_LEFT_KNEE),
-	       (JOINT_RIGHT_HIP, JOINT_RIGHT_KNEE),
-	       (JOINT_LEFT_KNEE, JOINT_LEFT_FOOT),
-	       (JOINT_RIGHT_KNEE, JOINT_RIGHT_FOOT))
-
-		self.joints = (JOINT_HEAD,
-	  		JOINT_LEFT_ELBOW,
-			JOINT_LEFT_FOOT,
-	 		JOINT_LEFT_HAND,
-	  		JOINT_LEFT_HIP,
-	  		JOINT_LEFT_KNEE,
-	  		JOINT_LEFT_SHOULDER,
-	  		JOINT_NECK,
-	  		JOINT_RIGHT_ELBOW,
-	  		JOINT_RIGHT_FOOT,
-	  		JOINT_RIGHT_HAND,
-	  		JOINT_RIGHT_HIP,
-	  		JOINT_RIGHT_KNEE,
-	  		JOINT_RIGHT_SHOULDER,
-	  		JOINT_TORSO)
+		self.rgb_capture = bool(self.get_param('rgb_capture'))
+		self.depth_capture = bool(self.get_param('depth_capture'))
+		self.hand_tracking = bool(self.get_param('hand_tracking'))
+		self.skeleton_tracking = bool(self.get_param('skeleton_tracking'))
+		self.video_type_rgb = bool(self.get_param('video_type_rgb'))
+		self.video_type_depth = bool(self.get_param('video_type_depth'))
 
 		if file_name:
 			f_name = file_name.split('.')
 			f_name = f_name[0]
-			self.data_file = open(os.path.join(directory, f_name), 'wb')
+			self.data_file = open(os.path.join(directory, f_name), 'ab')
 		
 		rc = OpenNI.initialize()
 		if rc != OPENNI_STATUS_OK:
@@ -96,198 +288,6 @@ class KinectAmplifier(ConfiguredClient):
 			rc = self.recorder.create(os.path.join(directory, file_name))
 		if rc != OPENNI_STATUS_OK:
 			self.logger.error("Recorder create failed.")
-
-		self.ready()
-
-	def finish(self):
-		cv2.destroyAllWindows()
-		self.data_file.close()
-		if self.recorder.isValid(): 
-			self.recorder.stop()
-			self.recorder.destroy()
-		self.color.destroy()
-		self.depth.destroy()
-		self.device.close()
-		NiTE.shutdown()
-		OpenNI.shutdown()
-
-	def draw_hands(self, img, hands):
-		for h in hands:
-			if h.isTracking():
-				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-				# print '$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$', x_new, y_new
-				try:
-					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
-				except ValueError:
-					return
-
-	def draw_user(self, img, skeleton):
-		for j in self.joints:
-			joint = skeleton.getJoint(j)
-			rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
-			if joint.positionConfidence > 0.5:
-				try:
-					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
-				except ValueError:
-					pass
-			else:
-				try:
-					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 0, 255), -1)
-				except ValueError:
-					pass
-		for c in self.connections:
-			joint_1 = skeleton.getJoint(c[0])
-			joint_2 = skeleton.getJoint(c[1])
-			rc, x1, y1 = self.ut.convertJointCoordinatesToDepth(joint_1.position.x, joint_1.position.y, joint_1.position.z)
-			rc, x2, y2 = self.ut.convertJointCoordinatesToDepth(joint_2.position.x, joint_2.position.y, joint_2.position.z)
-			try:
-				cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255))
-			except ValueError:
-				pass
-
-	def serialize_skeleton(self, joints_coordinates, hands_coordinates, header):
-		ffm = '??ifiQiQiQiQ' + 2*'ifffff' + 'ifff' + 15*'iffffff'				
-		if joints_coordinates is not None and hands_coordinates is not None:
-			tracking = [1, 1]
-			tracking.extend(header)
-			data = []		
-			data.extend(tracking + hands_coordinates + joints_coordinates)	
-			s = struct.pack(ffm, *data)
-			self.data_file.write(s)
-		elif joints_coordinates is not None:
-			tracking = [1, 0]
-			tracking.extend(header)
-			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-			data = []		
-			data.extend(tracking + hands_coordinates + joints_coordinates)
-			s = struct.pack(ffm, *data)
-			self.data_file.write(s)
-		elif hands_coordinates is not None:
-			tracking = [0, 1]
-			tracking.extend(header)
-			joints_coordinates = []
-			data = []
-			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			data.extend(tracking + hands_coordinates + joints_coordinates)	
-			s = struct.pack(ffm, *data)
-			self.data_file.write(s)
-		else:
-			tracking = [0, 0]
-			tracking.extend(header)
-			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-			joints_coordinates = []
-			data = []
-			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			data.extend(tracking + hands_coordinates + joints_coordinates)	
-			s = struct.pack(ffm, *data)
-			self.data_file.write(s)
-
-	def deserialize_skeleton(self):
-		ffm = '??ifiQiQiQiQ' + 2*'ifffff' + 'ifff' + 15*'iffffff'
-		frame_size = struct.calcsize(ffm)
-		buf = self.data_file.read(frame_size)
-		if not buf: return
-		data = struct.unpack(ffm, buf)
-		return data
-
-	def draw_point(self, center, img, color):
-		if center[0] and center[1]:
-			try:
-				cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
-			except ValueError:
-				return
-
-	def draw_from_file(self, frame, img):
-		try:
-			if frame[0] and frame[1]:
-				center = (frame[16], frame[17])
-				print '&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&', center
-				self.draw_point(center, img, (0, 180, 247))
-				if frame[18]:
-					center = (frame[22], frame[23])
-					self.draw_point(center, img, (0, 180, 247))
-		except TypeError:
-			return
-
-	# 		if frame[15]:
-	# 			head = (frame[21], frame[22])
-	# 			cv2.circle(img, (int(head[0]), int(head[1])), 8, (0, 255, 0), -1)
-
-	# 	elif frame[1]:	
-	# 		j = frame[17:]
-	# 		for i in xrange(14):
-	# 			center = (j[(i+1)*7], j[(i+1)*7+1])
-	# 			cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
-
-	# 	elif frame[2]: 
-	# 		center = (frame[7], frame[8])
-
-	# 		cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
-
-	# 		if frame[9]:
-	# 			center = (frame[13], frame[14])
-	# 			if center[0] and center[1]:
-	# 				try:
-	# 					cv2.circle(img, (int(center[0]), int(center[1])), 8, (0, 255, 0), -1)
-	# 				except ValueError:
-	# 					pass
-
-	def get_hands_coordinates(self):
-		hands_coordinates = []
-		if len(self.hands) == 0:
-			hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-		elif len(self.hands) == 1:
-			hand = self.hands[0]
-			if hand.isTracking():
-				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(hand.position.x, hand.position.y, hand.position.z)
-				hands_coordinates.extend([hand.id, hand.position.x, hand.position.y, hand.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			else:
-				hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-		else:
-			if self.hands[0].isTracking() and self.hands[1].isTracking():
-				for h in self.hands[:2]:
-					rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-					hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new])
-			elif self.hands[0].isTracking():
-				h = self.hands[0]
-				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-				hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			elif self.hands[1].isTracking():
-				h = self.hands[1]
-				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
-				hands_coordinates.extend([h.id, h.position.x, h.position.y, h.position.z, x_new, y_new, 0, 0.0, 0.0, 0.0, 0.0, 0.0])
-			else:
-				hands_coordinates = 2*[0, 0.0, 0.0, 0.0, 0.0, 0.0]
-		return hands_coordinates
-
-	def get_joints_coordinates(self):
-		joints_coordinates = []
-		if len(self.users) == 0:
-			joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-		else:
-			u = self.users[0]
-			if u.skeleton.state == SKELETON_TRACKED:
-				x, y, z = u.centerOfMass
-				joints_coordinates.extend([u.id, x, y, z])
-				for i,j in enumerate(self.joints):
-					joint = u.skeleton.getJoint(j)
-					rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
-					joints_coordinates.extend([i, joint.positionConfidence, joint.position.x, joint.position.y, joint.position.z, x_new, y_new])	
-			else:
-				joints_coordinates.extend([0, 0.0, 0.0, 0.0] + 15*[0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-		return joints_coordinates
-
-	def get_frames(self):
-		frames = []
-		if self.color_frame.isValid() and self.depth_frame.isValid():
-			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, self.depth_frame.frameIndex, self.depth_frame.timestamp])
-		elif self.depth_frame.isValid():
-			frames.extend([0, 0, 0, self.depth_frame.frameIndex, self.depth_frame.timestamp])
-		elif self.color_frame.isValid():
-			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, 0, 0])
-		return frames
-
-	def run(self):
 
 		self.color = VideoStream()
 		self.depth = VideoStream()
@@ -335,7 +335,6 @@ class KinectAmplifier(ConfiguredClient):
 			rc = self.recorder.start()
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Recorder start error.")
-			time_rec_start = time.time()
 		
 		if self.hand_tracking and not self.device.isFile():
 			self.ht = HandTracker()
@@ -352,11 +351,95 @@ class KinectAmplifier(ConfiguredClient):
 			if rc != NITE_STATUS_OK:
 				self.logger.error('Creating user tracker failed.')
 
-		licznik = 0
-		flaga = True
+		self.ready()
+
+	def finish(self):
+		cv2.destroyAllWindows()
+		self.data_file.close()
+		if self.recorder.isValid(): 
+			self.recorder.stop()
+			self.recorder.destroy()
+		self.color.destroy()
+		self.depth.destroy()
+		self.device.close()
+		NiTE.shutdown()
+		OpenNI.shutdown()
+
+	def draw_hands(self, img, hands):
+		for h in hands:
+			if h.isTracking():
+				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+				try:
+					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
+				except ValueError:
+					return
+
+	def draw_user(self, img, skeleton):
+		for j in self.joints:
+			joint = skeleton.getJoint(j)
+			rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
+			if joint.positionConfidence > 0.5:
+				try:
+					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
+				except ValueError:
+					pass
+			else:
+				try:
+					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 0, 255), -1)
+				except ValueError:
+					pass
+		for c in self.connections:
+			joint_1 = skeleton.getJoint(c[0])
+			joint_2 = skeleton.getJoint(c[1])
+			rc, x1, y1 = self.ut.convertJointCoordinatesToDepth(joint_1.position.x, joint_1.position.y, joint_1.position.z)
+			rc, x2, y2 = self.ut.convertJointCoordinatesToDepth(joint_2.position.x, joint_2.position.y, joint_2.position.z)
+			try:
+				cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255))
+			except ValueError:
+				pass
+
+	def draw_point(self, center, img, color):
+		if center[0] and center[1]:
+			try:
+				cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
+			except ValueError:
+				return
+
+	def draw_from_file(self, frame, img):
+		if frame[1] and frame[2]:
+			user_data = frame[8]
+			hand_data = frame[9]
+			h = hand_data.hands
+			if h[0].id:
+				center = (h[0].x_converted, h[0].y_converted)
+				self.draw_point(center, img, (0, 180, 247))
+
+	def get_frames(self):
+		frames = []
+		if self.color_frame.isValid() and self.depth_frame.isValid():
+			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, self.depth_frame.frameIndex, self.depth_frame.timestamp])
+		elif self.depth_frame.isValid():
+			frames.extend([0, 0, self.depth_frame.frameIndex, self.depth_frame.timestamp])
+		elif self.color_frame.isValid():
+			frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, 0, 0])
+		return frames
+
+	def run(self):
+		frame_index = 0
+		current_frame_rgb = None
+		current_frame_depth = None
+
+		s = Serialization()
+		s.register_hand_coordinates(lambda x, y, z: self.ht.convertHandCoordinatesToDepth(x, y, z))
+		s.register_joint_coordinates(lambda x, y, z: self.ut.convertJointCoordinatesToDepth(x, y, z))
+
+		self.time_rec_start = time.time()
 
 		while True:
 			k = cv2.waitKey(10)
+
+			if g_exiting:
+				break
 
 			rc, self.color_frame = self.color.readFrame()
 			if rc != OPENNI_STATUS_OK:
@@ -366,8 +449,15 @@ class KinectAmplifier(ConfiguredClient):
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Error reading depth frame.")
 			
-			licznik += 1
-			print '######################################', licznik
+			if frame_index == 0:
+				st = self.color_frame.timestamp
+
+			frame_index += 1
+			
+			# t = time.time()
+			# tt = t - self.time_rec_start
+			# print '###############################################', t - self.time_rec_start
+			# print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',  (self.color_frame.timestamp - st)*10**(-6)
 
 			if self.color_frame is not None and self.color_frame.isValid():
 				data_rgb = self.color_frame.data
@@ -380,26 +470,22 @@ class KinectAmplifier(ConfiguredClient):
 				data_depth = cv2.cvtColor(data_depth, cv2.COLOR_GRAY2RGB)
 
 			if self.hand_tracking and not self.device.isFile():
-				rc, frame = self.ht.readFrame()
+				rc, self.hand_frame = self.ht.readFrame()
 				if rc != NITE_STATUS_OK:
 					self.logger.error('Error reading hand tracker frame')
-				gestures = frame.gestures
+				gestures = self.hand_frame.gestures
 				for g in gestures:
 					if g.isComplete():
 						rc, newId = self.ht.startHandTracking(g.currentPosition)
-				self.hands = frame.hands
-				self.time_hands = frame.timestamp
-				self.frame_id_hands = frame.frameIndex
+				self.hands = self.hand_frame.hands
 				self.draw_hands(data_depth, self.hands)
 				self.draw_hands(data_rgb, self.hands)
 
 			if self.skeleton_tracking and not self.device.isFile():
-				rc, frame = self.ut.readFrame()
+				rc, self.user_frame = self.ut.readFrame()
 				if rc != OPENNI_STATUS_OK:
 					self.logger.error('Error reading user tracker frame')
-				self.frame_id_skeleton = frame.frameIndex
-				self.time_skeleton = frame.timestamp
-				self.users = frame.users
+				self.users = self.user_frame.users
 				for u in self.users:
 					if u.isNew():
 						self.ut.startSkeletonTracking(u.id)
@@ -409,58 +495,51 @@ class KinectAmplifier(ConfiguredClient):
 
 			if not self.device.isFile() and self.recorder.isValid():
 				if self.hand_tracking and self.skeleton_tracking:
-					header = [licznik, time_rec_start, self.frame_id_hands, self.time_hands, self.frame_id_skeleton, self.time_skeleton]
-					frames = self.get_frames()
-					header.extend(frames)
-					hands_coordinates = self.get_hands_coordinates()
-					joints_coordinates = self.get_joints_coordinates()
-					self.serialize_skeleton(joints_coordinates, hands_coordinates, header)			
+					# frames = self.get_frames()
+					# self.data_file.write(struct.pack('i', frame_index))
+					# self.data_file.write(struct.pack('??', 1, 1))
+					header = [frame_index, 1, 1, self.time_rec_start]
+					header += self.get_frames()
+					self.data_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame))
 				elif self.hand_tracking:
-					header = [licznik, time_rec_start, self.frame_id_hands, self.time_hands, 0, 0]
-					frames = self.get_frames()
-					header.extend(frames)
-					hands_coordinates = self.get_hands_coordinates()
-					self.serialize_skeleton(None, hands_coordinates, header)
+					header = [frame_index, 0, 1, self.time_rec_start]
+					header += self.get_frames()
+					self.data_file.write(s.serialize_frame(header, self.hand_frame, None))
 				elif self.skeleton_tracking:
-					header = [licznik, time_rec_start, 0, 0, self.frame_id_skeleton, self.time_skeleton]
-					frames = self.get_frames()
-					header.extend(frames)
-					joints_coordinates = self.get_joints_coordinates()
-					self.serialize_skeleton(joints_coordinates, None, header)
+					header = [frame_index, 1, 0, self.time_rec_start]
+					header += self.get_frames()
+					self.data_file.write(s.serialize_frame(header, None, self.user_frame))
 				else:
-					header = [licznik, time_rec_start, 0, 0, 0, 0]
-					frames = self.get_frames()
-					header.extend(frames)
-					self.serialize_skeleton(None, None, header)
+					header = [frame_index, 0, 0, self.time_rec_start]
+					header += self.get_frames()
+					self.data_file.write(s.serialize_frame(header, None, None))
 
 			if self.video_type_rgb:
 				if self.device.isFile():
 					if self.skeleton_tracking or self.hand_tracking:
-						try: 
-							data
-						except NameError:
-							pass
-						else:
+						if current_frame_rgb is None:
+							data = s.unserialize_frame(self.data_file)
+							if not data: break
+							current_frame_rgb = data[4]
 							self.draw_from_file(data, data_rgb)
-					try:
-						if flaga:		
-							data = self.deserialize_skeleton()
-							current_frame = data[6]
-							flaga = False
 							cv2.imshow('color', data_rgb)
-							data = self.deserialize_skeleton()
-						elif data[6] != current_frame+1:
-							current_frame += 1
-						elif data[6] == current_frame+1:
+							data = s.unserialize_frame(self.data_file)
+							if not data: break
+						elif data[4] != current_frame_rgb + 1:
+							current_frame_rgb += 1
+						elif data[4] == current_frame_rgb + 1:
+							self.draw_from_file(data, data_rgb)
 							cv2.imshow('color', data_rgb)
-							current_frame = data[6]
-							data = self.deserialize_skeleton()
-					except TypeError:
-						pass				
+							current_frame_rgb = data[4]
+							data = s.unserialize_frame(self.data_file)	
+							if not data: break
 				else:
 					cv2.imshow('color', data_rgb)
+
 			if self.video_type_depth:
 				cv2.imshow('depth', data_depth)
+
+		self.finish()
 
 	def init_signals(self):
 		self.logger.info("INIT SIGNALS IN APPLIANCE CLEANER")
@@ -472,7 +551,7 @@ class KinectAmplifier(ConfiguredClient):
 	def signal_handler(self):
 		def handler(signum, frame):
 			self.logger.warning("Got signal " + str(signum) + "!!! Sending diodes ON!")
-			self.finish()
+			g_exiting = True
 			sys.exit(-signum)
 		return handler
 
