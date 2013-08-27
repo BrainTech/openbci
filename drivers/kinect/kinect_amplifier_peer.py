@@ -243,116 +243,25 @@ class KinectAmplifier(ConfiguredClient):
 		self.init_signals()
 
 		self.device_uri = str(self.get_param('device_uri'))
-		file_name = str(self.get_param('file_name'))
-		directory = str(self.get_param('directory'))
-		if not directory:
-			directory = os.path.expanduser("~")
-		if not os.path.exists(directory):
+		self.file_name = str(self.get_param('file_name'))
+		self.directory = str(self.get_param('directory'))
+		if not self.directory:
+			self.directory = os.path.expanduser("~")
+		if not os.path.exists(self.directory):
 			self.logger.error("Directory doesn't exist.")
 			sys.exit(1)
 
-		self.rgb_capture = bool(self.get_param('rgb_capture'))
-		self.depth_capture = bool(self.get_param('depth_capture'))
-		self.hand_tracking = bool(self.get_param('hand_tracking'))
-		self.skeleton_tracking = bool(self.get_param('skeleton_tracking'))
-		self.video_type_rgb = bool(self.get_param('video_type_rgb'))
-		self.video_type_depth = bool(self.get_param('video_type_depth'))
+		self.rgb_capture = eval(self.get_param('rgb_capture'))
+		self.depth_capture = eval(self.get_param('depth_capture'))
+		self.hand_tracking = eval(self.get_param('hand_tracking'))
+		self.skeleton_tracking = eval(self.get_param('skeleton_tracking'))
+		self.video_type_rgb = eval(self.get_param('video_type_rgb'))
+		self.video_type_depth = eval(self.get_param('video_type_depth'))
 
-		if file_name:
-			f_name = file_name.split('.')
+		if self.file_name:
+			f_name = self.file_name.split('.')
 			f_name = f_name[0]
-			self.data_file = open(os.path.join(directory, f_name), 'ab')
-		
-		rc = OpenNI.initialize()
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("OpenNI initialization failed.")
-
-		rc = NiTE.initialize()
-		if rc != NITE_STATUS_OK:
-			self.logger.error("NiTE2 initialization failed.")
-
-		self.device = Device()
-		if self.device_uri:
-			rc = self.device.open(self.device_uri)  
-		else: 
-			rc = self.device.open()
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Device open failed.")
-
-		if self.device.isImageRegistrationModeSupported(IMAGE_REGISTRATION_DEPTH_TO_COLOR):
-			self.device.setImageRegistrationMode(IMAGE_REGISTRATION_DEPTH_TO_COLOR)
-		if not self.device.getDepthColorSyncEnabled():
-			self.device.setDepthColorSyncEnabled(True)
-
-		self.recorder = Recorder()
-		if file_name:
-			rc = self.recorder.create(os.path.join(directory, file_name))
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Recorder create failed.")
-
-		self.color = VideoStream()
-		self.depth = VideoStream()
-
-		rc = self.color.create(self.device, SENSOR_COLOR)
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Color stream create failed.")
-		rc = self.color.start()
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Color stream start failed.")
-			self.color.destroy()
-
-		rc = self.depth.create(self.device, SENSOR_DEPTH)
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Depth stream create failed.")
-		rc = self.depth.start()
-		if rc != OPENNI_STATUS_OK:
-			self.logger.error("Depth stream start failed.")
-			self.depth.destroy()
-
-		if self.device.isFile():
-			f_name = os.path.basename(self.device_uri)
-			f_name = os.path.splitext(f_name)[0]
-			self.data_file = open(os.path.join(os.path.expanduser('~'), f_name), 'rb')
-			self.playback = self.device.getPlaybackControl()
-			if self.playback.isValid():
-				self.playback.setRepeatEnabled(False)
-
-		if self.recorder.isValid() and not self.device.isFile():
-			if self.rgb_capture and self.depth_capture:
-				rc = self.recorder.attach(self.color, True)
-				if rc != OPENNI_STATUS_OK:
-					self.logger.error("Recorder attach color error.")
-				rc = self.recorder.attach(self.depth, True)
-				if rc != OPENNI_STATUS_OK:
-					self.logger.error("Recorder attach depth error.")
-			elif self.rgb_capture:
-				rc = self.recorder.attach(self.color, True)
-				if rc != OPENNI_STATUS_OK:
-					self.logger.error("Recorder attach color error.")
-			elif self.depth_capture:
-				rc = self.recorder.attach(self.depth, True)
-				if rc != OPENNI_STATUS_OK:
-					self.logger.error("Recorder attach depth error.")
-			rc = self.recorder.start()
-			if rc != OPENNI_STATUS_OK:
-				self.logger.error("Recorder start error.")
-		
-		if self.hand_tracking and not self.device.isFile():
-			self.ht = HandTracker()
-			rc = self.ht.create(self.device)
-			if rc != NITE_STATUS_OK:
-				self.logger.error('Creating hand tracker failed.')
-			self.ht.startGestureDetection(GESTURE_WAVE)
-			self.ht.startGestureDetection(GESTURE_CLICK)
-			self.ht.startGestureDetection(GESTURE_HAND_RAISE)
-
-		if self.skeleton_tracking and not self.device.isFile():
-			self.ut = UserTracker()
-			rc = self.ut.create()
-			if rc != NITE_STATUS_OK:
-				self.logger.error('Creating user tracker failed.')
-
-		self.ready()
+			self.data_file = open(os.path.join(self.directory, f_name), 'ab')
 
 	def finish(self):
 		cv2.destroyAllWindows()
@@ -371,7 +280,7 @@ class KinectAmplifier(ConfiguredClient):
 			if h.isTracking():
 				rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
 				try:
-					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
+					cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 180, 247), -1)
 				except ValueError:
 					return
 
@@ -407,13 +316,24 @@ class KinectAmplifier(ConfiguredClient):
 				return
 
 	def draw_from_file(self, frame, img):
-		if frame[1] and frame[2]:
+		if frame[1] or frame[2]:
 			user_data = frame[8]
 			hand_data = frame[9]
 			h = hand_data.hands
 			if h[0].id:
 				center = (h[0].x_converted, h[0].y_converted)
 				self.draw_point(center, img, (0, 180, 247))
+			if h[1].id:
+				center = (h[1].x_converted, h[1].y_converted)
+				self.draw_point(center, img, (0, 180, 247))
+			if user_data.user_id and SkeletonState(user_data.user_state) == SKELETON_TRACKED:
+				for i in xrange(15):
+					joint = user_data.joints[i]
+					center = (joint.x_converted, joint.y_converted)
+					if joint.positionConfidence > 0.5:
+						self.draw_point(center, img, (0, 255, 0))
+					else:
+						self.draw_point(center, img, (0, 0, 255))
 
 	def get_frames(self):
 		frames = []
@@ -426,15 +346,98 @@ class KinectAmplifier(ConfiguredClient):
 		return frames
 
 	def run(self):
-		frame_index = 0
-		current_frame_rgb = None
-		current_frame_depth = None
+		rc = OpenNI.initialize()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("OpenNI initialization failed.")
+
+		rc = NiTE.initialize()
+		if rc != NITE_STATUS_OK:
+			self.logger.error("NiTE2 initialization failed.")
+
+		self.device = Device()
+		if self.device_uri:
+			rc = self.device.open(self.device_uri)  
+		else: 
+			rc = self.device.open()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Device open failed.")
+
+		if self.device.isImageRegistrationModeSupported(IMAGE_REGISTRATION_DEPTH_TO_COLOR):
+			self.device.setImageRegistrationMode(IMAGE_REGISTRATION_DEPTH_TO_COLOR)
+		if not self.device.getDepthColorSyncEnabled():
+			self.device.setDepthColorSyncEnabled(True)
+
+		self.color = VideoStream()
+		self.depth = VideoStream()
+
+		rc = self.color.create(self.device, SENSOR_COLOR)
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Color stream create failed.")
+		rc = self.depth.create(self.device, SENSOR_DEPTH)
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Depth stream create failed.")
+
+		self.recorder = Recorder()
+		if self.file_name:
+			rc = self.recorder.create(os.path.join(self.directory, self.file_name))
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Recorder create failed.")
+
+		if self.recorder.isValid() and not self.device.isFile():
+			if self.rgb_capture:
+				rc = self.recorder.attach(self.color, True)
+				if rc != OPENNI_STATUS_OK:
+					self.logger.error("Recorder attach color error.")
+			if self.depth_capture:
+				rc = self.recorder.attach(self.depth, True)
+				if rc != OPENNI_STATUS_OK:
+					self.logger.error("Recorder attach depth error.")
+			rc = self.recorder.start()
+			if rc != OPENNI_STATUS_OK:
+				self.logger.error("Recorder start error.")
+			self.time_rec_start = time.time()
+
+		if self.device.isFile():
+			f_name = os.path.basename(self.device_uri)
+			f_name = os.path.splitext(f_name)[0]
+			self.data_file = open(os.path.join(os.path.expanduser('~'), f_name), 'rb')
+			self.playback = self.device.getPlaybackControl()
+			if self.playback.isValid():
+				self.playback.setRepeatEnabled(False)
+
+		if self.hand_tracking and not self.device.isFile():
+			self.ht = HandTracker()
+			rc = self.ht.create(self.device)
+			if rc != NITE_STATUS_OK:
+				self.logger.error('Creating hand tracker failed.')
+			self.ht.startGestureDetection(GESTURE_WAVE)
+			self.ht.startGestureDetection(GESTURE_CLICK)
+			self.ht.startGestureDetection(GESTURE_HAND_RAISE)
+
+		if self.skeleton_tracking and not self.device.isFile():
+			self.ut = UserTracker()
+			rc = self.ut.create()
+			if rc != NITE_STATUS_OK:
+				self.logger.error('Creating user tracker failed.')
+
+		self.ready()
 
 		s = Serialization()
 		s.register_hand_coordinates(lambda x, y, z: self.ht.convertHandCoordinatesToDepth(x, y, z))
 		s.register_joint_coordinates(lambda x, y, z: self.ut.convertJointCoordinatesToDepth(x, y, z))
 
-		self.time_rec_start = time.time()
+		rc = self.depth.start()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Depth stream start failed.")
+			self.depth.destroy()
+		rc = self.color.start()
+		if rc != OPENNI_STATUS_OK:
+			self.logger.error("Color stream start failed.")
+			self.color.destroy()
+
+		frame_index = 0
+		current_frame_rgb = None
+		# current_frame_depth = None
 
 		while True:
 			k = cv2.waitKey(10)
@@ -525,7 +528,6 @@ class KinectAmplifier(ConfiguredClient):
 							if not data: break
 				else:
 					cv2.imshow('color', data_rgb)
-
 			if self.video_type_depth:
 				cv2.imshow('depth', data_depth)
 
