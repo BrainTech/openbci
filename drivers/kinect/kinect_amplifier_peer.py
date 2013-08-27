@@ -137,6 +137,7 @@ class Serialization:
 				for i in range(2):
 					buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
 		else:
+			buf = self.frame_s.pack(0, 0)
 			for i in range(2):
 				buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
 		return buf
@@ -152,7 +153,7 @@ class Serialization:
 	    						x_new,
 	    						y_new)
 		else:
-			return self.joint_s.pack(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+			return self.joint_s.pack(0, 0, 0, 0, 0, 0, 0)
 
 	def serialize_skeleton(self, user_frame):
 		if user_frame is not None:
@@ -311,7 +312,7 @@ class KinectAmplifier(ConfiguredClient):
 		if self.device.isFile():
 			f_name = os.path.basename(self.device_uri)
 			f_name = os.path.splitext(f_name)[0]
-			self.data_file = open(os.path.join(os.path.expanduser('~'), f_name), 'rb')	### try
+			self.data_file = open(os.path.join(os.path.expanduser('~'), f_name), 'rb')
 			self.playback = self.device.getPlaybackControl()
 			if self.playback.isValid():
 				self.playback.setRepeatEnabled(False)
@@ -448,16 +449,8 @@ class KinectAmplifier(ConfiguredClient):
 			rc, self.depth_frame = self.depth.readFrame()
 			if rc != OPENNI_STATUS_OK:
 				self.logger.error("Error reading depth frame.")
-			
-			if frame_index == 0:
-				st = self.color_frame.timestamp
 
 			frame_index += 1
-			
-			# t = time.time()
-			# tt = t - self.time_rec_start
-			# print '###############################################', t - self.time_rec_start
-			# print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',  (self.color_frame.timestamp - st)*10**(-6)
 
 			if self.color_frame is not None and self.color_frame.isValid():
 				data_rgb = self.color_frame.data
@@ -495,9 +488,6 @@ class KinectAmplifier(ConfiguredClient):
 
 			if not self.device.isFile() and self.recorder.isValid():
 				if self.hand_tracking and self.skeleton_tracking:
-					# frames = self.get_frames()
-					# self.data_file.write(struct.pack('i', frame_index))
-					# self.data_file.write(struct.pack('??', 1, 1))
 					header = [frame_index, 1, 1, self.time_rec_start]
 					header += self.get_frames()
 					self.data_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame))
