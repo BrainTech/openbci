@@ -81,6 +81,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
 
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
+        
         in_file = acquisition_helper.get_file_path(f_dir, f_name)
 
         filename = os.path.join(f_dir, f_name + ".obci")
@@ -254,6 +255,7 @@ class LogicP300Fda(ConfiguredMultiplexerServer):
         
         f_name = self.config.get_param("fda_file_name")
         f_dir = self.config.get_param("fda_file_path")
+        
         csp_helper.set_csp_config(f_dir, f_name, cfg)
         
         if plotFlag:

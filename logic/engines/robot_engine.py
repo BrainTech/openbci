@@ -13,6 +13,7 @@ class RobotEngine(object):
     def __init__(self, configs, context=ctx.get_dummy_context('RobotEngine')):
         self.logger = context['logger']
         self._robot = rovio.Rovio('', configs['robot_ip'])
+        self.robot_info = int(configs['robot_info'])
         self._rc = rovio.RovioController(self._robot)
         self._rc.start()
         
@@ -22,7 +23,7 @@ class RobotEngine(object):
 
     def _robot_cmd(self, method, command):
             result = ''
-            for i in range(7):
+            for i in range(10):
                 res = method()
                 result += str(res) + '.'
             # result = self._rc.enqueue_all([[900, self._robot.forward]])
@@ -48,17 +49,24 @@ class RobotEngine(object):
             elif command == 'camera_down':
                 result = self._robot.head_down()
                 self.logger.info(str(result) + "command: " + command)
-                
             elif command == 'rotate_right':
                 self._robot.rotate_right(angle=7)
             elif command == 'rotate_left':
                 self._robot.rotate_left(angle=7)
-                
+            elif command == 'left_forward':
+                self.robot('rotate_left')
+                time.sleep(1)
+                self.robot('forward')
+            elif command == 'right_forward':
+                self.robot('rotate_right')
+                time.sleep(1)
+                self.robot('forward')
             else:
                 self.logger.error('(rovio handling) Command ' + command + ' not supported.')
         except:
             self.logger.error("NO CONNECTION TO ROBOT!!!! COMMAND IGNORED!!! In time: "+str(time.time()-t))
-            ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
+            if self.robot_info:
+                ugm_helper.send_status(self.conn, "Couldn't connect to Robot... Command ignored.")
             time.sleep(0.5)
 
     def start_robot_feedback(self):

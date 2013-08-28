@@ -32,7 +32,7 @@ class DataAnalysis(object):
         if avrM == None: avrM = self.avrM
 
         temp = s
-        #~ temp = (temp-temp.mean())/temp.std()
+        temp = (temp-temp.mean())
         temp = self.filtrHigh(temp)
         temp = self.movingAvr(temp, avrM+1)
         #~ temp = self.filtrLow(temp)
