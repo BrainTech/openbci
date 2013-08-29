@@ -288,7 +288,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine) or str(experiment.origin_machine)
             print mch, peer_id
-            parent = QTreeWidgetItem([peer_id, st, mch])
+            parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
 
             parent.setBackground(0, QBrush(QColor(STATUS_COLORS[st])))
@@ -296,7 +296,18 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent.setBackground(2, QBrush(QColor(STATUS_COLORS[st])))
             parent.setToolTip(0, unicode(peer.path))
 
+            combo = QComboBox()        
+            combo.addItems(self._nearby_machines.values())
             self.parameters.addTopLevelItem(parent)
+            self.parameters.setItemWidget(parent, 2, combo)
+            if mch:
+                index = self._nearby_machines.values().index(mch)
+                combo.setCurrentIndex(index)
+            if peer_id == 'mx':
+                combo.setDisabled(True)
+                
+            if parent is not None:
+                combo.currentIndexChanged['QString'].connect(self.makeComboHandler(parent, 2))
 
             if parent.text(0) in expanded:
                 parent.setExpanded(True)
@@ -306,10 +317,15 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             for param, (value, src) in params.iteritems():
                 val = unicode(value) #if not src else value + "  ["+src + ']'
                 src = src if src else ''
-                child = QTreeWidgetItem([param, val, src ])
+                child = QTreeWidgetItem([param, val, src])
                 if src:
                     child.setDisabled(True)
                 parent.addChild(child)
+
+    def makeComboHandler(self, item, column):
+        def handler(string):
+            self.parameters.itemChanged.emit(item, column)
+        return handler
 
     @log_crash
     def _getParams(self):
@@ -334,7 +350,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 child = parent.child(j)
 
         state.expanded_peers = expanded
-
         return self._params
 
     def _itemDoubleClicked(self, item, column):
@@ -358,9 +373,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _itemChanged(self, item, column):
         changed = False
         if item.parent() is None:
+            peer_id = unicode(item.text(0))
             if column == 2:
-                machine = unicode(item.text(2))
-                peer_id = unicode(item.text(0))
+                combo_box = self.parameters.itemWidget(item, column)
+                machine = unicode(combo_box.currentText())
                 old_ma = self._params.exp.exp_config.peer_machine(peer_id)
                 if old_ma != machine:
                     self._params.exp.exp_config.update_peer_machine(peer_id, machine)
@@ -401,6 +417,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     # @log_crash
     def _start(self):
+        self.parameters.setDisabled(True)
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
             store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
@@ -416,6 +433,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.start.emit(uid, store_options)
 
     def _stop(self):
+        self.parameters.setDisabled(False)
         uid = str(self.scenarios.currentItem().uuid)
         self.exp_states[uid].log_model.stop_running()
         self.stop.emit(uid, self.exp_states[uid].store_options is not None)
@@ -436,13 +454,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             killer_proc.wait()
             print killer_proc.returncode, "^^^"
 
-
     def _update_store(self, state):
         if int(state):
             self.store_container.show()
         else:
             self.store_container.hide()
-
 
     def _reset(self):
         self.reset.emit(str(self.server_ip))
