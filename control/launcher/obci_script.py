@@ -426,7 +426,12 @@ def launch_obci_server(args=[]):
     path = obci_server.__file__
     path = '.'.join([path.rsplit('.', 1)[0], 'py'])
     try:
-        srv = subprocess.Popen(['python', path] + list(args))
+        if '--win-silent' in args:
+            python_command = 'pythonw'
+            args.remove('--win-silent')
+        else:
+            python_command = 'python'
+        srv = subprocess.Popen([python_command, path] + list(args))
     except Exception, e:
         print 'Server launch error:', str(e)
         return None

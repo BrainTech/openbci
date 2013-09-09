@@ -4,6 +4,7 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 
 import sys, os, time
+import random
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -70,6 +71,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def run(self):
         f_name = self.config.get_param("data_file_name")
         f_dir = self.config.get_param("data_file_path")
+        dec_count = int(self.config.get_param("dec_count"))
         context = ctx.get_new_context()
         context['logger'] = self.logger
         cfg = logic_ssvep_csp_analysis.run(
@@ -78,6 +80,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             self.ignore_channels,
             self.montage,
             self.montage_channels,
+            dec_count,
             self.mode in ['offline', 'manual'],
             context)
 
@@ -95,41 +98,41 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
         elif self.mode == 'always_pass':
             self._determine_means(cfg)#for debug only
-            self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+            self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
             time.sleep(5)
             self._shuffle_freqs(cfg)
             self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
         elif self.mode == 'manual':
-            self._show_configs(cfg, suffix=u'Suggested frequencies:')
+            self._show_configs(cfg, suffix=self.config.get_param('propose_freqs_text'))
             self._edit_configs(cfg)
             self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
         elif self.mode == 'retry_on_failure':
             if self._determine_means(cfg):
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
                 self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
-                self._show_configs(cfg, suffix=u'Calibration FAILED, Try again with another freqs...')
+                self._show_configs(cfg, suffix=self.config.get_param('first_faild_calibration_text'))
                 time.sleep(5)
                 self._send_csp_info(cfg)
                 self._run_prev_scenario()
         elif self.mode == 'abort_on_failure':
             if self._determine_means(cfg):            
-                self._show_configs(cfg, suffix=u'Wait to start BCI app...')
+                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
                 time.sleep(5)
                 self._shuffle_freqs(cfg)
                 self._send_csp_info(cfg)
                 ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
                 self._run_next_scenario()
             else:
-                self._show_configs(cfg, suffix=u'Calibration FAILED, You are not working, Bye...')
+                self._show_configs(cfg, suffix=self.config.get_param('second_faild_calibration_text'))
                 time.sleep(5)
                 self._send_csp_info(cfg)
                 #sys.exit(1)
@@ -146,18 +149,24 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         return ret
 
     def _shuffle_freqs(self, cfg):
-        """Move second best freq to the last field..."""
-        if not int(self.config.get_param('shuffle_freqs')):
+   
+        if self.config.get_param('shuffle_freqs') == '0':
             return
 
-        freqs = [int(i) for i in cfg['freqs'].split(';')]
-        new_freqs = []
-        new_freqs.append(freqs[0])
-        for f in freqs[3:]:
-            new_freqs.append(f)
-        new_freqs.append(freqs[2])
-        new_freqs.append(freqs[1])
+        elif self.config.get_param('shuffle_freqs') == '1':
+             #Move second best freq to the last field...
+            freqs = [int(i) for i in cfg['freqs'].split(';')]
+            new_freqs = []
+            new_freqs.append(freqs[0])
+            for f in freqs[3:]:
+                new_freqs.append(f)
+            new_freqs.append(freqs[2])
+            new_freqs.append(freqs[1])
 
+        elif self.config.get_param('shuffle_freqs') == 'random':
+            new_freqs = [int(i) for i in cfg['freqs'].split(';')]
+            random.shuffle(new_freqs)
+        
         cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
         
     def _show_configs(self, cfg, suffix=u""):
@@ -166,7 +175,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         all_means = cfg['all_means'].split(';')
         ugm_helper.send_config_for(
             self.conn, text_id, 'message',
-            u''.join([u"Best frequencies:"# i ich sila:",
+            u''.join([self.config.get_param('show_freqs_text'),# i ich sila:,
                      '\n',
                      #' '.join([all_freqs[i]+" ("+all_means[i]+")" for i in range(len(all_freqs))]),
                       ' '.join([all_freqs[i] for i in range(len(all_freqs))]),
