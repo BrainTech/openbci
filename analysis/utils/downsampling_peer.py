@@ -55,7 +55,7 @@ class Downsampling(ConfiguredClient):
         data = manager.get_samples()
         self.logger.info("START resampling: file: {}, old_fs = {} Hz, new_fs = {} Hz...".format(old_file, fs, self.new_fs))
         
-        if not fs % new_fs == 0:
+        if not fs % self.new_fs == 0:
             self.logger.error("WRONG new sampling frequency!!\n You can choose sampling frequency, which is the divisor of old sampling frequency")
             sys.exit(0)
         else:
