@@ -1,3 +1,10 @@
+openbci (1.8.12-1) unstable; urgency=low
+
+  * Better tobii calibration.
+  * Add missing scenario to gui.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 03 Oct 2013 16:35:11 +0200
+
 openbci (1.8.11-1) unstable; urgency=low
 
   * Helper scripts update.
