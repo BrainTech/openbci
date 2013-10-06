@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.4-4) unstable; urgency=low
+
+  * Change source format to 3.0 (quilt).
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 06 Oct 2013 12:19:46 +0200
+
 openbci-amplifiers (1.8.4-3) unstable; urgency=low
 
   * Added links to amplifiers binary in openbci directory.
