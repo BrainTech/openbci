@@ -6,5 +6,4 @@ if [ -z "$OBCI_INSTALL_DIR" ]
 then
 	direc=/usr/share/openbci
 fi
-
-exec python "\"$direc/control/launcher/obci_script.py\"" $@
+exec python "$direc/control/launcher/obci_script.py" $@
