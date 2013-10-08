@@ -10,10 +10,10 @@ ALL = tmsi_amplifier test_tmsi_amplifier
 $(ALL): #This is for command line completion
 
 $(BIN)/test_tmsi_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER) $(TMSI) test_amplifier.o test_tmsi_amplifier.o)
-	$(LD_AMPLIFIER) -lbluetooth
+	$(LD_AMPLIFIER) -lbluetooth -L/lib -lpthread
 
 $(BIN)/tmsi_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) $(TMSI) tmsi_amplifier_main.o)
-	$(LD_SERVER) -lbluetooth
+	$(LD_SERVER) -lbluetooth -L/lib -lpthread
 
 install_tmsi:
 	cd driver;make install
