@@ -1,3 +1,9 @@
+openbci (1.8.13-1) unstable; urgency=low
+
+  * Fix broken obci script.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 08 Oct 2013 13:17:32 +0200
+
 openbci (1.8.12-3) unstable; urgency=low
 
   * Change source format to 3.0 (quilt).
