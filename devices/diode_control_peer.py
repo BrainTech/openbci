@@ -11,9 +11,11 @@ import time
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
 
 class DiodeControl(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(DiodeControl, self).__init__(addresses=addresses,
                                           type=peers.SUPER_DIODE)
@@ -47,11 +49,7 @@ class DiodeControl(ConfiguredMultiplexerServer):
             self.freqs = [-1 for i in freqs_str.split(";")]
 
     def start_blinking(self):
-        if self.freqs[0] == -1:
-            self.diodes_on()
-        else:
-            self.blinker.blinkSSVEP(self.freqs, 1, 1)
-
+        self.blinker.blinkSSVEP(self.freqs, 1, 1)
         self._send_diode_message(self.freqs_str)
     
     def diodes_on(self):
@@ -85,10 +83,7 @@ class DiodeControl(ConfiguredMultiplexerServer):
                 self.logger.info('Update blinker!')
                 self.logger.info(l_msg.value)
                 self.update_freqs(l_msg.value)
-                if self.freqs[0] == -1:
-                    self.diodes_on()
-                else:
-                    self.start_blinking()
+                self.start_blinking()
             else:
                 self.logger.warning("Unrecognised blink control message! "+str(l_msg.key))
         self.no_response()

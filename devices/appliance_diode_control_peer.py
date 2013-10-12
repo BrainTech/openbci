@@ -6,9 +6,10 @@
 from obci.devices import diode_control_peer
 from obci.configs import settings
 from obci.devices import blinker_factory
-import time
+from obci.utils.openbci_logging import log_crash
 
 class ApplianceDiodeControl(diode_control_peer.DiodeControl):
+    @log_crash
     def __init__(self, addresses):
         super(ApplianceDiodeControl, self).__init__(addresses=addresses)
 
@@ -28,7 +29,6 @@ class ApplianceDiodeControl(diode_control_peer.DiodeControl):
                 app,
                 self.config.get_param("device_path"),
                 int(self.config.get_param("intensity")))
-           time.sleep(1) #TODO - without it if just-after _init_blinker freqs will be sent - it will not work (possibly there m            
         elif app == 'dummy':
             self.blinker = blinker_factory.get_blinker(app)
         else:
