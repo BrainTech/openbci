@@ -5,6 +5,7 @@
 from obci.devices import appliance1
 from obci.devices import appliance2
 from obci.devices import appliance_dummy
+import time
 
 def get_blinker(app, dev_path=None, intensity=None):
     blinker = None
@@ -19,4 +20,5 @@ def get_blinker(app, dev_path=None, intensity=None):
     elif app == 'dummy':
         blinker = appliance_dummy.Blinker()
         blinker.open()
+    time.sleep(2)
     return blinker
