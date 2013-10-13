@@ -1,3 +1,10 @@
+openbci (1.8.14-1) unstable; urgency=low
+
+  * Move from appliance peer to appliance driver diodes on/off feature.
+  * Refactor some other appliance-driver-s features.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 13 Oct 2013 17:41:10 +0200
+
 openbci (1.8.13-1) unstable; urgency=low
 
   * Fix broken obci script.
