@@ -54,6 +54,14 @@ def send_stop_blinking(conn):
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
+def send_update_and_start_blinking(conn):
+    msg = variables_pb2.Variable()
+    msg.key = 'update_and_start_blinking'
+    msg.value = ''
+    conn.send_message(message=msg.SerializeToString(), 
+                      type=types.UGM_CONTROL_MESSAGE,
+                      flush=True)
+
 def send_hide(conn):
     msg = variables_pb2.Variable()
     msg.key = 'hide'

@@ -14,7 +14,7 @@ class _SingleUgmManager(object):
     
         assert(start_id >= 0)
         assert(count >= 0)
-        assert(count == dec_count)
+        #assert(count == dec_count)
 
         self.blink_ugm = []
         self.unblink_ugm = []
@@ -54,6 +54,7 @@ class _ClassicUgmManager(object):
         start_id = int(configs.get_param("blink_ugm_id_start"))
         count = int(configs.get_param('blink_ugm_id_count'))
         dec_count = int(configs.get_param('blink_id_count'))
+        dec_start = int(configs.get_param('blink_id_start'))
         rows = int(configs.get_param('blink_ugm_row_count'))
         cols = int(configs.get_param('blink_ugm_col_count'))
         assert(start_id >= 0)
@@ -62,12 +63,12 @@ class _ClassicUgmManager(object):
         assert(cols >= 0)
         assert(count == rows * cols)
         assert(dec_count >= 0)
-        assert(dec_count == rows + cols)
+        #assert(dec_count == rows + cols)
 
         self.blink_ugm = []
         self.unblink_ugm = []
 
-        for dec in range(dec_count):
+        for dec in range(dec_start+dec_count):
             if dec < cols:
                 blink_cfgs = []
                 unblink_cfgs = []

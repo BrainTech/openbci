@@ -14,13 +14,15 @@ class UgmBlinkingIdManager(object):
     def set_configs(self, configs):
         self._type = configs.get_param('blink_id_type')
         self._blink_count = int(configs.get_param('blink_id_count'))
+        self._blink_start = int(configs.get_param('blink_id_start'))
         assert(self._blink_count >= 0)
+        assert(self._blink_start >= 0)
         self.reset()
 
     def reset(self):
         if self._blink_count > 0:
             self._mgr = sequence_provider.PROVIDERS[self._type](
-                0,
+                self._blink_start,
                 self._blink_count
                 )
         else:

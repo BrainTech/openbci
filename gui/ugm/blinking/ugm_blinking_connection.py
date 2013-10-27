@@ -9,12 +9,23 @@ from multiplexer.clients import connect_client
 from obci.configs import variables_pb2
 from obci.utils import context as ctx
 
+class DummyClient(object):
+    def __init__(self, params):
+        self.params = params
+    def get_param(self, key):
+        return self.params[key]
+
+
 class UgmBlinkingConnection(object):
     """Provides connection for engine to 'external' wold - other MX modules."""
-    def __init__(self, addresses,context=ctx.get_dummy_context('UgmBlinkingConnection')):
+    def __init__(self, addresses, sth, context=ctx.get_dummy_context('UgmBlinkingConnection')):
         self.connection = connect_client(type = peers.UGM_ENGINE, addresses=addresses)
+        self.sth = sth
         self.context = context
         self.blink_msg = variables_pb2.Blink()
+
+    def get_configs(self):
+        return DummyClient(self.sth.config.param_values())
 
     def send_blink(self, blink_id, blink_time):
         self.blink_msg.index = blink_id

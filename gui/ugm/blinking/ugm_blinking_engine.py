@@ -44,18 +44,25 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
             self.start_blinking()
         elif msg_type == 'stop_blinking':
             self.stop_blinking()
-        #elif msg_type == 'update_and_start_blinking':
-        #    self._update_and_start_blinking()
+        elif msg_type == 'update_and_start_blinking':
+            self._update_and_start_blinking()
         else:
             raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
 
-    #def _update_and_start_blinking(self):
-    #    for m in self.mgrs:
-    #        m.reset()
-    #    requested_configs = self.get_requested_configs()
-    #    configs = self.connection.get_configs(requested_configs)
-    #    self.set_configs(configs)
-    #    self.start_blinking()
+    def _update_and_start_blinking(self):
+        print("ugm blinking - update and start blinking")
+        self.stop_blinking()
+        import time
+        time.sleep(1)
+        for m in self.mgrs:
+            m.reset()
+        print("ugm blinking - after reset")
+        configs = self.connection.get_configs()
+        print("ugm blinking - after get configs")
+        print(str(configs.params))
+        self.set_configs(configs)
+        print("ugm blinking - after set configs")
+        self.start_blinking()
 
     def start_blinking(self):
         self._blinks_count = self.count_mgr.get_count()
