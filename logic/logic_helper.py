@@ -19,7 +19,7 @@ mtool = OBCIMessageTool(message_templates)
 def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwrites=[]):
 	"""
 	new_scenario: scenario_path relative to obci_root
-	overwrites:   {'peer_id' : ['-p', 'param_name', 'param_value', 
+	overwrites:   {'peer_id' : ['-p', 'param_name', 'param_value',
 									'-p', 'etc', 'etc',
 								'-f' 'config_ini_file_path_relative_to_obci_root']}
 
@@ -73,7 +73,7 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 					while scan:
 						if '-f' in scan:
 							ind = scan.index('-f')
-							params[cut+ind+1] = os.path.join(obci_root(), params[cut+ind+1])
+							params[cut+ind+1] = os.path.join(params[cut+ind+1])
 							cut = cut+ind+1
 							scan = params[cut:]
 						else: break
@@ -83,19 +83,24 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 					# 	print params[i]
 
 
-					ovr_list += ['--peer', peer]
+					ovr_list += ['--peer', peer, os.path.join("utils","tagger.ini")]
+								#this "tagger.ini" is just to fill a required parameter, it doesn't get processed into peer's config
 					ovr_list += params
 
 				# leave_on_str = '' if not leave_on else ' --leave_on ' + ' '.join(leave_on)
 				# overwr_str = '' if not overwrites else ' '.join(ovr_list)
 				# command = "sleep 0.5 && obci morph " + str(uid) + " " + new_scenario + \
 				# 		" " + leave_on_str  + overwr_str + " &"
-				
+				obci_call = ["obci"]
+				try:
+					subprocess.call(obci_call)
+				except: # (OSError, WindowsError) can't call launcher like that
+					obci_call = ["python", os.path.join(obci_root(), "control", "launcher", "obci_script.py")]
 
-				subpr_call = ['obci', 'morph', str(uid), new_scenario, '--leave_on'] + leave_on + ovr_list
+				subpr_call = obci_call + ['morph', str(uid), new_scenario, '--leave_on'] + leave_on + ovr_list
 				print "---------------\n", subpr_call, "\n--------------"
 				subprocess.call(subpr_call)
 				# os.system(command)
 
 
-    #os.system("sleep 0.5 && obci srv_kill && sleep 10 && obci launch "+new_scenario+" &")    
+    #os.system("sleep 0.5 && obci srv_kill && sleep 10 && obci launch "+new_scenario+" &")

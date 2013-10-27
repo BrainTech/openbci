@@ -17,9 +17,9 @@ from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg, Pol
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 
-from subprocess_monitor import SubprocessMonitor
-from process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
-from obci.utils.openbci_logging import get_logger
+from obci.control.launcher.subprocess_monitor import SubprocessMonitor
+from obci.control.launcher.process import FAILED, TERMINATED, FINISHED, RUNNING, NON_RESPONSIVE
+from obci.utils.openbci_logging import get_logger, log_crash
 from obci.control.common import net_tools
 
 class HandlerCollection(object):
@@ -79,6 +79,9 @@ class HandlerCollection(object):
         return handler
 
 
+
+
+
 class OBCIControlPeer(object):
 
     msg_handlers = HandlerCollection()
@@ -107,7 +110,7 @@ class OBCIControlPeer(object):
             if not os.path.exists(log_dir):
                 os.makedirs(log_dir)
             self.logger = get_logger(self.peer_type(), log_dir=log_dir,
-                    stream_level=net_tools.peer_loglevel())
+                                    stream_level=net_tools.peer_loglevel(), obci_peer=self)
 
         self.mtool = self.message_tool()
 
@@ -183,7 +186,7 @@ class OBCIControlPeer(object):
                 for key, status in dead.iteritems():
                     send_msg(push_sock, self.mtool.fill_msg('dead_process', machine=key[0],
                                                         pid=key[1], status=status))
-            time.sleep(1)
+            time.sleep(0.5)
         push_sock.close()
 
 
@@ -326,6 +329,7 @@ class OBCIControlPeer(object):
     def _set_poll_sockets(self):
         self._poll_sockets = self.all_sockets()
 
+    @log_crash
     def run(self):
         self.pre_run()
         poller = zmq.Poller()
@@ -339,7 +343,7 @@ class OBCIControlPeer(object):
                 try:
                     socks = dict(poller.poll())
                 except zmq.ZMQError, e:
-                    self.logger.error(": zmq.poll(): " +str(    e.strerror))
+                    self.logger.warning(": zmq.poll(): " +str(    e.strerror))
                 for sock in socks:
                     if socks[sock] == zmq.POLLIN:
                         more = True
@@ -366,11 +370,25 @@ class OBCIControlPeer(object):
                     break
                 self._update_poller(poller, poll_sockets)
         except Exception, e:
-            self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
-                                self.name, e, e.args, vars(e))
+            # from urllib2 import HTTPError
+            # try:
+            #     self.logger.critical("UNHANDLED EXCEPTION IN %s!!! ABORTING!  Exception data: %s, e.args: %s, %s",
+            #                         self.name, e, e.args, vars(e), exc_info=True,
+            #                         extra={'stack': True})
+            # except HTTPError, e:
+            #     self.logger.info('sentry sending failed....')
+            self._clean_up()
+            raise(e)
 
-        self._clean_up()
 
+    def _crash_extra_description(self, exception=None):
+        return ""
+
+    def _crash_extra_data(self, exception=None):
+        return {}
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'launcher'}
 
     def _update_poller(self, poller, curr_sockets):
         self._set_poll_sockets()

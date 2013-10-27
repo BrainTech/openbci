@@ -7,8 +7,10 @@ from obci.gui.ugm import ugm_helper
 from obci.interfaces.etr import hci_etr
 from obci.interfaces.etr.nesw import etr_nesw_dec_manager
 from obci.interfaces.etr import etr_ugm_manager
+from obci.utils.openbci_logging import log_crash
 
 class HciEtrNESW(hci_etr.HciEtr):
+    @log_crash
     def __init__(self, addresses):
         super(HciEtrNESW, self).__init__(addresses=addresses)
         self.dec_mgr = etr_nesw_dec_manager.EtrDecManager(

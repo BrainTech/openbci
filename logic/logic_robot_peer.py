@@ -11,9 +11,11 @@ from obci.configs import settings, variables_pb2
 from obci.utils import context as ctx
 from obci.logic.logic_speller_peer import LogicSpeller
 from obci.logic.engines.robot_engine import RobotEngine
+from obci.utils.openbci_logging import log_crash
 
 class LogicRobot(LogicSpeller, RobotEngine):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         LogicSpeller.__init__(self, addresses=addresses)
         context = ctx.get_new_context()

@@ -15,9 +15,11 @@ from obci.utils import keystroke
 from obci.utils import tags_helper
 
 from obci.acquisition import acquisition_helper
+from obci.utils.openbci_logging import log_crash
 
 class LogicP300Calibration(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(LogicP300Calibration, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_P300_CALIBRATION)

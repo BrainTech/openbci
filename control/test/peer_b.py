@@ -5,10 +5,10 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-
-print "dupadupadupadupa"
+from obci.utils.openbci_logging import log_crash
 
 class TestServer(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(TestServer, self).__init__(addresses=addresses, type=peers.CONFIGURER)
         self.ready()

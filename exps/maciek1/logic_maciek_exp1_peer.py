@@ -17,11 +17,14 @@ from obci.utils import tags_helper
 from obci.utils import sequence_provider
 
 from obci.acquisition import acquisition_helper
+from obci.utils.openbci_logging import log_crash
+
 import pygame
 pygame.init()
 
 class LogicSSVEPCalibration(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(LogicSSVEPCalibration, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_SSVEP_CALIBRATION)

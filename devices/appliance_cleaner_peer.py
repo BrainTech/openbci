@@ -9,8 +9,10 @@ from obci.devices import blinker_factory
 from obci.devices import appliance_diode_control_peer
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer.multiplexer_constants import peers, types
+from obci.utils.openbci_logging import log_crash
 
 class ApplianceCleaner(ConfiguredClient):
+    @log_crash
     def __init__(self, addresses):
         super(ApplianceCleaner, self).__init__(settings.MULTIPLEXER_ADDRESSES, type=peers.CLIENT)
         self.ready()

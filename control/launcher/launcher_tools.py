@@ -79,7 +79,7 @@ def obci_root_relative(path):
         root = obci_root()
         if os.path.commonprefix([path, root]).startswith(root):
             _path = path[len(root):]
-            if _path.startswith('/'):
+            if _path.startswith('/') or _path.startswith('\\'):
                 _path = _path[1:]
     return _path
 
@@ -132,10 +132,12 @@ def default_config_path(peer_program_path):
     else: return ''
 
 def expand_path(program_path, base_dir=None):
+
     if base_dir is None:
         base_dir = obci_root()
     if not program_path:
         return program_path
+    program_path = os.path.normpath(program_path)
     p = os.path.expanduser(program_path)
     if os.path.isabs(p):
         return p

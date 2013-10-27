@@ -11,9 +11,11 @@ from obci.logic.logic_decision_peer import LogicDecision
 from obci.logic.engines.speller_engine import SpellerEngine
 from obci.utils import context as ctx
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
 
 class LogicSpeller(LogicDecision, SpellerEngine):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         LogicDecision.__init__(self, addresses=addresses)
         context = ctx.get_new_context()

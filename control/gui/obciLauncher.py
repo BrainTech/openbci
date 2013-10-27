@@ -28,6 +28,7 @@ import getopt
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
 from obci.utils.filesystem import checkpidfile
+from obci.utils.openbci_logging import get_logger, log_crash
 
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from obci_launcher_constants import STATUS_COLORS
@@ -58,11 +59,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     engine_reinit = pyqtSignal(object)
 
+    @log_crash
     def __init__(self):
         '''
         Constructor
         '''
         QMainWindow.__init__(self)
+
+        self.logger = get_logger('launcherGUI', obci_peer=self)
 
         self.setupUi(self)
         self.basic_title = self.windowTitle()
@@ -120,7 +124,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                                                 "OpenBCI is launched from local directory: "+os.environ.get('OBCI_INSTALL_DIR')+', to start default package version launch "obci_local_remove" in terminal.')
 
 
-
+    @log_crash
     def closeEvent(self, e):
         progress = QProgressDialog(self,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         progress.setLabelText("Finishing...")
@@ -135,10 +139,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             progress.setValue(i+1)
         e.accept()
 
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'launcher'}
+
     def stop_logs(self):
         for i, st in self.exp_states.iteritems():
             st.log_model.stop_running()
 
+    @log_crash
     def engine_server_setup(self, server_ip_host=None):
         server_ip, server_name = server_ip_host or (None, None)
         old_ip = None
@@ -234,7 +242,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.actionOpen.triggered.connect(self._import)
         self.actionRemove_from_sidebar.triggered.connect(self._remove_from_sidebar)
 
-
+    @log_crash
     def setScenarios(self, scenarios):
         scenarios.sort(cmp=lambda a,b: str(a.name) > str(b.name))
         self._scenarios = scenarios
@@ -269,6 +277,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def getScenarios(self):
         return self._scenarios
 
+    @log_crash
     def _setParams(self, experiment):
         expanded = self.exp_states[experiment.exp.uuid].expanded_peers
 
@@ -278,6 +287,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine) or str(experiment.origin_machine)
+            print mch, peer_id
             parent = QTreeWidgetItem([peer_id, st, mch])
             parent.setFirstColumnSpanned(True)
 
@@ -301,6 +311,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                     child.setDisabled(True)
                 parent.addChild(child)
 
+    @log_crash
     def _getParams(self):
         uid = self._params.exp.exp_config.uuid
         old_uid = self._params.exp.old_uid
@@ -327,7 +338,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         return self._params
 
     def _itemDoubleClicked(self, item, column):
-        if item.parent() is None:
+        if item.parent() is None and column != 2:
             uid = str(self.scenarios.currentItem().uuid)
             #self.exp_states[uid].exp.exp_config.peers[
             self.log_engine.show_log(item.text(0), uid)
@@ -345,19 +356,31 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 item.setFlags(Qt.ItemIsSelectable)
 
     def _itemChanged(self, item, column):
+        changed = False
         if item.parent() is None:
-            return
-        exp_state = self._params
-        peer_id = unicode(item.parent().text(0))
-        param = unicode(item.text(0))
-        val = unicode(item.text(1))
+            if column == 2:
+                machine = unicode(item.text(2))
+                peer_id = unicode(item.text(0))
+                old_ma = self._params.exp.exp_config.peer_machine(peer_id)
+                if old_ma != machine:
+                    self._params.exp.exp_config.update_peer_machine(peer_id, machine)
+                    changed = True
+        else:
+            exp_state = self._params
+            peer_id = unicode(item.parent().text(0))
+            param = unicode(item.text(0))
+            val = unicode(item.text(1))
 
-        old_val = exp_state.exp.exp_config.param_value(peer_id, param)
-        if old_val != unicode(item.text(1)):
-            exp_state.exp.update_peer_param(peer_id, param, val)
+            old_val = exp_state.exp.exp_config.param_value(peer_id, param)
+            if old_val != unicode(item.text(1)):
+                exp_state.exp.update_peer_param(peer_id, param, val)
+                changed = True
+
+        if changed:
             self._getParams()
             self._setParams(self._params)
 
+    @log_crash
     def _setInfo(self, scenario_item, column):
         if scenario_item is None:
             pass
@@ -376,6 +399,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self._manage_actions(scenario_item)
 
+    # @log_crash
     def _start(self):
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
@@ -388,7 +412,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             store_options = None
         self.log_engine.on_experiment_start(self.exp_states[uid].exp)
-        print "obciLauncher - _start(), exp:  ", self.exp_states[uid].exp 
+        print "obciLauncher - _start(), exp:  ", self.exp_states[uid].exp
         self.start.emit(uid, store_options)
 
     def _stop(self):
@@ -397,12 +421,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.stop.emit(uid, self.exp_states[uid].store_options is not None)
         self.exp_states[uid].store_options = None
 
+    @log_crash
     def _saver_msg(self, killer_proc):
         print "GUI SAVER MSG"
         reply = QMessageBox.question(self, 'Signal saving',
             "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
-            "Continue saving?", 
-            QMessageBox.Yes | QMessageBox.No, 
+            "Continue saving?",
+            QMessageBox.Yes | QMessageBox.No,
             QMessageBox.Yes)
         killer_proc.poll()
         if reply == QMessageBox.No and killer_proc.returncode is None:
@@ -448,7 +473,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _choose_dir(self):
         curr = str(self.store_dir.text())
         if len(curr) == 0:
-            curr = '~' 
+            curr = '~'
         curr = os.path.expanduser(curr)
         if self.server_hostname != socket.gethostname():
             PyQt4.QtGui.QMessageBox.information(self, "This is a remote connection",
@@ -456,7 +481,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             direc = curr
         else:
             direc = QFileDialog.getExistingDirectory(self, "Choose directory..,", curr)
-                      
+
         if not direc:
             return
 
@@ -488,6 +513,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                                     "\nDetails: " + str_details,
                                     QMessageBox.Ok)
 
+    @log_crash
     def update_user_interface(self, update_msg):
         user_imported_uuid = None
         if isinstance(update_msg, LauncherMessage):
@@ -514,7 +540,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if exp.uuid not in self.exp_states:
                 st = new_states[exp.uuid] = ExperimentGuiState(
                     self.engine.client,
-                    exp, 
+                    exp,
                     self.log_engine,
                     self.exp_states.get(exp.old_uid, None)
                     )
@@ -631,7 +657,7 @@ class ExperimentGuiState(object):
         else:
             self.store_options = old_exp.store_options
             self.log_model = old_exp.log_model
-        
+
 
 class ConnectToMachine(QDialog, Ui_ConnectToMachine):
     def __init__(self, parent):

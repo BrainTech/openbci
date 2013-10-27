@@ -27,10 +27,13 @@ for mod_name in DISCOVERY_MODULE_NAMES:
     name = BASE_MODULE + '.' + mod_name
     try:
         __import__(name)
-        discovery_modules.append(sys.modules[name])
-        LOADED_MODULE_NAMES.append(mod_name)
-    except:
-        LOGGER.warning("Failed to load discovery module: " + mod_name)
+
+    except ImportError:
+        LOGGER.error("could not import discovery module %s" % name)
+        continue
+    discovery_modules.append(sys.modules[name])
+    LOADED_MODULE_NAMES.append(mod_name)
+
 
 def find_drivers():
     return _find_amps(discovery_modules)
