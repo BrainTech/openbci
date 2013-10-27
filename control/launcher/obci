@@ -2,6 +2,12 @@
 
 direc=$OBCI_INSTALL_DIR
 
+
+if [ `uname` == Linux* ]
+then
+    export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+fi
+
 if [ -z "$OBCI_INSTALL_DIR" ]
 then
 	direc=/usr/share/openbci

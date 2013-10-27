@@ -73,10 +73,8 @@ class ConfigServer(BaseMultiplexerServer):
 
 
     def _config_path(self):
-        peer_file = inspect.getfile(self.__init__)
-        base_name = os.path.basename(peer_file).rsplit('.', 1)[0]
-        base_config_path = '.'.join([base_name, 'ini'])
-        return os.path.join(DEFAULT_SANDBOX_DIR, base_config_path)
+        base_config_path = "config_server.ini"
+        return os.path.abspath(os.path.join(DEFAULT_SANDBOX_DIR, base_config_path))
 
     def _stored_config(self):
         parser = ConfigParser.RawConfigParser()

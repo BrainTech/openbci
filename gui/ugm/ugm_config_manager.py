@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Author:
@@ -132,9 +132,9 @@ class UgmAttributesManager(object):
             'maze_user_direction':{'value':'string'},
 
             }
-	# TODO: Stimuluses as attribute?
+    # TODO: Stimuluses as attribute?
         self.attributes_for_elem = {
-	        'field':['id', 'width_type', 'width', 'height_type',
+            'field':['id', 'width_type', 'width', 'height_type',
                      'height', 'position_horizontal_type',
                      'position_horizontal', 'position_vertical_type',
                      'position_vertical', 'color'],
@@ -203,7 +203,7 @@ class UgmConfigManager(object):
         l_config_fields = self._get_module_from_config(self._config_file)
         ## FIX FIX FIX FIX FIX
         ## FIX FIX FIX FIX FIX
-#        l_config_fields.insert(0, {'width_type': 'absolute', 'position_horizontal': 0, 'color': '#000000', 'height_type': 'absolute', 'height': 9999.0, 'width': 9999.0, 'position_horizontal_type': 'absolute', 'stimuluses': [], 'position_vertical': 0, 'id': 0, 'position_vertical_type': 'absolute'})
+        #        l_config_fields.insert(0, {'width_type': 'absolute', 'position_horizontal': 0, 'color': '#000000', 'height_type': 'absolute', 'height': 9999.0, 'width': 9999.0, 'position_horizontal_type': 'absolute', 'stimuluses': [], 'position_vertical': 0, 'id': 0, 'position_vertical_type': 'absolute'})
         ## FIX FIX FIX FIX FIX
         ## FIX FIX FIX FIX FIX
         #reload(l_config_module) # To be sure that the file is imported
@@ -226,7 +226,7 @@ class UgmConfigManager(object):
         else:
             l_file_path = l_config_file
         l_file = open(unicode(l_file_path), 'wb') #TODO -try except
-        pickle.dump(self._fields, l_file)
+        pickle.dump(self._fields, l_file, protocol=2)
         l_file.close()
     
     def _get_module_from_config(self, p_config_file):
@@ -237,11 +237,9 @@ class UgmConfigManager(object):
         if self._standard_config:
             l_file_path = self._standard_config_dir + self._config_file + '.ugm'
         else:
-            l_file_path = self._config_file
-        l_file = open(unicode(l_file_path), 'rb') # TODO add try except
-        l_fields = pickle.load(l_file)
-        l_file.close()
-            
+            l_file_path = self._config_file  
+        with open(unicode(l_file_path), 'rb') as l_file:
+            l_fields = pickle.load(l_file)                 
         return l_fields
 
     # CONFIG FILE MANAGMENT ------------------------------------------------

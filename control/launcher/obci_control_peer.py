@@ -81,7 +81,6 @@ class HandlerCollection(object):
 
 
 
-
 class OBCIControlPeer(object):
 
     msg_handlers = HandlerCollection()
@@ -380,6 +379,7 @@ class OBCIControlPeer(object):
             self._clean_up()
             raise(e)
 
+        self._clean_up()
 
     def _crash_extra_description(self, exception=None):
         return ""
