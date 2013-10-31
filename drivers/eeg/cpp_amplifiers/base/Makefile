@@ -7,13 +7,13 @@ $(ALL):
 
 
 $(BIN)/dummy_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) dummy_amplifier_main.o)
-	$(LD_SERVER)
+	$(LD_SERVER) -L/lib -lpthread
 
 $(BIN)/test_server: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER_SERVER) test_server.o)
-	$(LD_SERVER)
+	$(LD_SERVER) -L/lib -lpthread
 
 $(BIN)/test_logger:  $(CHECK_BIN) $(addprefix $(BUILD)/,test_logger.o Logger.o) 
-	$(LD_AMPLIFIER)
+	$(LD_AMPLIFIER) -L/lib -lpthread
 
 $(BIN)/test_dummy_amplifier: $(CHECK_BIN) $(addprefix $(BUILD)/, $(AMPLIFIER) test_amplifier.o test_dummy_amplifier.o)
-	$(LD_AMPLIFIER)
+	$(LD_AMPLIFIER) -L/lib -lpthread

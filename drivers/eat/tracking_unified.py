@@ -6,17 +6,17 @@ import sys, signal
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
 
-from tobii import eye_tracking_io
-import tobii.eye_tracking_io.eyetracker
-import tobii.eye_tracking_io.mainloop
-import tobii.eye_tracking_io.browsing
-import tobii.eye_tracking_io.types
+#from tobii import eye_tracking_io
+#import tobii.eye_tracking_io.eyetracker
+#import tobii.eye_tracking_io.mainloop
+#import tobii.eye_tracking_io.browsing
+#import tobii.eye_tracking_io.types
 
 #dummy import when no access to a real eyetracker
-#import eye_tracking_io.eyetracker
-#import eye_tracking_io.mainloop
-#import eye_tracking_io.browsing
-#import eye_tracking_io.types
+import eye_tracking_io.eyetracker
+import eye_tracking_io.mainloop
+import eye_tracking_io.browsing
+import eye_tracking_io.types
 
 from obci.configs import settings, variables_pb2
 import logging
@@ -65,6 +65,7 @@ class EtrAmplifierTobii(ConfiguredClient):
     def signal_handler(self):
         def handler(signum, frame):
             self.logger.info("Got signal " + str(signum) + "!!! TUrning etr off!")
+            #self.conn.send_message(message="finish", type=types.ACQUISITION_CONTROL_MESSAGE)
             # some cleanup ...
             sys.exit(-signum)
         return handler

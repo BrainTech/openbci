@@ -72,16 +72,16 @@ class ReadManager(object):
 
         path = os.path.join(p_dir, p_name)
         #store tags
-        tags_writer = tags_file_writer.TagsFileWriter(path+'.obci.tags')
+        tags_writer = tags_file_writer.TagsFileWriter(path+'.obci.tag')
         for tag in tags:
             tags_writer.tag_received(tag)
 
         #store info
-        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.obci.info')
+        info_writer = info_file_proxy.InfoFileWriteProxy(path+'.obci.xml')
         info_writer.set_attributes(params)
 
         #store data
-        data_writer = data_raw_write_proxy.DataRawWriteProxy(path+'.obci.dat')
+        data_writer = data_raw_write_proxy.DataRawWriteProxy(path+'.obci.raw')
         for sample in self.iter_samples():
             for d in sample:
                 data_writer.data_received(d)
@@ -91,23 +91,32 @@ class ReadManager(object):
         data_writer.finish_saving()
 
 
-    def get_samples(self, p_from=None, p_len=None):
+    def get_samples(self, p_from=None, p_len=None, p_unit='sample'):
         """Return a two dimensional array of signal values.
-        if p_reload then refresh the file, otherwise use cached values."""
+        if p_reload then refresh the file, otherwise use cached values.
+        p_unit can be 'sample' or 'second' and makes sense only if p_from and p_len is not none."""
+        if p_unit == 'sample':
+            return self.data_source.get_samples(p_from, p_len)
+        elif p_unit == 'second':
+            sampling = int(float(self.get_param('sampling_frequency')))
+            return self.data_source.get_samples(p_from*sampling, p_len*sampling)
+        else:
+            raise Exception('Unrecognised unit type. Should be sample or second!. Abort!')
         
-        return self.data_source.get_samples(p_from, p_len)
 
-    def get_channel_samples(self, p_ch_name, p_from=None, p_len=None):
+    def get_channel_samples(self, p_ch_name, p_from=None, p_len=None, p_unit='sample'):
         """Return an array of values for channel p_ch_name, or
-        raise ValueError exception if there is channel with that name."""
+        raise ValueError exception if there is channel with that name.
+        p_unit can be 'sample' or 'second' and makes sense only if p_from and p_len is not none."""
+
         ch_ind = self.get_param('channels_names').index(p_ch_name) #TODO error
-        return self.get_samples(p_from, p_len)[ch_ind]
+        return self.get_samples(p_from, p_len, p_unit)[ch_ind]
         
-    def get_channels_samples(self, p_ch_names, p_from=None, p_len=None):
+    def get_channels_samples(self, p_ch_names, p_from=None, p_len=None, p_unit='sample'):
 	assert(len(p_ch_names) > 0)
-        s = self.get_channel_samples(p_ch_names[0], p_from, p_len)
+        s = self.get_channel_samples(p_ch_names[0], p_from, p_len, p_unit)
         for ch in p_ch_names[1:]:
-            s = numpy.vstack((s, self.get_channel_samples(ch, p_from, p_len))) 
+            s = numpy.vstack((s, self.get_channel_samples(ch, p_from, p_len, p_unit))) 
         return s
 
     def set_samples(self, p_samples, p_channel_names, p_copy=False):
@@ -170,3 +179,4 @@ class ReadManager(object):
     def iter_samples(self):
         for s in self.data_source.iter_samples():
             yield s
+            

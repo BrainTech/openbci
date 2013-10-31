@@ -26,13 +26,14 @@ class Blinker(object):
             raise e
         self.close()
 
+
     def to_hex_word(self, a):
         '''encodes a decimal number hexadecimally on two bytes'''
         return chr(a%256) + chr(a/256)
  
     def open(self):
         self.port.open()
- 
+  
     def close(self):
         self.port.close()
  
@@ -47,44 +48,47 @@ class Blinker(object):
         if you want i-th LED to be ON all the time send  d[i] = -1
         in these two cases p1 and p2 do not matter
         '''
+        #assume that if first req is -1 the command is 'diodes on'
+        #in the future middleware should allow to turn on selected field using -1 value
+        if not len([i for i in d if i !=-1]):
+            self.on()
+            return
+
         clock  = 62500
         factor = float(p1) / float(p1 + p2)
- 
-        str = chr(3) # 'SSVEP_RUN'
+        st = chr(3) # 'SSVEP_RUN'
  
         for i in range(len(d)):
             # i-th LED OFF
             if d[i] == 0:                       
-                str += self.to_hex_word(0) + self.to_hex_word(255) 
+                st += self.to_hex_word(0) + self.to_hex_word(255) 
             # i-th LED ON
+            #below should work but doesnt - middleware doesnt have that feature
             elif d[i] == -1:
-                str += self.to_hex_word(255) + self.to_hex_word(0)
-                #str = 'S'
-                # i-th LED blinks d[i] times per second
-                # p1:p2 = on_time:off_time in one blink
+                st += self.to_hex_word(255) + self.to_hex_word(0)
             else:
                 period = clock/d[i]
                 bright = int((clock/d[i]) * factor)
                 dark = period - bright
-                str += self.to_hex_word(bright) + self.to_hex_word(dark)
+                st += self.to_hex_word(bright) + self.to_hex_word(dark)
  
-        self.send(str)
+        self.send(st)
  
     def blinkP300(self,d):
         clock  = 62500
-        str = chr(4)
+        st = chr(4)
  
         for i in range(len(d)):
             period = int(clock*d[i]/1000.0)
-            str += self.to_hex_word(period)
+            st += self.to_hex_word(period)
             print(period)
  
-        self.send(str)
+        self.send(st)
 
     def on(self):
-        str = chr(2)
-        self.send(str)
+        st = chr(2)
+        self.send(st)
 
     def off(self):
-        str = chr(1)
-        self.send(str)
+        st = chr(1)
+        self.send(st)

@@ -13,12 +13,16 @@ TODO: proper logging messages
 import signal
 import sys
 
-#from tobii import eye_tracking_io
+from tobii import eye_tracking_io
+import tobii.eye_tracking_io.eyetracker
+import tobii.eye_tracking_io.mainloop
+import tobii.eye_tracking_io.browsing
+import tobii.eye_tracking_io.types
 
-import eye_tracking_io.eyetracker
-import eye_tracking_io.mainloop
-import eye_tracking_io.browsing
-import eye_tracking_io.types
+#import eye_tracking_io.eyetracker
+#import eye_tracking_io.mainloop
+#import eye_tracking_io.browsing
+#import eye_tracking_io.types
 
 
 from obci.control.peer.configured_client import ConfiguredClient
@@ -68,10 +72,10 @@ class CalibrationViewMainWidget(QtGui.QWidget):
         super(CalibrationViewMainWidget, self).__init__()
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
         
-        label = QtGui.QLabel(u"Zostanie przeprowadzona kalibracja. Naciśnij spację.")
+        self.label = QtGui.QLabel(u"Zostanie przeprowadzona kalibracja. Naciśnij spację.")
         
         box = QtGui.QHBoxLayout()
-        box.addWidget(label)
+        box.addWidget(self.label)
         
         self.setLayout(box)
         self.eyetracker = eyetracker
@@ -91,6 +95,7 @@ class CalibrationViewMainWidget(QtGui.QWidget):
         self.eyetracker.StartCalibration(None)
         self.points = [(0.1, 0.1), (0.1, 0.9), (0.9, 0.1), (0.9, 0.9), (0.5, 0.5)]
         random.shuffle(self.points)
+        self.label.hide()
         time.sleep(2)
         self.next_point()
         
@@ -114,6 +119,9 @@ class CalibrationViewMainWidget(QtGui.QWidget):
     def finish_calibration(self):
         self.state = "finished"
         self.eyetracker.ComputeCalibration(self.compute_calibration_finished)
+        print "Saving..."
+        QtCore.QTimer.singleShot(1500, self.save_calibration)
+        #self.save_calibration()
 
     def compute_calibration_finished(self, error, _r):
         if error == 0x20000502:
@@ -122,8 +130,7 @@ class CalibrationViewMainWidget(QtGui.QWidget):
             print "CalibCompute failed because of a server error", error
         else:
             print "Great success!"
-        self.eyetracker.StopCalibration(None)
-        self.save_calibration()
+        self.eyetracker.StopCalibration(lambda *x, **y: None)
     
     def save_calibration(self):
         calibration = self.eyetracker.GetCalibration()
