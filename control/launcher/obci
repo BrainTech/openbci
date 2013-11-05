@@ -3,9 +3,13 @@
 direc=$OBCI_INSTALL_DIR
 
 
-if [ `uname` == Linux* ]
-then
+
+if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+    if [ -z "$DISPLAY" ]
+    then
+	export DISPLAY=:0
+    fi
 fi
 
 if [ -z "$OBCI_INSTALL_DIR" ]
