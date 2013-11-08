@@ -566,6 +566,8 @@ experiments is possible only when launcher is running (command: obci srv)')))
                 self._cached_nearby_machines = res.nearby_machines
         for mach in self._cached_nearby_machines.values():
             nearby_machines[mach["ip"]] = mach["hostname"]
+        if not nearby_machines:
+            nearby_machines[net.lo_ip()] = socket.gethostname()
         return nearby_machines
 
     @log_crash

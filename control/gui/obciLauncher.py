@@ -133,7 +133,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         progress.show()
         self.stop_logs()
         removepidfile('gui.pid')
-        
+
         for i in range(5):
             time.sleep(0.4)
             progress.setValue(i+1)
@@ -286,7 +286,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         experiment = experiment.exp
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
-            mch = str(peer.machine) or str(experiment.origin_machine)
+            mch = str(peer.machine)
             print mch, peer_id
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
@@ -296,16 +296,18 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent.setBackground(2, QBrush(QColor(STATUS_COLORS[st])))
             parent.setToolTip(0, unicode(peer.path))
 
-            combo = QComboBox()        
+            combo = QComboBox()
             combo.addItems(self._nearby_machines.values())
             self.parameters.addTopLevelItem(parent)
             self.parameters.setItemWidget(parent, 2, combo)
-            if mch:
+            if mch not in self._nearby_machines.values():
+                mch = str(experiment.origin_machine)
+            if mch in self._nearby_machines.values():
                 index = self._nearby_machines.values().index(mch)
                 combo.setCurrentIndex(index)
             if peer_id == 'mx':
                 combo.setDisabled(True)
-                
+
             if parent is not None:
                 combo.currentIndexChanged['QString'].connect(self.makeComboHandler(parent, 2))
 
