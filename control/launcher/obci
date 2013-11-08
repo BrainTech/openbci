@@ -13,6 +13,6 @@ if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     then
 	export DISPLAY=:0
     fi
-    exec python "$direc/control/launcher/obci_script.py" $@
 fi
-exec python "\"$direc/control/launcher/obci_script.py\"" $@
+
+exec python "$direc/control/launcher/obci_script.py" $@
