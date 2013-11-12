@@ -28,6 +28,18 @@ LOG_BUFFER_SIZE_B = 5000
 BACKUP_COUNT = 2
 
 USE_SENTRY = os.environ.get('SENTRY_DSN', False)
+
+if USE_SENTRY == False:
+    try:                                                                                          
+        parser = SafeConfigParser()
+        parser.read('/etc/default/openbci')
+        send_logs = parser.get('sentry', 'send_logs')
+        if send_logs == 'true':
+            USE_SENTRY = parser.get('sentry', 'key')
+    except:
+        pass
+
+
 try:
     from raven import Client
     from raven.handlers.logging import SentryHandler
