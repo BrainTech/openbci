@@ -35,7 +35,7 @@ from server_scanner import update_nearby_servers, broadcast_server
 
 import twisted_tcp_handling
 
-from obci.utils.openbci_logging import get_logger
+from obci.utils.openbci_logging import log_crash
 
 REGISTER_TIMEOUT = 6
 
@@ -43,6 +43,7 @@ class OBCIServer(OBCIControlPeer):
 
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
+    @log_crash
     def __init__(self, rep_addresses=None, pub_addresses=None, name='obci_server'):
 
         self.experiments = {}
@@ -51,7 +52,7 @@ class OBCIServer(OBCIControlPeer):
         super(OBCIServer, self).__init__( None, rep_addresses,
                                                           pub_addresses,
                                                           name)
-        
+
         self.machine = socket.gethostname()
 
         self.rep_port = int(net.server_rep_port())
@@ -63,7 +64,7 @@ class OBCIServer(OBCIControlPeer):
                                                     self.rep_port, self.pub_port, bcast_port])
         self._bcast_server.daemon = True
         self._bcast_server.start()
-        
+
         self._nearby_updater = threading.Thread(target=update_nearby_servers,
                                                 args=[self._nearby_servers,
 
@@ -110,7 +111,7 @@ class OBCIServer(OBCIControlPeer):
             self.rep_socket.setsockopt(zmq.LINGER, 0)
             self._all_sockets.append(self.rep_socket)
             logger.info(self.rep_addresses)
-            
+
         elif socket == self.exp_rep:
             self.logger.info("reinitialising EXPERIMENT REP socket")
             self.exp_rep.close()#linger=0)
@@ -254,7 +255,7 @@ class OBCIServer(OBCIControlPeer):
     def _handle_register_experiment_timeout(self, exp):
         self.logger.error("New experiment process failed to "
             "register before timeout" + str(exp.pid))
-        
+
         if exp.returncode is None:
             exp.kill()
             exp.wait()
@@ -298,7 +299,7 @@ class OBCIServer(OBCIControlPeer):
         if exp is None:
             self.logger.error("failed to launch experiment "
                                 "process, request: " + str(vars(message)))
-            send_msg(sock, self.mtool.fill_msg("rq_error", 
+            send_msg(sock, self.mtool.fill_msg("rq_error",
                                         request=vars(message),
                                 err_code='launch_error', details=details))
         else:
@@ -324,7 +325,6 @@ class OBCIServer(OBCIControlPeer):
         info += '}'
         self.logger.debug("nearby servers:  count: {0}, {1}".format(
                                             len(nearby), info))
-
         send_msg(sock, self.mtool.fill_msg("running_experiments",
                                                 exp_data=exp_data,
                                                 nearby_machines=nearby_dict))
@@ -525,7 +525,7 @@ class OBCIServer(OBCIControlPeer):
         if proc is not None:
             proc.mark_delete()
             status, details = proc.status()
-            self.logger.warning("Process " + proc.proc_type + "dead:" +\
+            self.logger.warning("Process " + proc.proc_type + " dead: " +\
                              status + str(details) + proc.name + str(proc.pid))
             if proc.proc_type == 'obci_process_supervisor':
                 pass
@@ -592,6 +592,14 @@ class OBCIServer(OBCIControlPeer):
             return None, details
 
         return sv_obj, False
+
+    def _crash_extra_data(self, exception=None):
+        import json
+        data = super(OBCIServer, self)._crash_extra_data(exception)
+        data.update({
+            'experiments': [e.info() for e in self.experiments.values()]
+            })
+        return data
 
 
 class ExperimentInfo(object):

@@ -13,9 +13,11 @@ from obci.gui.ugm import ugm_helper
 from obci.logic.engines.speller_engine import SpellerEngine
 
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
 
 class LogicWordSpeller(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses, type=peers.LOGIC_DECISION):
         super(LogicWordSpeller, self).__init__(addresses=addresses,
                                             type=type)

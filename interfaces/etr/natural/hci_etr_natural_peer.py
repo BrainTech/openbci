@@ -8,8 +8,10 @@ from obci.gui.ugm import ugm_helper
 from obci.interfaces.etr import hci_etr
 from obci.interfaces.etr.natural import etr_natural_dec_manager
 from obci.interfaces.etr import etr_ugm_manager
+from obci.utils.openbci_logging import log_crash
 
 class HciEtrNatural(hci_etr.HciEtr):
+    @log_crash
     def __init__(self, addresses):
         super(HciEtrNatural, self).__init__(addresses=addresses, p_type=peers.ETR_P300_ANALYSIS)
 

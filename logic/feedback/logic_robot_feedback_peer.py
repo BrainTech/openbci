@@ -15,9 +15,11 @@ from obci.gui.ugm import ugm_helper
 
 import obci.devices.pyrovio.rovio as rovio
 from obci.control.common.obci_control_settings import DEFAULT_SANDBOX_DIR
+from obci.utils.openbci_logging import log_crash
 
 class LogicRobotFeedback(ConfiguredClient):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses):
         super(LogicRobotFeedback, self).__init__(addresses=addresses,
                                           type=peers.LOGIC_SSVEP_CALIBRATION)

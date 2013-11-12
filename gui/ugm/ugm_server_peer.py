@@ -8,11 +8,13 @@ import socket
 from obci.configs import settings, variables_pb2
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.utils.openbci_logging import log_crash
 
 class UgmServer(ConfiguredMultiplexerServer):
     """A simple class to convey data from multiplexer (UGM_UPDATE_MESSAGE)
     to ugm_engine using udp. That level of comminication is needed, as
     pyqt won`t work with multithreading..."""
+    @log_crash
     def __init__(self, addresses):
         """Init server."""
         self.socket = None

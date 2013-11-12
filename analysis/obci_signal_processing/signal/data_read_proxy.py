@@ -13,7 +13,7 @@ SAMPLE_SIZES = signal_constants.SAMPLE_SIZES
 SAMPLE_STRUCT_TYPES = signal_constants.SAMPLE_STRUCT_TYPES
 
 class DataReadProxy(object):
-    def __init__(self, p_file_path, sample_type='DOUBLE'):
+    def __init__(self, p_file_path, sample_type='FLOAT'):
         self._file_path = p_file_path
         self._sample_size = SAMPLE_SIZES[sample_type]
         self._sample_struct_type = '<'+SAMPLE_STRUCT_TYPES[sample_type]

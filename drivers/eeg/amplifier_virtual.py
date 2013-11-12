@@ -6,8 +6,10 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.drivers.eeg.binary_driver_wrapper import BinaryDriverWrapper
 from obci.configs import settings
 from obci.control.launcher.launcher_tools import obci_root
+from obci.utils.openbci_logging import log_crash
 
 class AmplifierVirtual(BinaryDriverWrapper):
+    @log_crash
     def __init__(self, addresses):
         super(AmplifierVirtual, self).__init__(addresses=addresses, type=peers.AMPLIFIER_SERVER)
 
@@ -15,6 +17,7 @@ class AmplifierVirtual(BinaryDriverWrapper):
 
         host,port=multiplexer_address
         exe=self.config.get_param('driver_executable')
+
         exe = os.path.join(obci_root(), exe)
         v=self.config.get_param('samples_per_packet')
         args=[exe,"-h",str(host),'-p',str(port),'-v',v]

@@ -8,12 +8,14 @@ import os.path, sys, time, os
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.utils import context as ctx
+from obci.utils.openbci_logging import log_crash
 from obci.logic import state_machine
 from obci.logic import logic_helper
 from obci.configs import settings, variables_pb2
 
 class LogicDecision(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
+    @log_crash
     def __init__(self, addresses, type=peers.LOGIC_DECISION):
         super(LogicDecision, self).__init__(addresses=addresses,
                                          type=type)
@@ -29,12 +31,12 @@ class LogicDecision(ConfiguredMultiplexerServer):
             l_action = self._compute_current_actions()[l_decision]
             if len(l_action) > 0: #if l_action is not an empty string
                 eval(u"".join([u"self.", l_action]))
-            
+
             # Go to next state...
             self._state_machine.set_next_state(l_decision)
 
             self._run_post_actions(l_decision)
-            
+
         else:
             self.logger.info("Got unrecognised message type: "+mxmsg.type)
 
@@ -64,7 +66,7 @@ class LogicDecision(ConfiguredMultiplexerServer):
         self.logger.info("Finish LOGIC")
         #sys.exit(1)
 
-            
+
     # ------------------ actions available in config ---------------------------
     # --------------------------------------------------------------------------
 
@@ -72,7 +74,7 @@ class LogicDecision(ConfiguredMultiplexerServer):
     # ---------- methods for config updates and other updates  -----------------
 
     def _compute_current_actions(self):
-        """Return collection of strings representing current`s state actions. 
+        """Return collection of strings representing current`s state actions.
         See _compute_current_param for details.
         """
         return self._compute_current_param('actions', 'actions_solver')
@@ -111,6 +113,6 @@ class LogicDecision(ConfiguredMultiplexerServer):
             else: # We have string in config so just copy it ...
                 l_current_param[i_index] = l_config_param[i_index]
         return l_current_param
-        
+
     # ---------- methods for config updates and other updates  -----------------
     # --------------------------------------------------------------------------

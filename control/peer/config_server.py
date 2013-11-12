@@ -22,17 +22,16 @@ from obci.control.launcher.launcher_messages import message_templates
 from obci.control.launcher.launcher_tools import obci_root
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 
-from obci.utils.openbci_logging import get_logger
+from obci.utils.openbci_logging import get_logger, log_crash
 
 class ConfigServer(BaseMultiplexerServer):
-
+    @log_crash
     def __init__(self, addresses):
         super(ConfigServer, self).__init__(addresses=addresses, type=peers.CONFIG_SERVER)
         self._configs = {}
         self._ext_configs = {}
         self._ready_peers = []
         self.__to_all = False
-        self.spare_conn = connect_client(addresses=addresses, type=peers.CONFIGURER)
         self.mtool = OBCIMessageTool(message_templates)
         self.launcher_sock = None
         params, other_params = PeerCmd().parse_cmd()
@@ -49,7 +48,6 @@ class ConfigServer(BaseMultiplexerServer):
         self._old_configs = self._stored_config()
         self._restore_peers = params['local_params'].get('restore_peers', '').split()
 
-
         for peer in self._restore_peers:
             if peer in self._old_configs["local"]:
                 self._configs[peer] = dict(self._old_configs["local"][peer])
@@ -62,18 +60,21 @@ class ConfigServer(BaseMultiplexerServer):
             self.launcher_sock = self.ctx.socket(zmq.PUSH)
             try:
                 self.launcher_sock.connect(self.addr)
+
             except Exception, e:
                 self.logger.error("failed to connect to address " +\
                                              self.addr + " !!!")
                 self.launcher_sock = None
             else:
                 self.logger.info("OK: connected to " + self.addr)
-                
+
+                send_msg(self.launcher_sock, self.mtool.fill_msg("config_server_ready"))
+        self.logger.info("connections count ::::::::: %s", self.conn.connections_count())
+
+
     def _config_path(self):
-        peer_file = inspect.getfile(self.__init__)
-        base_name = os.path.basename(peer_file).rsplit('.', 1)[0]
-        base_config_path = '.'.join([base_name, 'ini'])
-        return os.path.join(DEFAULT_SANDBOX_DIR, base_config_path)
+        base_config_path = "config_server.ini"
+        return os.path.abspath(os.path.join(DEFAULT_SANDBOX_DIR, base_config_path))
 
     def _stored_config(self):
         parser = ConfigParser.RawConfigParser()
@@ -118,7 +119,7 @@ class ConfigServer(BaseMultiplexerServer):
         else:
             self.logger.info("changed permissions to " + base_config_path + " to 777")
 
-
+    @log_crash
     def handle_message(self, mxmsg):
 
         message = cmsg.unpack_msg(mxmsg.type, mxmsg.message)
@@ -277,6 +278,9 @@ class ConfigServer(BaseMultiplexerServer):
 
     def handle_launcher_command(self, message_obj):
         return None, None, message_obj.serialized_msg
+
+    def _crash_extra_tags(self, exception=None):
+        return {'obci_part' : 'obci'}
 
 
 

@@ -17,8 +17,12 @@ from obci.control.peer import peer_config_parser
 import obci.control.common.obci_control_settings as settings
 import obci.control.common.net_tools as net
 
-class OBCIClient(object):
+class EmptyResponse(object):
+    def __init__(self, details):
+        self.type = "no_data"
+        self.details = details
 
+class OBCIClient(object):
     default_timeout=5000
 
     def __init__(self, server_addresses, zmq_context=None):
@@ -65,16 +69,16 @@ class OBCIClient(object):
         exp_sock = self.ctx.socket(zmq.REQ)
 
         try:
-            if response.type == "rq_error":
+            if response.type == "rq_error" or response.type == "no_data":
                 return response
             for addr in response.rep_addrs:
                 exp_sock.connect(addr)
-    
-    
+
+
             msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
                                     name=name, overwrites=overwrites, leave_on=leave_on)
             send_msg(exp_sock, msg)
-    
+
             response, details = self.poll_recv(exp_sock, 6000)
             return response
         finally:
@@ -87,7 +91,7 @@ class OBCIClient(object):
     def start_chosen_experiment(self, exp_strname):
         response = self.get_experiment_contact(exp_strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         return self.send_start_experiment(response.rep_addrs)
@@ -100,7 +104,7 @@ class OBCIClient(object):
 
                 send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
                 reply, details =  self.poll_recv(exp_sock, 20000)
-        
+
                 #print reply
                 return reply
         finally:
@@ -150,20 +154,20 @@ class OBCIClient(object):
     def get_experiment_details(self, strname, peer_id=None):
         response = self.get_experiment_contact(strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
-        
+
         sock = self.ctx.socket(zmq.REQ)
         try:
             for addr in response.rep_addrs:
                 sock.connect(addr)
-    
+
             if peer_id:
                 send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
             else:
                 send_msg(sock, self.mtool.fill_msg("get_experiment_info"))
             response, details = self.poll_recv(sock, 2000)
-    
+
             return response
         finally:
             sock.close()
@@ -171,23 +175,23 @@ class OBCIClient(object):
     def configure_peer(self, exp_strname, peer_id, config_overrides, override_files=None):
         response = self.get_experiment_contact(exp_strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         sock = self.ctx.socket(zmq.REQ)
         try:
             for addr in response.rep_addrs:
                 sock.connect(addr)
-    
+
             if override_files:
                 send_msg(sock, self.mtool.fill_msg("get_peer_info", peer_id=peer_id))
                 response, details = self.poll_recv(sock, 2000)
                 if response.type is 'rq_error':
                     return response
-    
+
             msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
                                                                     **config_overrides)
-    
+
             send_msg(sock, msg)
             #print msg
             response, details = self.poll_recv(sock, 2000)
@@ -213,14 +217,14 @@ class OBCIClient(object):
     def join_experiment(self, strname, peer_id, path):
         response = self.get_experiment_contact(strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         sock = self.ctx.socket(zmq.REQ)
-        
+
         try:
             self._connect(sock, response.rep_addrs)
-    
+
             send_msg(sock, self.mtool.fill_msg("join_experiment",
                                             peer_id=peer_id, path=path, peer_type='obci_peer'))
             response, details = self.poll_recv(sock, 5000)
@@ -229,12 +233,12 @@ class OBCIClient(object):
         finally:
             sock.close()
 
-    def add_peer(self, strname, peer_id, path, machine, param_overwrites=None, 
+    def add_peer(self, strname, peer_id, path, machine, param_overwrites=None,
                         custom_config_path=None, config_sources=None, launch_dependencies=None,
                         apply_globals=True):
         response = self.get_experiment_contact(strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         sock = self.ctx.socket(zmq.REQ)
@@ -253,7 +257,7 @@ class OBCIClient(object):
     def kill_peer(self, exp_strname, peer_id, remove_config=False):
         response = self.get_experiment_contact(exp_strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         try:
@@ -280,7 +284,7 @@ class OBCIClient(object):
                 print addr, " ::: ", str(e)
         if not connected:
             raise Exception("Could not connect to any of the addresses: " + str(addr_list))
-        
+
     def _is_this_machine(self, addr_list):
         for addr in addr_list:
             if self.dns.is_this_machine(addr):
@@ -290,13 +294,13 @@ class OBCIClient(object):
     def leave_experiment(self, strname, peer_id):
         response = self.get_experiment_contact(strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         try:
             sock = self.ctx.socket(zmq.REQ)
             self._connect(sock, response.rep_addrs)
-    
+
             send_msg(sock, self.mtool.fill_msg("leave_experiment",
                                             peer_id=peer_id))
             response, details = self.poll_recv(sock, 5000)
@@ -308,17 +312,17 @@ class OBCIClient(object):
     def get_tail(self, strname, peer_id, len_):
         response = self.get_experiment_contact(strname)
 
-        if response.type == "rq_error":
+        if response.type == "rq_error" or response.type == "no_data":
             return response
 
         sock = self.ctx.socket(zmq.REQ)
         try:
             for addr in response.rep_addrs:
                 sock.connect(addr)
-    
+
             send_msg(sock, self.mtool.fill_msg("get_tail", peer_id=peer_id, len=len_))
             response, details = self.poll_recv(sock, 4000)
-    
+
             return response
         finally:
             sock.close()
@@ -327,5 +331,7 @@ class OBCIClient(object):
         result, details = self.poller.poll_recv(socket, timeout)
         if result:
             result = self.mtool.unpack_msg(result)
+        else:
+            result = EmptyResponse(details)
 
         return result, details

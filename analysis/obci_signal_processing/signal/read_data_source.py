@@ -22,7 +22,7 @@ class DataSource(object):
 
 
 class MemoryDataSource(DataSource):
-    def __init__(self, p_data=None, p_copy=True, p_sample_source='DOUBLE'):
+    def __init__(self, p_data=None, p_copy=True, p_sample_source='FLOAT'):
         self._data = None
 
         if not (p_data is None):
@@ -62,7 +62,7 @@ class MemoryDataSource(DataSource):
     
 
 class FileDataSource(DataSource):
-    def __init__ (self, p_file, p_num_of_channels, p_sample_type="DOUBLE"):
+    def __init__ (self, p_file, p_num_of_channels, p_sample_type="FLOAT"):
         self._num_of_channels = p_num_of_channels
         self._mem_source = None 
         try:

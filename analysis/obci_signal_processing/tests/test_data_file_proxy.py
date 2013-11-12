@@ -32,24 +32,24 @@
 
 >>> py = DataReadProxy(f)
 
->>> py.get_next_value()
-1.2
+>>> abs(1.2 - py.get_next_value()) < 0.0001
+True
 
->>> py.get_next_value()
-0.0023
+>>> abs(0.0023-py.get_next_value()) < 0.000000001
+True
 
->>> py.get_next_value()
--123.456
+>>> abs(-123.456-py.get_next_value()) < 0.00001
+True
 
 >>> py.goto_value(1)
 
->>> py.get_next_value()
-0.0023
+>>> abs(0.0023-py.get_next_value()) < 0.000000001
+True
 
 >>> py.goto_value(4)
 
->>> py.get_next_value()
-5.0
+>>> abs(5.0-py.get_next_value()) < 0.0001
+True
 
 >>> py.goto_value(6)
 
@@ -62,8 +62,10 @@ NoNextValue
 
 >>> py.start_reading()
 
->>> py.get_next_values(3)
-array([  1.20000000e+00,   2.30000000e-03,  -1.23456000e+02])
+>>> vs = py.get_next_values(3)
+
+>>> abs(vs[0]-1.20000000e+00)+abs(vs[1]-2.30000000e-03)+abs(vs[2]+1.23456000e+02)<3*0.0001
+True
 
 >>> py.get_next_values(3)
 Traceback (most recent call last):
