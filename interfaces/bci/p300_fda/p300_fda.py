@@ -477,7 +477,7 @@ class P300_analysis(object):
         #~ print "self.d: ", self.d
         
     def isItEnought(self):
-        print "self.flashCount: ", self.flashCount
+        #print "self.flashCount: ", self.flashCount
         if (self.flashCount <= self.nMin).any():
             return -1
         elif (self.flashCount >= self.nMax).all():
@@ -494,7 +494,7 @@ class P300_analysis(object):
         percentyl are calulated. If only one d is larger than that pVal
         then that's the target.
         """
-        print "++ testSignificances ++ "
+        #print "++ testSignificances ++ "
         
         dMean = np.zeros(self.fields)
         
@@ -505,7 +505,7 @@ class P300_analysis(object):
         self.per = np.array(self.per)
         
         #~ print "dMean: ", dMean
-        print "percentile: ", self.per
+        #print "percentile: ", self.per
 
         # If only one value is significantly distant
         if np.sum(self.per > self.pPer) == 1:
@@ -519,7 +519,7 @@ class P300_analysis(object):
             return -1
 
     def forceDecision(self):
-        print " ++ forceDecision ++ "
+        #print " ++ forceDecision ++ "
         
         self.testSignificances()
 

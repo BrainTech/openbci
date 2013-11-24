@@ -284,6 +284,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.clear()
         self._params = experiment
         experiment = experiment.exp
+        print("********************")
+        print("Machine/peer from current experiment "+str(experiment.uuid)+":")
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine)
@@ -323,6 +325,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 if src:
                     child.setDisabled(True)
                 parent.addChild(child)
+        print("********************")
 
     def makeComboHandler(self, item, column):
         def handler(string):
