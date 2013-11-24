@@ -422,7 +422,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     # @log_crash
     def _start(self):
-        self.parameters.setDisabled(True)
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
             store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
@@ -438,7 +437,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.start.emit(uid, store_options)
 
     def _stop(self):
-        self.parameters.setDisabled(False)
         uid = str(self.scenarios.currentItem().uuid)
         print "obciLauncher._stop - begin uid: "+str(uid)
         state = self.exp_states[uid]
