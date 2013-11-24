@@ -39,33 +39,37 @@ def send_config(conn, config, type=0):
     type=types.UGM_UPDATE_MESSAGE, flush=True)
 
 def send_start_blinking(conn):
-    msg = variables_pb2.Variable()
-    msg.key = 'start_blinking'
-    msg.value = ''
+    msg = variables_pb2.VariableVector()
+    v = msg.variables.add()
+    v.key = 'start_blinking'
+    v.value = ''
     conn.send_message(message=msg.SerializeToString(), 
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
 def send_stop_blinking(conn):
-    msg = variables_pb2.Variable()
-    msg.key = 'stop_blinking'
-    msg.value = ''
+    msg = variables_pb2.VariableVector()
+    v = msg.variables.add()
+    v.key = 'stop_blinking'
+    v.value = ''
     conn.send_message(message=msg.SerializeToString(), 
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
-def send_update_and_start_blinking(conn):
-    msg = variables_pb2.Variable()
-    msg.key = 'update_and_start_blinking'
-    msg.value = ''
+def send_update_and_start_blinking(conn, value='{}'):
+    msg = variables_pb2.VariableVector()
+    v = msg.variables.add()
+    v.key = 'update_and_start_blinking'
+    v.value = value
     conn.send_message(message=msg.SerializeToString(), 
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)
 
 def send_hide(conn):
-    msg = variables_pb2.Variable()
-    msg.key = 'hide'
-    msg.value = ''
+    msg = variables_pb2.VariableVector()
+    v = msg.variables.add()
+    v.key = 'hide'
+    v.value = ''
     conn.send_message(message=msg.SerializeToString(), 
                       type=types.UGM_CONTROL_MESSAGE,
                       flush=True)

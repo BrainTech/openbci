@@ -14,6 +14,7 @@ import ugm_blinking_ugm_manager
 from obci.utils import context as ctx
 
 from PyQt4 import QtCore
+
 class UgmBlinkingEngine(ugm_engine.UgmEngine):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
@@ -31,6 +32,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._run_on_start = False
         
     def set_configs(self, configs):
+        self.configs = configs
         for m in self.mgrs:
             m.set_configs(configs)
         self._blink_duration = float(configs.get_param('blink_duration'))
@@ -38,30 +40,34 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         assert(self._blink_duration > 0)
 
     def control(self, msg):
+        print("ugm blinking - got control messages count: "+str(len(msg.variables)))
         super(UgmBlinkingEngine, self).control(msg)
-        msg_type = msg.key
-        if msg_type == 'start_blinking':
-            self.start_blinking()
-        elif msg_type == 'stop_blinking':
-            self.stop_blinking()
-        elif msg_type == 'update_and_start_blinking':
-            self._update_and_start_blinking()
-        else:
-            raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
+        for v in msg.variables:
+            msg_type = v.key
+            print("ugm blinking - got control message: "+str(msg_type))
+            if msg_type == 'start_blinking':
+                self.start_blinking()
+            elif msg_type == 'stop_blinking':
+                self.stop_blinking()
+            elif msg_type == 'update_and_start_blinking':
+                vals = eval(v.value)
+                self._update_and_start_blinking(vals)
+            else:
+                raise Exception("Got ugm_control unrecognised msg_type:"+msg_type)
 
-    def _update_and_start_blinking(self):
+    def _update_and_start_blinking(self, vals):
         print("ugm blinking - update and start blinking")
         self.stop_blinking()
         import time
         time.sleep(1)
-        for m in self.mgrs:
-            m.reset()
-        print("ugm blinking - after reset")
-        configs = self.connection.get_configs()
-        print("ugm blinking - after get configs")
-        print(str(configs.params))
-        self.set_configs(configs)
-        print("ugm blinking - after set configs")
+        #for m in self.mgrs:
+        #    m.reset()
+
+        c = self.configs
+        for k, v in vals.iteritems():
+            c.set_param(k, v)
+        self.set_configs(c)
+
         self.start_blinking()
 
     def start_blinking(self):

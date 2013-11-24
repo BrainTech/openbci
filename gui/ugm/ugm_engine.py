@@ -212,9 +212,10 @@ class UgmEngine(QtCore.QObject):
         self.context['logger'].info('ugm_engine main window has closed')
 
     def control(self, ctr):
-        self.context['logger'].info("Got control message "+str(ctr))
-        if ctr.key == 'hide':
-            self._window.hide()
+        self.context['logger'].info("Got control messages count:"+str(len(ctr.variables)))
+        for v in ctr.variables:
+            if v.key == 'hide':
+                self._window.hide()
 
     def update_from_message(self, p_msg_type, p_msg_value):
         """Update ugm from config defined by dictionary p_msg_value.

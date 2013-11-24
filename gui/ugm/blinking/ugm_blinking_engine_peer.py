@@ -20,6 +20,8 @@ class DummyClient(object):
         self.params = params
     def get_param(self, key):
         return self.params[key]
+    def set_param(self, key, value):
+        self.params[key] = value
 
 class UgmBlinkingEnginePeer(ConfiguredClient):
     @log_crash

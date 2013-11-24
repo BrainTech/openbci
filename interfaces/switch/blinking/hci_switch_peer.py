@@ -26,10 +26,8 @@ class HciSwitch(ConfiguredMultiplexerServer):
             self.logger.debug("Got blink message: "+str(l_msg.index))
             self._curr_index = int(l_msg.index)
         elif mxmsg.type == types.SWITCH_MESSAGE:
-            self.config.set_param('id_start', '0')
-            self.config.set_param('id_count', '4')
-            self.config.set_param('ugm_type', 'single')
-            ugm_helper.send_update_and_start_blinking(self.conn)
+            ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':0, 'blink_id_count':4, 'blink_ugm_type':'single'}))
+
             """
         #process blinks only when hold_time passed
             if self._last_dec_time > 0:
