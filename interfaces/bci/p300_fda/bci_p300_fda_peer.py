@@ -34,7 +34,6 @@ class BCIP300Fda(ConfiguredMultiplexerServer):
         #self.buffer.clear() dont do it in p300 - just ignore some blinks sometimes ...
         self.buffer.clear_blinks()
         ugm_helper.send_stop_blinking(self.conn)
-        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
 
         t = time.time()
         tags_helper.send_tag(
