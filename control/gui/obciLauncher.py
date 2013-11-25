@@ -133,7 +133,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         progress.show()
         self.stop_logs()
         removepidfile('gui.pid')
-        
+
         for i in range(5):
             time.sleep(0.4)
             progress.setValue(i+1)
@@ -286,7 +286,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         experiment = experiment.exp
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
-            mch = str(peer.machine) or str(experiment.origin_machine)
+            mch = str(peer.machine)
             print mch, peer_id
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
@@ -296,16 +296,18 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             parent.setBackground(2, QBrush(QColor(STATUS_COLORS[st])))
             parent.setToolTip(0, unicode(peer.path))
 
-            combo = QComboBox()        
+            combo = QComboBox()
             combo.addItems(self._nearby_machines.values())
             self.parameters.addTopLevelItem(parent)
             self.parameters.setItemWidget(parent, 2, combo)
-            if mch:
+            if mch not in self._nearby_machines.values():
+                mch = str(experiment.origin_machine)
+            if mch in self._nearby_machines.values():
                 index = self._nearby_machines.values().index(mch)
                 combo.setCurrentIndex(index)
             if peer_id == 'mx':
                 combo.setDisabled(True)
-                
+
             if parent is not None:
                 combo.currentIndexChanged['QString'].connect(self.makeComboHandler(parent, 2))
 
@@ -435,9 +437,16 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _stop(self):
         self.parameters.setDisabled(False)
         uid = str(self.scenarios.currentItem().uuid)
-        self.exp_states[uid].log_model.stop_running()
-        self.stop.emit(uid, self.exp_states[uid].store_options is not None)
-        self.exp_states[uid].store_options = None
+        print "obciLauncher._stop - begin uid: "+str(uid)
+        state = self.exp_states[uid]
+        if state.stopping:
+            print "Warning!!! - tried to perform stop action again on the same experiment ................................... Ignore"
+            return
+        state.stopping = True
+        state.log_model.stop_running()
+        self.stop.emit(uid, state.store_options is not None)
+        state.store_options = None
+        print "obciLauncher._stop - end"
 
     @log_crash
     def _saver_msg(self, killer_proc):
@@ -668,10 +677,12 @@ class ExperimentGuiState(object):
         self.expanded_peers = set()
         if old_exp is None:
             self.store_options = None
+            self.stopping = False
             self.log_model = obci_log_model_real.RealLogModel(srv_client)
             self.log_model.update_log.connect(log_engine.update_log)
         else:
             self.store_options = old_exp.store_options
+            self.stopping = old_exp.stopping
             self.log_model = old_exp.log_model
 
 

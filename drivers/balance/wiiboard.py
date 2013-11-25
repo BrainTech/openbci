@@ -89,11 +89,11 @@ class Wiiboard(object):
 			# Connected to Wiiboard at address --> address
 			self.status = "Connected"
 			self.address = address
-			thread.start_new_thread(self.receivethread, ())
-			self.calibrate()
+			thread.start_new_thread(self._receivethread, ())
+			self._calibrate()
 			useExt = ["00",COMMAND_REGISTER,"04","A4","00","40","00"]
-			self.send(useExt)
-			self.setReportingType()
+			self._send(useExt)
+			self._setReportingType()
 			# it posible to --> pygame.event.post(pygame.event.Event(WIIBOARD_CONNECTED))
 		else:
 			raise Exception("Error: Could not connect to Wiiboard at address " + address)
@@ -103,7 +103,7 @@ class Wiiboard(object):
 		if self.status == "Connected":
 			self.status = "Disconnecting"
 			while self.status == "Disconnecting":
-				self.wait(1)
+				self._wait(1)
 		try:
 			self.receivesocket.close()
 			self.controlsocket.close()
@@ -147,15 +147,15 @@ class Wiiboard(object):
 		rawTL = (int(bytes[4].encode("hex"),16) << 8 ) + int(bytes[5].encode("hex"),16)
 		rawBL = (int(bytes[6].encode("hex"),16) << 8 ) + int(bytes[7].encode("hex"),16)
 
-		topLeft = self.calcMass(rawTL, TOP_LEFT)
-		topRight = self.calcMass(rawTR, TOP_RIGHT)
-		bottomLeft = self.calcMass(rawBL, BOTTOM_LEFT)
-		bottomRight = self.calcMass(rawBR, BOTTOM_RIGHT)
+		topLeft = self._calcMass(rawTL, TOP_LEFT)
+		topRight = self._calcMass(rawTR, TOP_RIGHT)
+		bottomLeft = self._calcMass(rawBL, BOTTOM_LEFT)
+		bottomRight = self._calcMass(rawBR, BOTTOM_RIGHT)
 		boardEvent = BoardEvent(topLeft,topRight,bottomLeft,bottomRight,buttonPressed,buttonReleased)
 		return boardEvent
 
 
-	def calcMass(self, raw, pos):
+	def _calcMass(self, raw, pos):
 		val = 0.0
 		# calibration[0] is calibration values for 0kg
 		# calibration[1] is calibration values for 17kg
@@ -175,7 +175,7 @@ class Wiiboard(object):
 		return self.LED
 
 	# Thread that listens for incoming data
-	def receivethread(self):
+	def _receivethread(self):
 		while self.status == "Connected":
 			if True:
 				data = self.receivesocket.recv(25)
@@ -186,7 +186,7 @@ class Wiiboard(object):
 				elif intype == INPUT_READ_DATA:
 					if self.calibrationRequested == True:
 						packetLength = (int(str(data[4]).encode("hex"),16)/16 + 1)
-						self.parseCalibrationResponse(data[7:(7+packetLength)])
+						self._parseCalibrationResponse(data[7:(7+packetLength)])
 						if packetLength < 16:
 							self.calibrationRequested = False
 				elif intype == EXTENSION_8BYTES:
@@ -198,7 +198,7 @@ class Wiiboard(object):
 		self.disconnect()
 		pygame.event.post(pygame.event.Event(WIIBOARD_DISCONNECTED))
 
-	def parseCalibrationResponse(self, bytes):
+	def _parseCalibrationResponse(self, bytes):
 		index = 0
 		if len(bytes) == 16:
 			for i in xrange(2):
@@ -212,7 +212,7 @@ class Wiiboard(object):
 		
 	# Send <data> to the Wiiboard
 	# <data> should be an array of strings, each string representing a single hex byte
-	def send(self,data):
+	def _send(self,data):
 		if self.status != "Connected":
 			return
 		data[0] = "52"
@@ -229,20 +229,20 @@ class Wiiboard(object):
 		if light == True:
 			val = "10"
 		message = ["00", COMMAND_LIGHT, val]
-		self.send(message)
+		self._send(message)
 		self.LED = light
 
-	def calibrate(self):
+	def _calibrate(self):
 		message = ["00", COMMAND_READ_REGISTER ,"04", "A4", "00", "24", "00", "18"]
-		self.send(message)
+		self._send(message)
 		self.calibrationRequested = True
 
-	def setReportingType(self):
+	def _setReportingType(self):
 		bytearr = ["00", COMMAND_REPORTING, CONTINUOUS_REPORTING, EXTENSION_8BYTES]
-		self.send(bytearr)
+		self._send(bytearr)
 
 	# Wait <millis> milliseconds
-	def wait(self,millis):
+	def _wait(self,millis):
 		time.sleep(millis / 1000.0)
 
 
