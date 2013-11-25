@@ -17,6 +17,13 @@ class HciSwitch(ConfiguredMultiplexerServer):
         self._curr_index = -1
         self._last_dec_time = time.time()
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
+        ######
+        self.ugm_rows = 2
+        self.ugm_columns = 4
+        self.ugm_blink_type = 'classic'
+        self.ugm_blink_count = 0
+        self.ugm_cycle_count = 2
+        ######
         self.ready()
 
     def handle_message(self, mxmsg):
@@ -25,10 +32,16 @@ class HciSwitch(ConfiguredMultiplexerServer):
             l_msg.ParseFromString(mxmsg.message)
             self.logger.debug("Got blink message: "+str(l_msg.index))
             self._curr_index = int(l_msg.index)
-        elif mxmsg.type == types.SWITCH_MESSAGE:
-            ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':0, 'blink_id_count':4, 'blink_ugm_type':'single'}))
 
-            """
+            if self.ugm_blink_type == 'single':
+                self.ugm_blink_count += 1
+                if self.ugm_blink_count > self.ugm_cycle_count*self.ugm_columns:
+                    self.logger.info("Passed "+str(self.ugm_cycle_count)+" cycles, change blinking to single")
+                    self.ugm_blink_type = 'classic'
+                    ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':self.ugm_columns, 'blink_id_count':self.ugm_rows, 'blink_ugm_type':self.ugm_blink_type}))
+                    self.ugm_blink_count = 0
+
+        elif mxmsg.type == types.SWITCH_MESSAGE:
         #process blinks only when hold_time passed
             if self._last_dec_time > 0:
                 t = time.time() - self._last_dec_time
@@ -37,14 +50,23 @@ class HciSwitch(ConfiguredMultiplexerServer):
                 else:
                     self.no_response()
                     return
-
             if self._curr_index < 0:
                 self.logger.warning("Got switch message, but curr_index < 0. Do nothing!!!")
+
+            elif self.ugm_blink_type == 'classic':
+                self.logger.info("Got switch message, change blinking to single")
+                self.ugm_blink_type = 'single'
+                ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':(self._curr_index - self.ugm_columns)*self.ugm_columns, 'blink_id_count':self.ugm_columns, 'blink_ugm_type':self.ugm_blink_type}))
+
             else:
                 self.logger.info("Got switch message, send curr index == "+str(self._curr_index))
                 self._last_dec_time = time.time()
                 self.conn.send_message(message = str(self._curr_index),
-                                       type = types.DECISION_MESSAGE, flush=True)"""
+                                       type = types.DECISION_MESSAGE, flush=True)
+                self.ugm_blink_type = 'classic'
+                ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':self.ugm_columns, 'blink_id_count':self.ugm_rows, 'blink_ugm_type':self.ugm_blink_type}))
+                self.ugm_blink_count = 0
+
         else:
             self.logger.warning("Got unrecognised message: "+str(mxmsg.type))
         self.no_response()
