@@ -230,7 +230,7 @@ class UgmEngine(QtCore.QObject):
             self.update_or_rebuild()
             self.mgr_mutex.unlock()
         elif self._config_manager.update_message_is_simple(p_msg_type):
-            self.context['logger'].info('ugm_engine got simple message to update.')
+            self.context['logger'].debug('ugm_engine got simple message to update.')
             self._config_manager.set_config_from_message(p_msg_value)
             self.update()
             self.mgr_mutex.unlock()

@@ -59,8 +59,6 @@ class UdpServer(object):
                 self._tagger.send_tag(l_time, l_time, "ugm_update", 
                                       {"ugm_config":str(l_msg.value)})
         except:
-            self.context['logger'].info("PARSER ERROR, too big ugm update message or not UGM_UPDATE_MESSAGE... Try UGM_CONTROL_MESSAGE")
-            l_msg = variables_pb2.VariableVector()
             try:
                 l_msg.ParseFromString(message)
                 self.context['logger'].info("Properly parsed UGM_CONTROL_MESSAGE...")

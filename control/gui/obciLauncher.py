@@ -284,6 +284,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.clear()
         self._params = experiment
         experiment = experiment.exp
+        print("********************")
+        print("Machine/peer from current experiment "+str(experiment.uuid)+":")
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine)
@@ -323,6 +325,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 if src:
                     child.setDisabled(True)
                 parent.addChild(child)
+        print("********************")
 
     def makeComboHandler(self, item, column):
         def handler(string):
@@ -419,7 +422,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     # @log_crash
     def _start(self):
-        self.parameters.setDisabled(True)
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
             store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
@@ -435,7 +437,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.start.emit(uid, store_options)
 
     def _stop(self):
-        self.parameters.setDisabled(False)
         uid = str(self.scenarios.currentItem().uuid)
         print "obciLauncher._stop - begin uid: "+str(uid)
         state = self.exp_states[uid]
