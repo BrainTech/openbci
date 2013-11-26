@@ -60,7 +60,7 @@ class UdpServer(object):
                                       {"ugm_config":str(l_msg.value)})
         except:
             self.context['logger'].info("Couldnt parse message, too big ugm update message or not UGM_UPDATE_MESSAGE... Try UGM_CONTROL_MESSAGE")
-            l_msg = variables_pb2.Variable()
+            l_msg = variables_pb2.VariableVector()
             try:
                 l_msg.ParseFromString(message)
                 self.context['logger'].info("Properly parsed UGM_CONTROL_MESSAGE...")
