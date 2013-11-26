@@ -34,7 +34,7 @@ class BCIP300FdaAnalysis(object):
         avrM = cfg['avrM']
         conN = cfg['conN']
         
-        print "cfg['w']: ", cfg['w']
+        self.logger.info("cfg['w']: "+str(cfg['w']))
         self.p300 = P300_analysis(sampling, cfg, fields= dec_count)
         self.p300.setPWC( cfg['P'], cfg['w'], cfg['c'])
         
@@ -92,7 +92,7 @@ class BCIP300FdaAnalysis(object):
         #~ if (dec == -1) and (self.nPole.min() >= self.nMax):
             #~ dec = self.p300.forceDecision()
 
-        print "dec: ", dec
+        self.logger.debug("dec: "+str(dec))
 
         if dec != -1:
             self.logger.info("Decision from P300: " +str(dec) )
@@ -108,4 +108,4 @@ class BCIP300FdaAnalysis(object):
             
             self.send_func(dec)
         else:
-            self.logger.info("Got -1 ind- no decision")
+            self.logger.debug("Got -1 ind- no decision")
