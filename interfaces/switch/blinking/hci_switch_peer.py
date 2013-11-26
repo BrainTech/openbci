@@ -56,6 +56,8 @@ class HciSwitch(ConfiguredMultiplexerServer):
             elif self.ugm_blink_type == 'classic':
                 self.logger.info("Got switch message, change blinking to single")
                 self.ugm_blink_type = 'single'
+                print (self._curr_index - self.ugm_columns)*self.ugm_columns, self.ugm_columns
+
                 ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':(self._curr_index - self.ugm_columns)*self.ugm_columns, 'blink_id_count':self.ugm_columns, 'blink_ugm_type':self.ugm_blink_type}))
 
             else:
