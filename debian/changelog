@@ -1,3 +1,9 @@
+openbci (1.8.16-1) unstable; urgency=low
+
+  * Fix message handling.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 26 Nov 2013 17:10:52 +0100
+
 openbci (1.8.15-1) unstable; urgency=low
 
   * New upstream release.
