@@ -1,3 +1,10 @@
+openbci (1.8.15-1) unstable; urgency=low
+
+  * New upstream release.
+  * Add multi computer experiment functionality.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 26 Nov 2013 14:59:06 +0100
+
 openbci (1.8.14-1) unstable; urgency=low
 
   * Move from appliance peer to appliance driver diodes on/off feature.
