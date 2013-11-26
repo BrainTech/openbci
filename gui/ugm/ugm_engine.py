@@ -274,7 +274,7 @@ class UgmEngine(QtCore.QObject):
         self._window.update()
 
 
-if __name__ == '__main__':
+def run():
     try:
         CONF = sys.argv[1]
     except IndexError:
@@ -285,6 +285,10 @@ if __name__ == '__main__':
             UgmEngine(ugm_config_manager.UgmConfigManager(), None).run()
         else:
             UgmEngine(ugm_config_manager.UgmConfigManager(CONF), None).run()
+			
+if __name__ == '__main__':
+	run()
+
 
 
 
