@@ -3,7 +3,7 @@ type=$2
 echo ""
 if [ -z "$1" ]
 then
-        echo "Usage: obci_local_copy directory_name [(local) | master]"
+        echo "Usage: obci_local_copy relative_directory_name [(local) | master]"
 	exit 1
 fi
 if [ -z "$2" ]

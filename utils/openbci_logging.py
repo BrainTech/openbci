@@ -36,6 +36,8 @@ if USE_SENTRY == False:
         send_logs = parser.get('sentry', 'send_logs')
         if send_logs == 'true':
             USE_SENTRY = parser.get('sentry', 'key')
+            if USE_SENTRY == '':
+                USE_SENTRY = False
     except:
         pass
 

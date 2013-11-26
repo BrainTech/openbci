@@ -229,7 +229,7 @@ class UgmEngine(QtCore.QObject):
             self.update_or_rebuild()
             self.mgr_mutex.unlock()
         elif self._config_manager.update_message_is_simple(p_msg_type):
-            self.context['logger'].info('ugm_engine got simple message to update.')
+            self.context['logger'].debug('ugm_engine got simple message to update.')
             self._config_manager.set_config_from_message(p_msg_value)
             self.update()
             self.mgr_mutex.unlock()
@@ -274,7 +274,7 @@ class UgmEngine(QtCore.QObject):
         self._window.update()
 
 
-if __name__ == '__main__':
+def run():
     try:
         CONF = sys.argv[1]
     except IndexError:
@@ -285,6 +285,10 @@ if __name__ == '__main__':
             UgmEngine(ugm_config_manager.UgmConfigManager(), None).run()
         else:
             UgmEngine(ugm_config_manager.UgmConfigManager(CONF), None).run()
+			
+if __name__ == '__main__':
+	run()
+
 
 
 

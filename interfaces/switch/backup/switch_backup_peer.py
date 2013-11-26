@@ -31,7 +31,7 @@ class SwitchBackup(ConfiguredMultiplexerServer):
                 self.config.get_param('new_scenario'), 
                 leave_on=self.config.get_param('leave_modules').split(';'))
         else:
-            self.logger.warning("Got unrecognised message: "+str(mxmsg.type))
+            self.logger.debug("Got unrecognised message: "+str(mxmsg.type))
         self.no_response()
 
 if __name__ == "__main__":
