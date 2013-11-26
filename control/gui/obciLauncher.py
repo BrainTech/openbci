@@ -289,10 +289,12 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine)
+            if mch not in self._nearby_machines.values():
+                mch = self.server_hostname
             print mch, peer_id
+
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
-
             parent.setBackground(0, QBrush(QColor(STATUS_COLORS[st])))
             parent.setBackground(1, QBrush(QColor(STATUS_COLORS[st])))
             parent.setBackground(2, QBrush(QColor(STATUS_COLORS[st])))
@@ -300,13 +302,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
             combo = QComboBox()
             combo.addItems(self._nearby_machines.values())
-            self.parameters.addTopLevelItem(parent)
-            self.parameters.setItemWidget(parent, 2, combo)
-            if mch not in self._nearby_machines.values():
-                mch = str(experiment.origin_machine)
             if mch in self._nearby_machines.values():
                 index = self._nearby_machines.values().index(mch)
                 combo.setCurrentIndex(index)
+
+            self.parameters.addTopLevelItem(parent)
+            self.parameters.setItemWidget(parent, 2, combo)
+
             if peer_id == 'mx':
                 combo.setDisabled(True)
 
