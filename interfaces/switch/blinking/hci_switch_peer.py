@@ -18,9 +18,9 @@ class HciSwitch(ConfiguredMultiplexerServer):
         self._last_dec_time = time.time()
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         ######
-        self.ugm_rows = 2
-        self.ugm_columns = 4
-        self.ugm_blink_type = 'classic'
+        self.ugm_rows = int(self.config.get_param('blink_ugm_row_count'))
+        self.ugm_columns = int(self.config.get_param('blink_ugm_col_count'))
+        self.ugm_blink_type = self.config.get_param('blink_ugm_type')
         self.ugm_blink_count = 0
         self.ugm_cycle_count = 2
         ######
