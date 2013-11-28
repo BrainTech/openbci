@@ -1,3 +1,9 @@
+openbci (1.8.17-1) unstable; urgency=low
+
+  * Fix brain13 maze config.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 28 Nov 2013 15:16:27 +0100
+
 openbci (1.8.16-1) unstable; urgency=low
 
   * Fix message handling.
