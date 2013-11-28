@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import time
-import variables_pb2
+import obci.configs.tests.protobuf.variables_pb2 as variables_pb2
 
 from sample_logger import SampleLogger
 import asizeof
