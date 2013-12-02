@@ -13,8 +13,7 @@ import time
 import sys
 
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
-if sys.platform != 'win32':
-    from obci.acquisition import acquisition_helper
+from obci.acquisition import acquisition_helper
 from obci.control.launcher.launcher_messages import message_templates
 import obci.control.launcher.system_config as system_config
 import obci.control.launcher.launch_file_parser as launch_file_parser
@@ -345,6 +344,5 @@ class ExperimentEngineInfo(QtCore.QObject):
             return
         mx_addr = join_response.params["mx_addr"].split(':')
         #hang and wait ...
-        if sys.platform != 'win32':
-            acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
+        acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
 
