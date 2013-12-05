@@ -21,8 +21,10 @@ class HciSwitch(ConfiguredMultiplexerServer):
         self.ugm_rows = int(self.config.get_param('blink_ugm_row_count'))
         self.ugm_columns = int(self.config.get_param('blink_ugm_col_count'))
         self.ugm_blink_type = self.config.get_param('blink_ugm_type')
+        self.ugm_fields_each_row = self.config.get_param('blink_ugm_fields_row_count').split(';')
         self.ugm_blink_count = 0
         self.ugm_cycle_count = 2
+        self.ugm_current_row = 0
         ######
         self.ready()
 
@@ -35,7 +37,7 @@ class HciSwitch(ConfiguredMultiplexerServer):
 
             if self.ugm_blink_type == 'single':
                 self.ugm_blink_count += 1
-                if self.ugm_blink_count >= self.ugm_cycle_count*self.ugm_columns:
+                if self.ugm_blink_count >= self.ugm_cycle_count*int(self.ugm_fields_each_row[self.ugm_current_row]):
                     self.logger.info("Passed "+str(self.ugm_cycle_count)+" cycles, change blinking to single")
                     self.ugm_blink_type = 'classic'
                     ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':self.ugm_columns, 'blink_id_count':self.ugm_rows, 'blink_ugm_type':self.ugm_blink_type}))
@@ -56,9 +58,8 @@ class HciSwitch(ConfiguredMultiplexerServer):
             elif self.ugm_blink_type == 'classic':
                 self.logger.info("Got switch message, change blinking to single")
                 self.ugm_blink_type = 'single'
-                print (self._curr_index - self.ugm_columns)*self.ugm_columns, self.ugm_columns
-
-                ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':(self._curr_index - self.ugm_columns)*self.ugm_columns, 'blink_id_count':self.ugm_columns, 'blink_ugm_type':self.ugm_blink_type}))
+                self.ugm_current_row = self._curr_index - self.ugm_columns
+                ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':(self._curr_index - self.ugm_columns)*self.ugm_columns, 'blink_id_count':self.ugm_fields_each_row[self.ugm_current_row], 'blink_ugm_type':self.ugm_blink_type}))
 
             else:
                 self.logger.info("Got switch message, send curr index == "+str(self._curr_index))

@@ -61,7 +61,7 @@ class _ClassicUgmManager(object):
         assert(count >= 0)
         assert(rows >= 0)
         assert(cols >= 0)
-        assert(count == rows * cols)
+        #assert(count == rows * cols)
         assert(dec_count >= 0)
         #assert(dec_count == rows + cols)
 
