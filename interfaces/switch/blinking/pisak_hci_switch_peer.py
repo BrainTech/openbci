@@ -64,12 +64,11 @@ class HciSwitch(ConfiguredMultiplexerServer):
             else:
                 self.logger.info("Got switch message, send curr index == "+str(self._curr_index))
                 self._last_dec_time = time.time()
-                self.conn.send_message(message = str(self._curr_index),
-                                       type = types.DECISION_MESSAGE, flush=True)
                 self.ugm_blink_type = 'classic'
                 ugm_helper.send_update_and_start_blinking(self.conn, str({'blink_id_start':self.ugm_columns, 'blink_id_count':self.ugm_rows, 'blink_ugm_type':self.ugm_blink_type}))
                 self.ugm_blink_count = 0
-
+                self.conn.send_message(message = str(self._curr_index),
+                                       type = types.DECISION_MESSAGE, flush=True)
         else:
             self.logger.warning("Got unrecognised message: "+str(mxmsg.type))
         self.no_response()

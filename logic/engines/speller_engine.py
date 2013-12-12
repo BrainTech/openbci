@@ -69,6 +69,10 @@ class SpellerEngine(object):
         self._message = os.popen('xsel -b').read().decode('utf-8')
         os.system('killall dasher')
 
+    def update_board(self, board):
+        '''Change ugm board to different one'''
+        self.logger.info("CHANGE THE UGM CONFIG BOARD: "+board)
+        ugm_helper.send_update_and_start_blinking(self.conn, str({'ugm_config':board}))
 
     def _update_letters(self):
         """Sent to self._server current logic data:
@@ -86,6 +90,7 @@ class SpellerEngine(object):
                          'message':self._message})
         l_str_config = str(l_config)
         self.logger.info("UPDATE: "+l_str_config)
+        print l_str_config
         ugm_helper.send_config(self.conn, l_str_config, 1)
             
 
