@@ -11,13 +11,8 @@ from obci.interfaces import interfaces_logging as logger
 
 class BCIalpha(ConfiguredMultiplexerServer):
     def send_decision(self, dec):
-        self.buffer.clear()
-        if dec == 0:
-            #do something
-            pass
-        else:
-            pass
-            #do something else
+        #self.buffer.clear()
+        self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
         
     def __init__(self, addresses):
         super(BCIalpha, self).__init__(addresses=addresses,
@@ -43,7 +38,8 @@ class BCIalpha(ConfiguredMultiplexerServer):
             l_vect.ParseFromString(mxmsg.message)
             self.buffer.handle_sample_vect(l_vect)
         else:
-            self.no_response()
+            pass
+        self.no_response()
     def analyse(self, data):
 
         signal = data[0]
