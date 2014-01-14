@@ -18,6 +18,7 @@ from obci.interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.utils import streaming_debug
 from obci.utils import tags_helper
+from obci.utils.openbci_logging import log_crash
 
 DEBUG = False
 
@@ -30,12 +31,13 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         self.buffer.clear()
         t = time.time()
         tags_helper.send_tag(
-            self.conn, t, t, 
+            self.conn, t, t,
             "decision",
             {'decision':str(dec)})
         self.conn.send_message(message = str(self.active_field_ids[dec]), type = types.DECISION_MESSAGE, flush=True)
         appliance_helper.send_stop(self.conn)#, self.str_freqs)
-	#appliance_helper.send_freqs(self.conn, self.str_freqs)
+
+    @log_crash
     def __init__(self, addresses):
         #Create a helper object to get configuration from the system
         super(BCISsvepCsp, self).__init__(addresses=addresses,
@@ -45,13 +47,15 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         cfg = self._get_csp_config()
         montage_matrix = self._get_montage_matrix(cfg)
 
+
         freqs = [int(f) for f in cfg['freqs'].split(';')]
+
         dec_count = int(self.config.get_param('dec_count'))
         active_field_ids = self.config.get_param('active_field_ids')
         self.active_field_ids = [str(f) for f in active_field_ids.split(';')]
         str_freqs = [str(0)] * len(self.get_param('ugm_field_ids').split(';'))
-        str_freqs[1] = str(100)
-	for index1, index2 in enumerate(self.active_field_ids):
+        str_freqs[1] = str(100) #TODO fix fix fix, useful only for ssvep maze app .....
+        for index1, index2 in enumerate(self.active_field_ids):
             str_freqs[int(index2)] = str(freqs[index1])
 
         self.str_freqs = (';').join(str_freqs)
@@ -71,8 +75,8 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             old_buffer = buffer
             buffer = int(float(maybe_buffer)*sampling)
             self.logger.info("Overwrite buffer from csp:"+str(old_buffer)+" with from config:"+str(buffer))
-            
-        #Create analysis object to analyse data 
+
+        #Create analysis object to analyse data
         self.analysis = self._get_analysis(self.send_decision, freqs, cfg, montage_matrix)
 
         #Initialise round buffer that will supply analysis with data
@@ -88,7 +92,6 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             ret_format=self.config.get_param('buffer_ret_format'),
             copy_on_ret=int(self.config.get_param('buffer_copy_on_ret'))
             )
-        
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         if DEBUG:
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')),
@@ -150,7 +153,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
             cfg['use_channels'].split(';'),
             cfg['montage'],
             cfg['montage_channels'].split(';'))
-        
+
 
 if __name__ == "__main__":
     BCISsvepCsp(settings.MULTIPLEXER_ADDRESSES).loop()

@@ -6,5 +6,12 @@ if [ -z "$OBCI_INSTALL_DIR" ]
 then
 	direc=/usr/share/openbci
 fi
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
+if [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+    if [ -z "$DISPLAY" ]
+    then
+	export DISPLAY=:0
+    fi
+fi
 
 exec python "$direc/control/launcher/obci_script.py" $@

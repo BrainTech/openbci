@@ -17,8 +17,10 @@ from obci.interfaces.etr import etr_ugm_manager
 from obci.gui.ugm import ugm_helper
 import numpy as np
 from obci.utils import streaming_debug
+from obci.utils.openbci_logging import log_crash
 
 class EtrAnalysis(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(EtrAnalysis, self).__init__(addresses=addresses,
                                      type=peers.ETR_P300_ANALYSIS)

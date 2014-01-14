@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
+import psutil
 
 def which_binary(program):
     binary = which(program)
@@ -42,31 +43,35 @@ def which(program):
                     return candidate
     return False
 
-def checkpidfile(file):
-    OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
-    lockfile = os.path.join(OBCI_HOME_DIR, file)
-    if not os.path.exists(OBCI_HOME_DIR):
-        os.makedirs(OBCI_HOME_DIR)
-
+def checkpidfile(file):   
+    lockfile = getpidfile(file) 
+    
     if os.access(os.path.expanduser(lockfile), os.F_OK):
         pidfile = open(os.path.expanduser(lockfile), "r")
         pidfile.seek(0)
         old_pd = pidfile.readline()
-        if os.path.exists("/proc/%s/comm" % old_pd):
-                comm = open("/proc/%s/comm" % old_pd)
-                command = comm.readline()
-                if command == 'python\n':
-                    print "You already have an instance of the program running"
-                    print "It is running as process %s," % old_pd
-                    return True
-                else:
-                    #print "File is there but the program is not running"
-                    #print "Removing lock file for the: %s as it can be there because of the program last time it was run" % old_pd
-                    os.remove(os.path.expanduser(lockfile))
+
+        if psutil.pid_exists(int(old_pd)) == 1:
+            print "You already have an instance of the program running"
+            print "It is running as process %s," % old_pd
+            return True
         else:
+            pidfile.close()
             os.remove(os.path.expanduser(lockfile))
 
     pidfile = open(os.path.expanduser(lockfile), "w")
     pidfile.write("%s" % os.getpid())
-    pidfile.close
+    pidfile.close()
     return False
+    
+def getpidfile(file):
+    try:
+        OBCI_HOME_DIR = os.path.join(os.getenv('HOME'), '.obci')
+        lockfile = os.path.join(OBCI_HOME_DIR, file)
+    except OSError:
+        os.makedirs(OBCI_HOME_DIR)
+    return lockfile
+
+def removepidfile(file):
+    lockfile = getpidfile(file)
+    os.remove(os.path.expanduser(lockfile))

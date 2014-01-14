@@ -5,5 +5,7 @@ CONFIG_DEFAULTS = {
     "console_log_level" : "info",
     "file_log_level" : "debug",
     "mx_log_level" : "info",
-    "log_dir" : "~/.obci/logs"
+    "sentry_log_level": "error",
+    "log_dir" : "~/.obci/logs",
+    "experiment_uuid": ""
 }

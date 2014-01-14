@@ -9,6 +9,7 @@ from obci.control.launcher.launcher_tools import obci_root
 from obci.drivers.eeg import tags_to_mxmsg
 from obci.analysis.obci_signal_processing.signal import read_info_source
 from obci.analysis.obci_signal_processing.tags import read_tags_source
+from obci.acquisition.acquisition_helper import get_file_path
 
 
 class AmplifierFile(BinaryDriverWrapper):
@@ -20,9 +21,8 @@ class AmplifierFile(BinaryDriverWrapper):
         self._init_configs()
 
     def _init_files(self):
-        self.f_data = os.path.expanduser(os.path.join(
-            self.config.get_param('data_file_dir'), 
-            self.config.get_param('data_file_name'))+'.obci.raw')
+        self.f_data = get_file_path(self.config.get_param('data_file_dir'), 
+                                    self.config.get_param('data_file_name')+'.obci.raw')
 
         i_dir = self.config.get_param('info_file_dir')
         if len(i_dir) == 0:
@@ -30,7 +30,7 @@ class AmplifierFile(BinaryDriverWrapper):
         i_name = self.config.get_param('info_file_name')
         if len(i_name) == 0:
             i_name = self.config.get_param('data_file_name')
-        self.f_info = os.path.expanduser(os.path.join(i_dir, i_name)+'.obci.xml')
+        self.f_info = get_file_path(i_dir, i_name+'.obci.xml')
 
         t_dir = self.config.get_param('tags_file_dir')
         if len(t_dir) == 0:
@@ -38,7 +38,7 @@ class AmplifierFile(BinaryDriverWrapper):
         t_name = self.config.get_param('tags_file_name')
         if len(t_name) == 0:
             t_name = self.config.get_param('data_file_name')
-        self.f_tags = os.path.expanduser(os.path.join(t_dir, t_name)+'.obci.tag')
+        self.f_tags = get_file_path(t_dir, t_name+'.obci.tag')
         
     def _init_configs(self):
         mgr = read_info_source.FileInfoSource(self.f_info)

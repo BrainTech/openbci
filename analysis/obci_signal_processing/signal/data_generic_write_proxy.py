@@ -38,9 +38,9 @@ class DataGenericWriteProxy(object):
             # Create a temporary file with .tmp extension
             # In finish_saving we read from that file and create another 
             # for efficency reasons
-                self._file = open(self._file_path+'.tmp', 'wr') #open file in a binary mode
+                self._file = open(self._file_path+'.tmp', 'wb') #open file in a binary mode
             else:
-                self._file = open(self._file_path, 'wr') #open file in a binary mode
+                self._file = open(self._file_path, 'wb') #open file in a binary mode
 
         except IOError:
             LOGGER.error("Error! Can`t create a file!!!. path: " +

@@ -123,4 +123,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
 
         if self._run_on_start:
             self.start_blinking()
+			
+if __name__ == '__main__':
+	ugm_engine.run()
 

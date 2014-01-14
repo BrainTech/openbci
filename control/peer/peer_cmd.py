@@ -8,6 +8,7 @@ from obci.control.common.config_helpers import LOCAL_PARAMS, EXT_PARAMS, CONFIG_
                             PEER_CONFIG_SECTIONS, LAUNCH_DEPENDENCIES, CS, LP, LD, EP
 
 import obci.control.common.obci_control_settings
+from obci.control.launcher.launcher_tools import expand_path
 
 import peer_config_parser
 import peer_config_serializer
@@ -24,6 +25,9 @@ class PeerCmd(object):
                                                 parents=[self.conf_parser])
         self.parser.add_argument('peer_id',
                                     help="Unique name for this instance of this peer")
+        self.parser.add_argument('base_config_file', type=path_to_file,
+                                    help="Base and mandatory configuration file for this peer.\n\
+                            (there should be a your_module_name.ini in the same directory as your_module_name.")
 
 
     def configure_argparser(self, parser):
@@ -44,7 +48,7 @@ class PeerCmd(object):
                                     help="Launch dependency ID assignment: dep_name peer_id")
 
         parser.add_argument('-f', '--config_file', type=path_to_file, action='append',
-                                    help="Additional configuration file (overrides): path_to_file.")
+                                    help="Additional configuration files: [path_to_file].ini")
         # parser.add_argument('--wait-ready-signal', action='store_true',
         #                             help="Wait for init configuration message.")
 
@@ -104,10 +108,11 @@ class LaunchDepAction(PeerParamAction):
     pass
 
 def path_to_file(string):
-    if not os.path.exists(string):
-        msg = "{} -- path not found!".format(string)
+    pth = expand_path(string)
+    if not os.path.exists(pth):
+        msg = "{} -- path not found!".format(pth)
         raise argparse.ArgumentTypeError(msg)
-    return string
+    return pth
 
 # -----------------------------------------------------------------------------
 

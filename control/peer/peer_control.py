@@ -16,6 +16,8 @@ from config_defaults import CONFIG_DEFAULTS
 import obci.control.common.config_message as cmsg
 
 from obci.configs import settings
+from obci.utils.openbci_logging import log_crash
+
 
 from multiplexer.multiplexer_constants import peers, types
 from multiplexer.clients import connect_client
@@ -25,6 +27,7 @@ CONFIG_FILE_EXT = 'ini'
 WAIT_READY_SIGNAL = "wait_ready_signal"
 CONFIG_FILE = "config_file"
 PEER_ID = "peer_id"
+BASE_CONF = "base_config_file"
 
 LOGGER = logging.getLogger("peer_control_default_logger")
 
@@ -38,6 +41,7 @@ class PeerControl(object):
         self.peer_params_changed = param_change_method
 
         self.peer_id = None
+        self.base_config_path = None
         self.connection = connection
         self.query_conn = conn = connect_client(type=peers.CONFIGURER,
                                             addresses=settings.MULTIPLEXER_ADDRESSES)
@@ -94,6 +98,7 @@ class PeerControl(object):
     def process_command_line(self):
         cmd_ovr, other_params = PeerCmd().parse_cmd()
         self.peer_id = self.core.peer_id = other_params[PEER_ID]
+        self.base_config_path = other_params[BASE_CONF]
         if other_params[CONFIG_FILE] is not None:
             self.file_list = other_params[CONFIG_FILE]
         self.cmd_overrides = cmd_ovr
@@ -116,12 +121,9 @@ class PeerControl(object):
         if self.peer is None:
             raise NoPeerError
 
-        peer_file = inspect.getfile(self.peer.__init__)
-        base_name = peer_file.rsplit('.', 1)[0]
-        base_config_path = '.'.join([base_name, CONFIG_FILE_EXT])
         #print "Peer {0} base config path: {1}".format(self.peer_id, base_config_path)
 
-        self._load_config_from_file(base_config_path, CONFIG_FILE_EXT)
+        self._load_config_from_file(self.base_config_path, CONFIG_FILE_EXT)
         #print "Peer {0} base config: {1}".format(self.peer_id, self.core)
 
 
@@ -155,7 +157,7 @@ class PeerControl(object):
             return None, None
 
     def _handle_params_changed(self, p_msg):
-        self.logger.info("PARAMS CHANGED - " + str(p_msg.sender))
+        self.logger.info("PARAMS CHANGED - %s" % p_msg.sender)
         params = cmsg.params2dict(p_msg)
         param_owner = p_msg.sender
 
@@ -204,12 +206,14 @@ class PeerControl(object):
         else:
             return cmsg.fill_msg(types.CONFIG_ERROR), types.CONFIG_ERROR
 
+    @log_crash
     def get_param(self, p_name):
         return self.core.get_param(p_name)
 
+    @log_crash
     def has_param(self, p_name):
         return self.core.has_param(p_name)
-
+    @log_crash
     def set_param(self, p_name, p_value):
         result = self.core.update_local_param(p_name, p_value)
         #TODO let know other peers...
@@ -223,7 +227,7 @@ class PeerControl(object):
             val_short = str(p_value)[:300] + '[...]'
             self.logger.info(' param update:: %s %s', p_name, val_short)
         else:
-            self.logger.warning('param updated locally %s, %s, %s', 
+            self.logger.warning('param updated locally %s, %s, %s',
                                     p_name, val_short, str(result))
 
         return result
@@ -263,11 +267,11 @@ class PeerControl(object):
             self.logger.error('config registration unsuccesful!!!! %s',
                                                              str(reply))
         elif not reply.type == types.PEER_REGISTERED:
-            self.logger.error('config registration unsuccesful!!!! %s', 
+            self.logger.error('config registration unsuccesful!!!! %s',
                                                             str(reply))
 
 
-    def _request_ext_params(self, connection, retries=300):
+    def _request_ext_params(self, connection, retries=400):
         #TODO set timeout and retry count
         self.logger.info("requesting external parameters")
         if self.peer is None:
@@ -363,7 +367,7 @@ class PeerControl(object):
             reply = conn.query(message=msg,
                                     type=msgtype)
         except OperationFailed:
-            self.logger.error("Could not connect to config server")
+            self.logger.warning("Could not connect to config server")
             reply = None
         except OperationTimedOut:
             self.logger.error("Operation timed out! (could not connect to config server)")

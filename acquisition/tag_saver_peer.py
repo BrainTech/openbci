@@ -11,10 +11,12 @@ from obci.analysis.obci_signal_processing.tags import tags_file_writer as tags_w
 from obci.analysis.obci_signal_processing.tags import tag_utils
 
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
+from obci.utils.openbci_logging import log_crash
 
 TAG_FILE_EXTENSION = ".obci.tag"
 
 class TagSaver(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         """Init slots."""
         super(TagSaver, self).__init__(addresses=addresses, 

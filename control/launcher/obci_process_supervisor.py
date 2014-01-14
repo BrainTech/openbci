@@ -6,6 +6,7 @@ import sys
 import uuid
 import subprocess
 import argparse
+import threading
 import time
 
 import zmq
@@ -20,6 +21,8 @@ from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
 import obci.control.launcher.launcher_tools as launcher_tools
 
+from obci.utils.openbci_logging import get_logger, log_crash
+
 from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
 from process_io_handler import DEFAULT_TAIL_RQ
@@ -29,6 +32,7 @@ TEST_PACKS = 100000
 class OBCIProcessSupervisor(OBCIControlPeer):
     msg_handlers = OBCIControlPeer.msg_handlers.copy()
 
+    @log_crash
     def __init__(self, sandbox_dir,
                                         source_addresses=None,
                                         source_pub_addresses=None,
@@ -49,6 +53,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.peer_order = []
         self._running_peer_order = []
         self._current_part = None
+        self.__cfg_launch_info = None
+        self.__cfg_morph = False
         self.experiment_uuid = experiment_uuid
         self.peers_to_launch = []
         self.processes = {}
@@ -57,6 +63,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self._nearby_machines = net.DNS()
 
         self.test_count = 0
+        self.__cfg_lock = threading.RLock()
 
         super(OBCIProcessSupervisor, self).__init__(
                                             source_addresses=source_addresses,
@@ -149,10 +156,11 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             addr = socket.gethostname()
 
         _env = {
-            "MULTIPLEXER_ADDRESSES": addr + ':' + str(port),
+            "MULTIPLEXER_ADDRESSES": str(addr) + ':' + str(port),
             "MULTIPLEXER_PASSWORD": '',#mx_data[1],
-            "MULTIPLEXER_RULES": launcher_tools.mx_rules_path()
+            "MULTIPLEXER_RULES": str(launcher_tools.mx_rules_path())
         }
+
         env.update(_env)
         return env
 
@@ -174,6 +182,29 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             if proc is not None:
                 self.mx = proc
 
+    @msg_handlers.handler("start_config_server")
+    def handle_start_config_srv(self, message, sock):
+        if 'mx' not in self.launch_data:
+            mx_addr = message.mx_data[1].split(':')
+            mx_addr[1] = int(mx_addr[1])
+            md = list(self.mx_data)
+            md[0] = tuple(mx_addr)
+            self.mx_data = tuple(md)
+            self.env = self.peer_env(self.mx_data)
+        if "config_server" in self.launch_data:
+            proc, details, wait, info_obj = \
+                self.launch_process("config_server", self.launch_data["config_server"],
+                    restore_config=message.restore_config)
+            tim = threading.Timer(1.5, self.__if_config_server_conn_didnt_work)
+            tim.start()
+
+
+    def __if_config_server_conn_didnt_work(self):
+        with self.__cfg_lock:
+            if self.__cfg_launch_info:
+                send_msg(self._publish_socket, self.__cfg_launch_info)
+                self.__cfg_launch_info = None
+                self.logger.info("connection to config server is shaky :(")
 
     @msg_handlers.handler("start_peers")
     def handle_start_peers(self, message, sock):
@@ -186,6 +217,9 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             md[0] = tuple(mx_addr)
             self.mx_data = tuple(md)
             self.env = self.peer_env(self.mx_data)
+        # tmp.workarounds: wait for mx  on other machine to initialize
+            time.sleep(0.75)
+
         if message.add_launch_data:
             if self.machine in  message.add_launch_data:
                 self._launch_processes(message.add_launch_data[self.machine])
@@ -197,10 +231,7 @@ class OBCIProcessSupervisor(OBCIControlPeer):
     def handle_manage_peers(self, message, sock):
         if not message.receiver == self.uuid:
             return
-        message.kill_peers.append('config_server')
 
-        message.start_peers_data['config_server'] = dict(self.launch_data['config_server'])
-        restore_config = [peer for peer in self.processes if peer not in message.kill_peers]
         for peer in message.kill_peers:
             proc = self.processes.get(peer, None)
             if not proc:
@@ -216,80 +247,93 @@ class OBCIProcessSupervisor(OBCIControlPeer):
             self.launch_data[peer] = data
         self.restarting = [peer for peer in message.start_peers_data if peer in message.kill_peers]
 
-        self._launch_processes(message.start_peers_data, restore_config=restore_config)
+        self._launch_processes(message.start_peers_data)
 
     def _launch_processes(self, launch_data, restore_config=[]):
-        proc, details = None, None
+        proc, details, info_obj = None, None, None
         success = True
         path, args = None, None
 
         self.status = launcher_tools.LAUNCHING
 
         ldata = []
-        if 'config_server' in launch_data:
-            ldata.append(('config_server', launch_data['config_server']))
+
         if 'amplifier' in launch_data:
             ldata.append(('amplifier', launch_data['amplifier']))
         for peer, data in launch_data.iteritems():
-            if (peer, data) not in ldata:
+            if (peer, data) not in ldata and peer != 'config_server':
                 ldata.append((peer, data))
 
         for peer, data in ldata:#self.launch_data.iteritems():
-            wait = 0
             if peer.startswith('mx'):
                 continue
-            p = os.path.expanduser(data['path'])
-            if not os.path.isabs(p):
-                path = os.path.join(launcher_tools.obci_root(), p)
-            else:
-                path = os.path.realpath(p)
-
-            dirname = os.path.dirname(path)
-            if not launcher_tools.obci_root() in dirname:
-                launcher_tools.update_pythonpath(dirname)
-                launcher_tools.update_obci_syspath(dirname)
-                self.env.update({"PYTHONPATH" : os.environ["PYTHONPATH"]})
-
-                self.logger.info("PYTHONPATH UPDATED  for " + peer +\
-                         "!!!!!!!!   " + str(self.env["PYTHONPATH"]))
-            args = data['args']
-            if peer.startswith('config_server'):
-                args += ['-p', 'launcher_socket_addr', self.cs_addr]
-                args += ['-p', 'experiment_uuid', self.experiment_uuid]
-
-                if restore_config:
-                    args += ['-p', 'restore_peers', ' '.join(restore_config)]
-                wait = 0.4
-            if "log_dir" in args:
-                idx = args.index("log_dir") + 1
-                log_dir = args[idx]
-                log_dir = os.path.join(log_dir, self.name)
-                args[idx] = log_dir
-            else:
-                log_dir = os.path.join(CONFIG_DEFAULTS["log_dir"], self.name)
-                args += ['-p', 'log_dir', log_dir]
-            if not os.path.exists(log_dir):
-                os.makedirs(log_dir)
-
-            proc, details = self._launch_process(path, args, data['peer_type'],
-                                                        peer, env=self.env, capture_io=NO_STDIO)
-            if proc is not None:
-                self.processes[peer] = proc
-            else:
+            proc, details, wait, info_obj = self.launch_process(peer, data, restore_config=restore_config)
+            time.sleep(wait)
+            if proc is None:
                 success = False
                 break
-            time.sleep(wait)
+
         if success:
             send_msg(self._publish_socket, self.mtool.fill_msg("all_peers_launched",
                                                     machine=self.machine))
+
+
+    def launch_process(self, peer, launch_data, restore_config=[]):
+        data = launch_data
+        wait = 0
+        p = os.path.expanduser(data['path'])
+        if not os.path.isabs(p):
+            path = os.path.join(launcher_tools.obci_root(), p)
+            path = os.path.abspath(path)
+        else:
+            path = os.path.realpath(p)
+
+        dirname = os.path.dirname(path)
+        if not launcher_tools.obci_root() in dirname:
+            launcher_tools.update_pythonpath(dirname)
+            launcher_tools.update_obci_syspath(dirname)
+            self.env.update({"PYTHONPATH" : os.environ["PYTHONPATH"]})
+
+            self.logger.info("PYTHONPATH UPDATED  for " + peer +\
+                     "!!!!!!!!   " + str(self.env["PYTHONPATH"]))
+        args = data['args']
+        args = self._attach_base_config_path(path, args)
+        args += ['-p', 'experiment_uuid', self.experiment_uuid]
+        if peer.startswith('config_server'):
+            args += ['-p', 'launcher_socket_addr', self.cs_addr]
+
+            if restore_config:
+                args += ['-p', 'restore_peers', ' '.join(restore_config)]
+            # wait = 0.5
+        if "log_dir" in args:
+            idx = args.index("log_dir") + 1
+            log_dir = args[idx]
+            log_dir = os.path.join(log_dir, self.name)
+            args[idx] = log_dir
+        else:
+            log_dir = os.path.join(CONFIG_DEFAULTS["log_dir"], self.name)
+            args += ['-p', 'log_dir', log_dir]
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+        proc, details = self._launch_process(path, args, data['peer_type'],
+                                                    peer, env=self.env, capture_io=NO_STDIO)
+        info_obj = {
+            "path": path,
+            "args": args,
+            "peer": peer
+        }
+        if proc is not None:
+            self.processes[peer] = proc
         else:
             self.logger.error("OBCI LAUNCH FAILED")
             send_msg(self._publish_socket, self.mtool.fill_msg("obci_launch_failed",
-                                                    machine=self.machine, path=path,
-                                                    args=args, details=details))
+                                                    machine=self.machine, path=info_obj['path'],
+                                                    args=info_obj['args'], details=details))
             self.processes = {}
             self.subprocess_mgr.killall(force=True)
 
+        return proc, details, wait, info_obj
 
     def _launch_process(self, path, args, proc_type, name,
                                     env=None, capture_io=NO_STDIO):
@@ -311,14 +355,25 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         else:
             self.logger.info("process launch success:" +\
                                  path + str(args) + str(proc.pid))
-            send_msg(self._publish_socket, self.mtool.fill_msg("launched_process_info",
+            msg = self.mtool.fill_msg("launched_process_info",
                                             sender=self.uuid,
                                             machine=self.machine,
                                             pid=proc.pid,
                                             proc_type=proc_type, name=name,
                                             path=path,
-                                            args=args))
+                                            args=args)
+            if name == "config_server":
+                self.__cfg_launch_info = msg
+            else:
+                send_msg(self._publish_socket, msg)
         return proc, details
+
+    def _attach_base_config_path(self, launch_path, launch_args):
+        peer_id = launch_args[0]
+        base = launch_path.rsplit('.', 1)[0]
+        ini = '.'.join([base, 'ini'])
+        return [peer_id, ini] + launch_args[1:]
+
 
     @msg_handlers.handler("get_tail")
     def handle_get_tail(self, message, sock):
@@ -355,7 +410,10 @@ class OBCIProcessSupervisor(OBCIControlPeer):
     @msg_handlers.handler("_kill_peer")
     def handle_kill_peer(self, message, sock):
         proc = self.processes.get(message.peer_id, None)
+
         if proc is not None: # is on this machine
+            if message.morph and message.peer_id == 'config_server':
+                self.__cfg_morph = True
             proc.kill_with_force()
 
     @msg_handlers.handler("rq_ok")
@@ -390,6 +448,8 @@ class OBCIProcessSupervisor(OBCIControlPeer):
                                                 ))
             if name in self.restarting:
                 self.restarting.remove(name)
+            if self.__cfg_morph and name == 'config_server':
+                self.__cfg_morph = False
 
     @msg_handlers.handler("obci_peer_registered")
     def handle_obci_peer_registered(self, message, sock):
@@ -404,6 +464,13 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.logger.info("got! " + message.type)
         send_msg(self._publish_socket, message.SerializeToString())
 
+    @msg_handlers.handler("config_server_ready")
+    def handle_obci_peer_ready(self, message, sock):
+        # config_server successfully connected to MX, now send "launched_process_info"
+        with self.__cfg_lock:
+            if self.__cfg_launch_info:
+                send_msg(self._publish_socket, self.__cfg_launch_info)
+                self.__cfg_launch_info = None
 
     @msg_handlers.handler("obci_control_message")
     def handle_obci_control_message(self, message, sock):
@@ -430,6 +497,14 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         self.processes = {}
         self.subprocess_mgr.killall(force=True)
         self.subprocess_mgr.delete_all()
+
+    def _crash_extra_data(self, exception=None):
+        data = super(OBCIProcessSupervisor, self)._crash_extra_data(exception)
+        data.update({
+            'experiment_uuid': self.experiment_uuid,
+            'name': self.name
+            })
+        return data
 
 
 def process_supervisor_arg_parser():
@@ -458,3 +533,4 @@ if __name__ == '__main__':
                             experiment_uuid=args.experiment_uuid,
                             name=args.name)
     process_sv.run()
+

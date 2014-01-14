@@ -6,9 +6,12 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.logic import logic_helper
 from obci.acquisition import acquisition_helper
 from obci.configs import settings, variables_pb2
+from obci.utils.openbci_logging import log_crash
+
 import random, time, sys
 
 class SwitchBackup(ConfiguredMultiplexerServer):
+    @log_crash
     def __init__(self, addresses):
         super(SwitchBackup, self).__init__(addresses=addresses,
                                         type=peers.SWITCH_ANALYSIS)
@@ -28,7 +31,7 @@ class SwitchBackup(ConfiguredMultiplexerServer):
                 self.config.get_param('new_scenario'), 
                 leave_on=self.config.get_param('leave_modules').split(';'))
         else:
-            self.logger.warning("Got unrecognised message: "+str(mxmsg.type))
+            self.logger.debug("Got unrecognised message: "+str(mxmsg.type))
         self.no_response()
 
 if __name__ == "__main__":

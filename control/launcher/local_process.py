@@ -3,7 +3,8 @@
 
 import time
 import signal
-
+import sys
+import os
 from process_io_handler import DEFAULT_TAIL_RQ
 
 import process
@@ -57,7 +58,7 @@ class LocalProcess(process.Process):
                 self._status_details = -(self.popen_obj.returncode)
             self._status = TERMINATED
 
-    def kill_with_force(self, timeout_s=0.1):
+    def kill_with_force(self, timeout_s=0.5):
         self.stop_monitoring()
 
         if self.io_handler is not None:
@@ -67,13 +68,22 @@ class LocalProcess(process.Process):
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                self.popen_obj.terminate()
+                if sys.platform == "win32":
+                    self.logger.info("[win] sending CTRL_C_EVENT.............. %s", self.name)
+                    #self.popen_obj.send_signal(signal.SIGINT)
+                    os.kill(self.popen_obj.pid, signal.CTRL_BREAK_EVENT)
+                else:
+                    self.popen_obj.terminate()
         time.sleep(timeout_s)
         self.popen_obj.poll()
         with self._status_lock:
             if self.popen_obj.returncode is None:
-                self.logger.info("KILLING -9 PROCESS %s %s", self.pid, self.name)
-                self.popen_obj.send_signal(signal.SIGKILL)
+                if sys.platform == "win32":
+                    self.logger.info("[win] terminating process %s", self.name)
+                    self.popen_obj.terminate()
+                else:
+                    self.logger.info("KILLING -9 PROCESS %s %s", self.pid, self.name)
+                    self.popen_obj.send_signal(signal.SIGKILL)
             self.popen_obj.wait()
             if not self._status == NON_RESPONSIVE:
                 self._status_details = -(self.popen_obj.returncode)
