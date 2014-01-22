@@ -21,7 +21,7 @@ class PeerCmd(object):
         self.conf_parser = argparse.ArgumentParser(add_help=False)
         self.configure_argparser(self.conf_parser)
 
-        self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id [options]", add_help=add_help,
+        self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id base_config_file [options]", add_help=add_help,
                                                 parents=[self.conf_parser])
         self.parser.add_argument('peer_id',
                                     help="Unique name for this instance of this peer")
@@ -127,7 +127,7 @@ def peer_overwrites_cmd(pack):
         conf = peer_config.PeerConfig(peer_id=other['peer_id'])
         cfg_parser = peer_config_parser.parser('python')
         cfg_parser.parse(ovr, conf)
-        args += ['--peer', other['peer_id']]
+        args += ['--peer', other['peer_id'], other['base_config_file']]
         ser = peer_config_serializer.PeerConfigSerializerCmd()
         ser.serialize(conf, args)
         if other['config_file']:
