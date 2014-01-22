@@ -1,3 +1,9 @@
+openbci (1.8.18-1) unstable; urgency=low
+
+  * Fix starting experiment from Svarog.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 22 Jan 2014 23:33:18 +0100
+
 openbci (1.8.17-1) unstable; urgency=low
 
   * Fix brain13 maze config.
