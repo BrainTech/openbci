@@ -30,7 +30,7 @@ def start_eeg_signal_experiment(ctx, srv_addrs, rq_message):
     del rq_message.amplifier_params['additional_params']
     amp_params.update(rq_message.amplifier_params)
 
-    par_list = ['--peer', 'amplifier', __file__]
+    par_list = ['--peer', 'amplifier']
     for par, val in amp_params.iteritems():
         par_list += ['-p', par, unicode(val)]
     for par, val in CONFIG_DEFAULTS.iteritems():
