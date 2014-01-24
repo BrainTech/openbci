@@ -1,7 +1,6 @@
 #-*- coding: utf-8 -*-
 
 """
-TODO: make the message disappear during calibration
 TODO: add some notification when searching for eyetrackers
 TODO: get rid of time.sleep
 TODO: add animation (moving & shrinking)
@@ -24,7 +23,6 @@ import tobii.eye_tracking_io.types
 #import eye_tracking_io.browsing
 #import eye_tracking_io.types
 
-
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer import multiplexer_constants
 from obci.configs import settings
@@ -32,8 +30,9 @@ import logging
 import threading
 import random
 import os.path
-from PyQt4 import QtGui, QtCore
 import time
+import pygame.display
+import pygame.event
 
 
 class EatException(Exception):
@@ -61,102 +60,136 @@ class EtrCalibrationTobii(ConfiguredClient):
         return handler
 
     def run(self):
-        _connector = CalibrationConnector()
+        CalibrationLogic().run()
+        sys.exit(0)
 
 
 class CalibrationLogic(object):
-    pass
-
-class CalibrationViewMainWidget(QtGui.QWidget):
-    def __init__(self, eyetracker):
-        super(CalibrationViewMainWidget, self).__init__()
-        self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        
-        self.label = QtGui.QLabel(u"Zostanie przeprowadzona kalibracja. Naciśnij spację.")
-        
-        box = QtGui.QHBoxLayout()
-        box.addWidget(self.label)
-        
-        self.setLayout(box)
-        self.eyetracker = eyetracker
-        self.state = "waiting"
-        self.points = []
-        self.point = None
-
-    def keyPressEvent(self, event):
-        if event.key() == QtCore.Qt.Key_Escape:
-            self.close()
-        elif event.key() == QtCore.Qt.Key_Space:
-            print "calibrate"
-            self.do_calibration()
-    
-    def do_calibration(self):
-        self.state = "calibrating"
-        self.eyetracker.StartCalibration(None)
+    def __init__(self):
+        self.connector = CalibrationConnector()
+        self.view = CalibrationView()
         self.points = [(0.1, 0.1), (0.1, 0.9), (0.9, 0.1), (0.9, 0.9), (0.5, 0.5)]
         random.shuffle(self.points)
-        self.label.hide()
-        time.sleep(2)
-        self.next_point()
-        
-    def next_point(self):
-        if self.points:
-            self.point = self.points[0]
-            self.points = self.points[1:]
-        else:
-            self.point = None
-        print self.point
-        self.repaint()
-        if self.point:
-            QtCore.QTimer.singleShot(1000, self.record_data)
-            QtCore.QTimer.singleShot(4000, self.next_point)
-        else:
-            self.finish_calibration()
+        self.view.set_initial_point(self.points[-1])
     
-    def record_data(self):
-        self.eyetracker.AddCalibrationPoint(eye_tracking_io.types.Point2D(self.point[0], self.point[1]))
-        
-    def finish_calibration(self):
-        self.state = "finished"
-        self.eyetracker.ComputeCalibration(self.compute_calibration_finished)
-        print "Saving..."
-        QtCore.QTimer.singleShot(1500, self.save_calibration)
-        #self.save_calibration()
+    def run(self):
+        self.view.show_initial_message()
+        self.connector.browse()
+        self.connector.connect()
+        self.view.show_intro_message()
+        self.connector.start_calibration()
+        for point in self.points:
+            self.view.set_point(point)
+            self.connector.collect_data(point)
+        self.connector.compute()
+        self.connector.save_calibration()
+        self.view.show_outro_message()
+        self.connector.close()
 
-    def compute_calibration_finished(self, error, _r):
-        if error == 0x20000502:
-            print "CalibCompute failed because not enough data was collected"
-        elif error != 0:
-            print "CalibCompute failed because of a server error", error
-        else:
-            print "Great success!"
-        self.eyetracker.StopCalibration(lambda *x, **y: None)
-    
-    def save_calibration(self):
-        calibration = self.eyetracker.GetCalibration()
-        calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
-        calibration_file.write(calibration.rawData)
-        calibration_file.close()
-    
-    def paintEvent(self, _event):
-        if self.state == "calibrating" and self.point:
-            painter = QtGui.QPainter(self)
-            self.draw_point(painter, self.point[0], self.point[1])
-    
-    def draw_point(self, painter, x, y):
-        w, h = self.width(), self.height()
-        cx, cy = w * x, h * y
-        r = 0.02 * h
-        painter.setBrush(QtGui.QBrush(QtCore.Qt.green, QtCore.Qt.SolidPattern))
-        painter.drawEllipse(int(cx - r), int(cy - r), int(2 * r), int(2 * r))
-    
 
-class CalibrationView(QtGui.QApplication):
-    def __init__(self, eyetracker):
-        super(CalibrationView, self).__init__(sys.argv)
-        self.main_window = CalibrationViewMainWidget(eyetracker)
-        self.main_window.setWindowTitle('Calibration Window')
-        self.main_window.showFullScreen()
+class CalibrationView(object):
+    ASPECT_TOLERANCE = 10 ** -3
+    SCALE_TIME = 0.8
+    MOVE_TIME = 1.5
+    
+    def __init__(self):
+        self.surface = None
+        self.w, self.h = (0, 0)
+        self.old_point = (0.5, 0.5)
+        self.init_display()
+        self.default_font = pygame.font.SysFont("Futura, Century Gothic, URW Gothic L, sans", 48)
+    
+    def init_display(self):
+        pygame.display.init()
+        pygame.font.init()
+        display_mode = self.find_best_mode()
+        self.surface = pygame.display.set_mode(display_mode, pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE)
+        self.w, self.h = display_mode
+    
+    @classmethod
+    def find_best_mode(cls):
+        """
+        Find mode corresponding to native resolution of main screen.
+        """
+        aspects = [16.0 / 10.0, 16.0 / 9.0, 4.0 / 3.0]
+        modes = pygame.display.list_modes()
+        for (w, h) in reversed(sorted(modes)):
+            a = float(w) / float(h)
+            fit = min([abs(a - b) for b in aspects])
+            if fit < cls.ASPECT_TOLERANCE:
+                return (w, h)
+        raise Exception("No acceptable mode found")
+    
+    def show_initial_message(self):
+        self.display_text(u"Łączenie")
+        pygame.display.flip()
+    
+    def show_intro_message(self):
+        self.display_text(u"Gotowy do kalibracji [spacja]")
+        self.wait_for_continue()
+    
+    def show_outro_message(self):
+        self.display_text(u"Kalibracja zakończona [spacja]")
+        self.wait_for_continue()
+        pygame.display.quit()
+        
+    def wait_for_continue(self):
+        while True:
+            event = pygame.event.wait()
+            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                return
+
+    def display_text(self, text):
+        pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+        text_surface = self.default_font.render(text, True, (0xaa, 0xaa, 0xaa))
+        self.surface.blit(text_surface, ((self.w - text_surface.get_width()) / 2, (self.h - text_surface.get_height()) / 2))
+        pygame.display.flip()
+        
+    def expand_point(self):
+        x, y = self.old_point[0] * self.w, self.h * (1.0 - self.old_point[1])
+        t0 = time.time()
+        t = t0
+        while t - t0 < self.SCALE_TIME:
+            size = 0.01 + (0.04 * (t - t0)) / self.SCALE_TIME
+            r = self.h * size
+            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            pygame.display.flip()
+            t = time.time()
+    
+    def shrink_point(self):
+        x, y = self.old_point[0] * self.w, self.h * (1.0 - self.old_point[1])
+        t0 = time.time()
+        t = t0
+        while t - t0 < self.SCALE_TIME:
+            size = 0.05 - (0.04 * (t - t0)) / self.SCALE_TIME
+            r = self.h * size
+            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            pygame.display.flip()
+            t = time.time()
+        
+    def move_point(self, target):
+        r = self.h * 0.05
+        t0 = time.time()
+        t = t0
+        while t - t0 < self.MOVE_TIME:
+            s = (t - t0) / self.MOVE_TIME
+            point = target[0] * s + self.old_point[0] * (1.0 - s), target[1] * s + self.old_point[1] * (1.0 - s)
+            x, y = point[0] * self.w, self.h * (1.0 - point[1])
+            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            pygame.display.flip()
+            t = time.time()
+    
+    def set_point(self, point):
+        self.expand_point()
+        self.move_point(point)
+        self.old_point = point
+        self.shrink_point()
+    
+    def set_initial_point(self, point):
+        self.old_point = point
 
 
 class BrowseThread(threading.Thread):
@@ -200,7 +233,6 @@ class ConnectThread(threading.Thread):
     def run(self):
         self.mainloop = eye_tracking_io.mainloop.Mainloop()
         eye_tracking_io.eyetracker.Eyetracker.create_async(self.mainloop, self.eyetracker_info, self.eyetracker_callback)
-        #self.eyetracker = DummyEtr.create_async(self.mainloop, self.eyetracker_info, self.eyetracker_callback)
         self.mainloop.run()
     
     def eyetracker_callback(self, _error, eyetracker):
@@ -219,15 +251,15 @@ class CalibrationConnector(object):
         self.eyetracker = None
         self.eyetracker_thread = None
         eye_tracking_io.init()
-        self._detect_eyetracker()
-        self._connect_to_eyetracker()
-        self._wait_for_key()
+        #self._detect_eyetracker()
+        #self._connect_to_eyetracker()
+        #self._wait_for_key()
 
-    def _detect_eyetracker(self):
+    def browse(self):
         browse_thread = BrowseThread()
         browse_thread.start()
         with browse_thread.discovery:
-            browse_thread.discovery.wait(7)
+            browse_thread.discovery.wait(5)
             browse_thread.kill()
             if browse_thread.eyetracker_info:
                 self.eyetracker_info = browse_thread.eyetracker_info
@@ -235,25 +267,44 @@ class CalibrationConnector(object):
             else:
                 raise EatException("No eyetracker found")
     
-    def _connect_to_eyetracker(self):
+    def connect(self):
         self.eyetracker_thread = ConnectThread(self.eyetracker_info)
         self.eyetracker_thread.start()
-        #eye_tracking_io.eyetracker.Eyetracker.create_async(self.eyetracker_thread.mainloop, self.eyetracker_thread.eyetracker_info, self.eyetracker_thread.eyetracker_callback)
         with self.eyetracker_thread.established:
-            self.eyetracker_thread.established.wait(11)
+            self.eyetracker_thread.established.wait(5)
             if self.eyetracker_thread.eyetracker:
                 self.eyetracker = self.eyetracker_thread.eyetracker
             else:
                 raise EatException("Could not connect to eyetracker")
     
-    def _wait_for_key(self):
-        app = CalibrationView(self.eyetracker)
-        app.exec_()
+    def start_calibration(self):
+        self.eyetracker.StartCalibration(None)
+    
+    def collect_data(self, point):
+        self.eyetracker.AddCalibrationPoint(eye_tracking_io.types.Point2D(point[0], point[1]))
+        time.sleep(2)
+    
+    def compute(self):
+        self.eyetracker.ComputeCalibration(self.compute_calibration_finished)
+    
+    def compute_calibration_finished(self, error, _r):
+        if error == 0x20000502:
+            print "CalibCompute failed because not enough data was collected"
+        elif error != 0:
+            print "CalibCompute failed because of a server error", error
+        else:
+            print "Great success!"
+        self.eyetracker.StopCalibration(lambda *x, **y: None)
+    
+    def save_calibration(self):
+        calibration = self.eyetracker.GetCalibration()
+        calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
+        calibration_file.write(calibration.rawData)
+        calibration_file.close()
+    
+    def close(self):
         self.eyetracker_thread.kill()
 
 
 if __name__ == "__main__":
     EtrCalibrationTobii(settings.MULTIPLEXER_ADDRESSES).run()
-    #logging.basicConfig()
-    #logging.getLogger().setLevel(logging.NOTSET)
-    #connector = CalibrationConnector()

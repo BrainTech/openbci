@@ -435,8 +435,8 @@ not declared in configuration!".format(source_name, reference))
 
     def _update_check(self, param_name):
         if param_name not in self._param_values:
-            raise ValueError("Parameter {0} does not exist in configuration,\
-                                 cannot update!".format(param_name))
+            raise ValueError("Parameter {0} does not exist in configuration of {1},\
+                                 cannot update!".format(param_name, self.peer_id))
 
 
     def _overwrite_warn(self, p_message):

@@ -14,20 +14,18 @@ import peer_config_parser
 import peer_config_serializer
 import peer_config
 
+class BasePeerCmdParser(object):
 
-class PeerCmd(object):
     def __init__(self, add_help=True):
 
         self.conf_parser = argparse.ArgumentParser(add_help=False)
         self.configure_argparser(self.conf_parser)
 
-        self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id [options]", add_help=add_help,
+        self.parser = argparse.ArgumentParser(usage="%(prog)s peer_id base_config_file [options]", add_help=add_help,
                                                 parents=[self.conf_parser])
         self.parser.add_argument('peer_id',
                                     help="Unique name for this instance of this peer")
-        self.parser.add_argument('base_config_file', type=path_to_file,
-                                    help="Base and mandatory configuration file for this peer.\n\
-                            (there should be a your_module_name.ini in the same directory as your_module_name.")
+
 
 
     def configure_argparser(self, parser):
@@ -70,6 +68,13 @@ class PeerCmd(object):
             for f in other_params['config_file']:
                 f = os.path.abspath(f)
         return config_overrides, other_params
+
+class PeerCmd(BasePeerCmdParser):
+    def __init__(self, add_help=True):
+        super(PeerCmd, self).__init__(add_help)
+        self.parser.add_argument('base_config_file', type=path_to_file,
+                                    help="Base and mandatory configuration file for this peer.\n\
+                            (there should be a your_module_name.ini in the same directory as your_module_name.")
 
 class PeerParamAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
@@ -150,7 +155,7 @@ def _peer_ovr_list(args):
 
 def peer_args(vals):
     print 'cmd got', vals
-    pcmd = PeerCmd(add_help=False)
+    pcmd = BasePeerCmdParser(add_help=False)
     ovr, other = pcmd.parse_cmd(vals)
     print ovr, other
     return [ovr, other]

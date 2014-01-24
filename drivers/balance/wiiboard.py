@@ -182,7 +182,7 @@ class Wiiboard(object):
                 intype = int(data.encode("hex")[2:4] )
                 if intype == INPUT_STATUS:
                 #TODO: Status input received. It just tells us battery life really
-                    self.setReportingType()
+                    self._setReportingType()
                 elif intype == INPUT_READ_DATA:
                     if self.calibrationRequested == True:
                         packetLength = (int(str(data[4]).encode("hex"),16)/16 + 1)

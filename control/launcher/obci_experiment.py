@@ -80,7 +80,7 @@ class OBCIExperiment(OBCIControlPeer):
 
         self.subprocess_mgr = SubprocessMonitor(self.ctx, self.uuid, logger=self.logger)
 
-        if launch_file == 'None': # command line arg
+        if launch_file in ['None', '']: # command line arg
             self._initialize_experiment_without_config()
         else:
             self.exp_config, self.status = self._initialize_experiment_config(self.launch_file, overwrites)
