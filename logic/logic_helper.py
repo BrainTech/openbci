@@ -83,8 +83,7 @@ def restart_scenario(conn, new_scenario, comment="Wait...", leave_on=[], overwri
 					# 	print params[i]
 
 
-					ovr_list += ['--peer', peer, os.path.join("utils","tagger.ini")]
-								#this "tagger.ini" is just to fill a required parameter, it doesn't get processed into peer's config
+					ovr_list += ['--peer', peer]
 					ovr_list += params
 
 				# leave_on_str = '' if not leave_on else ' --leave_on ' + ' '.join(leave_on)
