@@ -215,6 +215,7 @@ peer {
      name: "ETR_SAVER"
 }
 
+
 ################# OBCI_CONTROL ############################
 
 peer {
@@ -358,6 +359,50 @@ peer {
 }
 
 ############### /OBCI LOGGING ######
+
+peer {
+     type: 167
+     name: "WII_BOARD_SIGNAL_SAVER"
+}
+
+peer {
+     type: 168
+     name: "WII_BOARD_INFO_SAVER"
+}
+
+peer {
+     type: 169
+     name: "WII_BOARD_TAGS_SAVER"
+}
+
+peer {
+     type: 170
+     name: "TOBII_SIGNAL_SAVER"
+}
+
+peer {
+     type: 171
+     name: "TOBII_INFO_SAVER"
+}
+
+peer {
+     type: 172
+     name: "TOBII_TAGS_SAVER"
+}
+
+peer {
+    type: 173
+    name: "WII_BOARD_SIGNAL_CATCHER"
+    queue_size: 32768	       
+
+}
+
+peer {
+    type: 174
+    name: "TOBII_SIGNAL_CATCHER"
+    queue_size: 32768	       
+
+}
 
 
 # packages and routing rules definitions
@@ -1162,3 +1207,65 @@ type {
     type: 236
     name: "OBCI_LOG_DUMP_RESPONSE"
 }
+
+
+type {
+     type: 237
+     name: "WII_BOARD_SIGNAL_SAVER_FINISHED"
+     to {
+     	peer: "WII_BOARD_INFO_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "WII_BOARD_TAG_SAVER"
+	whom: ALL
+	}	      
+}
+
+type {
+    type: 238
+    name: "WII_BOARD_SIGNAL_MESSAGE"
+    to {
+       peer: "WII_BOARD_SIGNAL_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "WII_BOARD_SIGNAL_CATCHER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+}
+
+
+type {
+     type: 239
+     name: "TOBII_SIGNAL_SAVER_FINISHED"
+     to {
+     	peer: "TOBII_INFO_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TOBII_TAG_SAVER"
+	whom: ALL
+	}	      
+}
+
+type {
+    type: 240
+    name: "TOBII_SIGNAL_MESSAGE"
+    to {
+       peer: "TOBII_SIGNAL_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "TOBII_SIGNAL_CATCHER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+}
+
+

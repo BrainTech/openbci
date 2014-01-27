@@ -50,7 +50,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             #self._first_sample_timestamp = time.time()
             #break
 
-        self._data_proxy.set_data_len(len(p_data), self._samples_per_vector)
+        self._data_proxy.set_data_len(len(p_data), self._samples_per_packet)
         self.logger.info("Data len: "+str(len(p_data)))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! below operation changes self._data_received method
@@ -61,9 +61,9 @@ class SignalSaver(ConfiguredMultiplexerServer):
         self._data_received(p_data)
 
     @log_crash
-    def __init__(self, addresses):
+    def __init__(self, addresses, peer_type=peers.SIGNAL_SAVER):
         super(SignalSaver, self).__init__(addresses=addresses,
-                                          type=peers.SIGNAL_SAVER)
+                                          type=peer_type)
         self._session_is_active = False
 
         # A method fired ever time we get new samples
@@ -82,7 +82,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             from obci.utils import streaming_debug
             self.debug = streaming_debug.Debug(int(self.config.get_param('sampling_rate')), 
                                                self.logger,
-                                               self._samples_per_vector
+                                               self._samples_per_packet
                                                )
 
         self.ready()
@@ -97,7 +97,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
         if mxmsg.type == self._mx_signal_type and \
                 self._session_is_active:
 
-            self._number_of_samples += self._samples_per_vector
+            self._number_of_samples += self._samples_per_packet
             self._data_received(mxmsg.message)
 
             if self.debug_on:
@@ -126,19 +126,19 @@ class SignalSaver(ConfiguredMultiplexerServer):
         use_tmp_file = int(self.config.get_param("use_tmp_file"))
         use_own_buffer = int(self.config.get_param("use_own_buffer"))
         signal_type = self.config.get_param("signal_type")
-        self._samples_per_vector = int(self.config.get_param("samples_per_packet"))
+        self._samples_per_packet = int(self.config.get_param("samples_per_packet"))
 
         l_f_name =  self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
         self._number_of_samples = 0
-        l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))  
+        l_f_dir = os.path.expanduser(os.path.normpath(l_f_dir))
         if not os.access(l_f_dir, os.F_OK):
              os.mkdir(l_f_dir)
         self._file_path = os.path.normpath(os.path.join(
-                l_f_dir, l_f_name + DATA_FILE_EXTENSION))
-    
-        self._data_proxy = data_write_proxy.get_proxy(self._file_path,append_ts, 
-                                                      use_tmp_file, use_own_buffer, signal_type)
+               l_f_dir, l_f_name + DATA_FILE_EXTENSION))
+
+        self._data_proxy = data_write_proxy.get_proxy(
+            self._file_path, append_ts, use_tmp_file, use_own_buffer, signal_type)
 
         self._mx_signal_type = types.__dict__[self.config.get_param("mx_signal_type")]
 
