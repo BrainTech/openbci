@@ -1,3 +1,9 @@
+openbci (1.8.18-3) unstable; urgency=medium
+
+  * Force version of python-protobuf < 2.5.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 28 Jan 2014 21:15:49 +0100
+
 openbci (1.8.18-2) unstable; urgency=low
 
   * Fix starting experiment from Svarog.
