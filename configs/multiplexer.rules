@@ -372,7 +372,7 @@ peer {
 
 peer {
      type: 169
-     name: "WII_BOARD_TAGS_SAVER"
+     name: "WII_BOARD_TAG_SAVER"
 }
 
 peer {
@@ -387,7 +387,7 @@ peer {
 
 peer {
      type: 172
-     name: "TOBII_TAGS_SAVER"
+     name: "TOBII_TAG_SAVER"
 }
 
 peer {
