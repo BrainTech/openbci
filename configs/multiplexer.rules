@@ -1138,23 +1138,6 @@ type {
     }
 }
 
-
-type {
-    type: 230
-    name: "WII_BOARD_SIGNAL_MESSAGE"
-    to {
-       peer: "WII_BOARD_ANALYSIS"
-       whom: ALL
-	report_delivery_error: false
-       }
-    to {
-       peer: "WII_BOARD_SAVER"
-       whom: ALL
-	report_delivery_error: false
-       }
-
-}
-
 type {
     type: 231
     name: "P300_ANALYSIS_RESULTS"
