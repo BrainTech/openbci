@@ -12,16 +12,16 @@ TODO: proper logging messages
 import signal
 import sys
 
-from tobii import eye_tracking_io
-import tobii.eye_tracking_io.eyetracker
-import tobii.eye_tracking_io.mainloop
-import tobii.eye_tracking_io.browsing
-import tobii.eye_tracking_io.types
+#from tobii import eye_tracking_io
+#import tobii.eye_tracking_io.eyetracker
+#import tobii.eye_tracking_io.mainloop
+#import tobii.eye_tracking_io.browsing
+#import tobii.eye_tracking_io.types
 
-#import eye_tracking_io.eyetracker
-#import eye_tracking_io.mainloop
-#import eye_tracking_io.browsing
-#import eye_tracking_io.types
+import eye_tracking_io.eyetracker
+import eye_tracking_io.mainloop
+import eye_tracking_io.browsing
+import eye_tracking_io.types
 
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer import multiplexer_constants
@@ -30,6 +30,7 @@ import logging
 import threading
 import random
 import os.path
+import glob
 import time
 import pygame.display
 import pygame.event
@@ -105,6 +106,13 @@ class CalibrationView(object):
         display_mode = self.find_best_mode()
         self.surface = pygame.display.set_mode(display_mode, pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE)
         self.w, self.h = display_mode
+        self.anim_speed_init = 1
+        self.anim_speed = self.anim_speed_init
+        self.anim = glob.glob("fly/fly_*.png")
+        self.anim.sort()
+        self.anim_pos = 0
+        self.anim_max = len(self.anim) - 1
+        self.img = pygame.image.load(self.anim[0])
     
     @classmethod
     def find_best_mode(cls):
@@ -151,9 +159,12 @@ class CalibrationView(object):
         t = t0
         while t - t0 < self.SCALE_TIME:
             size = 0.01 + (0.04 * (t - t0)) / self.SCALE_TIME
-            r = self.h * size
-            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
-            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            #r = self.h * size
+            #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            Butterfly = pygame.image.load('fly/fly_1.png').convert()
+            Butterfly = pygame.transform.scale(Butterfly, (self.w * size,self.h * size))
+            self.surface.blit(Butterfly,(x-self.w * size,y - self.h * size))
             pygame.display.flip()
             t = time.time()
     
@@ -163,9 +174,12 @@ class CalibrationView(object):
         t = t0
         while t - t0 < self.SCALE_TIME:
             size = 0.05 - (0.04 * (t - t0)) / self.SCALE_TIME
-            r = self.h * size
-            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
-            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            #r = self.h * size
+            #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            Butterfly = pygame.image.load('fly/fly_1.png').convert()
+            Butterfly = pygame.transform.scale(Butterfly, (self.w * size,self.h * size))
+            self.surface.blit(Butterfly,(x-self.w * size,y - self.h * size))
             pygame.display.flip()
             t = time.time()
         
@@ -177,8 +191,21 @@ class CalibrationView(object):
             s = (t - t0) / self.MOVE_TIME
             point = target[0] * s + self.old_point[0] * (1.0 - s), target[1] * s + self.old_point[1] * (1.0 - s)
             x, y = point[0] * self.w, self.h * (1.0 - point[1])
-            pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
-            pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            if self.anim_pos != 0:
+                self.anim_speed-=1
+
+            if self.anim_speed == 0:
+                self.img = pygame.image.load(self.anim[self.anim_pos])
+                self.anim_speed = self.anim_speed_init
+                if self.anim_pos >= self.anim_max:
+                    self.anim_pos = 0
+                    
+                else:
+                    self.anim_pos+=1
+
+            self.surface.blit(self.img,(x - self.w,y - self.h))
+            #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+            #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
             pygame.display.flip()
             t = time.time()
     
