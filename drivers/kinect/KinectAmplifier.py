@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import cv2
 import numpy as np
 import os, sys, time, struct
 from nite2 import *
+
+class KinectException(Exception):
+    pass
 
 class JointStruct(struct.Struct):
     def __init__(self):
@@ -31,18 +36,18 @@ class Point3Mock(object):
         self.z = z
 
 class JointMock(object):
-    def __init__(self, joint_id, positionConfidence, point, x_converted, y_converted):
-        self.id = joint_id
+    def __init__(self, id, positionConfidence, x, y, z, x_converted, y_converted):
+        self.id = id
         self.positionConfidence = positionConfidence
-        self.x = point.x
-        self.y = point.y
-        self.z = point.z
+        self.x = x
+        self.y = y
+        self.z = z
         self.x_converted = x_converted
         self.y_converted = y_converted
 
 class SkeletonFrameMock(object):
-    def __init__(self, frame_id, frame_timestamp, user_id, point, user_state, joints):
-        self.frame_id = frame_id
+    def __init__(self, frame_index, frame_timestamp, user_id, point, user_state, joints):
+        self.frame_index = frame_index
         self.frame_timestamp = frame_timestamp
         self.user_id = user_id
         self.user_x = point.x
@@ -52,17 +57,17 @@ class SkeletonFrameMock(object):
         self.joints = joints
 
 class HandDataMock(object):
-    def __init__(self, hand_id, point, x_converted, y_converted):
+    def __init__(self, hand_id, x, y, z, x_converted, y_converted):
         self.id = hand_id
-        self.x = point.x
-        self.y = point.y
-        self.z = point.z
+        self.x = x
+        self.y = y
+        self.z = z
         self.x_converted = x_converted
         self.y_converted = y_converted
 
 class HandFrameMock(object):
-    def __init__(self, frame_id, frame_timestamp, hands):
-        self.id = frame_id
+    def __init__(self, frame_index, frame_timestamp, hands):
+        self.frame_index = frame_index
         self.frame_timestamp = frame_timestamp
         self.hands = hands
 
@@ -107,7 +112,7 @@ class Serialization(object):
                     hand = hands[0]
                     if hand.isTracking():
                         rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        print 'one hand...',hand.id,x_new,y_new
+                        print 'one hand...', hand.id, x_new, y_new
                         buf += self.hand_s.pack(hand.id,
                                                 hand.position.x,
                                                 hand.position.y,
@@ -120,7 +125,7 @@ class Serialization(object):
                 else:
                     for hand in hands[:2]:
                         rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        print 'two hands...',hand.id,x_new,y_new
+                        print 'two hands...', hand.id, x_new, y_new
                         buf += self.hand_s.pack(hand.id,
                                                 hand.position.x,
                                                 hand.position.y,
@@ -138,14 +143,15 @@ class Serialization(object):
 
     def serialize_joint(self, joint):
         if joint is not None:
-            rc, x_new, y_new = self.convert_joint_coordinates(joint.position.x, joint.position.y, joint.position.z)
+            pos = joint.position
+            rc, x_new, y_new = self.convert_joint_coordinates(pos.x, pos.y, pos.z)
             return self.joint_s.pack(joint.type,
-                                joint.positionConfidence,
-                                joint.position.x,
-                                joint.position.y,
-                                joint.position.z,
-                                x_new,
-                                y_new)
+                                     joint.positionConfidence,
+                                     joint.position.x,
+                                     joint.position.y,
+                                     joint.position.z,
+                                     x_new,
+                                     y_new)
         else:
             return self.joint_s.pack(0, 0, 0, 0, 0, 0, 0)
 
@@ -182,7 +188,7 @@ class Serialization(object):
         data = []
         for i in xrange(2):
             hands = self.hand_s.unpack(f.read(self.hand_s.size))
-            print i,'.....',hands[0],hands[4],hands[5]
+            print i, '.....', hands[0], hands[4], hands[5]
             data.append(HandDataMock(hands[0], Point3Mock(hands[1], hands[2], hands[3]), hands[4], hands[5]))
         return HandFrameMock(v[0], v[1], data)
 
@@ -202,20 +208,20 @@ class Serialization(object):
 
 class KinectAmplifier(object):
 
-    connections = [(JOINT_HEAD, JOINT_NECK),
-                   (JOINT_NECK, JOINT_TORSO),
-                   (JOINT_TORSO, JOINT_LEFT_SHOULDER),
-                   (JOINT_TORSO, JOINT_RIGHT_SHOULDER),
-                   (JOINT_LEFT_SHOULDER, JOINT_LEFT_ELBOW),
+    connections = [(JOINT_HEAD,           JOINT_NECK),
+                   (JOINT_NECK,           JOINT_TORSO),
+                   (JOINT_TORSO,          JOINT_LEFT_SHOULDER),
+                   (JOINT_TORSO,          JOINT_RIGHT_SHOULDER),
+                   (JOINT_LEFT_SHOULDER,  JOINT_LEFT_ELBOW),
                    (JOINT_RIGHT_SHOULDER, JOINT_RIGHT_ELBOW),
-                   (JOINT_LEFT_ELBOW, JOINT_LEFT_HAND),
-                   (JOINT_RIGHT_ELBOW, JOINT_RIGHT_HAND),
-                   (JOINT_TORSO, JOINT_LEFT_HIP),
-                   (JOINT_TORSO, JOINT_RIGHT_HIP),
-                   (JOINT_LEFT_HIP, JOINT_LEFT_KNEE),
-                   (JOINT_RIGHT_HIP, JOINT_RIGHT_KNEE),
-                   (JOINT_LEFT_KNEE, JOINT_LEFT_FOOT),
-                   (JOINT_RIGHT_KNEE, JOINT_RIGHT_FOOT)]
+                   (JOINT_LEFT_ELBOW,     JOINT_LEFT_HAND),
+                   (JOINT_RIGHT_ELBOW,    JOINT_RIGHT_HAND),
+                   (JOINT_TORSO,          JOINT_LEFT_HIP),
+                   (JOINT_TORSO,          JOINT_RIGHT_HIP),
+                   (JOINT_LEFT_HIP,       JOINT_LEFT_KNEE),
+                   (JOINT_RIGHT_HIP,      JOINT_RIGHT_KNEE),
+                   (JOINT_LEFT_KNEE,      JOINT_LEFT_FOOT),
+                   (JOINT_RIGHT_KNEE,     JOINT_RIGHT_FOOT)]
 
     joints = [JOINT_HEAD,
               JOINT_LEFT_ELBOW,
@@ -250,14 +256,14 @@ class KinectAmplifier(object):
         def _get(name, default):
             return config[name] if name in config else default
 
-        self.device_uri = _get('device_uri', 'C:\\Users\\Ania\\Desktop\\kinect\\test.oni')
+        self.device_uri = _get('device_uri', '')
         self.file_name = _get('file_name', '')
         self.directory = _get('directory', '')
 
         if not self.directory:
-            self.directory = os.path.expanduser('~')
+            self.directory = '.'
         if not os.path.exists(self.directory):
-            raise Exception("KinectAmplifier: Directory doesn't exist.")
+            raise KinectException('KinectAmplifier: Directory doesn't exist.')
 
         self.rgb_capture = _get('rgb_capture', True)
         self.depth_capture = _get('depth_capture', True)
@@ -284,9 +290,12 @@ class KinectAmplifier(object):
         OpenNI.shutdown()
 
     def draw_hands(self, img, hands):
+        if img is None:
+            return
         for h in hands:
             if h.isTracking():
-                rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(h.position.x, h.position.y, h.position.z)
+                pos = h.position
+                rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(pos.x, pos.y, pos.z)
                 try:
                     cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 180, 247), -1)
                 except ValueError:
@@ -295,7 +304,8 @@ class KinectAmplifier(object):
     def draw_user(self, img, skeleton):
         for j in self.joints:
             joint = skeleton.getJoint(j)
-            rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(joint.position.x, joint.position.y, joint.position.z)
+            pos = joint.position
+            rc, x_new, y_new = self.ut.convertJointCoordinatesToDepth(pos.x, pos.y, pos.z)
             if joint.positionConfidence > 0.5:
                 try:
                     cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
@@ -307,10 +317,10 @@ class KinectAmplifier(object):
                 except ValueError:
                     pass
         for c in self.connections:
-            joint_1 = skeleton.getJoint(c[0])
-            joint_2 = skeleton.getJoint(c[1])
-            rc, x1, y1 = self.ut.convertJointCoordinatesToDepth(joint_1.position.x, joint_1.position.y, joint_1.position.z)
-            rc, x2, y2 = self.ut.convertJointCoordinatesToDepth(joint_2.position.x, joint_2.position.y, joint_2.position.z)
+            j1 = skeleton.getJoint(c[0]).position
+            j2 = skeleton.getJoint(c[1]).position
+            rc, x1, y1 = self.ut.convertJointCoordinatesToDepth(j1.x, j1.y, j1.z)
+            rc, x2, y2 = self.ut.convertJointCoordinatesToDepth(j2.x, j2.y, j2.z)
             try:
                 cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255))
             except ValueError:
@@ -321,7 +331,7 @@ class KinectAmplifier(object):
             try:
                 cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
             except ValueError:
-                return
+                pass
 
     def draw_from_file(self, frame, img):
         if frame[1] or frame[2]:
@@ -356,11 +366,11 @@ class KinectAmplifier(object):
     def run(self):
         rc = OpenNI.initialize()
         if rc != OPENNI_STATUS_OK:
-            raise Exception("OpenNI initialization failed.")
+            raise KinectException('OpenNI initialization failed.')
 
         rc = NiTE.initialize()
         if rc != NITE_STATUS_OK:
-            raise Exception("NiTE2 initialization failed.")
+            raise KinectException('NiTE2 initialization failed.')
 
         self.device = Device()
         if self.device_uri:
@@ -368,10 +378,13 @@ class KinectAmplifier(object):
         else:
             rc = self.device.open()
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Device open failed.")
+            raise KinectException('Device open failed: ' + str(OpenNI.getExtendedError()))
 
         if self.device.isImageRegistrationModeSupported(IMAGE_REGISTRATION_DEPTH_TO_COLOR):
             self.device.setImageRegistrationMode(IMAGE_REGISTRATION_DEPTH_TO_COLOR)
+        else:
+            print 'Image registration mode is not supported!'
+
         if not self.device.getDepthColorSyncEnabled():
             self.device.setDepthColorSyncEnabled(True)
 
@@ -380,29 +393,30 @@ class KinectAmplifier(object):
 
         rc = self.color.create(self.device, SENSOR_COLOR)
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Color stream create failed.")
+            raise KinectException('Color stream create failed.')
+
         rc = self.depth.create(self.device, SENSOR_DEPTH)
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Depth stream create failed.")
+            raise KinectException('Depth stream create failed.')
 
         self.recorder = Recorder()
         if self.file_name:
             rc = self.recorder.create(os.path.join(self.directory, self.file_name))
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Recorder create failed.")
+            raise KinectException('Recorder create failed.')
 
         if self.recorder.isValid() and not self.device.isFile():
             if self.rgb_capture:
                 rc = self.recorder.attach(self.color, True)
                 if rc != OPENNI_STATUS_OK:
-                    raise Exception("Recorder attach color error.")
+                    raise KinectException('Recorder attach color error.')
             if self.depth_capture:
                 rc = self.recorder.attach(self.depth, True)
                 if rc != OPENNI_STATUS_OK:
-                    raise Exception("Recorder attach depth error.")
+                    raise KinectException('Recorder attach depth error.')
             rc = self.recorder.start()
             if rc != OPENNI_STATUS_OK:
-                raise Exception("Recorder start error.")
+                raise KinectException('Recorder start error.')
             self.time_rec_start = time.time()
 
         if self.device.isFile():
@@ -417,7 +431,7 @@ class KinectAmplifier(object):
             self.ht = HandTracker()
             rc = self.ht.create(self.device)
             if rc != NITE_STATUS_OK:
-                raise Exception('Creating hand tracker failed.')
+                raise KinectException('Creating hand tracker failed.')
                 self.finish()
             self.ht.startGestureDetection(GESTURE_WAVE)
             self.ht.startGestureDetection(GESTURE_CLICK)
@@ -427,7 +441,7 @@ class KinectAmplifier(object):
             self.ut = UserTracker()
             rc = self.ut.create()
             if rc != NITE_STATUS_OK:
-                raise Exception('Creating user tracker failed, ' + str(rc))
+                raise KinectException('Creating user tracker failed, ' + str(rc))
                 self.finish()
 
         if self.ready_cb is not None:
@@ -439,11 +453,11 @@ class KinectAmplifier(object):
 
         rc = self.depth.start()
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Depth stream start failed.")
+            raise KinectException('Depth stream start failed.')
             self.depth.destroy()
         rc = self.color.start()
         if rc != OPENNI_STATUS_OK:
-            raise Exception("Color stream start failed.")
+            raise KinectException('Color stream start failed.')
             self.color.destroy()
 
         frame_index = 0
@@ -451,24 +465,25 @@ class KinectAmplifier(object):
         # current_frame_depth = None
 
         while True:
-            k = cv2.waitKey(10)
+            k = cv2.waitKey(1)
             if self.loop_cb is not None:
                 if self.loop_cb(k):
                     break
 
             rc, self.color_frame = self.color.readFrame()
             if rc != OPENNI_STATUS_OK:
-                print "Error reading color frame."
+                print 'Error reading color frame.'
 
             rc, self.depth_frame = self.depth.readFrame()
             if rc != OPENNI_STATUS_OK:
-                print "Error reading depth frame."
+                print 'Error reading depth frame.'
 
             frame_index += 1
 
             if self.color_frame is not None and self.color_frame.isValid():
                 data_rgb = self.color_frame.data
                 data_rgb = cv2.cvtColor(data_rgb, cv2.COLOR_BGR2RGB)
+
             if self.depth_frame is not None and self.depth_frame.isValid():
                 data_depth = self.depth_frame.data
                 data_depth = np.float32(data_depth)
@@ -480,8 +495,7 @@ class KinectAmplifier(object):
                 rc, self.hand_frame = self.ht.readFrame()
                 if rc != NITE_STATUS_OK:
                     print 'Error reading hand tracker frame'
-                gestures = self.hand_frame.gestures
-                for g in gestures:
+                for g in self.hand_frame.gestures:
                     if g.isComplete():
                         rc, newId = self.ht.startHandTracking(g.currentPosition)
                 self.hands = self.hand_frame.hands
@@ -566,21 +580,21 @@ class KinectAmplifier(object):
         self.device_uri = ''
         self.directory = ''
         self.file_name = out_file
-        
+
         #capture
         self.rgb_capture = True
         self.depth_capture = True
-        
+
         #display and capture
         self.hand_tracking = True
         self.skeleton_tracking = True
-        
+
         #display
         self.video_type_rgb = True
         self.video_type_depth = False
-        
+
         self._configure()
-   
+
     def _configure(self):
         #if not self.directory:
         #    self.directory = os.path.expanduser("~")
