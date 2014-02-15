@@ -255,8 +255,7 @@ class KinectAmplifier(object):
 
         if self.mode == 'online':
             #raw capture variables
-            self.capture_rgb = _get('capture_rgb', True)
-            self.capture_depth = _get('capture_depth', True)
+            self.capture_raw = _get('capture_raw', True)
             self.out_raw_file_path = _get('out_raw_file_path', 'test.oni')
             self.out_raw_file = None
      
@@ -276,10 +275,9 @@ class KinectAmplifier(object):
             self.in_raw_file_path = _get('in_raw_file_path', 'test.oni')
             self.in_algs_file_path = _get('in_algs_file_path', 'test.algs')
             self.in_algs_file = None
-            
+            self.capture_raw = False
+ 
             #reset 'online' variables
-            self.capture_rgb = None
-            self.capture_depth = None
             self.out_raw_file_path = None
             self.out_raw_file = None
             self.capture_hands = None
@@ -297,9 +295,13 @@ class KinectAmplifier(object):
         
         self.track_hands = self.mode == 'online' and (self.show_hands or self.capture_hands)
         self.track_skeleton = self.mode == 'online' and (self.show_skeleton or self.show_hands)
-        self.capture_raw = self.mode == 'online' and (self.capture_rgb or self.capture_depth)
-        self.capture_algs = self.mode == 'online' and (self.capture_hands or self.capture_skeleton)   
-
+        self.capture_algs = self.mode == 'online' and (self.capture_hands or self.capture_skeleton)
+        
+        self.validate_params()
+    
+    def validate_params(self):
+        if self.capture_algs and not self.capture_raw:
+            raise Exception("Cannot capture algs without capturing raw signal!!!")
 
 
     def finish(self):
@@ -430,18 +432,15 @@ class KinectAmplifier(object):
                 raise Exception("Recorder create failed.")
             if not self.recorder.isValid():
                 raise Exception("Recorder invalid.")
-            if self.capture_rgb:
-                rc = self.recorder.attach(self.color, True)
-                if rc != OPENNI_STATUS_OK:
-                    raise Exception("Recorder attach color error.")
-            if self.capture_depth:
-                rc = self.recorder.attach(self.depth, True)
-                if rc != OPENNI_STATUS_OK:
-                    raise Exception("Recorder attach depth error.")
+            rc = self.recorder.attach(self.color, True)
+            if rc != OPENNI_STATUS_OK:
+                raise Exception("Recorder attach color error.")
+            rc = self.recorder.attach(self.depth, True)
+            if rc != OPENNI_STATUS_OK:
+                raise Exception("Recorder attach depth error.")
             rc = self.recorder.start()
             if rc != OPENNI_STATUS_OK:
                 raise Exception("Recorder start error.")
-            self.time_rec_start = time.time()
             
         #initialise online algorithms recorder
         if self.capture_algs:
@@ -490,7 +489,7 @@ class KinectAmplifier(object):
         frame_index = 0
         current_frame_rgb = None
         # current_frame_depth = None
-
+        self.time_rec_start = time.time()
         while True:
             k = cv2.waitKey(10)
             if self.loop_cb is not None:
@@ -597,5 +596,6 @@ if __name__ == '__main__':
         mode = sys.argv[1]
     except:
         mode = 'online'
-    kinect = KinectAmplifier({'mode':mode})
+    d = {'mode':mode}
+    kinect = KinectAmplifier(d)
     kinect.run()
