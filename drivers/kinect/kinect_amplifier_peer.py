@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, time, os.path, signal, threading, struct
+import sys
+import signal
+import cv2
+from KinectAmplifier import KinectAmplifier
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
-
-import cv2
-import numpy as np
 from obci.configs import settings, variables_pb2
-from KinectAmplifier import JointStruct, HandStruct, UserStruct, FrameStruct, HeaderStruct, Point3Mock, JointMock, SkeletonFrameMock, HandDataMock, HandFrameMock, Serialization, KinectAmplifier
-
-from nite2 import *
 
 g_exiting = False
 

@@ -3,7 +3,7 @@
 
 import cv2
 import numpy as np
-import os, sys, time, struct
+import sys, time, struct
 from nite2 import *
 
 class KinectException(Exception):
@@ -46,13 +46,13 @@ class JointMock(object):
         self.y_converted = y_converted
 
 class SkeletonFrameMock(object):
-    def __init__(self, frame_index, frame_timestamp, user_id, point, user_state, joints):
+    def __init__(self, frame_index, frame_timestamp, user_id, x, y, z, user_state, joints):
         self.frame_index = frame_index
         self.frame_timestamp = frame_timestamp
         self.user_id = user_id
-        self.user_x = point.x
-        self.user_y = point.y
-        self.user_z = point.z
+        self.user_x = x
+        self.user_y = y
+        self.user_z = z
         self.user_state = user_state
         self.joints = joints
 
@@ -189,12 +189,12 @@ class Serialization(object):
         for i in xrange(2):
             hands = self.hand_s.unpack(f.read(self.hand_s.size))
             print i, '.....', hands[0], hands[4], hands[5]
-            data.append(HandDataMock(hands[0], Point3Mock(hands[1], hands[2], hands[3]), hands[4], hands[5]))
+            data.append(HandDataMock(hands[0], hands[1], hands[2], hands[3], hands[4], hands[5]))
         return HandFrameMock(v[0], v[1], data)
 
     def unserialize_joint(self, f):
         v = self.joint_s.unpack(f.read(self.joint_s.size))
-        return JointMock(v[0], v[1], Point3Mock(v[2], v[3], v[4]), v[5], v[6])
+        return JointMock(*v)
 
     def unserialize_skeleton(self, f):
         v = []
@@ -203,7 +203,7 @@ class Serialization(object):
         joints = []
         for i in xrange(15):
             joints.append(self.unserialize_joint(f))
-        return SkeletonFrameMock(v[0], v[1], v[2], Point3Mock(v[3], v[4], v[5]), v[6], joints)
+        return SkeletonFrameMock(v[0], v[1], v[2], v[3], v[4], v[5], v[6], joints)
 
 
 class KinectAmplifier(object):
@@ -256,34 +256,33 @@ class KinectAmplifier(object):
         def _get(name, default):
             return config[name] if name in config else default
 
-        
-        self.mode = _get('mode', 'online')  
+        self.mode = _get('mode', 'online')
 
         if self.mode == 'online':
-            #raw capture variables
+            # raw capture variables
             self.capture_rgb = _get('capture_rgb', True)
             self.capture_depth = _get('capture_depth', True)
             self.out_raw_file_path = _get('out_raw_file_path', 'test.oni')
             self.out_raw_file = None
-     
-            #algs capture variables
+
+            # algs capture variables
             self.capture_hands = _get('capture_hands', True)
             self.capture_skeleton = _get('capture_skeleton', True)
             self.out_algs_file_path = _get('out_algs_file_path', 'test.algs')
             self.out_algs_file = None
-            
-            #reset 'offline' variables
+
+            # reset 'offline' variables
             self.in_raw_file_path = None
             self.in_algs_file_path = None
             self.in_algs_file = None
-            
+
         elif self.mode == 'offline':
-            #input files variables
+            # input files variables
             self.in_raw_file_path = _get('in_raw_file_path', 'test.oni')
             self.in_algs_file_path = _get('in_algs_file_path', 'test.algs')
             self.in_algs_file = None
-            
-            #reset 'online' variables
+
+            # reset 'online' variables
             self.capture_rgb = None
             self.capture_depth = None
             self.out_raw_file_path = None
@@ -293,19 +292,18 @@ class KinectAmplifier(object):
             self.out_algs_file_path = None
             self.out_algs_file = None
         else:
-            raise Exception("Unrecognised MODE!!!")
-        
-        #both modes
-        self.show_hands = _get('show_hands', True)
-        self.show_skeleton = _get('show_skeleton', True)
-        self.show_rgb = _get('show_rgb', True)
-        self.show_depth = _get('show_depth', True)
-        
-        self.track_hands = self.mode == 'online' and (self.show_hands or self.capture_hands)
-        self.track_skeleton = self.mode == 'online' and (self.show_skeleton or self.show_hands)
-        self.capture_raw = self.mode == 'online' and (self.capture_rgb or self.capture_depth)
-        self.capture_algs = self.mode == 'online' and (self.capture_hands or self.capture_skeleton)   
+            raise KinectException("Unrecognised MODE!!!")
 
+        # both modes
+        self.show_hands    = _get('show_hands', True)
+        self.show_skeleton = _get('show_skeleton', True)
+        self.show_rgb      = _get('show_rgb', True)
+        self.show_depth    = _get('show_depth', True)
+
+        self.track_hands    = (self.mode == 'online') and (self.show_hands or self.capture_hands)
+        self.track_skeleton = (self.mode == 'online') and (self.show_skeleton or self.show_hands)
+        self.capture_raw    = (self.mode == 'online') and (self.capture_rgb or self.capture_depth)
+        self.capture_algs   = (self.mode == 'online') and (self.capture_hands or self.capture_skeleton)
 
 
     def finish(self):
@@ -336,6 +334,8 @@ class KinectAmplifier(object):
                     return
 
     def draw_user(self, img, skeleton):
+        if img is None:
+            return
         for j in self.joints:
             joint = skeleton.getJoint(j)
             pos = joint.position
@@ -360,7 +360,7 @@ class KinectAmplifier(object):
             except ValueError, OverflowError:
                 pass
 
-    def draw_point(self, center, img, color):
+    def _draw_point(self, center, img, color):
         if center[0] and center[1]:
             try:
                 cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
@@ -368,34 +368,31 @@ class KinectAmplifier(object):
                 pass
 
     def draw_from_file(self, frame, img):
+        if img is None:
+            return
         if frame[1] or frame[2]:
             user_data = frame[8]
             hand_data = frame[9]
             h = hand_data.hands
             if h[0].id:
                 center = (h[0].x_converted, h[0].y_converted)
-                self.draw_point(center, img, (0, 180, 247))
+                self._draw_point(center, img, (0, 180, 247))
             if h[1].id:
                 center = (h[1].x_converted, h[1].y_converted)
-                self.draw_point(center, img, (0, 180, 247))
+                self._draw_point(center, img, (0, 180, 247))
             if user_data.user_id and SkeletonState(user_data.user_state) == SKELETON_TRACKED:
                 for i in xrange(15):
                     joint = user_data.joints[i]
                     center = (joint.x_converted, joint.y_converted)
                     if joint.positionConfidence > 0.5:
-                        self.draw_point(center, img, (0, 255, 0))
+                        self._draw_point(center, img, (0, 255, 0))
                     else:
-                        self.draw_point(center, img, (0, 0, 255))
+                        self._draw_point(center, img, (0, 0, 255))
 
     def get_frames(self):
-        frames = []
-        if self.color_frame.isValid() and self.depth_frame.isValid():
-            frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, self.depth_frame.frameIndex, self.depth_frame.timestamp])
-        elif self.depth_frame.isValid():
-            frames.extend([0, 0, self.depth_frame.frameIndex, self.depth_frame.timestamp])
-        elif self.color_frame.isValid():
-            frames.extend([self.color_frame.frameIndex, self.color_frame.timestamp, 0, 0])
-        return frames
+        color = [self.color_frame.frameIndex, self.color_frame.timestamp] if self.color_frame.isValid() else [0, 0]
+        depth = [self.depth_frame.frameIndex, self.depth_frame.timestamp] if self.depth_frame.isValid() else [0, 0]
+        return color + depth
 
     def run(self):
         rc = OpenNI.initialize()
@@ -406,16 +403,16 @@ class KinectAmplifier(object):
         if rc != NITE_STATUS_OK:
             raise KinectException('NiTE2 initialization failed.')
 
-        #create device - file or kinect sensor
+        # create device - file or kinect sensor
         self.device = Device()
-        if self.mode == 'offline':  
+        if self.mode == 'offline':
             rc = self.device.open(self.in_raw_file_path)
             self.in_algs_file = open(self.in_algs_file_path, 'rb')
         elif self.mode == 'online':
             rc = self.device.open()
-            
+
         if rc != OPENNI_STATUS_OK:
-            raise KinectException('Device open failed: ' + str(OpenNI.getExtendedError()))
+            raise KinectException('Device open failed: ' + str(OpenNI.getExtendedError()).strip())
 
         if self.device.isImageRegistrationModeSupported(IMAGE_REGISTRATION_DEPTH_TO_COLOR):
             self.device.setImageRegistrationMode(IMAGE_REGISTRATION_DEPTH_TO_COLOR)
@@ -441,9 +438,9 @@ class KinectAmplifier(object):
         if self.capture_raw:
             rc = self.recorder.create(self.out_raw_file_path)
             if rc != OPENNI_STATUS_OK:
-                raise KinectException("Recorder create failed.")
+                raise KinectException('Recorder create failed.')
             if not self.recorder.isValid():
-                raise KinectException("Recorder invalid.")
+                raise KinectException('Recorder invalid.')
             if self.capture_rgb:
                 rc = self.recorder.attach(self.color, True)
                 if rc != OPENNI_STATUS_OK:
@@ -456,17 +453,17 @@ class KinectAmplifier(object):
             if rc != OPENNI_STATUS_OK:
                 raise KinectException('Recorder start error.')
             self.time_rec_start = time.time()
-            
-        #initialise online algorithms recorder
+
+        # initialise online algorithms recorder
         if self.capture_algs:
             self.out_algs_file = open(self.out_algs_file_path, 'wb')
-            
+
         if self.mode == 'offline':
             self.playback = self.device.getPlaybackControl()
             if self.playback.isValid():
                 self.playback.setRepeatEnabled(False)
 
-        #initialise online hands tracker
+        # initialise online hands tracker
         if self.track_hands:
             self.ht = HandTracker()
             rc = self.ht.create(self.device)
@@ -477,7 +474,7 @@ class KinectAmplifier(object):
             self.ht.startGestureDetection(GESTURE_CLICK)
             self.ht.startGestureDetection(GESTURE_HAND_RAISE)
 
-        #initialise online skeleton tracker
+        # initialise online skeleton tracker
         if self.track_skeleton:
             self.ut = UserTracker()
             rc = self.ut.create()
@@ -496,6 +493,7 @@ class KinectAmplifier(object):
         if rc != OPENNI_STATUS_OK:
             raise KinectException('Depth stream start failed.')
             self.depth.destroy()
+
         rc = self.color.start()
         if rc != OPENNI_STATUS_OK:
             raise KinectException('Color stream start failed.')
@@ -532,7 +530,7 @@ class KinectAmplifier(object):
                 data_depth = data_depth.astype('uint8')
                 data_depth = cv2.cvtColor(data_depth, cv2.COLOR_GRAY2RGB)
 
-            #compute and display current hands
+            # compute and display current hands
             if self.track_hands:
                 rc, self.hand_frame = self.ht.readFrame()
                 if rc != NITE_STATUS_OK:
@@ -544,8 +542,8 @@ class KinectAmplifier(object):
                 if self.show_hands:
                     self.draw_hands(data_depth, self.hands)
                     self.draw_hands(data_rgb, self.hands)
-                    
-            #compute and display current skeleton
+
+            # compute and display current skeleton
             if self.track_skeleton:
                 rc, self.user_frame = self.ut.readFrame()
                 if rc != OPENNI_STATUS_OK:
@@ -558,7 +556,7 @@ class KinectAmplifier(object):
                         self.draw_user(data_rgb, u.skeleton)
                         self.draw_user(data_depth, u.skeleton)
 
-            #capture hands and/or skeleton to file (in online mode only)
+            # capture hands and/or skeleton to file (in online mode only)
             if self.capture_algs:
                 if self.capture_hands and self.capture_skeleton:
                     header = [frame_index, 1, 1, self.time_rec_start]
@@ -576,18 +574,21 @@ class KinectAmplifier(object):
                     header = [frame_index, 0, 0, self.time_rec_start]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, None, None))
-            #show raw signal (from file or sensor) and skeleton/hands from file (if offline mode)
+            
+            # show raw signal (from file or sensor) and skeleton/hands from file (if offline mode)
             if self.show_rgb:
                 if self.mode == 'offline':
                     if self.show_skeleton or self.show_hands:
                         if current_frame_rgb is None:
                             data = s.unserialize_frame(self.in_algs_file)
-                            if not data: break
+                            if not data:
+                                break
                             current_frame_rgb = data[4]
                             self.draw_from_file(data, data_rgb)
                             cv2.imshow('color', data_rgb)
                             data = s.unserialize_frame(self.in_algs_file)
-                            if not data: break
+                            if not data:
+                                break
                         elif data[4] != current_frame_rgb + 1:
                             current_frame_rgb += 1
                         elif data[4] == current_frame_rgb + 1:
@@ -595,12 +596,12 @@ class KinectAmplifier(object):
                             cv2.imshow('color', data_rgb)
                             current_frame_rgb = data[4]
                             data = s.unserialize_frame(self.in_algs_file)
-                            if not data: break
-                    else:#show only rgb offline
+                            if not data:
+                                break
+                    else: # show only rgb offline
                         cv2.imshow('color', data_rgb)
-                else:#online mode
+                else: # online mode
                     cv2.imshow('color', data_rgb)
-                    
             if self.show_depth:
                 cv2.imshow('depth', data_depth)
         self.finish()
@@ -609,7 +610,7 @@ class KinectAmplifier(object):
 if __name__ == '__main__':
     try:
         mode = sys.argv[1]
-    except:
+    except Exception:
         mode = 'online'
-    kinect = KinectAmplifier({'mode':mode})
+    kinect = KinectAmplifier({'mode': mode})
     kinect.run()
