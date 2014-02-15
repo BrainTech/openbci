@@ -79,10 +79,10 @@ class Serialization(object):
         self.frame_s = FrameStruct()
         self.header_s = HeaderStruct()
 
-    def serialize_frame(self, header, hand_frame, user_frame):
+    def serialize_frame(self, header, hand_frame, user_frame, frame_index):
         buf = self.header_s.pack(*header)
-        buf += self.serialize_skeleton(user_frame)
-        buf += self.serialize_hands(hand_frame)
+        buf += self.serialize_skeleton(user_frame, frame_index)
+        buf += self.serialize_hands(hand_frame, frame_index)
         return buf
 
     def unserialize_frame(self, data_file):
@@ -101,18 +101,15 @@ class Serialization(object):
     def register_joint_coordinates(self, convert_joint_coordinates):
         self.convert_joint_coordinates = convert_joint_coordinates
 
-    def serialize_hands(self, hand_frame):
+    def serialize_hands(self, hand_frame, frame_index):
         if hand_frame is not None:
-            buf = self.frame_s.pack(hand_frame.frameIndex,
-                                    hand_frame.timestamp)
+            buf = self.frame_s.pack(frame_index, hand_frame.timestamp)
             hands = hand_frame.hands
-            print hand_frame.frameIndex
             if hands:
                 if len(hands) == 1:
                     hand = hands[0]
                     if hand.isTracking():
                         rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        print 'one hand...', hand.id, x_new, y_new
                         buf += self.hand_s.pack(hand.id,
                                                 hand.position.x,
                                                 hand.position.y,
@@ -125,7 +122,6 @@ class Serialization(object):
                 else:
                     for hand in hands[:2]:
                         rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        print 'two hands...', hand.id, x_new, y_new
                         buf += self.hand_s.pack(hand.id,
                                                 hand.position.x,
                                                 hand.position.y,
@@ -155,10 +151,9 @@ class Serialization(object):
         else:
             return self.joint_s.pack(0, 0, 0, 0, 0, 0, 0)
 
-    def serialize_skeleton(self, user_frame):
+    def serialize_skeleton(self, user_frame, frame_index):
         if user_frame is not None:
-            buf = self.frame_s.pack(user_frame.frameIndex,
-                                    user_frame.timestamp)
+            buf = self.frame_s.pack(frame_index, user_frame.timestamp)
             users = user_frame.users
             if users:
                 user = users[0]
@@ -184,11 +179,9 @@ class Serialization(object):
 
     def unserialize_hands(self, f):
         v = self.frame_s.unpack(f.read(self.frame_s.size))
-        print v
         data = []
         for i in xrange(2):
             hands = self.hand_s.unpack(f.read(self.hand_s.size))
-            print i, '.....', hands[0], hands[4], hands[5]
             data.append(HandDataMock(hands[0], hands[1], hands[2], hands[3], hands[4], hands[5]))
         return HandFrameMock(v[0], v[1], data)
 
@@ -500,9 +493,13 @@ class KinectAmplifier(object):
             self.color.destroy()
 
         frame_index = 0
-        current_frame_rgb = None
-        # current_frame_depth = None
+        cfi = None # current frame index
+        last_cfi = None
         self.time_rec_start = time.time()
+        
+        color_start_frame_index = None 
+        depth_start_frame_index = None 
+        
         while True:
             k = cv2.waitKey(1)
             if self.loop_cb is not None:
@@ -517,8 +514,14 @@ class KinectAmplifier(object):
             if rc != OPENNI_STATUS_OK:
                 print 'Error reading depth frame.'
 
-            frame_index += 1
+            if color_start_frame_index is None:
+                color_start_frame_index = self.color_frame.frameIndex
+            if depth_start_frame_index is None:
+                depth_start_frame_index = self.depth_frame.frameIndex
 
+            #frame_index += 1 # very bad...
+            frame_index = self.depth_frame.frameIndex - depth_start_frame_index
+                
             if self.color_frame is not None and self.color_frame.isValid():
                 data_rgb = self.color_frame.data
                 data_rgb = cv2.cvtColor(data_rgb, cv2.COLOR_BGR2RGB)
@@ -559,45 +562,46 @@ class KinectAmplifier(object):
             # capture hands and/or skeleton to file (in online mode only)
             if self.capture_algs:
                 if self.capture_hands and self.capture_skeleton:
-                    header = [frame_index, 1, 1, self.time_rec_start]
+                    #print("1 ", str(self.color_frame.frameIndex), " / ", str(self.depth_frame.frameIndex), " / ", str(self.hand_frame.frameIndex), " / ", str(self.user_frame.frameIndex))
+                    #print("11 ", str(self.color_frame.timestamp), " / ", str(self.depth_frame.timestamp), " / ", str(self.hand_frame.timestamp), " / ", str(self.user_frame.timestamp))
+
+                    header = [frame_index, 1, 1, time.time()]
                     header += self.get_frames()
-                    self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame))
+                    self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame, frame_index))
                 elif self.capture_hands:
                     header = [frame_index, 0, 1, self.time_rec_start]
                     header += self.get_frames()
-                    self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, None))
+                    self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, None, frame_index))
                 elif self.capture_skeleton:
                     header = [frame_index, 1, 0, self.time_rec_start]
                     header += self.get_frames()
-                    self.out_algs_file.write(s.serialize_frame(header, None, self.user_frame))
+                    self.out_algs_file.write(s.serialize_frame(header, None, self.user_frame, frame_index))
                 else:
                     header = [frame_index, 0, 0, self.time_rec_start]
                     header += self.get_frames()
-                    self.out_algs_file.write(s.serialize_frame(header, None, None))
+                    self.out_algs_file.write(s.serialize_frame(header, None, None, frame_index))
             
             # show raw signal (from file or sensor) and skeleton/hands from file (if offline mode)
             if self.show_rgb:
                 if self.mode == 'offline':
+                    #print("01 ", str(self.color_frame.frameIndex), " / ", str(self.depth_frame.frameIndex))
+                    #print("011 ", str(self.color_frame.timestamp), " / ", str(self.depth_frame.timestamp))
+                    rfi = int((self.depth_frame.frameIndex+self.color_frame.frameIndex)*0.5+0.5) # real frame index (for ONI data)
                     if self.show_skeleton or self.show_hands:
-                        if current_frame_rgb is None:
+                        if cfi is None:
                             data = s.unserialize_frame(self.in_algs_file)
                             if not data:
-                                break
-                            current_frame_rgb = data[4]
-                            self.draw_from_file(data, data_rgb)
-                            cv2.imshow('color', data_rgb)
+                                raise Exception('not data!')
+                            cfi = data[0] # rgb frame index (for hands and skeleton)                           
+                        while rfi > cfi:
                             data = s.unserialize_frame(self.in_algs_file)
                             if not data:
-                                break
-                        elif data[4] != current_frame_rgb + 1:
-                            current_frame_rgb += 1
-                        elif data[4] == current_frame_rgb + 1:
-                            self.draw_from_file(data, data_rgb)
-                            cv2.imshow('color', data_rgb)
-                            current_frame_rgb = data[4]
-                            data = s.unserialize_frame(self.in_algs_file)
-                            if not data:
-                                break
+                                raise Exception('not data!')
+                            cfi = data[0] # rgb frame index (for hands and skeleton)
+
+                        #print 'rfi, cfi', rfi, cfi
+                        self.draw_from_file(data, data_rgb)
+                        cv2.imshow('color', data_rgb)             
                     else: # show only rgb offline
                         cv2.imshow('color', data_rgb)
                 else: # online mode
