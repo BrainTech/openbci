@@ -569,15 +569,15 @@ class KinectAmplifier(object):
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame, frame_index))
                 elif self.capture_hands:
-                    header = [frame_index, 0, 1, self.time_rec_start]
+                    header = [frame_index, 0, 1, time.time()]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, None, frame_index))
                 elif self.capture_skeleton:
-                    header = [frame_index, 1, 0, self.time_rec_start]
+                    header = [frame_index, 1, 0, time.time()]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, None, self.user_frame, frame_index))
                 else:
-                    header = [frame_index, 0, 0, self.time_rec_start]
+                    header = [frame_index, 0, 0, time.time()]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, None, None, frame_index))
             
