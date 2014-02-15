@@ -250,27 +250,50 @@ class KinectAmplifier(object):
         def _get(name, default):
             return config[name] if name in config else default
 
-        #self.mode = 'online'   
-        self.capture_rgb = _get('rgb_capture', True)
-        self.capture_depth = _get('depth_capture', True)
-        self.out_raw_file_path = 'test.oni'
- 
-        self.capture_hands = True
-        self.capture_skeleton = True
-        self.out_algs_file_path = 'test.algs'
-        self.out_algs_file = None
         
-        self.mode = 'offline'
-        self.in_raw_file_path = 'test.oni'
-        self.in_algs_file_path = 'test.algs'
-        self.in_algs_file = None
-        self.in_algs_file = None
+        self.mode = _get('mode', 'online')  
+
+        if self.mode == 'online':
+            #raw capture variables
+            self.capture_rgb = _get('capture_rgb', True)
+            self.capture_depth = _get('capture_depth', True)
+            self.out_raw_file_path = _get('out_raw_file_path', 'test.oni')
+            self.out_raw_file = None
+     
+            #algs capture variables
+            self.capture_hands = _get('capture_hands', True)
+            self.capture_skeleton = _get('capture_skeleton', True)
+            self.out_algs_file_path = _get('out_algs_file_path', 'test.algs')
+            self.out_algs_file = None
+            
+            #reset 'offline' variables
+            self.in_raw_file_path = None
+            self.in_algs_file_path = None
+            self.in_algs_file = None
+            
+        elif self.mode == 'offline':
+            #input files variables
+            self.in_raw_file_path = _get('in_raw_file_path', 'test.oni')
+            self.in_algs_file_path = _get('in_algs_file_path', 'test.algs')
+            self.in_algs_file = None
+            
+            #reset 'online' variables
+            self.capture_rgb = None
+            self.capture_depth = None
+            self.out_raw_file_path = None
+            self.out_raw_file = None
+            self.capture_hands = None
+            self.capture_skeleton = None
+            self.out_algs_file_path = None
+            self.out_algs_file = None
+        else:
+            raise Exception("Unrecognised MODE!!!")
         
         #both modes
-        self.show_hands = _get('hand_tracking', True)
-        self.show_skeleton = _get('skeleton_tracking', True)
-        self.show_rgb = _get('video_type_rgb', True)
-        self.show_depth = _get('video_type_depth', True)
+        self.show_hands = _get('show_hands', True)
+        self.show_skeleton = _get('show_skeleton', True)
+        self.show_rgb = _get('show_rgb', True)
+        self.show_depth = _get('show_depth', True)
         
         self.track_hands = self.mode == 'online' and (self.show_hands or self.capture_hands)
         self.track_skeleton = self.mode == 'online' and (self.show_skeleton or self.show_hands)
@@ -373,6 +396,7 @@ class KinectAmplifier(object):
         if rc != NITE_STATUS_OK:
             raise Exception("NiTE2 initialization failed.")
 
+        #create device - file or kinect sensor
         self.device = Device()
         if self.mode == 'offline':  
             rc = self.device.open(self.in_raw_file_path)
@@ -398,6 +422,7 @@ class KinectAmplifier(object):
         if rc != OPENNI_STATUS_OK:
             raise Exception("Depth stream create failed.")
 
+        #initialise kinect sensor signal recorder
         self.recorder = Recorder()
         if self.capture_raw:
             rc = self.recorder.create(self.out_raw_file_path)
@@ -417,17 +442,17 @@ class KinectAmplifier(object):
             if rc != OPENNI_STATUS_OK:
                 raise Exception("Recorder start error.")
             self.time_rec_start = time.time()
+            
+        #initialise online algorithms recorder
         if self.capture_algs:
             self.out_algs_file = open(self.out_algs_file_path, 'wb')
-
-            
-            
             
         if self.mode == 'offline':
             self.playback = self.device.getPlaybackControl()
             if self.playback.isValid():
                 self.playback.setRepeatEnabled(False)
 
+        #initialise online hands tracker
         if self.track_hands:
             self.ht = HandTracker()
             rc = self.ht.create(self.device)
@@ -438,6 +463,7 @@ class KinectAmplifier(object):
             self.ht.startGestureDetection(GESTURE_CLICK)
             self.ht.startGestureDetection(GESTURE_HAND_RAISE)
 
+        #initialise online skeleton tracker
         if self.track_skeleton:
             self.ut = UserTracker()
             rc = self.ut.create()
@@ -491,6 +517,7 @@ class KinectAmplifier(object):
                 data_depth = data_depth.astype('uint8')
                 data_depth = cv2.cvtColor(data_depth, cv2.COLOR_GRAY2RGB)
 
+            #compute and display current hands
             if self.track_hands:
                 rc, self.hand_frame = self.ht.readFrame()
                 if rc != NITE_STATUS_OK:
@@ -503,7 +530,8 @@ class KinectAmplifier(object):
                 if self.show_hands:
                     self.draw_hands(data_depth, self.hands)
                     self.draw_hands(data_rgb, self.hands)
-
+                    
+            #compute and display current skeleton
             if self.track_skeleton:
                 rc, self.user_frame = self.ut.readFrame()
                 if rc != OPENNI_STATUS_OK:
@@ -516,6 +544,7 @@ class KinectAmplifier(object):
                         self.draw_user(data_rgb, u.skeleton)
                         self.draw_user(data_depth, u.skeleton)
 
+            #capture hands and/or skeleton to file (in online mode only)
             if self.capture_algs:
                 if self.capture_hands and self.capture_skeleton:
                     header = [frame_index, 1, 1, self.time_rec_start]
@@ -533,7 +562,7 @@ class KinectAmplifier(object):
                     header = [frame_index, 0, 0, self.time_rec_start]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, None, None))
-
+            #show raw signal (from file or sensor) and skeleton/hands from file (if offline mode)
             if self.show_rgb:
                 if self.mode == 'offline':
                     if self.show_skeleton or self.show_hands:
@@ -564,5 +593,9 @@ class KinectAmplifier(object):
 
 
 if __name__ == '__main__':
-    kinect = KinectAmplifier()
+    try:
+        mode = sys.argv[1]
+    except:
+        mode = 'online'
+    kinect = KinectAmplifier({'mode':mode})
     kinect.run()
