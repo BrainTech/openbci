@@ -3,7 +3,6 @@
 
 import sys
 import signal
-import cv2
 from KinectAmplifier import KinectAmplifier
 
 from multiplexer.multiplexer_constants import peers, types
@@ -19,25 +18,31 @@ class KinectAmplifierClient(ConfiguredClient):
         self.logger.info('KinectAmplifierClient is starting...')
         self.init_signals()
 
-        config = {}
-        config['device_uri'] = str(self.get_param('device_uri'))
-        config['file_name']  = str(self.get_param('file_name'))
-        config['directory']  = str(self.get_param('directory'))
+        config = {
+            'mode': self.get_param('mode'),
+            #for online mode:
+            'capture_raw': bool(int(self.get_param('capture_raw'))),
+            'out_raw_file_path': str(self.get_param('out_raw_file_path')),
+            'capture_hands': bool(int(self.get_param('capture_hands'))),
+            'capture_skeleton': bool(int(self.get_param('capture_skeleton'))),
+            'out_algs_file_path': str(self.get_param('out_algs_file_path')),
+            #for offline mode:
+            'in_raw_file_path': str(self.get_param('in_raw_file_path')),
+            'in_algs_file_path': str(self.get_param('in_algs_file_path')),
+            #for both modes:
+            'show_hands': bool(int(self.get_param('show_hands'))),
+            'show_skeleton': bool(int(self.get_param('show_skeleton'))),   
+            'show_rgb': bool(int(self.get_param('show_rgb'))),
+            'show_depth': bool(int(self.get_param('show_depth'))),
+        }
 
-        config['rgb_capture']       = bool(eval(self.get_param('rgb_capture')))
-        config['depth_capture']     = bool(eval(self.get_param('depth_capture')))
-        config['hand_tracking']     = bool(eval(self.get_param('hand_tracking')))
-        config['skeleton_tracking'] = bool(eval(self.get_param('skeleton_tracking')))
-        config['video_type_rgb']    = bool(eval(self.get_param('video_type_rgb')))
-        config['video_type_depth']  = bool(eval(self.get_param('video_type_depth')))
-
-        def ready_cb():
-            self.ready()
         def loop_cb(k):
             if g_exiting:
                 return True
             return False
-        self.kinect = KinectAmplifier(config, ready_cb, loop_cb)
+            
+        self.kinect = KinectAmplifier(config, loop_cb)
+        self.ready()
 
     def finish(self):
         self.kinect.finish()
@@ -47,7 +52,7 @@ class KinectAmplifierClient(ConfiguredClient):
         self.kinect.run()
 
     def init_signals(self):
-        self.logger.info('Initializing signals in appliance cleaner')
+        self.logger.info('Initializing signals in Kinect peer...')
         signal.signal(signal.SIGTERM, self.signal_handler())
         signal.signal(signal.SIGINT, self.signal_handler())
         if sys.platform == 'win32':
@@ -55,7 +60,7 @@ class KinectAmplifierClient(ConfiguredClient):
 
     def signal_handler(self):
         def handler(signum, frame):
-            self.logger.warning('Received signal ' + str(signum) + '. Sending diodes ON!')
+            self.logger.warning('Received signal ' + str(signum) + '. Finish kinect module!')
             g_exiting = True
             sys.exit(-signum)
         return handler
