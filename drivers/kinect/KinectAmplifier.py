@@ -6,198 +6,7 @@ import numpy as np
 import sys, time, struct
 from nite2 import *
 
-class KinectException(Exception):
-    pass
-
-class JointStruct(struct.Struct):
-    def __init__(self):
-        super(JointStruct, self).__init__('iffffff')
-
-class HandStruct(struct.Struct):
-    def __init__(self):
-        super(HandStruct, self).__init__('ifffff')
-
-class UserStruct(struct.Struct):
-    def __init__(self):
-        super(UserStruct, self).__init__('hfffi')
-
-class FrameStruct(struct.Struct):
-    def __init__(self):
-        super(FrameStruct, self).__init__('iQ')
-
-class HeaderStruct(struct.Struct):
-    def __init__(self):
-        super(HeaderStruct, self).__init__('i??fiQiQ')
-
-class Point3Mock(object):
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-class JointMock(object):
-    def __init__(self, id, positionConfidence, x, y, z, x_converted, y_converted):
-        self.id = id
-        self.positionConfidence = positionConfidence
-        self.x = x
-        self.y = y
-        self.z = z
-        self.x_converted = x_converted
-        self.y_converted = y_converted
-
-class SkeletonFrameMock(object):
-    def __init__(self, frame_index, frame_timestamp, user_id, x, y, z, user_state, joints):
-        self.frame_index = frame_index
-        self.frame_timestamp = frame_timestamp
-        self.user_id = user_id
-        self.user_x = x
-        self.user_y = y
-        self.user_z = z
-        self.user_state = user_state
-        self.joints = joints
-
-class HandDataMock(object):
-    def __init__(self, hand_id, x, y, z, x_converted, y_converted):
-        self.id = hand_id
-        self.x = x
-        self.y = y
-        self.z = z
-        self.x_converted = x_converted
-        self.y_converted = y_converted
-
-class HandFrameMock(object):
-    def __init__(self, frame_index, frame_timestamp, hands):
-        self.frame_index = frame_index
-        self.frame_timestamp = frame_timestamp
-        self.hands = hands
-
-class Serialization(object):
-    def __init__(self):
-        self.joint_s = JointStruct()
-        self.hand_s = HandStruct()
-        self.user_s = UserStruct()
-        self.frame_s = FrameStruct()
-        self.header_s = HeaderStruct()
-
-    def serialize_frame(self, header, hand_frame, user_frame, frame_index):
-        buf = self.header_s.pack(*header)
-        buf += self.serialize_skeleton(user_frame, frame_index)
-        buf += self.serialize_hands(hand_frame, frame_index)
-        return buf
-
-    def unserialize_frame(self, data_file):
-        data = []
-        try:
-            data += self.header_s.unpack(data_file.read(self.header_s.size))
-            data.append(self.unserialize_skeleton(data_file))
-            data.append(self.unserialize_hands(data_file))
-        except struct.error:
-            return
-        return data
-
-    def register_hand_coordinates(self, convert_hand_coordinates):
-        self.convert_hand_coordinates = convert_hand_coordinates
-
-    def register_joint_coordinates(self, convert_joint_coordinates):
-        self.convert_joint_coordinates = convert_joint_coordinates
-
-    def serialize_hands(self, hand_frame, frame_index):
-        if hand_frame is not None:
-            buf = self.frame_s.pack(frame_index, hand_frame.timestamp)
-            hands = hand_frame.hands
-            if hands:
-                if len(hands) == 1:
-                    hand = hands[0]
-                    if hand.isTracking():
-                        rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        buf += self.hand_s.pack(hand.id,
-                                                hand.position.x,
-                                                hand.position.y,
-                                                hand.position.z,
-                                                x_new,
-                                                y_new)
-                    else:
-                        buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
-                    buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
-                else:
-                    for hand in hands[:2]:
-                        rc, x_new, y_new = self.convert_hand_coordinates(hand.position.x, hand.position.y, hand.position.z)
-                        buf += self.hand_s.pack(hand.id,
-                                                hand.position.x,
-                                                hand.position.y,
-                                                hand.position.z,
-                                                x_new,
-                                                y_new)
-            else:
-                for i in range(2):
-                    buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
-        else:
-            buf = self.frame_s.pack(0, 0)
-            for i in range(2):
-                buf += self.hand_s.pack(0, 0, 0, 0, 0, 0)
-        return buf
-
-    def serialize_joint(self, joint):
-        if joint is not None:
-            pos = joint.position
-            rc, x_new, y_new = self.convert_joint_coordinates(pos.x, pos.y, pos.z)
-            return self.joint_s.pack(joint.type,
-                                     joint.positionConfidence,
-                                     joint.position.x,
-                                     joint.position.y,
-                                     joint.position.z,
-                                     x_new,
-                                     y_new)
-        else:
-            return self.joint_s.pack(0, 0, 0, 0, 0, 0, 0)
-
-    def serialize_skeleton(self, user_frame, frame_index):
-        if user_frame is not None:
-            buf = self.frame_s.pack(frame_index, user_frame.timestamp)
-            users = user_frame.users
-            if users:
-                user = users[0]
-                user_coordinates = user.centerOfMass
-                state = int(user.skeleton.state)
-                buf += self.user_s.pack(user.id,
-                                        user_coordinates.x,
-                                        user_coordinates.y,
-                                        user_coordinates.z,
-                                        state)
-                for i in xrange(15):
-                    buf += self.serialize_joint(user.skeleton[JointType(i)])
-            else:
-                buf += self.user_s.pack(0, 0, 0, 0, 0)
-                for i in xrange(15):
-                    buf += self.serialize_joint(None)
-        else:
-            buf = self.frame_s.pack(0, 0)
-            buf += self.user_s.pack(0, 0, 0, 0, 0)
-            for i in xrange(15):
-                buf += self.serialize_joint(None)
-        return buf
-
-    def unserialize_hands(self, f):
-        v = self.frame_s.unpack(f.read(self.frame_s.size))
-        data = []
-        for i in xrange(2):
-            hands = self.hand_s.unpack(f.read(self.hand_s.size))
-            data.append(HandDataMock(hands[0], hands[1], hands[2], hands[3], hands[4], hands[5]))
-        return HandFrameMock(v[0], v[1], data)
-
-    def unserialize_joint(self, f):
-        v = self.joint_s.unpack(f.read(self.joint_s.size))
-        return JointMock(*v)
-
-    def unserialize_skeleton(self, f):
-        v = []
-        v += self.frame_s.unpack(f.read(self.frame_s.size))
-        v += self.user_s.unpack(f.read(self.user_s.size))
-        joints = []
-        for i in xrange(15):
-            joints.append(self.unserialize_joint(f))
-        return SkeletonFrameMock(v[0], v[1], v[2], v[3], v[4], v[5], v[6], joints)
-
+from KinectUtils import *
 
 class KinectAmplifier(object):
 
@@ -304,6 +113,7 @@ class KinectAmplifier(object):
 
     def finish(self):
         cv2.destroyAllWindows()
+        cv2.waitKey(1)
         if self.in_algs_file:
             self.in_algs_file.close()
         if self.out_algs_file:
@@ -364,7 +174,7 @@ class KinectAmplifier(object):
                 pass
 
     def draw_from_file(self, frame, img):
-        if img is None:
+        if img is None or frame is None:
             return
         if frame[1] or frame[2]:
             user_data = frame[8]
@@ -519,7 +329,6 @@ class KinectAmplifier(object):
             if depth_start_frame_index is None:
                 depth_start_frame_index = self.depth_frame.frameIndex
 
-            #frame_index += 1 # very bad...
             frame_index = self.depth_frame.frameIndex - depth_start_frame_index
                 
             if self.color_frame is not None and self.color_frame.isValid():
@@ -562,9 +371,8 @@ class KinectAmplifier(object):
             # capture hands and/or skeleton to file (in online mode only)
             if self.capture_algs:
                 if self.capture_hands and self.capture_skeleton:
-                    #print("1 ", str(self.color_frame.frameIndex), " / ", str(self.depth_frame.frameIndex), " / ", str(self.hand_frame.frameIndex), " / ", str(self.user_frame.frameIndex))
-                    #print("11 ", str(self.color_frame.timestamp), " / ", str(self.depth_frame.timestamp), " / ", str(self.hand_frame.timestamp), " / ", str(self.user_frame.timestamp))
-
+                    #print("1 " + str(self.color_frame.frameIndex) + " / " + str(self.depth_frame.frameIndex) + " / " + str(self.hand_frame.frameIndex) + " / " + str(self.user_frame.frameIndex))
+                    #print("11 " + str(self.color_frame.timestamp) + " / " + str(self.depth_frame.timestamp) + " / " + str(self.hand_frame.timestamp) + " / " +  str(self.user_frame.timestamp))
                     header = [frame_index, 1, 1, time.time()]
                     header += self.get_frames()
                     self.out_algs_file.write(s.serialize_frame(header, self.hand_frame, self.user_frame, frame_index))
@@ -584,20 +392,22 @@ class KinectAmplifier(object):
             # show raw signal (from file or sensor) and skeleton/hands from file (if offline mode)
             if self.show_rgb:
                 if self.mode == 'offline':
-                    #print("01 ", str(self.color_frame.frameIndex), " / ", str(self.depth_frame.frameIndex))
-                    #print("011 ", str(self.color_frame.timestamp), " / ", str(self.depth_frame.timestamp))
-                    rfi = int((self.depth_frame.frameIndex+self.color_frame.frameIndex)*0.5+0.5) # real frame index (for ONI data)
+                    #print("01 " + str(self.color_frame.frameIndex) + " / " + str(self.depth_frame.frameIndex))
+                    #print("011" + str(self.color_frame.timestamp) + " / " + str(self.depth_frame.timestamp))
+                    rfi = int(0.5*(self.depth_frame.frameIndex + self.color_frame.frameIndex) + 0.5) # real frame index (for ONI data)
                     if self.show_skeleton or self.show_hands:
                         if cfi is None:
                             data = s.unserialize_frame(self.in_algs_file)
-                            if not data:
-                                raise Exception('not data!')
-                            cfi = data[0] # rgb frame index (for hands and skeleton)                           
+                            if data:
+                                cfi = data[0] # rgb frame index (for hands and skeleton)                           
                         while rfi > cfi:
                             data = s.unserialize_frame(self.in_algs_file)
                             if not data:
-                                raise Exception('not data!')
+                                break
                             cfi = data[0] # rgb frame index (for hands and skeleton)
+                        if not data:
+                            print 'END OF DATA'
+                            break
 
                         #print 'rfi, cfi', rfi, cfi
                         self.draw_from_file(data, data_rgb)
@@ -608,6 +418,7 @@ class KinectAmplifier(object):
                     cv2.imshow('color', data_rgb)
             if self.show_depth:
                 cv2.imshow('depth', data_depth)
+        print 'main loop finished'
         self.finish()
 
 
