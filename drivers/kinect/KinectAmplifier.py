@@ -41,10 +41,8 @@ class KinectAmplifier(object):
               JOINT_RIGHT_SHOULDER,
               JOINT_TORSO]
 
-    def __init__(self, config={}, ready_cb=None, loop_cb=None):
+    def __init__(self, config={}, loop_cb=None):
         super(KinectAmplifier, self).__init__()
-
-        self.ready_cb = ready_cb
         self.loop_cb = loop_cb
 
         def default_loop_cb(k):
@@ -136,7 +134,7 @@ class KinectAmplifier(object):
                 rc, x_new, y_new = self.ht.convertHandCoordinatesToDepth(pos.x, pos.y, pos.z)
                 try:
                     cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 180, 247), -1)
-                except ValueError, OverflowError:
+                except (ValueError, OverflowError):
                     return
 
     def draw_user(self, img, skeleton):
@@ -149,12 +147,12 @@ class KinectAmplifier(object):
             if joint.positionConfidence > 0.5:
                 try:
                     cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 255, 0), -1)
-                except ValueError, OverflowError:
+                except (ValueError, OverflowError):
                     pass
             else:
                 try:
                     cv2.circle(img, (int(x_new), int(y_new)), 8, (0, 0, 255), -1)
-                except ValueError, OverflowError:
+                except (ValueError, OverflowError):
                     pass
         for c in self.connections:
             j1 = skeleton.getJoint(c[0]).position
@@ -163,14 +161,14 @@ class KinectAmplifier(object):
             rc, x2, y2 = self.ut.convertJointCoordinatesToDepth(j2.x, j2.y, j2.z)
             try:
                 cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 255, 255))
-            except ValueError, OverflowError:
+            except (ValueError, OverflowError):
                 pass
 
     def _draw_point(self, center, img, color):
         if center[0] and center[1]:
             try:
                 cv2.circle(img, (int(center[0]), int(center[1])), 8, color, -1)
-            except ValueError, OverflowError:
+            except (ValueError, OverflowError):
                 pass
 
     def draw_from_file(self, frame, img):
@@ -285,9 +283,6 @@ class KinectAmplifier(object):
                 raise KinectException('Creating user tracker failed, ' + str(rc))
                 self.finish()
 
-        if self.ready_cb is not None:
-            self.ready_cb()
-
         s = Serialization()
         s.register_hand_coordinates(lambda x, y, z: self.ht.convertHandCoordinatesToDepth(x, y, z))
         s.register_joint_coordinates(lambda x, y, z: self.ut.convertJointCoordinatesToDepth(x, y, z))
@@ -361,10 +356,11 @@ class KinectAmplifier(object):
                 if rc != OPENNI_STATUS_OK:
                     print 'Error reading user tracker frame'
                 self.users = self.user_frame.users
-                for u in self.users:
+                
+                for i, u in enumerate(self.users):
                     if u.isNew():
                         self.ut.startSkeletonTracking(u.id)
-                    elif u.skeleton.state == SKELETON_TRACKED and self.show_skeleton:
+                    elif u.skeleton.state == SKELETON_TRACKED and self.show_skeleton and i == 0:
                         self.draw_user(data_rgb, u.skeleton)
                         self.draw_user(data_depth, u.skeleton)
 
