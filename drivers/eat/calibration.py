@@ -12,16 +12,16 @@ TODO: proper logging messages
 import signal
 import sys
 
-#from tobii import eye_tracking_io
-#import tobii.eye_tracking_io.eyetracker
-#import tobii.eye_tracking_io.mainloop
-#import tobii.eye_tracking_io.browsing
-#import tobii.eye_tracking_io.types
+from tobii import eye_tracking_io
+import tobii.eye_tracking_io.eyetracker
+import tobii.eye_tracking_io.mainloop
+import tobii.eye_tracking_io.browsing
+import tobii.eye_tracking_io.types
 
-import eye_tracking_io.eyetracker
-import eye_tracking_io.mainloop
-import eye_tracking_io.browsing
-import eye_tracking_io.types
+#import eye_tracking_io.eyetracker
+#import eye_tracking_io.mainloop
+#import eye_tracking_io.browsing
+#import eye_tracking_io.types
 
 from obci.control.peer.configured_client import ConfiguredClient
 from multiplexer import multiplexer_constants
@@ -30,10 +30,10 @@ import logging
 import threading
 import random
 import os.path
-import glob
 import time
 import pygame.display
 import pygame.event
+import pygame.mouse
 
 
 class EatException(Exception):
@@ -61,19 +61,31 @@ class EtrCalibrationTobii(ConfiguredClient):
         return handler
 
     def run(self):
-        CalibrationLogic().run()
+        logic = CalibrationLogic()
+        logic.calibration_path = self.get_param("calibration_data_path") or logic.calibration_path
+        logic.is_rotated = self.get_param("rotated") == "True"
+        logic.is_randomized = self.get_param("randomized") != "False"
+        logic.run()
         sys.exit(0)
 
 
 class CalibrationLogic(object):
     def __init__(self):
+        self.calibration_path = "~/calib.bin"
+        self.is_rotated = False
+        self.is_randomized = True
         self.connector = CalibrationConnector()
         self.view = CalibrationView()
+    
+    def _initialize_points(self):
         self.points = [(0.1, 0.1), (0.1, 0.9), (0.9, 0.1), (0.9, 0.9), (0.5, 0.5)]
-        random.shuffle(self.points)
+        if self.is_randomized:
+            random.shuffle(self.points)
         self.view.set_initial_point(self.points[-1])
     
     def run(self):
+        self._initialize_points()
+        self.view.is_rotated = self.is_rotated
         self.view.show_initial_message()
         self.connector.browse()
         self.connector.connect()
@@ -81,38 +93,49 @@ class CalibrationLogic(object):
         self.connector.start_calibration()
         for point in self.points:
             self.view.set_point(point)
-            self.connector.collect_data(point)
+            self.connector.collect_data(point, lambda t: self.view.still_point(point[0], point[1], t))
         self.connector.compute()
-        self.connector.save_calibration()
-        self.view.show_outro_message()
+        self.connector.save_calibration(self.calibration_path)
+        self.view.show_outro_message(self.connector.is_successful)
         self.connector.close()
 
 
 class CalibrationView(object):
     ASPECT_TOLERANCE = 10 ** -3
     SCALE_TIME = 0.8
-    MOVE_TIME = 1.5
+    MOVE_TIME = 2.4
+    SMALL_SPRITE = 0.03
+    BIG_SPRITE = 0.09
     
     def __init__(self):
         self.surface = None
+        self.is_rotated = False
         self.w, self.h = (0, 0)
         self.old_point = (0.5, 0.5)
         self.init_display()
         self.default_font = pygame.font.SysFont("Futura, Century Gothic, URW Gothic L, sans", 48)
+        self.start_time = time.time()
     
     def init_display(self):
         pygame.display.init()
         pygame.font.init()
+        pygame.mouse.set_visible(False)
         display_mode = self.find_best_mode()
         self.surface = pygame.display.set_mode(display_mode, pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE)
         self.w, self.h = display_mode
         self.anim_speed_init = 1
         self.anim_speed = self.anim_speed_init
-        self.anim = glob.glob("fly/fly_*.png")
+        self.anim = self.anim_frames()
         self.anim.sort()
         self.anim_pos = 0
         self.anim_max = len(self.anim) - 1
         self.img = pygame.image.load(self.anim[0])
+    
+    def anim_frames(self):
+        base = "fly"
+        count = 18
+        path = os.path.join(os.path.split(__file__)[0], base)
+        return [os.path.join(path, "%s_%d.png" % (base, index)) for index in xrange(1, count + 1)] 
     
     @classmethod
     def find_best_mode(cls):
@@ -136,8 +159,11 @@ class CalibrationView(object):
         self.display_text(u"Gotowy do kalibracji [spacja]")
         self.wait_for_continue()
     
-    def show_outro_message(self):
-        self.display_text(u"Kalibracja zakończona [spacja]")
+    def show_outro_message(self, is_successful):
+        if is_successful:
+            self.display_text(u"Kalibracja zakończona [spacja]")
+        else:
+            self.display_text(u"Kalibracja nie udała się [spacja]")
         self.wait_for_continue()
         pygame.display.quit()
         
@@ -158,13 +184,11 @@ class CalibrationView(object):
         t0 = time.time()
         t = t0
         while t - t0 < self.SCALE_TIME:
-            size = 0.01 + (0.04 * (t - t0)) / self.SCALE_TIME
+            size = self.SMALL_SPRITE + ((self.BIG_SPRITE - self.SMALL_SPRITE) * (t - t0)) / self.SCALE_TIME
             #r = self.h * size
             #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
             #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
-            Butterfly = pygame.image.load('fly/fly_1.png').convert()
-            Butterfly = pygame.transform.scale(Butterfly, (self.w * size,self.h * size))
-            self.surface.blit(Butterfly,(x-self.w * size,y - self.h * size))
+            self.draw_sprite(x, y, size)
             pygame.display.flip()
             t = time.time()
     
@@ -173,41 +197,61 @@ class CalibrationView(object):
         t0 = time.time()
         t = t0
         while t - t0 < self.SCALE_TIME:
-            size = 0.05 - (0.04 * (t - t0)) / self.SCALE_TIME
+            size = self.BIG_SPRITE - ((self.BIG_SPRITE - self.SMALL_SPRITE) * (t - t0)) / self.SCALE_TIME
             #r = self.h * size
             #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
             #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
-            Butterfly = pygame.image.load('fly/fly_1.png').convert()
-            Butterfly = pygame.transform.scale(Butterfly, (self.w * size,self.h * size))
-            self.surface.blit(Butterfly,(x-self.w * size,y - self.h * size))
+            self.draw_sprite(x, y, size)
             pygame.display.flip()
             t = time.time()
+    
+    def draw_sprite(self, x, y, scale):
+        pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
+        Butterfly = pygame.image.load(self.get_sprite_frame())
+        Butterfly = pygame.transform.scale(Butterfly, (int(self.w * scale), int(self.h * scale)))
+        if self.is_rotated:
+           px, py = (self.w - x - self.w * scale / 2, self.h - y - self.h * scale / 2)
+        else:
+           px, py = (x - self.w * scale / 2, y - self.h * scale / 2)
+        self.surface.blit(Butterfly, (px, py))
+    
+    def get_sprite_frame(self):
+        t = time.time() - self.start_time
+        frame = int((t % 0.8) / 0.8 * len(self.anim))
+        return self.anim[frame]
         
     def move_point(self, target):
-        r = self.h * 0.05
         t0 = time.time()
         t = t0
         while t - t0 < self.MOVE_TIME:
             s = (t - t0) / self.MOVE_TIME
             point = target[0] * s + self.old_point[0] * (1.0 - s), target[1] * s + self.old_point[1] * (1.0 - s)
             x, y = point[0] * self.w, self.h * (1.0 - point[1])
-            if self.anim_pos != 0:
-                self.anim_speed-=1
+            #if self.anim_pos != 0:
+            #    self.anim_speed -= 1
 
-            if self.anim_speed == 0:
-                self.img = pygame.image.load(self.anim[self.anim_pos])
-                self.anim_speed = self.anim_speed_init
-                if self.anim_pos >= self.anim_max:
-                    self.anim_pos = 0
-                    
-                else:
-                    self.anim_pos+=1
+            #if self.anim_speed == 0:
+            #    self.img = pygame.image.load(self.anim[self.anim_pos])
+            #    self.anim_speed = self.anim_speed_init
+            #    if self.anim_pos >= self.anim_max:
+            #        self.anim_pos = 0
+            #        
+            #    else:
+            #        self.anim_pos += 1
 
             self.surface.blit(self.img,(x - self.w,y - self.h))
-            #pygame.draw.rect(self.surface, (0x55, 0x55, 0x55), pygame.Rect(0, 0, self.w, self.h))
-            #pygame.draw.ellipse(self.surface, (0x55, 0xff, 0x55), pygame.Rect(x - r, y - r, 2 * r, 2 * r))
+            self.draw_sprite(x, y, self.BIG_SPRITE)
             pygame.display.flip()
             t = time.time()
+    
+    def still_point(self, x, y, duration):
+        t0 = time.time()
+        t = t0
+        x, y = x * self.w, (1.0 - y) * self.h
+        while t - t0 < duration:
+            t = time.time()
+            self.draw_sprite(x, y, self.SMALL_SPRITE)
+            pygame.display.flip()
     
     def set_point(self, point):
         self.expand_point()
@@ -277,6 +321,7 @@ class CalibrationConnector(object):
         self.eyetracker_info = None
         self.eyetracker = None
         self.eyetracker_thread = None
+        self.is_successfult = False
         eye_tracking_io.init()
         #self._detect_eyetracker()
         #self._connect_to_eyetracker()
@@ -305,11 +350,12 @@ class CalibrationConnector(object):
                 raise EatException("Could not connect to eyetracker")
     
     def start_calibration(self):
+        self.is_successful = False
         self.eyetracker.StartCalibration(None)
     
-    def collect_data(self, point):
+    def collect_data(self, point, sleep=time.sleep):
         self.eyetracker.AddCalibrationPoint(eye_tracking_io.types.Point2D(point[0], point[1]))
-        time.sleep(2)
+        sleep(2)
     
     def compute(self):
         self.eyetracker.ComputeCalibration(self.compute_calibration_finished)
@@ -320,14 +366,18 @@ class CalibrationConnector(object):
         elif error != 0:
             print "CalibCompute failed because of a server error", error
         else:
-            print "Great success!"
+            self.is_successful = True
         self.eyetracker.StopCalibration(lambda *x, **y: None)
     
-    def save_calibration(self):
+    def save_calibration(self, path):
         calibration = self.eyetracker.GetCalibration()
-        calibration_file = open(os.path.expanduser("~/calib.bin"), "wb")
-        calibration_file.write(calibration.rawData)
-        calibration_file.close()
+        calibration_file = open(os.path.expanduser(path), "wb")
+        try:
+            calibration_file.write(calibration.rawData)
+        except:
+            self.is_successful = False
+        finally:
+            calibration_file.close()
     
     def close(self):
         self.eyetracker_thread.kill()
