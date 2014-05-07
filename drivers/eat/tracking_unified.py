@@ -45,8 +45,13 @@ class EtrAmplifierTobii(ConfiguredClient):
         #....init etr
         self._init_signals()
         self.connector = TrackingConnector()
+        self.fetch_sampling_rate()
         self.ready()
         self.apply_calibration()
+    
+    def fetch_sampling_rate(self):
+        framerate = int(self.connector.eyetracker.GetFramerate())
+        self.set_param("sampling_rate", str(framerate))
     
     def apply_calibration(self):
         calibration_data_path = self.get_param("calibration_data_path")
