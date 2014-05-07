@@ -89,7 +89,9 @@ class CalibrationLogic(object):
         self.view.show_initial_message()
         self.connector.browse()
         self.connector.connect()
-        self.view.show_intro_message()
+        self.connector.start_tracking()
+        self.view.show_intro_message(self.connector.gaze_callback)
+        self.connector.stop_tracking()
         self.connector.start_calibration()
         for point in self.points:
             self.view.set_point(point)
@@ -155,9 +157,9 @@ class CalibrationView(object):
         self.display_text(u"Łączenie")
         pygame.display.flip()
     
-    def show_intro_message(self):
+    def show_intro_message(self, gaze_callback):
         self.display_text(u"Gotowy do kalibracji [spacja]")
-        self.wait_for_continue()
+        self.wait_for_continue_gaze(gaze_callback)
     
     def show_outro_message(self, is_successful):
         if is_successful:
@@ -166,7 +168,32 @@ class CalibrationView(object):
             self.display_text(u"Kalibracja nie udała się [spacja]")
         self.wait_for_continue()
         pygame.display.quit()
-        
+    
+    def wait_for_continue_gaze(self, gaze_callback):
+        while True:
+            gaze_data = gaze_callback()
+            if gaze_data:
+                self.show_gaze_feedback(gaze_data.LeftValidity, gaze_data.RightValidity)
+            else:
+                self.show_gaze_feedback(4, 4)
+            event = pygame.event.wait()
+            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                return
+
+    def show_gaze_feedback(self, left, right):
+        lx, ly = (int(0.25 * self.w), int(0.75 * self.h))
+        rx, ry = (int(0.75 * self.w), int(0.75 * self.h))
+        r = 0.05 * self.h
+        color_map = {
+            0: (0x33, 0xcc, 0x33),
+            1: (0x33, 0x99, 0x33),
+            2: (0x66, 0x66, 0x33),
+            3: (0x99, 0xcc, 0x33),
+            4: (0xcc, 0x33, 0x33)
+        }
+        pygame.draw.ellipse(self.surface, color_map[left], pygame.Rect(lx - r, ly - r, 2 * r, 2 * r))
+        pygame.draw.ellipse(self.surface, color_map[right], pygame.Rect(rx - r, ry - r, 2 * r, 2 * r))
+
     def wait_for_continue(self):
         while True:
             event = pygame.event.wait()
@@ -210,9 +237,9 @@ class CalibrationView(object):
         Butterfly = pygame.image.load(self.get_sprite_frame())
         Butterfly = pygame.transform.scale(Butterfly, (int(self.w * scale), int(self.h * scale)))
         if self.is_rotated:
-           px, py = (self.w - x - self.w * scale / 2, self.h - y - self.h * scale / 2)
+            px, py = (self.w - x - self.w * scale / 2, self.h - y - self.h * scale / 2)
         else:
-           px, py = (x - self.w * scale / 2, y - self.h * scale / 2)
+            px, py = (x - self.w * scale / 2, y - self.h * scale / 2)
         self.surface.blit(Butterfly, (px, py))
     
     def get_sprite_frame(self):
@@ -381,6 +408,21 @@ class CalibrationConnector(object):
     
     def close(self):
         self.eyetracker_thread.kill()
+
+    def start_tracking(self):
+        self.eyetracker.events.OnGazeDataReceived += self._on_gazedata
+        self.gaze_data = None
+        self.eyetracker.StartTracking()
+    
+    def stop_tracking(self):
+        self.eyetracker.events.OnGazeDataReceived += self._on_gazedata
+        self.eyetracker.StopTracking()
+    
+    def _on_gazedata(self, error, gaze):
+        self.gaze_data = gaze
+    
+    def gaze_data_callback(self):
+        return self.gaze_data
 
 
 if __name__ == "__main__":
