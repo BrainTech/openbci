@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.5-1) unstable; urgency=high
+
+  * Build using new multiplexer.rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 06 Jun 2014 13:44:13 +0200
+
 openbci-amplifiers (1.8.4-4) unstable; urgency=low
 
   * Change source format to 3.0 (quilt).
