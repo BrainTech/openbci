@@ -1,3 +1,9 @@
+openbci (1.8.19-4) unstable; urgency=low
+
+  * Add missing drivers to package.
+
+ -- Karol Auguštin <karol@augustin.pl>  Tue, 10 Jun 2014 10:54:33 +0200
+
 openbci (1.8.19-3) unstable; urgency=low
 
   * Fix libprotobuf dependency.
