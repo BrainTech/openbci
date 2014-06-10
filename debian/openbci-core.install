@@ -13,6 +13,9 @@ drivers/*.py	  /usr/share/openbci/drivers
 drivers/balance	  /usr/share/openbci/drivers
 drivers/etr	  /usr/share/openbci/drivers
 drivers/switch	  /usr/share/openbci/drivers
+drivers/kinect	  /usr/share/openbci/drivers
+drivers/generic	  /usr/share/openbci/drivers
+drivers/eat	  /usr/share/openbci/drivers
 exps/		  /usr/share/openbci
 gui/		  /usr/share/openbci
 __init__.py	  /usr/share/openbci
