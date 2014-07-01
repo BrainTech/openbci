@@ -90,7 +90,7 @@ class CalibrationLogic(object):
         self.connector.browse()
         self.connector.connect()
         self.connector.start_tracking()
-        self.view.show_intro_message(self.connector.gaze_callback)
+        self.view.show_intro_message(self.connector.gaze_data_callback)
         self.connector.stop_tracking()
         self.connector.start_calibration()
         for point in self.points:
@@ -175,9 +175,9 @@ class CalibrationView(object):
             if gaze_data:
                 self.show_gaze_feedback(gaze_data.LeftValidity, gaze_data.RightValidity)
             else:
-                self.show_gaze_feedback(4, 4)
-            event = pygame.event.wait()
-            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                self.show_gaze_feedback(5, 5)
+            event = pygame.event.poll()
+            if event and event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
                 return
 
     def show_gaze_feedback(self, left, right):
@@ -189,10 +189,12 @@ class CalibrationView(object):
             1: (0x33, 0x99, 0x33),
             2: (0x66, 0x66, 0x33),
             3: (0x99, 0xcc, 0x33),
-            4: (0xcc, 0x33, 0x33)
+            4: (0xcc, 0x33, 0x33),
+            5: (0, 0, 0)
         }
         pygame.draw.ellipse(self.surface, color_map[left], pygame.Rect(lx - r, ly - r, 2 * r, 2 * r))
         pygame.draw.ellipse(self.surface, color_map[right], pygame.Rect(rx - r, ry - r, 2 * r, 2 * r))
+        pygame.display.flip()
 
     def wait_for_continue(self):
         while True:
