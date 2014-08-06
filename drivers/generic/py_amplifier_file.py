@@ -6,7 +6,7 @@ from  obci.analysis.obci_signal_processing import read_manager
 from obci.configs import settings
 from obci.drivers.generic import py_amplifier_soft
 
-class PyAmplifierVirtual(py_amplifier_soft.PyAmplifierSoft):
+class PyAmplifierFile(py_amplifier_soft.PyAmplifierSoft):
     def _manage_files(self):
         self.f_data = os.path.expanduser(os.path.join(
             self.config.get_param('data_file_dir'), 
@@ -29,9 +29,7 @@ class PyAmplifierVirtual(py_amplifier_soft.PyAmplifierSoft):
         self.f_tags = os.path.expanduser(os.path.join(t_dir, t_name)+'.obci.tag')
 
     def _manage_params(self):
-        super(PyAmplifierVirtual, self)._manage_params()
         self._manage_files()
-
         mgr = read_manager.ReadManager(self.f_info, self.f_data, self.f_tags)
         self.set_param('sample_type', mgr.get_param('sample_type'))
         self.set_param('sampling_rate', str(int(float(mgr.get_param('sampling_frequency')))))
@@ -42,16 +40,8 @@ class PyAmplifierVirtual(py_amplifier_soft.PyAmplifierSoft):
 
         self._samples = mgr.get_samples()
         self._tags = mgr.get_tags()
-
-        #todo - for svarog
-        #amplifier_name=
-        #physical_channels_no=
-        #sampling_rates=
-        #channels_info=
-
-    def _local_init(self):
-        super(PyAmplifierVirtual, self)._local_init()
         self._ind = 0
+        super(PyAmplifierFile, self)._manage_params()
 
     def _get_sample(self):
         ts = None
@@ -68,5 +58,5 @@ class PyAmplifierVirtual(py_amplifier_soft.PyAmplifierSoft):
         #TODO - send tags if it is the right titm
 
 if __name__ == "__main__":
-    PyAmplifierVirtual(settings.MULTIPLEXER_ADDRESSES).do_sampling()
+    PyAmplifierFile(settings.MULTIPLEXER_ADDRESSES).do_sampling()
 

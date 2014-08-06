@@ -16,26 +16,7 @@ class PyAmplifier(ConfiguredClient):
 
     def _init(self):
         self._manage_params()
-        self._validate_params()
-        self._local_init()
-
         self.ready()
-
-    def _validate_params(self):
-        pass
-        #sampling_frequency
-        #number_of_channels
-        #samples_per_packet
-        #mx_signal_type
-
-        """for par in params:
-            if params[par] == '':
-                self.logger.error('Parameter ' + par + 'is empty!!! ABORTING....')
-                sys.exit(1)"""
-        
-    def _local_init(self):
-        self.samples_per_packet = int(self.get_param("samples_per_packet"))        
-        self.mx_signal_type = types.AMPLIFIER_SIGNAL_MESSAGE
 
     def _create_msg(self, samples):
         assert(self.samples_per_packet == len(samples))
@@ -54,6 +35,7 @@ class PyAmplifier(ConfiguredClient):
                                type = self.mx_signal_type, flush=True)
 
     def _manage_params(self):
-        pass
+        self.samples_per_packet = int(self.get_param("samples_per_packet"))        
+        self.mx_signal_type = types.AMPLIFIER_SIGNAL_MESSAGE
 
 
