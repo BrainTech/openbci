@@ -3,7 +3,7 @@
 
 import time
 import numpy as np
-import obci.drivers.balance_xwiimote.wii_balance_board_xwiimote as wii_balance_board_xwiimote
+import obci.drivers.balance_xwiimote.wii_balance_board_xwiimote_dummy as wii_balance_board_xwiimote
 
 def format_measurement(x):
     return "{0:.2f}".format(x/ 100.0)
@@ -25,16 +25,19 @@ def main():
     wbb = wii_balance_board_xwiimote.WiiBalanceBoard()
     t = time.time()
     fs = []
+    i = 0
     try:
-        for i, m in enumerate(wbb.measurements()):
+        while True:
+            m, m_t = wbb.measurement()
             if i:
-                fs.append(1.0/(m[0]-t_last))
-            print 'time: {0:.2f} s'.format(m[0]-t)
-            print_bboard_measurements(*m[1:])
-            t_last = m[0]
+                fs.append(1.0/(m_t-t_last))
+            print 'time: {0:.2f} s'.format(m_t-t)
+            print_bboard_measurements(*m)
+            t_last = m_t
+            i+=1
 
     except KeyboardInterrupt:
-        print "\nestimate fs: {0:.2f} +/- {0:.2f} Hz".format(np.mean(fs), np.std(fs))
+        print "\nestimate fs: {} +/- {} Hz".format(np.mean(fs), np.std(fs))
 
 if __name__ == '__main__':
     main()
