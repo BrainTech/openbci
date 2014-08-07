@@ -6,8 +6,6 @@ import xwiimote
 import sys
 import time
 import select
-import time
-
 
 class WiiBalanceBoard(object):
     def __init__(self):
