@@ -36,6 +36,7 @@ class PyAmplifierWiiBalanceBoard(py_amplifier.PyAmplifier):
 
     def _manage_params(self):
         super(PyAmplifierWiiBalanceBoard, self)._manage_params() 
+        self.mx_signal_type = types.WII_BOARD_SIGNAL_MESSAGE
         active_channels = self.get_param('active_channels').split(';')
         channel_names = self.get_param('channel_names').split(';')
         if len(channel_names) == len(active_channels):
@@ -51,7 +52,7 @@ class PyAmplifierWiiBalanceBoard(py_amplifier.PyAmplifier):
         samples = []
         for i in range(self.samples_per_packet):
             s, ts = self._get_sample()
-            print s,ts
+            #print s,ts
             samples.append((s, ts))
         return self._create_msg(samples)
 
