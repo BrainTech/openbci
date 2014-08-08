@@ -15,6 +15,7 @@ _TYPES = ['Porti7']
 _USB_DESCS = { 'Porti7' : 'amplifier_porti7_usb.json',
                 'SynFi' : 'amplifier_tmsi_synfi.json'}
 _AMP_PEER = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
+_AMP_EXECUTABLE = 'drivers/eeg/cpp_amplifiers/tmsi_amplifier'
 _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 
@@ -36,7 +37,7 @@ def _find_usb_amps():
 
 def get_description_from_driver(device_path):
     conf = PeerConfig('amplifier')
-    conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/tmsi_amplifier')
+    conf.add_local_param('driver_executable', _AMP_EXECUTABLE)
     conf.add_local_param('samples_per_packet', '4')
     conf.add_local_param('bluetooth_device', '')
     conf.add_local_param('usb_device', device_path)
@@ -67,6 +68,7 @@ def driver_descriptions():
                                 }
                                             },
                 'amplifier_peer_info' : {
+                                              'driver_executable' : _AMP_EXECUTABLE,
                                               'path' : _AMP_PEER},
 
                 'amplifier_params' : {

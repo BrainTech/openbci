@@ -50,6 +50,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     classdocs
     '''
     start = pyqtSignal(str, object)
+    #amp_select = pyqtSignal(object)
     stop = pyqtSignal(str, bool)
     reset = pyqtSignal(str)
 
@@ -104,6 +105,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
         #self.reset_button.clicked.connect(self._reset)
+        #self.ampselect_pushButton.clicked.connect(self._amp_select)
         self.store_container.hide()
         self.store_checkBox.stateChanged.connect(self._update_store)
         self.store_dir_chooser.clicked.connect(self._choose_dir)
@@ -238,6 +240,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def setupActions(self):
         self.actionExit.triggered.connect(PyQt4.QtGui.qApp.quit)
         self.actionConnect.triggered.connect(self._connect_to_machine)
+        self.actionSelectAmplifier.triggered.connect(self._select_amplifier)
         self.actionSave_as.triggered.connect(self._save_current_as)
         self.actionOpen.triggered.connect(self._import)
         self.actionRemove_from_sidebar.triggered.connect(self._remove_from_sidebar)
@@ -451,6 +454,33 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         state.store_options = None
         print "obciLauncher._stop - end"
 
+    def _amp_select(self):
+        p = {'path': 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'}
+        d = {'usb_device': '/dev/tmsi0', 'driver_executable':'drivers/eeg/cpp_amplifiers/tmsi_amplifier'}
+        uuid = str(self.scenarios.currentItem().uuid)
+        si = self.scenarios.currentItem()
+        #exp = self.exp_states[uuid].exp
+        exp = self.exp_states[uuid]
+        peers = exp.exp.exp_config.peers
+        print(exp)
+        print(dir(exp))
+        print(exp.exp)
+        print(dir(exp.exp))
+        print(exp.exp.exp_config)
+        print(dir(exp.exp.exp_config))
+        cfg = exp.exp.exp_config
+        #cfg.get_pee
+        a = peers['amplifier']
+        print(peers['amplifier'])
+        print(dir(peers['amplifier']))
+        print(a.public_params)
+        peers['amplifier'].path = p['path']
+        for k, v in d.iteritems():
+            print k, v
+            a.config.update_local_param(k, v)
+        self._setParams(exp)
+
+        print "amp select"
     @log_crash
     def _saver_msg(self, killer_proc):
         print "GUI SAVER MSG"
@@ -474,6 +504,30 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _reset(self):
         self.reset.emit(str(self.server_ip))
+
+    def _select_amplifier(self):
+        from obci.drivers.eeg.driver_discovery import driver_discovery
+        result = driver_discovery.find_drivers()[1]
+        path = result['amplifier_peer_info']['path']
+        params = {}
+        params['driver_executable'] = result['amplifier_peer_info']['driver_executable']
+        params['bluetooth_device'] = result['amplifier_params'].get('bluetooth_device', '')
+        params['usb_device'] = result['amplifier_params'].get('usb_device', '')
+
+        path = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
+        params = {'bluetooth_device': '', 'usb_device': '/dev/tmsi0', 'driver_executable':'drivers/eeg/cpp_amplifiers/tmsi_amplifier'}
+        uuid = str(self.scenarios.currentItem().uuid)
+        exp = self.exp_states[uuid]
+        peers = exp.exp.exp_config.peers
+        amp = peers['amplifier']
+
+        amp.path = path
+        for k, v in params.iteritems():
+            print k, v
+            amp.config.update_local_param(k, v)
+        #self._setParams(exp)
+        self._setInfo(self.scenarios.currentItem(), 1)
+        print "AMPLIFIER SELECTED"
 
     def _connect_to_machine(self):
         self.machines_dialog.set_nearby_machines(self._nearby_machines,
@@ -614,11 +668,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if current_sc is None:
             self.start_button.setEnabled(False)
             self._store_set_enabled(False)
+            self.actionSelectAmplifier.setEnabled(False)
             self.stop_button.setEnabled(False)
             return
         if current_sc.uuid not in self.exp_states:
             self.start_button.setEnabled(False)
             self._store_set_enabled(False)
+            self.actionSelectAmplifier.setEnabled(False)
             self.stop_button.setEnabled(False)
             return
         current_exp = self.exp_states[current_sc.uuid].exp
@@ -626,12 +682,15 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         if current_exp.launcher_data is not None:
             self.start_button.setEnabled(False)
             self._store_set_enabled(False)
+            self.actionSelectAmplifier.setEnabled(False)
             self.stop_button.setEnabled(True)
             self.parameters.setEditTriggers(QAbstractItemView.NoEditTriggers)
         else:
             enable = (current_exp.status.status_name == READY_TO_LAUNCH)
             self.start_button.setEnabled(enable)
-            self._store_set_enabled(enable and "amplifier" in current_exp.exp_config.peers)
+            is_amp = enable and "amplifier" in current_exp.exp_config.peers
+            self._store_set_enabled(is_amp)
+            self.actionSelectAmplifier.setEnabled(is_amp)
             self.stop_button.setEnabled(False)
             self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
                                          QAbstractItemView.EditKeyPressed)
@@ -654,6 +713,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.store_dir_chooser.setEnabled(enable)
         self.store_ts_checkBox.setEnabled(enable)
         # self.store_local_checkBox.setEnabled(enable)
+        #self.ampselect_pushButton.setEnabled(enable)
 
     def _store_update_info(self, store_options):
         if store_options is not None:

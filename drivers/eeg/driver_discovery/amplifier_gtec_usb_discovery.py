@@ -12,6 +12,7 @@ _DESC_BASE_PATH = os.path.join(obci_root(), 'drivers/eeg/driver_discovery')
 
 _USB_DESC = 'amplifier_gtec.json'
 _AMP_PEER = 'drivers/eeg/c_tmsi_amplifier/amplifier_gtec.py'
+_AMP_EXECUTABLE = 'drivers/eeg/cpp_amplifiers/gtec_amplifier'
 _SCENARIO = 'scenarios/amplifier/gtec_ekg.ini'
 
 
@@ -44,6 +45,7 @@ def driver_descriptions():
                             }
                                         },
             'amplifier_peer_info' : {
+                                          'driver_executable' : _AMP_EXECUTABLE,
                                           'path' : _AMP_PEER},
 
             'amplifier_params' : {

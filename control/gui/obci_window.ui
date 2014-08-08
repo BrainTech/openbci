@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>716</width>
     <height>606</height>
    </rect>
   </property>
@@ -316,8 +316,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>873</width>
-     <height>23</height>
+     <width>716</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuMenu">
@@ -353,6 +353,7 @@
    <addaction name="separator"/>
    <addaction name="separator"/>
    <addaction name="separator"/>
+   <addaction name="actionSelectAmplifier"/>
   </widget>
   <action name="actionSave_as">
    <property name="icon">
@@ -463,6 +464,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionSelectAmplifier">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/filefind.png</normaloff>:/filefind.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Amplifier ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for available amplifiers and select one</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
    </property>
   </action>
  </widget>
