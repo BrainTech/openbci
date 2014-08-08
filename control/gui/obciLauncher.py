@@ -27,8 +27,10 @@ import getopt
 
 from obci_window import Ui_OBCILauncher
 from connect_dialog import Ui_ConnectToMachine
+from select_amplifier_dialog import Ui_SelectAmplifier
 from obci.utils.filesystem import checkpidfile, removepidfile
 from obci.utils.openbci_logging import get_logger, log_crash
+from obci.drivers.eeg.driver_discovery import driver_discovery
 
 from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from obci_launcher_constants import STATUS_COLORS
@@ -101,6 +103,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.parameters.setColumnWidth(1, 400)
 
         self.machines_dialog = ConnectToMachine(self)
+        self.select_amplifier_dialog = SelectAmplifierDialog(self)
 
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
@@ -506,16 +509,12 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.reset.emit(str(self.server_ip))
 
     def _select_amplifier(self):
-        from obci.drivers.eeg.driver_discovery import driver_discovery
-        result = driver_discovery.find_drivers()[1]
-        path = result['amplifier_peer_info']['path']
-        params = {}
-        params['driver_executable'] = result['amplifier_peer_info']['driver_executable']
-        params['bluetooth_device'] = result['amplifier_params'].get('bluetooth_device', '')
-        params['usb_device'] = result['amplifier_params'].get('usb_device', '')
+        
+        if self.select_amplifier_dialog.exec_() is None:
+            return
+        path = self.select_amplifier_dialog.path
+        params = self.select_amplifier_dialog.params
 
-        path = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
-        params = {'bluetooth_device': '', 'usb_device': '/dev/tmsi0', 'driver_executable':'drivers/eeg/cpp_amplifiers/tmsi_amplifier'}
         uuid = str(self.scenarios.currentItem().uuid)
         exp = self.exp_states[uuid]
         peers = exp.exp.exp_config.peers
@@ -803,6 +802,77 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
         self.chosen_machine = (cur_ip.text(), cur_host.text())
         super(ConnectToMachine, self).accept()
 
+class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
+    def __init__(self, parent):
+        super(SelectAmplifierDialog, self).__init__(parent)
+        self.setupUi(self)
+        self.amplifiers.horizontalHeader().setResizeMode (QHeaderView.Stretch)
+
+        self.amplifiers.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.amplifiers.setColumnCount(3)
+        self.amplifiers.setColumnWidth(0, 300)
+        self.amplifiers.setHorizontalHeaderLabels(["Experiment", "Amplifier", "Device"])
+        self.amplifiers.horizontalHeader().setVisible(True)
+        self.amplifiers.itemDoubleClicked.connect(self.accept)
+        self.refreshButton.clicked.connect(self.refresh)
+        self.amps = []
+        self.path = ''
+        self.params = {}
+
+    def refresh(self):
+        #self.amps = []
+        #self.update()
+
+        amps = driver_discovery.find_drivers()
+        self.amps = amps
+        self.update()
+
+    def _update_amplifiers(self):
+        print "SHOW"
+        amps = self.amps
+        self.amplifiers.clearContents()
+        self.amplifiers.setRowCount(len(amps))
+
+        for i, amp in enumerate(amps):
+            exp = amp['amplifier_peer_info']['path']
+            amp_name = amp['amplifier_params']['channels_info']['name']
+            device = amp['amplifier_params']['additional_params'].get('bluetooth_device', '')
+            if len(device) == 0:
+                device = amp['amplifier_params']['additional_params'].get('usb_device', '')
+
+            ip_w = QTableWidgetItem(exp)
+            ip_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.amplifiers.setItem(i, 0, ip_w)
+            
+            hn_w = QTableWidgetItem(amp_name)
+            hn_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.amplifiers.setItem(i, 1, hn_w)
+
+            st_w = QTableWidgetItem(device)
+            st_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.amplifiers.setItem(i, 2, st_w)
+
+        if len(amps) > 0:
+            self.amplifiers.setCurrentItem(self.amplifiers.item(0,0))
+        else:
+            self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
+
+    def update(self):
+        self._update_amplifiers()
+        super(SelectAmplifierDialog, self).update()
+
+    def accept(self):
+        row = self.amplifiers.currentRow()
+        amp = self.amps[row]
+
+        path = amp['amplifier_peer_info']['path']
+        params = {}
+        params['driver_executable'] = amp['amplifier_peer_info']['driver_executable']
+        params['bluetooth_device'] = amp['amplifier_params']['additional_params'].get('bluetooth_device', '')
+        params['usb_device'] = amp['amplifier_params']['additional_params'].get('usb_device', '')
+        self.path = path
+        self.params = params
+        super(SelectAmplifierDialog, self).accept()
 
 if __name__ == '__main__':
     opts, args = getopt.getopt(sys.argv[1:],"t",['tray'])
