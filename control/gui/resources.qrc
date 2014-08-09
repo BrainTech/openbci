@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="/">
     <file>connect.png</file>
+    <file>filefind.png</file>
     <file>stock_delete.png</file>
     <file>fileopen.png</file>
     <file>filesave.png</file>

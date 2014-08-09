@@ -15,9 +15,6 @@ class PyAmplifierVirtual(py_amplifier_soft.PyAmplifierSoft):
         #physical_channels_no=
         #sampling_rates=
         #channels_info=
-
-    def _local_init(self):
-        super(PyAmplifierVirtual, self)._local_init()
         self.number_of_channels = int(len(self.get_param("active_channels").split(';')))
 
     def _get_sample(self):

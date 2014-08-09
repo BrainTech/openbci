@@ -10,11 +10,12 @@ from obci.drivers.eeg.driver_comm import DriverComm
 
 DESC_FILE = 'amplifier_virtual.json'
 _AMP_PEER = 'drivers/eeg/amplifier_virtual.py'
+_AMP_EXECUTABLE = 'drivers/eeg/cpp_amplifiers/dummy_amplifier'
 _SCENARIO = 'scenarios/amplifier/virtual_amp_signal.ini'
 
 def get_description_from_driver():
     conf = PeerConfig('amplifier')
-    conf.add_local_param('driver_executable', 'drivers/eeg/cpp_amplifiers/dummy_amplifier')
+    conf.add_local_param('driver_executable', _AMP_EXECUTABLE)
     conf.add_local_param('samples_per_packet', '4')
 
     driv = DriverComm(conf, catch_signals=False)
@@ -33,6 +34,7 @@ def driver_descriptions():
                         }
                                     },
                 'amplifier_peer_info' : {
+                                      'driver_executable' : _AMP_EXECUTABLE,
                                       'path' : _AMP_PEER},
                 'amplifier_params' : {
                                                                 'active_channels' : '',

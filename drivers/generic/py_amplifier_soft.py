@@ -9,8 +9,8 @@ from obci.utils import streaming_debug
 
 class PyAmplifierSoft(py_amplifier.PyAmplifier):
 
-    def _local_init(self):
-        super(PyAmplifierSoft, self)._local_init()
+    def _manage_params(self):
+        super(PyAmplifierSoft, self)._manage_params()
         self._next_msg = None
         self._prev_ts = 0.0
         self._first_sample_ts = 0.0

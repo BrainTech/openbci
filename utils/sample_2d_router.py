@@ -10,7 +10,7 @@ from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
 class Sample2DRouter(ConfiguredMultiplexerServer):
-	@log_crash
+    @log_crash
     def __init__(self, addresses, peer_type):
         super(Sample2DRouter, self).__init__(addresses=addresses,
                                           type=peer_type)
@@ -30,7 +30,7 @@ class Sample2DRouter(ConfiguredMultiplexerServer):
                 msg.y = s.channels[self.y_ind]
                 msg.timestamp = s.timestamp
                 self.conn.send_message(
-                        message=v.SerializeToString(),
+                        message=msg.SerializeToString(),
                         type=self.out_mx_signal_type, flush=True)
         self.no_response()
 

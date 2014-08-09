@@ -16,6 +16,7 @@ _BT_DESCS = {
                 'Mobi5' : 'amplifier_mobi5.json'
             }
 _AMP_PEER = 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'
+_AMP_EXECUTABLE = 'drivers/eeg/cpp_amplifiers/tmsi_amplifier'
 _SCENARIO = 'scenarios/amplifier/tmsi_amp_signal.ini'
 
 def _find_bluetooth_amps():
@@ -66,6 +67,7 @@ def driver_descriptions():
                                 }
                                             },
                 'amplifier_peer_info' : {
+                                              'driver_executable' : _AMP_EXECUTABLE,
                                               'path' : _AMP_PEER},
                 'amplifier_params' : {
                                         'additional_params' : {'usb_device' : '',
