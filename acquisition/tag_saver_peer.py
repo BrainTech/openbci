@@ -70,7 +70,7 @@ class TagSaver(ConfiguredMultiplexerServer):
             else:
                 self.logger.warning("Tag saver got unknown control message "+ctr+"!")                
             
-        elif mxmsg.type == types.SIGNAL_SAVER_FINISHED:
+        elif mxmsg.type == types.__dict__[self.config.get_param("finished_signal_type")]:
             if self._session_is_active:
                 self.logger.warning("Got saver_finished before getting saver control message... This shouldn`t happen, but continue anyway...")
                 self._session_is_active = False
@@ -104,7 +104,8 @@ class TagSaver(ConfiguredMultiplexerServer):
 
         self.conn.send_message(
             message=l_vec.SerializeToString(),
-            type=types.TAG_SAVER_FINISHED, flush=True)
+            type=types.__dict__[self.config.get_param("finished_tag_type")],
+            flush=True)
 
         self.logger.info("Tags file saved to: "+l_file_path)
         return l_file_path

@@ -6,7 +6,7 @@
 from multiplexer.multiplexer_constants import peers
 from obci.configs import settings
 
-from obci.acquisition.signal_saver_peer import SignalSaver
+from obci.acquisition.tag_saver_peer import TagSaver
 
 if __name__ == "__main__":
-    SignalSaver(settings.MULTIPLEXER_ADDRESSES, peer_type=peers.WII_BOARD_SIGNAL_SAVER).loop()
+    TagSaver(settings.MULTIPLEXER_ADDRESSES, peer_type=peers.WII_BOARD_TAG_SAVER).loop()

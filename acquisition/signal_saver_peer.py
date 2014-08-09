@@ -170,7 +170,8 @@ class SignalSaver(ConfiguredMultiplexerServer):
 
         self.conn.send_message(
             message=l_vec.SerializeToString(),
-            type=types.SIGNAL_SAVER_FINISHED, flush=True)
+            type=types.__dict__[self.config.get_param("finished_signal_type")],
+            flush=True)
 
         self.logger.info("Saved file "+str(l_files))
         return l_files

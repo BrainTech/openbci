@@ -44,7 +44,8 @@ class InfoSaver(ConfiguredMultiplexerServer):
         """Handle messages:
         * signal_saver_control_message - a message from signal saver
         being a signal to finish saving."""
-        if mxmsg.type == types.SIGNAL_SAVER_FINISHED:
+        
+        if mxmsg.type == types.__dict__[self.config.get_param("finished_signal_type")]:
             self.logger.info("Got signal saver finished!")
             l_vec = variables_pb2.VariableVector()
             l_vec.ParseFromString(mxmsg.message)
@@ -102,7 +103,8 @@ class InfoSaver(ConfiguredMultiplexerServer):
 
         self.conn.send_message(
             message=l_msg,
-            type=types.INFO_SAVER_FINISHED, flush=True)
+            type=types.__dict__[self.config.get_param("finished_info_type")],
+            flush=True)
 
     def _serialise_finished_msg(self, params):
         l_dict = {

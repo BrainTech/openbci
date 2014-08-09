@@ -836,6 +836,8 @@ type {
      }
 }
 
+#acquisition
+
 type {
      type: 155
      name: "ACQUISITION_CONTROL_MESSAGE"
@@ -847,6 +849,24 @@ type {
      	peer: "TAG_SAVER"
 	whom: ALL
 	}	
+     to {
+     	peer: "TOBII_SIGNAL_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "TOBII_TAG_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "WII_BOARD_SIGNAL_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "WII_BOARD_TAG_SAVER"
+	whom: ALL
+	}
+
+
 }
 
 type {
