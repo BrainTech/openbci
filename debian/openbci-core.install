@@ -11,6 +11,7 @@ drivers/eeg/cpp_amplifiers/*.py	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
 drivers/eeg/cpp_amplifiers/*.ini	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
 drivers/*.py	  /usr/share/openbci/drivers
 drivers/balance	  /usr/share/openbci/drivers
+drivers/balance_xwiimote  /usr/share/openbci/drivers
 drivers/etr	  /usr/share/openbci/drivers
 drivers/switch	  /usr/share/openbci/drivers
 drivers/kinect	  /usr/share/openbci/drivers
