@@ -7,8 +7,8 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
-import obci.drivers.balance.wii__board_xwiimote as wii_board_xwiimote
-import obci.drivers.balance.wii_board_xwiimote_dummy as wii_board_dummy
+import obci.drivers.balance.wii_board_xwiimote as wii_board_xwiimote
+import obci.drivers.balance.wii_board_dummy as wii_board_dummy
 
 class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     @log_crash
@@ -35,7 +35,7 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
             sys.exit(1)
 
     def _manage_params(self):
-        super(PyAmplifierWiiBalanceBoard, self)._manage_params() 
+        super(PyAmplifierWiiBoard, self)._manage_params() 
         self.mx_signal_type = types.WII_BOARD_SIGNAL_MESSAGE
         active_channels = self.get_param('active_channels').split(';')
         channel_names = self.get_param('channel_names').split(';')
