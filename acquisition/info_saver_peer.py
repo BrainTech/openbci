@@ -18,9 +18,9 @@ INFO_FILE_EXTENSION = ".obci.xml"
 class InfoSaver(ConfiguredMultiplexerServer):
     """A class for creating a manifest file with metadata."""
     @log_crash
-    def __init__(self, addresses):
+    def __init__(self, addresses, peer_type=peers.INFO_SAVER):
         super(InfoSaver, self).__init__(addresses=addresses,
-                                          type=peers.INFO_SAVER)
+                                          type=peer_type)
 
         #local params
         l_f_name = self.config.get_param("save_file_name")

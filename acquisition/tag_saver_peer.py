@@ -17,10 +17,10 @@ TAG_FILE_EXTENSION = ".obci.tag"
 
 class TagSaver(ConfiguredMultiplexerServer):
     @log_crash
-    def __init__(self, addresses):
+    def __init__(self, addresses, peer_type=peers.TAG_SAVER):
         """Init slots."""
         super(TagSaver, self).__init__(addresses=addresses, 
-                                          type=peers.TAG_SAVER)
+                                          type=peer_type)
         # Get file path data
         l_f_name = self.config.get_param("save_file_name")
         l_f_dir = self.config.get_param("save_file_path")
