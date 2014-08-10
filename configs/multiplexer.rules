@@ -318,11 +318,6 @@ peer {
 }
 
 peer {
-     type: 160
-     name: "WII_BOARD_SIGNAL_SAVER"
-}
-
-peer {
      type: 161
      name: "EXTERNAL_SWITCH_AMPLIFIER"
 }
