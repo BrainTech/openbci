@@ -7,28 +7,28 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
-import obci.drivers.balance_xwiimote.wii_balance_board_xwiimote as wii_balance_board_xwiimote
-import obci.drivers.balance_xwiimote.wii_balance_board_xwiimote_dummy as wii_balance_board_xwiimote_dummy
+import obci.drivers.balance.wii__board_xwiimote as wii_board_xwiimote
+import obci.drivers.balance.wii_board_xwiimote_dummy as wii_board_dummy
 
-class PyAmplifierWiiBalanceBoard(py_amplifier.PyAmplifier):
+class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     @log_crash
     def __init__(self, addresses):
-        super(PyAmplifierWiiBalanceBoard, self).__init__(addresses=addresses, peer_type=peers.WII_BOARD_AMPLIFIER)
+        super(PyAmplifierWiiBoard, self).__init__(addresses=addresses, peer_type=peers.WII_BOARD_AMPLIFIER)
 
         if self.get_param("amplifier_online") == 'True':
-            self.logger.info("Start initialize WiiBalanceBoard amplifier...")
+            self.logger.info("Start initialize Wii Board amplifier...")
             try:
-                self.wbb = wii_balance_board_xwiimote.WiiBalanceBoard()
+                self.wbb = wii_board_xwiimote.WiiBalanceBoard()
             except Exception as error:
                 self.logger.error("{} ABORDING...".format(error))
                 sys.exit(1)
             finally:
-                self.logger.info("Connect to Wii Balance board!")
+                self.logger.info("Connect to Wii Board!")
 
         elif self.get_param("amplifier_online") == 'False':
-            self.logger.info("Start initialize WiiBalanceBoard dummy amplifier...")
-            self.wbb = wii_balance_board_xwiimote_dummy.WiiBalanceBoard()
-            self.logger.info("Connect to Wii Balance board!")
+            self.logger.info("Start initialize Wii Board dummy amplifier...")
+            self.wbb = wii_board_dummy.WiiBalanceBoard()
+            self.logger.info("Connect to Wii Board!")
 
         else:
             self.logger.error("Parametr amplifier_online is wrong (posibble: True/False) ABORDING...")
@@ -68,4 +68,4 @@ class PyAmplifierWiiBalanceBoard(py_amplifier.PyAmplifier):
 
 
 if __name__ == "__main__":
-    PyAmplifierWiiBalanceBoard(settings.MULTIPLEXER_ADDRESSES).do_sampling()
+    PyAmplifierWiiBoard(settings.MULTIPLEXER_ADDRESSES).do_sampling()
