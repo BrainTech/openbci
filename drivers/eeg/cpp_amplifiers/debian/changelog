@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.7-1) unstable; urgency=medium
+
+  * Build using new multiplexer.rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 10 Aug 2014 18:26:16 +0200
+
 openbci-amplifiers (1.8.6-1) unstable; urgency=medium
 
   * Build using new multiplexer.rules.
