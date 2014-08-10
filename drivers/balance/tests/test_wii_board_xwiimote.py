@@ -3,7 +3,7 @@
 
 import time
 import numpy as np
-import obci.drivers.balance_xwiimote.wii_balance_board_xwiimote_dummy as wii_balance_board_xwiimote
+import obci.drivers.balance.wii_board_xwiimote as wii_board_xwiimote
 
 def format_measurement(x):
     return "{0:.2f}".format(x/ 100.0)
@@ -22,7 +22,7 @@ def print_bboard_measurements(*args):
     print "{}".format('\n\n')
 
 def main():
-    wbb = wii_balance_board_xwiimote.WiiBalanceBoard()
+    wbb = wii_board_xwiimote.WiiBalanceBoard()
     t = time.time()
     fs = []
     i = 0
