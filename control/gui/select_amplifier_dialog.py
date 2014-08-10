@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'select_amplifier_dialog.ui'
 #
-# Created: Sat Aug  9 00:12:32 2014
+# Created: Sun Aug 10 14:56:36 2014
 #      by: PyQt4 UI code generator 4.11.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -54,7 +54,7 @@ class Ui_SelectAmplifier(object):
         QtCore.QMetaObject.connectSlotsByName(SelectAmplifier)
 
     def retranslateUi(self, SelectAmplifier):
-        SelectAmplifier.setWindowTitle(_translate("SelectAmplifier", "Connect to machine", None))
+        SelectAmplifier.setWindowTitle(_translate("SelectAmplifier", "Select Amplifier", None))
         self.groupBox.setTitle(_translate("SelectAmplifier", "Amplifiers", None))
         self.refreshButton.setText(_translate("SelectAmplifier", "Refresh", None))
 
