@@ -318,11 +318,6 @@ peer {
 }
 
 peer {
-     type: 160
-     name: "WII_BOARD_SAVER"
-}
-
-peer {
      type: 161
      name: "EXTERNAL_SWITCH_AMPLIFIER"
 }
@@ -1212,38 +1207,9 @@ type {
 }
 
 
-type {
-     type: 237
-     name: "WII_BOARD_SIGNAL_SAVER_FINISHED"
-     to {
-     	peer: "WII_BOARD_INFO_SAVER"
-	whom: ALL
-	}
-     to {
-     	peer: "WII_BOARD_TAG_SAVER"
-	whom: ALL
-	}	      
-}
 
 type {
-    type: 238
-    name: "WII_BOARD_SIGNAL_MESSAGE"
-    to {
-       peer: "WII_BOARD_SIGNAL_SAVER"
-       whom: ALL
-	report_delivery_error: false
-       }
-    to {
-       peer: "WII_BOARD_SIGNAL_CATCHER"
-       whom: ALL
-	report_delivery_error: false
-       }
-
-}
-
-
-type {
-     type: 239
+     type: 240
      name: "TOBII_SIGNAL_SAVER_FINISHED"
      to {
      	peer: "TOBII_INFO_SAVER"
@@ -1256,7 +1222,31 @@ type {
 }
 
 type {
-    type: 240
+     type: 241
+     name: "TOBII_INFO_SAVER_FINISHED"
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}
+}	
+
+
+type {
+     type: 242
+     name: "TOBII_TAG_SAVER_FINISHED"
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}
+}	
+
+
+
+
+type {
+    type: 243
     name: "TOBII_SIGNAL_MESSAGE"
     to {
        peer: "TOBII_SIGNAL_SAVER"
@@ -1272,3 +1262,58 @@ type {
 }
 
 
+
+type {
+     type: 250
+     name: "WII_BOARD_SIGNAL_SAVER_FINISHED"
+     to {
+     	peer: "WII_BOARD_INFO_SAVER"
+	whom: ALL
+	}
+     to {
+     	peer: "WII_BOARD_TAG_SAVER"
+	whom: ALL
+	}	      
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}	
+}
+
+type {
+     type: 251
+     name: "WII_BOARD_INFO_SAVER_FINISHED"
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}
+}	
+
+
+type {
+     type: 252
+     name: "WII_BOARD_TAG_SAVER_FINISHED"
+     to {
+        peer: "ACQUISITION_CONTROL"
+	whom: ALL
+	report_delivery_error: false
+	}
+}	
+
+type {
+    type: 253
+    name: "WII_BOARD_SIGNAL_MESSAGE"
+    to {
+       peer: "WII_BOARD_SIGNAL_SAVER"
+       whom: ALL
+	report_delivery_error: false
+       }
+    to {
+       peer: "WII_BOARD_SIGNAL_CATCHER"
+       whom: ALL
+	report_delivery_error: false
+       }
+
+}
