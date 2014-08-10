@@ -319,7 +319,7 @@ peer {
 
 peer {
      type: 160
-     name: "WII_BOARD_SAVER"
+     name: "WII_BOARD_SIGNAL_SAVER"
 }
 
 peer {
