@@ -1,3 +1,9 @@
+openbci (1.8.21-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 10 Aug 2014 18:24:37 +0200
+
 openbci (1.8.20-1) unstable; urgency=medium
 
   * New upstream release.
