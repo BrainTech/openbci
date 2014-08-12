@@ -51,6 +51,7 @@ class SignalSaver(ConfiguredMultiplexerServer):
             #break
 
         self._data_proxy.set_data_len(len(p_data), self._samples_per_packet)
+        self._data_proxy.set_first_sample_timestamp(self._first_sample_timestamp)
         self.logger.info("Data len: "+str(len(p_data)))
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # !!! below operation changes self._data_received method
