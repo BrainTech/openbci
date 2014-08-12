@@ -108,8 +108,6 @@ class DataGenericWriteProxy(object):
         for j in range(len(l_vec.samples)):
             s = l_vec.samples[j]
             ts = s.timestamp
-            print ts, self.set_first_sample_timestamp
-            print ts-self.first_sample_timestamp
             try:
                 strs = [struct.pack(self._sample_struct_type, ch) for ch in s.channels]
                 if self._append_ts:
