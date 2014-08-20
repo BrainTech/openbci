@@ -15,7 +15,7 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     def __init__(self, addresses):
         super(PyAmplifierWiiBoard, self).__init__(addresses=addresses, peer_type=peers.WII_BOARD_AMPLIFIER)
 
-        if self.get_param("amplifier_online") == 'True':
+        if int(self.get_param("amplifier_online")) == 1:
             self.logger.info("Start initialize Wii Board amplifier...")
             try:
                 self.wbb = wii_board_xwiimote.WiiBalanceBoard()
@@ -25,13 +25,13 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
             finally:
                 self.logger.info("Connect to Wii Board!")
 
-        elif self.get_param("amplifier_online") == 'False':
+        elif int(self.get_param("amplifier_online")) == 0:
             self.logger.info("Start initialize Wii Board dummy amplifier...")
             self.wbb = wii_board_dummy.WiiBalanceBoard()
             self.logger.info("Connect to Wii Board!")
 
         else:
-            self.logger.error("Parametr amplifier_online is wrong (posibble: True/False) ABORDING...")
+            self.logger.error("Parametr amplifier_online is wrong (posibble: 0/1) ABORDING...")
             sys.exit(1)
 
     def _manage_params(self):
