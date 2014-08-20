@@ -64,7 +64,7 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
             self._send(mx_msg)
 
     def _get_sample(self):
-        return self.wbb.measurement()
+        return self.wbb.measurment()
 
 
 if __name__ == "__main__":

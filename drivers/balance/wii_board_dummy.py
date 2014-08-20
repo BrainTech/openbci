@@ -8,6 +8,6 @@ import random
 class WiiBalanceBoard(object):
     def __init__(self):
         pass
-    def measurement(self):
+    def measurment(self):
         time.sleep(1.0/80.0)
         return [random.random(), random.random(), random.random(), random.random()], time.time()
