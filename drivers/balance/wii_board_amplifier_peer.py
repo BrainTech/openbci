@@ -13,7 +13,7 @@ import obci.drivers.balance.wii_board_dummy as wii_board_dummy
 class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     @log_crash
     def __init__(self, addresses):
-        super(PyAmplifierWiiBoard, self).__init__(addresses=addresses, peer_type=peers.WII_BOARD_AMPLIFIER)
+        #super(PyAmplifierWiiBoard, self).__init__(addresses=addresses, peer_type=peers.WII_BOARD_AMPLIFIER)
 
         if int(self.get_param("amplifier_online")) == 1:
             self.logger.info("Start initialize Wii Board amplifier...")
@@ -33,6 +33,8 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
         else:
             self.logger.error("Parametr amplifier_online is wrong (posibble: 0/1) ABORDING...")
             sys.exit(1)
+        self._manage_params()
+        self.ready()
 
     def _manage_params(self):
         super(PyAmplifierWiiBoard, self)._manage_params() 
