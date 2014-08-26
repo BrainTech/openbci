@@ -6,15 +6,12 @@
 
 >>> from wii_analysis import *
 
->>> sig = test_signal()
+>>> signal = test_signal()
 
->>> COP_path(sig)
+>>> COP_path(signal)
 (99.0, 99.0, 0.0)
 
->>> max_sway_AP_MP(sig)
-(1.0, 99.0)
-
->>> mean_velocity, velocity_AP, velocity_ML = mean_velocity(sig, fs)
+>>> mean_velocity, velocity_AP, velocity_ML = mean_velocity(signal, fs)
 
 >>> print("%.2f" % round(mean_velocity,2))
 79.20
@@ -25,16 +22,46 @@
 >>> print("%.2f" % round(velocity_ML,2))
 79.20
 
->>> RMS, RMS_ML, RMS_AP = RMS_AP_ML(sig)
+>>> RMS, RMS_ML, RMS_AP = RMS_AP_ML(signal)
 
 >>> print("%.2f" % round(RMS,2))
-9.95
+28.87
 
 >>> print("%.2f" % round(RMS_AP,2))
-0.00
+28.87
 
 >>> print("%.2f" % round(RMS_ML,2))
-9.95
+0.00
+
+>>> confidence_ellipse_area(signal)
+0.0
+
+>>> mean_sway, mean_sway_AP, mean_sway_ML = mean_COP_sway_AP_ML(signal)
+
+>>> print("%.2f" % round(mean_sway,2))
+25.00
+
+>>> print("%.2f" % round(mean_sway_AP,2))
+0.00
+
+>>> print("%.2f" % round(mean_sway_ML,2))
+25.00
+
+>>> max_sway, max_sway_AP, max_sway_ML = max_sway_AP_ML(signal)
+
+>>> print("%.2f" % round(max_sway,2))
+49.50
+
+>>> print("%.2f" % round(max_sway_AP,2))
+0.00
+
+>>> print("%.2f" % round(max_sway_ML,2))
+49.50
+
+>>> signal1 = test_signal1()
+
+>>> get_percentages_values(signal1, fs, plot=False)
+(50.0, 0.0, 0.0, 50.0)
 
 """
 
@@ -45,9 +72,5 @@ def run():
 		print("All tests succeeded!")
 
 if __name__ == '__main__':
-
-	# from wii_analysis import *
-	# signal = test_signal()
-	# print RMS_AP_ML(signal)
-
 	run()
+

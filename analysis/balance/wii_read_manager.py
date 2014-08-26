@@ -18,6 +18,7 @@ class WBBReadManager(object):
 
 	def get_raw_signal(self):
 		""" Returns raw sensor data (TopRight, TopLeft, BottomRight, BottomLeft) """
+
 		top_right = self.mgr.get_channel_samples('tr')
 		top_left = self.mgr.get_channel_samples('tl')
 		bottom_right = self.mgr.get_channel_samples('br')
@@ -26,6 +27,7 @@ class WBBReadManager(object):
 
 	def get_x(self):
 		""" Returns COPx computed from raw sensor data and adds 'x' channel to ReadManager object"""
+
 		top_right, top_left, bottom_right, bottom_left = self.get_raw_signal()
 		sum_mass = top_right + top_left + bottom_right + bottom_left
 		x = (((top_right + bottom_right) - (top_left + bottom_left))/sum_mass) + 0.5
@@ -40,6 +42,7 @@ class WBBReadManager(object):
 
 	def get_y(self):
 		""" Returns COPy computed from raw sensor data and adds 'y' channel to ReadManager object """
+
 		top_right, top_left, bottom_right, bottom_left = self.get_raw_signal()
 		sum_mass = top_right + top_left + bottom_right + bottom_left
 		y = (((top_right + top_left) - (bottom_right + bottom_left))/sum_mass) + 0.5
@@ -54,6 +57,7 @@ class WBBReadManager(object):
 
 	def get_timestamps(self):
 		""" Returns timestamps channel """
+		
 		return self.mgr.get_channel_samples('TSS')
 
 

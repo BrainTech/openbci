@@ -20,45 +20,97 @@ import matplotlib.pyplot as plt
 	- mean_COP_distance()
 """
 
-def wii_max_sway_AP_MP():
-	""" Returns maximal sway values for medio-lateral and anterio-posterior directions"""
-	return max_AP, max_ML
+def wii_max_sway_AP_MP(x, y):
+	""" Returns maximal sway values for medio-lateral and anterio-posterior directions
+
+	Input:
+	x 				-- array -- samples from x channel
+	y 				-- array -- samples from y channel
+	Output:
+	max_sway 	--	float 
+	max_AP   	--  float
+	max_ML  	--  float
+	"""
+
+	return max_sway_AP_MP(np.vstack((x,y)))
 
 def wii_COP_path(wbb_mgr, x, y, plot=False):
-	""" Returns total length of the COP path"""
+	""" Returns total length of the COP path
+
+	Input:
+	WBBReadManager 	-- WBBReadManager object
+	x 				-- array -- samples from x channel
+	y 				-- array -- samples from y channel
+	plot 			-- bool  -- optional
+	"""
 	
-	cop = COP_path(np.vstack((x,y)))
 	if plot:
 		fs = float(wbb_mgr.mgr.get_param('sampling_frequency'))
 		plot_COP(np.vstack((x,y)),fs)
-	return cop
+	return COP_path(np.vstack((x,y)))
 
-def wii_RMS_AP_ML():
+def wii_RMS_AP_ML(x, y):
 	""" Returns Root Mean Square (RMS) values in medio-lateral and anterio-posterior directions"""
-	return RMS_ML, RMS_AP
 
-def wii_confidence_ellipse_area():
+	return RMS_AP_ML(np.vstack((x,y)))
+
+def wii_confidence_ellipse_area(x, y):
 	""" Returns area of the 95 perc. confidence ellipse"""
-	return area
 
-def wii_mean_velocity():
-	""" Returns average velocity of the COP, in ML and AP directions"""
-	return mean_velocity, velocity_AP, velocity_ML
+	return confidence_ellipse_area(np.vstack((x,y)))
 
-def wii_reaction_time():
-	""" Returns reaction time (2 standard deviations from baseline rest period till start signal)"""
-	return rt
+def wii_mean_velocity(wbb_mgr, x, y):
+	""" Returns average velocity of the COP, in ML and AP directions
 
-def wii_triangles_area():
-	""" Returns sway area (AREA-SW), which estimates the area enclosed by the COP path per unit of time. 
-	This measure is approximated by summing the area of the triangles formed by two consecutive points 
-	on the COP path and the mean COP """
-	return area_sw
+	Input:
+	WBBReadManager 	-- WBBReadManager object
+	x 				-- array -- samples from x channel
+	y 				-- array -- samples from y channel
+	"""
 
-def wii_mean_angle():
-	""" Returns mean sway angle """
-	return angle
+	fs = float(wbb_mgr.mgr.get_param('sampling_frequency'))
+	return mean_velocity(np.vstack((x,y)), fs)
 
-def wii_mean_COP_distance():
-	""" Returns mean value of COP distance from the center point (0,0) """
-	return cop_dist
+# def wii_reaction_time():
+# 	""" Returns reaction time (2 standard deviations from baseline rest period till start signal)"""
+# 	return rt
+
+# def wii_triangles_area():
+# 	""" Returns sway area (AREA-SW), which estimates the area enclosed by the COP path per unit of time. 
+# 	This measure is approximated by summing the area of the triangles formed by two consecutive points 
+# 	on the COP path and the mean COP """
+# 	return area_sw
+
+# def wii_mean_angle():
+# 	""" Returns mean sway angle """
+# 	return angle
+
+def wii_mean_COP_sway_AP_ML(x, y):
+	""" Returns mean value of COP sway from the center point (0,0).
+
+	Input:
+	x 				-- array -- samples from x channel
+	y 				-- array -- samples from y channel
+	"""
+
+	return mean_COP_sway_AP_ML(np.vstack((x,y)))
+
+def wii_get_percentages_values(wbb_mgr, x, y, plot=False):
+	"""
+	Returns percentages of being on each of four parts of board.
+
+	Input:
+	WBBReadManager 	-- WBBReadManager object
+	x 				-- array -- samples from x channel
+	y 				-- array -- samples from y channel
+	plot 			-- bool  -- optional
+
+	Output:
+		top_right 		-- float
+		top_left		-- float
+		bottom_right	-- float
+		bottom_left		-- float
+	"""
+
+	fs = float(wbb_mgr.mgr.get_param('sampling_frequency'))
+	return get_percentages_values(np.vstack((x,y)), fs, plot=plot)

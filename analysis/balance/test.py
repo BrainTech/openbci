@@ -9,11 +9,11 @@ if __name__ == '__main__':
 	w.get_x()
 	w.get_y()
 	wbb_mgr = wii_filter_signal(w, 30.0, 2, use_filtfilt=False)
-	wbb_mgr = wii_downsample_signal(wbb_mgr, factor=2, pre_filter=False, use_filtfilt=False)
+	wbb_mgr = wii_downsample_signal(wbb_mgr, factor=4, pre_filter=False, use_filtfilt=False)
 	smart_tags = wii_cut_fragments(wbb_mgr)
 	for sm in smart_tags:
 		sm_x = sm.get_channel_samples('x')
 		sm_y = sm.get_channel_samples('y')
 		py.figure()
-		cop = wii_COP_path(wbb_mgr, sm_x, sm_y, plot=True)
+		print(wii_COP_path(wbb_mgr, sm_x, sm_y, plot=True))
 	py.show()

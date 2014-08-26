@@ -12,11 +12,17 @@ from raw_preprocessing import *
 from wii_read_manager import *
 
 def wii_downsample_signal(wbb_mgr, factor=2, pre_filter=False, use_filtfilt=False):
-	""" Returns WBBReadManager object with downsampled signal values """
+	""" Returns WBBReadManager object with downsampled signal values 
+	Input:
+	wbb_mgr 			-- WBBReadManager object
+	factor 				-- int 	-- downsample signal to sampling rate original_sampling_frequency / factor 
+	pre_filter 			-- bool -- use lowpass filter with cutoff frequency sampling_frequency / 2
+	use_filtfilt 		-- bool -- use filtfilt in filtering procedure (default lfilter)
+	"""
 
 	if pre_filter:
 		fs = float(wbb_mgr.mgr.get_param('sampling_frequency'))
-		wbb_mgr = wii_filter_signal(wbb_mgr, fs/2, 2, use_filtfilt)
+		wbb_mgr = wii_filter_signal(wbb_mgr, fs/2, 4, use_filtfilt)
 		samples = wbb_mgr.mgr.get_samples()
 	else:
 		samples = wbb_mgr.mgr.get_samples()
@@ -31,7 +37,13 @@ def wii_downsample_signal(wbb_mgr, factor=2, pre_filter=False, use_filtfilt=Fals
 	return WBBReadManager(info_source, samples_source, tags_source)
 
 def wii_filter_signal(wbb_mgr, cutoff_upper, order, use_filtfilt=False):
-	""" Returns WBBReadManager object with filtered signal values """
+	""" Returns WBBReadManager object with filtered signal values 
+	Input:
+	wbb_mgr 			-- WBBReadManager object
+	cutoff_upper 		-- float -- cutoff frequency
+	order 				-- int   -- order of filter
+	use_filtfilt 		-- bool -- use filtfilt in filtering procedure (default lfilter)
+	"""
 
 	fs = float(wbb_mgr.mgr.get_param('sampling_frequency'))
 	samples = wbb_mgr.mgr.get_samples()
@@ -47,6 +59,9 @@ def wii_fix_sampling(wbb_mgr):
 	return
 
 def wii_cut_fragments(wbb_mgr):
+	""" Returns SmartTags object with cut signal fragments according to 'start' - 'stop' tags
+	"""
+
 	x = smart_tag_definition.SmartTagEndTagDefinition(start_tag_name='start', 
 													  end_tags_names=['stop'])
 	smart_mgr = smart_tags_manager.SmartTagsManager(x, None, None, None, wbb_mgr.mgr)
