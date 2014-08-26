@@ -63,6 +63,12 @@
 >>> get_percentages_values(signal1, fs, plot=False)
 (50.0, 0.0, 0.0, 50.0)
 
+>>> tripping_get_time(signal1, fs)
+(1.0, 1.0)
+
+>>> tripping_get_percentages(signal1, fs, plot=False)
+(50.0, 50.0)
+
 """
 
 def run():

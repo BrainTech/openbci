@@ -241,3 +241,12 @@ def plot_percentages_being(grid, percentages_being, xedges, yedges):
 	ax.set_aspect('equal')
 	ax.set_xlabel('x [cm]')
 	ax.set_ylabel('y [cm]')
+
+def tripping_get_percentages(signal, fs, plot=False):
+	top_right, top_left, bottom_right, bottom_left = get_percentages_values(signal, fs, plot=plot)
+	return top_right+bottom_right, top_left+bottom_left
+
+def tripping_get_time(signal, fs):
+	right, left = tripping_get_percentages(signal, fs, plot=False)
+	length = signal.shape[1]/fs
+	return right/100.0*length, left/100.0*length
