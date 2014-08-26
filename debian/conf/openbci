@@ -1,0 +1,5 @@
+[diodes]
+appliance = dummy
+[sentry]
+key=
+send_logs=false

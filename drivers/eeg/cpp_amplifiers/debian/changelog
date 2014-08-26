@@ -1,0 +1,61 @@
+openbci-amplifiers (1.8.7-1) unstable; urgency=medium
+
+  * Build using new multiplexer.rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 10 Aug 2014 18:26:16 +0200
+
+openbci-amplifiers (1.8.6-1) unstable; urgency=medium
+
+  * Build using new multiplexer.rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 09 Aug 2014 14:02:03 +0200
+
+openbci-amplifiers (1.8.5-2) unstable; urgency=high
+
+  * Build really using new multiplexer rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Mon, 30 Jun 2014 13:02:52 +0200
+
+openbci-amplifiers (1.8.5-1) unstable; urgency=high
+
+  * Build using new multiplexer.rules.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 06 Jun 2014 13:44:13 +0200
+
+openbci-amplifiers (1.8.4-4) unstable; urgency=low
+
+  * Change source format to 3.0 (quilt).
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 06 Oct 2013 12:19:46 +0200
+
+openbci-amplifiers (1.8.4-3) unstable; urgency=low
+
+  * Added links to amplifiers binary in openbci directory.
+
+ -- Karol Auguštin <karol@augustin.pl>  Fri, 08 Feb 2013 16:45:57 +0100
+
+openbci-amplifiers (1.8.4-2) unstable; urgency=low
+
+  * Proper build for different releases.
+  * Add missing protobuf-compiler depency
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 19 Dec 2012 15:38:53 +0100
+
+openbci-amplifiers (1.8.4-1) precise; urgency=low
+
+  * Recompile due to multiplexer.rules update.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 05 Dec 2012 00:42:49 +0100
+
+openbci-amplifiers (1.7.1-1) precise; urgency=low
+
+  * Upstream release.
+  * Description update.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sat, 29 Sep 2012 11:32:50 +0200
+
+openbci-amplifiers (0.1-1) precise; urgency=low
+
+  * Initial release.
+
+ -- Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>  Sun, 19 Aug 2012 13:56:58 +0200

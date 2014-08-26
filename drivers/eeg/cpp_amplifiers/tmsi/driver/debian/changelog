@@ -1,0 +1,17 @@
+tmsi (1.8-1~) unstable; urgency=low
+
+  * Fix udev rule to match debian sid fxload version.
+
+ -- Karol Auguštin <karol@augustin.pl>  Thu, 17 Jan 2013 17:18:52 +0100
+
+tmsi (1.8-0~) unstable; urgency=low
+
+  * Fix module for 3.5 kernel.
+
+ -- Karol Auguštin <karol@augustin.pl>  Sun, 13 Jan 2013 15:43:09 +0100
+
+tmsi (1.7-0~) precise; urgency=low
+
+  * Automatically packaged by DKMS.
+
+ -- Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>  Fri, 17 Aug 2012 19:00:22 +0200

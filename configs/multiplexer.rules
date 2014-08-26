@@ -762,6 +762,16 @@ type {
 	report_delivery_error: false
 	}
      to {
+        peer: "TOBII_TAG_SAVER"
+    whom: ALL
+    report_delivery_error: false
+    }
+     to {
+        peer: "WII_BOARD_TAG_SAVER"
+    whom: ALL
+    report_delivery_error: false
+    }
+     to {
      	peer: "TAGS_RECEIVER"
 	whom: ANY
 	report_delivery_error: false

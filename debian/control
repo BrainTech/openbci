@@ -1,0 +1,29 @@
+Source: openbci
+Section: science
+Priority: extra
+Maintainer: Karol Auguštin <karol@augustin.pl>
+Build-Depends: bash, debhelper
+Standards-Version: 3.9.3
+Vcs-Git: git://git.braintech.pl/openbci.git
+Vcs-Browser: http://git.braintech.pl/openbci.git
+
+
+Package: openbci-core
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${python:Depends}, openbci-libmultiplexer0 (>> 0.1.3-4), openbci-multiplexer (>> 0.1.3-4), openbci-multiplexer-python (>> 0.1.3-4), libbluetooth-dev, libprotobuf8 (>= 2.5), python-protobuf (>= 2.5), xsel, python-serial, python-pygame, python-scipy, python-numpy, python-sip, python-qt4, python-bluetooth, python-xlib, python-zmq, python-pyaudio, python-pyside.qtcore, python-twisted, python-scientific, python-matplotlib, python-psutil
+Description: Framework used to build BCI's and psychological experiments.
+ Platform for Brain Computer Interfaces. This software contains tools
+ which allow you to build a complete Brain Computer Interface based
+ on EEG, and perform some experiments collecting EEG and other
+ biomedical data signals.
+
+
+Package: openbci
+Architecture: all
+Depends: openbci-core, openbci-amplifiers (>> 1.8.4-2)
+Description: Master package containing whole OpenBCI framework.
+ Platform for Brain Computer Interfaces. This software contains 
+ tools which allow you to build a complete Brain Computer Interface
+ based on EEG, and perform some experiments collecting EEG and
+ other biomedical data signals.
+
