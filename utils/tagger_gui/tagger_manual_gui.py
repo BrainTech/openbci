@@ -25,37 +25,38 @@ class TagGui(QtGui.QWidget):
     def __init__(self):
         super(TagGui, self).__init__()
 
-    def initUI(self, frames_params):
+    def initUI(self, frames_params, display_list):
         hbox = QtGui.QHBoxLayout(self)
-
         status_bar = StatusBar()
-
-        frames = []
-        for type_, params in frames_params:
-            if type_ == 'timer':
-                frames.append(TimerFrame())
-                frames[-1].init_frame(params)
-            elif type_ == 'tag':
-                frames.append(TagFrame())
-                frames[-1].init_frame(status_bar, self.tag_signal, params)
-        print frames
-
-        frames.append(EndFrame())
-        frames[-1].init_frame()
-
-        for ind, f in enumerate(frames):
-            if ind == 0:
-                f.set_is_first()
-            else:
-                f.set_elier_frame(frames[ind-1])
-
-            if ind < len(frames)-1:
-                f.set_next_frame(frames[ind+1])
-
-
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        for f in frames:
-            splitter.addWidget(f)
+
+        frames = {}
+        for type_, name, params in frames_params:
+            if type_ == 'timer':
+                frames[name] = TimerFrame()
+                frames[name].init_frame(params)
+            elif type_ == 'tag':
+                frames[name] = TagFrame()
+                frames[name].init_frame(status_bar, self.tag_signal, params)
+
+            splitter.addWidget(frames[name])
+
+
+        frames['end'] = EndFrame()
+        frames['end'].init_frame()
+        splitter.addWidget(frames['end'])
+
+        for ind, name in enumerate(display_list):
+            if ind == 0:
+                frames[name].set_is_first()
+            else:
+                frames[name].set_elier_frame(frames[display_list[ind-1]])
+
+            if ind < len(display_list)-1:
+                frames[name].set_next_frame(frames[display_list[ind+1]])
+
+        frames[display_list[-1]].set_next_frame(frames['end'])
+        frames['end'].set_elier_frame(frames[display_list[-1]])
 
         splitter.addWidget(status_bar)
         hbox.addWidget(splitter)

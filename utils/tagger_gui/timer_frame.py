@@ -37,6 +37,7 @@ class TimerFrame(Frame):
         self.active_next_frame()
 
     def set_on(self):
+        self.timer.clock_reset()
         self.stop_button.set_enable()
         self.action_start()
         self.set_is_on()
@@ -51,3 +52,4 @@ class TimerFrame(Frame):
     def finish_frame_action(self):
         self.set_off()
         self.next_frame.remove(self.next_frame[0])
+        print self, self.next_frame

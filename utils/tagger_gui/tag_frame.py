@@ -40,6 +40,11 @@ class TagFrame(Frame):
             self.stop_button.set_position(3)
             self.stop_button.connect(self.action_stop)
             self.stop_button.set_disable()
+        elif self.tag_on_end  != '':
+            self.stop_button = Button('stop', self)
+            self.stop_button.set_position(3)
+            self.stop_button.connect(self.action_stop)
+            self.stop_button.set_disable()
 
         self.start_button = Button(self.tag, self)
         self.start_button.set_position(1)
@@ -72,7 +77,6 @@ class TagFrame(Frame):
     def action_start(self):
         if self.sound:
             self.player.play()
-
         if (not self.repetitions_number) and (not self.is_first):
             self.finish_action_elier_frame()
         self.start_button.set_disable()
@@ -82,6 +86,8 @@ class TagFrame(Frame):
         if self.duration:
             self.stop_button.set_enable()
             self.timer.clock_start()
+        elif self.tag_on_end  != '':
+            self.stop_button.set_enable()
         else:
             self.active_next_frame()
 
@@ -89,12 +95,13 @@ class TagFrame(Frame):
         if self.sound:
             self.player.play()
 
-        if self.timer.is_on:
+        if self.duration and self.timer.is_on:
             self.timer.clock_stop()
 
         if self.tag_on_end != '':
             self._create_tag(self.tag_on_end)
             self.status_bar.show_message(self._create_status_bar_message('create', self.tag_on_end))
+        
         self.stop_button.set_disable()
         self.active_next_frame()
 
@@ -113,6 +120,7 @@ class TagFrame(Frame):
     def set_on(self):
         self.start_button.set_enable()
         if self.duration:
+            self.timer.clock_reset()
             self.stop_button.set_enable()
         self.clear_button.set_enable()
         self.set_is_on()
@@ -127,9 +135,13 @@ class TagFrame(Frame):
     def _send_tags(self):
         for tag in self.tags:
             self.tag_signal.emit(str(tag))
+        self.tags = []
 
     def finish_frame_action(self):
-        self._send_tags()
         self.status_bar.show_message(self._create_status_bar_message('send', self.tags))
+        self._send_tags()
         self.set_off()
         self.next_frame.remove(self.next_frame[0])
+        if self.is_first:
+            self.is_first=0
+        print self, self.next_frame
