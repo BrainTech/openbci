@@ -18,24 +18,25 @@ class TaggerManual(ConfiguredClient):
         self.app = QtGui.QApplication(sys.argv)
         self.gui = TagGui()
         self.gui.tag_signal.connect(self.send_tag)
-
         self._menage_params()
-        self.gui.initUI(self.frames_params)
+        self.gui.initUI(self.frames_params, self.display_list)
 
         self.ready()
 
     def _menage_params(self):
-        display = self.get_param('display').split(';')
+        self.display_list = self.get_param('display_list').split(';')
         tags = self.get_param('tags').split(';')
         timers = self.get_param('timers').split(';')
-
         self.frames_params = []
-        for frame in display:
+        for frame in self.display_list:
             params = self.get_param(frame)
             if frame in timers:
-                self.frames_params.append(('timer', eval(params)))
+                self.frames_params.append(('timer', frame, eval(params)))
+                timers.remove(frame)
             elif frame in tags:
-                self.frames_params.append(('tag', eval(params)))
+                self.frames_params.append(('tag', frame, eval(params)))
+                tags.remove(frame)
+
     def run(self):
         self.app.exec_()
         
