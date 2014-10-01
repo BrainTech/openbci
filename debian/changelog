@@ -1,3 +1,9 @@
+openbci (1.8.21-2) unstable; urgency=medium
+
+  * Change dependency to libprotobuf9.
+
+ -- Karol Auguštin <karol@augustin.pl>  Wed, 01 Oct 2014 13:16:14 +0200
+
 openbci (1.8.21-1) unstable; urgency=medium
 
   * New upstream release.
