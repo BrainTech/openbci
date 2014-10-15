@@ -1,7 +1,7 @@
 Source: openbci-amplifiers
 Section: science
 Priority: optional
-Maintainer: Karol Auguštin <karol@augustin.pl>
+Maintainer: Alex Khrabrov <alex@mroja.net>
 Build-Depends: debhelper (>= 7),
       libboost-dev,
       libboost-date-time-dev,
