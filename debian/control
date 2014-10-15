@@ -1,11 +1,11 @@
 Source: openbci
 Section: science
 Priority: extra
-Maintainer: Karol Auguštin <karol@augustin.pl>
+Maintainer: Alex Khrabrov <alex@mroja.net>
 Build-Depends: bash, debhelper
 Standards-Version: 3.9.3
-Vcs-Git: git://git.braintech.pl/openbci.git
-Vcs-Browser: http://git.braintech.pl/openbci.git
+Vcs-Git: https://github.com/BrainTech/openbci.git
+Vcs-Browser: https://github.com/BrainTech/openbci
 
 
 Package: openbci-core
