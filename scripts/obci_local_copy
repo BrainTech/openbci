@@ -23,7 +23,7 @@ else
     if [ $type == "local" ]
     then
 	echo 'Cloning branch master from git repository to '$pwd/$1
-	git clone git://git.braintech.pl/openbci.git $pwd/$1
+	git clone https://github.com/BrainTech/openbci.git $pwd/$1
          if dpkg -s "openbci-multiplexer" 2>/dev/null 1>/dev/null
          then
 	     mkdir -p $pwd/$1/multiplexer-install/bin/
@@ -42,7 +42,7 @@ else
 	     ln -s /usr/bin/file_amplifier $pwd/$1/drivers/eeg/cpp_amplifiers/file_amplifier
          else
 	     echo 'Cloning azouk-libraries form git repository'
-	     git clone git://git.braintech.pl/azouk-libraries.git
+	     git clone https://github.com/BrainTech/azouk-libraries.git
 	     sudo apt-get update && sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost-all-dev libbluetooth-dev fxload xsel python-dev python-serial python-pygame python-scipy python-numpy python-sip python-qt4 python-bluetooth gnulib python-xlib screen libzmq-dev python-zmq unzip python-pyaudio
 	     cd $pwd/$1/scripts
 	     ./install_drivers.sh
@@ -53,9 +53,9 @@ else
 	sudo apt-get update && sudo apt-get install git-core g++ python-dev maven2 openjdk-6-jdk patch libboost-all-dev libbluetooth-dev fxload xsel python-dev python-serial python-pygame python-scipy python-numpy python-sip python-qt4 python-bluetooth gnulib python-xlib screen libzmq-dev python-zmq unzip python-pyaudio
 
 	echo 'Cloning openBCI source form git repository...'
-	git clone git://git.braintech.pl/openbci.git $pwd/$1
+	git clone https://github.com/BrainTech/openbci.git $pwd/$1
 	echo 'Cloning azouk-libraries form git repository'
-	git clone git://git.braintech.pl/azouk-libraries.git
+	git clone https://github.com/BrainTech/azouk-libraries.git
 	cd $pwd/$1/scripts
 	echo 'Installing local copy of multiplexer and drivers...'
 	./install_mx.sh
