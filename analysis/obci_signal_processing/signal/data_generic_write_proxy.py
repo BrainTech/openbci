@@ -57,6 +57,9 @@ class DataGenericWriteProxy(object):
         self._data_len = ln
         self._samples_per_vector = sm
 
+    def set_first_sample_timestamp(self, timestamp):
+        self.first_sample_timestamp = timestamp
+
     def finish_saving(self):
         """Close the file, return a tuple - 
         file`s name and number of samples."""
@@ -108,7 +111,7 @@ class DataGenericWriteProxy(object):
             try:
                 strs = [struct.pack(self._sample_struct_type, ch) for ch in s.channels]
                 if self._append_ts:
-                    strs.append(struct.pack(self._sample_struct_type, ts))
+                    strs.append(struct.pack(self._sample_struct_type, ts-self.first_sample_timestamp))
             except struct.error:
                 LOGGER.error("Error while writhing to file. Bad sample format.")
                 raise(signal_exceptions.BadSampleFormat())

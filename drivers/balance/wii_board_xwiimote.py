@@ -41,7 +41,7 @@ class WiiBalanceBoard(object):
         self.p = select.epoll.fromfd(self.iface.get_fd())
 
     def measurment(self):
-        if not init_pool:
+        if not self.init_pool:
             self._init_pool()
         self.p.poll()
         event = xwiimote.event()
