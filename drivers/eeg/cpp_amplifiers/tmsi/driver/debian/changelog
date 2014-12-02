@@ -1,3 +1,9 @@
+tmsi (1.9-0~) unstable; urgency=low
+
+  * SYNFI driver stability update
+
+ -- Alex Khrabrov <alex@mroja.net>  Tue, 2 Nov 2014 17:16:52 +0100
+
 tmsi (1.8-1~) unstable; urgency=low
 
   * Fix udev rule to match debian sid fxload version.
