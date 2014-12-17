@@ -1,0 +1,49 @@
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Author:
+#     Anna Chabuda <anna.chabuda@gmail.com>
+#
+
+from tags_file_writer import TagsFileWriter
+import tag_utils
+import time
+
+import os.path
+
+class Tagger(object):
+    """docstring for Tagger"""
+    def __init__(self, tag_file_path, user_name, sesion_number, status='ON'):
+        super(Tagger, self).__init__()
+        self.status = status
+        if self.status == 'ON':
+            self.file_name = self._get_file_name(user_name, sesion_number, tag_file_path)
+            self.writer = TagsFileWriter(self.file_name)
+    
+    def set_first_timestamp(self, timestamp):
+        self.first_timestamp = timestamp
+
+    def _get_file_name(self, user_name, sesion_number, tag_file_path):
+        return  os.path.join(tag_file_path, 
+                             '{}_{}_{}.tag'.format(user_name, sesion_number, time.time()))
+
+    def set_tag(self, timestamp, tag_name, tag_value):
+        if self.status == 'ON':
+            tag = tag_utils.pack_tag_to_dict(timestamp, timestamp+0.1, tag_name, {'type':tag_value})
+            self.writer.tag_received(tag)
+
+    def finish(self):
+        if self.status == 'ON':
+            self.writer.finish_saving(self.first_timestamp)
