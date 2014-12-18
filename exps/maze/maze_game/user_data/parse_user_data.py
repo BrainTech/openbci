@@ -50,6 +50,9 @@ class ParseUserData(object):
     def _get_user_id(self, user_name):
         return self.user_data[self.user_data['user_name']==user_name]['ID'].values[0]
 
+    def _get_user_sesion_type(self, user_name):
+        return self.user_data[self.user_data['user_name']==user_name]['group'].values[0]
+
     def _update_file_sesion_data(self):
         self.sesion_data.to_csv(self.file_sesion_name, col=SESION_COL)
 
@@ -66,23 +69,10 @@ class ParseUserData(object):
             start_level = 1
         else:
             start_level = sesion_data[-1]
-        return current_sesion, start_level
+        return current_sesion, start_level, self._get_user_sesion_type(user_name)
 
     def set_sesion_data(self, user_name, current_sesion, stop_level):
         id_user = self._get_user_id(user_name)
         index = self.sesion_data[self.sesion_data['ID']==id_user].index[0]
         self.sesion_data = self.sesion_data.set_value(index, 'sesion_{}'.format(current_sesion), stop_level)
         self._update_file_sesion_data()
-
-
-
-
-
-
-
-
-
-
-
-
-        

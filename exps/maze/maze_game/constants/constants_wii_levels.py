@@ -17,22 +17,8 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-from pygame.locals import *
-
-ARROW_SIZE = [0, 120]
-ARROW_PROPORTION = [37.5, 47.5+37.5, 47.5+37.5+15.0]
-ARROW_SIZE = 120
-ARROW_LEVELS_LINES = False
-
-ARROW_KEY = {'left' : K_LEFT,
-             'right' : K_RIGHT,
-             'down' : K_DOWN, 
-             'up' : K_UP}
-
-ARROW_TIME = 2
-
-ARROW_SPEED_UP = float(ARROW_SIZE)/ARROW_TIME
-
-ARROW_SPEED_DOWN = float(ARROW_SIZE)/ARROW_TIME
-
-ARROW_COLORS_LEVELS  = ['green', 'green', 'green']
+WII_LEVELS = {'1': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 37.5,
+                    'area_end_value': 37.5+47.5}
+              }

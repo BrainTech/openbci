@@ -32,43 +32,55 @@ class DrawArrow(object):
               'green'  : (  0, 255,   0),
               'red'    : (255,   0,   0)}
 
-    def __init__(self, window, type_, levels=[45,90]):
+    def __init__(self, window, type_, arrow_colors_levels, 
+                 proportion = [37.5, 37.5, 25.0], size = 120,
+                 levels_lines = True):
         super(DrawArrow, self).__init__()
         self.window = window
         if type_ == 'right':
-            self.arrow = RightArrow(levels)
+            self.arrow = RightArrow(arrow_colors_levels, proportion, size, levels_lines)
+
         elif type_ == 'left':
-            self.arrow = LeftArrow(levels)
+            self.arrow = LeftArrow(arrow_colors_levels, proportion, size, levels_lines)
+
         elif type_ == 'up':
-            self.arrow = UpArrow(levels)
+            self.arrow = UpArrow(arrow_colors_levels, proportion, size, levels_lines)
+
         elif type_ == 'down':
-            self.arrow = DownArrow(levels)
-        self.level=0
+            self.arrow = DownArrow(arrow_colors_levels, proportion, size, levels_lines)
+
+        self.level = 0
+
+    def _draw_black_shape_arrow(self):
+        line1, line2 = self.arrow.get_shape_level_points()
+
+        if self.arrow.are_levels_lines():
+            pygame.draw.line(self.window, self.COLORS['black'], line1[0], line1[1], 2)
+            pygame.draw.line(self.window, self.COLORS['black'], line2[0], line2[1], 2)
+
+        pygame.draw.polygon(self.window, self.COLORS['black'], self.arrow.points, 3)
+
+    def _draw_level_data(self, level, points, color):
+        pygame.draw.polygon(self.window, self.COLORS[color], points)
+        if level<self.arrow.get_size():
+            line = self.arrow.get_level_line_points(level)
+            pygame.draw.line(self.window, self.COLORS['black'], line[0], line[1], 2)
+
+    def _draw_white_fill_arrow(self):
+        pygame.draw.polygon(self.window, self.COLORS['white'], self.arrow.points)
 
     def init_position(self, position):
         self.arrow.init_shape(position)
 
-    def draw_black_shape_arrow(self):
-        line1, line2 = self.arrow.get_shape_level_points()
-        if self.arrow.levels[0]>0:
-            pygame.draw.line(self.window, self.COLORS['black'], line1[0], line1[1], 2)
-        if self.arrow.levels[1]<120:
-            pygame.draw.line(self.window, self.COLORS['black'], line2[0], line2[1], 2)
-        pygame.draw.polygon(self.window, self.COLORS['black'], self.arrow.points, 3)
-
-    def draw_white_fill_arrow(self):
-        pygame.draw.polygon(self.window, self.COLORS['white'], self.arrow.points)
-
     def init_draw_arrow(self):
-        self.draw_white_fill_arrow()
-        self.draw_black_shape_arrow()
+        self._draw_white_fill_arrow()
+        self._draw_black_shape_arrow()
 
     def draw_level(self, level):
         color, points = self.arrow.get_level_points(level)
-        self.draw_white_fill_arrow()
-        pygame.draw.polygon(self.window, self.COLORS[color], points)
-        self.draw_black_shape_arrow()
-        self.display()
+        self._draw_white_fill_arrow()
+        self._draw_level_data(level, points, color)
+        self._draw_black_shape_arrow()
 
     def set_level(self, level):
         self.level=level

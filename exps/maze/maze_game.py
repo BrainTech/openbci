@@ -20,12 +20,14 @@
 import os.path
 
 from maze_game.maze_logic import MazeLogic
+from maze_game.maze_wii_logic import MazeWiiLogic
+
 from maze_game.tags.tagger import Tagger
 from maze_game.user_data.parse_user_data import ParseUserData
 
 class MazeGame(object):
-    def __init__(self, user_name, 
-                 config_sesion_file_name='sesions_data.csv', config_sesion_file_path='./maze_game/user_data',
+    def __init__(self, user_name, config_sesion_file_name='sesions_data.csv', 
+                 config_sesion_file_path='./maze_game/user_data',
                  config_users_file_name='users_data.csv', config_users_file_path='./',
                  sesion_duration=30*60, time_board_display=5, time_left_out=30, 
                  maze_path_display=False, tag_file_path='',tag_status=True):
@@ -38,7 +40,7 @@ class MazeGame(object):
 
         self.user_data_parser = ParseUserData(self.config_users_file, self.config_sesion_file)
 
-        self.sesion_number, self.start_level= self._get_start_info(self.user_name)
+        self.sesion_number, self.start_level, self.sesion_type = self._get_start_info(self.user_name)
         self.sesion_duration = sesion_duration
         self.time_board_display = time_board_display
         self.time_left_out = time_left_out
@@ -59,8 +61,12 @@ class MazeGame(object):
         self.user_data_parser.set_sesion_data(self.user_name, self.sesion_number, end_level)
 
     def run(self):
-        game = MazeLogic(self.start_level, self.sesion_number, self.sesion_duration, self.time_board_display, 
-                       self.time_left_out, self.maze_path_display, self.tagger)
+        if self.sesion_type == 'wii':
+          game = MazeWiiLogic(self.start_level, 1, self.sesion_number, self.sesion_duration, self.time_board_display, 
+                              self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
+        else:
+          game = MazeLogic(self.start_level, self.sesion_number, self.sesion_duration, self.time_board_display, 
+                           self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
         game.main()
         self.finish_saving(game.get_current_level())
 

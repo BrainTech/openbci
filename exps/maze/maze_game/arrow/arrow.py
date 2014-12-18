@@ -20,9 +20,17 @@
 import numpy as np
 
 class Arrow(object):
-    def __init__(self, levels):
+    def __init__(self, arrow_colors_level=['yellow', 'green', 'red'], 
+                 proportion=[37.5, 47.5+37.5, 47.5+37.5+15.0], size=120.0, levels_lines=True):
         super(Arrow, self).__init__()
-        self.levels = levels
+        self.size = size
+        self.set_levels(proportion)
+        self.arrow_colors_level = arrow_colors_level
+        self.levels_lines = levels_lines
+
+    def set_levels(self, proportion):
+        self.levels = [100*(proportion[0]/self.size), 
+                       100*((proportion[1])/self.size)]
 
     def find_point_x(self, x, y, level_x):
         a, b = np.polyfit(x, y, 1)
@@ -42,9 +50,23 @@ class Arrow(object):
         pass
 
     def get_level_color(self, level):
-        if level<self.levels[0]:
-            return 'yellow'
-        elif level<= self.levels[1]:
-            return 'green'
+        if level < self.get_level_start_point():
+            return self.arrow_colors_level[0]
+
+        elif level <= self.get_level_stop_point():
+            return self.arrow_colors_level[1]
+
         else:
-            return 'red'
+            return self.arrow_colors_level[2]
+
+    def get_size(self):
+        return self.size
+
+    def get_level_start_point(self):
+        return self.levels[0]
+
+    def get_level_stop_point(self):
+        return self.levels[1]
+
+    def are_levels_lines(self):
+        return self.levels_lines

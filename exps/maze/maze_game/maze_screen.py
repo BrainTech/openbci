@@ -24,18 +24,28 @@ import os.path, time
 from pygame.locals import *
 
 from arrow.draw_arrow import DrawArrow
+from arrow.draw_wii_arrow import DrawWiiArrow
+
 from screen_text.screen_text import *
 from screen_text.render_textrect import render_textrect
 
-from constants.constants_arrow import ARROWS_LEVELS
+from constants.constants_arrow import ARROW_PROPORTION, ARROW_SIZE, ARROW_COLORS_LEVELS, ARROW_LEVELS_LINES
 from constants.constants_game import SIZE_OBJECT, SCREEN_SIZE, RECT_TEXT_SIZE
 
 class MazeScreen(object):  
-    def __init__(self, time_board_display, sesion_number):
+    def __init__(self, time_board_display, sesion_number, sesion_type):
         super(MazeScreen, self).__init__()
         pygame.init()
+
+        self.sesion_type = sesion_type
+
         self.size_object = SIZE_OBJECT
-        self.levels_arrow = ARROWS_LEVELS
+
+        self.arrow_proportion = ARROW_PROPORTION
+        self.arrow_size = ARROW_SIZE
+        self.arrow_colors_levels = ARROW_COLORS_LEVELS
+        self.arrow_levels_lines = ARROW_LEVELS_LINES
+
         self.screen_size = SCREEN_SIZE
         self.time_board_display = time_board_display
         self.sesion_number = sesion_number
@@ -72,10 +82,24 @@ class MazeScreen(object):
         self.black_screen = pygame.image.load(os.path.join('./maze_game/game_data','blank.gif'))
 
     def _init_arrows(self):
-        self.arrow_right = DrawArrow(self.screen, 'right', self.levels_arrow)
-        self.arrow_left = DrawArrow(self.screen, 'left', self.levels_arrow)
-        self.arrow_up = DrawArrow(self.screen, 'up', self.levels_arrow)
-        self.arrow_down = DrawArrow(self.screen, 'down', self.levels_arrow)
+        if self.sesion_type == 'key':
+            self.arrow_right = DrawArrow(self.screen, 'right', self.arrow_colors_levels, 
+                                         self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_left = DrawArrow(self.screen, 'left', self.arrow_colors_levels, 
+                                        self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_up = DrawArrow(self.screen, 'up', self.arrow_colors_levels, 
+                                      self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_down = DrawArrow(self.screen, 'down', self.arrow_colors_levels, 
+                                        self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+        else:
+            self.arrow_right = DrawWiiArrow(self.screen, 'right', self.arrow_colors_levels, 
+                                            self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_left = DrawWiiArrow(self.screen, 'left', self.arrow_colors_levels, 
+                                           self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_up = DrawWiiArrow(self.screen, 'up', self.arrow_colors_levels, 
+                                         self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
+            self.arrow_down = DrawWiiArrow(self.screen, 'down', self.arrow_colors_levels, 
+                                           self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
 
     def get_arrow(self, type_):
         if type_ == 'right':
@@ -89,6 +113,9 @@ class MazeScreen(object):
 
         elif type_ == 'down':
             return self.arrow_down
+
+    def load_wii_level_arrow_proportion(self, direction, proportion):
+        self.get_arrow(direction).set_arrow_proportion(proportion)
 
     def _calc_grid_offsets(self, level):
         self.x_offset = (self.screen_size[0] -(((len(level))*self.size_object)))/2
@@ -114,12 +141,29 @@ class MazeScreen(object):
         self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
         self._display()
         
-    def draw_game_with_arrow_level(self, arrow_type, arrow_level, level_array, ball_position_x, ball_position_y, 
-                             current_level, level_time, sesion_time):
+    def draw_game_with_arrow_update(self, arrow_type, arrow_level, level_array, ball_position_x, 
+                                    ball_position_y, current_level, level_time, sesion_time):
         self._draw_level(level_array)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self.get_arrow(arrow_type).draw_level(arrow_level)
+        self._display()
+
+    def draw_game_with_wii_arrow(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
+                                 ball_position_y, current_level, level_time, sesion_time):
+        self._draw_level(level_array)
+        self._draw_ball(ball_position_x, ball_position_y)
+        self._draw_level_info(current_level, level_time, sesion_time)
+        self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
+        self.get_arrow(arrow_type).draw_level(arrow_level, arrow_area_param)
+        self._display()
+
+    def draw_game_with_wii_arrow_update(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
+                                        ball_position_y, current_level, level_time, sesion_time):
+        self._draw_level(level_array)
+        self._draw_ball(ball_position_x, ball_position_y)
+        self._draw_level_info(current_level, level_time, sesion_time)
+        self.get_arrow(arrow_type).draw_level(arrow_level, arrow_area_param)
         self._display()
 
     def _draw_level(self, level):
@@ -160,6 +204,19 @@ class MazeScreen(object):
                                             1, 
                                             (250, 250, 250))
         self.screen.blit(level_text, (0, 60))
+
+    def _draw_arrow(self, type_, ball_x, ball_y):
+        if type_ == 'right':
+            self._draw_arrow_right(ball_x, ball_y)
+
+        elif type_ == 'left':
+            self._draw_arrow_left(ball_x, ball_y)
+
+        elif type_ == 'up':
+            self._draw_arrow_up(ball_x, ball_y)
+
+        elif type_ == 'down':
+            self._draw_arrow_down(ball_x, ball_y)
 
     def _draw_arrow(self, type_, ball_x, ball_y):
         if type_ == 'right':

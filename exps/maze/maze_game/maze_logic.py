@@ -34,13 +34,13 @@ from constants.constants_game import FRAME_RATE, GAME_KEYS
 class MazeLogic(object):
 
     def __init__(self, start_level, sesion_number, sesion_duration, time_board_display,
-                 time_left_out, maze_path_display, tagger):
+                 time_left_out, maze_path_display, tagger, sesion_type):
         super(MazeLogic, self).__init__()
         self.start_level = start_level
         self.sesion_timer = SesionWatcher(sesion_duration, time_left_out)
         self.level = MazeLevel()
         self.levels_quantity = self.level.get_levels_quantity()
-        self.screen = MazeScreen(time_board_display, sesion_number)
+        self.screen = MazeScreen(time_board_display, sesion_number, sesion_type)
         self.status = True
         self.pause_status = False
         self.tagger = tagger
@@ -78,7 +78,7 @@ class MazeLogic(object):
     def get_level_array(self):
         return self.level.get_level_array()
 
-    def clear_arrows(self):
+    def _clear_arrows(self):
         self.screen.arrow_right.set_level(0)
         self.screen.arrow_left.set_level(0)
         self.screen.arrow_down.set_level(0)
@@ -86,7 +86,7 @@ class MazeLogic(object):
 
     def load_level(self):
         self.level.load_level(self.get_current_level())
-        self.clear_arrows()
+        self._clear_arrows()
 
     def get_current_level(self):
         return self.current_level
@@ -139,6 +139,7 @@ class MazeLogic(object):
                              self.get_current_level(),
                              self.get_level_time(),
                              self.get_sesion_time())
+
     def draw_game_with_arrow(self, arrow_type):
         self.screen.draw_game_with_arrow(arrow_type,
                                          self.get_level_array(),
@@ -148,8 +149,8 @@ class MazeLogic(object):
                                          self.get_level_time(),
                                          self.get_sesion_time())        
 
-    def draw_game_with_arrow_level(self, arrow_type, arrow_level):
-        self.screen.draw_game_with_arrow_level(arrow_type,
+    def draw_game_with_arrow_update(self, arrow_type, arrow_level):
+        self.screen.draw_game_with_arrow_update(arrow_type,
                                                arrow_level,
                                                self.get_level_array(),
                                                self.get_ball_position_x(),
@@ -161,7 +162,6 @@ class MazeLogic(object):
                                                
     def update_screen(self):
         self.draw_game()
-        
         for event in pygame.event.get():                    
             if event.type == QUIT:
                 self.exit_game()
@@ -187,8 +187,8 @@ class MazeLogic(object):
 
         level = arrow.get_level()
         if sum(pygame.key.get_pressed()) and pygame.key.name(pygame.key.get_pressed().index(1))==type_:
-            while level <= ARROW_SIZE[1]:
-                self.draw_game_with_arrow_level(type_,level)
+            while level <= ARROW_SIZE:
+                self.draw_game_with_arrow_update(type_,level)
                 for event in pygame.event.get():
                     if event.type == KEYUP:
                         arrow.set_level(level)
@@ -210,8 +210,8 @@ class MazeLogic(object):
         key = ARROW_KEY[type_]
 
         level = arrow.get_level()
-        while level > ARROW_SIZE[0]:
-            self.draw_game_with_arrow_level(type_, level)
+        while level > 0:
+            self.draw_game_with_arrow_update(type_, level)
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     pygame.event.post(event)
