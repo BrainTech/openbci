@@ -142,7 +142,7 @@ int TmsiAmplifier::connect_ip(const string &address_port){
     return Socket;
 }
 int TmsiAmplifier::connect_bluetooth(const string & address) {
-	int s, status;
+	int s;
 	mode=BLUETOOTH_AMPLIFIER;
 #ifdef BLUETOOTH
 	struct sockaddr_rc addr = {0};
@@ -158,7 +158,7 @@ int TmsiAmplifier::connect_bluetooth(const string & address) {
 	str2ba(address.c_str(), &addr.rc_bdaddr );
 
 	/* open connection to TMSi hardware */
-	status = connect(s, (struct sockaddr *)&addr, sizeof(addr));
+	connect(s, (struct sockaddr *)&addr, sizeof(addr));
       /* return socket */
 #endif
 	return s;
@@ -273,16 +273,16 @@ void TmsiAmplifier::start_sampling() {
     if (mode==IP_AMPLIFIER)
     	fei.mode = 0x0;
     else
-    	fei.mode &= 0x02;
-    fei.currentsampleratesetting = sample_rate_div&0xFFFF;
+    	fei.mode = 0x2;
+    fei.currentsampleratesetting = sample_rate_div&0xF;
     br = 0;
     keep_alive=1;
     uint counter = 0;
     int type=0;
     tms_write_frontendinfo(fd, &fei);
-    receive();
+    receive();    
     while (counter < sampling_rate && (!update_info(TMSACKNOWLEDGE))) {
-        counter++;
+        counter++;        
         if (counter%(sampling_rate/4)==0 || read_errors==MAX_ERRORS/2)
         {
             fprintf(stderr,"Sending start request again....\n");
@@ -307,7 +307,7 @@ void TmsiAmplifier::start_sampling() {
 }
 void TmsiAmplifier::disconnect_mobita(){
 	logger.info() << "Disconnecting Mobita...\n";
-	char disconnect_message[]={0xaa,0xaa,0x06,0x49,0x06,0x00,0x00,0x00,0x14,0x00,0x04,0x00,0x01,0x00,0x00,0x00,0x31,0x0c};
+	char disconnect_message[]="\xaa\xaa\x06\x49\x06\x00\x00\x00\x14\x00\x04\x00\x01\x00\x00\x00\x31\x0c";
 	write(fd,disconnect_message,18);
 }
 void TmsiAmplifier::stop_sampling(bool disconnecting) {
@@ -687,7 +687,7 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
   i=0;
   while (no_error &&i<meta_data)
   {
-      br=read(fd,&msg[i],meta_data-i);
+      br=read(fd,&msg[i],meta_data-i);      
       if (br==0 && ++rtc>TIMEOUT) 
 		{
 			fprintf(stderr,"Warning: Read 0 bytes\n");	
@@ -704,24 +704,24 @@ int TmsiAmplifier::rcv_message(uint8_t *msg,int n){
 	  if (dump_fd!=-1) write(dump_fd,&msg[i],br);
           if (msg[0] == msg[1] && msg[0] == 0xAA)
                 i += br;
-            else { int j=i;
-                for (j = i; j < i + br; j++)
-                    if (j>0 && msg[j] == msg[j - 1] && msg[j] == 0xAA) {
-                        memcpy(msg, msg + j-1, i + br - j+1);
-                        i = i + br - j+1;
-                        break;
-                    }
-            if (j>=i+br)
-            {
+          else { 
+            int j=i;
+            for (j = i; j < i + br; j++)
+                if (j>0 && msg[j] == msg[j - 1] && msg[j] == 0xAA) {		   
+                    memmove(msg, msg + j-1, i + br - j+1);
+		    i = i + br - j+1;
+	            j=-1;
+                    break;
+                }
+            if (j!=-1){                
                 msg[0] = msg[i + br - 1];
                 i = 1;
-            }
+                }
             }
       }
 
-
   }
-    size=msg[2]&0xFF;
+  size=msg[2]&0xFF;
   if (size==255)
   {
       i=4;
