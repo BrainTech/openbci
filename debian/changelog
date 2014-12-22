@@ -1,3 +1,10 @@
+openbci (1.8.23-1) unstable; urgency=medium
+
+  * Fixed Kinect support
+  * New multiplexer rules
+
+ -- Alex Khrabrov <alex@mroja.net>  Mon, 22 Dec 2014 18:33:14 +0100
+
 openbci (1.8.22-1) unstable; urgency=medium
 
   * New upstream release
