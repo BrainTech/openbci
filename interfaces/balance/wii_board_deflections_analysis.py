@@ -12,7 +12,7 @@ from obci.utils.openbci_logging import log_crash
 
 class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
     @log_crash
-    def __init__(self, addresses, p_type = peers.WII_BOARD_SIGNAL_CATCHER):#todo - update peer type):
+    def __init__(self, addresses, p_type = peers.WII_BOARD_ANALYSIS):#todo - update peer type):
         super(WiiBoardDeflectionsAnalysis, self).__init__(addresses=addresses, type=p_type)
         # set maxes - left, right, up, down: either -1 1 (if used in scenario for calibration) or user-s max deflections from calibration
         # set stanie swobodne area
@@ -33,7 +33,7 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
                 msg.y = sway_level
                 msg.timestamp = time.time()
                 self.conn.send_message(message=msg.SerializeToString(),
-                                       type=types.ETR_SIGNAL_MESSAGE, flush=True)#todo - update sent format
+                                       type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)#todo - update sent format
         else:
             pass #todo - log warning
         self.no_response()

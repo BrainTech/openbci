@@ -9,7 +9,7 @@ from obci.configs import settings, variables_pb2
 import random, time, sys, thread
 
 class LogicVenturesExperiment(ConfiguredMultiplexerServer):
-    def __init__(self, addresses, p_type = peers.ETR_ANALYSIS):#todo - change peer type
+    def __init__(self, addresses, p_type = peers.LOGIC_WII_BOARD):#todo - change peer type
         super(LogicVenturesExperiment, self).__init__(addresses=addresses, type=p_type)
         #self.run_maze_in_thread()
 
@@ -25,10 +25,10 @@ class LogicVenturesExperiment(ConfiguredMultiplexerServer):
         thread.start_new_thread(self.run_maze, ())
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.ETR_SIGNAL_MESSAGE:#todo - change it to wii analysis message
+        if mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:#todo - change it to wii analysis message
             l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
-            self.logger.debug("GOT MESSAGE: "+str(l_msg))
+            self.logger.info("GOT MESSAGE: "+str(l_msg))
             #dec, ugm = self.handle_etr_message(l_msg)
             #if dec >= 0:
             #    self.logger.debug("Sending dec message...")
