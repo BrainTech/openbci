@@ -22,8 +22,6 @@ class WiiBoard2DRouter(ConfiguredMultiplexerServer):
             v.ParseFromString(mxmsg.message)
             for s in v.samples:
                 msg = variables_pb2.Sample2D()
-                #s.channels[0]=tl;s.channels[1]=tr
-                #s.channels[2]=br;s.channels[3]=bl
                 sum_mass = sum(s.channels[0:4])
                 msg.x = (((s.channels[1] + s.channels[2]) - (s.channels[0] + s.channels[3]))/sum_mass) + 0.5
                 msg.y = (((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass) + 0.5
