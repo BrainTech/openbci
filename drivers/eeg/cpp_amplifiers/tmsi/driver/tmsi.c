@@ -11,6 +11,8 @@
  *          
  * ChangeLog
  * ---------
+ * v1.8 - 02-12-2014 Maciej Pawlisz
+                * Stabilization of SYNFI device
  * v1.8 - 13-01-2013 Maciej Pawlisz
  *              * err() replaced by pr_err()
  * v1.7 - 02-06-2012 Maciej Pawlisz
@@ -65,7 +67,7 @@
 #include <linux/semaphore.h>
 
 /* Driver information */
-#define DRIVER_VERSION                  "1.8.0"
+#define DRIVER_VERSION                  "1.8.1"
 #define DRIVER_AUTHOR                  "Paul Koster (Clinical Science Systems), p.koster@mailcss.com; Maciej Pawlisz (maciej.pawlisz@gmail.com)"
 #define DRIVER_DESC                  "TMS International USB <-> Fiber Interface Driver for Linux (c) 2005,2010,2011"
 
@@ -207,6 +209,12 @@ static int tmsi_open(struct inode *inode, struct file *file) {
     dev->packet_buffer = kfifo_alloc(PACKET_BUFFER_SIZE, GFP_KERNEL, &dev->buffer_lock);
 #endif
     
+    dev->fifo_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
+    sema_init(dev->fifo_sem, 0);
+    dev->release_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
+    sema_init(dev->release_sem, 0);
+
+    
     // Setup initial bulk receive URB and submit
     pipe=usb_rcvbulkpipe(dev->udev, dev->bulk_recv_endpoint->bEndpointAddress);
     for (i = 0; i < BULK_RECV_URBS; ++i) {
@@ -243,10 +251,7 @@ static int tmsi_open(struct inode *inode, struct file *file) {
         if (retval)
             pr_err("%s - failed submitting isochronous read urb[%d], error %d", __FUNCTION__, i, retval);
     }
-    dev->fifo_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
-    sema_init(dev->fifo_sem, 0);
-    dev->release_sem = kmalloc(sizeof (struct semaphore), GFP_KERNEL);
-    sema_init(dev->release_sem, 0);
+    
     info("Tmsi device open() success");
 exit:
     return retval;
@@ -476,6 +481,7 @@ static void tmsi_read_bulk_callback(struct urb *urb, struct pt_regs *regs) {
     struct tmsi_data* dev;
     if (!(urb->status == -ENOENT || urb->status == -ECONNRESET || urb->status == -ESHUTDOWN)) {
         dev = (struct tmsi_data*) urb->context;
+	if (!dev->device_open) return;
         debug("Read_callback: begin%d\n",urb->status);
         switch (urb->status) {
             case 0:
@@ -531,6 +537,7 @@ static void tmsi_read_isoc_callback(struct urb *urb, struct pt_regs *regs) {
     debug("Read isoc callback %x:%d,%d\n",(void *)urb,urb->status,urb->iso_frame_desc[0].status);
     if (!(status == -ENOENT || status == -ECONNRESET || status == -ESHUTDOWN)) {
         dev = (struct tmsi_data*) urb->context;
+	if (!dev->device_open) return;
         switch (status) {
             case 0:
             {
@@ -609,53 +616,57 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
         goto error;
     }
     memset(dev, 0x00, sizeof (*dev));
-
+   
     // Initialize dev structure
     dev->udev = usb_get_dev(interface_to_usbdev(interface));
     dev->interface = interface;
     kref_init(&dev->kref);
-
+    
     
 
     /* Use the alternate interface specified in the tmsi device */
     usb_set_interface(dev->udev, 0, 1);
 
+    
     /* set up the endpoint information */
     iface_desc = interface->cur_altsetting;
-
+    
     for (i = 0; i < iface_desc->desc.bNumEndpoints; ++i) {
         endpoint = &iface_desc->endpoint[i].desc;
-
+	
         /* we found a Bulk IN endpoint */
         if (!dev->bulk_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK))
             dev->bulk_recv_endpoint = endpoint;
-
+	
 
         /* we found a Bulk OUT endpoint */
-        if (!dev->bulk_send_endpoint && !(endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK)) {
+        if (!dev->bulk_send_endpoint && !(endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_BULK))
             dev->bulk_send_endpoint = endpoint;
-        }
+        
 
         /* We found an Isochronous IN endpoint */
         if (!dev->isoc_recv_endpoint && (endpoint->bEndpointAddress & USB_DIR_IN) && ((endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) == USB_ENDPOINT_XFER_ISOC))
             dev->isoc_recv_endpoint = endpoint;
+	
     }
-
+    
     /* Check if all required endpoints are present */
-    if (!(dev->bulk_recv_endpoint->bEndpointAddress && dev->bulk_send_endpoint->bEndpointAddress && dev->isoc_recv_endpoint->bEndpointAddress)) {
+    if (!(dev->bulk_recv_endpoint && dev->bulk_recv_endpoint->bEndpointAddress && 
+          dev->bulk_send_endpoint && dev->bulk_send_endpoint->bEndpointAddress && 
+          dev->isoc_recv_endpoint && dev->isoc_recv_endpoint->bEndpointAddress)) {
         pr_err("Could not find the required USB endpoints (bulk in/out, isochronous in)");
         goto error;
     }
-
+    
     /* Check if device is attached to an USB2 interface */
     if (dev->udev->speed != USB_SPEED_HIGH) {
         pr_err("Device is not attached to an USB2 bus");
         goto error;
     }
-
+    
     /* save our data pointer in this interface device */
     usb_set_intfdata(interface, dev);
-
+    
     /* we can register the device now, as it is ready */
     retval = usb_register_dev(interface, &tmsi_class);
     if (retval) {
@@ -664,7 +675,7 @@ static int tmsi_probe(struct usb_interface *interface, const struct usb_device_i
         usb_set_intfdata(interface, NULL);
         goto error;
     }
-
+    
     /* let the user know what node this device is now attached to */
       info("%s device (driver version %s) now attached (minor %d)\n", id->idProduct==USB_SYNFI_PRODUCT_ID?"SYNFI":"FUSBI",DRIVER_VERSION, interface->minor);
 
