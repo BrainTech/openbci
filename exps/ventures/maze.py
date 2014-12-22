@@ -17,7 +17,7 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-import os.path
+import os.path, thread, time, Queue
 
 from maze_game.maze_logic import MazeLogic
 from maze_game.maze_wii_logic import MazeWiiLogic
@@ -31,6 +31,7 @@ class MazeGame(object):
                  config_users_file_name='users_data.csv', config_users_file_path='./',
                  sesion_duration=30*60, time_board_display=5, time_left_out=30, 
                  maze_path_display=False, tag_file_path='',tag_status=True):
+	self._init_queue()
         super(MazeGame, self).__init__()
         self.user_name = user_name
         self.config_sesion_file = os.path.join(config_sesion_file_path, 
@@ -70,6 +71,36 @@ class MazeGame(object):
         game.main()
         self.finish_saving(game.get_current_level())
 
-if __name__ == '__main__':
+    def _init_queue(self):
+        self._queue = Queue.Queue()
+
+    def handle_message(self, msg):
+        self._queue.put(msg)
+    
+    def get_message(self):
+        if self._queue.qsize() > 5:
+            print("Warning! Queue size is: "+str(self._queue.qsize()))
+        try:
+            return self._queue.get_nowait()
+        except Queue.Empty:
+            return None
+
+def test_maze():
+    a = MazeGame('test')
+    thread.start_new_thread(a.run, ())
+    x = 0
+    while True:
+        a.handle_message((2, x%100))
+        x += 1
+        for i in range(10000):
+            i
+	if x % 5 == 0:
+	    for i in range(5):
+		a.get_message()
+
+def run_maze():
     a = MazeGame('test')
     a.run()
+    
+if __name__ == '__main__':
+    test_maze()

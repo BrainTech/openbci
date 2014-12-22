@@ -5,7 +5,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.configs import settings, variables_pb2
 #from obci.gui.ugm import ugm_helper
-#from maze import maze
+import maze
 import random, time, sys, thread
 
 class LogicVenturesExperiment(ConfiguredMultiplexerServer):
@@ -15,9 +15,8 @@ class LogicVenturesExperiment(ConfiguredMultiplexerServer):
 
     def run_maze(self):
         self.logger.info("RUN MAZE START")
-        a = maze.MazeGame('test')
-        self.a = a
-        a.run()
+        self._maze = maze.MazeGame('test')
+        self._maze.run()
         self.logger.info("RUN MAZE END")
 
     def run_maze_in_thread(self):
@@ -26,20 +25,12 @@ class LogicVenturesExperiment(ConfiguredMultiplexerServer):
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:#todo - change it to wii analysis message
-            l_msg = variables_pb2.Sample2D()
-            l_msg.ParseFromString(mxmsg.message)
-            self.logger.info("GOT MESSAGE: "+str(l_msg))
-            #dec, ugm = self.handle_etr_message(l_msg)
-            #if dec >= 0:
-            #    self.logger.debug("Sending dec message...")
-            #    self.conn.send_message(message = str(dec), type = types.DECISION_MESSAGE, flush=True)
-            #elif ugm is not None:
-            #    self.logger.debug("Sending ugm message...")
-            #    ugm_helper.send_config(self.conn, ugm, 1)
-            #else:
-            #    self.logger.info("Got notihing from manager...")
-            #self.a.got_msg(l_msg, self.logger)
-
+            msg = variables_pb2.Sample2D()
+            msg.ParseFromString(mxmsg.message)
+            self.logger.info("GOT MESSAGE: "+str(msg))
+            self._maze.handle_message((msg.x, msg.y))
+        else:
+            self.logger.warning("Unrecognised message received! Ignore...")
         self.no_response()
 
 if __name__ == "__main__":
