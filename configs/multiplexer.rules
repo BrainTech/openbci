@@ -318,6 +318,12 @@ peer {
 }
 
 peer {
+     type: 160
+     name: "LOGIC_WII_BOARD"
+     queue_size: 32768
+}
+
+peer {
      type: 161
      name: "EXTERNAL_SWITCH_AMPLIFIER"
 }
@@ -1325,5 +1331,23 @@ type {
        whom: ALL
 	report_delivery_error: false
        }
+    to {
+       peer: "WII_BOARD_ANALYSIS"
+       whom: ALL
+       report_delivery_error: false
+       }      			      
 
 }
+
+
+type {
+     type:254
+     name: "WII_BOARD_ANALYSIS_RESULTS"
+     to {
+     	peer: "LOGIC_WII_BOARD"
+	whom: ALL
+	report_delivery_error: false
+	}	
+}
+	
+	
