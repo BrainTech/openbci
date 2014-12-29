@@ -11,11 +11,12 @@ import random, time, sys, thread
 class LogicVenturesExperiment(ConfiguredMultiplexerServer):
     def __init__(self, addresses, p_type = peers.LOGIC_WII_BOARD):#todo - change peer type
         super(LogicVenturesExperiment, self).__init__(addresses=addresses, type=p_type)
-        #self.run_maze_in_thread()
-
+        self._maze = maze.MazeGame('test')
+        self.run_maze_in_thread()
+        self.ready()
+        
     def run_maze(self):
         self.logger.info("RUN MAZE START")
-        self._maze = maze.MazeGame('test')
         self._maze.run()
         self.logger.info("RUN MAZE END")
 
@@ -27,7 +28,7 @@ class LogicVenturesExperiment(ConfiguredMultiplexerServer):
         if mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:#todo - change it to wii analysis message
             msg = variables_pb2.Sample2D()
             msg.ParseFromString(mxmsg.message)
-            self.logger.info("GOT MESSAGE: "+str(msg))
+            #self.logger.info("GOT MESSAGE: "+str(msg))
             self._maze.handle_message((msg.x, msg.y))
         else:
             self.logger.warning("Unrecognised message received! Ignore...")
