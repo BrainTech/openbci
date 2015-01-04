@@ -15,15 +15,15 @@ class Button(QtGui.QPushButton):
 
     def set_position(self, position):
         if position == 1:
-            self.move(10, 10)
+            self.move(10, 15)
         elif position ==2:
-            self.move(100,10)
+            self.move(100,15)
         elif position == 3:
-            self.move(200, 10)
+            self.move(200, 15)
         elif position == 4:
-            self.move(300, 10)
+            self.move(300, 15)
         elif position == 5:
-            self.move(150, 10)
+            self.move(150, 15)
             
     def connect(self, func_action):
         self.clicked.connect(func_action)
