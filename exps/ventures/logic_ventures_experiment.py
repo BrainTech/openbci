@@ -6,7 +6,7 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 from obci.acquisition import acquisition_helper
 #from obci.gui.ugm import ugm_helper
-import maze
+import maze, calibration
 import random, time, sys, thread
 
 class LogicVenturesExperiment(ConfiguredMultiplexerServer):
@@ -20,7 +20,7 @@ class LogicVenturesExperiment(ConfiguredMultiplexerServer):
 
         session_name = self.get_param('session_name')
         if session_name == 'ventures_calibration':
-            pass #TODO - calib gui scenario
+            self._game = calibration.Calibration()
         elif session_name == 'ventures_game':
             self._game = maze.MazeGame('test')
         else:

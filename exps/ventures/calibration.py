@@ -21,11 +21,13 @@ import pygame
 from pygame.locals import *
 pygame.mixer.init()
 
-from calibration_screen import CalibrationScreen
+from obci.exps.ventures.calibration_game.calibration_screen import CalibrationScreen
+import Queue
 
 class Calibration(object):
     def __init__(self):
         super(Calibration, self).__init__()
+        self._init_queue()
         self.screen = CalibrationScreen()
         self.level1 = 0
         self.level2 = 0
@@ -65,6 +67,19 @@ class Calibration(object):
     def finish_calibration(self):
         pygame.quit()
 
+    def _init_queue(self):
+        self._queue = Queue.Queue()
+
+    def handle_message(self, msg):
+        self._queue.put(msg)
+    
+    def get_message(self):
+        if self._queue.qsize() > 5:
+            print("Warning! Queue size is: "+str(self._queue.qsize()))
+        try:
+            return self._queue.get_nowait()
+        except Queue.Empty:
+            return None
 
 if __name__ == '__main__':
     Calibration().run()
