@@ -10,30 +10,42 @@ import maze
 import random, time, sys, thread
 
 class LogicVenturesExperiment(ConfiguredMultiplexerServer):
-    def __init__(self, addresses, p_type = peers.LOGIC_WII_BOARD):#todo - change peer type
+    def __init__(self, addresses, p_type = peers.LOGIC_WII_BOARD):
         self._finish = False
         self._addresses = addresses
         super(LogicVenturesExperiment, self).__init__(addresses=addresses, type=p_type)
-        self._maze = maze.MazeGame('test')
-        self.run_maze_in_thread()
+        user_id = self.get_param('user_id')
+        self.logger.info("Starting maze for user: "+str(user_id))
+        #todo - get from db user's session data or do it deeper in maze ...
+
+        session_name = self.get_param('session_name')
+        if session_name == 'ventures_calibration':
+            pass #TODO - calib gui scenario
+        elif session_name == 'ventures_game':
+            self._game = maze.MazeGame('test')
+        else:
+            raise Exception ("Unknown session name - abort")
+
+
+        self.run_game_in_thread()
         self.ready()
         
-    def run_maze(self):
+    def run_game(self):
         self.logger.info("RUN MAZE START")
-        self._maze.run()
+        self._game.run()
         self.logger.info("RUN MAZE END")
         self._finish = True
 
-    def run_maze_in_thread(self):
+    def run_game_in_thread(self):
         self.logger.info("RUN MAZE START THREAD ...")
-        thread.start_new_thread(self.run_maze, ())
+        thread.start_new_thread(self.run_game, ())
 
     def handle_message(self, mxmsg):
-        if mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:#todo - change it to wii analysis message
+        if mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:
             msg = variables_pb2.Sample2D()
             msg.ParseFromString(mxmsg.message)
             #self.logger.info("GOT MESSAGE: "+str(msg))
-            self._maze.handle_message((msg.x, msg.y))
+            self._game.handle_message((msg.x, msg.y))
         else:
             self.logger.warning("Unrecognised message received! Ignore...")
         self.no_response()

@@ -12,10 +12,21 @@ from obci.utils.openbci_logging import log_crash
 
 class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
     @log_crash
-    def __init__(self, addresses, p_type = peers.WII_BOARD_ANALYSIS):#todo - update peer type):
+    def __init__(self, addresses, p_type = peers.WII_BOARD_ANALYSIS):
         super(WiiBoardDeflectionsAnalysis, self).__init__(addresses=addresses, type=p_type)
-        # set maxes - left, right, up, down: either -1 1 (if used in scenario for calibration) or user-s max deflections from calibration
-        # set stanie swobodne area
+        user_id = self.get_param('user_id')
+        self.logger.info("Starting sway analysis for user: "+str(user_id))
+        #todo - either calib or game - set stanie swobodne area from  user_id
+
+        session_name = self.get_param('session_name')
+        if session_name == 'ventures_calibration':
+            pass
+            # set maxes - left, right, up, down: either -1 1 (if used in scenario for calibration) 
+        elif session_name == 'ventures_game':
+            pass #set user-s max deflections from last calibration of user_id
+        else:
+            raise Exception ("Unknown session name - abort")
+
         self.ready()
 
     def handle_message(self, mxmsg):
@@ -33,7 +44,7 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
                 msg.y = sway_level
                 msg.timestamp = time.time()
                 self.conn.send_message(message=msg.SerializeToString(),
-                                       type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)#todo - update sent format
+                                       type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
         else:
             pass #todo - log warning
         self.no_response()
