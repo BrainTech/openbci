@@ -18,6 +18,11 @@ def finish_saving(mx_addresses=settings.MULTIPLEXER_ADDRESSES, s_types=['eeg']):
     ctr.loop()
     return ctr.result
 
+def wait_saving_finished(mx_addresses=settings.MULTIPLEXER_ADDRESSES, s_types=['eeg']):
+    ctr = AcquisitionControl(mx_addresses, s_types)
+    ctr.loop()
+    return ctr.result
+
 
 class AcquisitionControl(BaseMultiplexerServer):
     """A class for creating a manifest file with metadata."""

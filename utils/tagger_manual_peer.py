@@ -4,6 +4,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_client import ConfiguredClient
 from obci.configs import variables_pb2, settings
 
+from obci.acquisition import acquisition_helper
 from obci.utils import tags_helper
 from obci.utils.tagger_gui.tagger_manual_gui import TagGui
 from PyQt4 import QtGui, QtCore
@@ -18,6 +19,7 @@ class TaggerManual(ConfiguredClient):
         self.app = QtGui.QApplication(sys.argv)
         self.gui = TagGui()
         self.gui.tag_signal.connect(self.send_tag)
+        self.gui.finish_signal.connect(self.finish)
         self._menage_params()
         self.gui.initUI(self.frames_params, self.display_list)
 
@@ -40,6 +42,10 @@ class TaggerManual(ConfiguredClient):
     def run(self):
         self.app.exec_()
         
+    def finish(self):
+        self.logger.info("start finish saving")
+        acquisition_helper.send_finish_saving(self.conn)
+
     def send_tag(self, tag):
         tag = eval(str(tag)) 
         tags_helper.send_tag(self.conn, float(tag['timestamp']), float(tag['timestamp']), tag['name'], p_tag_desc={}, p_tag_channels="")
