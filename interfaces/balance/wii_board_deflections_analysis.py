@@ -11,8 +11,11 @@ from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
 class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
+    DIRS=['up', 'right', 'down', 'left', 'baseline']
     @log_crash
     def __init__(self, addresses, p_type = peers.WII_BOARD_ANALYSIS):
+        self.v = 0
+        self.d = 0
         super(WiiBoardDeflectionsAnalysis, self).__init__(addresses=addresses, type=p_type)
         user_id = self.get_param('user_id')
         self.logger.info("Starting sway analysis for user: "+str(user_id))
@@ -34,15 +37,14 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
             v = variables_pb2.SampleVector()
             v.ParseFromString(mxmsg.message)
             for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
-                msg = variables_pb2.Sample2D()
+                msg = variables_pb2.IntVariable()
                 sum_mass = sum(s.channels[0:4])
                 x = (((s.channels[1] + s.channels[2]) - (s.channels[0] + s.channels[3]))/sum_mass) + 0.5
                 y = (((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass) + 0.5
                 #apply filtering somwere here
                 sway_direction, sway_level = self._calculate_sway(x, y)
-                msg.x = sway_direction
-                msg.y = sway_level
-                msg.timestamp = time.time()
+                msg.key = sway_direction
+                msg.value = sway_level
                 self.conn.send_message(message=msg.SerializeToString(),
                                        type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
         else:
@@ -51,7 +53,10 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
     def _calculate_sway(self, x, y):
         #using self.maxes and self.stanie swobodne area
         #calculate sway direction and sway level 
-        return 0, 50
+        self.v = self.v + 0.25
+        if not (self.v % 100):
+            self.d = (self.d + 1) % 5
+        return self.DIRS[self.d], (int(self.v) % 70)
 
 if __name__ == "__main__":
     WiiBoardDeflectionsAnalysis(settings.MULTIPLEXER_ADDRESSES).loop()
