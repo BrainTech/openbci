@@ -28,41 +28,18 @@ class Calibration(object):
     def __init__(self):
         super(Calibration, self).__init__()
         self._init_queue()
-        self.screen = CalibrationScreen()
-        self.level1 = 0
-        self.level2 = 0
-        self.level3 = 0
-        self.level4 = 0
+        self._screen = CalibrationScreen()
 
     def run(self):
         done = False
         while not done:
             for event in pygame.event.get():                  
-                if event.type == QUIT:
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                     self.finish_calibration()
                     done = True
-
-                elif event.type == KEYDOWN:            
-                    if event.key == K_ESCAPE:
-                        self.finish_calibration()
-                        done = True
-                    if event.key == K_RIGHT:
-                        self.level1 = (self.level1+1)#%200
-                        print self.level1
-                        self.screen.update_block('right', self.level1)
-                    if event.key == K_LEFT:
-                        self.level2 = (self.level2+1)#%200
-                        print self.level2
-                        self.screen.update_block('left', self.level2)
-                    if event.key == K_UP:
-                        self.level3 = (self.level3+1)#%200
-                        print self.level3
-                        self.screen.update_block('up', self.level3)
-                    if event.key == K_DOWN:
-                        self.level4 = (self.level4+1)#%200
-                        print self.level4
-                        self.screen.update_block('down', self.level4)
-
+            sample = self.get_message()
+            if sample is not None and sample.key != 'baseline':
+                self._screen.update_block(sample.key, sample.value)
 
     def finish_calibration(self):
         pygame.quit()
