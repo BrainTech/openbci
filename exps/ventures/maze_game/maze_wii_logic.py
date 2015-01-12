@@ -33,24 +33,20 @@ class Sample(object):
     """docstring for Sample"""
     def __init__(self, direction):
         super(Sample, self).__init__()
-        self.type = 'wii'
-        self.value = 50
-        self.direction = direction
+        self.value = 0
+        self.key = direction
 
 def get_sample():
-    for i in range(200000):
-      if i<100:
-        return Sample('up')
-      else:
         return Sample('down')
 
 
 class MazeWiiLogic(MazeLogic):
     def __init__(self, start_level, start_wii_level, sesion_number, sesion_duration, 
-                 time_board_display, time_left_out, maze_path_display, tagger, sesion_type):
+                 time_board_display, time_left_out, maze_path_display, tagger, sesion_type, data_engine):
         super(MazeWiiLogic, self).__init__(start_level, sesion_number, sesion_duration, 
                                            time_board_display, time_left_out, 
                                            maze_path_display, tagger, sesion_type)
+        self.data_engine = data_engine
         self.start_wii_level = start_wii_level
         self.wii_level = MazeWiiLevel()
         self._init_wii_arrows()
@@ -119,25 +115,26 @@ class MazeWiiLogic(MazeLogic):
         
 
     def update_screen(self):
-        sample = get_sample()
-        if sample.type == 'wii':
-            if sample.direction == self.get_current_arrow_direction():
+        sample = self.data_engine.get_message()
+        #sample = get_sample()
+        if sample is not None:
+            if sample.key == self.get_current_arrow_direction():
                 self.get_current_arrow().update(sample.value)
-                self.draw_game_with_arrow(sample.direction)
-            elif sample.direction == '0':
+                self.draw_game_with_arrow(sample.key)
+            elif sample.key == 'baseline':
                 if self.get_current_arrow_direction() != None:
                     self.get_current_arrow().reset()
                 self.draw_game()
             else:
                 if self.get_current_arrow_direction() != None:
                     self.get_current_arrow().reset()
-                    self.set_current_arrow_direction(sample.direction)
+                    self.set_current_arrow_direction(sample.key)
                     self.get_current_arrow().update(sample.value)
-                    self.draw_game_with_arrow_update(sample.direction)
+                    self.draw_game_with_arrow(sample.key)
                 else:
-                    self.set_current_arrow_direction(sample.direction)
+                    self.set_current_arrow_direction(sample.key)
                     self.get_current_arrow().update(sample.value)
-                    self.draw_game_with_arrow(sample.direction)
+                    self.draw_game_with_arrow(sample.key)
             if self.is_move():
                 self.move(self.get_current_arrow_direction())
                 self.get_current_arrow().reset()
@@ -160,8 +157,8 @@ class MazeWiiLogic(MazeLogic):
         self.set_current_wii_level(self.start_wii_level)
         self.load_wii_level()
         self.set_current_arrow_direction(None)
-        self.screen.display_screen('start')
-        self.screen.display_screen('instruction')
+        #self.screen.display_screen('start')
+        #self.screen.display_screen('instruction')
         self.sesion_start() 
         self.level_start()
         while self.get_current_level()<= self.levels_quantity and self.status:

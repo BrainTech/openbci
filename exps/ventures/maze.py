@@ -27,8 +27,8 @@ from maze_game.user_data.parse_user_data import ParseUserData
 
 class MazeGame(object):
     def __init__(self, user_name, config_sesion_file_name='sesions_data.csv', 
-                 config_sesion_file_path='./maze_game/user_data',
-                 config_users_file_name='users_data.csv', config_users_file_path='./',
+                 config_sesion_file_path='/home/ania/obci_mati/exps/ventures/maze_game/user_data',
+                 config_users_file_name='users_data.csv', config_users_file_path='/home/ania/obci_mati/exps/ventures/',
                  sesion_duration=30*60, time_board_display=5, time_left_out=30, 
                  maze_path_display=False, tag_file_path='',tag_status=True):
 	self._init_queue()
@@ -63,11 +63,11 @@ class MazeGame(object):
 
     def run(self):
         if self.sesion_type == 'wii':
-          game = MazeWiiLogic(self.start_level, 1, self.sesion_number, self.sesion_duration, self.time_board_display, 
-                              self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
+            game = MazeWiiLogic(self.start_level, 1, self.sesion_number, self.sesion_duration, self.time_board_display, 
+                                self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type, self)
         else:
-          game = MazeLogic(self.start_level, self.sesion_number, self.sesion_duration, self.time_board_display, 
-                           self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
+            game = MazeLogic(self.start_level, self.sesion_number, self.sesion_duration, self.time_board_display, 
+                             self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
         game.main()
         self.finish_saving(game.get_current_level())
 
@@ -103,4 +103,4 @@ def run_maze():
     a.run()
     
 if __name__ == '__main__':
-    test_maze()
+    run_maze()
