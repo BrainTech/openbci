@@ -37,6 +37,6 @@ class EndFrame(QtGui.QFrame):
 
     def finish_action_elier_frame(self):
         self.elier_frame[0].finish_frame_action()
-        self.elier_frame.remove(self.next_frame[0])
+        self.elier_frame.remove(self.elier_frame[0])
         self.set_off()
         self.finish_signal.emit()
