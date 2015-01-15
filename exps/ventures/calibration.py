@@ -42,7 +42,7 @@ class Calibration(object):
                 self._screen.update_block(sample.key, sample.value)
 
     def finish_calibration(self):
-        pygame.quit()
+        pass
 
     def _init_queue(self):
         self._queue = Queue.Queue()
