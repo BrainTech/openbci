@@ -32,7 +32,12 @@ class MazeLevel(object):
         self.y = 0
 
     def load_level(self, level_number):
-        self.level = LEVELS_IN_ORDER[str(level_number)]
+        self.level, level_type = LEVELS_IN_ORDER[str(level_number)]
+        if level_type == 'T':
+            self.level = np.array(self.level).T
+        elif level_type == 'T->':
+            np.array([row[::-1] for row in self.level]).T
+
         self._set_ball_position_start()
 
     def _set_ball_position_start(self):
@@ -41,7 +46,6 @@ class MazeLevel(object):
                 if self.get_level_array()[ly][lx] == 3:
                     self.set_ball_x(lx)
                     self.set_ball_y(ly)
-
 
     def get_level_array(self):
         return self.level
