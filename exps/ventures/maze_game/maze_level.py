@@ -20,7 +20,7 @@
 import pygame
 pygame.mixer.init()
 pygame.font.init
-
+import numpy as np
 import random
 
 from constants.constants_levels import LEVELS_IN_ORDER, LEVELS_TIMEOUT
@@ -36,7 +36,7 @@ class MazeLevel(object):
         if level_type == 'T':
             self.level = np.array(self.level).T
         elif level_type == 'T->':
-            np.array([row[::-1] for row in self.level]).T
+            self.level = np.array([row[::-1] for row in self.level]).T
 
         self._set_ball_position_start()
 
