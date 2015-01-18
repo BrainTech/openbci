@@ -23,31 +23,22 @@ from maze_game.maze_logic import MazeLogic
 from maze_game.maze_wii_logic import MazeWiiLogic
 
 from maze_game.tags.tagger import Tagger
-from maze_game.user_data.parse_user_data import ParseUserData
+
+from data import data_manager
 
 class MazeGame(object):
-    def __init__(self, user_name, config_sesion_file_name='sesions_data.csv', 
-                 config_sesion_file_path='/home/ania/obci_mati/exps/ventures/maze_game/user_data',
-                 config_users_file_name='users_data.csv', config_users_file_path='/home/ania/obci_mati/exps/ventures/',
-                 sesion_duration=30*60, time_board_display=5, time_left_out=30, 
-                 maze_path_display=False, tag_file_path='',tag_status=True):
+    def __init__(self, user_id, sesion_duration=30*60, time_board_display=5, time_left_out=30, 
+                 maze_path_display=False, tag_file_path='./',tag_status=True):
 	self._init_queue()
         super(MazeGame, self).__init__()
-        self.user_name = user_name
-        self.config_sesion_file = os.path.join(config_sesion_file_path, 
-                                               config_sesion_file_name)
-        self.config_users_file = os.path.join(config_users_file_path, 
-                                              config_users_file_name)
-
-        self.user_data_parser = ParseUserData(self.config_users_file, self.config_sesion_file)
-
-        self.sesion_number, self.start_level, self.sesion_type = self._get_start_info(self.user_name)
+        self.user_id = user_id
+        self.sesion_number = data_manager.sesion_number_get(self.user_id)
+        self.sesion_type = data_manager.sesion_type_get(self.user_id)
         self.sesion_duration = sesion_duration
         self.time_board_display = time_board_display
         self.time_left_out = time_left_out
         self.maze_path_display = maze_path_display
-
-        self.tagger_init(tag_file_path, self.user_name, self.sesion_number, tag_status)
+        self.tagger_init(tag_file_path, self.user_id, self.sesion_number, tag_status)
 
     def tagger_init(self, tag_file_path, user_name, sesion_number, tag_status):
         if tag_status:
@@ -58,18 +49,31 @@ class MazeGame(object):
     def _get_start_info(self, user_name):
         return self.user_data_parser.get_user_trening_data(user_name)
 
-    def finish_saving(self, end_level):
-        self.user_data_parser.set_sesion_data(self.user_name, self.sesion_number, end_level)
-
     def run(self):
         if self.sesion_type == 'wii':
-            game = MazeWiiLogic(self.start_level, 1, self.sesion_number, self.sesion_duration, self.time_board_display, 
-                                self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type, self)
+            game = MazeWiiLogic(data_manager.maze_current_level_get_last(self.user_id),
+                                data_manager.wii_current_level_get_last(self.user_id),
+                                self.sesion_number, 
+                                self.sesion_duration, 
+                                self.time_board_display, 
+                                self.time_left_out, 
+                                self.maze_path_display, 
+                                self.tagger, 
+                                self.sesion_type, 
+                                self)
         else:
-            game = MazeLogic(self.start_level, self.sesion_number, self.sesion_duration, self.time_board_display, 
-                             self.time_left_out, self.maze_path_display, self.tagger, self.sesion_type)
+            game = MazeLogic(data_manager.maze_current_level_get_last(self.user_id), 
+                             self.sesion_number, 
+                             self.sesion_duration, 
+                             self.time_board_display, 
+                             self.time_left_out, 
+                             self.maze_path_display, 
+                             self.tagger, 
+                             self.sesion_type)
         game.main()
-        self.finish_saving(game.get_current_level())
+        #self.sesion_type == 'wii':
+        #    data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
+        data_manager.maze_current_level_set(self.user_id, game.get_current_level())
 
     def _init_queue(self):
         self._queue = Queue.Queue()
@@ -86,7 +90,7 @@ class MazeGame(object):
             return None
 
 def test_maze():
-    a = MazeGame('test')
+    a = MazeGame('1')
     thread.start_new_thread(a.run, ())
     x = 0
     while True:
@@ -99,7 +103,7 @@ def test_maze():
 		a.get_message()
 
 def run_maze():
-    a = MazeGame('test')
+    a = MazeGame('1')
     a.run()
     
 if __name__ == '__main__':

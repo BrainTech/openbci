@@ -54,7 +54,7 @@ class LogicVenturesExperiment(ConfiguredClient):
         if session_name == 'ventures_calibration':
             engine = calibration.Calibration()
         elif session_name == 'ventures_game':
-            engine = maze.MazeGame('test')
+            engine = maze.MazeGame(user_id)
         else:
             raise Exception ("Unknown session name - abort")
         #initialise server to receive wii analysis messages from experiment server via udpServer
