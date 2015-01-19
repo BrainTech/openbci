@@ -85,8 +85,9 @@ def calibration_set(user_id, up, right, down, left, file_name):
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
     else:
         data_user = pd.DataFrame()
+        number = '1'
         data_user['ID'] = pd.Series(user_id)
-        data_user['number']=pd.Series('1')
+        data_user['number']=pd.Series(number)
         data = data.append(data_user)
         data = data.set_index([range(0, len(data.values))])
 
@@ -117,8 +118,9 @@ def wii_current_level_set(user_id, level):
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
     else:
         data_user = pd.DataFrame()
+        number = '1'
         data_user['ID'] = pd.Series(user_id)
-        data_user['number']=pd.Series('1')
+        data_user['number']=pd.Series(number)
         data = data.append(data_user)
         data = data.set_index([range(0, len(data.values))])
 
@@ -142,8 +144,9 @@ def maze_current_level_set(user_id, level):
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
     else:
         data_user = pd.DataFrame()
+        number = '1'
         data_user['ID'] = pd.Series(user_id)
-        data_user['number']=pd.Series('1')
+        data_user['number']=pd.Series(number)
         data = data.append(data_user)
         data = data.set_index([range(0, len(data.values))])
 

@@ -12,16 +12,16 @@ from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 from obci.exps.ventures.data import data_manager
 
-class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
+class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
     """A class used in both calibration and game scenarios in ventures experiment.
     In calibration it uses baseline (from baseline scenario), 
-    sends to logic deflection levels as percentage of max possible deflection (monitor edges or so)
-    and stores max user's deflections at the end of the scenario.
-    In game it uses baseline (from baseline scenario) and max user's deflections (From calibration scenario)
-    and sends to logic deflection levels as a percentage of those maxes."""
+    sends to logic sway levels as percentage of max possible sway (monitor edges or so)
+    and stores max user's sways at the end of the scenario.
+    In game it uses baseline (from baseline scenario) and max user's sways (From calibration scenario)
+    and sends to logic sway levels as a percentage of those maxes."""
     @log_crash
     def __init__(self, addresses, p_type = peers.WII_BOARD_ANALYSIS):
-        super(WiiBoardDeflectionsAnalysis, self).__init__(addresses=addresses, type=p_type)
+        super(WiiBoardSwayAnalysis, self).__init__(addresses=addresses, type=p_type)
         self._init_params()
         self.logger.info("Starting sway analysis for user: "+str(self._user_id))
         self._set_current_baseline(self._user_id)
@@ -38,20 +38,20 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
     def _init_params(self):
         self._user_id = self.get_param('user_id')
         self._file_name = self.get_param('file_name')
-        # 1 if we want to generate dummy current deflections, 0 otherwise
+        # 1 if we want to generate dummy current sways, 0 otherwise
         self._dummy = int(self.get_param('dummy'))        
         # should be ventures_calibration or ventures_game
         self._session_name = self.get_param('session_name')
-        # maximum 'possible' deflections. in calibration it should be a kind of monitor edges
-        # in game it should be user's maximum deflections calculated a moment ago in calibration scenario.
+        # maximum 'possible' sways. in calibration it should be a kind of monitor edges
+        # in game it should be user's maximum sways calculated a moment ago in calibration scenario.
         self._maxes = {'up':-1.0,
                        'right':-1.0,
                        'down':-1.0,
                        'left':-1.0,
                    }
-        # Current user's maximum deflections. in game scenario it is rather not needed
+        # Current user's maximum sways. in game scenario it is rather not needed
         # but in calibration scenario it will be stored at the end of the scenario
-        # and used in next game scenario as 'maximu possible deflections'
+        # and used in next game scenario as 'maximu possible sways'
         self._current_maxes = {'up':-1.0,
                                'right':-1.0,
                                'down':-1.0,
@@ -60,7 +60,7 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
     @log_crash
     def handle_message(self, mxmsg):
         if mxmsg.type == types.WII_BOARD_SIGNAL_MESSAGE:
-            #calculate and send current deflection direction and level
+            #calculate and send current sway direction and level
             v = variables_pb2.SampleVector()
             v.ParseFromString(mxmsg.message)
             for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
@@ -89,8 +89,8 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
 
     def _calculate_sway(self, x, y):
         """Return two values: direction, level where
-        - direction - is a string in ['up', 'right', 'down', 'left', 'baseline'] representing direction of deflection
-        - level - is a int in [0 ... 100 or even more] representing a percentage of max possible deflection
+        - direction - is a string in ['up', 'right', 'down', 'left', 'baseline'] representing direction of sway
+        - level - is a int in [0 ... 100 or even more] representing a percentage of max possible sway
         """
         if self._dummy:
             return self._calculate_dummy_sway()
@@ -115,7 +115,7 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
         if self._session_name == 'ventures_calibration':
             pass
             #TODO - self._update_current_maxes(sway_direction, value)
-            #where value is a possible candidate for user's max deflection
+            #where value is a possible candidate for user's max sway
             #to be used in next 'game' scenario
         return 'up', 80
 
@@ -172,4 +172,4 @@ class WiiBoardDeflectionsAnalysis(ConfiguredMultiplexerServer):
         pass
 
 if __name__ == "__main__":
-    WiiBoardDeflectionsAnalysis(settings.MULTIPLEXER_ADDRESSES).loop()
+    WiiBoardSwayAnalysis(settings.MULTIPLEXER_ADDRESSES).loop()

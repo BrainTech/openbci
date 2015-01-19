@@ -8,7 +8,8 @@ from obci.utils.openbci_logging import log_crash
 from obci.configs import settings, variables_pb2
 from obci.acquisition import acquisition_helper
 
-import maze, calibration
+from obci.exps.ventures.maze_game import maze
+from obci.exps.ventures.calibration_game import calibration
 import random, time, sys, thread
 import socket, time, sys
 

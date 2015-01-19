@@ -19,12 +19,11 @@
 
 import os.path, thread, time, Queue
 
-from maze_game.maze_logic import MazeLogic
-from maze_game.maze_wii_logic import MazeWiiLogic
+from maze_logic import MazeLogic
+from maze_wii_logic import MazeWiiLogic
+from tags.tagger import Tagger
 
-from maze_game.tags.tagger import Tagger
-
-from data import data_manager
+from obci.exps.ventures.data import data_manager
 
 class MazeGame(object):
     def __init__(self, user_id, sesion_duration=30*60, time_board_display=5, time_left_out=30, 
