@@ -27,6 +27,7 @@ class TextRectException(object):
         return self.message
 
 def render_textrect(string, font, rect, text_color, background_color, justification):  
+
     final_lines = []
 
     requested_lines = string.splitlines()

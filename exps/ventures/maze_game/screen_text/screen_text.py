@@ -19,34 +19,34 @@
 
 
 def get_start_sesion_text(training_number):
-    return u"Witamy! Trening na dzisiaj jest gotowy! \n Odbyłeś {}/10 treningów. \n Do końca pozostało {} treningów.".format(training_number, 10-training_number)
+    return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \n Odbyłeś {}/10 treningów. \n Do końca pozostało {} treningów.".format(training_number, 10-training_number)
 
 def get_win_level_text():
-    return u"Gratulacje!\nTwoje wyniki jak dotąd były bardzo dobre. \nPrzechodzisz na kolejny poziom!"
+    return u"\n\n\nGratulacje!\nTwoje wyniki jak dotąd były bardzo dobre. \nPrzechodzisz na kolejny poziom!"
 
 def get_finish_sesion_text(training_number):
     if training_number != 10:
-        return u"Twój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
+        return u"\n\n\nTwój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
     else:
-        return u"Twój trening na dobiegł końca, dziękujemy za udział w eksperymencie"
+        return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
 
 def get_repeat_level_text(repeat_number):
     if repeat_number < 3:
-        return u"Wpadłeś w dziurę! \nMasz jeszcze {}/3 szans. \nSpróbuj ponownie!".format(3-repeat_number)
+        return u"\n\n\nWpadłeś w dziurę! \nMasz jeszcze {}/3 szans. \nSpróbuj ponownie!".format(3-repeat_number)
     else:
-        return u"Wpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności."
+        return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności."
 
 def get_pause_text():
-    return u"Czas treningu został zatrzymany. \n\nNaciśnij:'p', aby powrócić do treningu."
+    return u"\n\n\nCzas treningu został zatrzymany. \n\nNaciśnij:'p', aby powrócić do treningu."
 
 def get_timeout_level():
-    return u"Przekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
+    return u"\n\n\nPrzekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
 
 def get_instruction():
-    return u"Instrukcja"
+    return u"Instrukcja\nMasz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności. Poruszasz się zieloną kulką a celem jest dotarcie do zielonego krzyżyka. \nNależy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie. Kulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy. Twoim zadaniem jest takie zaplanowanie i wykonanie drogi, aby omijając wszystkie dziury, dotrzeć do zielonego krzyżyka w jak najkrótszy czasie.\nKulką kieruje się przy użyciu strzałek na klawiaturze"
 
 def get_exit_text():
-    return u"Czy na pewno chcesz zakończyć sesję?\n\njeżeli tak naciśnij: 't',\njeżeli chcesz powrócić do gry naciśnij: 'n'"
+    return u"\n\n\nCzy na pewno chcesz zakończyć sesję?\n\njeżeli tak naciśnij: 't',\njeżeli chcesz powrócić do gry naciśnij: 'n'"
 
 
 

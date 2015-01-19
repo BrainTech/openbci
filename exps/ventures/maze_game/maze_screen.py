@@ -268,7 +268,7 @@ class MazeScreen(object):
         self.screen.blit(self.black_screen, (0, 0))
         rendered_text = render_textrect(text, self.font_text, self.text_rect, color, (0, 0, 0), 1)
         text = self.font_text.render(text ,1, color)
-        self.screen.blit(rendered_text, self.text_rect.midleft)
+        self.screen.blit(rendered_text, self.text_rect.topleft)
 
     def display_screen(self, action):
         if action == 'win':
