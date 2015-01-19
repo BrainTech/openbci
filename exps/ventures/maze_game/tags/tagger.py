@@ -25,19 +25,19 @@ import os.path
 
 class Tagger(object):
     """docstring for Tagger"""
-    def __init__(self, tag_file_path, user_name, sesion_number, status='ON'):
+    def __init__(self, tag_name, tag_dir, status='ON'):
         super(Tagger, self).__init__()
         self.status = status
         if self.status == 'ON':
-            self.file_name = self._get_file_name(user_name, sesion_number, tag_file_path)
+            self.file_name = self._get_file_name(tag_name, tag_dir)
             self.writer = TagsFileWriter(self.file_name)
     
     def set_first_timestamp(self, timestamp):
         self.first_timestamp = timestamp
 
-    def _get_file_name(self, user_name, sesion_number, tag_file_path):
-        return  os.path.join(tag_file_path, 
-                             '{}_{}_{}.tag'.format(user_name, sesion_number, time.time()))
+    def _get_file_name(self, tag_name, tag_dir):
+        return  os.path.join(tag_dir, 
+                             '{}.{}.tag'.format(tag_name, 'game'))
 
     def set_tag(self, timestamp, tag_name, tag_value):
         if self.status == 'ON':
