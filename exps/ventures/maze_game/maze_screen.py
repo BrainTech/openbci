@@ -32,6 +32,11 @@ from screen_text.render_textrect import render_textrect
 from constants.constants_arrow import ARROW_PROPORTION, ARROW_SIZE, ARROW_COLORS_LEVELS, ARROW_LEVELS_LINES
 from constants.constants_game import SIZE_OBJECT, SCREEN_SIZE, RECT_TEXT_SIZE
 
+from obci.configs import settings
+from obci.acquisition import acquisition_helper
+
+GAME_DATA_PATH = os.path.join(settings.MAIN_DIR, 'exps/ventures/maze_game/game_data')
+
 class MazeScreen(object):  
     def __init__(self, time_board_display, sesion_number, sesion_type):
         super(MazeScreen, self).__init__()
@@ -61,25 +66,24 @@ class MazeScreen(object):
         self.animation_offset_y = 0
         self.text_rect = pygame.Rect(RECT_TEXT_SIZE)
 
-
     def _load_font(self):
         pygame.font.init()
-        self.font_game = pygame.font.Font(os.path.join('./maze_game/game_data','impact.ttf'), 18)
-        self.font_text = pygame.font.Font(os.path.join('./maze_game/game_data','impact.ttf'), 24)
+        self.font_game = pygame.font.Font(os.path.join(GAME_DATA_PATH,'impact.ttf'), 18)
+        self.font_text = pygame.font.Font(os.path.join(GAME_DATA_PATH,'impact.ttf'), 24)
 
     def _load_sound(self):
-        self.hit_wall_sound = pygame.mixer.Sound(os.path.join('./maze_game/game_data','Boom.wav'))
-        self.fall_sound = pygame.mixer.Sound(os.path.join('./maze_game/game_data','Fall.wav'))
-        self.enter_sound = pygame.mixer.Sound(os.path.join('./maze_game/game_data', 'Enter.wav'))
+        self.hit_wall_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH,'Boom.wav'))
+        self.fall_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH,'Fall.wav'))
+        self.enter_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH, 'Enter.wav'))
 
     def _load_image(self):
-        self.ball = pygame.image.load(os.path.join('./maze_game/game_data','ball.png'))
-        self.block = pygame.image.load(os.path.join('./maze_game/game_data','block.gif'))
-        self.floor_block = pygame.image.load(os.path.join('./maze_game/game_data','floor.gif'))
-        self.hole_block = pygame.image.load(os.path.join('./maze_game/game_data','hole.gif'))
-        self.start_block = pygame.image.load(os.path.join('./maze_game/game_data','start.gif'))
-        self.finish_block = pygame.image.load(os.path.join('./maze_game/game_data','finish.gif'))
-        self.black_screen = pygame.image.load(os.path.join('./maze_game/game_data','blank.gif'))
+        self.ball = pygame.image.load(os.path.join(GAME_DATA_PATH,'ball.png'))
+        self.block = pygame.image.load(os.path.join(GAME_DATA_PATH,'block.gif'))
+        self.floor_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor.gif'))
+        self.hole_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'hole.gif'))
+        self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start.gif'))
+        self.finish_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'finish.gif'))
+        self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
 
     def _init_arrows(self):
         if self.sesion_type == 'key':

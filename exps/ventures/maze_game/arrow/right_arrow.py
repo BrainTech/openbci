@@ -36,9 +36,9 @@ class RightArrow(Arrow):
         self.points = (point1, point2, point3, point4, point5, point6, point7)
 
     def get_shape_level_points(self):
-        line1_1 = self.points[3]
+        line1_1 = self.points[5]
         
-        line1_2 = self.points[5]
+        line1_2 = self.points[3]
 
         line2_1 = self.find_point_x([self.points[3][0], self.points[4][0]],
                                     [self.points[3][1], self.points[4][1]],
