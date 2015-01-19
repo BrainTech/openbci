@@ -10,9 +10,9 @@ from obci.exps.ventures.data import data_manager
 from obci.acquisition import acquisition_helper
 
 
-class LogicVenturesStable(ConfiguredMultiplexerServer):
+class LogicVenturesBaseline(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
-        super(LogicVenturesStable, self).__init__(addresses=addresses,
+        super(LogicVenturesBaseline, self).__init__(addresses=addresses,
                                                 type=peers.CLIENT)
         self.ready()
         user_id = self.get_param('user_id')
@@ -30,4 +30,4 @@ class LogicVenturesStable(ConfiguredMultiplexerServer):
         sys.exit(0)
     
 if __name__ == "__main__":
-    LogicVenturesStable(settings.MULTIPLEXER_ADDRESSES).loop()
+    LogicVenturesBaseline(settings.MULTIPLEXER_ADDRESSES).loop()
