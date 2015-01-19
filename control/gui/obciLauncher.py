@@ -63,11 +63,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     engine_reinit = pyqtSignal(object)
 
     @log_crash
-    def __init__(self):
+    def __init__(self, presets=None):
         '''
         Constructor
         '''
         QMainWindow.__init__(self)
+
+        self.presets = presets
 
         self.logger = get_logger('launcherGUI', obci_peer=self)
 
@@ -191,7 +193,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if client is None:
                 self.quit()
             self.exp_states = {}
-            self.engine = OBCILauncherEngine(client, self.server_ip)
+            self.engine = OBCILauncherEngine(client, self.server_ip, self.presets)
             self._connect_signals()
 
         if self.server_ip and self.server_hostname != socket.gethostname():
@@ -875,10 +877,13 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
         super(SelectAmplifierDialog, self).accept()
 
 if __name__ == '__main__':
-    opts, args = getopt.getopt(sys.argv[1:],"t",['tray'])
+    opts, args = getopt.getopt(sys.argv[1:],"",['tray', 'presets='])
+    presets = None
     for opt, arg in opts:
         if opt in ('--tray'):
             os.system('obci_x_tray&')
+        elif opt == '--presets':
+            presets = arg
     if checkpidfile('gui.pid'):
         sys.exit(0)
 
@@ -887,7 +892,7 @@ if __name__ == '__main__':
     s = QSplashScreen(p)
     s.show()
     s.showMessage("OpenBCI - free as in freedom.")
-    dialog = ObciLauncherWindow()
+    dialog = ObciLauncherWindow(presets)
 
     import sys
     dialog.start.connect(lambda name:sys.stderr.write('Start %s \n' % name))
