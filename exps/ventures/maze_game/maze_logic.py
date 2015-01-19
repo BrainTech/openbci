@@ -445,11 +445,26 @@ class MazeLogic(object):
         if self.status:
             self.load_level()
 
+    def instruction(self):
+        self.screen.display_screen('instruction1')
+        instruction_status = 1
+        while instruction_status<3:
+            for event in pygame.event.get():                    
+                if event.type == QUIT:
+                    self.finish_game()
+                elif event.type == KEYDOWN:            
+                    if event.key == K_ESCAPE:
+                        self.finish_game()
+                    if event.key == K_SPACE:
+                        self.screen.display_screen('instruction2')
+                        instruction_status+=1       
+
     def main(self):    
         self.set_current_level(self.start_level)
         self.load_level()  
         self.screen.display_screen('start')
-        self.screen.display_screen('instruction')
+        self.instruction()
+        #self.screen.display_screen('instruction')
         self.sesion_start() 
         self.level_start()
         while self.get_current_level()<= self.levels_quantity and self.status:

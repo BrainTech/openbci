@@ -31,8 +31,10 @@ def get_finish_sesion_text(training_number):
         return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
 
 def get_repeat_level_text(repeat_number):
-    if repeat_number < 3:
-        return u"\n\n\nWpadłeś w dziurę! \nMasz jeszcze {}/3 szans. \nSpróbuj ponownie!".format(3-repeat_number)
+    if 3-repeat_number == 1:
+        return u"\n\n\nWpadłeś w dziurę! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
+    if 3-repeat_number in [2, 3]:
+        return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
     else:
         return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności."
 
@@ -42,8 +44,12 @@ def get_pause_text():
 def get_timeout_level():
     return u"\n\n\nPrzekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
 
-def get_instruction():
-    return u"Instrukcja\nMasz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności. Poruszasz się zieloną kulką a celem jest dotarcie do zielonego krzyżyka. \nNależy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie. Kulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy. Twoim zadaniem jest takie zaplanowanie i wykonanie drogi, aby omijając wszystkie dziury, dotrzeć do zielonego krzyżyka w jak najkrótszy czasie.\nKulką kieruje się przy użyciu strzałek na klawiaturze"
+def get_instruction_1():
+    return u"Masz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\n\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\n\n Należy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy. \n\n <aby przejść dalej naciśnij spację>" 
+
+
+def get_instruction_2():
+    return u"Twoim zadaniem jest takie wykonanie drogi, aby omijając wszystkie dziury dotrzeć do zielonego krzyżyka.\n\nKulką kieruje się przy użyciu strzałek na klawiaturze.\n\nUważaj, wpadając w dziórę tracisz jedną szansę.\n\nPo stracie trzech szans spadasz poziom niżej!\nStaraj się przejść labirynt jak najszybciej.\n\nUważaj, przechodząc labirynt zbyt wolno, także spadasz poziom niżej!\n\n<aby rozpocząć trening naciśnij spację>"
 
 def get_exit_text():
     return u"\n\n\nCzy na pewno chcesz zakończyć sesję?\n\njeżeli tak naciśnij: 't',\njeżeli chcesz powrócić do gry naciśnij: 'n'"

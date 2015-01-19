@@ -192,18 +192,18 @@ class MazeScreen(object):
                                      y_position+self._get_animation_offset_y()))
 
     def _draw_level_info(self, current_level, level_time, sesion_time):
-        level_text = self.font_game.render('{}: {}/48'.format('POZIOM NR', current_level), 
+        level_text = self.font_game.render('{}: {}/166'.format('POZIOM', current_level), 
                                             1, 
                                             (250, 250, 250))
         self.screen.blit(level_text, (0, 20))
-        level_text = self.font_game.render('{}: {}'.format('POZIOM', level_time), 
+        #level_text = self.font_game.render('{}: {}'.format('POZIOM', level_time), 
+        #                                    1, 
+        #                                    (250, 250, 250))
+        #self.screen.blit(level_text, (0, 40))
+        level_text = self.font_game.render('{}: {}'.format('CZAS', sesion_time), 
                                             1, 
                                             (250, 250, 250))
         self.screen.blit(level_text, (0, 40))
-        level_text = self.font_game.render('{}: {}'.format('SESJA', sesion_time), 
-                                            1, 
-                                            (250, 250, 250))
-        self.screen.blit(level_text, (0, 60))
 
     def _draw_arrow(self, type_, ball_x, ball_y):
         if type_ == 'right':
@@ -314,10 +314,13 @@ class MazeScreen(object):
             self._display()
             time.sleep(self.time_board_display)
 
-        elif action == 'instruction':
-            self._display_screen_helper(text=get_instruction(), image=self.black_screen)
+        elif action == 'instruction1':
+            self._display_screen_helper(text=get_instruction_1(), image=self.black_screen)
             self._display()
-            time.sleep(self.time_board_display)
+
+        elif action == 'instruction2':
+            self._display_screen_helper(text=get_instruction_2(), image=self.black_screen)
+            self._display()
 
         elif action == 'exit':
             self._display_screen_helper(text=get_exit_text(), image=self.black_screen)

@@ -24,7 +24,7 @@ SCREEN_SIZE = (640, 480)
 
 SIZE_OBJECT = 45
 
-RECT_TEXT_SIZE = (10, 10, 630, 460)
+RECT_TEXT_SIZE = (0, 10, 640, 470)
 
 GAME_KEYS = {K_RIGHT : 'right',
              K_LEFT : 'left',
