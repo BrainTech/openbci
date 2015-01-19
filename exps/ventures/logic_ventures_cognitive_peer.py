@@ -7,6 +7,7 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 
 from obci.exps.ventures.maze_game import maze
+from obci.acquisition import acquisition_helper
 
 class LogicVenturesCognitive(ConfiguredMultiplexerServer):
     def __init__(self, addresses):
@@ -17,7 +18,9 @@ class LogicVenturesCognitive(ConfiguredMultiplexerServer):
         user_id = self.get_param('user_id')
         self.logger.info("Starting cognitive maze for user: "+str(user_id))
 
-        engine = maze.MazeGame(user_id).run()
+        tag_name = self.get_param('save_file_name')
+        tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
+        maze.MazeGame(user_id, tag_dir=tag_dir, tag_name=tag_name).run()
         sys.exit(0)
     
 if __name__ == "__main__":
