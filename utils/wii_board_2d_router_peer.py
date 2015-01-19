@@ -23,8 +23,8 @@ class WiiBoard2DRouter(ConfiguredMultiplexerServer):
             for s in v.samples:
                 msg = variables_pb2.Sample2D()
                 sum_mass = sum(s.channels[0:4])
-                msg.x = (((s.channels[1] + s.channels[2]) - (s.channels[0] + s.channels[3]))/sum_mass) + 0.5
-                msg.y = (((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass) + 0.5
+                msg.x = 0.5-(((s.channels[1] + s.channels[3]) - (s.channels[0] + s.channels[2]))/sum_mass)
+                msg.y = 0.5-(((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass)
                 msg.timestamp = s.timestamp
                 self.conn.send_message(
                         message=msg.SerializeToString(),
