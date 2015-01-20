@@ -31,7 +31,14 @@ class CalibrationScreen(object):
         self.screen = pygame.display.set_mode(self.SCREEN_SIZE)#, FULLSCREEN)
         pygame.display.init()
         self._init_blocks()
+        self._init_level_max()
         self._display()
+
+    def _init_level_max(self):
+        self.level_max_left = 0
+        self.level_max_right = 0
+        self.level_max_up = 0
+        self.level_max_down = 0
 
     def _init_blocks(self):
         self.block_right = DrawBlock(self.screen, 'right')
@@ -39,7 +46,7 @@ class CalibrationScreen(object):
         self.block_up = DrawBlock(self.screen, 'up')
         self.block_down = DrawBlock(self.screen, 'down')
 
-    def _display(self):
+    def _display(self): 
         pygame.display.flip()
 
     def get_block(self, block_type):
@@ -55,6 +62,36 @@ class CalibrationScreen(object):
         elif block_type == 'down':
             return self.block_down
 
+    def update_level_max(self, level_max_type, value):
+        if level_max_type == 'right' and value > self.level_max_right:
+            self.level_max_right=value
+
+        elif level_max_type == 'left' and value > self.level_max_left:
+            self.level_max_left=value
+
+        elif level_max_type == 'up' and value > self.level_max_up:
+            self.level_max_up=value
+
+        elif level_max_type == 'down' and value > self.level_max_down:
+            self.level_max_down=value
+
+    def get_level_max(self, level_max_type):
+        if level_max_type == 'right':
+            return self.level_max_right
+
+        elif level_max_type == 'left':
+            return self.level_max_left
+
+        elif level_max_type == 'up':
+            return self.level_max_up
+
+        elif level_max_type == 'down':
+            return self.level_max_down
+
     def update_block(self, block_type, level):
-        self.get_block(block_type).draw_level(level)
+        self.update_level_max(block_type, level)
+        self.get_block(block_type).draw_level(level, self.get_level_max(block_type))
+        for block_t in ['right', 'left', 'down', 'up']:
+            if not block_t==block_type:
+                self.get_block(block_t).draw_level(0, self.get_level_max(block_t))
         self._display()

@@ -40,29 +40,43 @@ class DrawBlock(object):
         self.points = self.BLOCK_TYPE[block_type]
         pygame.draw.polygon(self.window, self.COLORS[color], self.points)
 
-    def draw_level(self, level):
+    def draw_level(self, level, level_max):
         if self.block_type == 'left':
-            points = [self.points[0], 
-                      self.points[1], 
-                      [self.points[1][0]-level, self.points[1][1]],
-                      [self.points[0][0]-level, self.points[0][1]]]
+            points_level = [[self.points[1][0]-level, self.points[1][1]],
+                           [self.points[0][0]-level, self.points[0][1]]]
+
+            points_max = [self.points[0], 
+                          self.points[1], 
+                          [self.points[1][0]-level_max, self.points[1][1]],
+                          [self.points[0][0]-level_max, self.points[0][1]]]
 
         elif self.block_type =='right':
-            points = [self.points[0], 
-                      self.points[1], 
-                      [self.points[1][0]+level, self.points[1][1]],
-                      [self.points[0][0]+level, self.points[0][1]]]
-        elif self.block_type =='up':
-            points = [self.points[0], 
-                      self.points[1], 
-                      [self.points[1][0], self.points[1][1]-level],
-                      [self.points[0][0], self.points[0][1]-level]]
-        else:
-            points = [self.points[0], 
-                      self.points[1], 
-                      [self.points[1][0], self.points[1][1]+level],
-                      [self.points[0][0], self.points[0][1]+level]]
+            points_level = [[self.points[1][0]+level, self.points[1][1]],
+                           [self.points[0][0]+level, self.points[0][1]]]
 
-        pygame.draw.polygon(self.window, self.COLORS['green'], points)
+            points_max = [self.points[0], 
+                         self.points[1], 
+                         [self.points[1][0]+level_max, self.points[1][1]],
+                         [self.points[0][0]+level_max, self.points[0][1]]]
+
+        elif self.block_type =='up':
+            points_level = [[self.points[1][0], self.points[1][1]-level],
+                           [self.points[0][0], self.points[0][1]-level]]
+                           
+            points_max = [self.points[0], 
+                         self.points[1], 
+                         [self.points[1][0], self.points[1][1]-level_max],
+                         [self.points[0][0], self.points[0][1]-level_max]]
+        else:
+            points_level = [[self.points[1][0], self.points[1][1]+level],
+                           [self.points[0][0], self.points[0][1]+level]]
+
+            points_max = [self.points[0], 
+                          self.points[1], 
+                         [self.points[1][0], self.points[1][1]+level_max],
+                         [self.points[0][0], self.points[0][1]+level_max]]
+
+        pygame.draw.polygon(self.window, self.COLORS['green'], points_max)
+        pygame.draw.line(self.window, self.COLORS['yellow'], points_level[0], points_level[1], 2)
 
 
