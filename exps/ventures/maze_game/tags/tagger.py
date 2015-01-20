@@ -28,12 +28,13 @@ class Tagger(object):
     def __init__(self, tag_name, tag_dir, status='ON'):
         super(Tagger, self).__init__()
         self.status = status
+        self.first_timestamp = 0
         if self.status == 'ON':
             self.file_name = self._get_file_name(tag_name, tag_dir)
             self.writer = TagsFileWriter(self.file_name)
     
-    def set_first_timestamp(self, timestamp):
-        self.first_timestamp = timestamp
+    # def set_first_timestamp(self, timestamp):
+    #     self.first_timestamp = timestamp
 
     def _get_file_name(self, tag_name, tag_dir):
         return  os.path.join(tag_dir, 

@@ -49,8 +49,8 @@ class MazeLogic(object):
     def send_tag(self, timestamp, tag_name, tage_value=''):
         self.tagger.set_tag(timestamp, str(tag_name), str(tage_value))
 
-    def set_first_timestamp_to_tagger(self, timestamp):
-        self.tagger.set_first_timestamp(timestamp)
+    # def set_first_timestamp_to_tagger(self, timestamp):
+    #     self.tagger.set_first_timestamp(timestamp)
 
     def save_tags(self):
         self.tagger.finish()
@@ -110,7 +110,7 @@ class MazeLogic(object):
 
     def sesion_start(self):
         self.sesion_timer.run()
-        self.set_first_timestamp_to_tagger(self.sesion_timer.get_time_start())
+        # self.set_first_timestamp_to_tagger(self.sesion_timer.get_time_start())
         self.send_tag(self.sesion_timer.get_time_start(),'sesion_start', self.sesion_number)
 
     def sesion_finish(self):
