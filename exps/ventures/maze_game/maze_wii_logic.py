@@ -136,6 +136,7 @@ class MazeWiiLogic(MazeLogic):
                     self.get_current_arrow().update(sample.value)
                     self.draw_game_with_arrow(sample.key)
             if self.is_move():
+                self.send_tag(time.time(), 'move', self.current_arrow_direction)
                 self.move(self.get_current_arrow_direction())
                 self.get_current_arrow().reset()
                 self.set_current_arrow_direction(None)
