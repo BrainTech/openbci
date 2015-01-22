@@ -2,6 +2,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import time, sys
+import numpy as np
 
 from obci.configs import settings
 
@@ -11,6 +12,8 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 from obci.exps.ventures.data import data_manager
+
+from obci.analysis.balance import wii_utils
 
 class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
     """A class used in both calibration and game scenarios in ventures experiment.
@@ -39,7 +42,8 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self._user_id = self.get_param('user_id')
         self._file_name = self.get_param('file_name')
         # 1 if we want to generate dummy current sways, 0 otherwise
-        self._dummy = int(self.get_param('dummy'))        
+        self._dummy = int(self.get_param('dummy')) 
+        self._dummy_baseline = int(self.get_param('dummy_baseline'))    
         # should be ventures_calibration or ventures_game
         self._session_name = self.get_param('session_name')
         # maximum 'possible' sways. in calibration it should be a kind of monitor edges
@@ -63,17 +67,18 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
             #calculate and send current sway direction and level
             v = variables_pb2.SampleVector()
             v.ParseFromString(mxmsg.message)
+            X, Y = [], []
             for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
                 sum_mass = sum(s.channels[0:4])
-                x = (((s.channels[1] + s.channels[2]) - (s.channels[0] + s.channels[3]))/sum_mass) + 0.5
-                y = (((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass) + 0.5
-                #TODO - apply filtering somwere here
-                sway_direction, sway_level = self._calculate_sway(x, y)
-                msg = variables_pb2.IntVariable()
-                msg.key = sway_direction
-                msg.value = sway_level
-                self.conn.send_message(message=msg.SerializeToString(),
-                                       type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
+                x, y = wii_utils.get_x_y(s.channels[0], s.channels[1], s.channels[2], s.channels[3])
+                X.append(x)
+                Y.append(y)
+            sway_direction, sway_level = self._calculate_sway(np.mean(X), np.mean(Y))
+            msg = variables_pb2.IntVariable()
+            msg.key = sway_direction
+            msg.value = sway_level
+            self.conn.send_message(message=msg.SerializeToString(),
+                                   type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             # storing user's current maxes makes sens only in calibration scenario ...
             if self._session_name == 'ventures_game':
@@ -111,21 +116,59 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):
-        #TODO analysis
-        if self._session_name == 'ventures_calibration':
-            pass
+        print 'X:', x, 'Y:', y
+        if np.abs(y) > (self.yc+self.yb) and ((y>0 and x<=0 and y>=-x) or (y>0 and x>0 and y>=x)):
+            direction = 'up'
+            value = self._maxes[direction]*y
+
+        elif np.abs(y) > (self.yc+self.yb) and ((y<=0 and x<=0 and y<=x) or (y<=0 and x>0 and y<=-x)):
+            direction = 'down'
+            value = self._maxes[direction]*y
+
+        elif np.abs(x) > (self.xc+self.xa) and ((x<=0 and y>0 and y<x) or (y<=0 and x<=0 and y>-x)):
+            direction = 'left'
+            value = self._maxes[direction]*x
+
+        elif np.abs(x) > (self.xc+self.xa) and ((y>0 and x>0 and y<x) or (y<=0 and x>0 and y>-x)):
+            direction = 'right'
+            value = self._maxes[direction]*x
+
+        else:
+            direction = 'baseline'
+            value = 0
+
+
+        if self._session_name == 'ventures_calibration' and direction != 'baseline':
             #TODO - self._update_current_maxes(sway_direction, value)
             #where value is a possible candidate for user's max sway
             #to be used in next 'game' scenario
-        return 'up', 80
+            self._update_current_maxes(direction, value)
 
+        return direction, value
+
+            
     def _set_current_baseline(self, user_id):
         """Get last user's baseline from database
         and store it on slot for further use."""
-        xa,ya,xb,yb,xc,yc,t = data_manager.baseline_get_last(user_id)
+        xa, ya, xb, yb, xc, yc, t = data_manager.baseline_get_last(user_id)
         self.logger.info("Take baseline from time: "+t+" while current time is: "+data_manager.current_time_to_string())
         if (time.time() - data_manager.time_from_string(t)) > 10*60:
             self.logger.warning("WARNING!!! Baseline for this scenario was collected more than 10 minutes ago!!! Is it expected???")
+
+        if self._dummy_baseline:
+            self.xa = 0.005
+            self.ya = 0.005
+            self.xb = 0.005
+            self.yb = 0.005
+            self.xc = 0.0
+            self.yc = 0.0
+        else:
+            self.xa = xa
+            self.ya = ya
+            self.xb = xb
+            self.yb = yb
+            self.xc = xc
+            self.yc = yc
         #TODO convert all other strings to some useful stuff and store them on slots for analysis
 
     def _set_user_maxes(self, user_id):
@@ -140,7 +183,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                        'right':float(right), 
                        'down':float(down), 
                        'left':float(left)
-                   }
+                       }
         self.logger.info("_maxes set to user maxes which is: "+str(self._maxes))
 
     def _set_raw_maxes(self):
@@ -151,7 +194,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                        'right':float(self.get_param('raw_max_right')),
                        'down':float(self.get_param('raw_max_down')),
                        'left':float(self.get_param('raw_max_left'))
-        }
+                      }
         self.logger.info("_maxes set to raw maxes which is: "+str(self._maxes))
 
     def _update_current_maxes(self, sway_direction, sway_level):

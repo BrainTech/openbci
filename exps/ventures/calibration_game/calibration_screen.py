@@ -88,7 +88,17 @@ class CalibrationScreen(object):
         elif level_max_type == 'down':
             return self.level_max_down
 
+    def get_block_size(self, block_type):
+        if block_type in ['right', 'left']:
+            return 200
+
+        elif block_type in ['up', 'down']:
+            return 150
+
     def update_block(self, block_type, level):
+        print '**************************************************'
+        print level, int(self.get_block_size(block_type)*level)
+        level = int(self.get_block_size(block_type)*level)
         self.update_level_max(block_type, level)
         self.get_block(block_type).draw_level(level, self.get_level_max(block_type))
         for block_t in ['right', 'left', 'down', 'up']:
