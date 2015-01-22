@@ -15,7 +15,7 @@ def show_results(x, y, xa, ya, xb, yb, xc, yc):
     plt.figure()
     ax = plt.gca()
     plt.plot(x, y)
-    ellipse = Ellipse(xy=(xc, yc), width=3*xb, height=3*ya, edgecolor='r', fc='None', lw=5,)
+    ellipse = Ellipse(xy=(xc, yc), width=xa, height=yb, edgecolor='r', fc='None', lw=5,)
     ax.add_patch(ellipse)
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
