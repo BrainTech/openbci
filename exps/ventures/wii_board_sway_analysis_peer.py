@@ -116,35 +116,33 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):
-        print 'X:', x, 'Y:', y
         if np.abs(y) > (self.yc+self.yb) and ((y>0 and x<=0 and y>=-x) or (y>0 and x>0 and y>=x)):
             direction = 'up'
-            value = self._maxes[direction]*y
+            value = np.abs(y)/self._maxes[direction]
 
         elif np.abs(y) > (self.yc+self.yb) and ((y<=0 and x<=0 and y<=x) or (y<=0 and x>0 and y<=-x)):
             direction = 'down'
-            value = self._maxes[direction]*y
+            value = np.abs(y)/self._maxes[direction]
 
-        elif np.abs(x) > (self.xc+self.xa) and ((x<=0 and y>0 and y<x) or (y<=0 and x<=0 and y>-x)):
+        elif np.abs(x) > (self.xc+self.xa) and ((x<=0 and y>0 and y<-x) or (y<=0 and x<=0 and y>x)):
             direction = 'left'
-            value = self._maxes[direction]*x
+            value = np.abs(x)/self._maxes[direction]
 
         elif np.abs(x) > (self.xc+self.xa) and ((y>0 and x>0 and y<x) or (y<=0 and x>0 and y>-x)):
             direction = 'right'
-            value = self._maxes[direction]*x
+            value = np.abs(x)/self._maxes[direction]
 
         else:
             direction = 'baseline'
             value = 0
-
-
+            
         if self._session_name == 'ventures_calibration' and direction != 'baseline':
             #TODO - self._update_current_maxes(sway_direction, value)
             #where value is a possible candidate for user's max sway
             #to be used in next 'game' scenario
             self._update_current_maxes(direction, value)
 
-        return direction, value
+        return direction, int(value*100)
 
             
     def _set_current_baseline(self, user_id):

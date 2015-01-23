@@ -96,9 +96,7 @@ class CalibrationScreen(object):
             return 150
 
     def update_block(self, block_type, level):
-        print '**************************************************'
-        print level, int(self.get_block_size(block_type)*level)
-        level = int(self.get_block_size(block_type)*level)
+        level = int(self.get_block_size(block_type)*(float(level)/100))
         self.update_level_max(block_type, level)
         self.get_block(block_type).draw_level(level, self.get_level_max(block_type))
         for block_t in ['right', 'left', 'down', 'up']:
