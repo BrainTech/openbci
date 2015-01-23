@@ -38,8 +38,8 @@ def calculate(file_path, file_name, show=True):
     smart_tags = wii_cut_fragments(w, start_tag_name='ss_start', end_tags_names=['ss_stop'])
     x = smart_tags[0].get_channel_samples('x')
     y = smart_tags[0].get_channel_samples('y')
-    xa, ya = np.std(x)*3, np.mean(y)
-    xb, yb = np.mean(x), np.std(y)*3
+    xa, ya = np.std(x)*5, np.mean(y)
+    xb, yb = np.mean(x), np.std(y)*5
     xc, yc = np.mean(x), np.mean(y)
     if show:
         show_results(x, y, xa, ya, xb, yb, xc, yc)
