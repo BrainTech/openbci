@@ -38,7 +38,7 @@ class Calibration(object):
                     self.finish_calibration()
                     done = True
             sample = self.get_message()
-            if sample is not None and sample.key != 'baseline':
+            if sample is not None:
                 self._screen.update_block(sample.key, sample.value)
 
     def finish_calibration(self):
