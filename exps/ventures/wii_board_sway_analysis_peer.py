@@ -79,7 +79,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                 sway_direction, sway_level = self._calculate_sway(np.mean(X), np.mean(Y))
             else:
                 sway_direction, sway_level = 'baseline', 0
-                
+
             msg = variables_pb2.IntVariable()
             msg.key = sway_direction
             msg.value = sway_level
@@ -122,34 +122,33 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):
-        x += self.xc
-        y += self.yc
-        if np.abs(y) > np.abs(self.yb) and ((y>0 and x<=0 and y>=-x) or (y>0 and x>0 and y>=x)):
+        if (y>self.yc and x<=self.xc and y>=-x+(self.yc+self.xc)) or (y>self.yc and x>self.xc and y>=x+(self.yc-self.xc)):
+            value = np.abs(y-self.yc)-np.abs(self.yb)
             direction = 'up'
-            value = np.abs(y)/self._maxes[direction]
 
-        elif np.abs(y) > np.abs(self.yb) and ((y<=0 and x<=0 and y<=x) or (y<=0 and x>0 and y<=-x)):
+        elif (y<=self.yc and x<=self.xc and y<=x+(self.yc-self.xc)) or (y<=self.yc and x>self.xc and y<=-x+(self.yc+self.xc)):
+            value = np.abs(y-self.yc)-np.abs(self.yb)
             direction = 'down'
-            value = np.abs(y)/self._maxes[direction]
 
-        elif np.abs(x) > np.abs(self.xa) and ((x<=0 and y>0 and y<-x) or (y<=0 and x<=0 and y>x)):
+        elif (x<=self.xc and y>self.yc and y<-x+(self.yc+self.xc)) or (y<=self.yc and x<=self.xc and y>x+(self.yc-self.xc)):
+            value = np.abs(x-self.xc)-np.abs(self.xa)
             direction = 'left'
-            value = np.abs(x)/self._maxes[direction]
 
-        elif np.abs(x) > np.abs(self.xa) and ((y>0 and x>0 and y<x) or (y<=0 and x>0 and y>-x)):
+        elif (y>self.yc and x>self.xc and y<x+(self.yc-self.xc)) or (y<=self.yc and x>self.xc and y>-x+(self.yc+self.xc)):
+            value = np.abs(x-self.xc)-np.abs(self.xa)
             direction = 'right'
-            value = np.abs(x)/self._maxes[direction]
 
-        else:
+        if value<=0:
             direction = 'baseline'
-            value = 0
-        if self._session_name == 'ventures_calibration' and direction != 'baseline':
+            return direction, 0
+
+        if self._session_name == 'ventures_calibration':
             #TODO - self._update_current_maxes(sway_direction, value)
             #where value is a possible candidate for user's max sway
             #to be used in next 'game' scenario
             self._update_current_maxes(direction, np.abs(value))
 
-        return direction, int(value*100)
+        return direction, int((value/self._maxes[direction])*100)
 
             
     def _set_current_baseline(self, user_id):
@@ -174,7 +173,6 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
             self.yb = float(yb)
             self.xc = float(xc)
             self.yc = float(yc)
-        #TODO convert all other strings to some useful stuff and store them on slots for analysis
 
     def _set_user_maxes(self, user_id):
         """Get last user's calibration data - his maxes - from database
@@ -216,8 +214,6 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                                      self._current_maxes['left'],
                                      self._file_name)
         self.logger.info('Calibration data properly stored for user: '+self._user_id+' with: '+str(self._current_maxes))
-
-        pass
 
 if __name__ == "__main__":
     WiiBoardSwayAnalysis(settings.MULTIPLEXER_ADDRESSES).loop()
