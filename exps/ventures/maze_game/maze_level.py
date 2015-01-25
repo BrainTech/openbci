@@ -30,9 +30,34 @@ class MazeLevel(object):
         super(MazeLevel, self).__init__()
         self.x = 0
         self.y = 0
+    def _init_level_arrays(self, level):
+        self.level = np.zeros((len(level), len(level[0])))
+        self.level_path = np.zeros((len(level), len(level[0])))
+        for y_ind, level_line in enumerate(level):
+            for x_ind, level_position in enumerate(level_line):
+                if type(level_position) == tuple:
+                    level_array_part = level_position[0]
+                    level_path_part = level_position[1]
+                    self.level[y_ind][x_ind] = level_array_part
+                    self.level_path[y_ind][x_ind] = level_path_part
+                else:
+                    if level_position in [1, 2, 3, 4]:
+                        if level_position == 3:
+                            self.level[y_ind][x_ind] = level_position
+                            self.level_path[y_ind][x_ind] = -1
+                        elif level_position == 4:
+                            self.level[y_ind][x_ind] = level_position
+                            self.level_path[y_ind][x_ind] = -2
+                        else:
+                            self.level[y_ind][x_ind] = level_position
+
+    def _init_path(self):
+        self.path = {}
 
     def load_level(self, level_number):
-        self.level, level_type = LEVELS_IN_ORDER[str(level_number)]
+        level, level_type = LEVELS_IN_ORDER[str(level_number)]
+        self._init_level_arrays(level)
+        self._init_path()
         if level_type == 'T':
             self.level = np.array(self.level).T
         elif level_type == 'T->':
