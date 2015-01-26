@@ -42,13 +42,14 @@ def get_sample():
 
 class MazeWiiLogic(MazeLogic):
     def __init__(self, start_level, start_wii_level, sesion_number, sesion_duration, 
-                 time_board_display, time_left_out, maze_path_display, tagger, sesion_type, data_engine):
+                 time_board_display, time_left_out, tagger, sesion_type, sesion_condition,
+                 data_engine):
         super(MazeWiiLogic, self).__init__(start_level, sesion_number, sesion_duration, 
                                            time_board_display, time_left_out, 
-                                           maze_path_display, tagger, sesion_type)
+                                           tagger, sesion_type, sesion_condition)
         self.data_engine = data_engine
         self.start_wii_level = start_wii_level
-        self.wii_level = MazeWiiLevel()
+        self.wii_level = MazeWiiLevel(sesion_type)
         self._init_wii_arrows()
 
     def _init_wii_arrows(self):
@@ -58,13 +59,18 @@ class MazeWiiLogic(MazeLogic):
                            'up' : WiiArrow('up')}
 
     def set_current_wii_level(self, level):
-        self.current_wii_level = level
+        self.current_wii_level = {'right' : level,
+                                  'left':  level,
+                                  'down' : level,
+                                  'up' : level}
 
-    def get_current_wii_level(self):
-        return self.current_wii_level
+    def get_current_wii_level(self, direction):
+        return self.current_wii_level[direction]
 
-    def update_current_wii_level(self):
-        self.current_wii_level += 1
+    def update_current_wii_level(self, direction):
+        self.current_wii_level[direction] += 1
+        print self.current_wii_level
+
 
     def set_current_arrow_direction(self, direction):
         self.current_arrow_direction = direction
@@ -84,12 +90,13 @@ class MazeWiiLogic(MazeLogic):
         else:
             return False
 
-    def load_wii_level(self):
+    def load_wii_level(self, direction):
         for arrow in self.wii_arrows.values():
-            self.wii_level.load_level(arrow.direction, self.get_current_wii_level())
-            level_params = self.wii_level.get_level(arrow.direction)
-            arrow.set_level(*level_params)
-            self.screen.load_wii_level_arrow_proportion(arrow.direction, level_params[2:])
+            if arrow.direction==direction:
+                self.wii_level.load_level(arrow.direction, self.get_current_wii_level(direction))
+                level_params = self.wii_level.get_level(arrow.direction)
+                arrow.set_level(*level_params)
+                self.screen.load_wii_level_arrow_proportion(arrow.direction, level_params[2:])
 
     def draw_game_with_arrow(self, arrow_type):
         self.screen.draw_game_with_wii_arrow(arrow_type,
@@ -136,8 +143,10 @@ class MazeWiiLogic(MazeLogic):
                     self.get_current_arrow().update(sample.value)
                     self.draw_game_with_arrow(sample.key)
             if self.is_move():
-                self.send_tag(time.time(), 'move', self.current_arrow_direction)
+                self.send_tag(time.time(), 'move', self.get_current_arrow_direction())
                 self.move(self.get_current_arrow_direction())
+                self.update_current_wii_level(self.get_current_arrow_direction())
+                self.load_wii_level(self.get_current_arrow_direction())
                 self.get_current_arrow().reset()
                 self.set_current_arrow_direction(None)
 
@@ -156,13 +165,13 @@ class MazeWiiLogic(MazeLogic):
         self.set_current_level(self.start_level)
         self.load_level()  
         self.set_current_wii_level(self.start_wii_level)
-        self.load_wii_level()
+        for key in self.current_wii_level.keys():
+            self.load_wii_level(key)
         self.set_current_arrow_direction(None)
-        #self.screen.display_screen('start')
-        #self.screen.display_screen('instruction')
+        #self.instruction()
         self.sesion_start() 
         self.level_start()
-        while self.get_current_level()<= self.levels_quantity and self.status:
+        while self.get_current_level()<= self.number_of_levels and self.status:
             if not self.get_level_status():
                 self.level_timeout()
             else:

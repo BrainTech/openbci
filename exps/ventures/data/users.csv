@@ -1,7 +1,7 @@
 ,ID,sesion_type
-0,test_cognitive,key
-1,test_cognitive_motor,wii
-2,test_motor,wii
-3,EJ29,key
-4,AU32,key
-5,MATI,key
+0,test_cognitive,cognitive
+1,test_cognitive_motor,cognitive_motor
+2,test_motor,motor
+3,EJ29,cognitive
+4,AU32,cognitive
+5,MATI,cognitive

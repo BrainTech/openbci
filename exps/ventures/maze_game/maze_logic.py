@@ -34,13 +34,13 @@ from constants.constants_game import FRAME_RATE, GAME_KEYS
 class MazeLogic(object):
 
     def __init__(self, start_level, sesion_number, sesion_duration, time_board_display,
-                 time_left_out, maze_path_display, tagger, sesion_type):
+                 time_left_out, tagger, sesion_type, sesion_condition):
         super(MazeLogic, self).__init__()
         self.start_level = start_level
         self.sesion_timer = SesionWatcher(sesion_duration, time_left_out)
-        self.level = MazeLevel()
-        self.levels_quantity = self.level.get_levels_quantity()
-        self.screen = MazeScreen(time_board_display, sesion_number, sesion_type)
+        self.level = MazeLevel(sesion_type)
+        self.number_of_levels = self.level.get_number_of_levels()
+        self.screen = MazeScreen(time_board_display, self.number_of_levels, sesion_number, sesion_type, sesion_condition)
         self.status = True
         self.pause_status = False
         self.tagger = tagger
@@ -165,7 +165,6 @@ class MazeLogic(object):
         for event in pygame.event.get():                    
             if event.type == QUIT:
                 self.exit_game()
-
             elif event.type == KEYDOWN:           
                 if event.key == K_ESCAPE:
                     self.exit_game()
@@ -380,8 +379,6 @@ class MazeLogic(object):
                 self.screen.display_screen('repeat_level_1')
             elif self.get_level_fail() == 2:
                 self.screen.display_screen('repeat_level_2')
-            elif self.get_level_fail() == 3:
-                self.screen.display_screen('repeat_level_3')
         else:
             self.level_finish()
             self.screen.display_screen('level_down')
@@ -410,7 +407,7 @@ class MazeLogic(object):
         self.update_current_level()
         self.update_sesion_status()
         self.screen.display_screen('win')
-        if self.get_current_level()<=166 and self.status:
+        if self.get_current_level()<=self.number_of_levels and self.status:
             self.load_level()
             self.level_start()
 
@@ -446,9 +443,11 @@ class MazeLogic(object):
             self.load_level()
 
     def instruction(self):
-        self.screen.display_screen('instruction1')
-        instruction_status = 1
-        while instruction_status<3:
+        screens = ['start', 'instruction1', 'instruction2']
+        screen_status = 0
+        self.screen.display_screen(screens[screen_status])
+
+        while screen_status<3:
             for event in pygame.event.get():                    
                 if event.type == QUIT:
                     self.finish_game()
@@ -456,18 +455,17 @@ class MazeLogic(object):
                     if event.key == K_ESCAPE:
                         self.finish_game()
                     if event.key == K_SPACE:
-                        self.screen.display_screen('instruction2')
-                        instruction_status+=1       
+                        screen_status+=1 
+                        if screen_status<len(screens):
+                            self.screen.display_screen(screens[screen_status])
 
     def main(self):    
         self.set_current_level(self.start_level)
         self.load_level()  
-        self.screen.display_screen('start')
         self.instruction()
-        #self.screen.display_screen('instruction')
         self.sesion_start() 
         self.level_start()
-        while self.get_current_level()<= self.levels_quantity and self.status:
+        while self.get_current_level()<= self.number_of_levels and self.status:
             if not self.get_level_status():
                 self.level_timeout()
             else:

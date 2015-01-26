@@ -23,13 +23,21 @@ pygame.font.init
 import numpy as np
 import random
 
-from constants.constants_levels import LEVELS_IN_ORDER, LEVELS_TIMEOUT
+from constants.constants_levels import LEVELS_IN_ORDER, LEVELS_GAME_TIMEOUT, LEVELS_TRAINING, LEVELS_TRAINING_TIMEOUT
 
 class MazeLevel(object):
-    def __init__(self):
+    def __init__(self, sesion_type):
         super(MazeLevel, self).__init__()
         self.x = 0
         self.y = 0
+
+        if sesion_type=='training':
+            self.level_in_order = LEVELS_TRAINING
+            self.level_timeout = LEVELS_TRAINING_TIMEOUT
+        elif sesion_type == 'experiment':
+            self.level_in_order = LEVELS_IN_ORDER
+            self.level_timeout = LEVELS_GAME_TIMEOUT
+
     def _init_level_arrays(self, level):
         self.level = np.zeros((len(level), len(level[0])))
         self.level_path = np.zeros((len(level), len(level[0])))
@@ -55,14 +63,13 @@ class MazeLevel(object):
         self.path = {}
 
     def load_level(self, level_number):
-        level, level_type = LEVELS_IN_ORDER[str(level_number)]
+        level, level_type = self.level_in_order[str(level_number)]
         self._init_level_arrays(level)
         self._init_path()
         if level_type == 'T':
             self.level = np.array(self.level).T
         elif level_type == 'T->':
             self.level = np.array([row[::-1] for row in self.level]).T
-
         self._set_ball_position_start()
 
     def _set_ball_position_start(self):
@@ -88,7 +95,7 @@ class MazeLevel(object):
         self.y = ly
 
     def get_timeout_level(self):
-        return LEVELS_TIMEOUT
+        return self.level_timeout
 
-    def get_levels_quantity(self):
-        return len(LEVELS_IN_ORDER.keys())
+    def get_number_of_levels(self):
+        return len(self.level_in_order.keys())

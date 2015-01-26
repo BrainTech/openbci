@@ -38,11 +38,13 @@ from obci.acquisition import acquisition_helper
 GAME_DATA_PATH = os.path.join(settings.MAIN_DIR, 'exps/ventures/maze_game/game_data')
 
 class MazeScreen(object):  
-    def __init__(self, time_board_display, sesion_number, sesion_type):
+    def __init__(self, time_board_display, number_of_levels, sesion_number, sesion_type, sesion_condition):
         super(MazeScreen, self).__init__()
         pygame.init()
 
         self.sesion_type = sesion_type
+        self.sesion_condition = sesion_condition
+
 
         self.size_object = SIZE_OBJECT
 
@@ -54,7 +56,8 @@ class MazeScreen(object):
         self.screen_size = SCREEN_SIZE
         self.time_board_display = time_board_display
         self.sesion_number = sesion_number
-        self.screen = pygame.display.set_mode(self.screen_size, FULLSCREEN)
+        self.number_of_levels = number_of_levels
+        self.screen = pygame.display.set_mode(self.screen_size)#, FULLSCREEN)
         pygame.display.init()
 
         self._load_font()
@@ -86,7 +89,7 @@ class MazeScreen(object):
         self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
 
     def _init_arrows(self):
-        if self.sesion_type == 'key':
+        if self.sesion_condition == 'cognitive':
             self.arrow_right = DrawArrow(self.screen, 'right', self.arrow_colors_levels, 
                                          self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
             self.arrow_left = DrawArrow(self.screen, 'left', self.arrow_colors_levels, 
@@ -95,7 +98,8 @@ class MazeScreen(object):
                                       self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
             self.arrow_down = DrawArrow(self.screen, 'down', self.arrow_colors_levels, 
                                         self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
-        else:
+        
+        elif self.sesion_condition in ['motor', 'motor_cognitive']:
             self.arrow_right = DrawWiiArrow(self.screen, 'right', self.arrow_colors_levels, 
                                             self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
             self.arrow_left = DrawWiiArrow(self.screen, 'left', self.arrow_colors_levels, 
@@ -196,7 +200,8 @@ class MazeScreen(object):
                                      y_position+self._get_animation_offset_y()))
 
     def _draw_level_info(self, current_level, level_time, sesion_time):
-        level_text = self.font_game.render('{}: {}/166'.format('POZIOM', current_level), 
+
+        level_text = self.font_game.render('{}: {}/{}'.format('POZIOM', current_level, self.number_of_levels), 
                                             1, 
                                             (250, 250, 250))
         self.screen.blit(level_text, (0, 20))
@@ -204,23 +209,11 @@ class MazeScreen(object):
         #                                    1, 
         #                                    (250, 250, 250))
         #self.screen.blit(level_text, (0, 40))
-        level_text = self.font_game.render('{}: {}'.format('CZAS', sesion_time), 
-                                            1, 
-                                            (250, 250, 250))
-        self.screen.blit(level_text, (0, 40))
-
-    def _draw_arrow(self, type_, ball_x, ball_y):
-        if type_ == 'right':
-            self._draw_arrow_right(ball_x, ball_y)
-
-        elif type_ == 'left':
-            self._draw_arrow_left(ball_x, ball_y)
-
-        elif type_ == 'up':
-            self._draw_arrow_up(ball_x, ball_y)
-
-        elif type_ == 'down':
-            self._draw_arrow_down(ball_x, ball_y)
+        if self.sesion_type == 'experiment':
+            level_text = self.font_game.render('{}: {}'.format('CZAS', sesion_time), 
+                                                1, 
+                                                (250, 250, 250))
+            self.screen.blit(level_text, (0, 40))
 
     def _draw_arrow(self, type_, ball_x, ball_y):
         if type_ == 'right':
@@ -276,58 +269,53 @@ class MazeScreen(object):
 
     def display_screen(self, action):
         if action == 'win':
-            self._display_screen_helper(text=get_win_level_text(), image=self.black_screen)
+            self._display_screen_helper(text=get_win_level_text(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'start':
-            self._display_screen_helper(text=get_start_sesion_text(self.sesion_number), image=self.black_screen)
+            self._display_screen_helper(text=get_start_sesion_text(self.sesion_number, self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'repeat_level_1':
-            self._display_screen_helper(text=get_repeat_level_text(1), image=self.black_screen)
+            self._display_screen_helper(text=get_repeat_level_text(1, self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'repeat_level_2':
-            self._display_screen_helper(text=get_repeat_level_text(2), image=self.black_screen)
-            self._display()
-            time.sleep(self.time_board_display)
-
-        elif action == 'repeat_level_3':
-            self._display_screen_helper(text=get_repeat_level_text(3), image=self.black_screen)
+            self._display_screen_helper(text=get_repeat_level_text(2, self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'level_down':
-            self._display_screen_helper(text=get_repeat_level_text(3), image=self.black_screen)
+            self._display_screen_helper(text=get_repeat_level_text(3, self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'level_timeout':
-            self._display_screen_helper(text=get_timeout_level(), image=self.black_screen)
+            self._display_screen_helper(text=get_timeout_level(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
         elif action == 'pause':
-            self._display_screen_helper(text=get_pause_text(), image=self.black_screen)
+            self._display_screen_helper(text=get_pause_text(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
 
         elif action == 'finish':
-            self._display_screen_helper(text=get_finish_sesion_text(self.sesion_number), image=self.black_screen)
+            self._display_screen_helper(text=get_finish_sesion_text(self.sesion_number, self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
 
         elif action == 'instruction1':
-            self._display_screen_helper(text=get_instruction_1(), image=self.black_screen)
+            self._display_screen_helper(text=get_instruction_1(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
 
         elif action == 'instruction2':
-            self._display_screen_helper(text=get_instruction_2(), image=self.black_screen)
+            self._display_screen_helper(text=get_instruction_2(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
 
         elif action == 'exit':
-            self._display_screen_helper(text=get_exit_text(), image=self.black_screen)
+            self._display_screen_helper(text=get_exit_text(self.sesion_type, self.sesion_condition), image=self.black_screen)
             self._display()
 
     def _display(self):

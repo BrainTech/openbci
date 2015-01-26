@@ -18,19 +18,19 @@
 #
 
 
-def get_start_sesion_text(training_number):
+def get_start_sesion_text(training_number, sesion_type, sesion_condition):
     return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \n Odbyłeś {}/10 treningów. \n Do końca pozostało {} treningów.".format(training_number, 10-training_number)
 
-def get_win_level_text():
+def get_win_level_text(sesion_type, sesion_condition):
     return u"\n\n\nGratulacje!\nTwoje wyniki jak dotąd były bardzo dobre. \nPrzechodzisz na kolejny poziom!"
 
-def get_finish_sesion_text(training_number):
+def get_finish_sesion_text(training_number, sesion_type, sesion_condition):
     if training_number != 10:
         return u"\n\n\nTwój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
     else:
         return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
 
-def get_repeat_level_text(repeat_number):
+def get_repeat_level_text(repeat_number, sesion_type, sesion_condition):
     if 3-repeat_number == 1:
         return u"\n\n\nWpadłeś w dziurę! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
     if 3-repeat_number in [2, 3]:
@@ -38,20 +38,20 @@ def get_repeat_level_text(repeat_number):
     else:
         return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności."
 
-def get_pause_text():
+def get_pause_text(sesion_type, sesion_condition):
     return u"\n\n\nCzas treningu został zatrzymany. \n\nNaciśnij:'p', aby powrócić do treningu."
 
-def get_timeout_level():
+def get_timeout_level(sesion_type, sesion_condition):
     return u"\n\n\nPrzekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
 
-def get_instruction_1():
+def get_instruction_1(sesion_type, sesion_condition):
     return u"Masz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\n\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\nKulką kieruje się przy użyciu strzałek na klawiaturze.\n\n Należy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy.\n\n <aby przejść dalej naciśnij spację>" 
 
 
-def get_instruction_2():
+def get_instruction_2(sesion_type, sesion_condition):
     return u"Twoim zadaniem jest takie przejście drogi, aby omijając wszystkie dziury dotrzeć do zielonego krzyżyka.\nUważaj, wpadając w dziurę tracisz jedną szansę.\n\nPo stracie trzech szans spadasz poziom niżej!\n\nStaraj się przejść labirynt jak najszybciej.\nUważaj, przechodząc labirynt zbyt wolno, także spadasz poziom niżej!\n\n<aby rozpocząć trening naciśnij spację>"
 
-def get_exit_text():
+def get_exit_text(sesion_type, sesion_condition):
     return u"\n\n\nCzy na pewno chcesz zakończyć sesję?\n\njeżeli tak naciśnij: 't',\njeżeli chcesz powrócić do gry naciśnij: 'n'"
 
 

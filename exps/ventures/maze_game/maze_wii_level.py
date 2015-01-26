@@ -19,8 +19,9 @@
 from constants.constants_wii_levels import WII_LEVELS
 
 class MazeWiiLevel(object):
-    def __init__(self):
+    def __init__(self, sesion_type):
         super(MazeWiiLevel, self).__init__()
+        self.sesion_type = sesion_type
         self._init_level_params()
 
     def _init_level_params(self):
@@ -37,7 +38,10 @@ class MazeWiiLevel(object):
                 self.level_params[direction]['area_end_value'])
 
     def load_level(self, direction, level):
+        print "LOAD NEW LEVEL!:", level, direction
         try:
             self.level_params[direction] = WII_LEVELS[str(level)]
         except KeyError:
             self.level_params[direction] = WII_LEVELS[str(1)]
+
+        print self.level_params[direction]
