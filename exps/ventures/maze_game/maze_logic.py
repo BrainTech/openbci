@@ -25,7 +25,7 @@ from pygame.locals import *
 
 from maze_level import MazeLevel
 from maze_screen import MazeScreen 
-from timers.sesion_watcher import SesionWatcher
+from timers.session_watcher import SessionWatcher
 from timers.level_watcher import LevelWatcher 
 
 from constants.constants_arrow import ARROW_KEY, ARROW_SPEED_UP, ARROW_SPEED_DOWN, ARROW_SIZE
@@ -37,7 +37,7 @@ class MazeLogic(object):
                  time_left_out, tagger, session_type, session_condition):
         super(MazeLogic, self).__init__()
         self.start_level = start_level
-        self.session_timer = SesionWatcher(session_duration, time_left_out)
+        self.session_timer = SessionWatcher(session_duration, time_left_out)
         self.level = MazeLevel(session_type)
         self.number_of_levels = self.level.get_number_of_levels()
         self.screen = MazeScreen(time_board_display, self.number_of_levels, session_number, session_type, session_condition)
