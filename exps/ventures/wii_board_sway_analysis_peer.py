@@ -42,8 +42,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self._user_id = self.get_param('user_id')
         self._file_name = self.get_param('file_name')
         # 1 if we want to generate dummy current sways, 0 otherwise
-        self._dummy = int(self.get_param('dummy')) 
-        self._dummy_baseline = int(self.get_param('dummy_baseline'))    
+        self._dummy = not int(self.get_param('amplifier_online')) 
         # should be ventures_calibration or ventures_game
         self._session_name = self.get_param('session_name')
         # maximum 'possible' sways. in calibration it should be a kind of monitor edges
@@ -64,21 +63,24 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
     @log_crash
     def handle_message(self, mxmsg):
         if mxmsg.type == types.WII_BOARD_SIGNAL_MESSAGE:
-            #calculate and send current sway direction and level
-            v = variables_pb2.SampleVector()
-            v.ParseFromString(mxmsg.message)
-            X, Y = [], []
-            for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
-                sum_mass = sum(s.channels[0:4])
-                if sum_mass<200:
-                    break
-                x, y = wii_utils.get_x_y(s.channels[0], s.channels[1], s.channels[2], s.channels[3])
-                X.append(x)
-                Y.append(y)
-            if len(X):
-                sway_direction, sway_level = self._calculate_sway(np.mean(X), np.mean(Y))
+            if self._dummy:
+                sway_direction, sway_level = self._calculate_dummy_sway()
             else:
-                sway_direction, sway_level = 'baseline', 0
+                #calculate and send current sway direction and level
+                v = variables_pb2.SampleVector()
+                v.ParseFromString(mxmsg.message)
+                X, Y = [], []
+                for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
+                    sum_mass = sum(s.channels[0:4])
+                    if sum_mass<200:
+                        break
+                    x, y = wii_utils.get_x_y(s.channels[0], s.channels[1], s.channels[2], s.channels[3])
+                    X.append(x)
+                    Y.append(y)
+                if len(X):
+                    sway_direction, sway_level = self._calculate_real_sway(np.mean(X), np.mean(Y))
+                else:
+                    sway_direction, sway_level = 'baseline', 0
 
             msg = variables_pb2.IntVariable()
             msg.key = sway_direction
@@ -98,16 +100,6 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
             self.logger.warning("Unrecognised message type!!!")
         self.no_response()
 
-    def _calculate_sway(self, x, y):
-        """Return two values: direction, level where
-        - direction - is a string in ['up', 'right', 'down', 'left', 'baseline'] representing direction of sway
-        - level - is a int in [0 ... 100 or even more] representing a percentage of max possible sway
-        """
-        if self._dummy:
-            return self._calculate_dummy_sway()
-        else:
-            return self._calculate_real_sway(x, y)
-
     def _calculate_dummy_sway(self):
         try:
             self._dummy_v
@@ -122,6 +114,10 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):
+        """Return two values: direction, level where
+        - direction - is a string in ['up', 'right', 'down', 'left', 'baseline'] representing direction of sway
+        - level - is a int in [0 ... 100 or even more] representing a percentage of max possible sway
+        """
         if (y>self.yc and x<=self.xc and y>=-x+(self.yc+self.xc)) or (y>self.yc and x>self.xc and y>=x+(self.yc-self.xc)):
             value = np.abs(y-self.yc)-np.abs(self.yb)
             direction = 'up'
@@ -159,7 +155,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         if (time.time() - data_manager.time_from_string(t)) > 10*60:
             self.logger.warning("WARNING!!! Baseline for this scenario was collected more than 10 minutes ago!!! Is it expected???")
 
-        if self._dummy_baseline:
+        if self._dummy:
             self.xa = 0.005
             self.ya = 0.005
             self.xb = 0.005
