@@ -76,10 +76,14 @@ class MazeLevel(object):
             if self.path_points[ind-1][1] == self.path_points[ind][1]:
                 axis_range = np.sort([self.path_points[ind-1][0], self.path_points[ind][0]])
                 path = [(y, self.path_points[ind][1]) for y in range(axis_range[0], axis_range[1]+1)]
+                if self.path_points[ind-1][0]>self.path_points[ind][0]:
+                    path.reverse()
 
             elif self.path_points[ind-1][0] == self.path_points[ind][0]:
                 axis_range = np.sort([self.path_points[ind-1][1], self.path_points[ind][1]])
                 path = [(self.path_points[ind][0], x) for x in range(axis_range[0], axis_range[1]+1)]
+                if self.path_points[ind-1][1]>self.path_points[ind][1]:
+                    path.reverse()
 
             if ind == 1:
                 path.remove(self.path_points[0])
