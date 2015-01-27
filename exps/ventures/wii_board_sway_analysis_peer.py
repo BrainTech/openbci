@@ -31,7 +31,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
 
         if self._session_name == 'ventures_calibration':
             self._set_raw_maxes()
-        elif self._session_name == 'ventures_game':
+        elif self._session_name in ['ventures_game', 'ventures_game_training']:
             self._set_user_maxes(self._user_id)
         else:
             raise Exception ("Unknown session name - abort")
@@ -89,7 +89,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                                    type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             # storing user's current maxes makes sens only in calibration scenario ...
-            if self._session_name == 'ventures_game':
+            if self._session_name != 'ventures_calibration':
                 self.logger.info("Got acquisition_control_message, but session name is ventures game. Just exit quietly ...")
                 sys.exit(0)
             else: #self._session_name == 'ventures_calibration'
