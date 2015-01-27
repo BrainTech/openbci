@@ -26,7 +26,7 @@ from tags.tagger import Tagger
 from obci.exps.ventures.data import data_manager
 
 class MazeGame(object):
-    def __init__(self, user_id, session_type='training', session_duration=30*60, time_board_display=5, 
+    def __init__(self, user_id, session_type='experiment', session_duration=30*60, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'):
 	self._init_queue()
         super(MazeGame, self).__init__()
@@ -40,9 +40,9 @@ class MazeGame(object):
         self.tagger_init(tag_name, tag_dir)
 
     def tagger_init(self, tag_name, tag_dir):
-        if  self.session_type == 'experiment':
+        if  self.session_type == 'ventures_game':
             self.tagger = Tagger(tag_name, tag_dir, status='ON')
-        else:
+        else:#should be ventures_game_training
             self.tagger = Tagger(tag_name, tag_dir, status='OFF')
 
     def _get_start_info(self, user_name):
