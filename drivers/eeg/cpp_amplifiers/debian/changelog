@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.9-1) unstable; urgency=medium
+
+  * New multiplexer rules
+
+ -- Alex Khrabrov <alex@mroja.net>  Mon, 22 Dec 2014 18:33:14 +0100
+
 openbci-amplifiers (1.8.8-1) unstable; urgency=medium
 
   * SYNFI driver stability update
