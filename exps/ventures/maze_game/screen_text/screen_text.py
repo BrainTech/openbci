@@ -20,7 +20,7 @@
 
 def get_start_session_text(training_number, session_type, session_condition):
     if session_type == 'experiment':
-        return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \n\n\nIlość przybytych treningów: {}\nIlość treningów do końca: {}\n\n\n\n\n\n<aby przejść dalej naciśnij spację>".format(training_number, 10-training_number)
+        return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \n\n\nNumer dzisiejszego treningu: {}\nIlość treningów do końca: {}\n\n\n\n\n\n<aby przejść dalej naciśnij spację>".format(training_number, 10-training_number)
     else:
         return  u"\n\n\nWitamy! \nAby rozpocząć sesję treningową naciśnij spację."
 
