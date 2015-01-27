@@ -107,7 +107,9 @@ class MazeWiiLogic(MazeLogic):
                                              self.get_ball_position_y(),
                                              self.get_current_level(),
                                              self.get_level_time(),
-                                             self.get_session_time())
+                                             self.get_session_time(),
+                                             self.get_path(),
+                                             self.get_active_path())
 
     def draw_game_with_arrow_update(self, arrow_type):
         self.screen.draw_game_with_wii_arrow_update(arrow_type,
@@ -118,7 +120,9 @@ class MazeWiiLogic(MazeLogic):
                                                     self.get_ball_position_y(),
                                                     self.get_current_level(),
                                                     self.get_level_time(),
-                                                    self.get_session_time())
+                                                    self.get_session_time(),
+                                                    self.get_path(),
+                                                    self.get_active_path())
         
 
     def update_screen(self):

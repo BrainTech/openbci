@@ -57,7 +57,7 @@ class MazeScreen(object):
         self.time_board_display = time_board_display
         self.session_number = session_number
         self.number_of_levels = number_of_levels
-        self.screen = pygame.display.set_mode(self.screen_size, FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.screen_size)#, FULLSCREEN)
         pygame.display.init()
 
         self._load_font()
@@ -106,7 +106,7 @@ class MazeScreen(object):
             self.arrow_down = DrawArrow(self.screen, 'down', self.arrow_colors_levels, 
                                         self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
         
-        elif self.session_condition in ['motor', 'motor_cognitive']:
+        elif self.session_condition in ['motor', 'cognitive_motor']:
             self.arrow_right = DrawWiiArrow(self.screen, 'right', self.arrow_colors_levels, 
                                             self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
             self.arrow_left = DrawWiiArrow(self.screen, 'left', self.arrow_colors_levels, 

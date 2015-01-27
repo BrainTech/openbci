@@ -33,6 +33,9 @@ class MazeGame(object):
         self.user_id = user_id
         self.session_number = data_manager.session_number_get(self.user_id)
         self.session_condition = data_manager.session_type_get(self.user_id)
+        print '********************************************************'
+        print 'self.session_condition:', self.session_condition
+        print '********************************************************'
         self.session_type = session_type
         self.session_duration = session_duration
         self.time_board_display = time_board_display
@@ -77,7 +80,7 @@ class MazeGame(object):
                                 self.session_condition,
                                 self)
 
-        elif self.session_condition == 'motor_cognitive':
+        elif self.session_condition == 'cognitive_motor':
             game = MazeWiiLogic(level,
                                 data_manager.wii_current_level_get_last(self.user_id),
                                 self.session_number, 
