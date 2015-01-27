@@ -20,7 +20,8 @@ class LogicVenturesCognitive(ConfiguredMultiplexerServer):
 
         tag_name = self.get_param('save_file_name')
         tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
-        maze.MazeGame(user_id, tag_dir=tag_dir, tag_name=tag_name).run()
+        session_type = self.get_param('session_type')
+        maze.MazeGame(user_id, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type).run()
         sys.exit(0)
     
 if __name__ == "__main__":

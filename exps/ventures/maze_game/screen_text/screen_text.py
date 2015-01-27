@@ -28,14 +28,14 @@ def get_win_level_text(session_type, session_condition):
     if session_condition == 'motor':
         return u"\n\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\n"
     else:
-        return u"\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\nPamiętaj! staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n" 
+        return u"\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\nPamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n" 
 
 def get_finish_session_text(training_number, session_type, session_condition):
     if session_type == 'experiment':
         if training_number != 10:
-            return u"\n\n\nTwój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
+            return u"\n\n\nTwój trening na dzisiaj dobiegł końca. Przypominamy o jutrzejszym treningu!"
         else:
-            return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
+            return u"\n\n\nTwój trening na dobiegł końca. Dziękujemy za udział w eksperymencie."
     else:
         return u"\n\n\nKoniec sesji treningowej"
 
@@ -46,7 +46,7 @@ def get_repeat_level_text(repeat_number, session_type, session_condition):
         if 3-repeat_number in [2, 3]:
             return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
         else:
-            return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności. \n\nPamiętaj! staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów."
+            return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności. \n\nPamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów."
     else:
         if 3-repeat_number == 1:
             return u"\n\n\nZboczyłeś ze ścieżki! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
@@ -81,7 +81,7 @@ def get_instruction_2(session_type, session_condition):
     ret += u"Staraj się przejść labirynt jak najszybciej.\nUważaj, przechodząc labirynt zbyt wolno, także spadasz poziom niżej!\n\n"
 
     if session_condition !='motor':
-        ret += u"Pamiętaj! staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n"
+        ret += u"Pamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n"
 
     return ret + u"<aby rozpocząć trening naciśnij spację>"
     
