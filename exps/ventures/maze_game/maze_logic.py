@@ -78,6 +78,14 @@ class MazeLogic(object):
     def get_level_array(self):
         return self.level.get_level_array()
 
+    def get_path(self):
+        return self.level.get_all_path()
+
+    def get_active_path(self):
+        x = int(self.get_ball_position_x())
+        y = int(self.get_ball_position_y())
+        return self.level.get_point_path((y,x))
+
     def _clear_arrows(self):
         self.screen.arrow_right.set_level(0)
         self.screen.arrow_left.set_level(0)
@@ -138,7 +146,9 @@ class MazeLogic(object):
                              self.get_ball_position_y(),
                              self.get_current_level(),
                              self.get_level_time(),
-                             self.get_sesion_time())
+                             self.get_sesion_time(),
+                             self.get_path(),
+                             self.get_active_path())
 
     def draw_game_with_arrow(self, arrow_type):
         self.screen.draw_game_with_arrow(arrow_type,
@@ -147,7 +157,9 @@ class MazeLogic(object):
                                          self.get_ball_position_y(),
                                          self.get_current_level(),
                                          self.get_level_time(),
-                                         self.get_sesion_time())        
+                                         self.get_sesion_time(),
+                                         self.get_path(),
+                                         self.get_active_path())        
 
     def draw_game_with_arrow_update(self, arrow_type, arrow_level):
         self.screen.draw_game_with_arrow_update(arrow_type,
@@ -157,7 +169,9 @@ class MazeLogic(object):
                                                self.get_ball_position_y(),
                                                self.get_current_level(),
                                                self.get_level_time(),
-                                               self.get_sesion_time())
+                                               self.get_sesion_time(),
+                                               self.get_path(),
+                                               self.get_active_path())
                                                
                                                
     def update_screen(self):

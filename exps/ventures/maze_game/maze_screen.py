@@ -84,9 +84,16 @@ class MazeScreen(object):
         self.block = pygame.image.load(os.path.join(GAME_DATA_PATH,'block.gif'))
         self.floor_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor.gif'))
         self.hole_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'hole.gif'))
-        self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start.gif'))
+
+        if self.sesion_condition == 'motor':
+            self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start_path.gif'))
+        else:
+            self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start.gif'))
+
         self.finish_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'finish.gif'))
         self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
+        self.floor_path_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor_path.gif'))
+        self.floor_active_path_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor_path_2.gif'))
 
     def _init_arrows(self):
         if self.sesion_condition == 'cognitive':
@@ -135,31 +142,35 @@ class MazeScreen(object):
         return (x_position, y_position)
 
     def draw_game(self, level_array, ball_position_x, ball_position_y, current_level, 
-                  level_time, sesion_time):
-        self._draw_level(level_array)
+                  level_time, sesion_time, path, active_path):
+        self._draw_level(level_array, path)
+        self._draw_active_path(active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self._display()
 
     def draw_game_with_arrow(self, arrow_type, level_array, ball_position_x, ball_position_y, 
-                             current_level, level_time, sesion_time):
-        self._draw_level(level_array)
+                             current_level, level_time, sesion_time, path, active_path):
+        self._draw_level(level_array, path)
+        self._draw_active_path(active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
         self._display()
         
     def draw_game_with_arrow_update(self, arrow_type, arrow_level, level_array, ball_position_x, 
-                                    ball_position_y, current_level, level_time, sesion_time):
-        self._draw_level(level_array)
+                                    ball_position_y, current_level, level_time, sesion_time, path, active_path):
+        self._draw_level(level_array, path)
+        self._draw_active_path(active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self.get_arrow(arrow_type).draw_level(arrow_level)
         self._display()
 
     def draw_game_with_wii_arrow(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
-                                 ball_position_y, current_level, level_time, sesion_time):
-        self._draw_level(level_array)
+                                 ball_position_y, current_level, level_time, sesion_time, path, active_path):
+        self._draw_level(level_array, path)
+        self._draw_active_path(active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
@@ -167,14 +178,15 @@ class MazeScreen(object):
         self._display()
 
     def draw_game_with_wii_arrow_update(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
-                                        ball_position_y, current_level, level_time, sesion_time):
-        self._draw_level(level_array)
+                                        ball_position_y, current_level, level_time, sesion_time, path, active_path):
+        self._draw_level(level_array, path)
+        self._draw_active_path(active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, sesion_time)
         self.get_arrow(arrow_type).draw_level(arrow_level, arrow_area_param)
         self._display()
 
-    def _draw_level(self, level):
+    def _draw_level(self, level, path):
         self.screen.blit(self.black_screen, (0,0))
         self._calc_grid_offsets(level)
         for ym in range(len(level)):
@@ -193,6 +205,19 @@ class MazeScreen(object):
 
                 elif level[ym][xm] == 4:
                     self.screen.blit(self.finish_block, self._get_position(xm, ym))
+        if self.sesion_condition == 'motor':
+            for ym, xm in path:
+                self.screen.blit(self.floor_path_block, self._get_position(xm, ym))
+            else:
+                pass
+
+    def _draw_active_path(self, active_path):
+        if self.sesion_condition == 'motor':
+            for ym, xm in active_path:
+                self.screen.blit(self.floor_active_path_block, self._get_position(xm, ym))
+        else:
+            pass
+
 
     def _draw_ball(self, ball_x, ball_y):
         x_position, y_position = self._get_position(ball_x, ball_y)
