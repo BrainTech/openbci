@@ -93,7 +93,7 @@ class MazeLevel(object):
         self._init_level_arrays(level)
         self._init_path()
         if level_type == 'T':
-            self.level = elf.level.T
+            self.level = self.level.T
             self.level_path = self.level_path.T
         elif level_type == 'T->':
             self.level = np.array([row[::-1] for row in self.level]).T
