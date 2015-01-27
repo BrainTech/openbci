@@ -33,9 +33,6 @@ class MazeGame(object):
         self.user_id = user_id
         self.session_number = data_manager.session_number_get(self.user_id)
         self.session_condition = data_manager.session_type_get(self.user_id)
-        print '********************************************************'
-        print 'self.session_condition:', self.session_condition
-        print '********************************************************'
         self.session_type = session_type
         self.session_duration = session_duration
         self.time_board_display = time_board_display
@@ -57,7 +54,7 @@ class MazeGame(object):
         else:
             level = 1
 
-        if self.session_condition == ['cognitive', 'key_motor']:
+        if self.session_condition in ['cognitive', 'key_motor']:
             game = MazeLogic(level, 
                              self.session_number, 
                              self.session_duration, 
