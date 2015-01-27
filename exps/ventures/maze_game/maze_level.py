@@ -26,15 +26,15 @@ import random
 from constants.constants_levels import LEVELS_IN_ORDER, LEVELS_GAME_TIMEOUT, LEVELS_TRAINING, LEVELS_TRAINING_TIMEOUT
 
 class MazeLevel(object):
-    def __init__(self, sesion_type):
+    def __init__(self, session_type):
         super(MazeLevel, self).__init__()
         self.x = 0
         self.y = 0
 
-        if sesion_type=='training':
+        if session_type=='training':
             self.level_in_order = LEVELS_TRAINING
             self.level_timeout = LEVELS_TRAINING_TIMEOUT
-        elif sesion_type == 'experiment':
+        elif session_type == 'experiment':
             self.level_in_order = LEVELS_IN_ORDER
             self.level_timeout = LEVELS_GAME_TIMEOUT
 

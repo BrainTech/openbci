@@ -41,15 +41,15 @@ def get_sample():
 
 
 class MazeWiiLogic(MazeLogic):
-    def __init__(self, start_level, start_wii_level, sesion_number, sesion_duration, 
-                 time_board_display, time_left_out, tagger, sesion_type, sesion_condition,
+    def __init__(self, start_level, start_wii_level, session_number, session_duration, 
+                 time_board_display, time_left_out, tagger, session_type, session_condition,
                  data_engine):
-        super(MazeWiiLogic, self).__init__(start_level, sesion_number, sesion_duration, 
+        super(MazeWiiLogic, self).__init__(start_level, session_number, session_duration, 
                                            time_board_display, time_left_out, 
-                                           tagger, sesion_type, sesion_condition)
+                                           tagger, session_type, session_condition)
         self.data_engine = data_engine
         self.start_wii_level = start_wii_level
-        self.wii_level = MazeWiiLevel(sesion_type)
+        self.wii_level = MazeWiiLevel(session_type)
         self._init_wii_arrows()
 
     def _init_wii_arrows(self):
@@ -107,7 +107,7 @@ class MazeWiiLogic(MazeLogic):
                                              self.get_ball_position_y(),
                                              self.get_current_level(),
                                              self.get_level_time(),
-                                             self.get_sesion_time())
+                                             self.get_session_time())
 
     def draw_game_with_arrow_update(self, arrow_type):
         self.screen.draw_game_with_wii_arrow_update(arrow_type,
@@ -118,7 +118,7 @@ class MazeWiiLogic(MazeLogic):
                                                     self.get_ball_position_y(),
                                                     self.get_current_level(),
                                                     self.get_level_time(),
-                                                    self.get_sesion_time())
+                                                    self.get_session_time())
         
 
     def update_screen(self):
@@ -169,7 +169,7 @@ class MazeWiiLogic(MazeLogic):
             self.load_wii_level(key)
         self.set_current_arrow_direction(None)
         #self.instruction()
-        self.sesion_start() 
+        self.session_start() 
         self.level_start()
         while self.get_current_level()<= self.number_of_levels and self.status:
             if not self.get_level_status():

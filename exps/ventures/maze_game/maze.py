@@ -26,21 +26,21 @@ from tags.tagger import Tagger
 from obci.exps.ventures.data import data_manager
 
 class MazeGame(object):
-    def __init__(self, user_id, sesion_type='training', sesion_duration=30*60, time_board_display=5, 
+    def __init__(self, user_id, session_type='training', session_duration=30*60, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'):
 	self._init_queue()
         super(MazeGame, self).__init__()
         self.user_id = user_id
-        self.sesion_number = data_manager.sesion_number_get(self.user_id)
-        self.sesion_condition = data_manager.sesion_type_get(self.user_id)
-        self.sesion_type = sesion_type
-        self.sesion_duration = sesion_duration
+        self.session_number = data_manager.session_number_get(self.user_id)
+        self.session_condition = data_manager.session_type_get(self.user_id)
+        self.session_type = session_type
+        self.session_duration = session_duration
         self.time_board_display = time_board_display
         self.time_left_out = time_left_out
         self.tagger_init(tag_name, tag_dir)
 
     def tagger_init(self, tag_name, tag_dir):
-        if  self.sesion_type == 'experiment':
+        if  self.session_type == 'experiment':
             self.tagger = Tagger(tag_name, tag_dir, status='ON')
         else:
             self.tagger = Tagger(tag_name, tag_dir, status='OFF')
@@ -49,48 +49,48 @@ class MazeGame(object):
         return self.user_data_parser.get_user_trening_data(user_name)
 
     def run(self):
-        if self.sesion_type == 'experiment':
+        if self.session_type == 'experiment':
             level = data_manager.maze_current_level_get_last(self.user_id)
         else:
             level = 1
 
-        if self.sesion_condition == 'cognitive':
+        if self.session_condition == 'cognitive':
             game = MazeLogic(level, 
-                             self.sesion_number, 
-                             self.sesion_duration, 
+                             self.session_number, 
+                             self.session_duration, 
                              self.time_board_display, 
                              self.time_left_out, 
                              self.tagger, 
-                             self.sesion_type,
-                             self.sesion_condition,
+                             self.session_type,
+                             self.session_condition,
                              )
 
-        elif self.sesion_condition == 'motor':
+        elif self.session_condition == 'motor':
             game = MazeWiiLogic(level,
                                 data_manager.wii_current_level_get_last(self.user_id),
-                                self.sesion_number, 
-                                self.sesion_duration, 
+                                self.session_number, 
+                                self.session_duration, 
                                 self.time_board_display, 
                                 self.time_left_out, 
                                 self.tagger, 
-                                self.sesion_type, 
-                                self.sesion_condition,
+                                self.session_type, 
+                                self.session_condition,
                                 self)
 
-        elif self.sesion_condition == 'motor_cognitive':
+        elif self.session_condition == 'motor_cognitive':
             game = MazeWiiLogic(level,
                                 data_manager.wii_current_level_get_last(self.user_id),
-                                self.sesion_number, 
-                                self.sesion_duration, 
+                                self.session_number, 
+                                self.session_duration, 
                                 self.time_board_display, 
                                 self.time_left_out, 
                                 self.tagger, 
-                                self.sesion_type, 
-                                self.sesion_condition,
+                                self.session_type, 
+                                self.session_condition,
                                 self)
         game.main()
-        if self.sesion_type=='experiment':
-            if self.self.sesion_condition in ['motor_cognitive', 'motor']:
+        if self.session_type=='experiment':
+            if self.self.session_condition in ['motor_cognitive', 'motor']:
                 data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
             data_manager.maze_current_level_set(self.user_id, game.get_current_level())
 
