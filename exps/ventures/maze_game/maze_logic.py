@@ -25,7 +25,7 @@ from pygame.locals import *
 
 from maze_level import MazeLevel
 from maze_screen import MazeScreen 
-from timers.sesion_watcher import SesionWatcher
+from timers.session_watcher import SessionWatcher
 from timers.level_watcher import LevelWatcher 
 
 from constants.constants_arrow import ARROW_KEY, ARROW_SPEED_UP, ARROW_SPEED_DOWN, ARROW_SIZE
@@ -33,18 +33,18 @@ from constants.constants_game import FRAME_RATE, GAME_KEYS
  
 class MazeLogic(object):
 
-    def __init__(self, start_level, sesion_number, sesion_duration, time_board_display,
-                 time_left_out, tagger, sesion_type, sesion_condition):
+    def __init__(self, start_level, session_number, session_duration, time_board_display,
+                 time_left_out, tagger, session_type, session_condition):
         super(MazeLogic, self).__init__()
         self.start_level = start_level
-        self.sesion_timer = SesionWatcher(sesion_duration, time_left_out)
-        self.level = MazeLevel(sesion_type)
+        self.session_timer = SessionWatcher(session_duration, time_left_out)
+        self.level = MazeLevel(session_type)
         self.number_of_levels = self.level.get_number_of_levels()
-        self.screen = MazeScreen(time_board_display, self.number_of_levels, sesion_number, sesion_type, sesion_condition)
+        self.screen = MazeScreen(time_board_display, self.number_of_levels, session_number, session_type, session_condition)
         self.status = True
         self.pause_status = False
         self.tagger = tagger
-        self.sesion_number = sesion_number
+        self.session_number = session_number
 
     def send_tag(self, timestamp, tag_name, tage_value=''):
         self.tagger.set_tag(timestamp, str(tag_name), str(tage_value))
@@ -116,29 +116,29 @@ class MazeLogic(object):
         self.level.set_ball_x(x)
         self.level.set_ball_y(y)
 
-    def sesion_start(self):
-        self.sesion_timer.run()
-        # self.set_first_timestamp_to_tagger(self.sesion_timer.get_time_start())
-        self.send_tag(self.sesion_timer.get_time_start(),'sesion_start', self.sesion_number)
+    def session_start(self):
+        self.session_timer.run()
+        # self.set_first_timestamp_to_tagger(self.session_timer.get_time_start())
+        self.send_tag(self.session_timer.get_time_start(),'session_start', self.session_number)
 
-    def sesion_finish(self):
-        self.sesion_timer.stop()
-        self.send_tag(self.sesion_timer.get_time_stop(), 'sesion_finish', self.sesion_number)
+    def session_finish(self):
+        self.session_timer.stop()
+        self.send_tag(self.session_timer.get_time_stop(), 'session_finish', self.session_number)
 
-    def get_sesion_status(self):
-        return self.sesion_timer.get_timer_status()
+    def get_session_status(self):
+        return self.session_timer.get_timer_status()
 
-    def get_sesion_length(self):
-        return self.sesion_timer.get_time_length()
+    def get_session_length(self):
+        return self.session_timer.get_time_length()
 
-    def update_sesion_status(self):
-        self.status = self.get_sesion_status()
+    def update_session_status(self):
+        self.status = self.get_session_status()
 
     def get_level_time(self):
         return self.level_watcher.get_timer_time()
 
-    def get_sesion_time(self):
-        return self.sesion_timer.get_timer_time()
+    def get_session_time(self):
+        return self.session_timer.get_timer_time()
 
     def draw_game(self):
         self.screen.draw_game(self.get_level_array(),
@@ -361,7 +361,7 @@ class MazeLogic(object):
 
     def make_pause(self):
         self.send_tag(time.time(), 'pause', 'start')
-        self.sesion_timer.make_pause()
+        self.session_timer.make_pause()
         self.level_watcher.make_pause()
         self.pause_status=True
         self.screen.display_screen('pause')
@@ -375,10 +375,10 @@ class MazeLogic(object):
                     if event.key == K_p:
                         self.pause_status = False
 
-        self.sesion_timer.finish_pause()
+        self.session_timer.finish_pause()
         self.level_watcher.finish_pause()
         self.send_tag(time.time(), 'pause', 'stop')
-        self.update_sesion_status()
+        self.update_session_status()
         if self.status:
             self.load_level()
 
@@ -387,7 +387,7 @@ class MazeLogic(object):
         self.report_level_fail()
         self.screen.play_sound('fall')
         time.sleep(1.0)
-        self.update_sesion_status()
+        self.update_session_status()
         if self.can_level_repeat():
             if self.get_level_fail() == 1:
                 self.screen.display_screen('repeat_level_1')
@@ -406,7 +406,7 @@ class MazeLogic(object):
     def level_timeout(self):
         self.send_tag(time.time(), 'level_timeout')
         self.level_finish()
-        self.update_sesion_status() 
+        self.update_session_status() 
         self.set_current_level(self.get_current_level()-1)
         self.screen.display_screen('level_timeout')
         if self.status:
@@ -419,7 +419,7 @@ class MazeLogic(object):
         self.screen.play_sound('win')
         time.sleep(1.0)
         self.update_current_level()
-        self.update_sesion_status()
+        self.update_session_status()
         self.screen.display_screen('win')
         if self.get_current_level()<=self.number_of_levels and self.status:
             self.load_level()
@@ -431,13 +431,13 @@ class MazeLogic(object):
     def finish_game(self):
         self.screen.display_screen('finish')
         self.send_tag(time.time(), 'FINISH_exit')
-        self.sesion_finish()
+        self.session_finish()
         self.save_tags()
         pygame.quit()
 
     def exit_game(self):
         self.send_tag(time.time(), 'ESC_exit')
-        self.sesion_timer.make_pause()
+        self.session_timer.make_pause()
         self.level_watcher.make_pause()
         self.pause_status=True
         self.screen.display_screen('exit')
@@ -449,10 +449,10 @@ class MazeLogic(object):
                         return ''
                     if event.key == K_n:
                         self.pause_status = False
-        self.sesion_timer.finish_pause()
+        self.session_timer.finish_pause()
         self.level_watcher.finish_pause()
 
-        self.update_sesion_status()
+        self.update_session_status()
         if self.status:
             self.load_level()
 
@@ -463,11 +463,7 @@ class MazeLogic(object):
 
         while screen_status<3:
             for event in pygame.event.get():                    
-                if event.type == QUIT:
-                    self.finish_game()
-                elif event.type == KEYDOWN:            
-                    if event.key == K_ESCAPE:
-                        self.finish_game()
+                if event.type == KEYDOWN:            
                     if event.key == K_SPACE:
                         screen_status+=1 
                         if screen_status<len(screens):
@@ -477,7 +473,7 @@ class MazeLogic(object):
         self.set_current_level(self.start_level)
         self.load_level()  
         self.instruction()
-        self.sesion_start() 
+        self.session_start() 
         self.level_start()
         while self.get_current_level()<= self.number_of_levels and self.status:
             if not self.get_level_status():

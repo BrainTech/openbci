@@ -1,4 +1,4 @@
-,ID,sesion_type
+,ID,session_type
 0,test_cognitive,cognitive
 1,test_cognitive_motor,cognitive_motor
 2,test_motor,motor

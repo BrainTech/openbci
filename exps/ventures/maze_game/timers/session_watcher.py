@@ -20,9 +20,9 @@
 import time
 from timer import Timer
 
-class SesionWatcher(Timer):
+class SessionWatcher(Timer):
     def __init__(self, timer_duration, time_left_out=0):
-        super(SesionWatcher, self).__init__(timer_duration, time_left_out)
+        super(SessionWatcher, self).__init__(timer_duration, time_left_out)
 
     def get_time_length(self):
         return self.time_sesion_stop - self.time_sesion_start - self.pouse_duration

@@ -19,9 +19,9 @@
 from constants.constants_wii_levels import WII_LEVELS
 
 class MazeWiiLevel(object):
-    def __init__(self, sesion_type):
+    def __init__(self, session_type):
         super(MazeWiiLevel, self).__init__()
-        self.sesion_type = sesion_type
+        self.session_type = session_type
         self._init_level_params()
 
     def _init_level_params(self):
