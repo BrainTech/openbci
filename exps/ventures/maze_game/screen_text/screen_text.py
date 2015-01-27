@@ -68,7 +68,7 @@ def get_instruction_1(session_type, session_condition):
     else:
         ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
     if session_condition != 'motor':
-        ret = u"\n\n"
+        ret += u"\n\n"
     ret = ret + u"\n<aby przejść dalej naciśnij spację>" 
     return ret
 
