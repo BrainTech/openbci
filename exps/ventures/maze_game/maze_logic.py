@@ -146,7 +146,7 @@ class MazeLogic(object):
                              self.get_ball_position_y(),
                              self.get_current_level(),
                              self.get_level_time(),
-                             self.get_sesion_time(),
+                             self.get_session_time(),
                              self.get_path(),
                              self.get_active_path())
 
@@ -157,7 +157,7 @@ class MazeLogic(object):
                                          self.get_ball_position_y(),
                                          self.get_current_level(),
                                          self.get_level_time(),
-                                         self.get_sesion_time(),
+                                         self.get_session_time(),
                                          self.get_path(),
                                          self.get_active_path())        
 
@@ -169,7 +169,7 @@ class MazeLogic(object):
                                                self.get_ball_position_y(),
                                                self.get_current_level(),
                                                self.get_level_time(),
-                                               self.get_sesion_time(),
+                                               self.get_session_time(),
                                                self.get_path(),
                                                self.get_active_path())
                                                
