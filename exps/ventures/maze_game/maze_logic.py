@@ -449,11 +449,7 @@ class MazeLogic(object):
 
         while screen_status<3:
             for event in pygame.event.get():                    
-                if event.type == QUIT:
-                    self.exit_game()
-                elif event.type == KEYDOWN:            
-                    if event.key == K_ESCAPE:
-                        self.exit_game()
+                if event.type == KEYDOWN:            
                     if event.key == K_SPACE:
                         screen_status+=1 
                         if screen_status<len(screens):

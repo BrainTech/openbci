@@ -57,7 +57,7 @@ class MazeScreen(object):
         self.time_board_display = time_board_display
         self.session_number = session_number
         self.number_of_levels = number_of_levels
-        self.screen = pygame.display.set_mode(self.screen_size)#, FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.screen_size, FULLSCREEN)
         pygame.display.init()
 
         self._load_font()
@@ -271,12 +271,11 @@ class MazeScreen(object):
         if action == 'win':
             self._display_screen_helper(text=get_win_level_text(self.session_type, self.session_condition), image=self.black_screen)
             self._display()
-            time.sleep(self.time_board_display)
+            time.sleep(self.time_board_display+1)
 
         elif action == 'start':
             self._display_screen_helper(text=get_start_session_text(self.session_number, self.session_type, self.session_condition), image=self.black_screen)
             self._display()
-            time.sleep(self.time_board_display)
 
         elif action == 'repeat_level_1':
             self._display_screen_helper(text=get_repeat_level_text(1, self.session_type, self.session_condition), image=self.black_screen)
@@ -297,6 +296,7 @@ class MazeScreen(object):
             self._display_screen_helper(text=get_timeout_level(self.session_type, self.session_condition), image=self.black_screen)
             self._display()
             time.sleep(self.time_board_display)
+
         elif action == 'pause':
             self._display_screen_helper(text=get_pause_text(self.session_type, self.session_condition), image=self.black_screen)
             self._display()

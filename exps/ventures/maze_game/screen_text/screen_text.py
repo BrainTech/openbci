@@ -19,8 +19,8 @@
 
 
 def get_start_session_text(training_number, session_type, session_condition):
-    if session_type=='experiment':
-        return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \nOdbyłeś {}/10 treningów. \n Do końca pozostało {} treningów.\n\n<aby przejść dalej naciśnij spację>".format(training_number, 10-training_number)
+    if session_type == 'experiment':
+        return u"\n\n\nWitamy! Trening na dzisiaj jest gotowy! \n\n\nIlość przybytych treningów: {}\nIlość treningów do końca: {}\n\n\n\n\n\n<aby przejść dalej naciśnij spację>".format(training_number, 10-training_number)
     else:
         return  u"\n\n\nWitamy! \nAby rozpocząć sesję treningową naciśnij spację."
 
@@ -31,10 +31,13 @@ def get_win_level_text(session_type, session_condition):
         return u"\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\nPamiętaj! staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n" 
 
 def get_finish_session_text(training_number, session_type, session_condition):
-    if training_number != 10:
-        return u"\n\n\nTwój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
+    if session_type == 'experiment':
+        if training_number != 10:
+            return u"\n\n\nTwój trening na dzisiaj dobiegł końca, przypominamy o jutrzejszym treningu!"
+        else:
+            return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
     else:
-        return u"\n\n\nTwój trening na dobiegł końca, dziękujemy za udział w eksperymencie."
+        return u"\n\n\nKoniec sesji treningowej"
 
 def get_repeat_level_text(repeat_number, session_type, session_condition):
     if session_condition != 'motor': 
@@ -59,18 +62,18 @@ def get_timeout_level(session_type, session_condition):
     return u"\n\n\nPrzekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
 
 def get_instruction_1(session_type, session_condition):
-    ret = u"Masz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\n\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy.\n\n"
+    ret = u"\nMasz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy."
     if session_condition == 'cognitive':
-        ret += u"\nKulką kieruje się przy użyciu strzałek na klawiaturze\n\n"
+        ret += u"\n\nKulką kieruje się przy użyciu strzałek na klawiaturze."
     else:
-        ret += u"\n\n Kulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona\n\n"
+        ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
 
-    ret = ret + u"<aby przejść dalej naciśnij spację>" 
+    ret = ret + u"\n\n\n<aby przejść dalej naciśnij spację>" 
     return ret
 
 def get_instruction_2(session_type, session_condition):
     if session_condition !='motor': 
-        ret = u"Należy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\nUważaj, wpadając w dziurę tracisz jedną szansę.\nPo stracie trzech szans spadasz poziom niżej!\n\n"
+        ret = u"\nNależy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\nUważaj, wpadając w dziurę tracisz jedną szansę.\nPo stracie trzech szans spadasz poziom niżej!\n\n"
     else:
         ret = u"Należy poruszać się wyłącznie po wyznaczonej ścieżce. Dla ułatwienia dwa najbliższe kroki będą zawsze podświetlone na ścieżce.\nUważaj, wykonując ruch zbaczający ze ściezki tracisz jedną szansę. Po stracie trzech szans spadasz poziom niżej!\n\n"
 

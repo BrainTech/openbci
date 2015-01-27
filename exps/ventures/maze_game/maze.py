@@ -90,7 +90,7 @@ class MazeGame(object):
                                 self)
         game.main()
         if self.session_type=='experiment':
-            if self.self.session_condition in ['motor_cognitive', 'motor']:
+            if self.session_condition in ['motor_cognitive', 'motor']:
                 data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
             data_manager.maze_current_level_set(self.user_id, game.get_current_level())
 
