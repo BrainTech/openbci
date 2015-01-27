@@ -85,7 +85,7 @@ class MazeScreen(object):
         self.floor_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor.gif'))
         self.hole_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'hole.gif'))
 
-        if self.session_condition == 'motor':
+        if self.session_condition in ['motor', 'key_motor']:
             self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start_path.gif'))
         else:
             self.start_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'start.gif'))
@@ -96,7 +96,7 @@ class MazeScreen(object):
         self.floor_active_path_block = pygame.image.load(os.path.join(GAME_DATA_PATH,'floor_path_2.gif'))
 
     def _init_arrows(self):
-        if self.session_condition == 'cognitive':
+        if self.session_condition in ['cognitive', 'key_motor']:
             self.arrow_right = DrawArrow(self.screen, 'right', self.arrow_colors_levels, 
                                          self.arrow_proportion, self.arrow_size, self.arrow_levels_lines)
             self.arrow_left = DrawArrow(self.screen, 'left', self.arrow_colors_levels, 
@@ -205,14 +205,14 @@ class MazeScreen(object):
 
                 elif level[ym][xm] == 4:
                     self.screen.blit(self.finish_block, self._get_position(xm, ym))
-        if self.session_condition == 'motor':
+        if self.session_condition in ['motor', 'key_motor']:
             for ym, xm in path:
                 self.screen.blit(self.floor_path_block, self._get_position(xm, ym))
             else:
                 pass
 
     def _draw_active_path(self, active_path):
-        if self.session_condition == 'motor':
+        if self.session_condition in ['motor', 'key_motor']:
             for ym, xm in active_path:
                 self.screen.blit(self.floor_active_path_block, self._get_position(xm, ym))
         else:

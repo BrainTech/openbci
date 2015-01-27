@@ -57,7 +57,7 @@ class MazeGame(object):
         else:
             level = 1
 
-        if self.session_condition == 'cognitive':
+        if self.session_condition == ['cognitive', 'key_motor']:
             game = MazeLogic(level, 
                              self.session_number, 
                              self.session_duration, 
