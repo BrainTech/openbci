@@ -172,7 +172,7 @@ class MazeWiiLogic(MazeLogic):
         for key in self.current_wii_level.keys():
             self.load_wii_level(key)
         self.set_current_arrow_direction(None)
-        #self.instruction()
+        self.instruction()
         self.session_start() 
         self.level_start()
         while self.get_current_level()<= self.number_of_levels and self.status:

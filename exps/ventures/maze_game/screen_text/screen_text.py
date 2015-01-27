@@ -63,26 +63,28 @@ def get_timeout_level(session_type, session_condition):
 
 def get_instruction_1(session_type, session_condition):
     ret = u"\nMasz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy."
-    if session_condition == 'cognitive':
+    if session_condition in ['cognitive', 'key_motor']:
         ret += u"\n\nKulką kieruje się przy użyciu strzałek na klawiaturze."
     else:
         ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
-
-    ret = ret + u"\n\n\n<aby przejść dalej naciśnij spację>" 
+    if session_condition != 'motor':
+        ret = u"\n\n"
+    ret = ret + u"\n<aby przejść dalej naciśnij spację>" 
     return ret
 
 def get_instruction_2(session_type, session_condition):
-    if session_condition !='motor': 
+    if not (session_condition in ['motor', 'key_motor']): 
         ret = u"\nNależy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\nUważaj, wpadając w dziurę tracisz jedną szansę.\nPo stracie trzech szans spadasz poziom niżej!\n\n"
     else:
-        ret = u"Należy poruszać się wyłącznie po wyznaczonej ścieżce. Dla ułatwienia dwa najbliższe kroki będą zawsze podświetlone na ścieżce.\nUważaj, wykonując ruch zbaczający ze ściezki tracisz jedną szansę. Po stracie trzech szans spadasz poziom niżej!\n\n"
+        ret = u"\nNależy poruszać się wyłącznie po wyznaczonej ścieżce. Dla ułatwienia dwa najbliższe kroki będą zawsze podświetlone na ścieżce.\nUważaj, wykonując ruch zbaczający ze ściezki tracisz jedną szansę. Po stracie trzech szans spadasz poziom niżej!\n\n"
 
 
     ret += u"Staraj się przejść labirynt jak najszybciej.\nUważaj, przechodząc labirynt zbyt wolno, także spadasz poziom niżej!\n\n"
 
-    if session_condition !='motor':
+    if not (session_condition in ['motor', 'key_motor']):
         ret += u"Pamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n"
-
+    else:
+        ret += u'\n\n'
     return ret + u"<aby rozpocząć trening naciśnij spację>"
     
 def get_exit_text(session_type, session_condition):
