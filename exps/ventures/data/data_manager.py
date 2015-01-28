@@ -19,11 +19,11 @@ def get_database_file_name(file_name):
     dir_name = os.path.join(settings.MAIN_DIR, 'exps/ventures/data')
     return acquisition_helper.get_file_path(dir_name, file_name)
 
-def sesion_type_get(user_id):
+def session_type_get(user_id):
     data = pd.read_csv(get_database_file_name(USERS), index_col=False, dtype='str')
-    return data[data['ID']==user_id]['sesion_type'].values[0]
+    return data[data['ID']==user_id]['session_type'].values[0]
 
-def sesion_number_get(user_id):
+def session_number_get(user_id):
     data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=False, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])
