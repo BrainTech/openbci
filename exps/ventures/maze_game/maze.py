@@ -40,7 +40,7 @@ class MazeGame(object):
         self.tagger_init(tag_name, tag_dir)
 
     def tagger_init(self, tag_name, tag_dir):
-        if  self.session_type == 'ventures_game':
+        if  self.session_type == 'experiment':#'ventures_game':
             self.tagger = Tagger(tag_name, tag_dir, status='ON')
         else:#should be ventures_game_training
             self.tagger = Tagger(tag_name, tag_dir, status='OFF')
