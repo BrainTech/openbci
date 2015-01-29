@@ -67,7 +67,7 @@ def get_instruction_1(session_type, session_condition):
         ret += u"\n\nKulką kieruje się przy użyciu strzałek na klawiaturze."
     else:
         ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
-    if session_condition != 'motor':
+    if not (session_condition in ['motor', 'cognitive_motor']):
         ret += u"\n\n"
     ret = ret + u"\n<aby przejść dalej naciśnij spację>" 
     return ret
