@@ -28,9 +28,11 @@ from down_arrow import DownArrow
 class DrawArrow(object):
     COLORS = {'black'  : (  0,   0,   0),
               'white'  : (255, 255, 255),
-              'yellow' : (255, 255,   0),
-              'green'  : (  0, 255,   0),
-              'red'    : (255,   0,   0)}
+              'yellow' : (255, 213,   0),
+              'green'  : ( 68, 253,  68),
+              'red'    : (255,   0,   0),
+              'gray'   : ( 57,  57,  63),
+              'blue'   : (146, 228, 253)}
 
     def __init__(self, window, type_, arrow_colors_levels, 
                  proportion = [37.5, 37.5, 25.0], size = 120,
@@ -56,16 +58,16 @@ class DrawArrow(object):
         line1, line2 = self.arrow.get_shape_level_points()
 
         if self.arrow.are_levels_lines():
-            pygame.draw.line(self.window, self.COLORS['black'], line1[0], line1[1], 2)
-            pygame.draw.line(self.window, self.COLORS['black'], line2[0], line2[1], 2)
+            pygame.draw.line(self.window, self.COLORS['gray'], line1[0], line1[1], 2)
+            pygame.draw.line(self.window, self.COLORS['gray'], line2[0], line2[1], 2)
 
-        pygame.draw.polygon(self.window, self.COLORS['black'], self.arrow.points, 3)
+        pygame.draw.polygon(self.window, self.COLORS['gray'], self.arrow.points, 3)
 
     def _draw_level_data(self, level, points, color):
         pygame.draw.polygon(self.window, self.COLORS[color], points)
         if level<self.arrow.get_size():
             line = self.arrow.get_level_line_points(level)
-            pygame.draw.line(self.window, self.COLORS['black'], line[0], line[1], 2)
+            pygame.draw.line(self.window, self.COLORS['gray'], line[0], line[1], 2)
 
     def _draw_white_fill_arrow(self):
         pygame.draw.polygon(self.window, self.COLORS['white'], self.arrow.points)
