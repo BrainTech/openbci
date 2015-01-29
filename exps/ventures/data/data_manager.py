@@ -15,16 +15,22 @@ GAME_WII_RESULTS = 'game_wii_results.csv'
 
 
 TIME_STR = '20%y-%m-%d_%H-%M-%S'
+
+def col_mame_to_save_get(data, names_in_cols):
+    max_number = max([int(value) for value in data['number'].values])
+    cols =  sum([['{}_{}'.format(ind, name) for name in names_in_cols] for ind in range(1, max_number+1)], [])
+    return sum([['ID', 'number'], cols], [])
+
 def get_database_file_name(file_name):
     dir_name = os.path.join(settings.MAIN_DIR, 'exps/ventures/data')
     return acquisition_helper.get_file_path(dir_name, file_name)
 
 def session_type_get(user_id):
-    data = pd.read_csv(get_database_file_name(USERS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(USERS), index_col=0, dtype='str')
     return data[data['ID']==user_id]['session_type'].values[0]
 
 def session_number_get(user_id):
-    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=0, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])
         return number+1
@@ -41,7 +47,7 @@ def time_from_string(t):
     return time.mktime(time.strptime(t, TIME_STR))
 
 def baseline_set(user_id, xa,ya,xb,yb,xc,yc, file_name):
-    data = pd.read_csv(get_database_file_name(BASELINE_RESULTS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(BASELINE_RESULTS), index_col=0, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])+1
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
@@ -61,10 +67,12 @@ def baseline_set(user_id, xa,ya,xb,yb,xc,yc, file_name):
     data.set_value(data[data['ID']==user_id].index[0], '{}_yc'.format(number), yc.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_file_name'.format(number), file_name)
     data.set_value(data[data['ID']==user_id].index[0], '{}_time'.format(number), current_time_to_string())
-    data.to_csv(get_database_file_name(BASELINE_RESULTS), cols=[i for i in data.columns if i[0:7] != 'Unnamed'])
+    
+    data.to_csv(get_database_file_name(BASELINE_RESULTS), 
+                                       cols=col_mame_to_save_get(data, ['xa','ya','xb','yb','xc','yc','file_name','time']))
 
 def baseline_get_last(user_id):
-    data = pd.read_csv(get_database_file_name(BASELINE_RESULTS), index_col=False,  dtype='str')
+    data = pd.read_csv(get_database_file_name(BASELINE_RESULTS), index_col=0,  dtype='str')
     if user_id in data['ID'].values:
         number = data[data['ID']==user_id]['number'].values[0]
         xa = data[data['ID']==user_id]['{}_xa'.format(number)].values[0]
@@ -79,7 +87,7 @@ def baseline_get_last(user_id):
         return None
 
 def calibration_set(user_id, up, right, down, left, file_name):
-    data = pd.read_csv(get_database_file_name(CALIBRATION_RESULTS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(CALIBRATION_RESULTS), index_col=0, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])+1
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
@@ -96,10 +104,11 @@ def calibration_set(user_id, up, right, down, left, file_name):
     data.set_value(data[data['ID']==user_id].index[0], '{}_left'.format(number), left.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_right'.format(number), right.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_time'.format(number), current_time_to_string())
-    data.to_csv(get_database_file_name(CALIBRATION_RESULTS), cols=[i for i in data.columns if i[0:7] != 'Unnamed']) 
+    data.to_csv(get_database_file_name(CALIBRATION_RESULTS),
+                cols=col_mame_to_save_get(data, ['up','down','left','right','time'])) 
 
 def calibration_get_last(user_id):
-    data = pd.read_csv(get_database_file_name(CALIBRATION_RESULTS), index_col=False,  dtype='str')
+    data = pd.read_csv(get_database_file_name(CALIBRATION_RESULTS), index_col=0,  dtype='str')
     if user_id in data['ID'].values:
         number = data[data['ID']==user_id]['number'].values[0]
         up = data[data['ID']==user_id]['{}_up'.format(number)].values[0]
@@ -112,7 +121,7 @@ def calibration_get_last(user_id):
         return None
 
 def wii_current_level_set(user_id, level):
-    data = pd.read_csv(get_database_file_name(GAME_WII_RESULTS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(GAME_WII_RESULTS), index_col=0, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])+1
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
@@ -126,10 +135,11 @@ def wii_current_level_set(user_id, level):
 
     data.set_value(data[data['ID']==user_id].index[0], '{}_level'.format(number), level.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_time'.format(number), current_time_to_string())
-    data.to_csv(get_database_file_name(GAME_WII_RESULTS), cols=[i for i in data.columns if i[0:7] != 'Unnamed'])     
+    data.to_csv(get_database_file_name(GAME_WII_RESULTS), 
+                                       cols=col_mame_to_save_get(data, ['level','time']))     
 
 def wii_current_level_get_last(user_id):
-    data = pd.read_csv(get_database_file_name(GAME_WII_RESULTS), index_col=False,  dtype='str')
+    data = pd.read_csv(get_database_file_name(GAME_WII_RESULTS), index_col=0,  dtype='str')
     if user_id in data['ID'].values:
         number = data[data['ID']==user_id]['number'].values[0]
         level = data[data['ID']==user_id]['{}_level'.format(number)].values[0]
@@ -138,7 +148,7 @@ def wii_current_level_get_last(user_id):
         return 1
 
 def maze_current_level_set(user_id, level):
-    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=False, dtype='str')
+    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=0, dtype='str')
     if user_id in data['ID'].values:
         number = int(data[data['ID']==user_id]['number'].values[0])+1
         data.set_value(data[data['ID']==user_id].index[0], 'number', str(number))
@@ -152,10 +162,11 @@ def maze_current_level_set(user_id, level):
 
     data.set_value(data[data['ID']==user_id].index[0], '{}_level'.format(number), level.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_time'.format(number), current_time_to_string())
-    data.to_csv(get_database_file_name(GAME_RESULTS), cols=[i for i in data.columns if i[0:7] != 'Unnamed'])   
+    data.to_csv(get_database_file_name(GAME_RESULTS),
+                cols=col_mame_to_save_get(data, ['level', 'time']))   
 
 def maze_current_level_get_last(user_id):
-    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=False,  dtype='str')
+    data = pd.read_csv(get_database_file_name(GAME_RESULTS), index_col=0,  dtype='str')
     if user_id in data['ID'].values:
         number = data[data['ID']==user_id]['number'].values[0]
         level = data[data['ID']==user_id]['{}_level'.format(number)].values[0]
