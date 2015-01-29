@@ -19,6 +19,51 @@
 
 WII_LEVELS = {'1': {'step_up' : 1,
                     'step_down': 1,
-                    'area_start_value': 37.5,
-                    'area_end_value': 37.5+47.5}
+                    'area_start_value': 30,
+                    'area_end_value': 70},
+
+              '2': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 35,
+                    'area_end_value': 75},
+
+              '3': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 40,
+                    'area_end_value': 80},
+
+               '4': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 45,
+                    'area_end_value': 85},
+
+              '5': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 50,
+                    'area_end_value': 90},
+
+              '6': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 55,
+                    'area_end_value': 95},
+
+              '7': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 60,
+                    'area_end_value': 100},
+
+              '8': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 65,
+                    'area_end_value': 105},
+
+              '9': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 70,
+                    'area_end_value': 110},
+
+             '10': {'step_up' : 1,
+                    'step_down': 1,
+                    'area_start_value': 75,
+                    'area_end_value': 115}
               }

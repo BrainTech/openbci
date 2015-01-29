@@ -37,6 +37,7 @@ class DrawArrow(object):
                  levels_lines = True):
         super(DrawArrow, self).__init__()
         self.window = window
+        self.size = size
         if type_ == 'right':
             self.arrow = RightArrow(arrow_colors_levels, proportion, size, levels_lines)
 
