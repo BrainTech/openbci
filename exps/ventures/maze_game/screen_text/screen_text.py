@@ -40,7 +40,7 @@ def get_finish_session_text(training_number, session_type, session_condition):
         return u"\n\n\nKoniec sesji treningowej"
 
 def get_repeat_level_text(repeat_number, session_type, session_condition):
-    if session_condition != 'motor': 
+    if not (session_condition in ['motor', 'key_motor']): 
         if 3-repeat_number == 1:
             return u"\n\n\nWpadłeś w dziurę! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
         if 3-repeat_number in [2, 3]:
