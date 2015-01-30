@@ -46,6 +46,11 @@ class MazeLogic(object):
         self.tagger = tagger
         self.session_number = session_number
 
+        if session_condition in ['motor', 'key_motor']:
+            self.path_check = True
+        else:
+            self.path_check = False
+
     def send_tag(self, timestamp, tag_name, tage_value=''):
         self.tagger.set_tag(timestamp, str(tag_name), str(tage_value))
 
@@ -82,8 +87,8 @@ class MazeLogic(object):
         return self.level.get_all_path()
 
     def get_active_path(self):
-        x = int(self.get_ball_position_x())
-        y = int(self.get_ball_position_y())
+        x = self.get_ball_position_x()
+        y = self.get_ball_position_y()
         return self.level.get_point_path((y,x))
 
     def _clear_arrows(self):
@@ -111,6 +116,12 @@ class MazeLogic(object):
 
     def get_ball_position_y(self):
         return self.level.get_ball_y()
+
+    def get_ball_position_start_yx(self):
+        return self.level.get_position_start()
+
+    def get_ball_position_finish_yx(self):
+        return self.level.get_position_finish()
 
     def set_ball_position(self, x, y):
         self.level.set_ball_x(x)
@@ -239,22 +250,31 @@ class MazeLogic(object):
 
     def move(self, type_):
         if type_=='left':
-            self._move_left()
+            self._move(x_update=-1, x_animation_offset_update=-float(self.screen.size_object)/4)
 
         elif type_=='right':
-            self._move_right()
+            self._move(x_update=1, x_animation_offset_update=float(self.screen.size_object)/4)
 
         elif type_=='down':
-            self._move_down()
+            self._move(y_update=1, y_animation_offset_update=float(self.screen.size_object)/4)
 
         elif type_=='up':
-            self._move_up()
+            self._move(y_update=-1, y_animation_offset_update=-float(self.screen.size_object)/4)
 
-    def _move_down(self):
+        x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
+        if self.path_check:
+            x, y = self.get_ball_position_x(), self.get_ball_position_y()
+            if (y, x) in self.get_path() or (y, x) == self.get_ball_position_start_yx() or (y, x) == self.get_ball_position_finish_yx():
+                pass
+            else:
+                self.repeat_level()              
+
+    
+    def _move(self, x_update=0, y_update=0, y_animation_offset_update=0, x_animation_offset_update=0):
         self.screen.set_animation_offset_x(0)
         self.screen.set_animation_offset_y(0)
         x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
-        x_new, y_new = x_position, y_position+1
+        x_new, y_new = x_position+x_update, y_position+y_update
         if self.get_level_array()[y_new][x_new] == 2:
             self.set_ball_position(x_new, y_new)
             self.draw_game()
@@ -266,98 +286,126 @@ class MazeLogic(object):
 
         elif self.get_level_array()[y_new][x_new] in [0, 3]:
             for i in range(4):
-                self.screen.update_animation_offset_y(float(self.screen.size_object)/4)
+                self.screen.update_animation_offset_y(y_animation_offset_update)
+                self.screen.update_animation_offset_x(x_animation_offset_update)
                 self.draw_game()
                 time.sleep(0.025)
             self.set_ball_position(x_new, y_new)
-            self._move_down()
+            self._move(x_update, y_update, y_animation_offset_update, x_animation_offset_update)
 
         elif self.get_level_array()[y_new][x_new] == 4:
             self.set_ball_position(x_new, y_new)
             self.draw_game()
             self.win_level()
+
+    # def _move_down(self):
+    #     self.screen.set_animation_offset_x(0)
+    #     self.screen.set_animation_offset_y(0)
+    #     x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
+    #     x_new, y_new = x_position, y_position+1
+    #     if self.get_level_array()[y_new][x_new] == 2:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.repeat_level()
+
+    #     elif self.get_level_array()[y_new][x_new] == 1: 
+    #         self.draw_game()
+    #         self.hit_wall()
+
+    #     elif self.get_level_array()[y_new][x_new] in [0, 3]:
+    #         for i in range(4):
+    #             self.screen.update_animation_offset_y(float(self.screen.size_object)/4)
+    #             self.draw_game()
+    #             time.sleep(0.025)
+    #         self.set_ball_position(x_new, y_new)
+    #         self._move_down()
+
+    #     elif self.get_level_array()[y_new][x_new] == 4:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.win_level()
             
-    def _move_up(self):
-        self.screen.set_animation_offset_x(0)
-        self.screen.set_animation_offset_y(0)
-        x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
-        x_new, y_new = x_position, y_position-1
+    # def _move_up(self):
+    #     self.screen.set_animation_offset_x(0)
+    #     self.screen.set_animation_offset_y(0)
+    #     x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
+    #     x_new, y_new = x_position, y_position-1
 
-        if self.get_level_array()[y_new][x_new] == 2:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.repeat_level()
+    #     if self.get_level_array()[y_new][x_new] == 2:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.repeat_level()
 
-        elif self.get_level_array()[y_new][x_new] == 1:
-            self.hit_wall()
+    #     elif self.get_level_array()[y_new][x_new] == 1:
+    #         self.hit_wall()
 
-        elif self.get_level_array()[y_new][x_new] in [0, 3]:
-            for i in range(4):
-                self.screen.update_animation_offset_y(-float(self.screen.size_object)/4)
-                self.draw_game()
-                time.sleep(0.025)
-            self.set_ball_position(x_new, y_new)
-            self._move_up()
+    #     elif self.get_level_array()[y_new][x_new] in [0, 3]:
+    #         for i in range(4):
+    #             self.screen.update_animation_offset_y(-float(self.screen.size_object)/4)
+    #             self.draw_game()
+    #             time.sleep(0.025)
+    #         self.set_ball_position(x_new, y_new)
+    #         self._move_up()
 
-        elif self.get_level_array()[y_new][x_new] == 4:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.win_level()
+    #     elif self.get_level_array()[y_new][x_new] == 4:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.win_level()
 
-    def _move_right(self):
-        self.screen.set_animation_offset_x(0)
-        self.screen.set_animation_offset_y(0)
-        x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
-        x_new, y_new = x_position+1, y_position
-        if self.get_level_array()[y_new][x_new] == 2:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.repeat_level()
+    # def _move_right(self):
+    #     self.screen.set_animation_offset_x(0)
+    #     self.screen.set_animation_offset_y(0)
+    #     x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
+    #     x_new, y_new = x_position+1, y_position
+    #     if self.get_level_array()[y_new][x_new] == 2:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.repeat_level()
 
-        elif self.get_level_array()[y_new][x_new] == 1:
-            self.draw_game()
-            self.hit_wall()
+    #     elif self.get_level_array()[y_new][x_new] == 1:
+    #         self.draw_game()
+    #         self.hit_wall()
 
-        elif self.get_level_array()[y_new][x_new] in [0, 3]:
-            for i in range(4):
-                self.screen.update_animation_offset_x(float(self.screen.size_object)/4)
-                self.draw_game()
-                time.sleep(0.025)
-            self.set_ball_position(x_new, y_new)
-            self._move_right()
+    #     elif self.get_level_array()[y_new][x_new] in [0, 3]:
+    #         for i in range(4):
+    #             self.screen.update_animation_offset_x(float(self.screen.size_object)/4)
+    #             self.draw_game()
+    #             time.sleep(0.025)
+    #         self.set_ball_position(x_new, y_new)
+    #         self._move_right()
 
-        elif self.get_level_array()[y_new][x_new] == 4:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.win_level()
+    #     elif self.get_level_array()[y_new][x_new] == 4:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.win_level()
 
-    def _move_left(self):
-        self.screen.set_animation_offset_x(0)
-        self.screen.set_animation_offset_y(0)
-        x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
-        x_new, y_new = x_position-1, y_position
+    # def _move_left(self):
+    #     self.screen.set_animation_offset_x(0)
+    #     self.screen.set_animation_offset_y(0)
+    #     x_position, y_position = self.get_ball_position_x(), self.get_ball_position_y()
+    #     x_new, y_new = x_position-1, y_position
 
-        if self.get_level_array()[y_new][x_new] == 2:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.repeat_level()
+    #     if self.get_level_array()[y_new][x_new] == 2:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.repeat_level()
 
-        elif self.get_level_array()[y_new][x_new] == 1:
-            self.draw_game()
-            self.hit_wall()
+    #     elif self.get_level_array()[y_new][x_new] == 1:
+    #         self.draw_game()
+    #         self.hit_wall()
 
-        elif self.get_level_array()[y_new][x_new] in [0, 3]:
-            for i in range(4):
-                self.screen.update_animation_offset_x(-float(self.screen.size_object)/4)
-                self.draw_game()
-                time.sleep(0.025)
-            self.set_ball_position(x_new, y_new)
-            self._move_left()
+    #     elif self.get_level_array()[y_new][x_new] in [0, 3]:
+    #         for i in range(4):
+    #             self.screen.update_animation_offset_x(-float(self.screen.size_object)/4)
+    #             self.draw_game()
+    #             time.sleep(0.025)
+    #         self.set_ball_position(x_new, y_new)
+    #         self._move_left()
 
-        elif self.get_level_array()[y_new][x_new] == 4:
-            self.set_ball_position(x_new, y_new)
-            self.draw_game()
-            self.win_level()
+    #     elif self.get_level_array()[y_new][x_new] == 4:
+    #         self.set_ball_position(x_new, y_new)
+    #         self.draw_game()
+    #         self.win_level()
 
     def make_pause(self):
         self.send_tag(time.time(), 'pause', 'start')
