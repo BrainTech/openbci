@@ -44,14 +44,14 @@ def get_repeat_level_text(repeat_number, session_type, session_condition):
         if 3-repeat_number == 1:
             return u"\n\n\nWpadłeś w dziurę! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
         if 3-repeat_number in [2, 3]:
-            return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
+            return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szanse. \nSpróbuj ponownie!".format(3-repeat_number)
         else:
             return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności. \n\nPamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów."
     else:
         if 3-repeat_number == 1:
             return u"\n\n\nZboczyłeś ze ścieżki! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
         if 3-repeat_number in [2, 3]:
-            return u"\n\n\nZboczyłeś ze ścieżki! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
+            return u"\n\n\nZboczyłeś ze ścieżki! \nPozostały Ci jeszcze {} szanse. \nSpróbuj ponownie!".format(3-repeat_number)
         else:
             return u"\n\n\nNiestety zboczyłeś ze ścieżki 3 razy.\n Być może aktualny poziom jest dla ciebie jeszcze zbyt trudny. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności.\n\n"
 
