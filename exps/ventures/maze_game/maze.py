@@ -17,18 +17,18 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-import os.path, thread, time, Queue
+import os.path, thread, time
 
 from maze_logic import MazeLogic
 from maze_wii_logic import MazeWiiLogic
 from tags.tagger import Tagger
 
 from obci.exps.ventures.data import data_manager
+from obci.exps.ventures import logic_queue
 
-class MazeGame(object):
+class MazeGame(logic_queue.LogicQueue):
     def __init__(self, user_id, session_type='experiment', session_duration=30*60, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'):
-	self._init_queue()
         super(MazeGame, self).__init__()
         self.user_id = user_id
         self.session_number = data_manager.session_number_get(self.user_id)
@@ -93,31 +93,6 @@ class MazeGame(object):
             if self.session_condition in ['motor_cognitive', 'motor']:
                 data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
             data_manager.maze_current_level_set(self.user_id, game.get_current_level())
-
-    def _init_queue(self):
-        self._queue = Queue.Queue()
-
-    def clear_queue(self):
-        print("Clear queue!!!")
-        while True:
-            try:
-                self._queue.get_nowait()
-            except Queue.Empty:
-                break
-
-    def handle_message(self, msg):
-        try:
-            self._queue.put_nowait(msg)
-        except Queue.Full:
-            print("Warning! Queue is full. Drop message!!!")
-    
-    def get_message(self):
-        if self._queue.qsize() > 2:
-            print("Warning! Queue size is: "+str(self._queue.qsize()))
-        try:
-            return self._queue.get_nowait()
-        except Queue.Empty:
-            return None
 
 def test_maze():
     a = MazeGame('1')
