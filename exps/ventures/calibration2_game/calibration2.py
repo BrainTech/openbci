@@ -78,7 +78,7 @@ class Calibration2(logic_queue.LogicQueue):
                        }
 
         while not done:
-            for d in selected_levels.keys():
+            for d in ['up', 'right', 'down', 'left']:
                 if selected_levels[d] is None:
                     level = self._level_selector[d].get_level()
                     passed = self.try_calib_box(d, level)
@@ -94,7 +94,7 @@ class Calibration2(logic_queue.LogicQueue):
                     elif res == 2:
                         #kind of error - user cant succeede even on easiest level, finish somehow, error or sth. next get_level call would end up badly...
                         pass #TODO
-                        print("ERROR 2")
+                        print("ERROR 2 in ventures boxes calibration! User couldnt pass even the easiest box. Sth. is wrong. Abort with fire!")
                         sys.exit(1)
 
             if not (None in selected_levels.values()):
