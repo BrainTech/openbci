@@ -25,13 +25,16 @@ from level_selector import LevelSelector
 from calibration_screen_2 import CalibrationScreen2 as CalibrationScreen
 from obci.exps.ventures.maze_game.arrow.wii_arrow import WiiArrow as CalibBox
 
+from obci.exps.ventures.maze_game.tags.tagger import Tagger
+from obci.exps.ventures.data.data_manager import calibration_2_set
+
 class Calibration2(logic_queue.LogicQueue):
     """
     - perform calibration2 logic (display boxes in specific order)
     - optinally perform 'final check' on 4 selected boxes
     - store selected boxes (starting levels for 4 directions) for user id
     """
-    def __init__(self, user_id, boxes_levels):
+    def __init__(self, user_id, boxes_levels, tag_name, tag_dir):
         """
         - user_id - string
         - boxes_levels - list of integers representing % of max sway; 
@@ -44,9 +47,22 @@ class Calibration2(logic_queue.LogicQueue):
                                 'left': LevelSelector(boxes_levels)
                                 }
         self.screen = CalibrationScreen()
+        self.user_id = user_id
+        self.file_name = tag_name
+        self.tagger_init(tag_name, tag_dir)
 
+    def tagger_init(self, tag_name, tag_dir):
+        self.tagger = Tagger(tag_name, tag_dir, status='ON')
+
+    def send_tag(self, timestamp, tag_name, tage_value=''):
+        self.tagger.set_tag(timestamp, str(tag_name), str(tage_value))
+
+    def save_tags(self):
+        self.tagger.finish()
 
     def try_calib_box(self, direction, level):
+        self.send_tag(time.time(), 'start', level)
+        self.send_tag(time.time(), 'direction', direction)
         self.calib_box_state = CalibBox('')
         self.calib_box_state.direction = direction
         self.calib_box_state.set_level(1,1, level-20, level+20)
@@ -56,6 +72,7 @@ class Calibration2(logic_queue.LogicQueue):
         while not done:
             for event in pygame.event.get():                  
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    self.send_tag(time.time(), 'finish', '0')
                     return False
             sample = self.get_message()
             if sample is not None:
@@ -66,8 +83,8 @@ class Calibration2(logic_queue.LogicQueue):
                 self.screen.update_block(sample.key, sample.value, self.calib_box_state.get_area_state())
                 if self.calib_box_state.is_move():
                     self.screen.clear(True)
+                    self.send_tag(time.time(), 'finish', '1')
                     return True
-
 
     def run(self):
         done = False
@@ -78,7 +95,7 @@ class Calibration2(logic_queue.LogicQueue):
                        }
 
         while not done:
-            for d in ['up', 'right', 'down', 'left']:
+            for d in selected_levels.keys():
                 if selected_levels[d] is None:
                     level = self._level_selector[d].get_level()
                     passed = self.try_calib_box(d, level)
@@ -94,10 +111,14 @@ class Calibration2(logic_queue.LogicQueue):
                     elif res == 2:
                         #kind of error - user cant succeede even on easiest level, finish somehow, error or sth. next get_level call would end up badly...
                         pass #TODO
+
+                        self.send_tag(time.time(), "FINISH", 'error')
                         print("ERROR 2 in ventures boxes calibration! User couldnt pass even the easiest box. Sth. is wrong. Abort with fire!")
+                        self.save_tags()
                         sys.exit(1)
 
             if not (None in selected_levels.values()):
+
                 #all levels selected, optionally check them if needed, 
                 #store selected_levels for user_id 
                 #and finish gracefully so that logic_experiment can finish gracefully
@@ -105,6 +126,9 @@ class Calibration2(logic_queue.LogicQueue):
                 done = True
                 print "Selected levels: "
                 print str(selected_levels)
+                self.send_tag(time.time(), "FINISH", '')
+                self.save_tags()
+                calibration_2_set(self.user_id, selected_levels['up'], selected_levels['right'], selected_levels['down'], selected_levels['left'], self.file_name)
 
 # if __name__ == '__main__':
 #     Calibration2().run()
