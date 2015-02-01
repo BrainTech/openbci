@@ -28,10 +28,11 @@ class DrawBlock(object):
 
     COLORS = {'black'  : (  0,   0,   0),
               'white'  : (255, 255, 255),
-              'yellow' : (255, 255,   0),
-              'green'  : (  0, 255,   0),
+              'yellow' : (255, 213,   0),
+              'green'  : ( 68, 253,  68),
               'red'    : (255,   0,   0),
-              'blue'   : (  0,   0, 205)}
+              'gray'   : ( 57,  57,  63),
+              'blue'   : (146, 228, 253)}
 
     def __init__(self, window, block_type, color='white'):
         super(DrawBlock, self).__init__()
@@ -43,21 +44,27 @@ class DrawBlock(object):
     def draw_level(self, level, level_max):
         if self.block_type == 'left':
             points_level = [[self.points[1][0]-level, self.points[1][1]],
-                           [self.points[0][0]-level, self.points[0][1]]]
+                            [self.points[0][0]-level, self.points[0][1]]]
 
             points_max = [self.points[0], 
                           self.points[1], 
                           [self.points[1][0]-level_max, self.points[1][1]],
                           [self.points[0][0]-level_max, self.points[0][1]]]
 
+            points_shape_max =[[self.points[1][0]-level_max, self.points[1][1]],
+                               [self.points[0][0]-level_max, self.points[0][1]]]
+
         elif self.block_type =='right':
             points_level = [[self.points[1][0]+level, self.points[1][1]],
-                           [self.points[0][0]+level, self.points[0][1]]]
+                            [self.points[0][0]+level, self.points[0][1]]]
 
             points_max = [self.points[0], 
                          self.points[1], 
                          [self.points[1][0]+level_max, self.points[1][1]],
                          [self.points[0][0]+level_max, self.points[0][1]]]
+
+            points_shape_max =[[self.points[1][0]+level_max, self.points[1][1]],
+                               [self.points[0][0]+level_max, self.points[0][1]]]
 
         elif self.block_type =='up':
             points_level = [[self.points[1][0], self.points[1][1]-level],
@@ -67,16 +74,26 @@ class DrawBlock(object):
                          self.points[1], 
                          [self.points[1][0], self.points[1][1]-level_max],
                          [self.points[0][0], self.points[0][1]-level_max]]
+
+            points_shape_max = [[self.points[1][0], self.points[1][1]-level_max],
+                                [self.points[0][0], self.points[0][1]-level_max]]
         else:
             points_level = [[self.points[1][0], self.points[1][1]+level],
-                           [self.points[0][0], self.points[0][1]+level]]
+                            [self.points[0][0], self.points[0][1]+level]]
 
             points_max = [self.points[0], 
                           self.points[1], 
                          [self.points[1][0], self.points[1][1]+level_max],
                          [self.points[0][0], self.points[0][1]+level_max]]
 
+            points_shape_max = [[self.points[1][0], self.points[1][1]+level_max],
+                                [self.points[0][0], self.points[0][1]+level_max]]
+
+        pygame.draw.polygon(self.window, self.COLORS['white'], self.BLOCK_TYPE[self.block_type])
         pygame.draw.polygon(self.window, self.COLORS['green'], points_max)
-        pygame.draw.line(self.window, self.COLORS['yellow'], points_level[0], points_level[1], 2)
+        pygame.draw.line(self.window, self.COLORS['gray'], points_shape_max[0], points_shape_max[1], 1)
+        if level != 0:
+            pygame.draw.line(self.window, self.COLORS['gray'], points_level[0], points_level[1], 5)
+            pygame.draw.line(self.window, self.COLORS['blue'], points_level[0], points_level[1], 3)
 
 
