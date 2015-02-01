@@ -41,16 +41,22 @@ def get_sample():
 
 
 class MazeWiiLogic(MazeLogic):
-    def __init__(self, start_level, start_wii_level, session_number, session_duration, 
+    def __init__(self, start_level, start_wii_data, session_number, session_duration, 
                  time_board_display, time_left_out, tagger, session_type, session_condition,
                  data_engine):
         super(MazeWiiLogic, self).__init__(start_level, session_number, session_duration, 
                                            time_board_display, time_left_out, 
                                            tagger, session_type, session_condition)
         self.data_engine = data_engine
-        self.start_wii_level = start_wii_level
-        self.wii_level = MazeWiiLevel(session_type)
+        self.start_wii_level = 1
+        self.wii_level = MazeWiiLevel(session_type, self.init_wii_level(start_wii_data))
         self._init_wii_arrows()
+
+    def init_wii_level(self, start_wii_data):
+        return {'right':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['right'])-20,'area_end_value':int(start_wii_data['right'])+20},
+                'left':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['left'])-20,'area_end_value':int(start_wii_data['left'])+20},
+                'down':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['down'])-20,'area_end_value':int(start_wii_data['down'])+20},
+                'up':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['up'])-20,'area_end_value':int(start_wii_data['up'])+20}}
 
     def _init_wii_arrows(self):
         self.wii_arrows = {'right' : WiiArrow('right'),
@@ -66,6 +72,9 @@ class MazeWiiLogic(MazeLogic):
 
     def get_current_wii_level(self, direction):
         return self.current_wii_level[direction]
+
+    def get_current_wii_levels(self, direction):
+        return self.current_wii_level['up'], self.current_wii_level['down'], self.current_wii_level['left'], self.current_wii_level['right']
 
     def update_current_wii_level(self, direction):
         self.current_wii_level[direction] += 1

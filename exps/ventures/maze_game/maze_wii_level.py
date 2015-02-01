@@ -19,17 +19,11 @@
 from constants.constants_wii_levels import WII_LEVELS
 
 class MazeWiiLevel(object):
-    def __init__(self, session_type):
+    def __init__(self, session_type, wii_levels):
         super(MazeWiiLevel, self).__init__()
         self.session_type = session_type
-        self._init_level_params()
-
-    def _init_level_params(self):
-        self.level_params = {}
-        self.level_params['left'] = ''
-        self.level_params['right'] = ''
-        self.level_params['down'] = ''
-        self.level_params['up'] = ''
+        self.level_params = wii_levels
+        print self.level_params
 
     def get_level(self, direction):
         return (self.level_params[direction]['step_up'], 
@@ -38,10 +32,4 @@ class MazeWiiLevel(object):
                 self.level_params[direction]['area_end_value'])
 
     def load_level(self, direction, level):
-        print "LOAD NEW LEVEL!:", level, direction
-        try:
-            self.level_params[direction] = WII_LEVELS[str(level)]
-        except KeyError:
-            self.level_params[direction] = WII_LEVELS[str(10)]
-
-        print self.level_params[direction]
+        pass

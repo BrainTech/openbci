@@ -48,6 +48,10 @@ class MazeGame(logic_queue.LogicQueue):
     def _get_start_info(self, user_name):
         return self.user_data_parser.get_user_trening_data(user_name)
 
+    def _get_wii_levels_params(self):
+        data = data_manager.calibration_2_get_last(self.user_id)
+        return {direction:value for direction, value in zip(['up', 'right', 'down', 'left'], data)}
+
     def run(self):
         if self.session_type == 'experiment':
             level = data_manager.maze_current_level_get_last(self.user_id)
@@ -67,7 +71,7 @@ class MazeGame(logic_queue.LogicQueue):
 
         elif self.session_condition == 'motor':
             game = MazeWiiLogic(level,
-                                data_manager.wii_current_level_get_last(self.user_id),
+                                self._get_wii_levels_params(),
                                 self.session_number, 
                                 self.session_duration, 
                                 self.time_board_display, 
@@ -79,7 +83,7 @@ class MazeGame(logic_queue.LogicQueue):
 
         elif self.session_condition == 'cognitive_motor':
             game = MazeWiiLogic(level,
-                                data_manager.wii_current_level_get_last(self.user_id),
+                                self._get_wii_levels_params(),
                                 self.session_number, 
                                 self.session_duration, 
                                 self.time_board_display, 
@@ -91,7 +95,7 @@ class MazeGame(logic_queue.LogicQueue):
         game.main()
         if self.session_type=='experiment':
             if self.session_condition in ['motor_cognitive', 'motor']:
-                data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
+                data_manager.wii_current_level_set(self.user_id, *game.get_current_wii_levels())
             data_manager.maze_current_level_set(self.user_id, game.get_current_level())
 
 def test_maze():

@@ -95,7 +95,7 @@ class Calibration2(logic_queue.LogicQueue):
                        }
 
         while not done:
-            for d in selected_levels.keys():
+            for d in ['up', 'right', 'down', 'left']:
                 if selected_levels[d] is None:
                     level = self._level_selector[d].get_level()
                     passed = self.try_calib_box(d, level)
