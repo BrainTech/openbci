@@ -87,7 +87,7 @@ class DrawBlock(object):
                          [self.points[0][0], self.points[0][1]+level_max]]
 
             points_shape_max = [[self.points[1][0], self.points[1][1]+level_max],
-                                [self.points[0][0], self.points[0][1]+level_max]]
+                           [self.points[0][0], self.points[0][1]+level_max]]
 
         pygame.draw.polygon(self.window, self.COLORS['white'], self.BLOCK_TYPE[self.block_type])
         pygame.draw.polygon(self.window, self.COLORS['green'], points_max)
