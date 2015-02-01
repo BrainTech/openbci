@@ -111,7 +111,9 @@ class Calibration2(logic_queue.LogicQueue):
                     elif res == 2:
                         #kind of error - user cant succeede even on easiest level, finish somehow, error or sth. next get_level call would end up badly...
                         pass #TODO
-                        print("ERROR 2")
+
+                        self.send_tag(time.time(), "FINISH", 'error')
+                        print("ERROR 2 in ventures boxes calibration! User couldnt pass even the easiest box. Sth. is wrong. Abort with fire!")
                         self.save_tags()
                         sys.exit(1)
 
@@ -124,9 +126,9 @@ class Calibration2(logic_queue.LogicQueue):
                 done = True
                 print "Selected levels: "
                 print str(selected_levels)
+                self.send_tag(time.time(), "FINISH", '')
                 self.save_tags()
                 calibration_2_set(self.user_id, selected_levels['up'], selected_levels['right'], selected_levels['down'], selected_levels['left'], self.file_name)
-                print 'SAVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE'
 
 # if __name__ == '__main__':
 #     Calibration2().run()
