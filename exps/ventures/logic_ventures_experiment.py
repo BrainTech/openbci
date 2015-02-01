@@ -55,7 +55,9 @@ class LogicVenturesExperiment(ConfiguredClient):
             engine = calibration.Calibration()
         elif session_name == 'ventures_calibration2':
             levels = [int(x) for x in self.get_param('calibration2_boxes_levels').split(';')]
-            engine = calibration2.Calibration2(user_id, levels)
+            tag_name = self.get_param('save_file_name')
+            tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
+            engine = calibration2.Calibration2(user_id, levels, tag_name, tag_dir)
         elif session_name in ['ventures_game', 'ventures_game_training']:
             tag_name = self.get_param('save_file_name')
             tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
