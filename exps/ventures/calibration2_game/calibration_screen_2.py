@@ -20,25 +20,26 @@
 import pygame
 pygame.mixer.init()
 from pygame.locals import *
-from draw_block import DrawBlock
+from draw_block_2 import DrawBlock2 as DrawBlock
+from draw_box import DrawBox
+from obci.configs import settings
+import os.path
 
-class CalibrationScreen(object): 
+GAME_DATA_PATH = os.path.join(settings.MAIN_DIR, 'exps/ventures/maze_game/game_data')
+
+class CalibrationScreen2(object): 
     SCREEN_SIZE = (640, 480) 
     
     def __init__(self):
-        super(CalibrationScreen, self).__init__()
+        super(CalibrationScreen2, self).__init__()
         pygame.init()
         self.screen = pygame.display.set_mode(self.SCREEN_SIZE)#, FULLSCREEN)
         pygame.display.init()
         self._init_blocks()
-        self._init_level_max()
         self._display()
-
-    def _init_level_max(self):
-        self.level_max_left = 0
-        self.level_max_right = 0
-        self.level_max_up = 0
-        self.level_max_down = 0
+        self.max_size = 120.0
+        self.box = DrawBox(self.screen)
+        self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
 
     def _init_blocks(self):
         self.block_right = DrawBlock(self.screen, 'right')
@@ -62,45 +63,30 @@ class CalibrationScreen(object):
         elif block_type == 'down':
             return self.block_down
 
-    def update_level_max(self, level_max_type, value):
-        if level_max_type == 'right' and value > self.level_max_right:
-            self.level_max_right=value
+    def get_block_size(self):
+        return 200.0
 
-        elif level_max_type == 'left' and value > self.level_max_left:
-            self.level_max_left = value
+    def display_box(self, direction, level_min, level_max):
+        level_min = (self.get_block_size()/self.max_size)*level_min
+        level_max = (self.get_block_size()/self.max_size)*level_max
+        self.box.init_box(direction, level_min, level_max)
 
-        elif level_max_type == 'up' and value > self.level_max_up:
-            self.level_max_up = value
+    def clear(self, display=False):
+        self.screen.blit(self.black_screen, (0, 0))
+        for block_type in ['right', 'left', 'down', 'up']:
+            self.get_block(block_type).draw_white_block()
+        if display:
+            self._display()
 
-        elif level_max_type == 'down' and value > self.level_max_down:
-            self.level_max_down = value
+    def update_block(self, block_type, level, area_state):
+        self.clear()
+        self.box.update_box(area_state)
+        if block_type != 'baseline':
+            level = int((self.get_block_size()/self.max_size)*level)
+            self.get_block(block_type).draw_level(level)
 
-    def get_level_max(self, level_max_type):
-        if level_max_type == 'right':
-            return self.level_max_right
-
-        elif level_max_type == 'left':
-            return self.level_max_left
-
-        elif level_max_type == 'up':
-            return self.level_max_up
-
-        elif level_max_type == 'down':
-            return self.level_max_down
-
-    def get_block_size(self, block_type):
-        if block_type in ['right', 'left']:
-            return 200
-
-        elif block_type in ['up', 'down']:
-            return 200
-
-    def update_block(self, block_type, level):
-        if block_type!='baseline':
-            level = int(self.get_block_size(block_type)*(float(level)/100))
-            self.update_level_max(block_type, level)
-            self.get_block(block_type).draw_level(level, self.get_level_max(block_type))
         for block_t in ['right', 'left', 'down', 'up']:
             if not block_t==block_type:
-                self.get_block(block_t).draw_level(0, self.get_level_max(block_t))
+                level = 0
+                self.get_block(block_t).draw_level(0)
         self._display()

@@ -17,11 +17,13 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 
-import pygame, time
+import pygame, time, sys
 from pygame.locals import *
 pygame.mixer.init()
 from obci.exps.ventures import logic_queue
 from level_selector import LevelSelector
+from calibration_screen_2 import CalibrationScreen2 as CalibrationScreen
+from obci.exps.ventures.maze_game.arrow.wii_arrow import WiiArrow as CalibBox
 
 class Calibration2(logic_queue.LogicQueue):
     """
@@ -41,6 +43,31 @@ class Calibration2(logic_queue.LogicQueue):
                                 'down': LevelSelector(boxes_levels), 
                                 'left': LevelSelector(boxes_levels)
                                 }
+        self.screen = CalibrationScreen()
+
+
+    def try_calib_box(self, direction, level):
+        self.calib_box_state = CalibBox('')
+        self.calib_box_state.direction = direction
+        self.calib_box_state.set_level(1,1, level-20, level+20)
+        self.screen.display_box(direction, level-20, level+20)
+        done = False
+        self.clear_queue()   
+        while not done:
+            for event in pygame.event.get():                  
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    return False
+            sample = self.get_message()
+            if sample is not None:
+                if sample.key == direction:
+                    self.calib_box_state.update(sample.value)
+                else:
+                    self.calib_box_state.reset()
+                self.screen.update_block(sample.key, sample.value, self.calib_box_state.get_area_state())
+                if self.calib_box_state.is_move():
+                    self.screen.clear(True)
+                    return True
+
 
     def run(self):
         done = False
@@ -54,7 +81,8 @@ class Calibration2(logic_queue.LogicQueue):
             for d in selected_levels.keys():
                 if selected_levels[d] is None:
                     level = self._level_selector[d].get_level()
-                    passed = True #TODO - perform trial on 'level' value in order to determine if patient succeeded in selecting box on level value 'level'
+                    passed = self.try_calib_box(d, level)
+                    #passed = True #TODO - perform trial on 'level' value in order to determine if patient succeeded in selecting box on level value 'level'
                     res = self._level_selector[d].update_level_result(passed)
                     print("For direction: "+str(d)+" got level: "+str(level)+" and result: "+str(res))
                     if res == 0:
@@ -66,6 +94,8 @@ class Calibration2(logic_queue.LogicQueue):
                     elif res == 2:
                         #kind of error - user cant succeede even on easiest level, finish somehow, error or sth. next get_level call would end up badly...
                         pass #TODO
+                        print("ERROR 2")
+                        sys.exit(1)
 
             if not (None in selected_levels.values()):
                 #all levels selected, optionally check them if needed, 
@@ -76,7 +106,7 @@ class Calibration2(logic_queue.LogicQueue):
                 print "Selected levels: "
                 print str(selected_levels)
 
-if __name__ == '__main__':
-    Calibration2().run()
+# if __name__ == '__main__':
+#     Calibration2().run()
 
         
