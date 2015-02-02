@@ -22,6 +22,7 @@ from pygame.locals import *
 ARROW_SIZE = [0, 120]
 ARROW_PROPORTION = [37.5, 47.5+37.5, 47.5+37.5+15.0]
 ARROW_SIZE = 120
+ARROW_MAX_LEVEL = 142
 ARROW_LEVELS_LINES = False
 
 ARROW_KEY = {'left' : K_LEFT,
