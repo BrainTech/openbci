@@ -53,10 +53,10 @@ class MazeWiiLogic(MazeLogic):
         self._init_wii_arrows()
 
     def init_wii_level(self, start_wii_data):
-        return {'right':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['right'])-20,'area_end_value':int(start_wii_data['right'])+20},
-                'left':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['left'])-20,'area_end_value':int(start_wii_data['left'])+20},
-                'down':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['down'])-20,'area_end_value':int(start_wii_data['down'])+20},
-                'up':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['up'])-20,'area_end_value':int(start_wii_data['up'])+20}}
+        return {'right':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['right'])-40,'area_end_value':int(start_wii_data['right'])},
+                'left':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['left'])-40,'area_end_value':int(start_wii_data['left'])},
+                'down':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['down'])-40,'area_end_value':int(start_wii_data['down'])},
+                'up':{'step_up':1, 'step_down':1, 'area_start_value':int(start_wii_data['up'])-40,'area_end_value':int(start_wii_data['up'])}}
 
     def _init_wii_arrows(self):
         self.wii_arrows = {'right' : WiiArrow('right'),
