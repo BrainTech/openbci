@@ -41,11 +41,6 @@ class MazeWiiLevel(object):
             self.level_params[direction]['area_start_value'] = area_start_value
             self.level_params[direction]['area_end_value'] = area_end_value
             self.level_params[direction]['level'] = level
-        print '**********************************************************'
-        print wii_level_params
-        print '**********************************************************'
-        print self.level_params
-        print '**********************************************************'
 
     def get_level(self, direction):
         return (self.level_params[direction]['step_up'], 
