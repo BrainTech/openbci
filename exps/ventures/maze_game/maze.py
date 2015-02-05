@@ -27,7 +27,7 @@ from obci.exps.ventures.data import data_manager
 from obci.exps.ventures import logic_queue
 
 class MazeGame(logic_queue.LogicQueue):
-    def __init__(self, user_id, session_type='experiment', session_duration=30*60, time_board_display=5, 
+    def __init__(self, user_id, session_type='experiment', session_duration=30*60, motor_step=5, motor_initial=-3, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'):
         super(MazeGame, self).__init__()
         self.user_id = user_id
@@ -36,6 +36,7 @@ class MazeGame(logic_queue.LogicQueue):
         self.session_type = session_type
         self.session_duration = session_duration
         self.time_board_display = time_board_display
+        self.wii_level_param = {'motor_step':motor_step, 'motor_initial':motor_initial}
         self.time_left_out = time_left_out
         self.tagger_init(tag_name, tag_dir)
 
@@ -50,7 +51,10 @@ class MazeGame(logic_queue.LogicQueue):
 
     def _get_wii_levels_params(self):
         data = data_manager.calibration_2_get_last(self.user_id)
-        return {direction:value for direction, value in zip(['up', 'right', 'down', 'left'], data)}
+        wii_level_param = {direction:int(value) for direction, value in zip(['up', 'right', 'down', 'left'], data)}
+        wii_level_param['session_number'] = self.session_number
+        self.wii_level_param.update(wii_level_param)
+        return self.wii_level_param
 
     def run(self):
         if self.session_type == 'experiment':
