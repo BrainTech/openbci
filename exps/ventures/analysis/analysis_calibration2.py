@@ -24,27 +24,39 @@ from obci.analysis.obci_signal_processing.read_manager import ReadManager as RM
 from matplotlib import pyplot as plt
 
 
-# def display(data):
-#     f = plt.figure()
-#     for direstion in ['up':[], 'down':[], 'right': 'left':]
-#     for data_user in data.values():
-
-
+def display(data):
+    f = plt.figure()
+    colors = ['r', 'b', 'y', 'g', 'm', 'c', 'k']
+    for direction, ind_plot in zip(['up', 'left', 'right', 'down'], [2,4,6,8]):
+        f.add_subplot(3,3,ind_plot)
+        plt.title(direction)
+        for ind, user in enumerate(data.keys()):
+            plt.plot(data[user][direction]['time'][0], data[user][direction]['level'][0], 'o'+colors[ind])
+            plt.plot(data[user][direction]['time'][1], data[user][direction]['level'][1], '>'+colors[ind])
+        plt.xlim(0, 30)
+        plt.ylim(0, 150)
+    plt.show()
 
 def get_calibration_2_times(file_dir, file_name):
     file_name = acquisition_helper.get_file_path(file_dir, file_name)
     mgr = RM('{}.obci.xml'.format(file_name), '{}.obci.raw'.format(file_name), '{}.game.tag'.format(file_name))
     tags = mgr.get_tags()
-    data = {'up':[[],[]], 'down':[[],[]], 'right':[[],[]], 'left':[[],[]]}
+    data = {'up':{'time':[[],[]], 'level': [[],[]]},
+            'down': {'time':[[],[]], 'level': [[],[]]},
+            'right': {'time':[[],[]], 'level': [[],[]]} ,
+            'left': {'time':[[],[]], 'level': [[],[]]}}
     for i in range(0, len(tags),3):
         tags_= tags[i:i+3]
         if len(tags_) == 3:
-            data[tags_[1]['desc']['type']][int(tags_[2]['desc']['type'])].append([float(tags_[2]['start_timestamp'])-float(tags_[0]['start_timestamp']), 
-                                                                                  int(tags_[0]['desc']['type'])])
-    print {file_name:data}
+            data[tags_[1]['desc']['type']]['time'][int(tags_[2]['desc']['type'])].append(float(tags_[2]['start_timestamp'])-float(tags_[0]['start_timestamp']))
+            data[tags_[1]['desc']['type']]['level'][int(tags_[2]['desc']['type'])].append(int(tags_[0]['desc']['type']))
+    return {file_name:data}
 
 
 if __name__ == '__main__':
+    data_2_plot = {}
     file_dir  = '/home/ania/ventures_data/'
     file_name = 'LP_ventures_calibration2_2015-02-02_11-31-23'
-    get_calibration_2_times(file_dir, file_name)
+    user_data = get_calibration_2_times(file_dir, file_name)
+    data_2_plot.update(user_data)
+    display(data_2_plot)
