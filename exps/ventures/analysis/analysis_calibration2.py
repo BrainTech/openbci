@@ -32,9 +32,12 @@ def display(data):
     for direction, ind_plot in zip(['up', 'left', 'right', 'down'], [2, 4, 6, 8]):
         f.add_subplot(3,3,ind_plot)
         plt.title(direction)
+        print '*********************************'
+        print direction
         for ind, user in enumerate(data.keys()):
             plt.plot(data[user][direction]['time'][0], data[user][direction]['level'][0], 'o'+colors[ind])
             plt.plot(data[user][direction]['time'][1], data[user][direction]['level'][1], '>'+colors[ind])
+            print user, colors[ind]
         plt.xlim(0, 30)
         plt.ylim(0, 150)
     plt.show()
