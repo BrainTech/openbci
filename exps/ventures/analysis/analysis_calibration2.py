@@ -18,16 +18,18 @@
 #
 
 from obci.acquisition import acquisition_helper
-
 from obci.analysis.obci_signal_processing.read_manager import ReadManager as RM
-
+import analysis_helper
 from matplotlib import pyplot as plt
+
+CALIBRATION_2_DATA_DIR = '/home/ania/ventures_data/'
+CALIBRATION_2_USERS = ['LP', 'ML']
 
 
 def display(data):
     f = plt.figure()
     colors = ['r', 'b', 'y', 'g', 'm', 'c', 'k']
-    for direction, ind_plot in zip(['up', 'left', 'right', 'down'], [2,4,6,8]):
+    for direction, ind_plot in zip(['up', 'left', 'right', 'down'], [2, 4, 6, 8]):
         f.add_subplot(3,3,ind_plot)
         plt.title(direction)
         for ind, user in enumerate(data.keys()):
@@ -37,8 +39,8 @@ def display(data):
         plt.ylim(0, 150)
     plt.show()
 
-def get_calibration_2_times(file_dir, file_name):
-    file_name = acquisition_helper.get_file_path(file_dir, file_name)
+def get_calibration_2_times(file_name):
+    file_name = '.'.join(file_name.split('.')[:-2])
     mgr = RM('{}.obci.xml'.format(file_name), '{}.obci.raw'.format(file_name), '{}.game.tag'.format(file_name))
     tags = mgr.get_tags()
     data = {'up':{'time':[[],[]], 'level': [[],[]]},
@@ -55,8 +57,9 @@ def get_calibration_2_times(file_dir, file_name):
 
 if __name__ == '__main__':
     data_2_plot = {}
-    file_dir  = '/home/ania/ventures_data/'
-    file_name = 'LP_ventures_calibration2_2015-02-02_11-31-23'
-    user_data = get_calibration_2_times(file_dir, file_name)
-    data_2_plot.update(user_data)
+    for user_id in CALIBRATION_2_USERS:
+        name_search = '{}_ventures_calibration2*.game.tag'.format(user_id)
+        for file_name in analysis_helper.get_file_name(name_search, CALIBRATION_2_DATA_DIR):
+            user_data = get_calibration_2_times(file_name)
+            data_2_plot.update(user_data)
     display(data_2_plot)
