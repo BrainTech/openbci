@@ -22,8 +22,8 @@ from obci.analysis.obci_signal_processing.read_manager import ReadManager as RM
 import analysis_helper
 from matplotlib import pyplot as plt
 
-CALIBRATION_2_DATA_DIR = '/home/ania/ventures_data/'
-CALIBRATION_2_USERS = ['LP', 'ML']
+CALIBRATION_2_DATA_DIR = '~/ventures_experiment_data/'
+CALIBRATION_2_USERS = ['LP']#, 'ML', 'SC', 'MC']
 
 
 def display(data):

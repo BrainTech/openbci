@@ -24,5 +24,4 @@ def get_file_name(search_name, search_dir):
     search_dir  = os.path.expanduser(search_dir)  
     files = glob.glob(('{}/{}').format(search_dir, search_name))
     for file_ in files:
-        print file_
         yield file_
