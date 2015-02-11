@@ -234,11 +234,11 @@ class MazeScreen(object):
         #                                    1, 
         #                                    (250, 250, 250))
         #self.screen.blit(level_text, (0, 40))
-        if self.session_type == 'experiment':
-            level_text = self.font_game.render('{}: {}'.format('CZAS', session_time), 
-                                                1, 
-                                                (250, 250, 250))
-            self.screen.blit(level_text, (0, 40))
+        #if self.session_type == 'experiment':
+        #    level_text = self.font_game.render('{}: {}'.format('CZAS', session_time), 
+        #                                        1, 
+        #                                        (250, 250, 250))
+        #    self.screen.blit(level_text, (0, 40))
 
     def _draw_arrow(self, type_, ball_x, ball_y):
         if type_ == 'right':
