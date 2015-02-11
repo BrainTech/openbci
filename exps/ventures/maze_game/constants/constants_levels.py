@@ -17,7 +17,7 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-LEVELS_GAME_TIMEOUT = 180
+LEVELS_GAME_TIMEOUT = 6*60*60
 LEVELS_TRAINING_TIMEOUT=350
 
 LEVELS_TRAINING = {'1' : ([[1,1,1,1,1,1,1,1,1,1],
