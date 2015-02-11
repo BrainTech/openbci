@@ -6,4 +6,7 @@
 4,AU32,cognitive
 5,MATI,cognitive
 6,test_key_motor,key_motor
-9,IJ38,cognitive
+7,ML,cognitive_motor
+8,LP,cognitive_motor
+9,SC,cognitive_motor
+10,MC,cognitive_motor

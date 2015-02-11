@@ -28,7 +28,7 @@ class CalibrationScreen(object):
     def __init__(self):
         super(CalibrationScreen, self).__init__()
         pygame.init()
-        self.screen = pygame.display.set_mode(self.SCREEN_SIZE)#, FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.SCREEN_SIZE, FULLSCREEN)
         pygame.display.init()
         self._init_blocks()
         self._init_level_max()
@@ -67,13 +67,13 @@ class CalibrationScreen(object):
             self.level_max_right=value
 
         elif level_max_type == 'left' and value > self.level_max_left:
-            self.level_max_left=value
+            self.level_max_left = value
 
         elif level_max_type == 'up' and value > self.level_max_up:
-            self.level_max_up=value
+            self.level_max_up = value
 
         elif level_max_type == 'down' and value > self.level_max_down:
-            self.level_max_down=value
+            self.level_max_down = value
 
     def get_level_max(self, level_max_type):
         if level_max_type == 'right':
@@ -93,10 +93,9 @@ class CalibrationScreen(object):
             return 200
 
         elif block_type in ['up', 'down']:
-            return 150
+            return 200
 
     def update_block(self, block_type, level):
-        print "update!!!!"
         if block_type!='baseline':
             level = int(self.get_block_size(block_type)*(float(level)/100))
             self.update_level_max(block_type, level)

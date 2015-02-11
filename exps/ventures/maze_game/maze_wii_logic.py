@@ -41,15 +41,15 @@ def get_sample():
 
 
 class MazeWiiLogic(MazeLogic):
-    def __init__(self, start_level, start_wii_level, session_number, session_duration, 
+    def __init__(self, start_level, wii_level_params, session_number, session_duration, 
                  time_board_display, time_left_out, tagger, session_type, session_condition,
                  data_engine):
         super(MazeWiiLogic, self).__init__(start_level, session_number, session_duration, 
                                            time_board_display, time_left_out, 
                                            tagger, session_type, session_condition)
         self.data_engine = data_engine
-        self.start_wii_level = start_wii_level
-        self.wii_level = MazeWiiLevel(session_type)
+        self.start_wii_level = 1
+        self.wii_level = MazeWiiLevel(session_type, wii_level_params)
         self._init_wii_arrows()
 
     def _init_wii_arrows(self):
@@ -66,6 +66,9 @@ class MazeWiiLogic(MazeLogic):
 
     def get_current_wii_level(self, direction):
         return self.current_wii_level[direction]
+
+    def get_current_wii_levels(self, direction):
+        return self.current_wii_level['up'], self.current_wii_level['down'], self.current_wii_level['left'], self.current_wii_level['right']
 
     def update_current_wii_level(self, direction):
         self.current_wii_level[direction] += 1
@@ -108,22 +111,8 @@ class MazeWiiLogic(MazeLogic):
                                              self.get_current_level(),
                                              self.get_level_time(),
                                              self.get_session_time(),
-                                             self.get_path(),
-                                             self.get_active_path())
-
-    def draw_game_with_arrow_update(self, arrow_type):
-        self.screen.draw_game_with_wii_arrow_update(arrow_type,
-                                                    self.get_current_arrow().get_arrow_level(),
-                                                    self.get_current_arrow().get_area_state(),
-                                                    self.get_level_array(),
-                                                    self.get_ball_position_x(),
-                                                    self.get_ball_position_y(),
-                                                    self.get_current_level(),
-                                                    self.get_level_time(),
-                                                    self.get_session_time(),
-                                                    self.get_path(),
-                                                    self.get_active_path())
-        
+                                             self.get_all_path(),
+                                             self.get_active_path())        
 
     def update_screen(self):
         sample = self.data_engine.get_message()

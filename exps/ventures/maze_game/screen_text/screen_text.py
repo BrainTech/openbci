@@ -25,7 +25,7 @@ def get_start_session_text(training_number, session_type, session_condition):
         return  u"\n\n\nWitamy! \nAby rozpocząć sesję treningową naciśnij spację."
 
 def get_win_level_text(session_type, session_condition):
-    if session_condition == 'motor':
+    if session_condition in ['motor', 'key_motor']:
         return u"\n\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\n"
     else:
         return u"\n\nGratulacje!\nPoszło ci bardzo dobrze. \nPrzechodzisz na wyższy poziom trudności!\n\nPamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n" 
