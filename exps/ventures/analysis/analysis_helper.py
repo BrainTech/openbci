@@ -25,3 +25,10 @@ def get_file_name(search_name, search_dir):
     files = glob.glob(('{}/{}').format(search_dir, search_name))
     for file_ in files:
         yield file_
+
+def set_first_timestamp(mgr):
+    first_timestamp = float(mgr.get_param('first_sample_timestamp'))
+    for tag in mgr.get_tags():
+        tag['start_timestamp'] -= first_timestamp
+        tag['end_timestamp'] -= first_timestamp 
+    return mgr
