@@ -52,7 +52,7 @@ class LogicVenturesExperiment(ConfiguredClient):
         #todo - get from db user's session data or do it deeper in maze ...
         session_name = self.get_param('session_name')
         if session_name == 'ventures_calibration':
-            engine = calibration.Calibration()
+            engine = calibration.Calibration(user_id)
         elif session_name == 'ventures_calibration2':
             levels = [int(x) for x in self.get_param('calibration2_boxes_levels').split(';')]
             tag_name = self.get_param('save_file_name')
