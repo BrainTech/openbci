@@ -20,6 +20,7 @@ class TagFrame(Frame):
         self.duration = int(params['duration'])
         self.tag_on_end = params['tag_on_end']
         self.sound = params['sound']
+        self.tag_title = params['name']
         self.repetitions_number = 0
         self.is_first = 0
         self.tag_signal = tag_signal
@@ -46,12 +47,15 @@ class TagFrame(Frame):
             self.stop_button.connect(self.action_stop)
             self.stop_button.set_disable()
 
-        self.start_button = Button(self.tag, self)
+        self.start_button = Button('start', self)
         self.start_button.set_position(1)
         self.start_button.connect(self.action_start)
         self.clear_button=Button('clear', self)
         self.clear_button.set_position(4)
         self.clear_button.connect(self.action_clear)
+
+        self.tag_title = QtGui.QLabel('{}:'.format(self.tag_title), self)
+        self.tag_title.move(10, 3)
 
         self.set_off()
 

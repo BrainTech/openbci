@@ -12,11 +12,18 @@ def send_finish_saving(conn):
                       type=types.ACQUISITION_CONTROL_MESSAGE,
                       flush=True)
 
-def finish_saving(mx_addresses=None):
+def finish_saving(mx_addresses=None, s_types=['eeg']):
     if mx_addresses is None:
-        return acquisition_control.finish_saving()
+        return acquisition_control.finish_saving(s_types=s_types)
     else:
-        return acquisition_control.finish_saving(mx_addresses)
+        return acquisition_control.finish_saving(s_types=s_types, mx_addresses=mx_addresses)
+
+def wait_saving_finished(mx_addresses=None, s_types=['eeg']):
+    if mx_addresses is None:
+        return acquisition_control.wait_saving_finished(s_types=s_types)
+    else:
+        return acquisition_control.wait_saving_finished(s_types=s_types, mx_addresses=mx_addresses)
+
 
 def get_file_path(dir_name, file_name):
     if not os.path.isabs(os.path.expanduser(dir_name)) and len(dir_name) != 0:

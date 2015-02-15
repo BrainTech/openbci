@@ -876,8 +876,10 @@ type {
      	peer: "WII_BOARD_TAG_SAVER"
 	whom: ALL
 	}
-
-
+     to {
+     	peer: "WII_BOARD_ANALYSIS"
+	whom: ALL
+	}
 }
 
 type {

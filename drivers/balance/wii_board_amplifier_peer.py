@@ -51,9 +51,8 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     def _get_msg(self):
         samples = []
         for i in range(self.samples_per_packet):
-            s, ts = self._get_sample()
-            #print s,ts
-            samples.append((s, ts))
+            tl, tr, br, bl, ts = self._get_sample()
+            samples.append(([float(tl), float(tr), float(br), float(bl)], ts))
         return self._create_msg(samples)
 
     @log_crash            

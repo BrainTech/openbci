@@ -9,6 +9,8 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
+from obci.analysis.balance import wii_utils
+
 class WiiBoard2DRouter(ConfiguredMultiplexerServer):
     @log_crash
     def __init__(self, addresses, peer_type):
@@ -22,9 +24,9 @@ class WiiBoard2DRouter(ConfiguredMultiplexerServer):
             v.ParseFromString(mxmsg.message)
             for s in v.samples:
                 msg = variables_pb2.Sample2D()
-                sum_mass = sum(s.channels[0:4])
-                msg.x = (((s.channels[1] + s.channels[2]) - (s.channels[0] + s.channels[3]))/sum_mass) + 0.5
-                msg.y = (((s.channels[1] + s.channels[0]) - (s.channels[2] + s.channels[3]))/sum_mass) + 0.5
+                x, y = wii_utils.get_x_y(s.channels[0], s.channels[1], s.channels[2], s.channels[3])
+                msg.x = 0.5 - x*0.5
+                msg.y = 0.5 - y*0.5
                 msg.timestamp = s.timestamp
                 self.conn.send_message(
                         message=msg.SerializeToString(),

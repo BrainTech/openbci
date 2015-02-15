@@ -55,6 +55,6 @@ class Timer(QtGui.QWidget):
 
     def set_position(self, position):
         if position == 1:
-            self.label.move(20, 15)
+            self.label.move(20, 20)
         elif position ==2:
-            self.label.move(115, 15)
+            self.label.move(115, 20)

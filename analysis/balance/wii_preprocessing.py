@@ -58,11 +58,11 @@ def wii_fix_sampling(wbb_mgr):
 
 	return
 
-def wii_cut_fragments(wbb_mgr):
+def wii_cut_fragments(wbb_mgr, start_tag_name='start', end_tags_names=['stop']):
 	""" Returns SmartTags object with cut signal fragments according to 'start' - 'stop' tags
 	"""
 
-	x = smart_tag_definition.SmartTagEndTagDefinition(start_tag_name='start', 
-													  end_tags_names=['stop'])
+	x = smart_tag_definition.SmartTagEndTagDefinition(start_tag_name=start_tag_name, 
+													  end_tags_names=end_tags_names)
 	smart_mgr = smart_tags_manager.SmartTagsManager(x, None, None, None, wbb_mgr.mgr)
 	return smart_mgr.get_smart_tags()

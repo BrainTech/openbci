@@ -49,7 +49,7 @@ class OBCILauncherEngine(QtCore.QObject):
     }
 
     @log_crash
-    def __init__(self, obci_client, server_ip=None):
+    def __init__(self, obci_client, server_ip=None, presets=None):
         super(OBCILauncherEngine, self).__init__()
         self.logger = get_logger('launcherGUIEngine', obci_peer=self)
         self.server_ip = server_ip
@@ -60,8 +60,10 @@ class OBCILauncherEngine(QtCore.QObject):
         self.mtool.add_templates(self.internal_msg_templates)
 
         self._cached_nearby_machines = {}
-
-        self.preset_path = os.path.join(launcher_tools.obci_root(), PRESETS)
+        if presets:
+            self.preset_path = os.path.join(launcher_tools.obci_root(), ''.join(['control/gui/', presets, '.ini']))
+        else:
+            self.preset_path = os.path.join(launcher_tools.obci_root(), PRESETS)
         self.user_preset_path = USER_PRESETS
 
         # create home preset directory if it does not exists

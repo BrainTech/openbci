@@ -10,4 +10,4 @@ class WiiBalanceBoard(object):
         pass
     def measurment(self):
         time.sleep(1.0/80.0)
-        return [random.random(), random.random(), random.random(), random.random()], time.time()
+        return random.random(), random.random(), random.random(), random.random(), time.time()

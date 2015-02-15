@@ -22,6 +22,8 @@ class StatusBar(QtGui.QStatusBar):
 
 class TagGui(QtGui.QWidget):
     tag_signal = pyqtSignal(str)
+    finish_signal = pyqtSignal()
+
     def __init__(self):
         super(TagGui, self).__init__()
 
@@ -41,9 +43,8 @@ class TagGui(QtGui.QWidget):
 
             splitter.addWidget(frames[name])
 
-
         frames['end'] = EndFrame()
-        frames['end'].init_frame()
+        frames['end'].init_frame(self.finish_signal)
         splitter.addWidget(frames['end'])
 
         for ind, name in enumerate(display_list):

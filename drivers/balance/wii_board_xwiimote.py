@@ -41,6 +41,12 @@ class WiiBalanceBoard(object):
         self.p = select.epoll.fromfd(self.iface.get_fd())
 
     def measurment(self):
+        """Return 5 values:
+        - top_left sensor value (int)
+        - top_right sensor value (int)
+        - bottom_right sensor value (int)
+        - bottom_left sensor value (int)
+        - timestamp (float)"""
         if not self.init_pool:
             self._init_pool()
         self.p.poll()
@@ -49,6 +55,6 @@ class WiiBalanceBoard(object):
         self.iface.dispatch(event)
         tl = event.get_abs(2)[0]
         tr = event.get_abs(0)[0]
-        br = event.get_abs(3)[0]
-        bl = event.get_abs(1)[0]
-        return [tl, tr, br, bl], t
+        br = event.get_abs(1)[0]
+        bl = event.get_abs(3)[0]
+        return tl, tr, br, bl, t

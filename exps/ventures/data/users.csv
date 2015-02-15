@@ -1,0 +1,13 @@
+,ID,session_type
+0,test_cognitive,cognitive
+1,test_cognitive_motor,cognitive_motor
+2,test_motor,motor
+3,EJ29,cognitive
+4,AU32,cognitive
+5,MATI,cognitive
+6,test_key_motor,key_motor
+9,IJ38,cognitive
+10,ML,cognitive_motor
+11,LP,cognitive_motor
+12,SC,cognitive_motor
+13,MC,cognitive_motor
