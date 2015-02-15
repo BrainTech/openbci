@@ -28,7 +28,7 @@ from obci.exps.ventures.data.data_manager import calibration_get_last
 class Calibration(logic_queue.LogicQueue):
     def __init__(self, user_id):
         super(Calibration, self).__init__()
-        self._screen = CalibrationScreen()
+        self.screen = CalibrationScreen()
         self.user_id = user_id
         self._init_calibration_last_data()
 
@@ -36,23 +36,23 @@ class Calibration(logic_queue.LogicQueue):
             data  = calibration_get_last(self.user_id)
             if data != None:
                 up, right, down, left, t  = data
-                self._screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
+                self.screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
 
     def instruction(self):
         screens = ['start', 'instruction']
         screen_status = 0
-        self._screen.display_screen(screens[screen_status])
+        self.screen.display_screen(screens[screen_status])
         while screen_status<len(screens):
             for event in pygame.event.get():                    
                 if event.type == KEYDOWN:            
                     if event.key == K_SPACE:
                         screen_status+=1 
                         if screen_status<len(screens):
-                            self._screen.display_screen(screens[screen_status])
+                            self.screen.display_screen(screens[screen_status])
 
     def run(self):
         self.instruction()
-        self._screen.display_calib_start()
+        self.screen.display_calib_start()
         done = False
         while not done:
             for event in pygame.event.get():                  
@@ -61,7 +61,7 @@ class Calibration(logic_queue.LogicQueue):
                     done = True
             sample = self.get_message()
             if sample is not None:  
-                self._screen.update_block(sample.key, sample.value)
+                self.screen.update_block(sample.key, sample.value)
 
     def _finish_calibration(self):
         pass
