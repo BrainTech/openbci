@@ -71,7 +71,8 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                 X, Y = [], []
                 for s in v.samples:#todo - refactor in regard to utils/wii_2d_router
                     sum_mass = sum(s.channels[0:4])
-                    if sum_mass<200:
+                    print sum_mass
+                    if sum_mass<400:
                         break
                     x, y = wii_utils.get_x_y(s.channels[0], s.channels[1], s.channels[2], s.channels[3])
                     X.append(x)

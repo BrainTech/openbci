@@ -57,7 +57,7 @@ class MazeScreen(object):
         self.time_board_display = time_board_display
         self.session_number = session_number
         self.number_of_levels = number_of_levels
-        self.screen = pygame.display.set_mode(self.screen_size, FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.screen_size)
         pygame.display.init()
 
         self._load_font()

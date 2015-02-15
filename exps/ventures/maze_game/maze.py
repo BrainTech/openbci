@@ -98,10 +98,10 @@ class MazeGame(logic_queue.LogicQueue):
                                 self.session_condition,
                                 self)
         game.main()
-        if self.session_type=='experiment':
-            if self.session_condition in ['motor_cognitive', 'motor']:
-                data_manager.wii_current_level_set(self.user_id, *game.get_current_wii_levels())
-            data_manager.maze_current_level_set(self.user_id, game.get_current_level())
+        #if self.session_type=='experiment':
+        #    if self.session_condition in ['motor_cognitive', 'motor']:
+        #        data_manager.wii_current_level_set(self.user_id, *game.get_current_wii_levels())
+        #    data_manager.maze_current_level_set(self.user_id, game.get_current_level())
 
 def test_maze():
     a = MazeGame('1')
