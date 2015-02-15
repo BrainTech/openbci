@@ -77,5 +77,8 @@ def getpidfile(file):
     return lockfile
 
 def removepidfile(file):
-    lockfile = getpidfile(file)
-    os.remove(os.path.expanduser(lockfile))
+    try:
+        lockfile = getpidfile(file)
+        os.remove(os.path.expanduser(lockfile))
+    except OSError:
+        print "Attempted to remove pid file: "+lockfile+" but couldnt fine the file. Ignore!"
