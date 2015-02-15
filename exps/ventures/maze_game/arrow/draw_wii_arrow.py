@@ -20,6 +20,8 @@
 import pygame
 from pygame.locals import *
 
+from obci.exps.ventures.maze_game.constants.constants_arrow import ARROW_MAX_LEVEL
+
 from draw_arrow import DrawArrow
 
 class DrawWiiArrow(DrawArrow):
@@ -52,7 +54,7 @@ class DrawWiiArrow(DrawArrow):
         self.arrow.set_levels(proportion)
 
     def draw_level(self, level, area_param):
-        level = 100*(float(level)/self.size)
+        level = (float(level)/ARROW_MAX_LEVEL)*self.size
         color, points = self.arrow.get_level_points(level)
         self._draw_white_fill_arrow()
         self._draw_wii_area_data(area_param)

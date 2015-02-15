@@ -143,16 +143,14 @@ class MazeScreen(object):
 
     def draw_game(self, level_array, ball_position_x, ball_position_y, current_level, 
                   level_time, session_time, path, active_path):
-        self._draw_level(level_array, path)
-        self._draw_active_path(active_path)
+        self._draw_level(level_array, path, active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, session_time)
         self._display()
 
     def draw_game_with_arrow(self, arrow_type, level_array, ball_position_x, ball_position_y, 
                              current_level, level_time, session_time, path, active_path):
-        self._draw_level(level_array, path)
-        self._draw_active_path(active_path)
+        self._draw_level(level_array, path, active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, session_time)
         self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
@@ -160,8 +158,7 @@ class MazeScreen(object):
         
     def draw_game_with_arrow_update(self, arrow_type, arrow_level, level_array, ball_position_x, 
                                     ball_position_y, current_level, level_time, session_time, path, active_path):
-        self._draw_level(level_array, path)
-        self._draw_active_path(active_path)
+        self._draw_level(level_array, path, active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, session_time)
         self.get_arrow(arrow_type).draw_level(arrow_level)
@@ -169,55 +166,41 @@ class MazeScreen(object):
 
     def draw_game_with_wii_arrow(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
                                  ball_position_y, current_level, level_time, session_time, path, active_path):
-        self._draw_level(level_array, path)
-        self._draw_active_path(active_path)
+        self._draw_level(level_array, path, active_path)
         self._draw_ball(ball_position_x, ball_position_y)
         self._draw_level_info(current_level, level_time, session_time)
         self._draw_arrow(arrow_type, ball_position_x, ball_position_y)
         self.get_arrow(arrow_type).draw_level(arrow_level, arrow_area_param)
         self._display()
 
-    def draw_game_with_wii_arrow_update(self, arrow_type, arrow_level, arrow_area_param, level_array, ball_position_x, 
-                                        ball_position_y, current_level, level_time, session_time, path, active_path):
-        self._draw_level(level_array, path)
-        self._draw_active_path(active_path)
-        self._draw_ball(ball_position_x, ball_position_y)
-        self._draw_level_info(current_level, level_time, session_time)
-        self.get_arrow(arrow_type).draw_level(arrow_level, arrow_area_param)
-        self._display()
-
-    def _draw_level(self, level, path):
+    def _draw_level(self, level_array, path, active_path):
         self.screen.blit(self.black_screen, (0,0))
-        self._calc_grid_offsets(level)
-        for ym in range(len(level)):
-            for xm in range(len(level[0])):
-                if level[ym][xm] == 0:
+        self._calc_grid_offsets(level_array)
+        for ym in range(len(level_array)):
+            for xm in range(len(level_array[0])):
+                if level_array[ym][xm] == 0:
                     self.screen.blit(self.floor_block, self._get_position(xm, ym))
 
-                elif level[ym][xm] == 1:
+                elif level_array[ym][xm] == 1:
                     self.screen.blit(self.block, self._get_position(xm, ym))
 
-                elif level[ym][xm] == 2:
+                elif level_array[ym][xm] == 2:
                     self.screen.blit(self.hole_block, self._get_position(xm, ym))
 
-                elif level[ym][xm] == 3:
+                elif level_array[ym][xm] == 3:
                     self.screen.blit(self.start_block, self._get_position(xm, ym))
 
-                elif level[ym][xm] == 4:
+                elif level_array[ym][xm] == 4:
                     self.screen.blit(self.finish_block, self._get_position(xm, ym))
         if self.session_condition in ['motor', 'key_motor']:
             for ym, xm in path:
-                self.screen.blit(self.floor_path_block, self._get_position(xm, ym))
+                if not (level_array[ym][xm] in [3, 4]):
+                    if (ym, xm) in active_path:
+                        self.screen.blit(self.floor_active_path_block, self._get_position(xm, ym))
+                    else:
+                        self.screen.blit(self.floor_path_block, self._get_position(xm, ym))
             else:
                 pass
-
-    def _draw_active_path(self, active_path):
-        if self.session_condition in ['motor', 'key_motor']:
-            for ym, xm in active_path:
-                self.screen.blit(self.floor_active_path_block, self._get_position(xm, ym))
-        else:
-            pass
-
 
     def _draw_ball(self, ball_x, ball_y):
         x_position, y_position = self._get_position(ball_x, ball_y)

@@ -1,18 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import random, time, sys, thread, socket
 
 from multiplexer.multiplexer_constants import peers, types
+
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.control.peer.configured_client import ConfiguredClient
 from obci.utils.openbci_logging import log_crash
 from obci.configs import settings, variables_pb2
 from obci.acquisition import acquisition_helper
-
 from obci.exps.ventures.maze_game import maze
 from obci.exps.ventures.calibration_game import calibration
-import random, time, sys, thread
-import socket, time, sys
-
+from obci.exps.ventures.calibration2_game import calibration2
 from obci.utils import tagger
 from obci.utils import context as ctx
 
@@ -53,12 +52,19 @@ class LogicVenturesExperiment(ConfiguredClient):
         #todo - get from db user's session data or do it deeper in maze ...
         session_name = self.get_param('session_name')
         if session_name == 'ventures_calibration':
-            engine = calibration.Calibration()
+            engine = calibration.Calibration(user_id)
+        elif session_name == 'ventures_calibration2':
+            levels = [int(x) for x in self.get_param('calibration2_boxes_levels').split(';')]
+            tag_name = self.get_param('save_file_name')
+            tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
+            engine = calibration2.Calibration2(user_id, levels, tag_name, tag_dir)
         elif session_name in ['ventures_game', 'ventures_game_training']:
+            motor_step= int(self.get_param('motor_step'))
+            motor_initial = int(self.get_param('motor_initial'))
             tag_name = self.get_param('save_file_name')
             tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
             session_type = 'experiment' if session_name == 'ventures_game' else 'training'
-            engine = maze.MazeGame(user_id, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type)
+            engine = maze.MazeGame(user_id, motor_step=motor_step, motor_initial=motor_initial, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type)
         else:
             raise Exception ("Unknown session name - abort")
         #initialise server to receive wii analysis messages from experiment server via udpServer

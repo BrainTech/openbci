@@ -17,6 +17,7 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
+from obci.exps.ventures.maze_game.constants.constants_arrow import ARROW_MAX_LEVEL
 import numpy as np
 
 class Arrow(object):
@@ -29,8 +30,8 @@ class Arrow(object):
         self.levels_lines = levels_lines
 
     def set_levels(self, proportion):
-        self.levels = [100*(float(proportion[0])/self.size), 
-                       100*(float(proportion[1])/self.size)]
+        self.levels = [((float(proportion[0])/ARROW_MAX_LEVEL)*self.size), 
+                       ((float(proportion[1])/ARROW_MAX_LEVEL)*self.size)]
 
     def find_point_x(self, x, y, level_x):
         a, b = np.polyfit(x, y, 1)
