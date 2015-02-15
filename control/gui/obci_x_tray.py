@@ -77,6 +77,12 @@ class ServerController(QObject):
             self.startingStartTime = QTime.currentTime()
             self.startingServer = True
             os.system('obci srv')
+
+    def startServerLocal(self):
+        if not self.isServerRunning():
+            self.startingStartTime = QTime.currentTime()
+            self.startingServer = True
+            os.system('obci srv_local')
     
     def stopServer(self):
         if self.isServerRunning():
@@ -171,6 +177,7 @@ class MainWidget(QWidget):
         self.menu = QMenu(parent)
         
         self.startAction   = QAction(self.tr("&Start OpenBCI server"), self)
+        self.startLocalAction   = QAction(self.tr("&Start OpenBCI server OFFLINE"), self)
         self.stopAction    = QAction(self.tr("S&top OpenBCI server"),  self)
         self.quitAction    = QAction(self.tr("&Close OpenBCI tray"), self)
         self.runGuiAction  = QAction(self.tr("&Run Control Panel (OpenBCI)"),  self)
@@ -211,6 +218,7 @@ class MainWidget(QWidget):
         self.menu.addSeparator()
         self.menu.addSeparator()
         self.menu.addAction(self.startAction)
+        self.menu.addAction(self.startLocalAction)
         self.menu.addAction(self.stopAction)
         if not self.controller.easyMode:
             self.menu.addSeparator()
@@ -221,6 +229,7 @@ class MainWidget(QWidget):
         self.trayIcon.show()
         
         self.startAction.triggered.connect(self.startServer)
+        self.startLocalAction.triggered.connect(self.startServerLocal)
         self.stopAction.triggered.connect(self.stopServer)
         self.runGuiAction.triggered.connect(self.runGui)
         self.runSvarogAction.triggered.connect(self.runSvarog)
@@ -245,6 +254,7 @@ class MainWidget(QWidget):
 
     def setEnabledAll(self, enabled):
         self.startAction.setEnabled(enabled)
+        self.startLocalAction.setEnabled(enabled)
         self.stopAction.setEnabled(enabled)
         self.runGuiAction.setEnabled(enabled)
         self.runSvarogAction.setEnabled(enabled)
@@ -252,6 +262,7 @@ class MainWidget(QWidget):
 
     def setRunningUi(self, disableAll=False):
         self.startAction.setVisible(False)
+        self.startLocalAction.setVisible(False)
         self.stopAction.setVisible(True)
         #self.menu.setDefaultAction(self.stopAction)
         
@@ -262,6 +273,7 @@ class MainWidget(QWidget):
        
     def setStoppedUi(self, disableAll=False):
         self.startAction.setVisible(True)
+        self.startLocalAction.setVisible(True)
         self.stopAction.setVisible(False)
         self.menu.setDefaultAction(self.startAction)
         
@@ -277,6 +289,11 @@ class MainWidget(QWidget):
         self.trayIcon.setIcon(self.startingUpIcon)
         self.setRunningUi(disableAll = True)
         self.controller.startServer()
+
+    def startServerLocal(self):
+        self.trayIcon.setIcon(self.startingUpIcon)
+        self.setRunningUi(disableAll = True)
+        self.controller.startServerLocal()
         
     def stopServer(self):
         self.trayIcon.setIcon(self.terminatingIcon)
