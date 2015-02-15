@@ -883,15 +883,17 @@ if __name__ == '__main__':
         sys.exit(0)
 
     app = QApplication([])
-    p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
-    s = QSplashScreen(p)
-    s.show()
-    s.showMessage("OpenBCI - free as in freedom.")
-    dialog = ObciLauncherWindow()
 
-    import sys
+    #p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
+    #s = QSplashScreen(p)
+    #s.show()
+    #s.showMessage("OpenBCI - free as in freedom.")
+    #s.finish(dialog)
+    #commented by now - couses sometimes app.exec_ to hang forever ...
+
+
+    dialog = ObciLauncherWindow()
     dialog.start.connect(lambda name:sys.stderr.write('Start %s \n' % name))
     dialog.stop.connect(lambda name:sys.stderr.write('Stop %s \n' % name))
-    s.finish(dialog)
 
     sys.exit(app.exec_())
