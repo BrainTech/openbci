@@ -36,7 +36,7 @@ class CalibrationScreen2(object):
     def __init__(self):
         super(CalibrationScreen2, self).__init__()
         pygame.init()
-        self.screen = pygame.display.set_mode(self.SCREEN_SIZE)#, FULLSCREEN)
+        self.screen = pygame.display.set_mode(self.SCREEN_SIZE, FULLSCREEN)
         pygame.display.init()
         self._init_blocks()
         self.max_size = 120.0
