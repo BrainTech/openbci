@@ -18,7 +18,13 @@
 #
 
 def get_start_text():
-    return u'START'
+	return u'\n\n\nWitamy! Przed Tobą drugie zadanie rozgrzewkowe.\n\n\n\n\n\n\n\n\n\n\n<aby przejść dalej naciśnij spację>'
 
 def get_instruction_text():
-    return u'instrukcja'
+	return u'\nW tym zadaniu, w różnych miejscach białych obszarów z poprzedniego zadania, będą pojawiać się prostokąty.\n\
+	Twoim zadaniem jest wypełnianie pojawiających się prostokątów zielonym kolorem.\n\
+	W tym celu, wychylaj się tak, aby wskaźnik znalazł się wewnątrz prostokąta i przez chwilę tam pozostał.\n\
+	Następnie staraj się szybko powrócić do pozycji wyjściowej, aby przygotować się do kolejnej próby.\n\n\
+	Uważaj, masz ograniczony czas na wypełnienie danego prostokąta. Jeśli nie zdążysz, próba zostanie niezaliczona.\n\
+	Staraj się zaliczyć jak najwięcej prób.\n\n\
+	<aby rozpocząć zadanie naciśnij spację>'

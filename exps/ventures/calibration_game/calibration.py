@@ -54,6 +54,7 @@ class Calibration(logic_queue.LogicQueue):
         self.instruction()
         self.screen.display_calib_start()
         done = False
+        self.clear_queue() 
         while not done:
             for event in pygame.event.get():                  
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):

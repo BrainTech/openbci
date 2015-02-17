@@ -134,6 +134,7 @@ class Calibration2(logic_queue.LogicQueue):
 
     def run(self):
         self.instruction()
+        self.clear_queue() 
         self.screen.display_calib_start()
         done = False
         selected_levels = {'up': None,
