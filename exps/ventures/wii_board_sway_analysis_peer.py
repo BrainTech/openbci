@@ -31,7 +31,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
 
         if self._session_name == 'ventures_calibration':
             self._set_raw_maxes()
-        elif self._session_name in ['ventures_game', 'ventures_game_training']:
+        elif self._session_name in ['ventures_game', 'ventures_game_training', 'ventures_calibration2']:
             self._set_user_maxes(self._user_id)
         else:
             raise Exception ("Unknown session name - abort")
@@ -43,7 +43,6 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self._file_name = self.get_param('file_name')
         # 1 if we want to generate dummy current sways, 0 otherwise
         self._dummy = not int(self.get_param('amplifier_online')) 
-        # should be ventures_calibration or ventures_game
         self._session_name = self.get_param('session_name')
         # maximum 'possible' sways. in calibration it should be a kind of monitor edges
         # in game it should be user's maximum sways calculated a moment ago in calibration scenario.
@@ -90,7 +89,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             # storing user's current maxes makes sens only in calibration scenario ...
             if self._session_name != 'ventures_calibration':
-                self.logger.info("Got acquisition_control_message, but session name is ventures game. Just exit quietly ...")
+                self.logger.info("Got acquisition_control_message, but session name is "+self._session_name+" . Just exit quietly ...")
                 sys.exit(0)
             else: #self._session_name == 'ventures_calibration'
                 self.logger.info("Got acquisition_control_message in calibration session. Start storing calibration results (maxes)... ")
@@ -111,6 +110,10 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self._dummy_v = self._dummy_v + 0.25
         if not (self._dummy_v % 100):
             self._dummy_d = (self._dummy_d + 1) % 5
+
+        if self._dummy_dirs[self._dummy_d] != 'baseline' and self._session_name == 'ventures_calibration':
+            self._update_current_maxes(self._dummy_dirs[self._dummy_d], float(int(self._dummy_v) % 70)/100)
+
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):
@@ -139,9 +142,6 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
             return direction, 0
 
         if self._session_name == 'ventures_calibration':
-            #TODO - self._update_current_maxes(sway_direction, value)
-            #where value is a possible candidate for user's max sway
-            #to be used in next 'game' scenario
             self._update_current_maxes(direction, np.abs(value))
 
         return direction, int((value/self._maxes[direction])*100)

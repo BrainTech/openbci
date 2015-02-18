@@ -16,20 +16,31 @@
 # Author:
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
-from constants.constants_wii_levels import WII_LEVELS
+from constants.constants_wii_levels import AREA_SIZE, STEP_UP, STEP_DOWN
 
 class MazeWiiLevel(object):
-    def __init__(self, session_type):
+    def __init__(self, session_type, wii_level_params):
         super(MazeWiiLevel, self).__init__()
         self.session_type = session_type
-        self._init_level_params()
+        self._init_wii_level_params(wii_level_params)
 
-    def _init_level_params(self):
-        self.level_params = {}
-        self.level_params['left'] = ''
-        self.level_params['right'] = ''
-        self.level_params['down'] = ''
-        self.level_params['up'] = ''
+    def _get_area_value(self, level, motor_step, motor_initial, session_number):
+        level = level + (motor_initial + session_number - 1) * motor_step
+        return level-(AREA_SIZE/2), (level+AREA_SIZE/2), level
+
+    def _init_wii_level_params(self, wii_level_params):
+        self.level_params = {'right':{'step_up':STEP_UP, 'step_down':STEP_DOWN},
+                             'left' :{'step_up':STEP_UP, 'step_down':STEP_DOWN},
+                             'down' :{'step_up':STEP_UP, 'step_down':STEP_DOWN},
+                             'up'   :{'step_up':STEP_UP, 'step_down':STEP_DOWN}}
+        for direction in ['right', 'left', 'up', 'down']:
+            area_start_value, area_end_value, level = self._get_area_value(wii_level_params[direction], 
+                                                                           wii_level_params['motor_step'],
+                                                                           wii_level_params['motor_initial'], 
+                                                                           wii_level_params['session_number'])    
+            self.level_params[direction]['area_start_value'] = area_start_value
+            self.level_params[direction]['area_end_value'] = area_end_value
+            self.level_params[direction]['level'] = level
 
     def get_level(self, direction):
         return (self.level_params[direction]['step_up'], 
@@ -38,10 +49,4 @@ class MazeWiiLevel(object):
                 self.level_params[direction]['area_end_value'])
 
     def load_level(self, direction, level):
-        print "LOAD NEW LEVEL!:", level, direction
-        try:
-            self.level_params[direction] = WII_LEVELS[str(level)]
-        except KeyError:
-            self.level_params[direction] = WII_LEVELS[str(10)]
-
-        print self.level_params[direction]
+        pass

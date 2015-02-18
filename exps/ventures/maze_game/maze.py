@@ -17,18 +17,18 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-import os.path, thread, time, Queue
+import os.path, thread, time
 
 from maze_logic import MazeLogic
 from maze_wii_logic import MazeWiiLogic
 from tags.tagger import Tagger
 
 from obci.exps.ventures.data import data_manager
+from obci.exps.ventures import logic_queue
 
-class MazeGame(object):
-    def __init__(self, user_id, session_type='experiment', session_duration=30*60, time_board_display=5, 
+class MazeGame(logic_queue.LogicQueue):
+    def __init__(self, user_id, session_type='experiment', session_duration=30*60, motor_step=5, motor_initial=-3, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'):
-	self._init_queue()
         super(MazeGame, self).__init__()
         self.user_id = user_id
         self.session_number = data_manager.session_number_get(self.user_id)
@@ -36,6 +36,7 @@ class MazeGame(object):
         self.session_type = session_type
         self.session_duration = session_duration
         self.time_board_display = time_board_display
+        self.wii_level_param = {'motor_step':motor_step, 'motor_initial':motor_initial}
         self.time_left_out = time_left_out
         self.tagger_init(tag_name, tag_dir)
 
@@ -47,6 +48,13 @@ class MazeGame(object):
 
     def _get_start_info(self, user_name):
         return self.user_data_parser.get_user_trening_data(user_name)
+
+    def _get_wii_levels_params(self):
+        data = data_manager.calibration_2_get_last(self.user_id)
+        wii_level_param = {direction:int(value) for direction, value in zip(['up', 'right', 'down', 'left'], data)}
+        wii_level_param['session_number'] = self.session_number
+        self.wii_level_param.update(wii_level_param)
+        return self.wii_level_param
 
     def run(self):
         if self.session_type == 'experiment':
@@ -67,7 +75,7 @@ class MazeGame(object):
 
         elif self.session_condition == 'motor':
             game = MazeWiiLogic(level,
-                                data_manager.wii_current_level_get_last(self.user_id),
+                                self._get_wii_levels_params(),
                                 self.session_number, 
                                 self.session_duration, 
                                 self.time_board_display, 
@@ -79,7 +87,7 @@ class MazeGame(object):
 
         elif self.session_condition == 'cognitive_motor':
             game = MazeWiiLogic(level,
-                                data_manager.wii_current_level_get_last(self.user_id),
+                                self._get_wii_levels_params(),
                                 self.session_number, 
                                 self.session_duration, 
                                 self.time_board_display, 
@@ -90,34 +98,9 @@ class MazeGame(object):
                                 self)
         game.main()
         if self.session_type=='experiment':
-            if self.session_condition in ['motor_cognitive', 'motor']:
-                data_manager.wii_current_level_set(self.user_id, game.get_current_wii_level())
+            # if self.session_condition in ['motor_cognitive', 'motor']:
+            #     data_manager.wii_current_level_set(self.user_id, *game.get_current_wii_levels())
             data_manager.maze_current_level_set(self.user_id, game.get_current_level())
-
-    def _init_queue(self):
-        self._queue = Queue.Queue()
-
-    def clear_queue(self):
-        print("Clear queue!!!")
-        while True:
-            try:
-                self._queue.get_nowait()
-            except Queue.Empty:
-                break
-
-    def handle_message(self, msg):
-        try:
-            self._queue.put_nowait(msg)
-        except Queue.Full:
-            print("Warning! Queue is full. Drop message!!!")
-    
-    def get_message(self):
-        if self._queue.qsize() > 2:
-            print("Warning! Queue size is: "+str(self._queue.qsize()))
-        try:
-            return self._queue.get_nowait()
-        except Queue.Empty:
-            return None
 
 def test_maze():
     a = MazeGame('1')

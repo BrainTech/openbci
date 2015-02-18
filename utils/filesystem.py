@@ -49,15 +49,19 @@ def checkpidfile(file):
     if os.access(os.path.expanduser(lockfile), os.F_OK):
         pidfile = open(os.path.expanduser(lockfile), "r")
         pidfile.seek(0)
-        old_pd = pidfile.readline()
-
-        if psutil.pid_exists(int(old_pd)) == 1:
-            print "You already have an instance of the program running"
-            print "It is running as process %s," % old_pd
-            return True
-        else:
+        try:
+            old_pd = int(pidfile.readline())
+        except:#assumed error in pidfile
             pidfile.close()
             os.remove(os.path.expanduser(lockfile))
+        else:
+            if psutil.pid_exists(old_pd) == 1:
+                print "You already have an instance of the program running"
+                print "It is running as process %s," % str(old_pd)
+                return True
+            else:
+                pidfile.close()
+                os.remove(os.path.expanduser(lockfile))
 
     pidfile = open(os.path.expanduser(lockfile), "w")
     pidfile.write("%s" % os.getpid())
@@ -73,5 +77,8 @@ def getpidfile(file):
     return lockfile
 
 def removepidfile(file):
-    lockfile = getpidfile(file)
-    os.remove(os.path.expanduser(lockfile))
+    try:
+        lockfile = getpidfile(file)
+        os.remove(os.path.expanduser(lockfile))
+    except OSError:
+        print "Attempted to remove pid file: "+lockfile+" but couldnt fine the file. Ignore!"

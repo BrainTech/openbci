@@ -87,12 +87,18 @@ class MazeLevel(object):
                 if self.path_points[ind-1][1]>self.path_points[ind][1]:
                     path.reverse()
 
-            if ind == 1:
-                path.remove(self.path_points[0])
-            elif ind == len(self.path_points)-1:
-                path.remove(self.path_points[-1])
-            
             self.path[self.path_points[ind-1]] = path 
+            
+    def _init_path_point(self):
+        path = []
+        point = self.get_position_start()
+        while point != self.get_position_finish():
+            path.append(self.path[point])
+            point = self.path[point][-1]
+        print path
+        self.all_path_points = path
+        self.left_path_points = sum(path, [])
+        print self.left_path_points
 
     def load_level(self, level_number):
         level, level_type = self.level_in_order[str(level_number)]
@@ -104,6 +110,7 @@ class MazeLevel(object):
             self.level = np.array([row[::-1] for row in self.level]).T
             self.level_path = np.array([row[::-1] for row in self.level_path]).T
         self._init_path()
+        self._init_path_point()
         self._set_ball_position_start()
 
     def _set_ball_position_start(self):
@@ -115,22 +122,24 @@ class MazeLevel(object):
         return self.level
 
     def get_all_path(self):
-        path = []
-        for points in self.path.values():
-            path.append(points)
-        return sum(path, [])
+        return sum(self.all_path_points, [])
 
-    def get_point_path(self, point):
-        try:
-            path = [self.path[point]]
-            path.append(self.path[self.path[point][-1]])
-            self.last_path_point = sum(path, [])
-            return sum(path, [])
-        except KeyError:
-            for ind, p in enumerate(self.last_path_point):
-                if point == p:
-                    return self.last_path_point[ind:]
-            return []
+    def get_path_left(self):
+        for ind, point in enumerate(self.left_path_points):
+            if point == (self.get_ball_y(), self.get_ball_x()):
+                self.left_path_points = self.left_path_points[ind:]
+                return self.left_path_points
+        return []
+
+    def get_active_path(self):
+        for step, points in enumerate(self.all_path_points):
+            for ind, point in enumerate(points[:-1]):
+                if point == (self.get_ball_y(), self.get_ball_x()):
+                    try:
+                        return sum([self.all_path_points[step][ind:],self.all_path_points[step+1]], [])
+                    except IndexError:
+                        return self.all_path_points[step][ind:]
+        return []
 
     def get_position_start(self):
         return self.position_start
