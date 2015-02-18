@@ -165,6 +165,22 @@ class MazeWiiLogic(MazeLogic):
                 elif event.key == K_p:
                     self.make_pause()
 
+    def level_start(self):
+        super(MazeWiiLogic, self).level_start()
+        self.data_engine.clear_queue()     
+
+    def move(self, p):
+        super(MazeWiiLogic, self).move(p)
+        self.data_engine.clear_queue()
+
+    def make_pause(self):
+        super(MazeWiiLogic, self).make_pause()
+        self.data_engine.clear_queue()
+
+    def exit_game(self):
+        super(MazeWiiLogic, self).exit_game()
+        self.data_engine.clear_queue()
+
     def main(self):    
         self.set_current_level(self.start_level)
         self.load_level()  

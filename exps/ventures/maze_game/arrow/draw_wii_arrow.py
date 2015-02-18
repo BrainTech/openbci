@@ -33,23 +33,26 @@ class DrawWiiArrow(DrawArrow):
         (point1, point2), (point3, point4) = self.arrow.get_shape_level_points()
         color = self._get_area_color(area_param)
         pygame.draw.polygon(self.window, color, (point1, point2, point3, point4))
-        pygame.draw.line(self.window, self.COLORS['black'], point1, point2, 2)
-        pygame.draw.line(self.window, self.COLORS['black'], point3, point4, 2)
+        pygame.draw.line(self.window, self.COLORS['gray'], point1, point2, 2)
+        pygame.draw.line(self.window, self.COLORS['gray'], point3, point4, 2)
 
 
     def _draw_level_data(self, level, points, color):
         if level<self.arrow.get_size():
             line = self.arrow.get_level_line_points(level)
-            pygame.draw.line(self.window, self.COLORS['yellow'], line[0], line[1], 2)
+            pygame.draw.line(self.window, self.COLORS['gray'], line[0], line[1], 5)
+            pygame.draw.line(self.window, self.COLORS['blue'], line[0], line[1], 3)
 
     def _get_area_color(self, area_param):
-        value = 255-int((float(area_param)/100)*255)
-        return (value, 255, value)
+        value_0 = 255-int((float(area_param)/100)*(255-(self.COLORS['green'][0])))
+        value_2 = 255-int((float(area_param)/100)*(255-(self.COLORS['green'][2])))
+        return (value_0, self.COLORS['green'][1], value_2)
 
     def set_arrow_proportion(self, proportion):
         self.arrow.set_levels(proportion)
 
     def draw_level(self, level, area_param):
+        level = 100*(float(level)/self.size)
         color, points = self.arrow.get_level_points(level)
         self._draw_white_fill_arrow()
         self._draw_wii_area_data(area_param)

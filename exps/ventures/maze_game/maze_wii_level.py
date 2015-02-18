@@ -42,6 +42,6 @@ class MazeWiiLevel(object):
         try:
             self.level_params[direction] = WII_LEVELS[str(level)]
         except KeyError:
-            self.level_params[direction] = WII_LEVELS[str(1)]
+            self.level_params[direction] = WII_LEVELS[str(10)]
 
         print self.level_params[direction]

@@ -68,9 +68,11 @@ class MazeLevel(object):
                 if level_path_value > 0:
                     self.path_points[int(level_path_value)] = (y_ind, x_ind)
                 elif level_path_value == -1:
+                    self.position_start = (y_ind, x_ind)
                     self.path_points[0] = (y_ind, x_ind)
                 elif level_path_value == -2:
                     self.path_points[-1] = (y_ind, x_ind)
+                    self.position_finish = (y_ind, x_ind)
 
         for ind in range(1, len(self.path_points)):
             if self.path_points[ind-1][1] == self.path_points[ind][1]:
@@ -95,7 +97,6 @@ class MazeLevel(object):
     def load_level(self, level_number):
         level, level_type = self.level_in_order[str(level_number)]
         self._init_level_arrays(level)
-        self._init_path()
         if level_type == 'T':
             self.level = self.level.T
             self.level_path = self.level_path.T
@@ -106,11 +107,9 @@ class MazeLevel(object):
         self._set_ball_position_start()
 
     def _set_ball_position_start(self):
-        for ly in range(len(self.get_level_array())):
-            for lx in range(len(self.get_level_array()[0])):
-                if self.get_level_array()[ly][lx] == 3:
-                    self.set_ball_x(lx)
-                    self.set_ball_y(ly)
+        ly, lx = self.get_position_start()
+        self.set_ball_x(lx)
+        self.set_ball_y(ly)
 
     def get_level_array(self):
         return self.level
@@ -133,6 +132,11 @@ class MazeLevel(object):
                     return self.last_path_point[ind:]
             return []
 
+    def get_position_start(self):
+        return self.position_start
+
+    def get_position_finish(self):
+        return self.position_finish
 
     def get_ball_x(self):
         return self.x

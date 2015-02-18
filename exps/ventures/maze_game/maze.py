@@ -97,11 +97,22 @@ class MazeGame(object):
     def _init_queue(self):
         self._queue = Queue.Queue()
 
+    def clear_queue(self):
+        print("Clear queue!!!")
+        while True:
+            try:
+                self._queue.get_nowait()
+            except Queue.Empty:
+                break
+
     def handle_message(self, msg):
-        self._queue.put(msg)
+        try:
+            self._queue.put_nowait(msg)
+        except Queue.Full:
+            print("Warning! Queue is full. Drop message!!!")
     
     def get_message(self):
-        if self._queue.qsize() > 5:
+        if self._queue.qsize() > 2:
             print("Warning! Queue size is: "+str(self._queue.qsize()))
         try:
             return self._queue.get_nowait()

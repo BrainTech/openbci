@@ -40,18 +40,18 @@ def get_finish_session_text(training_number, session_type, session_condition):
         return u"\n\n\nKoniec sesji treningowej"
 
 def get_repeat_level_text(repeat_number, session_type, session_condition):
-    if session_condition != 'motor': 
+    if not (session_condition in ['motor', 'key_motor']): 
         if 3-repeat_number == 1:
             return u"\n\n\nWpadłeś w dziurę! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
         if 3-repeat_number in [2, 3]:
-            return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
+            return u"\n\n\nWpadłeś w dziurę! \nPozostały Ci jeszcze {} szanse. \nSpróbuj ponownie!".format(3-repeat_number)
         else:
             return u"\n\n\nWpadłeś 3 razy w czarną dziurę.\n Poćwicz jeszcze raz na niższym poziomie trudności. \n\nPamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów."
     else:
         if 3-repeat_number == 1:
             return u"\n\n\nZboczyłeś ze ścieżki! \nPozostała Ci jeszcze {} szansa. \nSpróbuj ponownie!".format(3-repeat_number)
         if 3-repeat_number in [2, 3]:
-            return u"\n\n\nZboczyłeś ze ścieżki! \nPozostały Ci jeszcze {} szansy. \nSpróbuj ponownie!".format(3-repeat_number)
+            return u"\n\n\nZboczyłeś ze ścieżki! \nPozostały Ci jeszcze {} szanse. \nSpróbuj ponownie!".format(3-repeat_number)
         else:
             return u"\n\n\nNiestety zboczyłeś ze ścieżki 3 razy.\n Być może aktualny poziom jest dla ciebie jeszcze zbyt trudny. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności.\n\n"
 
@@ -67,7 +67,7 @@ def get_instruction_1(session_type, session_condition):
         ret += u"\n\nKulką kieruje się przy użyciu strzałek na klawiaturze."
     else:
         ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
-    if session_condition != 'motor':
+    if not (session_condition in ['motor', 'cognitive_motor']):
         ret += u"\n\n"
     ret = ret + u"\n<aby przejść dalej naciśnij spację>" 
     return ret

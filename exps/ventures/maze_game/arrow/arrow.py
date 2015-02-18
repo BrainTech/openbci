@@ -29,8 +29,8 @@ class Arrow(object):
         self.levels_lines = levels_lines
 
     def set_levels(self, proportion):
-        self.levels = [100*(proportion[0]/self.size), 
-                       100*((proportion[1])/self.size)]
+        self.levels = [100*(float(proportion[0])/self.size), 
+                       100*(float(proportion[1])/self.size)]
 
     def find_point_x(self, x, y, level_x):
         a, b = np.polyfit(x, y, 1)

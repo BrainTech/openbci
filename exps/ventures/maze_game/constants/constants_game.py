@@ -18,7 +18,7 @@
 #
 from pygame.locals import *
 
-FRAME_RATE = 30
+FRAME_RATE = 60
 
 SCREEN_SIZE = (640, 480)
 
