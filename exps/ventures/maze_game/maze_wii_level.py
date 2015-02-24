@@ -25,6 +25,7 @@ class MazeWiiLevel(object):
         self._init_wii_level_params(wii_level_params)
 
     def _get_area_value(self, level, motor_step, motor_initial, session_number):
+        print level, motor_step, motor_initial, session_number
         level = level + (motor_initial + session_number - 1) * motor_step
         return level-(AREA_SIZE/2), (level+AREA_SIZE/2), level
 
@@ -47,6 +48,12 @@ class MazeWiiLevel(object):
                 self.level_params[direction]['step_down'], 
                 self.level_params[direction]['area_start_value'],
                 self.level_params[direction]['area_end_value'])
+
+    def get_levels(self):
+        return (self.level_params['up']['level'], 
+                self.level_params['down']['level'], 
+                self.level_params['left']['level'],
+                self.level_params['right']['level'])
 
     def load_level(self, direction, level):
         pass
