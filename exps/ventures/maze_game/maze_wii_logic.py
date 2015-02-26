@@ -48,7 +48,7 @@ class MazeWiiLogic(MazeLogic):
                                            time_board_display, time_left_out, 
                                            tagger, session_type, session_condition)
         self.data_engine = data_engine
-        self.start_wii_level = 1
+        # self.start_wii_level = 1
         self.wii_level = MazeWiiLevel(session_type, wii_level_params)
         self._init_wii_arrows()
 
@@ -58,21 +58,22 @@ class MazeWiiLogic(MazeLogic):
                            'down' : WiiArrow('down'),
                            'up' : WiiArrow('up')}
 
-    def set_current_wii_level(self, level):
-        self.current_wii_level = {'right' : level,
-                                  'left':  level,
-                                  'down' : level,
-                                  'up' : level}
+    # def set_current_wii_level(self, level):
+    #     self.current_wii_level = {'right' : level,
+    #                               'left':  level,
+    #                               'down' : level,
+    #                               'up' : level}
 
-    def get_current_wii_level(self, direction):
-        return self.current_wii_level[direction]
+    # def get_current_wii_level(self, direction):
+    #     return self.current_wii_level[direction]
 
-    def get_current_wii_levels(self, direction):
-        return self.current_wii_level['up'], self.current_wii_level['down'], self.current_wii_level['left'], self.current_wii_level['right']
+    def get_current_wii_levels(self):
+        return self.wii_level.get_levels() 
+        #self.current_wii_level['up'], self.current_wii_level['down'], self.current_wii_level['left'], self.current_wii_level['right']
 
-    def update_current_wii_level(self, direction):
-        self.current_wii_level[direction] += 1
-        print self.current_wii_level
+    # def update_current_wii_level(self, direction):
+    #     self.current_wii_level[direction] += 1
+    #     print self.current_wii_level
 
 
     def set_current_arrow_direction(self, direction):
@@ -96,7 +97,7 @@ class MazeWiiLogic(MazeLogic):
     def load_wii_level(self, direction):
         for arrow in self.wii_arrows.values():
             if arrow.direction==direction:
-                self.wii_level.load_level(arrow.direction, self.get_current_wii_level(direction))
+                #self.wii_level.load_level(arrow.direction, self.get_current_wii_level(direction))
                 level_params = self.wii_level.get_level(arrow.direction)
                 arrow.set_level(*level_params)
                 self.screen.load_wii_level_arrow_proportion(arrow.direction, level_params[2:])
@@ -138,8 +139,8 @@ class MazeWiiLogic(MazeLogic):
             if self.is_move():
                 self.send_tag(time.time(), 'move', self.get_current_arrow_direction())
                 self.move(self.get_current_arrow_direction())
-                self.update_current_wii_level(self.get_current_arrow_direction())
-                self.load_wii_level(self.get_current_arrow_direction())
+                #self.update_current_wii_level(self.get_current_arrow_direction())
+                #self.load_wii_level(self.get_current_arrow_direction())
                 self.get_current_arrow().reset()
                 self.set_current_arrow_direction(None)
 
@@ -173,8 +174,8 @@ class MazeWiiLogic(MazeLogic):
     def main(self):    
         self.set_current_level(self.start_level)
         self.load_level()  
-        self.set_current_wii_level(self.start_wii_level)
-        for key in self.current_wii_level.keys():
+        #self.set_current_wii_level(self.start_wii_level)
+        for key in ['left', 'right', 'down', 'up']:
             self.load_wii_level(key)
         self.set_current_arrow_direction(None)
         self.instruction()
