@@ -175,7 +175,7 @@ def wii_current_level_set(user_id, level_up, level_down, level_left, level_right
     data.set_value(data[data['ID']==user_id].index[0], '{}_level_up'.format(number), level_up.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_level_down'.format(number), level_down.__repr__())
     data.set_value(data[data['ID']==user_id].index[0], '{}_level_left'.format(number), level_left.__repr__())
-    data.set_value(data[data['ID']==user_id].index[0], '{}_level_right'.fotmat(number), level_right.__repr__())
+    data.set_value(data[data['ID']==user_id].index[0], '{}_level_right'.format(number), level_right.__repr__())
 
     data.set_value(data[data['ID']==user_id].index[0], '{}_time'.format(number), current_time_to_string())
     data.to_csv(get_database_file_name(GAME_WII_RESULTS), 
