@@ -18,7 +18,7 @@
 #
 
 def get_start_text():
-	return u'\n\n\nWitamy! Przed Tobą drugie zadanie rozgrzewkowe.\n\n\n\n\n\n\n\n\n\n\n<aby przejść dalej naciśnij spację>'
+	return u'\n\n\nWitamy! \n\n\n\n\n\n\n\n\n\n\n\n<aby przejść do instrukcji naciśnij spację>'
 
 def get_instruction_text():
 	return u'\nW tym zadaniu, w różnych miejscach białych obszarów z poprzedniego zadania, będą pojawiać się prostokąty.\n\
