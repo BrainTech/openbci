@@ -51,10 +51,14 @@ class CalibrationScreen(object):
         return int(self.get_block_size()*(float(value)/100))
 
     def set_calibration_last_value(self, up, right, down, left):
-        self.get_block('up').set_level_last(self._value2px(up))
-        self.get_block('right').set_level_last(self._value2px(right))
-        self.get_block('down').set_level_last(self._value2px(down))
-        self.get_block('left').set_level_last(self._value2px(left))
+        # self.get_block('up').set_level_last(self._value2px(up))
+        # self.get_block('right').set_level_last(self._value2px(right))
+        # self.get_block('down').set_level_last(self._value2px(down))
+        # self.get_block('left').set_level_last(self._value2px(left))
+        self.get_block('up').set_level_last(0)
+        self.get_block('right').set_level_last(0)
+        self.get_block('down').set_level_last(0)
+        self.get_block('left').set_level_last(0)
 
     def _display_screen_helper(self, image, text='', color=(250, 250, 250)):
         self.screen.blit(self.black_screen, (0, 0))
@@ -115,6 +119,20 @@ class CalibrationScreen(object):
 
         elif level_max_type == 'down' and value > self.level_max_down:
             self.level_max_down = value
+
+    def update_level_max(self, level_max_type, value):
+        if level_max_type == 'right' and value > self.level_max_right_:
+            self.level_max_right_=value
+
+        elif level_max_type == 'left' and value > self.level_max_left_:
+            self.level_max_left_ = value
+
+        elif level_max_type == 'up' and value > self.level_max_up_:
+            self.level_max_up_ = value
+
+        elif level_max_type == 'down' and value > self.level_max_down_:
+            self.level_max_down_ = value
+
 
     def get_level_max(self, level_max_type):
         if level_max_type == 'right':

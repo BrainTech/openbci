@@ -25,18 +25,30 @@ from obci.exps.ventures.calibration_game.calibration_screen import CalibrationSc
 from obci.exps.ventures import logic_queue
 from obci.exps.ventures.data.data_manager import calibration_get_last
 
+import time
+
 class Calibration(logic_queue.LogicQueue):
-    def __init__(self, user_id):
+    def __init__(self, user_id, tag_name, tag_dir):
         super(Calibration, self).__init__()
         self.screen = CalibrationScreen()
         self.user_id = user_id
         self._init_calibration_last_data()
+        self.tagger_init(tag_name, tag_dir)
 
     def _init_calibration_last_data(self):
             data  = calibration_get_last(self.user_id)
             if data != None:
                 up, right, down, left, t  = data
                 self.screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
+
+    def tagger_init(self, tag_name, tag_dir):
+        self.tagger = Tagger(tag_name, tag_dir, status='ON')
+
+    def send_tag(self, timestamp, tag_name, tage_value=''):
+        self.tagger.set_tag(timestamp, str(tag_name), str(tage_value))
+
+    def save_tags(self):
+        self.tagger.finish()
 
     def instruction(self):
         screens = ['start', 'instruction']
@@ -65,7 +77,12 @@ class Calibration(logic_queue.LogicQueue):
                 self.screen.update_block(sample.key, sample.value)
 
     def _finish_calibration(self):
-        pass
+        right, left, up, down = self.screen.get_level_max_(self)
+        self.send_tag(time.time(), 'right', right)
+        self.send_tag(time.time(), 'left', left)
+        self.send_tag(time.time(), 'up', up)
+        self.send_tag(time.time(), 'down', down)
+        self.save_tags()
 
 
         

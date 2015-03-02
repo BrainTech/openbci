@@ -18,8 +18,7 @@
 #
 
 def get_start_text():
-	return u'\nWitamy! Zanim rozpoczniesz trening, masz do wykonania dwa zadania rozgrzewkowe, których celem jest określenie Twojej dzisiejszej dyspozycji.\n\n\
-	Przed Tobą pierwsze z nich.\n\n\n\n\n\n\n<aby przejść dalej naciśnij spację>'
+	return u'\n\n\nWitamy! \n\n\n\n\n\n\n\n\n\n\n\n<aby przejść do instrukcji naciśnij spację>'
 
 def get_instruction_text():
 	return u'\nTwoim zadaniem jest jak najbardziej wypełnić zielonym kolorem białe obszary wyświetlone na ekranie.\n\
