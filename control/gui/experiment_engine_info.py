@@ -319,20 +319,22 @@ class ExperimentEngineInfo(QtCore.QObject):
     def enable_signal_storing(self, store_options):
         if not store_options:
             return
+        print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        print store_options
 
         if int(store_options['append_timestamp']):
             store_options = dict(store_options)
             store_options['save_file_name'] = store_options['save_file_name']+"_"+str(time.time())
 
-        for peer, peer_path in SIGNAL_STORAGE_PEERS.iteritems():
-            if peer not in self.exp_config.peers:
-                self.add_peer(peer, peer_path)
-
-        saver = self.exp_config.peers['signal_saver']
-        params = saver.config.param_values
-        for opt, val in store_options.iteritems():
-            if opt in saver.config.param_values:
-                params[opt] = val
+        for p in acquisition_helper.get_acquisition_peers(store_options['amplifiers'][0]):
+            if p['peer_name'] not in self.exp_config.peers:
+                self.add_peer(p['peer_name'], p['peer_path'])
+            if p['peer_type'] == 'signal':
+                signal = self.exp_config.peers[p['peer_name']]
+                params = signal.config.param_values
+                for opt, val in store_options.iteritems():
+                    if opt in signal.config.param_values:
+                        params[opt] = val
 
     def stop_storing(self, client):
         join_response = client.join_experiment(self.uuid, "dummy_module_"+str(time.time()), "")

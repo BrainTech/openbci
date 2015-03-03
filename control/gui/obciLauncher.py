@@ -434,10 +434,12 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _start(self):
         uid = str(self.scenarios.currentItem().uuid)
         if self.store_checkBox.isChecked():
+            amplifiers = [a for a in self.exp_states[uid].exp.exp_config.peers if a.endswith('amplifier')]
             store_options = {u'save_file_name': unicode(self.store_file.text().toUtf8(), 'utf-8'),
                              u'save_file_path': unicode(self.store_dir.text().toUtf8(), 'utf-8'),
                              u'append_timestamp':  unicode(1 if self.store_ts_checkBox.isChecked() else 0),
-                             u'store_locally': 1 if self.store_local_checkBox.isChecked() else 0
+                             u'store_locally': 1 if self.store_local_checkBox.isChecked() else 0,
+                             u'amplifiers': amplifiers
                              }
             self.exp_states[uid].store_options = store_options
         else:
@@ -689,7 +691,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             enable = (current_exp.status.status_name == READY_TO_LAUNCH)
             self.start_button.setEnabled(enable)
-            is_amp = enable and "amplifier" in current_exp.exp_config.peers
+            is_amp = True#enable and "amplifier" in current_exp.exp_config.peers
             self._store_set_enabled(is_amp)
             self.actionSelectAmplifier.setEnabled(is_amp)
             self.stop_button.setEnabled(False)
