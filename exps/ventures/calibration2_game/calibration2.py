@@ -61,7 +61,7 @@ class Calibration2(logic_queue.LogicQueue):
         self.tagger.finish()
 
     def try_calib_box(self, direction, level):
-        self.send_tag(time.time(), 'start_1', {'level':level, 'direction': direction})
+        self.send_tag(time.time(), 'start_1', {'level':float(level)/100, 'direction': direction})
         #self.send_tag(time.time(), 'direction', direction)
         self.calib_box_state = CalibBox('')
         self.calib_box_state.direction = direction
@@ -70,7 +70,7 @@ class Calibration2(logic_queue.LogicQueue):
         self.blink_calib_box()
         self.screen.play_sound('win')   
         self.clear_queue()   
-        self.send_tag(time.time(), 'start_sway', level)
+        self.send_tag(time.time(), 'start_sway', '')
         t = time.time()
         while time.time()-t<=7:
             for event in pygame.event.get():                  
