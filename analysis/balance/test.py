@@ -8,8 +8,8 @@ if __name__ == '__main__':
 	w = WBBReadManager('test1.obci.xml','test1.obci.raw','test1.obci.tag')
 	w.get_x()
 	w.get_y()
-	wbb_mgr = wii_filter_signal(w, 30.0, 2, use_filtfilt=False)
-	wbb_mgr = wii_downsample_signal(wbb_mgr, factor=4, pre_filter=False, use_filtfilt=False)
+	#wbb_mgr = wii_filter_signal(w, 30.0, 2, use_filtfilt=False)
+	wbb_mgr = wii_downsample_signal(wbb_mgr, factor=2, pre_filter=True, use_filtfilt=True)
 	smart_tags = wii_cut_fragments(wbb_mgr)
 	for sm in smart_tags:
 		sm_x = sm.get_channel_samples('x')

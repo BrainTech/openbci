@@ -24,7 +24,7 @@ pygame.mixer.init()
 from obci.exps.ventures.calibration_game.calibration_screen import CalibrationScreen
 from obci.exps.ventures import logic_queue
 from obci.exps.ventures.data.data_manager import calibration_get_last
-
+from obci.exps.ventures.maze_game.tags.tagger import Tagger
 import time
 
 class Calibration(logic_queue.LogicQueue):
@@ -77,11 +77,11 @@ class Calibration(logic_queue.LogicQueue):
                 self.screen.update_block(sample.key, sample.value)
 
     def _finish_calibration(self):
-        right, left, up, down = self.screen.get_level_max_(self)
-        self.send_tag(time.time(), 'right', right)
-        self.send_tag(time.time(), 'left', left)
-        self.send_tag(time.time(), 'up', up)
-        self.send_tag(time.time(), 'down', down)
+        right, left, up, down = self.screen.get_level_max_()
+        self.send_tag(time.time(), 'right', float(right)/100)
+        self.send_tag(time.time(), 'left', float(left)/100)
+        self.send_tag(time.time(), 'up', float(up)/100)
+        self.send_tag(time.time(), 'down', float(down)/100)
         self.save_tags()
 
 

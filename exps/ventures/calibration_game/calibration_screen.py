@@ -82,7 +82,7 @@ class CalibrationScreen(object):
         self.level_max_up = 0
         self.level_max_down = 0
 
-    def _init_level_max(self):
+    def _init_level_max_(self):
         self.level_max_left_ = 0
         self.level_max_right_ = 0
         self.level_max_up_ = 0
