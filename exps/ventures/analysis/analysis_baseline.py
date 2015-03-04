@@ -5,6 +5,7 @@ from obci.analysis.balance.wii_read_manager import WBBReadManager
 from obci.analysis.balance.wii_analysis import wii_confidence_ellipse_area as get_ellipse_area
 from obci.analysis.balance.wii_preprocessing import *
 
+
 from obci.acquisition import acquisition_helper
 
 import matplotlib.pyplot as plt
