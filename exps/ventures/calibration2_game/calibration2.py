@@ -61,14 +61,14 @@ class Calibration2(logic_queue.LogicQueue):
         self.tagger.finish()
 
     def try_calib_box(self, direction, level):
-        self.send_tag(time.time(), 'start', level)
+        self.send_tag(time.time(), 'box_start', level)
         self.send_tag(time.time(), 'direction', direction)
         self.calib_box_state = CalibBox('')
         self.calib_box_state.direction = direction
         self.calib_box_state.set_level(1,1, level-20, level+20)
         self.screen.display_box(direction, level-20, level+20)
         self.blink_calib_box()
-        self.screen.play_sound('win')   
+        #self.screen.play_sound('win')   
         self.clear_queue()   
         self.send_tag(time.time(), 'start', level)
         t = time.time()
@@ -107,9 +107,9 @@ class Calibration2(logic_queue.LogicQueue):
     def blink_calib_box(self):
         self.clear_queue() 
         t = time.time()
-        color = ['green_2', 'white', 'green_2']
+        color = ['white', 'green_2']
         for color in ['green_2', 'white', 'green_2']:
-            while time.time()-t<=0.3:
+            while time.time()-t<=0.1:
                 for event in pygame.event.get():                  
                     if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                         pygame.quit()
@@ -117,6 +117,8 @@ class Calibration2(logic_queue.LogicQueue):
                 if sample is not None:
                     self.screen.update_level(sample.key, sample.value)
                     self.screen.display_color_box(color)
+                    if color == 'green_2':
+                        self.screen.play_sound('start')  
             t = time.time()
         return 
 
