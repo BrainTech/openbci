@@ -97,7 +97,7 @@ class MazeWiiLogic(MazeLogic):
     def load_wii_level(self, direction):
         for arrow in self.wii_arrows.values():
             if arrow.direction==direction:
-                #self.wii_level.load_level(arrow.direction, self.get_current_wii_level(direction))
+                self.wii_level.load_level(arrow.direction, self.get_current_level())
                 level_params = self.wii_level.get_level(arrow.direction)
                 arrow.set_level(*level_params)
                 self.screen.load_wii_level_arrow_proportion(arrow.direction, level_params[2:])
@@ -170,6 +170,13 @@ class MazeWiiLogic(MazeLogic):
     def exit_game(self):
         super(MazeWiiLogic, self).exit_game()
         self.data_engine.clear_queue()
+
+    def load_level(self):
+        super(MazeWiiLogic, self).load_level()
+        ###
+        for key in ['left', 'right', 'down', 'up']:
+            self.load_wii_level(key)
+
 
     def main(self):    
         self.set_current_level(self.start_level)
