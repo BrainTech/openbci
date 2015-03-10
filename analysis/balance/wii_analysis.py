@@ -32,7 +32,7 @@ def wii_max_sway_AP_MP(x, y):
 	max_ML  	--  float
 	"""
 
-	return max_sway_AP_MP(np.vstack((x,y)))
+	return max_sway_AP_ML(np.vstack((x,y)))
 
 def wii_COP_path(wbb_mgr, x, y, plot=False):
 	""" Returns total length of the COP path
