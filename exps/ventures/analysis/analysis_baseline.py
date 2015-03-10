@@ -22,7 +22,7 @@ def show_results(x, y, xa, ya, xb, yb, xc, yc):
     ax.set_ylim(-1, 1)
     plt.show()
 
-def estymate_fs(TSS_samples):
+def estimate_fs(TSS_samples):
     durations = []
     for ind in range(1, len(TSS_samples)):
         durations.append(TSS_samples[ind]-TSS_samples[ind-1])
@@ -33,7 +33,7 @@ def calculate(file_path, file_name, show=True):
     w = WBBReadManager(file_name+'.obci.xml', file_name+'.obci.raw', file_name+'.obci.tag')
     w.get_x()
     w.get_y()
-    w.mgr.set_param('sampling_frequency', estymate_fs(w.mgr.get_channel_samples('TSS')))
+    w.mgr.set_param('sampling_frequency', estimate_fs(w.mgr.get_channel_samples('TSS')))
     #w = wii_filter_signal(w, 30.0, 2, use_filtfilt=False)
     w = wii_downsample_signal(w, factor=2, pre_filter=True, use_filtfilt=True)
     smart_tags = wii_cut_fragments(w, start_tag_name='ss_start', end_tags_names=['ss_stop'])
