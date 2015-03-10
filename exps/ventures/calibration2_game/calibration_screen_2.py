@@ -49,6 +49,8 @@ class CalibrationScreen2(object):
         self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
         self.fall_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH,'Fall.wav'))
         self.enter_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH, 'Enter.wav'))
+        self.start_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH, 'Boom.wav'))
+
 
     def _init_blocks(self):
         self.block_right = DrawBlock(self.screen, 'right')
@@ -141,3 +143,5 @@ class CalibrationScreen2(object):
 
         elif action == 'fall':
             self.fall_sound.play()
+        elif action == 'start':
+            self.start_sound.play()

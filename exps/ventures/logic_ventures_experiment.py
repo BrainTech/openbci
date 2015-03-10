@@ -59,12 +59,14 @@ class LogicVenturesExperiment(ConfiguredClient):
             tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
             engine = calibration2.Calibration2(user_id, levels, tag_name, tag_dir)
         elif session_name in ['ventures_game', 'ventures_game_training']:
-            motor_step= int(self.get_param('motor_step'))
-            motor_initial = int(self.get_param('motor_initial'))
+            #motor_step= int(self.get_param('motor_step'))
+            #motor_initial = int(self.get_param('motor_initial'))
+            motor_min_level = float(self.get_param('motor_min_level'))
+            motor_max_level= float(self.get_param('motor_max_level'))
             tag_name = self.get_param('save_file_name')
             tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
             session_type = 'experiment' if session_name == 'ventures_game' else 'training'
-            engine = maze.MazeGame(user_id, motor_step=motor_step, motor_initial=motor_initial, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type)
+            engine = maze.MazeGame(user_id, motor_min_level=motor_min_level, motor_max_level=motor_max_level, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type)
         else:
             raise Exception ("Unknown session name - abort")
         #initialise server to receive wii analysis messages from experiment server via udpServer
