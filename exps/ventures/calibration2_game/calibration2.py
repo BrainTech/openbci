@@ -67,13 +67,15 @@ class Calibration2(logic_queue.LogicQueue):
         self.calib_box_state.direction = direction
         self.calib_box_state.set_level(1,1, level-20, level+20)
         self.screen.display_box(direction, level-20, level+20)
-        done = False
+        self.blink_calib_box()
+        self.screen.play_sound('win')   
         self.clear_queue()   
-        while not done:
+        self.send_tag(time.time(), 'start', level)
+        t = time.time()
+        while time.time()-t<=7:
             for event in pygame.event.get():                  
                 if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
-                    self.send_tag(time.time(), 'finish', '0')
-                    return False
+                    pygame.quit()
             sample = self.get_message()
             if sample is not None:
                 if sample.key == direction:
@@ -84,9 +86,56 @@ class Calibration2(logic_queue.LogicQueue):
                 if self.calib_box_state.is_move():
                     self.screen.clear(True)
                     self.send_tag(time.time(), 'finish', '1')
+                    self.screen.play_sound('win')
                     return True
+        self.send_tag(time.time(), 'finish', '0')
+        self.screen.play_sound('fall')
+        return False
+
+    def wait_calib_box(self):
+        self.clear_queue() 
+        t = time.time()
+        while time.time()-t<=2:
+            for event in pygame.event.get():                  
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                    pygame.quit()
+            sample = self.get_message()
+            if sample is not None:
+                self.screen.update_level(sample.key, sample.value)
+                self.screen._display()
+        return 
+    def blink_calib_box(self):
+        self.clear_queue() 
+        t = time.time()
+        color = ['green_2', 'white', 'green_2']
+        for color in ['green_2', 'white', 'green_2']:
+            while time.time()-t<=0.3:
+                for event in pygame.event.get():                  
+                    if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                        pygame.quit()
+                sample = self.get_message()
+                if sample is not None:
+                    self.screen.update_level(sample.key, sample.value)
+                    self.screen.display_color_box(color)
+            t = time.time()
+        return 
+
+    def instruction(self):
+        screens = ['start', 'instruction']
+        screen_status = 0
+        self.screen.display_screen(screens[screen_status])
+        while screen_status<len(screens):
+            for event in pygame.event.get():                    
+                if event.type == KEYDOWN:            
+                    if event.key == K_SPACE:
+                        screen_status+=1 
+                        if screen_status<len(screens):
+                            self.screen.display_screen(screens[screen_status])
 
     def run(self):
+        self.instruction()
+        self.clear_queue() 
+        self.screen.display_calib_start()
         done = False
         selected_levels = {'up': None,
                            'right': None,
@@ -97,6 +146,7 @@ class Calibration2(logic_queue.LogicQueue):
         while not done:
             for d in ['up', 'right', 'down', 'left']:
                 if selected_levels[d] is None:
+                    self.wait_calib_box()
                     level = self._level_selector[d].get_level()
                     passed = self.try_calib_box(d, level)
                     #passed = True #TODO - perform trial on 'level' value in order to determine if patient succeeded in selecting box on level value 'level'

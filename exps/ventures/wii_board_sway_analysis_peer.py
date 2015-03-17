@@ -110,6 +110,10 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self._dummy_v = self._dummy_v + 0.25
         if not (self._dummy_v % 100):
             self._dummy_d = (self._dummy_d + 1) % 5
+
+        if self._dummy_dirs[self._dummy_d] != 'baseline' and self._session_name == 'ventures_calibration':
+            self._update_current_maxes(self._dummy_dirs[self._dummy_d], float(int(self._dummy_v) % 70)/100)
+
         return self._dummy_dirs[self._dummy_d], (int(self._dummy_v) % 70)
 
     def _calculate_real_sway(self, x, y):

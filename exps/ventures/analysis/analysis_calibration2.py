@@ -23,7 +23,7 @@ import analysis_helper
 from matplotlib import pyplot as plt
 
 CALIBRATION_2_DATA_DIR = '~/ventures_experiment_data/'
-CALIBRATION_2_USERS = ['LP']#, 'ML', 'SC', 'MC']
+CALIBRATION_2_USERS = ['ML']#, 'ML', 'SC', 'MC']
 
 
 def display(data):
@@ -63,6 +63,7 @@ if __name__ == '__main__':
     for user_id in CALIBRATION_2_USERS:
         name_search = '{}_ventures_calibration2*.game.tag'.format(user_id)
         for file_name in analysis_helper.get_file_name(name_search, CALIBRATION_2_DATA_DIR):
+            print file_name
             user_data = get_calibration_2_times(file_name)
             data_2_plot.update(user_data)
     display(data_2_plot)

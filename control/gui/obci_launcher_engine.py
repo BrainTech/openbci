@@ -33,7 +33,7 @@ DEFAULT_CATEGORY, USER_CATEGORY
 
 import obci.control.common.obci_control_settings as settings
 
-PRESETS = 'control/gui/presets.ini'
+PRESETS = 'control/gui/presets/default.ini'
 
 USER_PRESETS = os.path.join(settings.OBCI_HOME_DIR, 'user_presets.ini')
 
@@ -61,7 +61,7 @@ class OBCILauncherEngine(QtCore.QObject):
 
         self._cached_nearby_machines = {}
         if presets:
-            self.preset_path = os.path.join(launcher_tools.obci_root(), ''.join(['control/gui/', presets, '.ini']))
+            self.preset_path = os.path.join(launcher_tools.obci_root(), ''.join(['control/gui/presets/', presets, '.ini']))
         else:
             self.preset_path = os.path.join(launcher_tools.obci_root(), PRESETS)
         self.user_preset_path = USER_PRESETS

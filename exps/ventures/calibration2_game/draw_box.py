@@ -83,3 +83,8 @@ class DrawBox(object):
         pygame.draw.polygon(self.window, self._get_area_color(area_param), self.points)
         pygame.draw.polygon(self.window, self.COLORS['gray'], self.points, 4)
         pygame.draw.polygon(self.window, self.COLORS['green_2'], self.points, 2)
+
+    def draw_box_color(self, color):
+        pygame.draw.polygon(self.window, self.COLORS[color], self.points)
+        pygame.draw.polygon(self.window, self.COLORS['gray'], self.points, 4)
+        pygame.draw.polygon(self.window, self.COLORS['green_2'], self.points, 2)

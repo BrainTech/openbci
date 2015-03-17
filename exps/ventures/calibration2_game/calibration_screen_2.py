@@ -25,6 +25,9 @@ from draw_box import DrawBox
 from obci.configs import settings
 import os.path
 
+from obci.exps.ventures.maze_game.screen_text.render_textrect import *
+from screen_text import *
+
 GAME_DATA_PATH = os.path.join(settings.MAIN_DIR, 'exps/ventures/maze_game/game_data')
 
 class CalibrationScreen2(object): 
@@ -36,10 +39,16 @@ class CalibrationScreen2(object):
         self.screen = pygame.display.set_mode(self.SCREEN_SIZE, FULLSCREEN)
         pygame.display.init()
         self._init_blocks()
-        self._display()
         self.max_size = 120.0
         self.box = DrawBox(self.screen)
+        self._load_resources()
+        self.text_rect = pygame.Rect((0, 10, 640, 470))
+
+    def _load_resources(self):
+        self.font_text = pygame.font.Font(os.path.join(GAME_DATA_PATH,'impact.ttf'), 24)
         self.black_screen = pygame.image.load(os.path.join(GAME_DATA_PATH,'blank.gif'))
+        self.fall_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH,'Fall.wav'))
+        self.enter_sound = pygame.mixer.Sound(os.path.join(GAME_DATA_PATH, 'Enter.wav'))
 
     def _init_blocks(self):
         self.block_right = DrawBlock(self.screen, 'right')
@@ -49,6 +58,25 @@ class CalibrationScreen2(object):
 
     def _display(self): 
         pygame.display.flip()
+
+    def _display_screen_helper(self, image, text='', color=(250, 250, 250)):
+        self.screen.blit(self.black_screen, (0, 0))
+        rendered_text = render_textrect(text, self.font_text, self.text_rect, color, (0, 0, 0), 1)
+        text = self.font_text.render(text ,1, color)
+        self.screen.blit(rendered_text, self.text_rect.topleft)
+
+    def display_screen(self, action):
+        if action == 'start':
+            self._display_screen_helper(text=get_start_text(), image=self.black_screen)
+            self._display()
+
+        elif action == 'instruction':
+            self._display_screen_helper(text=get_instruction_text(), image=self.black_screen)
+            self._display()
+            
+    def display_calib_start(self):
+        self.screen.blit(self.black_screen, (0, 0))
+        self._display()
 
     def get_block(self, block_type):
         if block_type == 'right':
@@ -90,3 +118,26 @@ class CalibrationScreen2(object):
                 level = 0
                 self.get_block(block_t).draw_level(0)
         self._display()
+
+    def update_level(self, block_type, level):
+        self.clear()
+        if block_type != 'baseline':
+            level = int((self.get_block_size()/self.max_size)*level)
+            self.get_block(block_type).draw_level(level)
+
+        for block_t in ['right', 'left', 'down', 'up']:
+            if not block_t==block_type:
+                level = 0
+                self.get_block(block_t).draw_level(0)
+        # self._display()
+
+    def display_color_box(self, color):
+        self.box.draw_box_color(color)
+        self._display()
+
+    def play_sound(self, action):
+        if action == 'win':
+            self.enter_sound.play()
+
+        elif action == 'fall':
+            self.fall_sound.play()
