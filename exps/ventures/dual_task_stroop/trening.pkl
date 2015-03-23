@@ -1,0 +1,121 @@
+(lp1
+(lp2
+Vznaczenie
+p3
+aVczcionka
+p4
+aVpoprawna_odp
+p5
+aa(lp6
+Vczerwony
+p7
+aVgreen
+p8
+aV: 8
+p9
+aa(lp10
+Vczerwony
+p11
+aVyellow
+p12
+aV: 8
+p13
+aa(lp14
+Vczerwony
+p15
+aVblue
+p16
+aV: 8
+p17
+aa(lp18
+V\u017có\u0142ty
+p19
+aVred
+p20
+aV: 9
+p21
+aa(lp22
+V\u017có\u0142ty
+p23
+aVgreen
+p24
+aV: 9
+p25
+aa(lp26
+V\u017có\u0142ty
+p27
+aVblue
+p28
+aV: 9
+p29
+aa(lp30
+Vniebieski
+p31
+aVyellow
+p32
+aV: 7
+p33
+aa(lp34
+Vniebieski
+p35
+aVgreen
+p36
+aV: 7
+p37
+aa(lp38
+Vniebieski
+p39
+aVred
+p40
+aV: 7
+p41
+aa(lp42
+Vzielony
+p43
+aVyellow
+p44
+aV: 9
+p45
+aa(lp46
+Vzielony
+p47
+aVred
+p48
+aV: 0
+p49
+aa(lp50
+Vzielony
+p51
+aVblue
+p52
+aV: 0
+p53
+aa(lp54
+Vczerwony
+p55
+aVred
+p56
+aV: 8
+p57
+aa(lp58
+V\u017có\u0142ty
+p59
+aVyellow
+p60
+aV: 9
+p61
+aa(lp62
+Vzielony
+p63
+aVgreen
+p64
+aV: 0
+p65
+aa(lp66
+Vniebieski
+p67
+aVblue
+p68
+aV: 7
+p69
+aa.

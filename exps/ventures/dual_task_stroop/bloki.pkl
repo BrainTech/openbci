@@ -1,0 +1,17 @@
+(lp1
+(lp2
+Vblok
+p3
+aa(lp4
+Vzgodny
+p5
+aa(lp6
+Vniezgodny
+p7
+aa(lp8
+Vzgodny
+p9
+aa(lp10
+Vniezgodny
+p11
+aa.
