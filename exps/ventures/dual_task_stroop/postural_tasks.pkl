@@ -1,0 +1,14 @@
+(lp1
+(lp2
+Vpostural_task
+p3
+aa(lp4
+Vss
+p5
+aa(lp6
+Vss_bacznosc
+p7
+aa(lp8
+Vss_gabka
+p9
+aa.
