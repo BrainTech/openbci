@@ -65,14 +65,22 @@
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
       </TagOnFlipComponent>
     </Routine>
-    <Routine name="zgodne">
-      <TextComponent name="text">
+    <Routine name="instrukcja_2">
+      <CodeComponent name="code_2">
+        <Param name="Begin Experiment" val="import time" valType="extendedCode" updates="constant"/>
+        <Param name="name" val="code_2" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+      </CodeComponent>
+      <TextComponent name="text_8">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="name" val="text" valType="code" updates="None"/>
+        <Param name="name" val="text_8" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
-        <Param name="color" val="$czcionka" valType="str" updates="set every repeat"/>
-        <Param name="text" val="$znaczenie" valType="str" updates="set every repeat"/>
+        <Param name="color" val="white" valType="str" updates="constant"/>
+        <Param name="text" val="INSTRUKCJA&#10;&#10;&#10;(wciśnij spację, żeby przejść dalej)" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -85,60 +93,31 @@
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
-        <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.08" valType="code" updates="constant"/>
       </TextComponent>
-      <CodeComponent name="start_zgodne">
-        <Param name="Begin Experiment" val="blok = 'zgodny'" valType="extendedCode" updates="constant"/>
-        <Param name="name" val="start_zgodne" valType="code" updates="None"/>
-        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
-        <Param name="Begin Routine" val="if blok == 'niezgodny':&#10;    break" valType="extendedCode" updates="constant"/>
-        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
-        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
-      </CodeComponent>
-      <MouseComponent name="mouse_2">
-        <Param name="name" val="mouse_2" valType="code" updates="None"/>
-        <Param name="timeRelativeTo" val="routine" valType="str" updates="constant"/>
+      <KeyboardComponent name="key_resp_6">
+        <Param name="correctAns" val="" valType="str" updates="constant"/>
+        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="key_resp_6" valType="code" updates="None"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutineOnPress" val="True" valType="bool" updates="constant"/>
+        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="selectionMask" val="[image_2]" valType="code" updates="None"/>
+        <Param name="allowedKeys" val="'space'" valType="code" updates="constant"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="advancedParams"/>
-        <Param name="saveMouseState" val="on click" valType="str" updates="None"/>
-      </MouseComponent>
-      <ImageComponent name="image_2">
-        <Param name="opacity" val="0" valType="code" updates="constant"/>
-        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
-        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="image_2" valType="code" updates="constant"/>
-        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
-        <Param name="stopVal" val="" valType="code" updates="constant"/>
-        <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="mask" val="None" valType="str" updates="constant"/>
-        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
-        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
-        <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="units" val="from exp settings" valType="str" updates="None"/>
-        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
-        <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="ori" val="0" valType="code" updates="constant"/>
-        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
-        <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="image" val="" valType="resource" updates="constant"/>
-        <Param name="size" val="[3.0, 3.0]" valType="code" updates="constant"/>
-      </ImageComponent>
-      <TagOnFlipComponent name="tagger">
-        <Param name="tagDescription" val="{'czcionka':czcionka, 'znaczenie':znaczenie}" valType="code" updates="routine"/>
-        <Param name="name" val="tagger" valType="code" updates="None"/>
+        <Param name="store" val="first key" valType="str" updates="constant"/>
+      </KeyboardComponent>
+      <TagOnFlipComponent name="tagger_5">
+        <Param name="tagDescription" val="{'value':time.time()}" valType="code" updates="experiment"/>
+        <Param name="name" val="tagger_5" valType="code" updates="None"/>
         <Param name="stopVal" val="1" valType="code" updates="constant"/>
         <Param name="durationEstim" val="0.02" valType="code" updates="None"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="tagName" val="$blok" valType="str" updates="routine"/>
+        <Param name="tagName" val="timestamp" valType="str" updates="experiment"/>
         <Param name="stopType" val="duration (frames)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
       </TagOnFlipComponent>
@@ -244,22 +223,14 @@
         <Param name="letterHeight" val="0.1" valType="code" updates="constant"/>
       </TextComponent>
     </Routine>
-    <Routine name="instrukcja_2">
-      <CodeComponent name="code_2">
-        <Param name="Begin Experiment" val="import time" valType="extendedCode" updates="constant"/>
-        <Param name="name" val="code_2" valType="code" updates="None"/>
-        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
-        <Param name="Begin Routine" val="" valType="extendedCode" updates="constant"/>
-        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
-        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
-      </CodeComponent>
-      <TextComponent name="text_8">
+    <Routine name="zgodne">
+      <TextComponent name="text">
         <Param name="opacity" val="1" valType="code" updates="constant"/>
         <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
-        <Param name="name" val="text_8" valType="code" updates="None"/>
+        <Param name="name" val="text" valType="code" updates="None"/>
         <Param name="wrapWidth" val="" valType="code" updates="constant"/>
-        <Param name="color" val="white" valType="str" updates="constant"/>
-        <Param name="text" val="INSTRUKCJA&#10;&#10;&#10;(wciśnij spację, żeby przejść dalej)" valType="str" updates="constant"/>
+        <Param name="color" val="$czcionka" valType="str" updates="set every repeat"/>
+        <Param name="text" val="$znaczenie" valType="str" updates="set every repeat"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
         <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
@@ -272,31 +243,60 @@
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
         <Param name="font" val="Arial" valType="str" updates="constant"/>
         <Param name="advancedParams"/>
-        <Param name="letterHeight" val="0.08" valType="code" updates="constant"/>
+        <Param name="letterHeight" val="0.2" valType="code" updates="constant"/>
       </TextComponent>
-      <KeyboardComponent name="key_resp_6">
-        <Param name="correctAns" val="" valType="str" updates="constant"/>
-        <Param name="storeCorrect" val="False" valType="bool" updates="constant"/>
-        <Param name="name" val="key_resp_6" valType="code" updates="None"/>
+      <CodeComponent name="start_zgodne">
+        <Param name="Begin Experiment" val="blok = 'zgodny'" valType="extendedCode" updates="constant"/>
+        <Param name="name" val="start_zgodne" valType="code" updates="None"/>
+        <Param name="Each Frame" val="" valType="extendedCode" updates="constant"/>
+        <Param name="Begin Routine" val="if blok == 'niezgodny':&#10;    break" valType="extendedCode" updates="constant"/>
+        <Param name="End Routine" val="" valType="extendedCode" updates="constant"/>
+        <Param name="End Experiment" val="" valType="extendedCode" updates="constant"/>
+      </CodeComponent>
+      <MouseComponent name="mouse_2">
+        <Param name="name" val="mouse_2" valType="code" updates="None"/>
+        <Param name="timeRelativeTo" val="routine" valType="str" updates="constant"/>
         <Param name="stopVal" val="" valType="code" updates="constant"/>
         <Param name="durationEstim" val="" valType="code" updates="None"/>
-        <Param name="forceEndRoutine" val="True" valType="bool" updates="constant"/>
+        <Param name="forceEndRoutineOnPress" val="True" valType="bool" updates="constant"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
-        <Param name="discard previous" val="True" valType="bool" updates="constant"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="allowedKeys" val="'space'" valType="code" updates="constant"/>
+        <Param name="selectionMask" val="[image_2]" valType="code" updates="None"/>
         <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
-        <Param name="store" val="first key" valType="str" updates="constant"/>
-      </KeyboardComponent>
-      <TagOnFlipComponent name="tagger_5">
-        <Param name="tagDescription" val="{'value':time.time()}" valType="code" updates="experiment"/>
-        <Param name="name" val="tagger_5" valType="code" updates="None"/>
+        <Param name="advancedParams"/>
+        <Param name="saveMouseState" val="on click" valType="str" updates="None"/>
+      </MouseComponent>
+      <ImageComponent name="image_2">
+        <Param name="opacity" val="0" valType="code" updates="constant"/>
+        <Param name="flipVert" val="False" valType="bool" updates="constant"/>
+        <Param name="colorSpace" val="rgb" valType="str" updates="constant"/>
+        <Param name="flipHoriz" val="False" valType="bool" updates="constant"/>
+        <Param name="name" val="image_2" valType="code" updates="constant"/>
+        <Param name="color" val="$[1,1,1]" valType="str" updates="constant"/>
+        <Param name="stopVal" val="" valType="code" updates="constant"/>
+        <Param name="durationEstim" val="" valType="code" updates="None"/>
+        <Param name="mask" val="None" valType="str" updates="constant"/>
+        <Param name="pos" val="[0, 0]" valType="code" updates="constant"/>
+        <Param name="interpolate" val="linear" valType="str" updates="constant"/>
+        <Param name="startEstim" val="" valType="code" updates="None"/>
+        <Param name="units" val="from exp settings" valType="str" updates="None"/>
+        <Param name="texture resolution" val="128" valType="code" updates="constant"/>
+        <Param name="startType" val="time (s)" valType="str" updates="None"/>
+        <Param name="ori" val="0" valType="code" updates="constant"/>
+        <Param name="stopType" val="duration (s)" valType="str" updates="None"/>
+        <Param name="startVal" val="0.0" valType="code" updates="None"/>
+        <Param name="image" val="" valType="resource" updates="constant"/>
+        <Param name="size" val="[3.0, 3.0]" valType="code" updates="constant"/>
+      </ImageComponent>
+      <TagOnFlipComponent name="tagger">
+        <Param name="tagDescription" val="{'czcionka':czcionka, 'znaczenie':znaczenie}" valType="code" updates="routine"/>
+        <Param name="name" val="tagger" valType="code" updates="None"/>
         <Param name="stopVal" val="1" valType="code" updates="constant"/>
         <Param name="durationEstim" val="0.02" valType="code" updates="None"/>
         <Param name="startEstim" val="" valType="code" updates="None"/>
         <Param name="startType" val="time (s)" valType="str" updates="None"/>
-        <Param name="tagName" val="timestamp" valType="str" updates="experiment"/>
+        <Param name="tagName" val="$blok" valType="str" updates="routine"/>
         <Param name="stopType" val="duration (frames)" valType="str" updates="None"/>
         <Param name="startVal" val="0.0" valType="code" updates="None"/>
       </TagOnFlipComponent>
@@ -547,13 +547,13 @@
     <Routine name="trening"/>
     <LoopTerminator name="trenujemy"/>
     <LoopInitiator loopType="TrialHandler" name="posturo">
-      <Param name="conditionsFile" val="/home/ania/stroop/postural_tasks.pkl" valType="str" updates="None"/>
+      <Param name="conditionsFile" val="./postural_tasks.pkl" valType="str" updates="None"/>
       <Param name="name" val="posturo" valType="code" updates="None"/>
       <Param name="random seed" val="" valType="code" updates="None"/>
       <Param name="loopType" val="sequential" valType="str" updates="None"/>
       <Param name="nReps" val="1" valType="code" updates="None"/>
       <Param name="endPoints" val="[0, 1]" valType="num" updates="None"/>
-      <Param name="conditions" val="None" valType="str" updates="None"/>
+      <Param name="conditions" val="[{u'postural_task': u'ss'}, {u'postural_task': u'ss_bacznosc'}, {u'postural_task': u'ss_gabka'}]" valType="str" updates="None"/>
     </LoopInitiator>
     <Routine name="instrukcja"/>
     <Routine name="poczatek_posturo"/>
@@ -595,22 +595,22 @@
   </Flow>
   <Pool>
     <Resources>
-      <Resource name="nie_zgodne.csv" date="1423148842.85" description="">em5hY3plbmllLGN6Y2lvbmthCmN6ZXJ3b255LGdyZWVuCmN6ZXJ3b255LHllbGxvdwpjemVyd29u
+      <Resource name="nie_zgodne.csv" date="1427882443.71" description="">em5hY3plbmllLGN6Y2lvbmthCmN6ZXJ3b255LGdyZWVuCmN6ZXJ3b255LHllbGxvdwpjemVyd29u
 eSxibHVlCsW8w7PFgnR5LHJlZArFvMOzxYJ0eSxncmVlbgrFvMOzxYJ0eSxibHVlCm5pZWJpZXNr
 aSx5ZWxsb3cKbmllYmllc2tpLGdyZWVuCm5pZWJpZXNraSxyZWQKemllbG9ueSx5ZWxsb3cKemll
 bG9ueSxyZWQKemllbG9ueSxibHVlCg==
 </Resource>
-      <Resource name="zgodne.csv" date="1423148842.85" description="">em5hY3plbmllLGN6Y2lvbmthCmN6ZXJ3b255LHJlZArFvMOzxYJ0eSx5ZWxsb3cKemllbG9ueSxn
+      <Resource name="zgodne.csv" date="1427882443.71" description="">em5hY3plbmllLGN6Y2lvbmthCmN6ZXJ3b255LHJlZArFvMOzxYJ0eSx5ZWxsb3cKemllbG9ueSxn
 cmVlbgpuaWViaWVza2ksYmx1ZQo=
 </Resource>
-      <Resource name="trening.csv" date="1423148842.85" description="">em5hY3plbmllLGN6Y2lvbmthLHBvcHJhd25hX29kcApjemVyd29ueSxncmVlbiw6IDgKY3plcndv
+      <Resource name="trening.csv" date="1427882443.71" description="">em5hY3plbmllLGN6Y2lvbmthLHBvcHJhd25hX29kcApjemVyd29ueSxncmVlbiw6IDgKY3plcndv
 bnkseWVsbG93LDogOApjemVyd29ueSxibHVlLDogOArFvMOzxYJ0eSxyZWQsOiA5CsW8w7PFgnR5
 LGdyZWVuLDogOQrFvMOzxYJ0eSxibHVlLDogOQpuaWViaWVza2kseWVsbG93LDogNwpuaWViaWVz
 a2ksZ3JlZW4sOiA3Cm5pZWJpZXNraSxyZWQsOiA3CnppZWxvbnkseWVsbG93LDogMAp6aWVsb255
 LHJlZCw6IDAKemllbG9ueSxibHVlLDogMApjemVyd29ueSxyZWQsOiA4CsW8w7PFgnR5LHllbGxv
 dyw6IDkKemllbG9ueSxncmVlbiw6IDAKbmllYmllc2tpLGJsdWUsOiA3Cg==
 </Resource>
-      <Resource name="blok.csv" date="1423148842.85" description="">Ymxvawp6Z29kbnkKemdvZG55Cnpnb2RueQp6Z29kbnkKemdvZG55Cm5pZXpnb2RueQpuaWV6Z29k
+      <Resource name="blok.csv" date="1427882443.71" description="">Ymxvawp6Z29kbnkKemdvZG55Cnpnb2RueQp6Z29kbnkKemdvZG55Cm5pZXpnb2RueQpuaWV6Z29k
 bnkKbmllemdvZG55Cm5pZXpnb2RueQpuaWV6Z29kbnkK
 </Resource>
     </Resources>
