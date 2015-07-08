@@ -18,7 +18,7 @@ def test_signal1(T=16.0, fs=10.0):
 
 def plot_graph(ax, title, x, y, xlabel, ylabel):
 	ax.set_title(title)
-	ax.plot(x, y)
+	ax.plot(x, y[:x.shape[0]])
 	ax.set_xlabel(xlabel)
 	ax.set_ylabel(ylabel)
 
@@ -34,15 +34,17 @@ def plot_COP(signal, fs):
 	ax_x = f.add_subplot(221)
 	plot_graph(ax_x, 'COPx position', time, signal[0], 
 					 'time [s]', 'position COPx [cm]')
-	# ax_x.set_xlim(0,30)
+	ax_x.set_ylim(-22.5,22.5)
 	ax_y = f.add_subplot(223)
 	plot_graph(ax_y, 'COPy position', time, signal[1], 
 					 'time [s]', 'position COPy [cm]')
-	# ax_y.set_xlim(0,30)
+	ax_y.set_ylim(-13,13)
 	ax_xy = f.add_subplot(122)
 	plot_graph(ax_xy, 'COP position', signal[0][:int(fs*30)], 
 					 signal[1][:int(fs*30)], 'position COPx [cm]', 
 					 'position COPy [cm]')
+	ax_xy.set_xlim(-22.5,22.5)
+	ax_xy.set_ylim(-13,13)
 	f.canvas.draw()
 	#f.savefig(str(file_name)+'.png')
 
