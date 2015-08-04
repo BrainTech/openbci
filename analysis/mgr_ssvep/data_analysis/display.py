@@ -86,7 +86,6 @@ def display_roc(ROC):
     plt.show()
 
 def display_results(results,auc):
-    print results
     f = plt.figure()
     ax1 = f.add_subplot(121)
     ax2 = f.add_subplot(122)
@@ -113,7 +112,6 @@ def display_results(results,auc):
     ax2.legend(loc=2)
     nontarget = sum(nontarget, [])
     target = sum(target, [])
-    print len(target), len(nontarget), len(nontarget)/len(target)
     plt.show()
     plt.figure()
     plt.hist(target)
