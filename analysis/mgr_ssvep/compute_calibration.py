@@ -207,25 +207,26 @@ class ComputeCalibration(object):
         gnb.fit(data.reshape(len(data), 1), label)
         return gnb
 
-    def data_to_file(self):
-        values = {}
-        values['auc'] =  self.sorted_auc
-        values['freq'] = self.freqs_
-        values['csp_montage'] = self.csp.P[:,0]
-        values['patterns'] = {freq:self.patterns_trenning[freq].pattern for freq in self.freqs_}
-        values['nontarget_params'] = self.nontarget_params
-        values['nontarget'] = {freq:self.nontarget[freq] for freq in self.freqs_}
-        values['target'] = self.target
-        with open(os.path.expanduser(os.path.join(self.output_file_dir, self.output_file_name)), 'wb') as handle:
-            pickle.dump(values, handle)
+    # def data_to_file(self):
+    #     values = {}
+    #     values['auc'] =  self.sorted_auc
+    #     values['freq'] = self.freqs_
+    #     values['csp_montage'] = self.csp.P[:,0]
+    #     values['patterns'] = {freq:self.patterns_trenning[freq].pattern for freq in self.freqs_}
+    #     values['nontarget_params'] = self.nontarget_params
+    #     values['nontarget'] = {freq:self.nontarget[freq] for freq in self.freqs_}
+    #     values['target'] = self.target
+    #     with open(os.path.expanduser(os.path.join(self.output_file_dir, self.output_file_name)), 'wb') as handle:
+    #         pickle.dump(values, handle)
 
-    def data_to_file_2(self):
+    def create_config(self):
         values = {}
         # values['auc'] =  self.sorted_auc
-        values['freq'] = self.freqs_
+        values['freq'] = ';'.join([str(i) for i in self.freqs_])
         values['csp_montage'] = self.csp.P[:,0]
         values['patterns'] = {freq:self.patterns_trenning[freq].pattern for freq in self.freqs_}
         values['classyficator'] = self.comput_classificator()
+        values['montage_matrix'] = self.montage_matrix
         return values
         # with open(os.path.expanduser(os.path.join(self.output_file_dir, self.output_file_name))+'_2', 'wb') as handle:
         #     pickle.dump(values, handle)
@@ -356,7 +357,7 @@ class ComputeCalibration(object):
 
         # 9. save config file
         # self.data_to_file() #to test_classification
-        cfg = self.data_to_file_2()
+        cfg = self.create_config()
         return cfg
 
 if __name__ == '__main__':

@@ -119,60 +119,16 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
     def finish(self, cfg):
         f_name = self.config.get_param("csp_file_name")
         f_dir = self.config.get_param("csp_file_path")
-
+        self._shuffle_freqs(cfg)
         if self.mode == 'offline':
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-        elif self.mode == 'always_pass':
-            self._determine_means(cfg)#for debug only
-            self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
-            time.sleep(5)
-            self._shuffle_freqs(cfg)
-            self._send_csp_info(cfg)
-            ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-            self._run_next_scenario()
         elif self.mode == 'manual':
             self._show_configs(cfg, suffix=self.config.get_param('propose_freqs_text'))
-            self._edit_configs(cfg)
             self._send_csp_info(cfg)
             ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
             self._run_next_scenario()
-        elif self.mode == 'retry_on_failure':
-            if self._determine_means(cfg):
-                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
-                time.sleep(5)
-                self._shuffle_freqs(cfg)
-                self._send_csp_info(cfg)
-                ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-                self._run_next_scenario()
-            else:
-                self._show_configs(cfg, suffix=self.config.get_param('first_faild_calibration_text'))
-                time.sleep(5)
-                self._send_csp_info(cfg)
-                self._run_prev_scenario()
-        elif self.mode == 'abort_on_failure':
-            if self._determine_means(cfg):            
-                self._show_configs(cfg, suffix=self.config.get_param('bci_start_text'))
-                time.sleep(5)
-                self._shuffle_freqs(cfg)
-                self._send_csp_info(cfg)
-                ssvep_csp_helper.set_csp_config(f_dir, f_name, cfg)
-                self._run_next_scenario()
-            else:
-                self._show_configs(cfg, suffix=self.config.get_param('second_faild_calibration_text'))
-                time.sleep(5)
-                self._send_csp_info(cfg)
-                #sys.exit(1)
         else:
             self.logger.warning("Unrecognised mode: "+self.mode)
-                
-    def _determine_means(self, cfg):
-        """Return true if means are ok"""
-        all_means = [float(i) for i in cfg['all_means'].split(';')]
-        ret = all_means[cfg['dec_count']-1] >= cfg['value'][0]
-
-        self.logger.info("Determine means, means: "+str(all_means)+" treshold: "+str(cfg['value'][0]))
-        self.logger.info("Is smallest mean bigger than treshold?: "+str(ret))
-        return ret
 
     def _shuffle_freqs(self, cfg):
    
@@ -193,7 +149,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
             new_freqs = [int(i) for i in cfg['freq'].split(';')]
             random.shuffle(new_freqs)
         
-        cfg['freqs'] = ';'.join([str(i) for i in new_freqs])
+        cfg['freq'] = ';'.join([str(i) for i in new_freqs])
         
     def _show_configs(self, cfg, suffix=u""):
         text_id = int(self.config.get_param('ugm_text_id'))
@@ -210,17 +166,6 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
                      suffix
                      ])
             )
-
-    def _edit_configs(self, cfg):
-        buffer = float(cfg['buffer'])
-        freqs = [int(i) for i in cfg['freqs'].split(';')]
-        self.logger.info("Configs before edit:")
-        self.logger.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
-        buffer, freqs = ssvep_csp_helper.edit_csp_configs(buffer, freqs)
-        cfg['buffer'] = buffer
-        cfg['freqs'] = ';'.join([str(i) for i in freqs])
-        self.logger.info("Configs after edit:")
-        self.logger.info("Buffer: "+str(buffer)+" freqs: "+str(freqs))
 
     def _send_csp_info(self, cfg):
         desc = dict(cfg)
