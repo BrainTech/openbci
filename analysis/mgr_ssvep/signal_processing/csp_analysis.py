@@ -59,7 +59,6 @@ def csp_compute(smart_tags, use_channels, freq_to_train, fs):
 
 def apply_csp_montage(signal, csp_montage,  csp_channel, all_channels_names, leave_channels=[]):
     channels_to_csp = [i for i in xrange(len(all_channels_names)) if all_channels_names[i] in csp_channel]
-    print csp_channel, all_channels_names, leave_channels, signal.shape
 
     csp_sig = np.dot(csp_montage, signal[channels_to_csp])
     csp_sig -= csp_sig.mean()
@@ -69,7 +68,6 @@ def apply_csp_montage(signal, csp_montage,  csp_channel, all_channels_names, lea
         new_sig = np.zeros((len(leave_channels)+1, csp_sig.shape[0]))
         new_sig[0] = csp_sig
         channels_to_leave = [i for i in xrange(len(all_channels_names)) if all_channels_names[i] in leave_channels]
-        print 
         new_sig[1:] = signal[channels_to_leave]
         return new_sig, 'csp_sig'
 
