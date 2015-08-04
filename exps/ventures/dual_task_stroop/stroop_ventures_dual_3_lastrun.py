@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-This experiment was created using PsychoPy2 Experiment Builder (v1.80.00), czw, 16 lip 2015, 20:13:05
+This experiment was created using PsychoPy2 Experiment Builder (v1.80.00), Fri 17 Jul 2015 07:05:30 PM CEST
 If you publish work using this script please cite the relevant PsychoPy publications
   Peirce, JW (2007) PsychoPy - Psychophysics software in Python. Journal of Neuroscience Methods, 162(1-2), 8-13.
   Peirce, JW (2009) Generating stimuli for neuroscience using PsychoPy. Frontiers in Neuroinformatics, 2:10. doi: 10.3389/neuro.11.010.2008
@@ -38,7 +38,7 @@ if not os.path.isdir(dataSavingDir):
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
     extraInfo=expInfo, runtimeInfo=None,
-    originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+    originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
     savePickle=True, saveWideText=False,
     dataFileName=filename)
 logging.console.setLevel(logging.WARNING)  # this outputs to the screen, not a file
@@ -315,7 +315,7 @@ for thisComponent in instrukcja_2Components:
 
 # set up handler to look after randomisation of conditions etc
 trenujemy = data.TrialHandler(nReps=1, method='no-repeat random', 
-    extraInfo=expInfo, originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+    extraInfo=expInfo, originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
     trialList=data.importConditions('./trening.pkl'),
     seed=None, name='trenujemy')
 thisExp.addLoop(trenujemy)  # add the loop to the experiment
@@ -451,7 +451,7 @@ for thisTrenujemy in trenujemy:
 
 # set up handler to look after randomisation of conditions etc
 posturo = data.TrialHandler(nReps=1, method='sequential', 
-    extraInfo=expInfo, originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+    extraInfo=expInfo, originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
     trialList=data.importConditions('./postural_tasks.pkl'),
     seed=None, name='posturo')
 thisExp.addLoop(posturo)  # add the loop to the experiment
@@ -620,7 +620,7 @@ for thisPosturo in posturo:
     
     # set up handler to look after randomisation of conditions etc
     losowanko = data.TrialHandler(nReps=1, method='sequential', 
-        extraInfo=expInfo, originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+        extraInfo=expInfo, originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
         trialList=data.importConditions('./bloki.pkl'),
         seed=None, name='losowanko')
     thisExp.addLoop(losowanko)  # add the loop to the experiment
@@ -639,7 +639,7 @@ for thisPosturo in posturo:
         
         # set up handler to look after randomisation of conditions etc
         zgod = data.TrialHandler(nReps=3, method='no-repeat random', 
-            extraInfo=expInfo, originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+            extraInfo=expInfo, originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
             trialList=data.importConditions('./zgodne.pkl'),
             seed=None, name='zgod')
         thisExp.addLoop(zgod)  # add the loop to the experiment
@@ -783,7 +783,7 @@ for thisPosturo in posturo:
         
         # set up handler to look after randomisation of conditions etc
         nie_zgod = data.TrialHandler(nReps=1, method='no-repeat random', 
-            extraInfo=expInfo, originPath='/home/ventures/obci/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
+            extraInfo=expInfo, originPath='/home/ania/obci_mati/exps/ventures/dual_task_stroop/stroop_ventures_dual_3.psyexp',
             trialList=data.importConditions('./nie_zgodne.pkl'),
             seed=None, name='nie_zgod')
         thisExp.addLoop(nie_zgod)  # add the loop to the experiment
