@@ -26,10 +26,14 @@ class SwitchBackup(ConfiguredMultiplexerServer):
                 self.logger.info("But first send finish saving ...")
                 acquisition_helper.send_finish_saving(self.conn)
             time.sleep(3)
+
+            l = self.config.get_param('leave_modules')
+            leave_on = [] if len(l) == 0 else l.split(';')
+            
             logic_helper.restart_scenario(
                 self.conn, 
                 self.config.get_param('new_scenario'), 
-                leave_on=self.config.get_param('leave_modules').split(';'))
+                leave_on=leave_on)
         else:
             self.logger.debug("Got unrecognised message: "+str(mxmsg.type))
         self.no_response()
