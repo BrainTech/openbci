@@ -17,6 +17,7 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 import os.path
+import ast
 
 import numpy as np
 
@@ -32,7 +33,7 @@ import obci.analysis.mgr_ssvep.signal_processing.calibration_analysis as SPCA
 
 import obci.analysis.mgr_ssvep.data_analysis.display as display
 from obci.analysis.mgr_ssvep.data_analysis.compute_csp import ComputeCSP
-from obci.analysis.mgr_ssvep.data_analysis.compute_pattern import ComputePattern
+from obci.analysis.mgr_ssvep.data_analysis.pattern2 import Patterns
 
 import operator
 
@@ -160,31 +161,24 @@ class ComputeCalibration(object):
 
         display.display_patterns(labels, data_to_display)
 
-    def _get_nontarget_params(self, nontarget):
-        self.nontarget_params = {}
-        for freq in nontarget.keys():
-            self.nontarget_params[freq] = (np.mean(nontarget[freq]), np.std(nontarget[freq]))
-
-
     def _signal_segmentation(self, mgr, l_trial, offset, tag_name):
         return SPPS.signal_segmentation(mgr, l_trial, offset, tag_name)
 
 
 
-    def calibration_trainer(self, patterns_test, patterns_trenning):
-        patterns_target_test, patterns_nontarget_test = {}, {}
-        for key in patterns_test.keys():
-            if 'non' in key:
-                patterns_nontarget_test[key.split('_')[0]] = patterns_test[key]
-            else:
-                patterns_target_test[key] = patterns_test[key] 
+    def calibration_trainer(self, patterns_trenning, patterns_test_target, patterns_test_nontarget):
+        # patterns_target_test, patterns_nontarget_test = {}, {}
+        # for key in patterns_test.keys():
+        #     if 'non' in key:
+        #         patterns_nontarget_test[key.split('_')[0]] = patterns_test[key]
+        #     else:
+        #         patterns_target_test[key] = patterns_test[key] 
 
-        target, nontarget = SPCA.cor(patterns_trenning, patterns_target_test, patterns_nontarget_test)
-        self._get_nontarget_params(nontarget)
+        target, nontarget = SPCA.cor(patterns_trenning, patterns_test_target, patterns_test_nontarget)
         self.nontarget = nontarget
         self.target = target
         ROC, AUC = SPCA.get_roc_auc_values(target, nontarget)
-        if self.display_flag:
+        if self.display_flag==False:
             display.display_auc(AUC)
             display.display_roc(ROC)
 
@@ -201,35 +195,29 @@ class ComputeCalibration(object):
 
         target_to_class = sum(target_to_class, [])
         nontarget_to_class = sum(nontarget_to_class, [])
-        label = sum([['target']*len(target_to_class), ['nontarget']*len(nontarget_to_class)], [])
-        data = np.array(sum([target_to_class, nontarget_to_class], []))
+        # import matplotlib.pyplot as plt
+        # plt.hist(target_to_class)
+        # plt.hist(nontarget_to_class)
+        # plt.show()
+        label = sum([[0]*len(nontarget_to_class), [1]*len(target_to_class)], [])
+        data = np.array(sum([nontarget_to_class, target_to_class], []))
         gnb = GaussianNB()
         gnb.fit(data.reshape(len(data), 1), label)
         return gnb
 
-    # def data_to_file(self):
-    #     values = {}
-    #     values['auc'] =  self.sorted_auc
-    #     values['freq'] = self.freqs_
-    #     values['csp_montage'] = self.csp.P[:,0]
-    #     values['patterns'] = {freq:self.patterns_trenning[freq].pattern for freq in self.freqs_}
-    #     values['nontarget_params'] = self.nontarget_params
-    #     values['nontarget'] = {freq:self.nontarget[freq] for freq in self.freqs_}
-    #     values['target'] = self.target
-    #     with open(os.path.expanduser(os.path.join(self.output_file_dir, self.output_file_name)), 'wb') as handle:
-    #         pickle.dump(values, handle)
 
     def create_config(self):
         values = {}
-        # values['auc'] =  self.sorted_auc
         values['freq'] = ';'.join([str(i) for i in self.freqs_])
+        values['auc'] = []
+        
+        values['nontarget'] = self.nontarget
+        values['target'] = self.target
         values['csp_montage'] = self.csp.P[:,0]
-        values['patterns'] = {freq:self.patterns_trenning[freq].pattern for freq in self.freqs_}
-        values['classyficator'] = self.comput_classificator()
+        values['patterns'] = {str(freq): self.signal_pattern_trenning_[str(freq)] for freq in self.freq_to_train}
+        values['classyficator']  = self.comput_classificator()
         values['montage_matrix'] = self.montage_matrix
         return values
-        # with open(os.path.expanduser(os.path.join(self.output_file_dir, self.output_file_name))+'_2', 'wb') as handle:
-        #     pickle.dump(values, handle)
 
     def _signal_processing(self, signal): #self.channels_gains, self.montage_matrix  self.fs
         #0. to volts
@@ -298,11 +286,11 @@ class ComputeCalibration(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train, 
-                                                    0.4, self.tag_name)
+        smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train-0.5, 
+                                                    0, self.tag_name)
 
-        smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-self.l_train, 
-                                                    self.l_buffer_trenning, self.tag_name)
+        smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-self.l_train+0.5, 
+                                                    self.l_buffer_trenning-0.5, self.tag_name)
         
 
         for ind in xrange(len(smart_tags_trenning)):
@@ -314,52 +302,35 @@ class ComputeCalibration(object):
 
         self.all_channels = sum([[self.csp_channel_name], self.leave_channels], [])
 
-        # 2. compute trenning patterns
 
-        self.signal_pattern_trenning = ComputePattern(self.mgr, 
-                                                      self.freq_to_train,
-                                                      self.l_pattern, 
-                                                      self.l_train,
-                                                      self.l_buffer_trenning,
-                                                      0.4,
-                                                      self.tag_name,
-                                                      self.csp_channel_name,
-                                                      self.leave_channels,
-                                                      self.active_field)
+        self.signal_pattern_test_target = {str(f):[] for f in self.freq_to_train}
+        self.signal_pattern_test_nontarget = {str(f):[] for f in self.freq_to_train}
+        self.signal_pattern_trenning = {str(f):[] for f in self.freq_to_train}
+        for ind in xrange(len(smart_tags_trenning)):
+            temp = Patterns(smart_tags_trenning[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+            freqs = ast.literal_eval(smart_tags_trenning[ind].get_tags()[0]['desc']['freqs'])
+            freq = sum([freqs[4:],freqs[:4]], [])[5]
+            self.signal_pattern_trenning[freq].append(temp.calculate()[5])
 
-        self.patterns_trenning = self.signal_pattern_trenning.calculate(smart_tags_trenning)
+            temp = Patterns(smart_tags_test[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+            freqs = ast.literal_eval(smart_tags_test[ind].get_tags()[0]['desc']['freqs'])
+            freq = sum([freqs[4:],freqs[:4]], [])
+            temp2 = temp.calculate()
+            self.signal_pattern_test_target[freq[5]].append(temp2[5])
+            self.signal_pattern_test_nontarget[freq[5]].append(([freq[i] for i in [0,1,2,3,4,6,7]], [temp2[i] for i in [0,1,2,3,4,6,7]]))
 
-        if self.display_flag:
-            self._display_patterns(self.patterns_trenning)
+        self.signal_pattern_trenning_ = {}
+        for f in self.signal_pattern_trenning.keys():
 
+            self.signal_pattern_trenning_[f] = np.mean(np.array(self.signal_pattern_trenning[f]), axis=0)
 
-        # 7. train test patterns
-        self.signal_pattern_test = ComputePattern(self.mgr, 
-                                                  self.freq_to_train,
-                                                  self.l_pattern, 
-                                                  self.l_trial-self.l_train,
-                                                  self.l_train,
-                                                  self.l_buffer_trenning,
-                                                  self.tag_name,
-                                                  self.csp_channel_name,
-                                                  self.leave_channels,
-                                                  self.active_field,
-                                                  type_pattern='buffer',
-                                                  all_field=True)
+        self.calibration_trainer(self.signal_pattern_trenning_, self.signal_pattern_test_target, self.signal_pattern_test_nontarget )
 
-        self.patterns_test = self.signal_pattern_test.calculate(smart_tags_test)
-        if self.display_flag:
-            self._display_patterns_test(self.patterns_test)
-
-        # 8. train freqs
-
-        self.calibration_trainer(self.patterns_test, self.patterns_trenning)
-
-        # 9. save config file
-        # self.data_to_file() #to test_classification
         cfg = self.create_config()
         return cfg
 
 if __name__ == '__main__':
-    calib = ComputeCalibration('dane_mgr_ania_2', '~/syg', '~/', 'conf_ssvep.pickle')
-    print calib.run()
+    calib = ComputeCalibration('dane_mgr_ania_2', '~/syg', '~/', 'aaaa')
+    values = calib.run()
+    with open(os.path.expanduser(os.path.join('~/', 'aaaa'+'_2')), 'wb') as handle:
+        pickle.dump(values, handle)

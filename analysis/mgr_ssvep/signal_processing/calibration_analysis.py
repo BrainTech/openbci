@@ -3,12 +3,15 @@ import numpy as np
 
 
 
-def cor(pattern, patterns_target, patterns_nontarget):
+def cor(patterns_trenning, patterns_test_target, patterns_test_nontarget):
     target = {}
-    nontarget = {}
-    for pattern_freq in pattern.keys():
-        target[pattern_freq] = [float(np.corrcoef(pattern[pattern_freq].pattern, pattern_test)[0][1]) for pattern_test in patterns_target[pattern_freq].pattern]
-        nontarget[pattern_freq] = [float(np.corrcoef(pattern[pattern_freq].pattern, pattern_test)[0][1]) for pattern_test in patterns_nontarget[pattern_freq].pattern]
+    nontarget = {f:[] for f in patterns_trenning.keys()}
+    for pattern_freq in patterns_trenning.keys():
+        target[pattern_freq] = [float(np.corrcoef(patterns_trenning[pattern_freq], pattern_test)[0][1]) for pattern_test in patterns_test_target[pattern_freq]]
+        for f, pattern_test in patterns_test_nontarget[pattern_freq]:
+            nontarget[pattern_freq].append([float(np.corrcoef(patterns_trenning[f_], p)[0][1]) for f_, p in zip(f, pattern_test)])
+        nontarget[pattern_freq] = sum(nontarget[pattern_freq], [])
+
     return target, nontarget
 
 def get_roc_auc_values(Target, Nontarget):  

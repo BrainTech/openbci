@@ -36,12 +36,12 @@ def cheby2_bandpass_filter(signal, channels_to_filt, all_channels, fs):
     for ind, (ch_samples, ch_name) in enumerate(zip(signal, 
                                                     all_channels)):
         if ch_name in channels_to_filt:
-            # filtered_signal[ind] = ss.filtfilt(a, b, ch_samples) 
-            tmp = np.r_[ch_samples[::-1], ch_samples, ch_samples[::-1]]
+            # filtered_signal[ind] = ss.filtfilt(a, b, ch_samples)
+            tmp = np.r_[-ch_samples[::-1][0:-1], ch_samples, -ch_samples[::-1][1:]]
             # import matplotlib.pyplot as plt 
             # plt.plot(tmp)
-            signal[ind] = ss.filtfilt(a, b, tmp)[ch_samples.shape[0]:-ch_samples.shape[0]]
+            signal[ind] = ss.filtfilt(a, b, tmp)[ch_samples[0:-1].shape[0]:- ch_samples[1:].shape[0]] 
             # plt.plot(filtered_signal[ind])
             # plt.show()
      # print filtered_signal.shape
-    return signal
+    return signal[:,40:-40]

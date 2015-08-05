@@ -30,7 +30,7 @@ import obci.analysis.mgr_ssvep.signal_processing.montage_signal as SPSM
 import obci.analysis.mgr_ssvep.signal_processing.csp_analysis as SPCSP
 import obci.analysis.mgr_ssvep.signal_processing.calibration_analysis as SPCA
 
-from obci.analysis.mgr_ssvep.data_analysis.compute_pattern2 import ComputePattern
+from obci.analysis.mgr_ssvep.data_analysis.pattern2 import Patterns
 
 import obci.analysis.mgr_ssvep.data_analysis.display as display
 
@@ -42,6 +42,7 @@ class ClassificationSsvepPattern(object):
                  montage_channels, 
                  leave_channels, 
                  all_channels,
+                 channels_gains,
                  display_flag=False,
                  l_pattern=1,
                  sampling_frequency=512.0):
@@ -53,293 +54,145 @@ class ClassificationSsvepPattern(object):
         self.fs = sampling_frequency
         self.l_pattern = l_pattern
         self.ignore_channels = ignore_channels
-        self.tag_name = tag_name
-        self.use_channels = self._init_channels_names()
         self.leave_channels = leave_channels
+        self.channels_gains = channels_gains
+        self.all_channels = all_channels
+        self.montage_channels = montage_channels
+        self.use_channels = self._init_channels_names()
+
         self.display_flag = display_flag
 
-    # def _init_read_manager(self):
-    #     file_name = os.path.expanduser(os.path.join(self.file_dir, self.file_name))
+    def _to_volts(self, signal, channels_gains):#
+        return SPPS.to_volts(signal, channels_gains)
 
-    #     return read_manager.ReadManager(file_name+'.obci.xml', 
-    #                                     file_name+'.obci.raw', 
-#     #                                     file_name+'.obci.tag')
-#     def _to_volts(self, mgr):
-#         return SPPS.to_volts(mgr)
-    
-#     def _init_channels_names(self):
-#         all_channels = self.mgr.get_param('channels_names')
-#         use_channels = []
+    def _init_channels_names(self):
+        use_channels = []
 
-#         for ch_name in all_channels:
-#             if ch_name not in self.ignore_channels and \
-#                ch_name not in self.montage_channels:
+        for ch_name in self.all_channels:
+            if ch_name not in self.ignore_channels and \
+               ch_name not in self.montage_channels:
 
-#                 use_channels.append(ch_name)
+                use_channels.append(ch_name)
 
-#         return use_channels
+        return use_channels
 
-#     def _highpass_filtering(self, mgr, use_channels, fs):
-#         return SPF.butter_highpass_filter(mgr, use_channels, fs)
+    def _highpass_filtering(self, signal, use_channels, all_channels, fs):#
+        return SPF.highpass_filter(signal, use_channels, all_channels, fs)
 
-#     def _bandpass_filtering(self, mgr, use_channels, fs):
-#         return SPF.cheby2_bandpass_filter(mgr, use_channels, fs)
+    def _bandpass_filtering(self, signal, use_channels, all_channels, fs):#
+        return SPF.cheby2_bandpass_filter(signal, use_channels, all_channels, fs)
 
-#     def _montage_signal(self, mgr, use_channels, 
-#                         montage_type, montage_channels, 
-#                         leave_channels):
+    def _montage_signal(self, signal, montage_matrix):#  
+        return SPSM.montage(signal, montage_matrix)
 
-#         return SPSM.montage(mgr, use_channels, montage_type, 
-#                           montage_channels, leave_channels)
+    def _apply_csp_montage(self, signal, csp_montage,  csp_channel, all_channels, leave_channels):
+        return SPCSP.apply_csp_montage(signal, csp_montage,  csp_channel, all_channels, leave_channels)
 
-#     def _apply_csp_montage(self, mgr, csp_montage,  csp_channel, leave_channels):
-#         return SPCSP.apply_csp_montage(mgr, csp_montage,  csp_channel, leave_channels)
+    def _display_signal(self, signal, channels_to_display, all_channels, title = ''):
+        display.display_signal(signal, channels_to_display, all_channels, title)
 
-#     def _display_signal(self, mgr, channels_to_display, title = ''):
-#         display.display_signal(mgr, channels_to_display, title)
+    def _display_patterns(self, patterns):
+        data_to_display = np.zeros((len(patterns.keys()),
+                                    len(patterns.values()[0].pattern)))
+        labels = []
 
-#     def _display_patterns_test(self, patterns):
-#         data_to_display = np.zeros((len(patterns.keys()),
-#                                     len(patterns.values()[0][0].pattern[0])))
-#         labels = []
+        for ind, freq in enumerate(patterns.keys()):
+            labels.append(freq)
+            data_to_display[ind] = patterns[freq].pattern
 
-#         for ind, freq in enumerate(patterns.keys()):
-#             labels.append(freq)
-#             data_to_display[ind] = patterns[freq][0].pattern[5]
+        display.display_patterns(labels, data_to_display)
 
-#         display.display_patterns(labels, data_to_display)
+    def _display_patterns_test(self, patterns):
+        data_to_display = np.zeros((len(patterns.keys()),
+                                    len(patterns.values()[0].pattern[0])))
+        labels = []
 
-#     def read_conf_file()(self):
-#         file_name = os.path.expanduser(os.path.join(self.conf_file_dir, self.conf_file_name))
-#         with open(file_name, 'rb') as handle:
-#             values = pickle.load(handle)
-#         # self.fureq_to_train = values['freq']
-#         self.csp_montage = values['csp_montage']
-#         self.patterns = values['patterns']
-#         self.nontarget_params = values['nontarget_params']
-#         self.nontarget = values['nontarget']
-#         self.target_old = values['target']
-#         import matplotlib.pyplot as plt 
-#         plt.figure()
-#         self.nontarget_roz = []
-#         self.target_roz = []
-#         for i in self.nontarget.keys():
-#             self.nontarget_roz.append(self.nontarget[i])
-#             self.target_roz.append(self.target_old[i])
-#             print i
-#             plt.hist(self.nontarget[i])
-#             plt.show()
-#         print self.nontarget_roz
-#         self.nontarget_roz = sum(self.nontarget_roz, [])
-#         self.target_roz = sum(self.target_roz, [])
-#         print self.nontarget_roz
-#         a,b,c = plt.hist(self.nontarget_roz, range=(-1,1), bins=10)
-#         self.nontarget_roz_2 = np.sort(self.nontarget_roz)
+        for ind, freq in enumerate(patterns.keys()):
+            labels.append(freq)
+            data_to_display[ind] = patterns[freq].pattern[4]
 
-#         from sklearn.naive_bayes import GaussianNB
-#         gnb = GaussianNB()
-#         wszystkie = np.array(sum([self.nontarget_roz, self.target_roz], []))
-#         l = np.array(sum([[0]*len(self.nontarget_roz), [1]*len(self.target_roz)], []))
-#         print wszystkie.shape
-#         targety = np.array(self.target_roz)
-#         print targety.shape
-#         gnb.fit(wszystkie.reshape(len(l), 1), l)
-#         self.gnb = gnb
+        display.display_patterns(labels, data_to_display)
 
-#     def _signal_segmentation(self, mgr, l_trial, offset, tag_name):
-#         return SPPS.signal_segmentation(mgr, l_trial, offset, tag_name)
+    def _read_conf_file(self):
+        file_name = os.path.expanduser(os.path.join(self.conf_file_dir, self.conf_file_name))
+        with open(file_name, 'rb') as handle:
+            values = pickle.load(handle)
 
+        self.freqs = values['freq']
+        self.csp_montage = values['csp_montage']
+        self.patterns = values['patterns']
+        self.classyficator = values['classyficator']
+        self.montage_matrix = values['montage_matrix']
 
-#     def run_test(self, calculate_pattern, calculate_pattern2, pattern):
-#         results = {} 
-#         results_2 = {} 
-#         results_ = {}
-#         gauss_1 = {}
-#         gauss_2 = {}
-#         targety = []
-#         nontargety = []
-#         w=[]
-#         for key in calculate_pattern.keys():
-#             results[key] = []
-#             results_2[key] = []
-#             results_[key] = []
-#             gauss_1[key] = []
-#             gauss_2[key] = []
-#             for p, p1 in zip(calculate_pattern[key], calculate_pattern2[key]):
-#                 a1 = [(float(np.corrcoef(pattern[key], pattern_test)[0][1])) for pattern_test in p.pattern]
-#                 a1_ = [f for f in p.freqs]
-#                 a2 = [(float(np.corrcoef(pattern[key], pattern_test)[0][1])) for pattern_test in p1.pattern]
-#                 a2_ = [f for f in p1.freqs]
+    def _get_predictions(self, patterns, freqs):
+        result = [float(np.corrcoef(self.patterns[f], patterns[ind])[0][1]) for ind, f in enumerate(freqs)]
+        print result
+        return result, [float(self.classyficator.predict([value])) for value in result]
 
+    def _signal_processing(self, signal):
+        #0. to volts
+        signal = self._to_volts(signal, self.channels_gains)
+        if self.display_flag:
+            self._display_signal(signal, self.use_channels, self.all_channels, 'test_to_voltage') 
 
-#                 targety.append([a for i,a in enumerate(a1) if i==5])
-#                 targety.append([a for i,a in enumerate(a2) if i==5])
-#                 nontargety.append([a for i,a in enumerate(a1) if i!=5])
-#                 nontargety.append([a for i,a in enumerate(a2) if i!=5])
-
-#                 results[key].append(a1)
-#                 results[key].append(a2)
-#                 results_[key].append(a1_)
-#                 results_[key].append(a2_)
-#                 results_2[key].append([(a-self.nontarget_params[key][0])/self.nontarget_params[key][1] for a in a1] )
-#                 results_2[key].append([(a-self.nontarget_params[key][0])/self.nontarget_params[key][1]  for a in a2])
-#                 # targety.append([a for i,a in enumerate(a1) if i==5])
-#                 # targety.append([a for i,a in enumerate(a2) if i==5])
-#                 # nontargety.append([a for i,a in enumerate(a1) if i!=5])
-#                 # nontargety.append([a for i,a in enumerate(a2) if i!=5])
-
-#                 gauss_1[key].append([self.gnb.predict([a]) for a in a1])
-#                 w.append(gauss_1[key][-1])
-#                 print gauss_1[key][-1], sum(gauss_1[key][-1])
-#                 gauss_1[key].append([self.gnb.predict([a]) for a in a2]) 
-#                 w.append(gauss_1[key][-1])
-
-#                 # gauss_2[key].append([len(self.nontarget_roz_2[self.nontarget_roz_2.searchsorted(a):])/float(len(self.nontarget_roz_2)) for a in a1])
-#                 # gauss_2[key].append([len(self.nontarget_roz_2[self.nontarget_roz_2.searchsorted(a):])/float(len(self.nontarget_roz_2)) for a in a2])
+        #1. cutof mean signal
+        signal = self._highpass_filtering(signal, 
+                                          sum([self.use_channels, 
+                                               self.montage_channels], []),
+                                          self.all_channels,
+                                          self.fs)
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 sum([self.use_channels, self.montage_channels], []), 
+                                 self.all_channels,
+                                 'test_highpass')
         
+        #2. bandpass filtering (ss.cheby2(3, 50,[49/(fs/2),50/(fs/2)], btype='bandstop', 
+        #                    analog=0))
 
-#         if self.display_flag==False:
-#             import matplotlib.pyplot as plt
-#             # plt.hist(w)
-#             # plt.show()
-#             plt.figure()
-#             plt.hist(sum(nontargety, []))
-#             plt.hist(self.nontarget_roz_2)
+        signal = self._bandpass_filtering(signal, 
+                                          sum([self.use_channels, 
+                                               self.montage_channels], []),
+                                          self.all_channels,
+                                          self.fs)
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 sum([self.use_channels, self.montage_channels], []), 
+                                 self.all_channels,
+                                 'test_bandpass')
 
-#             # plt.hist(sum(targety, []))
-#             plt.figure()
-#             plt.hist(sum(targety, []))
-#             plt.hist(self.target_roz)
+        #3. montage signal
+        signal = self._montage_signal(signal, 
+                                      self.montage_matrix)
+        all_channels = sum([self.use_channels, self.leave_channels], [])
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 self.use_channels, 
+                                 all_channels, 
+                                 'test_montage')
 
-#             plt.show()
-#             # display.display_results(results, self.auc_values)
-#             # display.display_results(results_2, self.auc_values)
-#             print sum([1 for i in w if (sum(i)[0]==1 and i[5] ==1)]), len(w)
-#             print sum([1 for i in w if sum(i)[0]>1]), len(w)
-#             print sum([1 for i in w if sum(i)[0]==0]), len(w)
+        #4. apply csp montage
+        signal, self.csp_channel_name = self._apply_csp_montage(signal, 
+                                                                self.csp_montage, 
+                                                                self.use_channels,
+                                                                all_channels, 
+                                                                self.leave_channels)
+        if self.display_flag:
+             self._display_signal(signal, 
+                                  [self.csp_channel_name], 
+                                  sum([[self.csp_channel_name], self.leave_channels], []), 
+                                  'csp')
+        # self.all_channels = sum([[self.csp_channel_name], self.leave_channels], [])
+        return signal
 
-#             display.display_results(gauss_1, self.auc_values)
-#             # # print gauss1
-#             # display.display_results(gauss_2, self.auc_values)
-#         with open('test_1.pickle', 'wb') as handle:
-#             pickle.dump(results, handle)
-
-#         with open('test_2.pickle', 'wb') as handle:
-#             pickle.dump(results_, handle)
-
-
-#     def run(self):
-#         self.read_conf_file()
-#         #1. to voltage
-#         self.mgr = self._to_volts(self.mgr)
-#         #1. segmentation data
-#         smart_tags1 = self._signal_segmentation(self.mgr, self.l_trial-self.l_train, 
-#                                                     self.l_buffer_trenning, self.tag_name)
-#         smart_tags2 = self._signal_segmentation(self.mgr, self.l_trial-self.l_train, 
-#                                                     0, self.tag_name)
-#         if self.display_flag:
-#             self._display_signal(self.mgr, self.use_channels, 'test_to_voltage') 
-
-#         for i in range(len(smart_tags1)):
-#             #2. apply montage
-
-#             smart_tags1[i] = self._montage_signal(smart_tags1[i], 
-#                                             self.use_channels, 
-#                                             self.montage_type, 
-#                                             self.montage_channels, 
-#                                             self.leave_channels)
-            
-#             smart_tags2[i] = self._montage_signal(smart_tags2[i], 
-#                                             self.use_channels, 
-#                                             self.montage_type, 
-#                                             self.montage_channels, 
-#                                             self.leave_channels)
-#             if self.display_flag:
-#                 self._display_signal(smart_tags1[i], self.use_channels, 'test_montage')
-
-
-#             #3. highpass filtering cutoff mean sig
-
-#             smart_tags1[i] = self._highpass_filtering(smart_tags1[i], 
-#                                                 sum([self.use_channels, 
-#                                                      self.montage_channels], []),
-#                                                 self.fs)
-#             smart_tags2[i] = self._highpass_filtering(smart_tags2[i], 
-#                                                 sum([self.use_channels, 
-#                                                      self.montage_channels], []),
-#                                                 self.fs)
-#             if self.display_flag:
-#                 self._display_signal(smart_tags1[i], 
-#                                      sum([self.use_channels, self.montage_channels], []), 
-#                                      'test_highpass')
-            
-#             #4. bandpass filtering (ss.cheby2(3, 50,[49/(fs/2),50/(fs/2)], btype='bandstop', 
-#             #                       analog=0))
-#             smart_tags1[i] =self._bandpass_filtering(smart_tags1[i], 
-#                                                 sum([self.use_channels, 
-#                                                      self.montage_channels], []),
-#                                                 self.fs)
-#             smart_tags2[i] = self._bandpass_filtering(smart_tags2[i], 
-#                                                 sum([self.use_channels, 
-#                                                      self.montage_channels], []),
-#                                                 self.fs)
-
-#             if self.display_flag:
-#                 self._display_signal(smart_tags1[i],  
-#                                      sum([self.use_channels, self.montage_channels], []), 
-#                                      'test_bandpass')
-            
-#             #5. apply csp montage
-#             self.csp_channel_name = 'csp'
-#             self.csp_channel_name, smart_tags1[i] = self._apply_csp_montage(smart_tags1[i], 
-#                                                                       self.csp_montage, 
-#                                                                       self.use_channels, 
-#                                                                       self.leave_channels)
-#             self.csp_channel_name, smart_tags2[i] = self._apply_csp_montage(smart_tags2[i], 
-#                                                                       self.csp_montage, 
-#                                                                       self.use_channels, 
-#                                                                       self.leave_channels)
-
-#             if self.display_flag:
-#                  self._display_signal(smart_tags1[i].mgr, self.mgr.get_param("channels_names"), 'csp')
-
-#         # 6. train test patterns
-#         self.signal_pattern_test = ComputePattern(self.mgr, 
-#                                                   self.freq_to_train,
-#                                                   self.l_pattern, 
-#                                                   self.l_trial-self.l_train,
-#                                                   self.l_train,
-#                                                   self.l_buffer_trenning,
-#                                                   self.tag_name,
-#                                                   self.csp_channel_name,
-#                                                   self.leave_channels,
-#                                                   self.active_field,
-#                                                   type_pattern='buffer',
-#                                                   all_field=True)
-
-#         self.patterns_test = self.signal_pattern_test.calculate(smart_tags1)
-#         if self.display_flag:
-#             self._display_patterns_test(self.patterns_test)
-
-#         self.signal_pattern_test2 = ComputePattern(self.mgr, 
-#                                                   self.freq_to_train,
-#                                                   self.l_pattern, 
-#                                                   self.l_trial-self.l_train,
-#                                                   self.l_train,
-#                                                   0,
-#                                                   self.tag_name,
-#                                                   self.csp_channel_name,
-#                                                   self.leave_channels,
-#                                                   self.active_field,
-#                                                   type_pattern='buffer',
-#                                                   all_field=True)
-
-#         self.patterns_test2 = self.signal_pattern_test2.calculate(smart_tags2)
-#         if self.display_flag:
-#             self._display_patterns_test(self.patterns_test2)
-
-#         self.run_test(self.patterns_test, self.patterns_test2, self.patterns)
-
-if __name__ == '__main__':
-    test = TestClassification('dane_mgr_ania_1', '~/syg', '~/', 'conf_ssvep.pickle')
-    test.run()
+    def run(self, signal, freqs):
+        signal = self._signal_processing(signal)
+        self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+        patterns = self.signal_pattern_test.calculate()
+        re, predictions = self._get_predictions(patterns, freqs)
+        print predictions, sum(predictions)
+        if sum(predictions) == 1:
+            print "send freq[predictions.index(1)]", predictions.index(1)
+        else:
+            print "brak decyzji"
+        return re
