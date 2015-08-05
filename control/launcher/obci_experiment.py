@@ -1054,6 +1054,8 @@ class OBCIExperiment(OBCIControlPeer):
 
 
     def _validate_morph_leave_on(self, old_config, new_config, leave_on):
+        if len(leave_on) == 0:
+            return True,""
 
         for peer_id in leave_on:
 
