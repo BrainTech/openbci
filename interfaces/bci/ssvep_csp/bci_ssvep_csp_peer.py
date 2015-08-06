@@ -14,7 +14,7 @@ from obci.configs import settings, variables_pb2
 from obci.devices import appliance_helper
 from obci.acquisition import acquisition_helper
 from obci.analysis.buffers import auto_ring_buffer
-from obci.interfaces.bci.ssvep_csp import bci_ssvep_csp_analysis
+from obci.interfaces.bci.ssvep_pattern import bci_ssvep_pattern_analysis
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.utils import streaming_debug
 from obci.utils import tags_helper
@@ -115,7 +115,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
                 return
 
         if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.SampleVector()
+	        l_msg = variables_pb2.SampleVector()
             l_msg.ParseFromString(mxmsg.message)
             #Supply buffer with sample data, the buffer will fire its
             #ret_func (that we defined as self.analysis.analyse) every 'every' samples
@@ -133,7 +133,7 @@ class BCISsvepCsp(ConfiguredMultiplexerServer):
         """
         context = ctx.get_new_context()
         context['logger'] = self.logger
-        return bci_ssvep_csp_analysis.BCISsvepCspAnalysis(
+        return bci_ssvep_pattern_analysis.BCISsvepPatternAnalysis(
             send_func,
             freqs,
             cfg,

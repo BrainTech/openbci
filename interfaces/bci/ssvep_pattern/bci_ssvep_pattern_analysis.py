@@ -20,13 +20,12 @@ import obci.analysis.mgr_ssvep.data_analysis.display as display
 DEBUG = False
 
 class BCISsvepPatternAnalysis(object):
-    def __init__(self, send_func, freqs, cfg, montage_matrix, channels_names, channels_gains, sampling, 
+    def __init__(self, send_func, freqs, cfg, channels_names, channels_gains, sampling, 
                  context=ctx.get_dummy_context('BCISsvepPatternAnalysis'), display_flag=False):
         self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
-        self.montage_matrix = montage_matrix
         allFreqs = freqs
 
         self.indexMap = {}
@@ -47,13 +46,14 @@ class BCISsvepPatternAnalysis(object):
         self.classyficator = cfg['classyficator']
         self.csp_montage = cfg['csp_montage']
         self.patterns  = cfg['patterns']
-        self.montage_matrix = montage_matrix
         self.l_pattern = cfg['l_pattern']
         self.channels_gains = channels_gains
         self.all_channels = channels_names
         self.use_channels = cfg['use_channels'].split(';')
-        self.leave_channels = cfg['leave_channels'].split(';')
 
+        self.leave_channels = cfg['leave_channels'].split(';')
+        self.montage_matrix = cfg['montage_matrix']
+        self.montage_channels = cfg['montage_channels'].split(';')
 
         self.display_flag = display_flag
 
@@ -98,7 +98,7 @@ class BCISsvepPatternAnalysis(object):
         display.display_patterns(labels, data_to_display)
 
     def _get_predictions(self, patterns, freqs):
-        result = [float(np.corrcoef(self.patterns[f], patterns[ind])[0][1]) for ind, f in enumerate(freqs)]
+        result = [float(np.corrcoef(self.patterns[str(f)], patterns[ind])[0][1]) for ind, f in enumerate(freqs)]
         return result, [float(self.classyficator.predict([value])) for value in result]
    
 
@@ -143,7 +143,8 @@ class BCISsvepPatternAnalysis(object):
                                  self.use_channels, 
                                  all_channels, 
                                  'test_montage')
-
+        print "***********************************************************"
+        print self.use_channels, self.csp_montage, all_channels, self.leave_channels
         #4. apply csp montage
         signal, self.csp_channel_name = self._apply_csp_montage(signal, 
                                                                 self.csp_montage, 
@@ -158,19 +159,23 @@ class BCISsvepPatternAnalysis(object):
         return signal
 
     def analyse(self, data):
+        print '############################################################'
+        print data.shape
         self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-        signal = self._signal_processing(signal)
+        signal = self._signal_processing(data)
         self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
         patterns = self.signal_pattern_test.calculate()
-        re, predictions = self._get_predictions(patterns, freqs)
+        print '***********************************************'
+        print self.freqs
+        re, predictions = self._get_predictions(patterns, self.freqs)
         self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
         if DEBUG:
             if random.random() > 0.5:
                 freq = random.choice(self.indexMap.keys())
         if sum(predictions) == 1:
-            f = self.freq[predictions.index(1)]
+            f = self.freqs[predictions.index(1)]
             self.send_func(self.indexMap[f])
         else:
             self.logger.info("Got  - no decision")

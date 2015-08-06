@@ -116,7 +116,7 @@ class ComputeCalibration(object):
     def _init_channels_names(self):
         use_channels = []
 
-        for ch_name in self.all_channels:
+        for ch_name in self.mgr.get_param('channels_names'):
             if ch_name not in self.ignore_channels and \
                ch_name not in self.montage_channels:
 
@@ -221,6 +221,7 @@ class ComputeCalibration(object):
         values['l_pattern'] = self.l_pattern
         values['use_channels']=';'.join(self._init_channels_names())
         values['leave_channels'] = ';'.join(self.leave_channels)
+        values['montage_channels'] = ';'.join(self.montage_channels)
         return values
 
     def _signal_processing(self, signal): #self.channels_gains, self.montage_matrix  self.fs
