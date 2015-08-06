@@ -60,7 +60,7 @@ class BCISsvepPatternAnalysis(object):
     def _to_volts(self, signal, channels_gains):#
         return SPPS.to_volts(signal, channels_gains) 
 
-     def _highpass_filtering(self, signal, use_channels, all_channels, fs):#
+    def _highpass_filtering(self, signal, use_channels, all_channels, fs):#
         return SPF.highpass_filter(signal, use_channels, all_channels, fs)
 
     def _bandpass_filtering(self, signal, use_channels, all_channels, fs):#
