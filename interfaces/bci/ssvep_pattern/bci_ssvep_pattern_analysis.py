@@ -7,11 +7,21 @@ from scipy.signal import hamming
 import scipy.stats as st
 from obci.utils import context as ctx
 
+import obci.analysis.mgr_ssvep.signal_processing.filters as SPF
+import obci.analysis.mgr_ssvep.signal_processing.parse_signal as SPPS
+import obci.analysis.mgr_ssvep.signal_processing.montage_signal as SPSM
+import obci.analysis.mgr_ssvep.signal_processing.csp_analysis as SPCSP
+import obci.analysis.mgr_ssvep.signal_processing.calibration_analysis as SPCA
+
+from obci.analysis.mgr_ssvep.data_analysis.pattern2 import Patterns
+
+import obci.analysis.mgr_ssvep.data_analysis.display as display
+
 DEBUG = False
 
 class BCISsvepPatternAnalysis(object):
-    def __init__(self, send_func, freqs, cfg, montage_matrix, sampling, 
-                 context=ctx.get_dummy_context('BCISsvepPatternAnalysis')):
+    def __init__(self, send_func, freqs, cfg, montage_matrix, channels_names, channels_gains, sampling, 
+                 context=ctx.get_dummy_context('BCISsvepPatternAnalysis'), display_flag=False):
         self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
@@ -32,112 +42,138 @@ class BCISsvepPatternAnalysis(object):
         self.logger.info("indexMap:")
         self.logger.info(str(self.indexMap))
 
+        self.csp_montage = cfg['csp_montage']
+        self.patterns = cfg['patterns']
+        self.classyficator = cfg['classyficator']
+        self.csp_montage = cfg['csp_montage']
+        self.patterns  = cfg['patterns']
+        self.montage_matrix = montage_matrix
+        self.l_pattern = cfg['l_pattern']
+        self.channels_gains = channels_gains
+        self.all_channels = channels_names
+        self.use_channels = cfg['use_channels'].split(';')
+        self.leave_channels = cfg['leave_channels'].split(';')
 
-        self.value = cfg['value']
-        self.mu = cfg['mu']
-        self.sigma = cfg['sigma']
-        self.q = cfg['q']
-        self.out_top = cfg['out_top']
-        self.out_bottom = cfg['out_bottom']
+
+        self.display_flag = display_flag
+
+    def _to_volts(self, signal, channels_gains):#
+        return SPPS.to_volts(signal, channels_gains) 
+
+     def _highpass_filtering(self, signal, use_channels, all_channels, fs):#
+        return SPF.highpass_filter(signal, use_channels, all_channels, fs)
+
+    def _bandpass_filtering(self, signal, use_channels, all_channels, fs):#
+        return SPF.cheby2_bandpass_filter(signal, use_channels, all_channels, fs)
+
+    def _montage_signal(self, signal, montage_matrix):#  
+        return SPSM.montage(signal, montage_matrix)
+
+    def _apply_csp_montage(self, signal, csp_montage,  csp_channel, all_channels, leave_channels):
+        return SPCSP.apply_csp_montage(signal, csp_montage,  csp_channel, all_channels, leave_channels)
+
+    def _display_signal(self, signal, channels_to_display, all_channels, title = ''):
+        display.display_signal(signal, channels_to_display, all_channels, title)
+
+    def _display_patterns(self, patterns):
+        data_to_display = np.zeros((len(patterns.keys()),
+                                    len(patterns.values()[0].pattern)))
+        labels = []
+
+        for ind, freq in enumerate(patterns.keys()):
+            labels.append(freq)
+            data_to_display[ind] = patterns[freq].pattern
+
+        display.display_patterns(labels, data_to_display)
+
+    def _display_patterns_test(self, patterns):
+        data_to_display = np.zeros((len(patterns.keys()),
+                                    len(patterns.values()[0].pattern[0])))
+        labels = []
+
+        for ind, freq in enumerate(patterns.keys()):
+            labels.append(freq)
+            data_to_display[ind] = patterns[freq].pattern[4]
+
+        display.display_patterns(labels, data_to_display)
+
+    def _get_predictions(self, patterns, freqs):
+        result = [float(np.corrcoef(self.patterns[f], patterns[ind])[0][1]) for ind, f in enumerate(freqs)]
+        return result, [float(self.classyficator.predict([value])) for value in result]
+   
+
+    def _signal_processing(self, signal):
+        #0. to volts
+        signal = self._to_volts(signal, self.channels_gains)
+        if self.display_flag:
+            self._display_signal(signal, self.use_channels, self.all_channels, 'test_to_voltage') 
+
+        #1. cutof mean signal
+        signal = self._highpass_filtering(signal, 
+                                          sum([self.use_channels, 
+                                               self.montage_channels], []),
+                                          self.all_channels,
+                                          self.fs)
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 sum([self.use_channels, self.montage_channels], []), 
+                                 self.all_channels,
+                                 'test_highpass')
+        
+        #2. bandpass filtering (ss.cheby2(3, 50,[49/(fs/2),50/(fs/2)], btype='bandstop', 
+        #                    analog=0))
+
+        signal = self._bandpass_filtering(signal, 
+                                          sum([self.use_channels, 
+                                               self.montage_channels], []),
+                                          self.all_channels,
+                                          self.fs)
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 sum([self.use_channels, self.montage_channels], []), 
+                                 self.all_channels,
+                                 'test_bandpass')
+
+        #3. montage signal
+        signal = self._montage_signal(signal, 
+                                      self.montage_matrix)
+        all_channels = sum([self.use_channels, self.leave_channels], [])
+        if self.display_flag:
+            self._display_signal(signal, 
+                                 self.use_channels, 
+                                 all_channels, 
+                                 'test_montage')
+
+        #4. apply csp montage
+        signal, self.csp_channel_name = self._apply_csp_montage(signal, 
+                                                                self.csp_montage, 
+                                                                self.use_channels,
+                                                                all_channels, 
+                                                                self.leave_channels)
+        if self.display_flag:
+             self._display_signal(signal, 
+                                  [self.csp_channel_name], 
+                                  sum([[self.csp_channel_name], self.leave_channels], []), 
+                                  'csp')
+        return signal
 
     def analyse(self, data):
-        """Fired as often as defined in hashtable configuration:
-        # Define from which moment in time (ago) we want to get samples (in seconds)
-        'ANALYSIS_BUFFER_FROM':
-        # Define how many samples we wish to analyse every tick (in seconds)
-        'ANALYSIS_BUFFER_COUNT':
-        # Define a tick duration (in seconds).
-        'ANALYSIS_BUFFER_EVERY':
-        # To SUMP UP - above default values (0.5, 0.4, 0.25) define that
-        # every 0.25s we will get buffer of length 0.4s starting from a sample 
-        # that we got 0.5s ago.
-        # Some more typical example would be for values (0.5, 0.5 0.25). 
-        # In that case, every 0.25 we would get buffer of samples from 0.5s ago till now.
-
-        data format is determined by another hashtable configuration:
-        # possible values are: 'PROTOBUF_SAMPLES', 'NUMPY_CHANNELS'
-        # it indicates format of buffered data returned to analysis
-        # NUMPY_CHANNELS is a numpy 2D array with data divided by channels
-        # PROTOBUF_SAMPLES is a list of protobuf Sample() objects
-        'ANALYSIS_BUFFER_RET_FORMAT'
-
-        """
         self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-        #print("P: "+str(self.q.P[:,0].shape))
-        #print("montage: "+str(self.montage_matrix.shape))
-        #print("data: "+str(data.shape))
-        #print("montage X data: "+str(np.dot(self.montage_matrix, data).shape))
-        csp_sig = np.dot(self.q.P[:,0], np.dot(self.montage_matrix.T, data))
-        csp_sig -= csp_sig.mean()#normujemy
-        csp_sig /= np.sqrt(np.sum(csp_sig*csp_sig))#normujemy
-        freq, feeds = self._analyse(csp_sig)
-        self.logger.info("Got feeds: "+str(feeds)+" and freq: "+str(freq))
+        signal = self._signal_processing(signal)
+        self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+        patterns = self.signal_pattern_test.calculate()
+        re, predictions = self._get_predictions(patterns, freqs)
+        self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
         if DEBUG:
             if random.random() > 0.5:
                 freq = random.choice(self.indexMap.keys())
-        if freq > 0:
-            self.send_func(self.indexMap[freq])
+        if sum(predictions) == 1:
+            f = self.freq[predictions.index(1)]
+            self.send_func(self.indexMap[f])
         else:
-            self.logger.info("Got 0 freq - no decision")
+            self.logger.info("Got  - no decision")
 
 
-    def _analyse(self, signal):
-        """This function performs classification based on correlations
-        
-        Parameters:
-        ===========
-        signal : 1darray
-        signal to be analyzed. It is one dimensional, so probably needs to be
-        spatialy filtered first.
-        fs : int
-        sampling frequency in Hz
-        freqs : list
-        frequencies to be detected in signal
-        value : float
-        a treshold value, above which detection will be positive
-        mu : float
-        a mean value of test distribution (for Z-scoring)
-        sigma : float
-        a standard deviation of test distribution (for Z-scoring)
-        
-        Returns:
-        ========
-        result : float or 0
-        if there was successful detection, selected frequency will be returned.
-        In other case, 0 is returned.
-        """
-        sig = signal
-        fs, freqs, value, mu, sigma, out_top, out_bottom = self.fs, self.freqs, self.value, self.mu, self.sigma, self.out_top, self.out_bottom
-        N = len(signal)
-        if sig.min() < out_bottom or sig.max() > out_top:
-            return 0, []
-
-        T = N / float(fs)
-        t_vec = np.linspace(0, T, N)
-        max_lag = int(0.1 * fs)
-        sig = signal /  np.sqrt(np.sum(signal * signal))
-        result = 0
-        mx_old = 0
-        zscores = []
-        for f in freqs:
-            sin = np.sin(2*np.pi*t_vec*f)
-            sin /= np.sqrt(np.sum(sin * sin))
-            xcor = np.correlate(sig, sin, 'full')[N - 1 - max_lag:N+max_lag]
-            mx = (np.max(xcor) - mu)/sigma
-            zscores.append(mx)
-            if mx > value:
-                if mx > mx_old:
-                    result = f
-                    mx_old = mx
-        if result > 0:
-            q1 = st.scoreatpercentile(zscores, 25)
-            q2 = st.scoreatpercentile(zscores, 50)
-            q3 = st.scoreatpercentile(zscores, 75)
-            iqr = abs(q1 - q3)
-            if mx_old <= q2 + 1.5*iqr:
-                result = 0
-
-        return result, zscores
                     

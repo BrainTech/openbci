@@ -5,7 +5,6 @@
 #
 from obci.interfaces.bci.ssvep_csp import bci_ssvep_csp_peer
 from obci.interfaces.bci.ssvep_pattern import bci_ssvep_pattern_analysis
-from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 from obci.utils import context as ctx
 from obci.configs import settings
 
@@ -24,15 +23,13 @@ class BCISsvepPattern(bci_ssvep_csp_peer.BCISsvepCsp):
             freqs,
             cfg,
             montage_matrix,
+            self.config.get_param('channel_names').split(';'),
+            self.config.get_param('channel_gains').split(';'),
             int(self.config.get_param('sampling_rate')),
             context)
 
     def _get_montage_matrix(self, cfg):
-        return ssvep_csp_helper.get_montage_matrix(
-            self.config.get_param('channel_names').split(';'),
-            cfg['use_channels'].split(';'),
-            cfg['montage'],
-            cfg['montage_channels'].split(';'))
+        return cfg['montage_matrix']
 
 
 if __name__ == "__main__":

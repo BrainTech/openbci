@@ -217,6 +217,10 @@ class ComputeCalibration(object):
         values['patterns'] = {str(freq): self.signal_pattern_trenning_[str(freq)] for freq in self.freq_to_train}
         values['classyficator']  = self.comput_classificator()
         values['montage_matrix'] = self.montage_matrix
+        values['channels_gains'] = self.channels_gains
+        values['l_pattern'] = self.l_pattern
+        values['use_channels']=';'.join(self._init_channels_names())
+        values['leave_channels'] = ';'.join(self.leave_channels)
         return values
 
     def _signal_processing(self, signal): #self.channels_gains, self.montage_matrix  self.fs
@@ -288,6 +292,8 @@ class ComputeCalibration(object):
         #********************************************************************* 
         smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train-0.5, 
                                                     0, self.tag_name)
+        print self.l_trial-self.l_train-0.5
+        print self.l_trial-self.l_train+0.5
 
         smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-self.l_train+0.5, 
                                                     self.l_buffer_trenning-0.5, self.tag_name)
