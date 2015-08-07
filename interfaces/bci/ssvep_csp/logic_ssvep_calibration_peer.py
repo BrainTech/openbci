@@ -42,8 +42,8 @@ class LogicSSVEPCalibration(ConfiguredClient):
         self.feed_text = self.config.get_param("feed_text")
         self._init_sequence()
 
-        self._curr_fancy_x = 0.4
-        self._curr_fancy_y = 0.4
+        self._curr_fancy_x = 0.5
+        self._curr_fancy_y = 0.5
 
         self.ready()
 
@@ -223,16 +223,16 @@ class LogicSSVEPCalibration(ConfiguredClient):
         t = time.time()
         target_config = str([self.raw_ugm.get_config_for(self.text_ids[target_ind])])
         while time.time() - t < self.target_time:
-            self._curr_fancy_x += (random.random()-0.5)/25.0
-            self._curr_fancy_y += (random.random()-0.5)/25.0
-            if self._curr_fancy_x < 0.4:
-                self._curr_fancy_x = 0.4
-            elif self._curr_fancy_x > 0.6:
-                self._curr_fancy_x = 0.6
-            if self._curr_fancy_y < 0.4:
-                self._curr_fancy_y = 0.4
-            elif self._curr_fancy_y > 0.6:
-                self._curr_fancy_y = 0.6
+            self._curr_fancy_x += (random.random()-0.5)/35.0
+            self._curr_fancy_y += (random.random()-0.5)/35.0
+            if self._curr_fancy_x < 0.45:
+                self._curr_fancy_x = 0.45
+            elif self._curr_fancy_x > 0.55:
+                self._curr_fancy_x = 0.55
+            if self._curr_fancy_y < 0.45:
+                self._curr_fancy_y = 0.45
+            elif self._curr_fancy_y > 0.55:
+                self._curr_fancy_y = 0.55
             l_str_config = str([
                 {'id':self.text_ids[target_ind],
                  'message':self.feed_text,
@@ -241,7 +241,6 @@ class LogicSSVEPCalibration(ConfiguredClient):
                  'position_horizontal':self._curr_fancy_x,
                  'position_vertical':self._curr_fancy_y,
                  #'font_size':15,
-                 'message':self.feed_text
                  }
                 ])
             ugm_helper.send_config(self.conn, l_str_config, 1)
