@@ -27,6 +27,7 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
         words = self.config.get_param('words').split(';')
         random.shuffle(words)
         self.words = words
+        self.scatter_randomly = int(self.config.get_param('scatter_randomly'))
         self.bye_msg = self.config.get_param('bye_msg')
         self.bravo_message = self.config.get_param('bravo_msg')
         self.text_id = int(self.config.get_param("ugm_text_id"))
@@ -88,11 +89,15 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
         try:
             self._curr_word = self.words.pop()
             curr_word = list(self._curr_word)+[' ']*(7-len(self._curr_word))
-            random.shuffle(curr_word)
+            if self.scatter_randomly:
+                random.shuffle(curr_word)
+                self._del_ind = random.randint(0, 7)
+            else:
+                self._del_ind = 7                
+
             curr_word = ''.join(curr_word)
             self._curr_letters_clear()
-            self._del_ind = random.randint(0, 7)
-            self._curr_letters[self._del_ind] = "Cofnij..."
+            self._curr_letters[self._del_ind] = "SKASUJ"
             j = 0
             for i in range(8):
                 if i != self._del_ind:
