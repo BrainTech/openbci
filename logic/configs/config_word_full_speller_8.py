@@ -30,14 +30,14 @@ class Config(object):
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"A A A\nD E F",u"G H I\nJ K L",u"M N O\nP R S",u"T U W\nX Y Z",u"Ą Ę Ł\nŃ Ó Ś", u"_,.;?!", u" akcje\nactions", u"  wróć\n  back    "]
-        self.letters[1] = ["A","B","C","D","E","F","  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[2] = ["G","H","I","J","K","L","  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[3] = ["M","N","O","P","R","S","  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[4] = ["T","U","W","X","Y", u"Z","  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[5] = [u"ą", u"ę", u"ł", u"ń", u"ś", u"ó", "  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[6] = ["_ \nspace",", \ncomma",". \nperiod","; \nsemicolon","?????","!!!!!","  skasuj  \n  delete  ", u"wróć\nback"]
-        self.letters[7] = [u"mów",u"wyczyść", u"skasuj", u"wróć", "say", "clear", "delete", "back"]
+        self.letters[0] = [u"a ą b c\nć d e",u"ę f g h\ni j k",u"l ł m n\nń o ó",u"p q r s\nś t u",u"v w x y\nz ź ż", u"0 1 2 3\n4 5 6", u"7 8 9 ?\n  . , -  ", u"skasuj"]
+        self.letters[1] = ["a", u"ą", "b", "c", u"ć", "d", "e", u"wróć"]
+        self.letters[2] = [u"ę", u"f", "g", "h", u"i", "j", "k", u"wróć"]
+        self.letters[3] = ["l", u"ł", "m", "n", u"ń", "o", u"ó", u"wróć"]
+        self.letters[4] = ["p", "q", "r", "s", u"ś", "t", "u", u"wróć"]
+        self.letters[5] = ["v", "w", "x", "y", "z", u"ź", u"ż", u"wróć"]
+        self.letters[6] = ["0", "1", "2", "3", "4", "5", "6", u"wróć"]
+        self.letters[7] = ["7", "8", "9", "?", ".", ",", "-", "back"]
         self.letters[8] = ['']*8
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
@@ -48,13 +48,13 @@ class Config(object):
         # thanks to corresponding values from actions_solver obci will decide which program to use.
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
         self.actions[0] = ["", "", "", "", "", "", "", self._finish_action()] 
-        self.actions[1] = ["msg('a')", "msg('b')","msg('c')", "msg('d')", "msg('e')", "msg('f')", "backspace()", ""] 
-        self.actions[2] = ["msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", "msg('l')", "backspace()", ""] 
-        self.actions[3] = ["msg('m')", "msg('n')", "msg('o')", "msg('p')", "msg('r')", "msg('s')", "backspace()", ""] 
-        self.actions[4] = ["msg('t')", "msg('u')", "msg('w')", "msg('x')", "msg('y')", u"msg(u'z')", "backspace()", ""] 
-        self.actions[5] = [u"msg(u'ą')", u"msg(u'ę')", u"msg(u'ł')", u"msg(u'ń')", u"msg(u'ś')", u"msg(u'ó')", "backspace()", ""]
-        self.actions[6] = ["msg(' ')", "msg(',')", "msg('.')", "msg(';')", "msg('?')", "msg('!')", "backspace()", ""]
-        self.actions[7] = ["say()", "clear()", "backspace()", "", "say()", "clear()", "backspace()", ""]
+        self.actions[1] = ["msg('a')", u"msg(u'ą')","msg('b')", "msg('c')", u"msg(u'ć')", "msg('d')", "msg('e')", ""] 
+        self.actions[2] = [u"msg(u'ę')", "msg('f')", "msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", ""] 
+        self.actions[3] = ["msg('l')", u"msg(u'ł')", "msg('m')", "msg('n')", u"msg(u'ń')", "msg('o')", u"msg(u'ó')", ""] 
+        self.actions[4] = ["msg('p')", "msg('q')", "msg('r')", "msg('s')", u"msg(u'ś')", "msg('t')", "msg('u')", ""] 
+        self.actions[5] = ["msg('v')", "msg('w')", "msg('x')", "msg('y')", "msg('z')", u"msg(u'ź')", u"msg(u'ż')", ""]
+        self.actions[6] = ["msg('0')", "msg('1')", "msg('2')", "msg('3')", "msg('4')", "msg('5')", "msg('6')", ""]
+        self.actions[7] = ["msg('7')", "msg('8')", "msg('9')", "msg('?')", "msg('.')", "msg(',')", "msg('-')", ""]
         self.actions[8] = ['']*8
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
