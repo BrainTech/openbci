@@ -4,41 +4,34 @@
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
 #
 import time, random
-from obci.utils import tags_helper
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
-
-from obci.logic import logic_helper
 from obci.gui.ugm import ugm_helper
 from obci.logic.engines.speller_engine import SpellerEngine
-
-from obci.configs import settings, variables_pb2
+from obci.logic.engines.word_speller_engine import WordSpellerEngine
+from obci.configs import settings
 from obci.utils.openbci_logging import log_crash
 
-class LogicWordSpeller(ConfiguredMultiplexerServer):
-    """A class for creating a manifest file with metadata."""
+class LogicWordSpeller(ConfiguredMultiplexerServer, WordSpellerEngine):
     @log_crash
     def __init__(self, addresses, type=peers.LOGIC_DECISION):
-        super(LogicWordSpeller, self).__init__(addresses=addresses,
-                                            type=type)
-        self._message = ""
-        self._last_dec_time = 0
+        ConfiguredMultiplexerServer.__init__(self, 
+                                             addresses=addresses,
+                                             type=type)
+        WordSpellerEngine.__init__(self, self.config.param_values())
 
-        words = self.config.get_param('words').split(';')
-        random.shuffle(words)
-        self.words = words
-        self.scatter_randomly = int(self.config.get_param('scatter_randomly'))
-        self.bye_msg = self.config.get_param('bye_msg')
-        self.bravo_message = self.config.get_param('bravo_msg')
         self.text_id = int(self.config.get_param("ugm_text_id"))
         self.text_ids = [int(i) for i in self.config.get_param("ugm_text_ids").split(';')]
+
+        self._last_dec_time = 0
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
 
-        assert(len(self.words) > 0)
+        self.bravo_message = self.config.get_param('bravo_msg')
+
         self._update_curr()
         self.ready()
         self._update_letters()
-
+    @log_crash
     def handle_message(self, mxmsg):
         if self._last_dec_time > 0:
             t = time.time() - self._last_dec_time
@@ -52,7 +45,7 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
             if dec == self._del_ind:
                 if self._message == self._get_base_word():
                     pass
-                else:
+                else: 
                     self._message = self._message[:len(self._message) - 1]
                     self._update_letters()
             else:
@@ -71,7 +64,7 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
         l_str_config = str(l_config)
         self.logger.info("UPDATE: "+l_str_config)
         ugm_helper.send_config(self.conn, l_str_config, 1)
-        
+    @log_crash        
     def msg(self, dec):
         self._message = ''.join([self._message, self._curr_letters[dec]])
         if self._message == self._get_final_word():
@@ -85,38 +78,6 @@ class LogicWordSpeller(ConfiguredMultiplexerServer):
             self._update_letters()
 
 
-    def _update_curr(self):
-        try:
-            self._curr_word = self.words.pop()
-            curr_word = list(self._curr_word)+[' ']*(7-len(self._curr_word))
-            if self.scatter_randomly:
-                random.shuffle(curr_word)
-                self._del_ind = random.randint(0, 7)
-            else:
-                self._del_ind = 7                
-
-            curr_word = ''.join(curr_word)
-            self._curr_letters_clear()
-            self._curr_letters[self._del_ind] = "SKASUJ"
-            j = 0
-            for i in range(8):
-                if i != self._del_ind:
-                    self._curr_letters[i] = curr_word[j]
-                    j += 1
-            self._message = self._get_base_word()
-
-        except IndexError:
-            self._message = self.bye_msg
-            self._curr_letters_clear()
-
-    def _curr_letters_clear(self):
-        self._curr_letters = [""]*8
-
-    def _get_base_word(self):
-        return self._curr_word + " | "
-
-    def _get_final_word(self):
-        return self._get_base_word() + self._curr_word
 
 if __name__ == "__main__":
     LogicWordSpeller(settings.MULTIPLEXER_ADDRESSES).loop()
