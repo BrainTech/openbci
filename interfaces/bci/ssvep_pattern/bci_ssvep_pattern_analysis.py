@@ -26,6 +26,7 @@ class BCISsvepPatternAnalysis(object):
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
+        self.freqs_to_ = sum([freqs[4:], freqs[:4]], [])
         allFreqs = freqs
 
         self.indexMap = {}
@@ -169,7 +170,7 @@ class BCISsvepPatternAnalysis(object):
         patterns = self.signal_pattern_test.calculate()
         print '***********************************************'
         print self.freqs
-        re, predictions = self._get_predictions(patterns, self.freqs)
+        re, predictions = self._get_predictions(patterns, self.freqs_to_)
         self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
         if DEBUG:
             if random.random() > 0.5:
