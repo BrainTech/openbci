@@ -450,12 +450,30 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         uid = str(self.scenarios.currentItem().uuid)
         print "obciLauncher._stop - begin uid: "+str(uid)
         state = self.exp_states[uid]
+
         if state.stopping:
             print "Warning!!! - tried to perform stop action again on the same experiment ................................... Ignore"
             return
         state.stopping = True
         state.log_model.stop_running()
-        self.stop.emit(uid, state.store_options is not None)
+
+        stop_storing = False
+        if state.store_options is not None:
+            stop_storing = True
+        elif "signal_saver" in state.exp.exp_config.peers:
+            msg = "You are trying to stop scenario with signal saver module. Do you want to send finish_saving signal? Hit YES if you didn't program sending finis_saving signal in your scenario. Hit NO if your scenario alredy sends finish_saving signal. Hit YES if you are not sure - the worst thing that can happen is freezing obci_gui."
+            reply = PyQt4.QtGui.QMessageBox.question(self, 'Message', msg,
+                                                     PyQt4.QtGui.QMessageBox.Yes, 
+                                                     PyQt4.QtGui.QMessageBox.No)
+            if reply == PyQt4.QtGui.QMessageBox.Yes:
+                stop_storing = True
+            else:
+                stop_storing = False
+
+        self.stop.emit(uid, stop_storing)
+            
+
+
         state.store_options = None
         print "obciLauncher._stop - end"
 
@@ -465,8 +483,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         uuid = str(self.scenarios.currentItem().uuid)
         si = self.scenarios.currentItem()
         #exp = self.exp_states[uuid].exp
-        exp = self.exp_states[uuid]
-        peers = exp.exp.exp_config.peers
         print(exp)
         print(dir(exp))
         print(exp.exp)
