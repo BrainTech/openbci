@@ -25,9 +25,10 @@ class BCISsvepPatternAnalysis(object):
         self.logger = context['logger']
         self.send_func = send_func
         self.last_time = time.time()
-        self.fs = sampling
-        self.freqs_to_ = sum([freqs[4:], freqs[:4]], [])
+        self.fs = float(sampling)
+        
         allFreqs = freqs
+        self.freqs = freqs
 
         self.indexMap = {}
         k = 0
@@ -35,7 +36,6 @@ class BCISsvepPatternAnalysis(object):
             if allFreqs[i] != 0:
                 self.indexMap[allFreqs[i]] = k
                 k += 1
-        self.freqs = self.indexMap.keys()
 
         self.logger.info("Have freqs:")
         self.logger.info(str(self.freqs))
@@ -160,25 +160,32 @@ class BCISsvepPatternAnalysis(object):
         return signal
 
     def analyse(self, data):
-        print '############################################################'
-        print data.shape
         self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
         self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
         signal = self._signal_processing(data)
-        self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
-        patterns = self.signal_pattern_test.calculate()
-        print '***********************************************'
-        print self.freqs
-        re, predictions = self._get_predictions(patterns, self.freqs_to_)
-        self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
-        if DEBUG:
-            if random.random() > 0.5:
-                freq = random.choice(self.indexMap.keys())
-        if sum(predictions) == 1:
-            f = self.freqs[predictions.index(1)]
-            self.send_func(self.indexMap[f])
-        else:
+        try:
+            self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+            patterns = self.signal_pattern_test.calculate()
+            print '***********************************************'
+            print self.freqs
+            re, predictions = self._get_predictions(patterns, self.freqs)
+            self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
+            if DEBUG:
+                if random.random() > 0.5:
+                    freq = random.choice(self.indexMap.keys())
+            if sum(predictions) == 1:
+                f = self.freqs[predictions.index(1)]
+                self.send_func(self.indexMap[f])
+                self.logger.info("Got  - {} decision, {}".format(f, self.indexMap[f]))
+            else:
+                self.logger.info("Got  - no decision")
+        except ValueError:
+            self.logger.info("PROBLEM")
+            # self._display_signal(signal, 
+            #                       sum([[self.csp_channel_name], self.leave_channels], []), 
+            #                       sum([[self.csp_channel_name], self.leave_channels], []), 
+            #                       'csp')
             self.logger.info("Got  - no decision")
 
 

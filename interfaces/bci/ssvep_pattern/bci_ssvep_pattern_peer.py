@@ -69,7 +69,7 @@ class BCISsvepPattern(ConfiguredMultiplexerServer):
 
         sampling = int(self.config.get_param('sampling_rate'))
        
-        maybe_buffer = buffer = int(float(self.config.get_param('buffer_len'))*sampling)
+        buffer = int(float(self.config.get_param('buffer_len'))*sampling)
 
         #Create analysis object to analyse data
         self.analysis = self._get_analysis(self.send_decision, freqs, cfg)

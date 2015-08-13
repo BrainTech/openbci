@@ -96,6 +96,7 @@ class ComputeCalibration(object):
                                                         self.montage_type, 
                                                         self.montage_channels, 
                                                         self.leave_channels)
+        self.freqs_number =8
 
     def _get_file_name(self, file_dir, file_name):#
         return os.path.expanduser(os.path.join(file_dir, file_name))
@@ -182,7 +183,7 @@ class ComputeCalibration(object):
             display.display_auc(AUC)
             display.display_roc(ROC)
 
-        self.sorted_auc = sorted(AUC.items(), key=operator.itemgetter(1), reverse=True)[:8]
+        self.sorted_auc = sorted(AUC.items(), key=operator.itemgetter(1), reverse=True)[:self.freqs_number]
         self.freqs_ = dict(self.sorted_auc).keys()
 
     def comput_classificator(self):
@@ -321,10 +322,9 @@ class ComputeCalibration(object):
 
             temp = Patterns(smart_tags_test[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_test[ind].get_tags()[0]['desc']['freqs'])
-            freq = sum([freqs[4:],freqs[:4]], [])
             temp2 = temp.calculate()
-            self.signal_pattern_test_target[freq[5]].append(temp2[5])
-            self.signal_pattern_test_nontarget[freq[5]].append(([freq[i] for i in [0,1,2,3,4,6,7]], [temp2[i] for i in [0,1,2,3,4,6,7]]))
+            self.signal_pattern_test_target[self.active_field].append(temp2[self.active_field])
+            self.signal_pattern_test_nontarget[freq[self.active_field]].append(([freq[i] for i in [0,1,2,3,4,5,6,7].remove(self.active_field)], [temp2[i] for i in [0,1,2,3,4,5,6,7].remove(self.active_field)]))
 
         self.signal_pattern_trenning_ = {}
         for f in self.signal_pattern_trenning.keys():

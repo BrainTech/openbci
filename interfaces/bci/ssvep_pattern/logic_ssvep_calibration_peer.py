@@ -60,7 +60,7 @@ class LogicSsvepCsp(ConfiguredMultiplexerServer):
         if len(tmp) > 0:
             self.freq_to_train = [int(f) for f in tmp.split(';')]
 
-        self.active_field = int(self.config.get_param('active_field'))+4
+        self.active_field = int(self.config.get_param('active_field'))
         self.tag_name = self.config.get_param('target_tag_name')
 
         self.mode = self.config.get_param("mode")
