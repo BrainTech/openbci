@@ -96,7 +96,7 @@ class ComputeCalibration(object):
                                                         self.montage_type, 
                                                         self.montage_channels, 
                                                         self.leave_channels)
-        self.freqs_number =8
+        self.freqs_number = 8
 
     def _get_file_name(self, file_dir, file_name):#
         return os.path.expanduser(os.path.join(file_dir, file_name))
@@ -318,7 +318,7 @@ class ComputeCalibration(object):
             temp = Patterns(smart_tags_trenning[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_trenning[ind].get_tags()[0]['desc']['freqs'])
             freq = freqs[self.active_field]
-            self.signal_pattern_trenning[freq].append(temp.calculate()[5])
+            self.signal_pattern_trenning[freq].append(temp.calculate()[self.active_field])
 
             temp = Patterns(smart_tags_test[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_test[ind].get_tags()[0]['desc']['freqs'])
@@ -338,7 +338,7 @@ class ComputeCalibration(object):
         return cfg
 
 if __name__ == '__main__':
-    calib = ComputeCalibration('dane_mgr_ania_2', '~/syg', '~/', 'aaaa')
+    calib = ComputeCalibration('ssvep_pattern_8111723_calibration', '~/', '~/', 'aaaa')
     values = calib.run()
     with open(os.path.expanduser(os.path.join('~/', 'aaaa'+'_2')), 'wb') as handle:
         pickle.dump(values, handle)
