@@ -63,7 +63,7 @@ class ComputeCalibration(object):
                  leave_channels=CHANNELS_TO_LEAVE, 
                  tag_name=u'diodes', 
                  freq_to_train=FREQ_TO_TRAIN, 
-                 active_field=5,
+                 active_field=1,
                  display_flag=False,
                  l_pattern=1,
                  l_train=2,
@@ -317,14 +317,15 @@ class ComputeCalibration(object):
         for ind in xrange(len(smart_tags_trenning)):
             temp = Patterns(smart_tags_trenning[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_trenning[ind].get_tags()[0]['desc']['freqs'])
-            freq = sum([freqs[4:],freqs[:4]], [])[5]
+            freq = freqs[self.active_field]
             self.signal_pattern_trenning[freq].append(temp.calculate()[5])
 
             temp = Patterns(smart_tags_test[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_test[ind].get_tags()[0]['desc']['freqs'])
+            freq = freqs
             temp2 = temp.calculate()
-            self.signal_pattern_test_target[self.active_field].append(temp2[self.active_field])
-            self.signal_pattern_test_nontarget[freq[self.active_field]].append(([freq[i] for i in [0,1,2,3,4,5,6,7].remove(self.active_field)], [temp2[i] for i in [0,1,2,3,4,5,6,7].remove(self.active_field)]))
+            self.signal_pattern_test_target[freq[self.active_field]].append(temp2[self.active_field])
+            self.signal_pattern_test_nontarget[freq[self.active_field]].append(([freq[i] for i in [0,1,2,3,4,5,6,7] if i!=self.active_field], [temp2[i] for i in [0,1,2,3,4,5, 6,7] if i!=self.active_field]))
 
         self.signal_pattern_trenning_ = {}
         for f in self.signal_pattern_trenning.keys():
