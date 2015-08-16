@@ -67,12 +67,14 @@ class Patterns(object):
                 d_sig = signal[ind]
                 p_sig = temp.copy()
                 stimulus_starts_ind = np.where(d_sig >= 1)[0]
+                if stimulus_starts_ind[-1]-stimulus_starts_ind[0]<l_pattern_samples:
+                    return 0, patterns
                 s = np.concatenate((s, p_sig[int(stimulus_starts_ind[0]):int(stimulus_starts_ind[-1])]), axis=0)
                 dioda_signal = np.concatenate((dioda_signal, d_sig[stimulus_starts_ind[0]:stimulus_starts_ind[-1]]), axis=0)
                 blinks = np.where(dioda_signal == 1)[0]
                 preper_signal = np.r_[s, s]
                 patterns.append(np.mean(np.array([preper_signal[i:i+l_pattern_samples] for i in blinks]), axis=0))
-        return patterns
+        return 1, patterns
 
     def _normalize_signal(self, signal, diodes_channels, all_channels):
         for ch_name, ch_sig in zip(all_channels, signal):
@@ -116,8 +118,8 @@ class Patterns(object):
                                  self.diodas_channels, self.all_channels,
                                   'signal_part_0 found_blinks')   
 
-        self.pattern = self._calculate_pattern_buffer(self.signal, self.diodas_channels, self.channel, self.all_channels, self.l_pattern, self.fs) 
-        
+        a, self.pattern = self._calculate_pattern_buffer(self.signal, self.diodas_channels, self.channel, self.all_channels, self.l_pattern, self.fs) 
+        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^', a
         # a=1
         # import matplotlib.pyplot as plt
         # f = plt.figure()
@@ -127,7 +129,7 @@ class Patterns(object):
         #     a+=1
 
         # plt.show()
-        return self.pattern
+        return a, self.pattern
 
 
 

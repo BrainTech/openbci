@@ -164,11 +164,9 @@ class BCISsvepPatternAnalysis(object):
         self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
         signal = self._signal_processing(data)
-        try:
-            self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
-            patterns = self.signal_pattern_test.calculate()
-            print '***********************************************'
-            print self.freqs
+        self.signal_pattern_test = Patterns(signal, self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
+        a, patterns = self.signal_pattern_test.calculate()
+        if a:
             re, predictions = self._get_predictions(patterns, self.freqs)
             self.logger.info("cor.:{}, predictions:{}".format(str(re), str(predictions)))
             if DEBUG:
@@ -178,15 +176,14 @@ class BCISsvepPatternAnalysis(object):
                 f = self.freqs[predictions.index(1)]
                 self.send_func(self.indexMap[f])
                 self.logger.info("Got  - {} decision, {}".format(f, self.indexMap[f]))
-            else:
-                self.logger.info("Got  - no decision")
-        except ValueError:
-            self.logger.info("PROBLEM")
+        else:
+            self.logger.info("Got  - no decision")
+
             # self._display_signal(signal, 
             #                       sum([[self.csp_channel_name], self.leave_channels], []), 
             #                       sum([[self.csp_channel_name], self.leave_channels], []), 
             #                       'csp')
-            self.logger.info("Got  - no decision")
+
 
 
                     
