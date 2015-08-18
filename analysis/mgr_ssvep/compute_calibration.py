@@ -56,7 +56,7 @@ class ComputeCalibration(object):
     def __init__(self, file_name, file_dir,                  
                  output_file_dir,
                  output_file_name,
-                 l_trial=4, 
+                 l_trial=5, 
                  ignore_channels=CHANNELS_TO_IGNORE,
                  montage_type=MONTAGE_TYPE, 
                  montage_channels=CHANNELS_TO_MONTAGE, 
@@ -292,13 +292,13 @@ class ComputeCalibration(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train-0.5, 
+        smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train-1, 
                                                     0, self.tag_name)
-        print self.l_trial-self.l_train-0.5
-        print self.l_trial-self.l_train+0.5
+        print self.l_trial-self.l_train-1
+        print self.l_trial-(self.l_trial-self.l_train-1)
 
-        smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-self.l_train+0.5, 
-                                                    self.l_buffer_trenning-0.5, self.tag_name)
+        smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-(self.l_trial-self.l_train-1), 
+                                                    self.l_trial-self.l_train-1, self.tag_name)
         
 
         for ind in xrange(len(smart_tags_trenning)):
