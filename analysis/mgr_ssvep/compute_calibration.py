@@ -292,13 +292,13 @@ class ComputeCalibration(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, self.l_trial-self.l_train-1, 
+        smart_tags_trenning = self._signal_segmentation(self.mgr, 2, 
                                                     0, self.tag_name)
         print self.l_trial-self.l_train-1
         print self.l_trial-(self.l_trial-self.l_train-1)
 
         smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-(self.l_trial-self.l_train-1), 
-                                                    self.l_trial-self.l_train-1, self.tag_name)
+                                                    2, self.tag_name)
         
 
         for ind in xrange(len(smart_tags_trenning)):
