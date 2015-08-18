@@ -14,6 +14,7 @@ class HciSwitch(ConfiguredMultiplexerServer):
         super(HciSwitch, self).__init__(addresses=addresses,
                                         type=peers.SWITCH_ANALYSIS)
         self._curr_index = -1
+        self.switch_type = self.config.get_param('switch_type')
         self._last_dec_time = time.time()
         self.hold_after_dec = float(self.config.get_param('hold_after_dec'))
         self.ready()
@@ -24,7 +25,7 @@ class HciSwitch(ConfiguredMultiplexerServer):
             l_msg.ParseFromString(mxmsg.message)
             self.logger.debug("Got blink message: "+str(l_msg.index))
             self._curr_index = int(l_msg.index)
-        elif mxmsg.type == types.SWITCH_MESSAGE:
+        elif mxmsg.type == types.SWITCH_MESSAGE and (mxmsg.message == self.switch_type):
         #process blinks only when hold_time passed
             if self._last_dec_time > 0:
                 t = time.time() - self._last_dec_time
