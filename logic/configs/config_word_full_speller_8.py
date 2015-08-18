@@ -30,14 +30,14 @@ class Config(object):
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
-        self.letters[0] = [u"a ą b c\nć d e",u"ę f g h\ni j k",u"l ł m n\nń o ó",u"p q r s\nś t u",u"v w x y\nz ź ż", u"0 1 2 3\n4 5 6", u"7 8 9 ?\n  . , -  ", u"skasuj"]
+        self.letters[0] = [u"a ą b c\nć d e",u"ę f g h\ni j k",u"l ł m n\nń o ó",u"p q r s\nś t u",u"v w x y\nz ź ż", u"0 1 2 3\n4 5 6", u"7 8 9 ?\n  , - spacja", u"skasuj"]
         self.letters[1] = ["a", u"ą", "b", "c", u"ć", "d", "e", u"wróć"]
         self.letters[2] = [u"ę", u"f", "g", "h", u"i", "j", "k", u"wróć"]
         self.letters[3] = ["l", u"ł", "m", "n", u"ń", "o", u"ó", u"wróć"]
         self.letters[4] = ["p", "q", "r", "s", u"ś", "t", "u", u"wróć"]
         self.letters[5] = ["v", "w", "x", "y", "z", u"ź", u"ż", u"wróć"]
         self.letters[6] = ["0", "1", "2", "3", "4", "5", "6", u"wróć"]
-        self.letters[7] = ["7", "8", "9", "?", ".", ",", "-", "back"]
+        self.letters[7] = ["7", "8", "9", "?", ",", "_", "spacja", "back"]
         self.letters[8] = ['']*8
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
@@ -54,7 +54,7 @@ class Config(object):
         self.actions[4] = ["msg('p')", "msg('q')", "msg('r')", "msg('s')", u"msg(u'ś')", "msg('t')", "msg('u')", ""] 
         self.actions[5] = ["msg('v')", "msg('w')", "msg('x')", "msg('y')", "msg('z')", u"msg(u'ź')", u"msg(u'ż')", ""]
         self.actions[6] = ["msg('0')", "msg('1')", "msg('2')", "msg('3')", "msg('4')", "msg('5')", "msg('6')", ""]
-        self.actions[7] = ["msg('7')", "msg('8')", "msg('9')", "msg('?')", "msg('.')", "msg(',')", "msg('-')", ""]
+        self.actions[7] = ["msg('7')", "msg('8')", "msg('9')", "msg('?')", "msg(',')", "msg('-')", "msg(' ')", ""]
         self.actions[8] = ['']*8
         
         self.actions_solver = self.number_of_states * [self.number_of_decisions * [""]]
