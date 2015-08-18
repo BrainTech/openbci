@@ -318,12 +318,12 @@ class ComputeCalibration(object):
             temp = Patterns(smart_tags_trenning[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_trenning[ind].get_tags()[0]['desc']['freqs'])
             freq = freqs[self.active_field]
-            self.signal_pattern_trenning[freq].append(temp.calculate()[self.active_field])
+            self.signal_pattern_trenning[freq].append(temp.calculate()[1][self.active_field])
 
             temp = Patterns(smart_tags_test[ind].get_samples(), self.l_pattern, self.csp_channel_name, self.leave_channels, sum([[self.csp_channel_name], self.leave_channels], []), self.fs)
             freqs = ast.literal_eval(smart_tags_test[ind].get_tags()[0]['desc']['freqs'])
             freq = freqs
-            temp2 = temp.calculate()
+            temp2 = temp.calculate()[1]
             self.signal_pattern_test_target[freq[self.active_field]].append(temp2[self.active_field])
             self.signal_pattern_test_nontarget[freq[self.active_field]].append(([freq[i] for i in [0,1,2,3,4,5,6,7] if i!=self.active_field], [temp2[i] for i in [0,1,2,3,4,5, 6,7] if i!=self.active_field]))
 
