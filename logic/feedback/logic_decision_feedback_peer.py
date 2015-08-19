@@ -32,9 +32,11 @@ class LogicDecisionFeedback(ConfiguredMultiplexerServer):
         if mxmsg.type == types.DECISION_MESSAGE:
             dec = int(mxmsg.message)
             self.logger.info("Got decision: "+str(dec))
-            assert(dec >= 0)
-            dec_time = time.time()
-            self._send_feedback(dec, dec_time)
+            if dec < 0:
+                self.logger.info("Got decision smaller than 0. Ignore!!!")
+            else:
+                dec_time = time.time()
+                self._send_feedback(dec, dec_time)
         self.no_response()
 
     def _send_feedback(self, dec, dec_time):

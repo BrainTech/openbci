@@ -23,7 +23,11 @@ class SwitchAmplifier(ConfiguredMultiplexerServer):
             if (l_msg.key == 'mouse_event' and l_msg.value == self.mouse_button) or \
                     (l_msg.key == 'keybord_event' and l_msg.value == self.key_code):
                 self.logger.info("Got ugm engine message: "+l_msg.key+" - "+l_msg.value+". Send switch message!")
-                self.conn.send_message(message = "",
+                if l_msg.key == 'mouse_event':
+                    msg = 'mouse'
+                else:
+                    msg = 'keyboard'
+                self.conn.send_message(message = msg,
                                        type = types.SWITCH_MESSAGE, flush=True)            
             else:
                 self.logger.warning(''.join(["Got ugm engine message: ",

@@ -3,7 +3,7 @@
 
 class Config(object):
     def __init__(self):
-        self.number_of_decisions = 9
+        self.number_of_decisions = 10
         self.number_of_states = 9
         # A list of all configs defined for every single state.
         self.states_configs = ['state', 'letters', 'actions', 'letters_solver', 'actions_solver']
@@ -18,15 +18,15 @@ class Config(object):
         
         # States transition matrix
         self.state = self.number_of_states * [self.number_of_decisions * [0]]
-        self.state[0] = [1, 2, 3, 4, 5, 6, 7, 0, 8]
-        self.state[1] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[2] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[3] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[4] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[5] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[6] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[7] = [0, 0, 0, 0, 0, 0, 0, 0, 8]
-        self.state[8] = [8,8,8,8,8,8,8,8,0]
+        self.state[0] = [1, 2, 3, 4, 5, 6, 7, 0, 8, 0]
+        self.state[1] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[2] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[3] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[4] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[5] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[6] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[7] = [0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
+        self.state[8] = [8,8,8,8,8,8,8,8,8,0]
 
        # Letters definition for every state. Normally for every state it should be a collection of strings.
         self.letters = self.number_of_states * [self.number_of_decisions * [""]]
@@ -47,7 +47,7 @@ class Config(object):
         # If you have a 'dynamic' state and you want the program to be chosen at runtime, set here a collection of programs - 
         # thanks to corresponding values from actions_solver obci will decide which program to use.
         self.actions = self.number_of_states * [self.number_of_decisions * [""]]
-        self.actions[0] = ["", "", "", "", "", "", "", self._finish_action()] 
+        self.actions[0] = ["", "", "", "", "", "", "", "word_backspace()"] 
         self.actions[1] = ["msg('a')", u"msg(u'ą')","msg('b')", "msg('c')", u"msg(u'ć')", "msg('d')", "msg('e')", ""] 
         self.actions[2] = [u"msg(u'ę')", "msg('f')", "msg('g')", "msg('h')", "msg('i')", "msg('j')", "msg('k')", ""] 
         self.actions[3] = ["msg('l')", u"msg(u'ł')", "msg('m')", "msg('n')", u"msg(u'ń')", "msg('o')", u"msg(u'ó')", ""] 

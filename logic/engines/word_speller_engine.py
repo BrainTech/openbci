@@ -50,3 +50,8 @@ class WordSpellerEngine(object):
 
     def _get_final_word(self):
         return self._get_base_word() + self._curr_word
+
+    def word_backspace(self):
+        if self._message not in [self._get_base_word(), self.bye_msg, self.bravo_message]:
+            self._message = self._message[:len(self._message) - 1]            
+            
