@@ -45,4 +45,4 @@ def cheby2_bandpass_filter(signal, channels_to_filt, all_channels, fs):
             # plt.show()
      # print filtered_signal.shape
         # return 'd'
-    return signal[:,0.2*512+45:-0.2*512]
+    return signal[:,int(0.2*512+45):int(-0.2*512)]

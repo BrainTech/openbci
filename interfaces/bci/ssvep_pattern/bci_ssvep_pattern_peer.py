@@ -26,7 +26,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.interfaces.bci.ssvep_csp import ssvep_csp_helper
 
-DEBUG = False
+DEBUG = True
 class BCISsvepPattern(ConfiguredMultiplexerServer):
     def send_decision(self, dec):
         """Send dec message to the system (probably to LOGIC peer).

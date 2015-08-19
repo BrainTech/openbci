@@ -40,7 +40,7 @@ import operator
 from sklearn.naive_bayes import GaussianNB
 
 CHANNELS_TO_IGNORE = [u'Dioda1',u'Dioda2',u'Dioda3',u'Dioda4',
-                  u'Dioda5',u'Dioda6',u'Dioda7',u'Dioda8',
+                  u'Dioda5',u'Dioda6',u'Dioda7',u'Dioda8']
 
 CHANNELS_TO_MONTAGE = [u'PO7']
 
