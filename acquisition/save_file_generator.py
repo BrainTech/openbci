@@ -23,7 +23,7 @@ class SaveFileGenerator(ConfiguredMultiplexerServer):
             
     def _init_save_file_name(self):
 
-        file_name = open(get_file_path(self.file_with_name_path, self.file_with_name),'r').read()
+        file_name = open(get_file_path(self.file_with_name_path, self.file_with_name),'r').read().rstrip()
         full_save_file_name = file_name + self.file_name_addition
         full_config_name = file_name + self.config_name_addition
         self.config.set_param('save_file_name', full_save_file_name)
