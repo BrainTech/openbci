@@ -41,7 +41,6 @@ from sklearn.naive_bayes import GaussianNB
 
 CHANNELS_TO_IGNORE = [u'Dioda1',u'Dioda2',u'Dioda3',u'Dioda4',
                   u'Dioda5',u'Dioda6',u'Dioda7',u'Dioda8',
-                  u'AmpSaw', u'DriverSaw']
 
 CHANNELS_TO_MONTAGE = [u'PO7']
 
@@ -50,7 +49,7 @@ CHANNELS_TO_LEAVE = [u'Dioda1',u'Dioda2',u'Dioda3',u'Dioda4',
 
 MONTAGE_TYPE = 'diff'
 
-FREQ_TO_TRAIN = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
+FREQ_TO_TRAIN = [30, 31, 32, 33, 34, 35, 36, 37, 38, 39]
 
 class ComputeCalibration(object):
     def __init__(self, file_name, file_dir,                  
@@ -122,7 +121,6 @@ class ComputeCalibration(object):
                ch_name not in self.montage_channels:
 
                 use_channels.append(ch_name)
-
         return use_channels
 
     def _highpass_filtering(self, signal, use_channels, all_channels, fs):#
@@ -185,11 +183,11 @@ class ComputeCalibration(object):
 
         self.sorted_auc = sorted(AUC.items(), key=operator.itemgetter(1), reverse=True)[:self.freqs_number]
         self.freqs_ = dict(self.sorted_auc).keys()
+        self.target, self.nontarget = SPCA.cor_2(patterns_trenning, patterns_test_target, patterns_test_nontarget, self.freqs_)
 
     def comput_classificator(self):
         target_to_class = []
         nontarget_to_class = []
-
         for f in self.freqs_:
             target_to_class.append(self.target[f])
             nontarget_to_class.append(self.nontarget[f])
@@ -229,7 +227,7 @@ class ComputeCalibration(object):
         #0. to volts
         signal = self._to_volts(signal, self.channels_gains)
         if self.display_flag:
-            self._display_signal(signal, self.use_channels, self.all_channels, 'test_to_voltage') 
+            self._display_signal(signal, sum([self.use_channels, self.montage_channels], []), self.all_channels, 'test_to_voltage') 
 
         #1. cutof mean signal
         signal = self._highpass_filtering(signal, 
@@ -292,12 +290,12 @@ class ComputeCalibration(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, 2, 
+        smart_tags_trenning = self._signal_segmentation(self.mgr, 2+0.2, 
                                                     0, self.tag_name)
         print self.l_trial-self.l_train-1
         print self.l_trial-(self.l_trial-self.l_train-1)
 
-        smart_tags_test = self._signal_segmentation(self.mgr, self.l_trial-(self.l_trial-self.l_train-1), 
+        smart_tags_test = self._signal_segmentation(self.mgr, 3+0.2, 
                                                     2, self.tag_name)
         
 

@@ -119,7 +119,6 @@ class Patterns(object):
                                   'signal_part_0 found_blinks')   
 
         a, self.pattern = self._calculate_pattern_buffer(self.signal, self.diodas_channels, self.channel, self.all_channels, self.l_pattern, self.fs) 
-        print '^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^', a
         # a=1
         # import matplotlib.pyplot as plt
         # f = plt.figure()

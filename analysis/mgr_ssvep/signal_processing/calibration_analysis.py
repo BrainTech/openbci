@@ -14,6 +14,17 @@ def cor(patterns_trenning, patterns_test_target, patterns_test_nontarget):
 
     return target, nontarget
 
+def cor_2(patterns_trenning, patterns_test_target, patterns_test_nontarget, freqs_good):
+    target = {}
+    nontarget = {f:[] for f in freqs_good}
+    for pattern_freq in freqs_good:
+        target[pattern_freq] = [float(np.corrcoef(patterns_trenning[pattern_freq], pattern_test)[0][1]) for pattern_test in patterns_test_target[pattern_freq]]
+        for f, pattern_test in patterns_test_nontarget[pattern_freq]:
+            nontarget[pattern_freq].append([float(np.corrcoef(patterns_trenning[f_], p)[0][1]) for f_, p in zip(f, pattern_test) if f_ in freqs_good])
+        nontarget[pattern_freq] = sum(nontarget[pattern_freq], [])
+
+    return target, nontarget
+
 def get_roc_auc_values(Target, Nontarget):  
     AUC = {} 
     ROC = {}
