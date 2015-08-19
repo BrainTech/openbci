@@ -37,7 +37,7 @@ class Config(object):
         self.letters[4] = ["p", "q", "r", "s", u"ś", "t", "u", u"wróć"]
         self.letters[5] = ["v", "w", "x", "y", "z", u"ź", u"ż", u"wróć"]
         self.letters[6] = ["0", "1", "2", "3", "4", "5", "6", u"wróć"]
-        self.letters[7] = ["7", "8", "9", "?", ",", "_", "spacja", "back"]
+        self.letters[7] = ["7", "8", "9", "?", ",", "_", "spacja", "wróć"]
         self.letters[8] = ['']*8
 
         self.letters_solver = self.number_of_states * [self.number_of_decisions * [""]]
