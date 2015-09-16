@@ -58,11 +58,39 @@ def wii_fix_sampling(wbb_mgr):
 
 	return
 
-def wii_cut_fragments(wbb_mgr, start_tag_name='start', end_tags_names=['stop']):
+def wii_cut_fragments(wbb_mgr, start_tag_name='start', end_tags_names=['stop'], TS=False):
 	""" Returns SmartTags object with cut signal fragments according to 'start' - 'stop' tags
 	"""
-
-	x = smart_tag_definition.SmartTagEndTagDefinition(start_tag_name=start_tag_name, 
-													  end_tags_names=end_tags_names)
-	smart_mgr = smart_tags_manager.SmartTagsManager(x, None, None, None, wbb_mgr.mgr)
-	return smart_mgr.get_smart_tags()
+	if TS:
+		ts_start = None
+		ts_stop = None
+		tags = wbb_mgr.mgr.get_tags()
+		for tag in tags:
+			if tag['name'] == start_tag_name:
+				ts_start = float(tag['start_timestamp'])
+			elif tag['name'] in end_tags_names:
+				ts_stop = float(tag['start_timestamp'])
+		if ts_start==None or ts_stop ==None:
+			raise Exception("Error")
+		else:
+			# only work when len(tags_names)=1
+			ts_samples = wbb_mgr.get_timestamps()
+			ts_start_sample, ts_stop_samples = np.searchsorted(ts_samples, [ts_start, ts_stop])
+			i = 0
+			while ts_samples[i] < ts_start:
+				i += 1
+			j = 0
+			ts_samples_to_return = []
+			while ts_samples[j] < ts_stop:
+				if j >= i:
+					ts_samples_to_return.append(ts_samples[j])
+				j += 1
+			return np.array([wbb_mgr.mgr.get_channel_samples('x')[ts_start_sample:ts_stop_samples],
+                            	wbb_mgr.mgr.get_channel_samples('y')[ts_start_sample:ts_stop_samples],
+								ts_samples_to_return])
+            
+	else:
+		x = smart_tag_definition.SmartTagEndTagDefinition(start_tag_name=start_tag_name, 
+								                          end_tags_names=end_tags_names)
+		smart_mgr = smart_tags_manager.SmartTagsManager(x, None, None, None, wbb_mgr.mgr)
+		return smart_mgr.get_smart_tags()

@@ -54,10 +54,10 @@ def wii_RMS_AP_ML(x, y):
 
 	return RMS_AP_ML(np.vstack((x,y)))
 
-def wii_confidence_ellipse_area(x, y):
+def wii_confidence_ellipse_area(x, y, f_value=3.0):
 	""" Returns area of the 95 perc. confidence ellipse"""
 
-	return confidence_ellipse_area(np.vstack((x,y)))
+	return confidence_ellipse_area(np.vstack((x,y)), f_value)
 
 def wii_mean_velocity(wbb_mgr, x, y):
 	""" Returns average velocity of the COP, in ML and AP directions

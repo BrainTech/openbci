@@ -122,13 +122,13 @@ def RMS_AP_ML(signal):
 	RMS_AP = np.sqrt(1./signal.shape[1]*np.sum(distance_AP**2))
 	return RMS, RMS_AP, RMS_ML
 
-def confidence_ellipse_area(signal):
+def confidence_ellipse_area(signal, f_value=3.0):
 	""" Returns area of the 95 perc. confidence ellipse"""
 
 	s_AP = np.std(signal[1])
 	s_ML = np.std(signal[0])
 	s_AP_ML = 1./signal.shape[1]*np.sum((signal[0]-np.mean(signal[0]))*(signal[1]-np.mean(signal[1])))
-	area = 2*np.pi*3.0*np.sqrt(s_AP**2*s_ML**2-s_AP_ML**2)
+	area = 2*np.pi*f_value*np.sqrt(s_AP**2*s_ML**2-s_AP_ML**2)
 	return area
 
 def mean_velocity(signal, fs):
