@@ -4,8 +4,9 @@
 # Author:
 #       Mateusz Biesaga <mateusz.biesaga@gmail.com>
 # About script:
-#       It's the first script created during the analysis of Ventures data.
-#   Its aim was to count first markers and try to arrange data somehow.
+#       This is the first script created during the analysis of Ventures data.
+#   It counts first markers (COP, elipse, velocity, romberg) and try to 
+#   arrange data somehow.
 
 from __future__ import print_function, division
 from os import *
