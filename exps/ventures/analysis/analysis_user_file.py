@@ -1,7 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Author:
+#       Mateusz Biesaga <mateusz.biesaga@gmail.com>
+#
+
 from os import *
 import pandas as pd
 import analysis_helper
-
+import analysis_baseline
+import analysis_markers
+from obci.analysis.balance.wii_preprocessing import *
 
 class User(object):
     """
@@ -10,7 +19,7 @@ class User(object):
     After arranging data in neat folders, it is no longer as important.
     """
 
-    def __init__(self, name):
+    def __init__(self, name, users_tasks):
         self.name = name.upper()
         print("*** ", self.name, " ***")
         self.complete = False
@@ -23,11 +32,11 @@ class User(object):
         self.postest = self.get_proper(self.postest_files_list)
         if self.pretest is not None and self.postest is not None:
             self.complete = True
-        self.pretest = self.cut_extension(self.pretest)
-        self.postest = self.cut_extension(self.postest)
+        self.pretest = analysis_helper.cut_extension(self.pretest)
+        self.postest = analysis_helper.cut_extension(self.postest)
         if self.pretest is not None and self.postest is not None:
             self.pre_post_file = File(self.find_file(self.pretest),
-                                      self.find_file(self.postest), self)
+                        self.find_file(self.postest), self, users_tasks)
         else:
             self.pre_post_file = None
 
@@ -142,19 +151,6 @@ class User(object):
         else:
             return "Invalid param."
 
-    def cut_extension(self, file):
-        """
-        Removes extension from filename.
-        """
-        if file is None:
-            return None
-        string = ""
-        for char in file:
-            if char == '.':
-                return string
-            else:
-                string += char
-
     def find_file(self, name):
         """
         Finds a full path to file from messy data, having only a filename.
@@ -171,18 +167,19 @@ class File(object):
     """
     Extracts parameters from one file.
     """
-
-    def __init__(self, path_pre, path_post, users):
+    def __init__(self, path_pre, path_post, users, users_tasks):
         self.user = users
         self.path_pre = self.cut_extension(path_pre)
         self.path_post = self.cut_extension(path_post)
         self.obci_w_pre = analysis_helper.get_read_manager(self.path_pre)
         self.obci_w_post = analysis_helper.get_read_manager(self.path_post)
         if self.obci_w_pre and self.obci_w_post:
-            self.obci_markers = get_markers(self.obci_w_pre, self.obci_w_post,
-                                            self.user.name, self.user.session_type)
-            self.romberg = get_romberg(self.obci_w_pre, self.obci_w_post,
-                                       self.user.name, self.user.session_type)
+            self.obci_markers = analysis_markers.get_markers(self.obci_w_pre,
+                        self.obci_w_post, self.user.name,
+                        self.user.session_type, users_tasks)
+            self.romberg = analysis_markers.get_romberg(self.obci_w_pre,
+                        self.obci_w_post, self.user.name,
+                        self.user.session_type, users_tasks)
         else:
             self.obci_markers = None
             self.romberg = None
@@ -191,3 +188,67 @@ class File(object):
         if file is None:
             return None
         return ".".join(file.split('.')[:-2])
+
+def get_data_fragment(wbb_mgr, start_tag, end_tag):
+    data = wii_cut_fragments(wbb_mgr, start_tag_name=start_tag,
+                             end_tags_names=[end_tag], TS=True)
+    x, y = analysis_baseline.remove_baseline(data)
+    return x, y
+
+def get_data(wbb_mgr):
+    """
+    Returns specific fragments of signal.
+    """
+    task_stanie = get_data_fragment(wbb_mgr, 'ss_start', 'ss_stop')
+    task_oczy = get_data_fragment(wbb_mgr, 'ss_oczy_start', 'ss_oczy_stop')
+    task_bacznosc = get_data_fragment(wbb_mgr, 'ss_bacznosc_start',
+                                      'ss_bacznosc_stop')
+    task_gabka = get_data_fragment(wbb_mgr, 'ss_gabka_start', 'ss_gabka_stop')
+    task_poznawcze = get_data_fragment(wbb_mgr, 'ss_poznawcze_start',
+                                       'ss_poznawcze_stop')
+    return task_stanie, task_oczy, task_bacznosc, task_gabka, task_poznawcze
+
+def get_dual_data_fragments(wbb_mgr):
+    """
+    Returns specific fragments of signal.
+    """
+    task_stanie_zgodny1 = get_data_fragment(wbb_mgr, 'ss_zgodny1_start',
+                                            'ss_zgodny1_stop')
+    task_stanie_zgodny2 = get_data_fragment(wbb_mgr, 'ss_zgodny2_start',
+                                            'ss_zgodny2_stop')
+    task_stanie_niezgodny1 = get_data_fragment(wbb_mgr, 'ss_niezgodny1_start',
+                                            'ss_niezgodny1_stop')
+    task_stanie_niezgodny2 = get_data_fragment(wbb_mgr, 'ss_niezgodny2_start',
+                                            'ss_niezgodny2_stop')
+
+    task_bacznosc_zgodny1 = get_data_fragment(wbb_mgr, 'ss_bacznosc_zgodny1_start',
+                                            'ss_bacznosc_zgodny1_stop')
+    task_bacznosc_zgodny2 = get_data_fragment(wbb_mgr, 'ss_bacznosc_zgodny2_start',
+                                            'ss_bacznosc_zgodny2_stop')
+    task_bacznosc_niezgodny1 = get_data_fragment(wbb_mgr, 'ss_bacznosc_niezgodny1_start',
+                                            'ss_bacznosc_niezgodny1_stop')
+    task_bacznosc_niezgodny2 = get_data_fragment(wbb_mgr, 'ss_bacznosc_niezgodny2_start',
+                                            'ss_bacznosc_niezgodny2_stop')
+
+    task_gabka_zgodny1 = get_data_fragment(wbb_mgr, 'ss_gabka_zgodny1_start',
+                                            'ss_gabka_zgodny1_stop')
+    task_gabka_zgodny2 = get_data_fragment(wbb_mgr, 'ss_gabka_zgodny2_start',
+                                            'ss_gabka_zgodny2_stop')
+    task_gabka_niezgodny1 = get_data_fragment(wbb_mgr, 'ss_gabka_niezgodny1_start',
+                                            'ss_gabka_niezgodny1_stop')
+    task_gabka_niezgodny2 = get_data_fragment(wbb_mgr, 'ss_gabka_niezgodny2_start',
+                                            'ss_gabka_niezgodny2_stop')
+
+    return task_stanie_zgodny1, task_stanie_zgodny2, task_stanie_niezgodny1, task_stanie_niezgodny2, \
+           task_bacznosc_zgodny1, task_bacznosc_zgodny2, task_bacznosc_niezgodny1, task_bacznosc_niezgodny2, \
+           task_gabka_zgodny1, task_gabka_zgodny2, task_gabka_niezgodny1, task_gabka_niezgodny2
+
+def user_task_checker(user, task, users_data):
+    """
+    Checks if a fragment of one user's data is marked as good enough for
+    analysis (check users_task.csv file in folder '/data/').
+    """
+    if int(users_data[users_data['ID'] == user][task].values[0]):
+        return True
+    else:
+        return False

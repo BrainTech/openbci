@@ -21,6 +21,8 @@
 from obci.analysis.balance.wii_read_manager import WBBReadManager
 import glob
 import os.path
+import pandas as pd
+from os import *
 
 def get_file_name(search_name, search_dir):
     search_dir  = os.path.expanduser(search_dir)  
@@ -122,3 +124,72 @@ def date_to_int(date):
             str += "12"
     return int(str)
 
+def get_file_list(path):
+    """
+    :return: List of files in specified path.
+    """
+    file_list = []
+    for paths, subcatalogs, files in walk(r'./'+path):
+        for file in files:
+            if 'resampled' in file and 'psy' not in file and 'adjust' not in file:
+                file = cut_extension(file)
+                file_list.append(path.join(paths, file))
+    return file_list
+
+def cut_extension(file):
+    if file is None:
+        return None
+    string = file[0]
+    for char in range(1, len(file)):
+        if file[char] == '.':
+            return string
+        else:
+            string += file[char]
+
+def average(data):
+    """
+    For each columns of type 'zgodny1', 'zgodny2' transforms them into
+    one column 'zgodny', with values being mean from previous ones.
+    """
+    cols = ['stanie_zgodny', 'stanie_niezgodny',
+            'bacznosc_zgodny', 'bacznosc_niezgodny',
+            'gabka_zgodny', 'gabka_niezgodny']
+
+    average_data = pd.DataFrame()
+    average_data['username'] = pd.Series(data['username'])
+    average_data['session_type'] = pd.Series(data['session_type'])
+    for col in cols:
+        average_col_pre = []
+        average_col_post = []
+        for row1, row2 in zip(data[col+'1_pre'].values, data[col+'2_pre'].values):
+            if row1 == ' ' or row2 == ' ':
+                average_col_pre.append(' ')
+            else:
+                average_col_pre.append((float(row1)+float(row2))/2)
+
+        for row1, row2 in zip(data[col+'1_post'].values, data[col+'2_post'].values):
+            if row1 == ' ' or row2 == ' ':
+                average_col_pre[len(average_col_post)] = ' '
+                average_col_post.append(' ')
+            else:
+                average_col_post.append((float(row1)+float(row2))/2)
+        average_data['{}_{}'.format(col, 'pre')] \
+            = pd.Series(average_col_pre, index=average_data.index)
+        average_data['{}_{}'.format(col, 'post')] \
+            = pd.Series(average_col_post, index=average_data.index)
+    return average_data
+
+def remove_baseline(t):
+    """
+    Returns x and y data, counts its baseline (mean from first tenth part
+    of signal) and cuts it off.
+    """
+    x_baseline = t[0][0:(len(t[0])/10)]
+    y_baseline = t[1][0:(len(t[1])/10)]
+    x_baseline = sum(x_baseline)/len(x_baseline)
+    y_baseline = sum(y_baseline)/len(y_baseline)
+    x = t[0][(len(t[0])/10):]
+    x = (x - x_baseline)*22.5
+    y = t[1][(len(t[1])/10):]
+    y = (y - y_baseline)*13
+    return x, y
