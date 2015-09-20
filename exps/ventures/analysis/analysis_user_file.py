@@ -23,7 +23,8 @@ class User(object):
         self.name = name.upper()
         print("*** ", self.name, " ***")
         self.complete = False
-        self.session_type = self.get_session_type()
+        self.session_type = users_tasks[users_tasks['ID']==self.username]['session_type'].values[0]
+        self.alt_username = users_tasks[users_tasks['ID']==self.username]['alt_ID'].values[0]
         self.all_files_list = self.get_files()
         self.all_files_list = self.remove_duplicate(self.all_files_list)
         self.pretest_files_list = self.one_type_files("pretest", "dual")

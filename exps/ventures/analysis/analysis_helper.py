@@ -23,9 +23,10 @@ import glob
 import os.path
 import pandas as pd
 from os import *
+import analysis_user_file
 
 def get_file_name(search_name, search_dir):
-    search_dir  = os.path.expanduser(search_dir)  
+    search_dir = os.path.expanduser(search_dir)
     files = glob.glob(('{}/{}').format(search_dir, search_name))
     for file_ in files:
         yield file_
@@ -66,19 +67,18 @@ def decode_token(path):
     elements_list.append(str)
     return elements_list
 
-def get_users(file_list):
+def get_users():
     """
     Extracts user names from list of tokens created from given file list.
     """
-    file_tokens = []
-    for element in file_list:
-        file_tokens.append(decode_token(element))
-    users_list = []
-    for elem in file_list:
-        if (elem[0].upper() not in users_list) and (len(elem[0]) == 4) \
-                and (elem[0][2].isdigit()):
-            users_list.append(elem[0].upper())
-    return users_list
+    data = pd.read_csv('~/data/users_tasks.csv', index_col=0, dtype='str')
+    return data['ID'].values
+
+def get_users_as_objects(users_names):
+    users = []
+    for user in users_names:
+        user_object = analysis_user_file.User(user)
+        users.append(user_object)
 
 def get_date_from_path(file):
     """
