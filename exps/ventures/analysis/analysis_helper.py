@@ -112,11 +112,11 @@ def file_by_extension(file_list, extension):
             return file
     return None
 
-def get_users():
+def get_users(path='users_tasks.csv'):
     """
     Extracts user names from list of tokens created from given file list.
     """
-    data = pd.read_csv('~/data/users_tasks.csv', index_col=0, dtype='str')
+    data = pd.read_csv('../data/'+path, index_col=0, dtype='str')
     return data['ID'].values
 
 def get_users_as_objects(users_names):

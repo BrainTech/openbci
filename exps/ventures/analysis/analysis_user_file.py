@@ -276,7 +276,7 @@ def get_session_type(name):
     Checks in users.csv (in folder named 'data', provide a proper path!)
     which type of session this user was performing.
     """
-    data = pd.read_csv('users.csv', index_col=0, dtype='str')
+    data = pd.read_csv('../data/users.csv', index_col=0, dtype='str')
     if name in data['ID'].values:
         return data[data['ID']==name]['session_type'].values[0]
     else:
