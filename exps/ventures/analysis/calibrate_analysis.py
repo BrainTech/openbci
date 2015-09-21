@@ -83,61 +83,141 @@ if __name__ == "__main__":
             calibration_data_list.append(UserCalibrationData(elem))
 
     # draw figures for each user
-    for session_type in SESSION_TYPES:
-        for user_data in calibration_data_list:
-            if user_data.session_type == session_type:
-                    # up
-                plt.subplot2grid((3,4), (0,1), colspan=2)
-                plt.plot(user_data.t, user_data.data_out['up'], 'o')
-                plt.plot([1, user_data.t[-1]],
-                         [user_data.fitted_lines['up'][0]+user_data.fitted_lines['up'][1],
-                          user_data.fitted_lines['up'][0]*user_data.t[-1]+user_data.fitted_lines['up'][1]],
-                         '--', color='r')
-                plt.ylim(0, 14)
-                plt.xlim(0.5, len(user_data.t)+0.5)
-                plt.xticks(user_data.t)
-                plt.title('up')
-                plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['up'][0]))
-                    # down
-                plt.subplot2grid((3,4), (2,1), colspan=2)
-                plt.plot(user_data.t, user_data.data_out['down'], 'o')
-                plt.plot([1, user_data.t[-1]],
-                     [user_data.fitted_lines['down'][0]+user_data.fitted_lines['down'][1],
-                      user_data.fitted_lines['down'][0]*user_data.t[-1]+user_data.fitted_lines['down'][1]],
-                     '--', color='r')
-                plt.ylim(0, 14)
-                plt.xlim(0.5, len(user_data.t)+0.5)
-                plt.xticks(user_data.t)
-                plt.title('down')
-                plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['down'][0]))
-                    # right
-                plt.subplot2grid((3,4), (1,2), colspan=2)
-                plt.plot(user_data.t, user_data.data_out['right'], 'o')
-                plt.plot([1, user_data.t[-1]],
-                     [user_data.fitted_lines['right'][0]+user_data.fitted_lines['right'][1],
-                      user_data.fitted_lines['right'][0]*user_data.t[-1]+user_data.fitted_lines['right'][1]],
-                     '--', color='r')
-                plt.ylim(0, 23)
-                plt.xlim(0.5, len(user_data.t)+0.5)
-                plt.xticks(user_data.t)
-                plt.title('right')
-                plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['right'][0]))
-                    # left
-                plt.subplot2grid((3,4), (1,0), colspan=2)
-                plt.plot(user_data.t, user_data.data_out['left'], 'o')
-                plt.plot([1, user_data.t[-1]],
-                     [user_data.fitted_lines['left'][0]+user_data.fitted_lines['left'][1],
-                      user_data.fitted_lines['left'][0]*user_data.t[-1]+user_data.fitted_lines['left'][1]],
-                     '--', color='r')
-                plt.ylim(0, 23)
-                plt.xlim(0.5, len(user_data.t)+0.5)
-                plt.xticks(user_data.t)
-                plt.title('left')
-                plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['left'][0]))
-
-                plt.suptitle(user_data.name+' '+user_data.session_type)
-                mng = plt.get_current_fig_manager()
-                mng.resize(*mng.window.maxsize())
-                plt.show()
+    # for session_type in SESSION_TYPES:
+    #     for user_data in calibration_data_list:
+    #         if user_data.session_type == session_type:
+    #                 # up
+    #             plt.subplot2grid((3,4), (0,1), colspan=2)
+    #             plt.plot(user_data.t, user_data.data_out['up'], 'o')
+    #             plt.plot([1, user_data.t[-1]],
+    #                      [user_data.fitted_lines['up'][0]+user_data.fitted_lines['up'][1],
+    #                       user_data.fitted_lines['up'][0]*user_data.t[-1]+user_data.fitted_lines['up'][1]],
+    #                      '--', color='r')
+    #             plt.ylim(0, 14)
+    #             plt.xlim(0.5, len(user_data.t)+0.5)
+    #             plt.xticks(user_data.t)
+    #             plt.title('up')
+    #             plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['up'][0]))
+    #                 # down
+    #             plt.subplot2grid((3,4), (2,1), colspan=2)
+    #             plt.plot(user_data.t, user_data.data_out['down'], 'o')
+    #             plt.plot([1, user_data.t[-1]],
+    #                  [user_data.fitted_lines['down'][0]+user_data.fitted_lines['down'][1],
+    #                   user_data.fitted_lines['down'][0]*user_data.t[-1]+user_data.fitted_lines['down'][1]],
+    #                  '--', color='r')
+    #             plt.ylim(0, 14)
+    #             plt.xlim(0.5, len(user_data.t)+0.5)
+    #             plt.xticks(user_data.t)
+    #             plt.title('down')
+    #             plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['down'][0]))
+    #                 # right
+    #             plt.subplot2grid((3,4), (1,2), colspan=2)
+    #             plt.plot(user_data.t, user_data.data_out['right'], 'o')
+    #             plt.plot([1, user_data.t[-1]],
+    #                  [user_data.fitted_lines['right'][0]+user_data.fitted_lines['right'][1],
+    #                   user_data.fitted_lines['right'][0]*user_data.t[-1]+user_data.fitted_lines['right'][1]],
+    #                  '--', color='r')
+    #             plt.ylim(0, 23)
+    #             plt.xlim(0.5, len(user_data.t)+0.5)
+    #             plt.xticks(user_data.t)
+    #             plt.title('right')
+    #             plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['right'][0]))
+    #                 # left
+    #             plt.subplot2grid((3,4), (1,0), colspan=2)
+    #             plt.plot(user_data.t, user_data.data_out['left'], 'o')
+    #             plt.plot([1, user_data.t[-1]],
+    #                  [user_data.fitted_lines['left'][0]+user_data.fitted_lines['left'][1],
+    #                   user_data.fitted_lines['left'][0]*user_data.t[-1]+user_data.fitted_lines['left'][1]],
+    #                  '--', color='r')
+    #             plt.ylim(0, 23)
+    #             plt.xlim(0.5, len(user_data.t)+0.5)
+    #             plt.xticks(user_data.t)
+    #             plt.title('left')
+    #             plt.text(0.9, 0.8, 'a = '+str(user_data.fitted_lines['left'][0]))
+    #
+    #             plt.suptitle(user_data.name+' '+user_data.session_type)
+    #             plt.savefig('../plots/'+user_data.name+'.png', dpi=120)
+    #             mng = plt.get_current_fig_manager()
+    #             mng.resize(*mng.window.maxsize())
+    #             plt.show()
 
     # draw summary plot
+    plt.subplot2grid((3,4), (0,1), colspan=2)
+    cog_mot = []
+    mot = []
+    for user_data in calibration_data_list:
+        if user_data.session_type == 'cognitive_motor':
+            plt.plot(user_data.t, user_data.data_out['up'], '-', color='b')
+            cog_mot.append(user_data.fitted_lines['up'][0])
+        else:
+            plt.plot(user_data.t, user_data.data_out['up'], '-', color='r')
+            mot.append(user_data.fitted_lines['up'][0])
+    plt.ylim(0, 14)
+    mot_val = np.mean(mot)
+    mot_std = np.std(mot)/3
+    plt.text(2, 0.8, 'a='+str(mot_val)[:6]+' +/- '+str(mot_std)[:6], color='r')
+    cog_mot_val = np.mean(cog_mot)
+    cog_mot_std = np.std(cog_mot)/3
+    plt.text(5, 0.8, 'a='+str(cog_mot_val)[:6]+' +/- '+str(cog_mot_std)[:6], color='b')
+    plt.text(9, 5, 'motor', color='r')
+    plt.text(9, 3, 'cognitive_motor', color='b')
+
+    plt.subplot2grid((3,4), (2,1), colspan=2)
+    cog_mot = []
+    mot = []
+    for user_data in calibration_data_list:
+        if user_data.session_type == 'cognitive_motor':
+            plt.plot(user_data.t, user_data.data_out['down'], '-', color='b')
+            cog_mot.append(user_data.fitted_lines['down'][0])
+        else:
+            plt.plot(user_data.t, user_data.data_out['down'], '-', color='r')
+            mot.append(user_data.fitted_lines['down'][0])
+    plt.ylim(0, 14)
+    mot_val = np.mean(mot)
+    mot_std = np.std(mot)/3
+    plt.text(2, 0.8, 'a='+str(mot_val)[:6]+' +/- '+str(mot_std)[:6], color='r')
+    cog_mot_val = np.mean(cog_mot)
+    cog_mot_std = np.std(cog_mot)/3
+    plt.text(5, 0.8, 'a='+str(cog_mot_val)[:6]+' +/- '+str(cog_mot_std)[:6], color='b')
+
+    plt.subplot2grid((3,4), (1,2), colspan=2)
+    cog_mot = []
+    mot = []
+    for user_data in calibration_data_list:
+        if user_data.session_type == 'cognitive_motor':
+            plt.plot(user_data.t, user_data.data_out['right'], '-', color='b')
+            cog_mot.append(user_data.fitted_lines['right'][0])
+        else:
+            plt.plot(user_data.t, user_data.data_out['right'], '-', color='r')
+            mot.append(user_data.fitted_lines['right'][0])
+    plt.ylim(0, 23)
+    mot_val = np.mean(mot)
+    mot_std = np.std(mot)/3
+    plt.text(2, 1.5, 'a='+str(mot_val)[:6]+' +/- '+str(mot_std)[:6], color='r')
+    cog_mot_val = np.mean(cog_mot)
+    cog_mot_std = np.std(cog_mot)/3
+    plt.text(5, 1.5, 'a='+str(cog_mot_val)[:6]+' +/- '+str(cog_mot_std)[:6], color='b')
+
+    plt.subplot2grid((3,4), (1,0), colspan=2)
+    cog_mot = []
+    mot = []
+    for user_data in calibration_data_list:
+        if user_data.session_type == 'cognitive_motor':
+            plt.plot(user_data.t, user_data.data_out['left'], '-', color='b')
+            cog_mot.append(user_data.fitted_lines['left'][0])
+        else:
+            plt.plot(user_data.t, user_data.data_out['left'], '-', color='r')
+            mot.append(user_data.fitted_lines['left'][0])
+    plt.ylim(0, 23)
+    mot_val = np.mean(mot)
+    mot_std = np.std(mot)/3
+    plt.text(2, 1.5, 'a='+str(mot_val)[:6]+' +/- '+str(mot_std)[:6], color='r')
+    cog_mot_val = np.mean(cog_mot)
+    cog_mot_std = np.std(cog_mot)/3
+    plt.text(5, 1.5, 'a='+str(cog_mot_val)[:6]+' +/- '+str(cog_mot_std)[:6], color='b')
+
+
+
+    mng = plt.get_current_fig_manager()
+    mng.resize(*mng.window.maxsize())
+    plt.show()
