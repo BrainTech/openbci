@@ -1,13 +1,168 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Author:
+#       Mateusz Biesaga <mateusz.biesaga@gmail.com>
+#
+
 from __future__ import print_function, division
-
-from obci.analysis.balance.wii_read_manager import WBBReadManager
-from obci.analysis.balance.wii_analysis import *
-from obci.analysis.balance.raw_analysis import *
-from obci.analysis.balance.wii_preprocessing import *
-
-import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
+from matplotlib.collections import LineCollection
+import pandas as pd
+import numpy as np
+import analysis_markers, analysis_user_file, analysis_helper
+
+def draw_bar_chart(markers, groups, tests):
+    """
+    Prints bar chart showing comparison of pre- and post-values for
+    each group (cognitive, cognitive-motor and motor).
+    """
+    for marker in markers:
+        file_path = 'data/markers_' + marker + '.csv'
+        data = pd.read_csv(file_path, index_col=0, dtype='str')
+
+        for group in groups:
+            stats = analysis_markers.basic_stats(data, group)
+
+            N = len(tests)
+            pre_means = []
+            pre_devs = []
+            post_means = []
+            post_devs = []
+
+            for test in tests:
+                if marker == 'romberg' and test == 'stanie':
+                    N -= 1
+                    pass
+                else:
+                    pre_means.append(stats[stats['stat_name'] == 'mean'][test+'_pre'].values[0])
+                    pre_devs.append(stats[stats['stat_name'] == 'std_dev'][test+'_pre'].values[0])
+                    post_means.append(stats[stats['stat_name'] == 'mean'][test+'_post'].values[0])
+                    post_devs.append(stats[stats['stat_name'] == 'std_dev'][test+'_post'].values[0])
+
+            ind = np.arange(N)
+            width = 0.35
+            fig, ax = plt.subplots()
+            rects1 = ax.bar(ind, pre_means, width, color='lightsage')
+            rects2 = ax.bar(ind+width, post_means, width, color='lightseagreen')
+            ax.set_ylabel('Means')
+            ax.set_title('Mean values of Romberg stats - group: '+group)
+            ax.set_xticks(ind+width)
+            ax.set_xticklabels(tests)
+            ax.legend((rects1[0], rects2[0]), ('PreTest', 'PostTest'),
+                      bbox_to_anchor=(0.5, 1))
+            plt.show()
+
+def print_xy_plots(x, y, task, user, param):
+    """
+    Prints three plots: x(t), y(t) and y(x). Colors are used to enable
+    the visibility of connection between time and the chart on the right.
+    """
+    x -= np.mean(x)
+    y -= np.mean(y)
+
+    t = np.linspace(0, 20, len(x))
+
+    ax_xy = plt.subplot2grid((2, 2), (0, 1), rowspan=2)
+    ax_xy.set_title(user+' '+task+'_'+param)
+    t_col = np.linspace(0, 10, 780)
+    points = np.array([x, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc = LineCollection(segments, cmap=plt.get_cmap('spectral'),
+                        norm=plt.Normalize(0, 10))
+    lc.set_array(t_col)
+    lc.set_linewidth(2)
+    plt.gca().add_collection(lc)
+    plt.xlim(-3, 3)
+    plt.ylim(-3, 3)
+    plt.xticks(np.arange(-3, 3, 0.2))
+    plt.yticks(np.arange(-3, 3, 0.2))
+    plt.tick_params(axis='both', labelsize=7)
+
+    ax_x = plt.subplot2grid((2, 2), (0, 0))
+    ax_x.set_ylabel('X')
+    if task == 'ss':
+        ax_x.set_title('stanie')
+    else:
+        ax_x.set_title(task[3:])
+    points = np.array([t, x]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc = LineCollection(segments, cmap=plt.get_cmap('spectral'),
+                        norm=plt.Normalize(0, 10))
+    lc.set_array(t_col)
+    lc.set_linewidth(2)
+    plt.gca().add_collection(lc)
+    plt.xlim(0, 20)
+    plt.ylim(-3, 3)
+    plt.xticks(np.arange(0, 20, 1))
+    plt.yticks(np.arange(-3, 3, 0.5))
+    plt.tick_params(axis='both', labelsize=7)
+
+    ax_y = plt.subplot2grid((2, 2), (1, 0))
+    ax_y.set_ylabel('Y')
+    points = np.array([t, y]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    lc = LineCollection(segments, cmap=plt.get_cmap('spectral'),
+                        norm=plt.Normalize(0, 10))
+    lc.set_array(t_col)
+    lc.set_linewidth(2)
+    plt.gca().add_collection(lc)
+    plt.xlim(0, 20)
+    plt.ylim(-3, 3)
+    plt.xticks(np.arange(0, 20, 1))
+    plt.yticks(np.arange(-3, 3, 0.5))
+    plt.tick_params(axis='both', labelsize=7)
+
+    plt.tight_layout()
+    mng = plt.get_current_fig_manager()
+    mng.resize(*mng.window.maxsize())
+    plt.show()
+
+
+def xy_plots_manager(tasks, users):
+    for task in tasks:
+        for user in users:
+            if user.wbb_pre is not None and user.wbb_post is not None:
+                x, y = analysis_user_file.get_data_fragment(user.wbb_pre,
+                                            task+'_start', task+'_stop')
+                print_xy_plots(x, y, task, user.alt_username, 'pre')
+                x, y = analysis_user_file.get_data_fragment(user.wbb_post,
+                                            task+'_start', task+'_stop')
+                print_xy_plots(x, y, task, user.alt_username, 'post')
+
+
+def dual_plots(data_pre, data_post, user):
+    """
+    Saves plots showing ellipse area for the whole dual file.
+    """
+    plt.gcf().set_size_inches(12, 10)
+    for i in range(3):
+        if i == 0:
+            titlee = 'stanie'
+        elif i == 1:
+            titlee = 'bacznosc'
+        else:
+            titlee = 'gabka'
+        plt.subplot(3, 2, i*2+1)
+        area = analysis_markers.count_area((58*i)+3, (58*i)+56, data_pre)
+        plt.plot(area, 'o-')
+        plt.ylim(0, 5)
+        plt.xlim(0, 47)
+        plt.axvspan(11, 23, color='red', alpha=0.3)
+        plt.axvspan(35, 47, color='red', alpha=0.3)
+        plt.title(titlee+'_pre')
+        plt.subplot(3, 2, i*2+2)
+        area = analysis_markers.count_area((58*i)+3, (58*i)+56, data_post)
+        plt.plot(area, 'o-')
+        plt.ylim(0, 5)
+        plt.xlim(0, 47)
+        plt.axvspan(11, 23, color='red', alpha=0.3)
+        plt.axvspan(35, 47, color='red', alpha=0.3)
+        plt.title(titlee+'_post')
+    plt.suptitle(user + ' - ' + analysis_user_file.get_session_type(user))
+    plt.savefig('./plots/'+user+'.png', dpi=120)
+    plt.show()
+    plt.close()
 
 def proper(lista):
     new_list = []
@@ -50,10 +205,30 @@ class Point(object):
 
 
 if __name__ == '__main__':
+    # bar charts:
+    markers = ['romberg']
+    groups = ['cognitive', 'cognitive_motor', 'motor']
+    tests = ['stanie', 'oczy', 'bacznosc', 'gabka', 'poznawcze']
+    draw_bar_chart(markers, groups, tests)
 
+    # xy charts:
+    users = analysis_helper.get_users_as_objects(analysis_helper.get_users())
+    tasks = ['ss', 'ss_oczy', 'ss_bacznosc', 'ss_gabka', 'ss_poznawcze']
+    xy_plots_manager(tasks, users)
+
+    # dual ellipse plots:
+    users = analysis_helper.get_complete_users()
+    markers_path = pd.DataFrame()
+    for user in users:
+        print(user)
+        w_pre, w_post = analysis_helper.get_read_managers_by_user(user)
+        data_pre = analysis_user_file.get_short_data(w_pre)
+        data_post = analysis_user_file.get_short_data(w_post)
+        dual_plots(data_pre, data_post, user)
+
+    # everything below - complex pre_post data plots:
     data = pd.read_csv('./data/i_love_huge_data.csv', index_col=0, dtype='str')
     users = data['username'].values
-
 
     ### STANIE ###
     mods = ['poly']

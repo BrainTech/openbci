@@ -7,9 +7,7 @@
 
 from os import *
 import pandas as pd
-import analysis_helper
-import analysis_baseline
-import analysis_markers
+import analysis_helper, analysis_markers
 from obci.analysis.balance.wii_preprocessing import *
 
 class User(object):
@@ -23,8 +21,8 @@ class User(object):
         self.name = name.upper()
         print("*** ", self.name, " ***")
         self.complete = False
-        self.session_type = users_tasks[users_tasks['ID']==self.username]['session_type'].values[0]
-        self.alt_username = users_tasks[users_tasks['ID']==self.username]['alt_ID'].values[0]
+        self.session_type = users_tasks[users_tasks['ID']==self.name]['session_type'].values[0]
+        self.alt_username = users_tasks[users_tasks['ID']==self.name]['alt_ID'].values[0]
         self.all_files_list = self.get_files()
         self.all_files_list = self.remove_duplicate(self.all_files_list)
         self.pretest_files_list = self.one_type_files("pretest", "dual")
@@ -40,17 +38,6 @@ class User(object):
                         self.find_file(self.postest), self, users_tasks)
         else:
             self.pre_post_file = None
-
-    def get_session_type(self):
-        """
-        Checks in users.csv (in folder named 'data', provide a proper path!)
-        which type of session this user was performing.
-        """
-        data = pd.read_csv('users.csv', index_col=0, dtype='str')
-        if self.name in data['ID'].values:
-            return data[data['ID']==self.name]['session_type'].values[0]
-        else:
-            return None
 
     def get_files(self):
         """
@@ -107,7 +94,7 @@ class User(object):
             date_in_string = analysis_helper.get_date_from_path(file)
             current = analysis_helper.date_to_int(date_in_string)
             if current > youngest:
-                filename = self.cut_extension(file)
+                filename = analysis_helper.cut_extension(file)
                 countfiles = 0
                 for filee in self.all_files_list:
                     if filename.lower() in filee.lower():
@@ -193,7 +180,7 @@ class File(object):
 def get_data_fragment(wbb_mgr, start_tag, end_tag):
     data = wii_cut_fragments(wbb_mgr, start_tag_name=start_tag,
                              end_tags_names=[end_tag], TS=True)
-    x, y = analysis_baseline.remove_baseline(data)
+    x, y = analysis_helper.remove_baseline(data)
     return x, y
 
 def get_data(wbb_mgr):
@@ -244,6 +231,36 @@ def get_dual_data_fragments(wbb_mgr):
            task_bacznosc_zgodny1, task_bacznosc_zgodny2, task_bacznosc_niezgodny1, task_bacznosc_niezgodny2, \
            task_gabka_zgodny1, task_gabka_zgodny2, task_gabka_niezgodny1, task_gabka_niezgodny2
 
+def get_short_data(wbb_mgr):
+    """
+    Returns data fragments corresponding to single task in dual files.
+    results[2:13] - ss_zgodny1
+    results[16:27] - ss_niezgodny1
+    results[30:41] - ss_zgodny2
+    results[44:55] - ss_niezgodny2
+
+    results[60:71] - ss_bacznosc_zgodny1
+    results[74:85] - ...
+    results[88:99]
+    results[102:113]
+
+    results[118:129]
+    results[132:143]
+    results[146:157]
+    results[160:171]
+    """
+    results = []
+    tags = wbb_mgr.mgr.get_tags()
+    previous_tag = 0
+    for tag in tags:
+        if previous_tag:
+
+            fragment = wii_cut_fragments(wbb_mgr, start_tag_name=previous_tag['name'],
+                                         end_tags_names=[tag['name']], TS=True)
+            results.append(fragment)
+        previous_tag = tag
+    return results
+
 def user_task_checker(user, task, users_data):
     """
     Checks if a fragment of one user's data is marked as good enough for
@@ -253,3 +270,14 @@ def user_task_checker(user, task, users_data):
         return True
     else:
         return False
+
+def get_session_type(name):
+    """
+    Checks in users.csv (in folder named 'data', provide a proper path!)
+    which type of session this user was performing.
+    """
+    data = pd.read_csv('users.csv', index_col=0, dtype='str')
+    if name in data['ID'].values:
+        return data[data['ID']==name]['session_type'].values[0]
+    else:
+        return None

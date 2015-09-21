@@ -52,6 +52,42 @@ def get_read_manager(file_name, get_data_channels=False, filter=True):
         w = wii_filter_signal(w, 33.5/2, 2, use_filtfilt=True)
     return w
 
+def get_read_manager_from_list(file_list, after_tag_change=True):
+    """
+    Returns WBBReadManager object from list of xml, raw and tag files.
+    after_tag_change - indicates whether to take a tag file afted change or
+    before change (before adding new tags)
+    """
+    if after_tag_change:
+        w = WBBReadManager(file_by_extension(file_list, 'led.obci.xml'),
+                       file_by_extension(file_list, 'led.obci.raw'),
+                       file_by_extension(file_list, 'tag.tag'))
+    else:
+        w = WBBReadManager(file_by_extension(file_list, 'led.obci.xml'),
+                       file_by_extension(file_list, 'led.obci.raw'),
+                       file_by_extension(file_list, '.psychopy.tag'))
+
+    w = wii_filter_signal(w, 33.5/2, 2, use_filtfilt=True)
+    return w
+
+def get_read_managers_by_user(user, after_tag_change=True):
+    """
+    Returns two read managers for one user: for pre data and post data.
+    """
+    path_list = []
+    for paths, subcats, files in walk('./dual_data/' + user + '/pre'):
+        for file in files:
+            path_to_file = './dual_data/' + user + '/pre/' + file
+            path_list.append(path_to_file)
+    w_pre = get_read_manager_from_list(path_list, after_tag_change)
+    path_list = []
+    for paths, subcats, files in walk('./dual_data/' + user + '/post'):
+        for file in files:
+            path_to_file = './dual_data/' + user + '/post/' + file
+            path_list.append(path_to_file)
+    w_post = get_read_manager_from_list(path_list, after_tag_change)
+    return w_pre, w_post
+
 def decode_token(path):
     """
     Extracts tokens form given file path.
@@ -67,6 +103,15 @@ def decode_token(path):
     elements_list.append(str)
     return elements_list
 
+def file_by_extension(file_list, extension):
+    """
+    Returns first file from given list with a certain extension.
+    """
+    for file in file_list:
+        if file[-(len(extension)):] == extension:
+            return file
+    return None
+
 def get_users():
     """
     Extracts user names from list of tokens created from given file list.
@@ -79,6 +124,20 @@ def get_users_as_objects(users_names):
     for user in users_names:
         user_object = analysis_user_file.User(user)
         users.append(user_object)
+
+
+def get_complete_users(path):
+    """
+    Returns list of users' folders in specified path. (Helpful when user
+    folders are organised as: /path/username/pre_or_post/user_files, where
+    path is 'pre_post_data' or 'dual_data')
+    """
+    names_list = []
+    for paths, subcatalogs, files in walk(r'./'+path):
+        for subcatalog in subcatalogs:
+            if subcatalog not in names_list and len(subcatalog) == 4 and subcatalog[3].isdigit():
+                names_list.append(subcatalog)
+    return names_list
 
 def get_date_from_path(file):
     """

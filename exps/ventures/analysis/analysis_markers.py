@@ -13,6 +13,7 @@ import analysis_user_file
 import analysis_helper
 import numpy as np
 import pandas as pd
+from scipy import signal
 
 def velocity(wbb_mgr, x, y):
     return wii_mean_velocity(wbb_mgr, x, y)
@@ -101,6 +102,19 @@ def basic_stats(data, group):
             result_stats['{}{}'.format(test, prefix)] \
                 = pd.Series([mean_value, std_dev])
     return result_stats
+
+def count_area(start, stop, data):
+    area = []
+    for i in range(start, stop):
+        if data[i].any():
+            x = data[i][0]*22.5
+            y = data[i][1]*13
+            area.append(wii_confidence_ellipse_area(x, y))
+    return area
+
+def filter_signal(x):
+    b, a = signal.butter(2, 0.5/(33.5/2), 'high')
+    return signal.filtfilt(b, a, x)
 
 def to_float(list):
     """

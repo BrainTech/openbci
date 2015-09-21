@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Author:
+#       Mateusz Biesaga <mateusz.biesaga@gmail.com>
+#
+
 from __future__ import print_function, division
 from os import *
 
@@ -5,25 +12,8 @@ from obci.analysis.balance.wii_read_manager import WBBReadManager
 from obci.analysis.balance.wii_analysis import *
 from obci.analysis.balance.raw_analysis import *
 from obci.analysis.balance.wii_preprocessing import *
-
-import numpy as np
-from matplotlib import pyplot as plt
-from scipy import signal
-import scipy
 import pandas as pd
-
-import markers, next_markers
-
-def filter_signal(x):
-    b, a = signal.butter(2, 0.5/(33.5/2), 'high')
-    return signal.filtfilt(b, a, x)
-
-def get_data_fragment(wbb_mgr, tag):
-    data = wii_cut_fragments(wbb_mgr, start_tag_name=tag+'_start',
-                             end_tags_names=[tag+'_stop'], TS=True)
-    x = data[0]*22.5
-    y = data[1]*13
-    return x, y
+import analysis_markers, analysis_helper, analysis_user_file
 
 class User(object):
     def __init__(self, user):
@@ -36,16 +26,10 @@ class User(object):
         for file in file_list:
             if self.username in file and 'pre' in file[10:]:
                 # print(file)
-                self.wbb_pre = next_markers.get_read_manager(file)
+                self.wbb_pre = analysis_helper.get_read_manager(file)
             if self.username in file and 'post' in file[10:]:
                 # print(file)
-                self.wbb_post = next_markers.get_read_manager(file)
-
-def user_task_checker(user, task):
-    if int(users_data[users_data['ID'] == user][task].values[0]):
-        return True
-    else:
-        return False
+                self.wbb_post = analysis_helper.get_read_manager(file)
 
 if __name__ == '__main__':
     users_data = pd.read_csv('./users.csv', index_col=0, dtype='str')
@@ -59,7 +43,7 @@ if __name__ == '__main__':
     ax = ['xy', 'x', 'y']
     # MOD_MARKER_TASK_FILT_AXIS_TYPE
 
-    file_list = next_markers.get_file_list('pre_post')
+    file_list = analysis_helper.get_file_list('pre_post')
 
     users = []
     for user in users_names:
@@ -78,20 +62,20 @@ if __name__ == '__main__':
             for task in tasks:
                 if user.wbb_pre is not None and user.wbb_post is not None:
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    pre_data = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    post_data = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    pre_data = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    post_data = analysis_markers.get_marker(marker, user.wbb_post, x, y)
                     # plt.plot(y, x)
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    pre_data_f = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    post_data_f = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    pre_data_f = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    post_data_f = analysis_markers.get_marker(marker, user.wbb_post, x, y)
                     # plt.plot(y, x, color='r')
                     # plt.tight_layout()
                     # mng = plt.get_current_fig_manager()
@@ -104,7 +88,7 @@ if __name__ == '__main__':
                                         pre_data_f[0], post_data_f[0], pre_data_f[1], post_data_f[1], pre_data_f[2], post_data_f[2]]):
                         if (marker == 'COP' or marker == 'elipsa') and 'xy' not in name:
                             continue
-                        if user_task_checker(user.username, task):
+                        if analysis_user_file.user_task_checker(user.username, task):
                             huge_line['{}_{}_{}_{}'.format('axis', marker, task, name)] = pd.Series([t])
                         else:
                             huge_line['{}_{}_{}_{}'.format('axis', marker, task, name)] = pd.Series([' '])
@@ -121,36 +105,36 @@ if __name__ == '__main__':
         for marker in marks:
 
             if user.wbb_pre is not None and user.wbb_post is not None:
-                x, y = get_data_fragment(user.wbb_pre, 'ss')
-                pre_data_base = markers.marker(marker, user.wbb_pre, x, y)
-                x, y = get_data_fragment(user.wbb_post, 'ss')
-                post_data_base = markers.marker(marker, user.wbb_post, x, y)
+                x, y = analysis_user_file.get_data_fragment(user.wbb_pre, 'ss')
+                pre_data_base = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                x, y = analysis_user_file.get_data_fragment(user.wbb_post, 'ss')
+                post_data_base = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
-                x, y = get_data_fragment(user.wbb_pre, 'ss')
-                x = filter_signal(x)
-                y = filter_signal(y)
-                pre_data_f_base = markers.marker(marker, user.wbb_pre, x, y)
-                x, y = get_data_fragment(user.wbb_post, 'ss')
-                x = filter_signal(x)
-                y = filter_signal(y)
-                post_data_f_base = markers.marker(marker, user.wbb_post, x, y)
+                x, y = analysis_user_file.get_data_fragment(user.wbb_pre, 'ss')
+                x = analysis_markers.filter_signal(x)
+                y = analysis_markers.filter_signal(y)
+                pre_data_f_base = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                x, y = analysis_user_file.get_data_fragment(user.wbb_post, 'ss')
+                x = analysis_markers.filter_signal(x)
+                y = analysis_markers.filter_signal(y)
+                post_data_f_base = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
             for task in tasks:
                 if user.wbb_pre is not None and user.wbb_post is not None:
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    pre_data = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    post_data = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    pre_data = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    post_data = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    pre_data_f = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    post_data_f = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    pre_data_f = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    post_data_f = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
                     for name, t in zip(['nonfilt_xy_pre', 'nonfilt_xy_post', 'nonfilt_x_pre', 'nonfilt_x_post', 'nonfilt_y_pre', 'nonfilt_y_post',
                                         'filt_xy_pre', 'filt_xy_post', 'filt_x_pre', 'filt_x_post', 'filt_y_pre', 'filt_y_post'],
@@ -158,7 +142,7 @@ if __name__ == '__main__':
                                         pre_data_f_base[0]/pre_data_f[0], post_data_f_base[0]/post_data_f[0], pre_data_f_base[1]/pre_data_f[1], post_data_f_base[1]/post_data_f[1], pre_data_f_base[2]/pre_data_f[2], post_data_f_base[2]/post_data_f[2]]):
                         if (marker == 'COP' or marker == 'elipsa') and 'xy' not in name:
                             continue
-                        if user_task_checker(user.username, task):
+                        if analysis_user_file.user_task_checker(user.username, task):
                             huge_line['{}_{}_{}_{}'.format('romberg', marker, task, name)] = pd.Series([t])
                         else:
                             huge_line['{}_{}_{}_{}'.format('romberg', marker, task, name)] = pd.Series([' '])
@@ -178,27 +162,27 @@ if __name__ == '__main__':
             for task in tasks:
                 if user.wbb_pre is not None and user.wbb_post is not None:
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    pre_data = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    post_data = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    pre_data = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    post_data = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
-                    x, y = get_data_fragment(user.wbb_pre, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    pre_data_f = markers.marker(marker, user.wbb_pre, x, y)
-                    x, y = get_data_fragment(user.wbb_post, task)
-                    x = filter_signal(x)
-                    y = filter_signal(y)
-                    post_data_f = markers.marker(marker, user.wbb_post, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_pre, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    pre_data_f = analysis_markers.get_marker(marker, user.wbb_pre, x, y)
+                    x, y = analysis_user_file.get_data_fragment(user.wbb_post, task)
+                    x = analysis_markers.filter_signal(x)
+                    y = analysis_markers.filter_signal(y)
+                    post_data_f = analysis_markers.get_marker(marker, user.wbb_post, x, y)
 
                     for name, t in zip(['nonfilt_xy', 'nonfilt_x', 'nonfilt_y',
                                         'filt_xy', 'filt_x', 'filt_y'],
-                                       [markers.poly(pre_data[0], post_data[0]), markers.poly(pre_data[1], post_data[1]), markers.poly(pre_data[2], post_data[2]),
-                                        markers.poly(pre_data_f[0], post_data_f[0]), markers.poly(pre_data_f[1], post_data_f[1]), markers.poly(pre_data_f[2], post_data_f[2])]):
+                                       [analysis_markers.poly(pre_data[0], post_data[0]), analysis_markers.poly(pre_data[1], post_data[1]), analysis_markers.poly(pre_data[2], post_data[2]),
+                                        analysis_markers.poly(pre_data_f[0], post_data_f[0]), analysis_markers.poly(pre_data_f[1], post_data_f[1]), analysis_markers.poly(pre_data_f[2], post_data_f[2])]):
                         if (marker == 'COP' or marker == 'elipsa') and 'xy' not in name:
                             continue
-                        if user_task_checker(user.username, task):
+                        if analysis_user_file.user_task_checker(user.username, task):
                             huge_line['{}_{}_{}_{}'.format('poly', marker, task, name)] = pd.Series([t])
                         else:
                             huge_line['{}_{}_{}_{}'.format('poly', marker, task, name)] = pd.Series([' '])
@@ -208,13 +192,6 @@ if __name__ == '__main__':
 
     huge_data = pd.concat([huge_data, poly], axis=1, join_axes=[huge_data.index])
 
-    huge_data.to_csv("data/i_love_huge_data.csv", sep=',')
+    huge_data.to_csv("data/pre_post_huge_data.csv", sep=',')
 
     print(huge_data)
-
-
-
-
-
-
-
