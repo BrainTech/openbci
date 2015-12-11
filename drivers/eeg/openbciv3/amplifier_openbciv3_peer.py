@@ -68,16 +68,15 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
 
     
     def _samples_callback(self, params):
-        samples, timestamp = params[0], params[1]
-        self.collected_samples.append((samples, timestamp))
+        self.collected_samples.append((params[0], params[1]))
         if len(self.collected_samples) == self.samples_per_packet:
             v = variables_pb2.SampleVector()
             for sample, ts in self.collected_samples:
                 s = v.samples.add()
                 s.channels.extend(sample)
                 s.timestamp = ts
+            self.collected_samples = []                
             self._send(self._create_mx_msg(v))
-            self.collected_samples = []
 
 if __name__ == "__main__":
-    PyAmplifierHard(settings.MULTIPLEXER_ADDRESSES).do_sampling()
+    PyAmplifierOpenBCI_V3(settings.MULTIPLEXER_ADDRESSES).do_sampling()
