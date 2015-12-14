@@ -64,7 +64,7 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
 
         port = self.get_param('port')
         
-        xxx = board.set_params(active_channels=active_channels,
+        xxx = self.board.set_params(active_channels=active_channels,
                                sampling_frequency=self.sampling_rate,
                                port=port,
                                dummy=dummy)
