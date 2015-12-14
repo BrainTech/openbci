@@ -16,7 +16,7 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
 
     def _init(self):
         self._manage_params()
-        self.board.start_streaming(self._samples_callback)        
+        self.board.start(self._samples_callback)        
         self.ready()
 
     def _manage_params(self):
@@ -73,12 +73,12 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
             self.logger.info("Connected to OpenBCI.com V3 board...")
         elif int(self.get_param("amplifier_online")) == 0:
             self.logger.info("Connected to OpenBCI.com V3 (DUMMY) board...")
-    
+
     def _samples_callback(self, params):
         self.collected_samples.append((params[0], params[1]))
         if len(self.collected_samples) == self.samples_per_packet:
             v = variables_pb2.SampleVector()
-            for sample, ts in self.collected_samples:
+            for ts, sample in self.collected_samples:
                 s = v.samples.add()
                 s.channels.extend(sample)
                 s.timestamp = ts

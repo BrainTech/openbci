@@ -1,13 +1,12 @@
 import serial
 import struct
-import numpy as np
+#import numpy as np
 import time
-import timeit
+#import timeit
 import atexit
 import logging
 import threading
 import sys
-import pdb
 import random
 
 EEG_CHANNELS = 8
@@ -58,31 +57,37 @@ class OpenBCIBoard(object):
                    dummy = False):
 
             assert len(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS) and max(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS)
-            self.active_channels = active_channels
-
             assert float(sampling_frequency) == SAMPLING_FREQUENCY
-            self.sampling_frequency = sampling_frequency
-
+            
+            self.active_channels = active_channels
+            self.sampling_frequency = float(sampling_frequency)
             self.port = port
-
             self.dummy = dummy
 
             if not self.dummy:
                 # self.log = log # print_incoming_text needs log
                 print("Connecting to V3 at port %s" %(self.port))
-                self.ser = serial.Serial(port= self.port, baudrate = 115200, timeout=None)
+                
+                self.ser = serial.Serial(port=self.port, 
+                                         baudrate=115200, 
+                                         timeout=None)
+                
                 print("Serial established...")
 
-                time.sleep(2)
+                time.sleep(1)
+                
                 #Initialize 32-bit board, doesn't affect 8bit board
                 self.ser.write('v')
+                
                 #wait for device to be ready
                 time.sleep(1)
+                
                 # self.print_incoming_text()
 
                 #Disconnects from board when terminated
                 atexit.register(self.disconnect)
-            return True #TODO
+            
+            return True  # TODO
   
     def get_sampling_frequency(self):
         return SAMPLING_FREQUENCY
@@ -91,7 +96,7 @@ class OpenBCIBoard(object):
         return EEG_CHANNELS
   
     def get_aux_channels_namber(self):
-        return  AUX_CHANNELS
+        return AUX_CHANNELS
 
     def start(self, callback):
         if self.dummy:
@@ -99,8 +104,7 @@ class OpenBCIBoard(object):
             while self.streaming:
                 sample = self._get_dummy_sample()
                 callback(sample)
-                self.log_packet_count +=1
-
+                self.log_packet_count += 1
         else:
             if not self.streaming:
                 self.ser.write('b')
@@ -113,10 +117,12 @@ class OpenBCIBoard(object):
                 # read current sample
                 sample = self._read_serial_binary()
                 callback(sample)
-                self.log_packet_count +=1
+                self.log_packet_count += 1
 
     def _get_dummy_sample(self):
-        return [time.time(), [random.random() for i in range(EEG_CHANNELS+AUX_CHANNELS) if i in self.active_channels]]
+        return (time.time(), [random.random()
+                              for i in range(EEG_CHANNELS + AUX_CHANNELS) 
+                              if i in self.active_channels])
 
     def _read_serial_binary(self, max_bytes_to_skip=3000):
         """
@@ -199,7 +205,7 @@ class OpenBCIBoard(object):
                 if (val == END_BYTE):
                     channel_data = sum([channel_data, aux_data], [])
                     channel_data = [ch_data for i, ch_data in enumerate(channel_data) if i in self.active_channels]
-                    sample = [timestamp, channel_data]
+                    sample = (timestamp, channel_data)
                     self.packets_dropped = 0
                     return sample
                 else:
@@ -217,9 +223,9 @@ class OpenBCIBoard(object):
             #     logging.warning('sent <s>: stopped streaming')
 
     def disconnect(self):
-        if(self.streaming == True):
+        if self.streaming == True:
             self.stop()
-        if (self.ser.isOpen()):
+        if self.ser.isOpen():
             print("Closing Serial...")
             self.ser.close()
             logging.warning('serial closed')
