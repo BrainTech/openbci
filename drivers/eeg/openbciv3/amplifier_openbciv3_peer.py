@@ -4,6 +4,7 @@
 from obci.drivers.generic import py_amplifier
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
+from multiplexer.multiplexer_constants import peers, types
 
 from openbciv3 import OpenBCIBoard
 
@@ -12,12 +13,12 @@ MAX_CHANNELS = 8 + 3  # 8 signal channels + 3 auxiliary channels
 class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
     @log_crash
     def __init__(self, addresses):
-        super(PyAmplifierOpenBCI_V3, self).__init__(addresses=addresses, type=peers.AMPLIFIER)
+        super(PyAmplifierOpenBCI_V3, self).__init__(addresses=addresses, peer_type=peers.AMPLIFIER)
 
     def _init(self):
         self._manage_params()
-        self.board.start(self._samples_callback)        
         self.ready()
+        self.board.start(self._samples_callback)        
 
     def _manage_params(self):
         super(PyAmplifierOpenBCI_V3, self)._manage_params()
