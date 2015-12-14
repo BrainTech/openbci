@@ -1,21 +1,3 @@
-"""
-Core OpenBCI object for handling connections and samples from the board.
-
-EXAMPLE USE:
-
-def handle_sample(sample):
-  print(sample.channels)
-
-board = OpenBCIBoard(port="/dev/ttyUSB0")
-board.print_register_settings()
-board.start_streaming(handle_sample)
-
-NOTE: If daisy modules is enabled, the callback will occur every two samples, hence "packet_id" will only contain even numbers. As a side effect, the sampling rate will be divided by 2.
-
-FIXME: at the moment we can just force daisy mode, do not check that the module is detected.
-
-
-"""
 import serial
 import struct
 import numpy as np
@@ -26,6 +8,7 @@ import logging
 import threading
 import sys
 import pdb
+import random
 
 EEG_CHANNELS = 8
 AUX_CHANNELS = 3
@@ -71,7 +54,8 @@ class OpenBCIBoard(object):
     def set_params(self, 
                    active_channels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                    sampling_frequency = SAMPLING_FREQUENCY,
-                   port = None):
+                   port = None,
+                   dummy = False):
 
             assert len(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS) and max(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS)
             self.active_channels = active_channels
@@ -81,20 +65,23 @@ class OpenBCIBoard(object):
 
             self.port = port
 
-            # self.log = log # print_incoming_text needs log
-            print("Connecting to V3 at port %s" %(self.port))
-            self.ser = serial.Serial(port= self.port, baudrate = 115200, timeout=None)
-            print("Serial established...")
+            self.dummy = dummy
 
-            time.sleep(2)
-            #Initialize 32-bit board, doesn't affect 8bit board
-            self.ser.write('v')
-            #wait for device to be ready
-            time.sleep(1)
-            # self.print_incoming_text()
+            if not self.dummy:
+                # self.log = log # print_incoming_text needs log
+                print("Connecting to V3 at port %s" %(self.port))
+                self.ser = serial.Serial(port= self.port, baudrate = 115200, timeout=None)
+                print("Serial established...")
 
-            #Disconnects from board when terminated
-            atexit.register(self.disconnect)
+                time.sleep(2)
+                #Initialize 32-bit board, doesn't affect 8bit board
+                self.ser.write('v')
+                #wait for device to be ready
+                time.sleep(1)
+                # self.print_incoming_text()
+
+                #Disconnects from board when terminated
+                atexit.register(self.disconnect)
             return True #TODO
   
     def get_sampling_frequency(self):
@@ -106,22 +93,30 @@ class OpenBCIBoard(object):
     def get_aux_channels_namber(self):
         return  AUX_CHANNELS
 
-    def start_streaming(self, callback):
-
-        if not self.streaming:
-            self.ser.write('b')
+    def start(self, callback):
+        if self.dummy:
             self.streaming = True
+            while self.streaming:
+                sample = self._get_dummy_sample()
+                callback(sample)
+                self.log_packet_count +=1
 
-        #Initialize check connection
-        self.check_connection()
+        else:
+            if not self.streaming:
+                self.ser.write('b')
+                self.streaming = True
 
-        while self.streaming:
+            #Initialize check connection
+            self.check_connection()
 
-            # read current sample
-            sample = self._read_serial_binary()
-            # if a daisy module is attached, wait to concatenate two samples (main board + daisy) before passing it to callback
-            callback(sample)
-            self.log_packet_count = self.log_packet_count + 1;
+            while self.streaming:
+                # read current sample
+                sample = self._read_serial_binary()
+                callback(sample)
+                self.log_packet_count +=1
+
+    def _get_dummy_sample(self):
+        return [time.time(), [random.random() for i in range(EEG_CHANNELS+AUX_CHANNELS) if i in self.active_channels]]
 
     def _read_serial_binary(self, max_bytes_to_skip=3000):
         """
@@ -216,9 +211,10 @@ class OpenBCIBoard(object):
     def stop(self):
         print("Stopping streaming...\nWait for buffer to flush...")
         self.streaming = False
-        self.ser.write('s')
-        # if self.log:
-        #     logging.warning('sent <s>: stopped streaming')
+        if not self.dummy:
+            self.ser.write('s')
+            # if self.log:
+            #     logging.warning('sent <s>: stopped streaming')
 
     def disconnect(self):
         if(self.streaming == True):
