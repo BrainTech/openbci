@@ -5,6 +5,8 @@ from obci.drivers.generic import py_amplifier
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
+from openbciv3 import OpenBCIBoard
+
 MAX_CHANNELS = 8 + 3  # 8 signal channels + 3 auxiliary channels
 
 class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
@@ -44,28 +46,33 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
             self.logger.error("'sampling_rate' parameter must be set to 250. ABORTING...")
             sys.exit(1)
 
+        try:
+            self.board = OpenBCIBoard()
+        except Exception as error:
+            self.logger.error("{} ABORTING...".format(error))
+            sys.exit(1)
+
         if int(self.get_param("amplifier_online")) == 1:
             self.logger.info("Initializing OpenBCI.com V3 board...")
-            try:
-                self.board = OpenBCIV3_Board()
-            except Exception as error:
-                self.logger.error("{} ABORTING...".format(error))
-                sys.exit(1)
-            self.logger.info("Connected to OpenBCI.com V3 board...")
+            dummy = False
         elif int(self.get_param("amplifier_online")) == 0:
             self.logger.info("Initializing OpenBCI.com V3 (DUMMY) board...")
-            self.board = OpenBCIV3_Board_Dummy()
-            self.logger.info("Connected to OpenBCI.com V3 (DUMMY) board...")
+            dummy = True
         else:
             self.logger.error("'amplifier_online' parameter must be 0 or 1. ABORTING...")
             sys.exit(1)
 
         port = self.get_param('port')
         
-        self.board.set_param(active_channels, 
-                             self.sampling_rate, 
-                             port)
+        xxx = board.set_params(active_channels=active_channels,
+                               sampling_frequency=self.sampling_rate,
+                               port=port,
+                               dummy=dummy)
 
+        if int(self.get_param("amplifier_online")) == 1:
+            self.logger.info("Connected to OpenBCI.com V3 board...")
+        elif int(self.get_param("amplifier_online")) == 0:
+            self.logger.info("Connected to OpenBCI.com V3 (DUMMY) board...")
     
     def _samples_callback(self, params):
         self.collected_samples.append((params[0], params[1]))
@@ -80,3 +87,4 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
 
 if __name__ == "__main__":
     PyAmplifierOpenBCI_V3(settings.MULTIPLEXER_ADDRESSES).do_sampling()
+
