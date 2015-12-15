@@ -110,6 +110,7 @@ ALL_CHANNELS_INFO = [
                 }
 
             ]
+AMP_NAME="OPENBCIV3"
 EEG_CHANNELS = 8
 AUX_CHANNELS = 3
 SAMPLING_FREQUENCY = 250  # Hz
@@ -195,7 +196,7 @@ class OpenBCIBoard(object):
         return ALL_CHANNELS_INFO
 
     def get_name(self):
-	return "OBCIv3"
+	return AMP_NAME
 
     def get_sampling_rates(self):
         return [SAMPLING_FREQUENCY]

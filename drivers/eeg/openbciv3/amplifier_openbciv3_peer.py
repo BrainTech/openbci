@@ -61,7 +61,7 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
         self.set_param('sampling_rates', self.board.get_sampling_rates())
  	self.set_param("channels_info", channels_info)
 
-        port = self.get_param('port') 
+        port = self.get_param('usb_device') 
         xxx = self.board.set_params(active_channels=active_channels,
                                sampling_frequency=self.sampling_rate,
                                port=port,
