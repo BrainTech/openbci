@@ -8,10 +8,111 @@ import logging
 import threading
 import sys
 import random
+ALL_CHANNELS_INFO = [
+               {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch1", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch2", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch3", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch4", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                },
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch5", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch6", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch7", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                }, 
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Ch8", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -6"
+                },
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Aux1", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -3"
+                },
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Aux2", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -3"
+                },
+                {
+                    "gain": 1.0, 
+                    "idle": 2147483648, 
+                    "name": "Aux3", 
+                    "offset": 0.0, 
+                    "other_params": [], 
+                    "type": "UNKNOWN", 
+                    "unit": "Volt -3"
+                }
 
+            ]
 EEG_CHANNELS = 8
 AUX_CHANNELS = 3
-SAMPLING_FREQUENCY = 250.0  # Hz
+SAMPLING_FREQUENCY = 250  # Hz
 START_BYTE = 0xA0  # start of data packet
 END_BYTE = 0xC0  # end of data packet
 ADS1299_Vref = 4.5  #reference voltage for ADC in ADS1299.  set by its hardware
@@ -89,14 +190,28 @@ class OpenBCIBoard(object):
             
             return True  # TODO
   
-    def get_sampling_frequency(self):
-        return SAMPLING_FREQUENCY
+
+    def _get_all_channels_info(self):
+        return ALL_CHANNELS_INFO
+
+    def get_name(self):
+	return "OBCIv3"
+
+    def get_sampling_rates(self):
+        return [SAMPLING_FREQUENCY]
   
-    def get_eeg_channels_number(self):
-        return EEG_CHANNELS
-  
-    def get_aux_channels_namber(self):
-        return AUX_CHANNELS
+    def get_channels_count(self):
+        return EEG_CHANNELS + AUX_CHANNELS
+
+    def get_channels_info(self, active_channels=None):
+	all_channels_info = self._get_all_channels_info()
+	if active_channels is None:
+	    return all_channels_info
+        else:
+	    ret = []
+	    for ch_no in active_channels:
+	        ret.append(all_channels_info[ch_no])
+            return ret
 
     def start(self, callback):
         if self.dummy:
