@@ -1,3 +1,9 @@
+openbci (1.8.27-1) unstable; urgency=medium
+
+  * OpenBCI.com V3 amplifier support
+
+ -- Alex Khrabrov <alex@mroja.net>  Tue, 01 Nov 2016 10:00:16 +0100
+
 openbci (1.8.26-1) unstable; urgency=medium
 
   * New presets
