@@ -1,3 +1,9 @@
+openbci (1.8.27-2) unstable; urgency=medium
+
+  * Fix packages building
+
+ -- Alex Khrabrov <alex@mroja.net>  Fri, 08 Jan 2016 13:29:23 +0100
+
 openbci (1.8.27-1) unstable; urgency=medium
 
   * OpenBCI.com V3 amplifier support
