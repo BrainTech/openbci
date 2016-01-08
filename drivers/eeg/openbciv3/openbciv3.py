@@ -1,125 +1,127 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import sys
+import time
 import serial
 import struct
-#import numpy as np
-import time
-#import timeit
 import atexit
+import random
 import logging
 import threading
-import sys
-import random
-ALL_CHANNELS_INFO = [
-               {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch1", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch2", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch3", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch4", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                },
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch5", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch6", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch7", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                }, 
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Ch8", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -6"
-                },
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Aux1", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -3"
-                },
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Aux2", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -3"
-                },
-                {
-                    "gain": 1.0, 
-                    "idle": 2147483648, 
-                    "name": "Aux3", 
-                    "offset": 0.0, 
-                    "other_params": [], 
-                    "type": "UNKNOWN", 
-                    "unit": "Volt -3"
-                }
 
-            ]
-AMP_NAME="OPENBCIV3"
+ALL_CHANNELS_INFO = [
+   {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch1", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch2", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch3", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch4", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    },
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch5", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch6", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch7", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    }, 
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Ch8", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -6"
+    },
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Aux1", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -3"
+    },
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Aux2", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -3"
+    },
+    {
+        "gain": 1.0, 
+        "idle": 2147483648, 
+        "name": "Aux3", 
+        "offset": 0.0, 
+        "other_params": [], 
+        "type": "UNKNOWN", 
+        "unit": "Volt -3"
+    }
+]
+
+AMP_NAME = 'OPENBCIV3'
 EEG_CHANNELS = 8
 AUX_CHANNELS = 3
 SAMPLING_FREQUENCY = 250  # Hz
 START_BYTE = 0xA0  # start of data packet
 END_BYTE = 0xC0  # end of data packet
-ADS1299_Vref = 4.5  #reference voltage for ADC in ADS1299.  set by its hardware
-ADS1299_gain = 24.0  #assumed gain setting for ADS1299.  set by its Arduino code
+ADS1299_Vref = 4.5  # reference voltage for ADC in ADS1299. set by its hardware
+ADS1299_gain = 24.0  # assumed gain setting for ADS1299. set by its Arduino code
 scale_fac_uVolts_per_count = ADS1299_Vref/float((pow(2,23)-1))/ADS1299_gain*1000000.
-scale_fac_accel_G_per_count = 0.002 /(pow(2,4)) #assume set to +/4G, so 2 mG 
+scale_fac_accel_G_per_count = 0.002 /(pow(2,4))  # assume set to +/4G, so 2 mG 
 
 '''
 #Commands for in SDK http://docs.openbci.com/software/01-Open BCI_SDK:
@@ -158,7 +160,8 @@ class OpenBCIBoard(object):
                    port = None,
                    dummy = False):
 
-            assert len(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS) and max(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS)
+            assert len(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS)
+            assert max(active_channels) <= (EEG_CHANNELS+AUX_CHANNELS)
             assert float(sampling_frequency) == SAMPLING_FREQUENCY
             
             self.active_channels = active_channels
@@ -178,15 +181,15 @@ class OpenBCIBoard(object):
 
                 time.sleep(1)
                 
-                #Initialize 32-bit board, doesn't affect 8bit board
+                # initialize 32-bit board, doesn't affect 8bit board
                 self.ser.write('v')
                 
-                #wait for device to be ready
+                # wait for device to be ready
                 time.sleep(1)
                 
                 # self.print_incoming_text()
 
-                #Disconnects from board when terminated
+                # disconnects from board when terminated
                 atexit.register(self.disconnect)
             
             return True  # TODO
@@ -226,7 +229,7 @@ class OpenBCIBoard(object):
                 self.ser.write('b')
                 self.streaming = True
 
-            #Initialize check connection
+            # initialize check connection
             self.check_connection()
 
             while self.streaming:

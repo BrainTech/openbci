@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+
 from obci.drivers.generic import py_amplifier
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
@@ -11,10 +12,13 @@ from openbciv3 import OpenBCIBoard
 
 MAX_CHANNELS = 8 + 3  # 8 signal channels + 3 auxiliary channels
 
+
 class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
     @log_crash
     def __init__(self, addresses):
-        super(PyAmplifierOpenBCI_V3, self).__init__(addresses=addresses, peer_type=peers.AMPLIFIER)
+        super(PyAmplifierOpenBCI_V3, self).
+            __init__(addresses=addresses, 
+                     peer_type=peers.AMPLIFIER)
 
     def _init(self):
         self._manage_params()
@@ -55,11 +59,12 @@ class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
         except Exception as error:
             self.logger.error("{} ABORTING...".format(error))
             sys.exit(1)
+
         channels_info = self.board.get_channels_info(active_channels)
         self.set_param('channel_gains', ';'.join([str(ch["gain"]) for ch in channels_info]))
         self.set_param('channel_offsets', ';'.join([str(ch["offset"]) for ch in channels_info]))
         self.set_param('sampling_rates', self.board.get_sampling_rates())
- 	self.set_param("channels_info", channels_info)
+        self.set_param("channels_info", channels_info)
 
         port = self.get_param('usb_device') 
         xxx = self.board.set_params(active_channels=active_channels,
