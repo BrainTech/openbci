@@ -5,6 +5,7 @@ drivers/eeg/*.py	  /usr/share/openbci/drivers/eeg
 drivers/eeg/*.ini	  /usr/share/openbci/drivers/eeg
 drivers/eeg/*.info	  /usr/share/openbci/drivers/eeg
 drivers/eeg/*.dat	  /usr/share/openbci/drivers/eeg
+drivers/eeg/openbciv3	  /usr/share/openbci/drivers/eeg
 drivers/eeg/driver_discovery	  /usr/share/openbci/drivers/eeg
 drivers/eeg/cpp_amplifiers/configs	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
 drivers/eeg/cpp_amplifiers/*.py	  /usr/share/openbci/drivers/eeg/cpp_amplifiers
