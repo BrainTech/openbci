@@ -56,6 +56,8 @@ public:
 			return *((int32_t*)data);
 		case UINT32:
 			return *((uint32_t*)data);
+		default:
+			return 0.0f; // better return 0 than crash if type is invalid
 		}
 	}
 };
