@@ -1,3 +1,9 @@
+openbci (1.8.29-1) unstable; urgency=medium
+
+  * Fixed syntax error
+
+ -- Alex Khrabrov <alex@mroja.net>  Sun, 09 Jan 2016 16:00:17 +0100
+
 openbci (1.8.28-2) unstable; urgency=medium
 
   * Fix local OBCI mode
