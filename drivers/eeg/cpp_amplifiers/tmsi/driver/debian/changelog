@@ -1,3 +1,9 @@
+tmsi (1.8-3~) unstable; urgency=medium
+
+  * Fixed few possible crashes
+
+ -- Alex Khrabrov <alex@mroja.net>  Sun, 09 Jan 2016 17:22:26 +0100
+
 tmsi (1.8-2~) unstable; urgency=low
 
   * SYNFI driver stability update
