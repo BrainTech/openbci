@@ -19,7 +19,7 @@ import obci.control.common.obci_control_settings as settings
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
 from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
-import obci.control.launcher.launcher_tools as launcher_tools
+import launcher_tools
 
 from obci.utils.openbci_logging import get_logger, log_crash
 

@@ -1,3 +1,9 @@
+openbci-amplifiers (1.8.10-1) unstable; urgency=medium
+
+  * Fixed few possible crashes
+
+ -- Alex Khrabrov <alex@mroja.net>  Sun, 09 Jan 2016 17:22:26 +0100
+
 openbci-amplifiers (1.8.9-1) unstable; urgency=medium
 
   * New multiplexer rules

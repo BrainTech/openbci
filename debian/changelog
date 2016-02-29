@@ -1,3 +1,21 @@
+openbci (1.8.30-1) unstable; urgency=medium
+
+  * Fixed few possible crashes
+
+ -- Alex Khrabrov <alex@mroja.net>  Sun, 09 Jan 2016 17:22:26 +0100
+
+openbci (1.8.29-1) unstable; urgency=medium
+
+  * Fixed syntax error
+
+ -- Alex Khrabrov <alex@mroja.net>  Sun, 09 Jan 2016 16:00:17 +0100
+
+openbci (1.8.28-2) unstable; urgency=medium
+
+  * Fix local OBCI mode
+
+ -- Alex Khrabrov <alex@mroja.net>  Fri, 08 Jan 2016 18:00:46 +0100
+
 openbci (1.8.27-2) unstable; urgency=medium
 
   * Fix packages building

@@ -14,7 +14,7 @@ import socket
 
 import zmq
 
-from obci.control.launcher import launcher_tools
+import launcher_tools
 launcher_tools.update_obci_syspath()
 launcher_tools.update_pythonpath()
 

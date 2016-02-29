@@ -16,9 +16,8 @@ MAX_CHANNELS = 8 + 3  # 8 signal channels + 3 auxiliary channels
 class PyAmplifierOpenBCI_V3(py_amplifier.PyAmplifier):
     @log_crash
     def __init__(self, addresses):
-        super(PyAmplifierOpenBCI_V3, self).
-            __init__(addresses=addresses, 
-                     peer_type=peers.AMPLIFIER)
+        super(PyAmplifierOpenBCI_V3, self).__init__(addresses=addresses, 
+                                                    peer_type=peers.AMPLIFIER)
 
     def _init(self):
         self._manage_params()

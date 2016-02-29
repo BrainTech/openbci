@@ -31,7 +31,8 @@ char * Logger::header(char * buffer) {
 	struct tm timeinfo = to_tm(now);
 	strftime(buffer, 100, "%Y-%m-%d %H:%M:%S", &timeinfo);
 	sprintf(buffer, "%s,%.3lld - %s - ", buffer,
-			now.time_of_day().total_microseconds() % 1000000 / 1000, name);
+			static_cast<long long int>(now.time_of_day().total_microseconds() % 1000000 / 1000), 
+			name);
 	return buffer;
 }
 void Logger::info(const char * string, ...) {
