@@ -179,7 +179,7 @@ def get_percentages_being(signal, fs, grid=0.1, plot=True):
 		percentages_being /= (signal.shape[1]*1/fs)
 		percentages_being *= 100
 		if plot:
-			plot_percentages_being(grid, percentages_being, xedges, yedges)
+			plot_percentages_being(grid, percentages_being, xedges, yedges, signal)
 		plt.show()
 		return percentages_being, xedges, yedges
 
@@ -204,8 +204,8 @@ def get_percentages_values(signal, fs, plot=True):
 	top_left = 0
 	bottom_right = 0
 	bottom_left = 0
-	for i,x in enumerate(xedges[1:]):
-		for j,y in enumerate(yedges[1:]):
+	for j,x in enumerate(xedges[1:-1]):
+		for i,y in enumerate(yedges[1:-1]):
 			if x > 0 and y > 0:
 				top_right += p[j,i]
 			elif x < 0 and y > 0:
@@ -226,7 +226,7 @@ def get_grid(grid, x_min, x_max, y_min, y_max):
 	index_max_x = np.searchsorted(grid_x, x_max)
 	return grid_x[index_min_x-1:index_max_x+1], grid_y[index_min_y-1:index_max_y+1]
 
-def plot_percentages_being(grid, percentages_being, xedges, yedges):
+def plot_percentages_being(grid, percentages_being, xedges, yedges, sig):
 	fig = plt.figure()
 	ax = fig.gca()
 	ax.set_title('histogram with percentagles\nbegining in field {}cm x {}cm [time %].'.format(grid, grid))
@@ -241,6 +241,7 @@ def plot_percentages_being(grid, percentages_being, xedges, yedges):
 	ax.set_aspect('equal')
 	ax.set_xlabel('x [cm]')
 	ax.set_ylabel('y [cm]')
+	ax.plot(sig[0], sig[1], 'w')
 
 def tripping_get_percentages(signal, fs, plot=False):
 	top_right, top_left, bottom_right, bottom_left = get_percentages_values(signal, fs, plot=plot)

@@ -18,8 +18,7 @@
 #
 
 def get_start_text():
-	return u'\nWitamy! Zanim rozpoczniesz trening, masz do wykonania dwa zadania rozgrzewkowe, których celem jest określenie Twojej dzisiejszej dyspozycji.\n\n\
-	Przed Tobą pierwsze z nich.\n\n\n\n\n\n\n<aby przejść dalej naciśnij spację>'
+	return u'\n\n\nWitamy! \n\n\n\n\n\n\n\n\n\n<aby przejść do instrukcji naciśnij spację>'
 
 def get_instruction_text():
 	return u'\nTwoim zadaniem jest jak najbardziej wypełnić zielonym kolorem białe obszary wyświetlone na ekranie.\n\
@@ -27,6 +26,6 @@ def get_instruction_text():
 	Obszary te wychodzą od środka ekranu w czterech kierunkach:\n\
 	do przodu, do tyłu, w lewo, w prawo.\n\n\
 	Wychylaj się powoli, pamiętając, aby w żadnym momencie nie oderwać stóp od podłoża.\n\n\
-	Żółtym kolorem oznaczone będą Twoje wyniki z poprzedniej sesji.\n\
-	Postaraj się polepszyć swój rezultat!\n\n\
+	\n\n\
+	\n\n\
 	<aby rozpocząć zadanie naciśnij spację>'
