@@ -1,3 +1,9 @@
+openbci (1.8.32-1) unstable; urgency=medium
+
+  * Small fix for newtech
+
+ -- Alex Khrabrov <alex@mroja.net>  Tue, 01 Mar 2016 14:09:24 +0100
+
 openbci (1.8.31-1) unstable; urgency=medium
 
   * Merge newtech
