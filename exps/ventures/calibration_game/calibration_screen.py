@@ -39,6 +39,7 @@ class CalibrationScreen(object):
         pygame.display.init()
         self._init_blocks()
         self._init_level_max()
+        self._init_level_max_()
         self.set_calibration_last_value(0,0,0,0)
         self._load_resources()
         self.text_rect = pygame.Rect((0, 10, 640, 470))
@@ -51,10 +52,14 @@ class CalibrationScreen(object):
         return int(self.get_block_size()*(float(value)/100))
 
     def set_calibration_last_value(self, up, right, down, left):
-        self.get_block('up').set_level_last(self._value2px(up))
-        self.get_block('right').set_level_last(self._value2px(right))
-        self.get_block('down').set_level_last(self._value2px(down))
-        self.get_block('left').set_level_last(self._value2px(left))
+        # self.get_block('up').set_level_last(self._value2px(up))
+        # self.get_block('right').set_level_last(self._value2px(right))
+        # self.get_block('down').set_level_last(self._value2px(down))
+        # self.get_block('left').set_level_last(self._value2px(left))
+        self.get_block('up').set_level_last(0)
+        self.get_block('right').set_level_last(0)
+        self.get_block('down').set_level_last(0)
+        self.get_block('left').set_level_last(0)
 
     def _display_screen_helper(self, image, text='', color=(250, 250, 250)):
         self.screen.blit(self.black_screen, (0, 0))
@@ -76,6 +81,12 @@ class CalibrationScreen(object):
         self.level_max_right = 0
         self.level_max_up = 0
         self.level_max_down = 0
+
+    def _init_level_max_(self):
+        self.level_max_left_ = 0
+        self.level_max_right_ = 0
+        self.level_max_up_ = 0
+        self.level_max_down_ = 0
 
     def _init_blocks(self):
         self.block_right = DrawBlock(self.screen, 'right')
@@ -116,6 +127,22 @@ class CalibrationScreen(object):
         elif level_max_type == 'down' and value > self.level_max_down:
             self.level_max_down = value
 
+    def update_level_max_(self, level_max_type, value):
+        if level_max_type == 'right' and value > self.level_max_right_:
+            self.level_max_right_ = value
+
+        elif level_max_type == 'left' and value > self.level_max_left_:
+            self.level_max_left_ = value
+
+        elif level_max_type == 'up' and value > self.level_max_up_:
+            self.level_max_up_ = value
+
+        elif level_max_type == 'down' and value > self.level_max_down_:
+            self.level_max_down_ = value
+
+    def get_level_max_(self):
+            return self.level_max_right_, self.level_max_left_, self.level_max_up_, self.level_max_down_
+
     def get_level_max(self, level_max_type):
         if level_max_type == 'right':
             return self.level_max_right
@@ -134,8 +161,10 @@ class CalibrationScreen(object):
 
     def update_block(self, block_type, level):
         if block_type != 'baseline':
+            self.update_level_max_(block_type, level)
             level = self._value2px(level)
             self.update_level_max(block_type, level)
+
             self.get_block(block_type).draw_level(level, self.get_level_max(block_type))
         for block_t in ['right', 'left', 'down', 'up']:
             if not block_t == block_type:

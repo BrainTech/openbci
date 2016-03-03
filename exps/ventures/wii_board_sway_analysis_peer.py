@@ -29,9 +29,9 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
         self.logger.info("Starting sway analysis for user: "+str(self._user_id))
         self._set_current_baseline(self._user_id)
 
-        if self._session_name == 'ventures_calibration':
+        if self._session_name in ['ventures_calibration', 'sway_with_feedback'] :
             self._set_raw_maxes()
-        elif self._session_name in ['ventures_game', 'ventures_game_training', 'ventures_calibration2']:
+        elif self._session_name in ['ventures_game', 'ventures_game_training', 'ventures_calibration2', 'sway_stay_with_feedback']:
             self._set_user_maxes(self._user_id)
         else:
             raise Exception ("Unknown session name - abort")
@@ -88,7 +88,7 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                                    type=types.WII_BOARD_ANALYSIS_RESULTS, flush=True)
         elif mxmsg.type == types.ACQUISITION_CONTROL_MESSAGE:
             # storing user's current maxes makes sens only in calibration scenario ...
-            if self._session_name != 'ventures_calibration':
+            if self._session_name not in ['ventures_calibration', 'sway_with_feedback']:
                 self.logger.info("Got acquisition_control_message, but session name is "+self._session_name+" . Just exit quietly ...")
                 sys.exit(0)
             else: #self._session_name == 'ventures_calibration'
@@ -141,9 +141,10 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
             direction = 'baseline'
             return direction, 0
 
-        if self._session_name == 'ventures_calibration':
+        if self._session_name in  ['ventures_calibration', 'sway_with_feedback']:
             self._update_current_maxes(direction, np.abs(value))
 
+        print '****************************'
         return direction, int((value/self._maxes[direction])*100)
 
             
@@ -183,6 +184,8 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                        'down':float(down), 
                        'left':float(left)
                        }
+        print '******************************************'
+        print self._maxes
         self.logger.info("_maxes set to user maxes which is: "+str(self._maxes))
 
     def _set_raw_maxes(self):
@@ -194,7 +197,18 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                        'down':float(self.get_param('raw_max_down')),
                        'left':float(self.get_param('raw_max_left'))
                       }
+
         self.logger.info("_maxes set to raw maxes which is: "+str(self._maxes))
+
+    def _set_raw_maxes_new_tech(self):
+        """Set maxes to max possible values, representing edges of the monitor.
+        Used in calibration scenario.
+        """
+        self._maxes = {'up':float(1),
+                       'right':float(1),
+                       'down':float(1),
+                       'left':float(1)
+                      }
 
     def _update_current_maxes(self, sway_direction, sway_level):
         if self._current_maxes[sway_direction] < sway_level:
@@ -209,6 +223,9 @@ class WiiBoardSwayAnalysis(ConfiguredMultiplexerServer):
                                      self._current_maxes['down'],
                                      self._current_maxes['left'],
                                      self._file_name)
+
+        print '*****************************'
+        print self._current_maxes['up']
         self.logger.info('Calibration data properly stored for user: '+self._user_id+' with: '+str(self._current_maxes))
 
 if __name__ == "__main__":
