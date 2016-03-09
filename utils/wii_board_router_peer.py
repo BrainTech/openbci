@@ -14,7 +14,7 @@ from obci.utils import tags_helper
 from obci.utils.openbci_logging import log_crash
 
 class WiiBoardRouter(ConfiguredMultiplexerServer):
-	@log_crash
+    @log_crash
     def __init__(self, addresses):
         super(WiiBoardRouter, self).__init__(addresses=addresses,
                                           type=peers.WII_BOARD_SIGNAL_CATCHER)
