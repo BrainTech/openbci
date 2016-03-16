@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#     Anna Chabuda <anna.chabuda@fuw.edu.pl>
 #
 
 import random, time, pickle
