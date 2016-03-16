@@ -21,6 +21,7 @@ class EtrWebSocketClient(WebSocketClient):
 
     def closed(self, code, reason):
         print(("Closed down", code, reason))
+        self.peer.end_the_loop = True
 
     def received_message(self, m):
         try:
@@ -41,9 +42,16 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
     def __init__(self):
         super(EtrWebSocketAmplifier, self).__init__()
         
-        self.ws = EtrWebSocketClient('ws://localhost:7777/ws')
+        url = 'ws://{}:{}/ws'.format(
+            str(self.config.get_param('etr_ws_server_host')),
+            str(self.config.get_param('etr_ws_server_port'))
+        )
+        
+        self.ws = EtrWebSocketClient(url)
         self.ws.daemon = False
         self.ws.connect()
+        
+        self.end_the_loop = False
 
         self.ready()
 
@@ -51,10 +59,11 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
         try:
             while True:
                 time.sleep(0.1)
+                if self.end_the_loop:
+                    break
         finally:
             ws.close()
             
 if __name__ == "__main__":
     EtrWebSocketAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
 
-        
