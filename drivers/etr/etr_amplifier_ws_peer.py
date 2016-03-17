@@ -33,7 +33,7 @@ class EtrWebSocketClient(WebSocketClient):
             l_msg.y = float(m['y'])
             l_msg.timestamp = float(m['timestamp'])
             
-            self.peer.send_message(l_msg) # TODO: fixme
+            self.peer.process_message(l_msg)
         except Exception as ex:
             pass
 
