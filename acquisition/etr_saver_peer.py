@@ -27,17 +27,18 @@ class EtrSaver(ConfiguredMultiplexerServer):
              os.mkdir(f_dir)
         f_path = os.path.normpath(os.path.join(
                f_dir, f_name + DATA_FILE_EXTENSION))
-        self._data_proxy = data_write_proxy.get_proxy(f_path)
+        self._data_proxy = data_write_proxy.get_proxy(f_path, format='DOUBLE')
 
         self.ready()
         self.logger.info("EtrSaver init finished!")
 
     def handle_message(self, mxmsg):
         if mxmsg.type == types.ETR_SIGNAL_MESSAGE:
-	    l_msg = variables_pb2.Sample2D()
+            l_msg = variables_pb2.Sample2D()
             l_msg.ParseFromString(mxmsg.message)
             self._data_proxy.data_received(l_msg.x)
             self._data_proxy.data_received(l_msg.y)
+            self._data_proxy.data_received(l_msg.timestamp)
         self.no_response()
 
 if __name__ == "__main__":
