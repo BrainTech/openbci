@@ -221,6 +221,9 @@ class ComputeCalibration(object):
         values['use_channels']=';'.join(self._init_channels_names())
         values['leave_channels'] = ';'.join(self.leave_channels)
         values['montage_channels'] = ';'.join(self.montage_channels)
+        values['self.signal_pattern_trenning_'] = self.signal_pattern_trenning_
+        values['self.signal_pattern_test_target'] = self.signal_pattern_test_target
+        values['self.signal_pattern_test_nontarget'] = self.signal_pattern_test_nontarget
         return values
 
     def _signal_processing(self, signal): #self.channels_gains, self.montage_matrix  self.fs
@@ -290,7 +293,7 @@ class ComputeCalibration(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, 2+0.2, 
+        smart_tags_trenning = self._signal_segmentation(self.mgr, 3+0.2, 
                                                     0, self.tag_name)
         print self.l_trial-self.l_train-1
         print self.l_trial-(self.l_trial-self.l_train-1)
@@ -336,7 +339,8 @@ class ComputeCalibration(object):
         return cfg
 
 if __name__ == '__main__':
-    calib = ComputeCalibration('ssvep_pattern_8111723_calibration', '~/', '~/', 'aaaa')
-    values = calib.run()
-    with open(os.path.expanduser(os.path.join('~/', 'aaaa'+'_2')), 'wb') as handle:
-        pickle.dump(values, handle)
+    for user in ['mateusz_b', 'iza']:
+        calib = ComputeCalibration('ssvep_pattern_{}_calibration'.format(user), '~/magisterka_SSVEP/.ssvep_pattern', '~/', 'aaaa')
+        values = calib.run()
+        with open(os.path.expanduser(os.path.join('~/', user+'_dlugosc')), 'wb') as handle:
+            pickle.dump(values, handle)
