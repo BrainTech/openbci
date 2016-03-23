@@ -4,8 +4,6 @@
 import os
 import sys
 
-
-
 NOT_READY = 'not_ready'
 READY_TO_LAUNCH = 'ready_to_launch'
 LAUNCHING = 'launching'
@@ -34,7 +32,8 @@ class ExperimentStatus(object):
 
     def as_dict(self):
         d = dict(status_name=self.status_name,
-                details=self.details, peers_status={})
+                 details=self.details,
+                 peers_status={})
         for peer_id, st in self.peers_status.iteritems():
             d['peers_status'][peer_id] = st.as_dict()
         return d
@@ -98,7 +97,8 @@ def obci_pythonpath():
 def update_obci_syspath(paths_str=None):
     paths_str = paths_str or obci_pythonpath()
     for direct in paths_str.split(os.pathsep):
-        sys.path.insert(1, direct)
+        if direct != '':
+            sys.path.insert(1, direct)
 
 def update_pythonpath(obci_paths=None):
     obci_paths = obci_paths or obci_pythonpath()
