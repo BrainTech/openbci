@@ -26,7 +26,7 @@ class EtrWebSocketClient(WebSocketClient):
     def received_message(self, m):
         try:
             msg = json.loads(m)
-            print("x = {}, y = {}".format(m['x', m['y']))
+            print("x = {}, y = {}".format(m['x'], m['y']))
             
             l_msg = variables_pb2.Sample2D()
             l_msg.x = float(m['x'])
