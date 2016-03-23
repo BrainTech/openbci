@@ -1,3 +1,9 @@
+openbci (1.8.33-1) unstable; urgency=medium
+
+  * New obci_local_* scripts
+
+ -- Alex Khrabrov <alex@mroja.net>  Wed, 23 Mar 2016 16:35:41 +0100
+
 openbci (1.8.32-1) unstable; urgency=medium
 
   * Small fix for newtech
