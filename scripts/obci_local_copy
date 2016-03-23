@@ -71,9 +71,6 @@ fi
 
 HOME_DIR=$(cd ~ && pwd)
 
-mkdir -p ~/.local/lib/python2.7/site-packages/
-ln -s $OBCI_INSTALL_DIR ~/.local/lib/python2.7/site-packages/obci
-
 rm -rf ~/.local/lib/python2.7/site-packages/multiplexer
 rm -rf ~/.local/lib/python2.7/site-packages/azouk
 rm -rf ~/.local/lib/python2.7/site-packages/azlib
@@ -94,12 +91,16 @@ rm -rf ~/bin/obci_gui
 rm -rf ~/bin/obci_local_copy
 rm -rf ~/bin/obci_local_remove
 
+mkdir -p ~/.local/lib/python2.7/site-packages/
+
 if [ $type == "compile" ]
 then
     ln -s $OBCI_INSTALL_DIR/multiplexer-install/lib/python2.7/site-packages/multiplexer ~/.local/lib/python2.7/site-packages/multiplexer
     ln -s $OBCI_INSTALL_DIR/multiplexer-install/lib/python2.7/site-packages/azouk ~/.local/lib/python2.7/site-packages/azouk
     ln -s $OBCI_INSTALL_DIR/multiplexer-install/lib/python2.7/site-packages/azlib ~/.local/lib/python2.7/site-packages/azlib
 fi
+
+ln -s $OBCI_INSTALL_DIR ~/.local/lib/python2.7/site-packages/obci
 
 ln -s $OBCI_INSTALL_DIR/control/launcher/obci ~/bin/obci
 ln -s $OBCI_INSTALL_DIR/control/gui/obci_gui ~/bin/obci_gui
