@@ -1,41 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
-Created on 13-02-2012
 
-@author: Macias
-'''
-try:
-    from ui_compiler import compile_dir
-    compile_dir(__file__)
-except:
-    pass
+from __future__ import print_function, absolute_import
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-import PyQt4.QtGui
-
+import os
+import sys
 import socket
 import codecs
 import json
-import sys
-import os
-import os.path
-import sip
 import time
 import getopt
 
-from obci_window import Ui_OBCILauncher
-from connect_dialog import Ui_ConnectToMachine
-from select_amplifier_dialog import Ui_SelectAmplifier
+import sip
+
+import PyQt4.QtGui
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+
+
+from obci.control.gui.obci_window import Ui_OBCILauncher
+from obci.control.gui.connect_dialog import Ui_ConnectToMachine
+from obci.control.gui.select_amplifier_dialog import Ui_SelectAmplifier
 from obci.utils.filesystem import checkpidfile, removepidfile
 from obci.utils.openbci_logging import get_logger, log_crash
 from obci.drivers.eeg.driver_discovery import driver_discovery
 
-from obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
-from obci_launcher_constants import STATUS_COLORS
-from experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
-import obci.control.launcher.obci_script as obci_script
+from obci.control.gui.obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
+from obci.control.gui.obci_launcher_constants import STATUS_COLORS
+from obci.control.gui.experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
+import obci.control.launcher.obci_script_utils as obci_script_utils
 from obci.control.launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
 
@@ -43,14 +36,11 @@ import obci.control.common.obci_control_settings as settings
 from obci.control.common.message import LauncherMessage
 import obci.control.common.net_tools as net
 
-import obci_log_engine
-#import obci_log_model_dummy
-import obci_log_model_real
+import obci.control.gui.obci_log_engine as obci_log_engine
+#import obci.control.gui.obci_log_model_dummy as obci_log_model_dummy
+import obci.control.gui.obci_log_model_real as obci_log_model_real
 
 class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
-    '''
-    classdocs
-    '''
     start = pyqtSignal(str, object)
     #amp_select = pyqtSignal(object)
     stop = pyqtSignal(str, bool)
@@ -186,10 +176,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 del self.engine
                 self.engine = None
 
-
-            client = obci_script.client_server_prep(server_ip=self.server_ip,
-                                                    zmq_ctx=ctx,
-                                                    start_srv=True)
+            client = obci_script_utils.client_server_prep(server_ip=self.server_ip,
+                                                           zmq_ctx=ctx,
+                                                           start_srv=True)
             if client is None:
                 self.quit()
             self.exp_states = {}
@@ -299,7 +288,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             mch = str(peer.machine)
             if mch not in self._nearby_machines.values():
                 mch = self.server_hostname
-            print mch, peer_id
+            print(mch, peer_id)
 
             parent = QTreeWidgetItem([peer_id, st])
             parent.setFirstColumnSpanned(True)
@@ -347,17 +336,17 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         uid = self._params.exp.exp_config.uuid
         old_uid = self._params.exp.old_uid
         if uid not in self.exp_states and old_uid not in self.exp_states:
-            print "stale experiment descriptor"
+            print("stale experiment descriptor")
             return self._params
         state = self.exp_states.get(uid, self.exp_states.get(old_uid, None))
         if state is None:
-            print "_getParams - experiment not found"
+            print("_getParams - experiment not found")
             return self._params
         expanded = set()
         for i, peer in enumerate(self._params.exp.exp_config.peers.values()):
             parent = self.parameters.topLevelItem(i)
             if parent is None:
-                print "*****   _getParams:   ", i, peer, "parent none"
+                print("*****   _getParams:   ", i, peer, "parent none")
                 continue
             if parent.isExpanded(): expanded.add(parent.text(0))
 
@@ -443,21 +432,21 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         else:
             store_options = None
         self.log_engine.on_experiment_start(self.exp_states[uid].exp)
-        print "obciLauncher - _start(), exp:  ", self.exp_states[uid].exp
+        print("obciLauncher - _start(), exp:  ", self.exp_states[uid].exp)
         self.start.emit(uid, store_options)
 
     def _stop(self):
         uid = str(self.scenarios.currentItem().uuid)
-        print "obciLauncher._stop - begin uid: "+str(uid)
+        print("obciLauncher._stop - begin uid: "+str(uid))
         state = self.exp_states[uid]
         if state.stopping:
-            print "Warning!!! - tried to perform stop action again on the same experiment ................................... Ignore"
+            print("Warning!!! - tried to perform stop action again on the same experiment ................................... Ignore")
             return
         state.stopping = True
         state.log_model.stop_running()
         self.stop.emit(uid, state.store_options is not None)
         state.store_options = None
-        print "obciLauncher._stop - end"
+        print("obciLauncher._stop - end")
 
     def _amp_select(self):
         p = {'path': 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'}
@@ -481,14 +470,15 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         print(a.public_params)
         peers['amplifier'].path = p['path']
         for k, v in d.iteritems():
-            print k, v
+            print(k, v)
             a.config.update_local_param(k, v)
         self._setParams(exp)
 
-        print "amp select"
+        print("amp select")
+
     @log_crash
     def _saver_msg(self, killer_proc):
-        print "GUI SAVER MSG"
+        print("GUI SAVER MSG")
         reply = QMessageBox.question(self, 'Signal saving',
             "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
             "Continue saving?",
@@ -496,10 +486,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             QMessageBox.Yes)
         killer_proc.poll()
         if reply == QMessageBox.No and killer_proc.returncode is None:
-            print "KILLING"
+            print("KILLING")
             killer_proc.kill()
             killer_proc.wait()
-            print killer_proc.returncode, "^^^"
+            print(killer_proc.returncode, "^^^")
 
     def _update_store(self, state):
         if int(state):
@@ -524,11 +514,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         amp.path = path
         for k, v in params.iteritems():
-            print k, v
+            print(k, v)
             amp.config.update_local_param(k, v)
         #self._setParams(exp)
         self._setInfo(self.scenarios.currentItem(), 1)
-        print "AMPLIFIER SELECTED"
+        print("AMPLIFIER SELECTED")
 
     def _connect_to_machine(self):
         self.machines_dialog.set_nearby_machines(self._nearby_machines,
@@ -584,8 +574,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.remove_user_preset.emit(exp)
 
     def exp_destroyed(self, *args, **kwargs):
-        print args, kwargs
-        print "DESTROYED"
+        print(args, kwargs)
+        print("DESTROYED")
 
     def launcher_error(self, error_msg):
         if isinstance(error_msg.details, dict):
@@ -615,7 +605,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if curr_exp in scenarios:
                 curr_uid = curr_exp.exp_config.uuid
         else:
-            print "not found", curr_uid, curr_exp
+            print("not found", curr_uid, curr_exp)
             current_sc = None
 
         new_states = {}
@@ -830,7 +820,7 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
         self.update()
 
     def _update_amplifiers(self):
-        print "SHOW"
+        print("SHOW")
         amps = self.amps
         self.amplifiers.clearContents()
         self.amplifiers.setRowCount(len(amps))
@@ -876,12 +866,12 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
         self.params = params
         super(SelectAmplifierDialog, self).accept()
 
-if __name__ == '__main__':
-    opts, args = getopt.getopt(sys.argv[1:],"",['tray', 'presets='])
+def run_obci_gui():
+    opts, args = getopt.getopt(sys.argv[1:], '', ['tray', 'presets='])
     presets = None
     for opt, arg in opts:
         if opt in ('--tray'):
-            os.system('obci_x_tray&')
+            os.system('obci_x_tray &')
         elif opt == '--presets':
             presets = arg
     if checkpidfile('gui.pid'):
@@ -902,3 +892,5 @@ if __name__ == '__main__':
     dialog.stop.connect(lambda name:sys.stderr.write('Stop %s \n' % name))
 
     sys.exit(app.exec_())
+
+

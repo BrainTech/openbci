@@ -19,7 +19,9 @@ import obci.control.common.net_tools as net
 from obci.control.common.message import send_msg, recv_msg, OBCIMessageTool, PollingObject
 
 from obci.control.launcher.launcher_messages import message_templates
-import obci.control.launcher.obci_script as obci_script
+
+import obci.control.launcher.obci_script_utils as obci_script_utils
+
 import obci.control.launcher.launcher_tools as launcher_tools
 from obci.control.launcher.launch_file_serializer import LaunchFileSerializerINI, serialize_scenario_json
 
@@ -473,11 +475,11 @@ experiments is possible only when launcher is running (command: obci srv)')))
     def reset_launcher(self, msg):
 
         self.client.srv_kill()
-        running = obci_script.server_process_running()
+        running = obci_script_utils.server_process_running()
         if running:
             print "reset_launcher: something went wrong... SERVER STILL RUNNING"
 
-        self.client = obci_script.client_server_prep()
+        self.client = obci_script_utils.client_server_prep()
         self.experiments = self.prepare_experiments()
 
     @log_crash

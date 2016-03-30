@@ -13,6 +13,8 @@ import socket
 
 import zmq
 
+sys.path.insert(1, '/home/pisak/openbci')
+
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 from obci.control.launcher.launcher_messages import message_templates, error_codes
 from obci.control.launcher.launcher_tools import module_path
@@ -657,7 +659,7 @@ class ExperimentInfo(object):
 
         return d
 
-
+        
 def server_arg_parser(add_help=False):
     parser = argparse.ArgumentParser(parents=[basic_arg_parser()],
                             description="OBCI Server : manage OBCI experiments.",
@@ -666,14 +668,12 @@ def server_arg_parser(add_help=False):
     parser.add_argument('--name', default='obci_server',
                        help='Human readable name of this process')
     parser.add_argument('--win-silent', help='Use pythonw instead of python', action='store_true')
-    return parser
-
-
-if __name__ == '__main__':
+    return parser  
+     
+     
+def run_obci_server():
     parser = server_arg_parser(add_help=True)
-
     args = parser.parse_args()
-
     srv = OBCIServer(args.rep_addresses, args.pub_addresses, args.name)
-
     srv.run()
+

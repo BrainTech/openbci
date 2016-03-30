@@ -1,32 +1,40 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, subprocess, time, getopt
+from __future__ import print_function, absolute_import
+
+import os
+import sys
+import subprocess
+import time
+import getopt
+
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+
 from obci.utils.filesystem import checkpidfile, which
 
 
 class ServerController(QObject):
 
-    # all values in miliseconds
+    # all values in milliseconds
     serverPingDelay    = 4000
     serverReadyTimeout = 3*serverPingDelay
     serverDiedTiemout = 3*serverPingDelay
     
-    serverShutdownTimeout = 1000#10*1000
+    serverShutdownTimeout = 1000  # 10*1000
 
-    serverReady           = pyqtSignal()          # emited when server is fully operational
-    serverStartingUpError = pyqtSignal('QString') # emited when error was detected during startup
+    serverReady           = pyqtSignal()          # emitted when server is fully operational
+    serverStartingUpError = pyqtSignal('QString') # emitted when error was detected during startup
     
-    serverTerminated        = pyqtSignal()          # emited when server process ends by request
-    serverShuttingDownError = pyqtSignal('QString') # emited when error occurred during shutting down
+    serverTerminated        = pyqtSignal()          # emitted when server process ends by request
+    serverShuttingDownError = pyqtSignal('QString') # emitted when error occurred during shutting down
     
-    serverUnexpectedlyDied = pyqtSignal('QString') # emited when server unexpectedly died during running
+    serverUnexpectedlyDied = pyqtSignal('QString') # emitted when server unexpectedly died during running
 
     def __init__(self, parent=None):
         super(ServerController, self).__init__(parent)
-        #Parsing command line options
+        # Parsing command line options
 
         self.easyMode = False
         self.Gui = False
@@ -350,26 +358,25 @@ class MainWidget(QWidget):
     #---------------------------------------------------------------------------
 
     def runGui(self):
-        os.system(self.guiCommand+'&')
+        os.system(self.guiCommand + ' &')
 
     def runSvarog(self):
-        os.system(self.svarogCommand+'&')
+        os.system(self.svarogCommand + ' &')
 
     def runPsychopy(self):
-        os.system(self.psychopyCommand+'&')
+        os.system(self.psychopyCommand + ' &')
 
     def runEeglab(self):
-        os.system(self.matlabCommand+'&')
+        os.system(self.matlabCommand + ' &')
 
     def runMatlab(self):
-        os.system(self.matlabCommand+' -desktop&')
-
+        os.system(self.matlabCommand + ' -desktop &')
 
     #---------------------------------------------------------------------------
 
     def quit_tray(self):
         if not self.controller.isServerRunning():
-            qApp.quit()
+            QApplication.instance().quit()
         else:
             ret = QMessageBox.warning(None, self.tr('OpenBCI'), 
                                       self.tr('Really quit? This will stop the server!'),
@@ -377,14 +384,13 @@ class MainWidget(QWidget):
                                       QMessageBox.No)
             if ret == QMessageBox.Yes:
                 self.controller.stopServer()
-                qApp.quit()
+                QApplication.instance().quit()
 
-def main():
+def run_obci_x_tray():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     mainWidget = MainWidget()
     
     sys.exit(app.exec_())
 
-if __name__ == '__main__':
-    main()
+
