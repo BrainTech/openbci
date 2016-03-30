@@ -13,29 +13,27 @@ import socket
 
 import zmq
 
-sys.path.insert(1, '/home/pisak/openbci')
-
 from obci.control.common.message import OBCIMessageTool, send_msg, recv_msg
 from obci.control.launcher.launcher_messages import message_templates, error_codes
 from obci.control.launcher.launcher_tools import module_path
-from eeg_experiment_finder import find_eeg_experiments_and_push_results,\
+from obci.control.launcher.eeg_experiment_finder import find_eeg_experiments_and_push_results,\
 find_new_experiments_and_push_results
-from start_eeg_signal import start_eeg_signal_experiment
+from obci.control.launcher.start_eeg_signal import start_eeg_signal_experiment
 
 from obci_control_peer import OBCIControlPeer, basic_arg_parser
 import obci.control.common.obci_control_settings as settings
 import obci.control.common.net_tools as net
 from obci.control.peer import peer_cmd
 
-import obci_experiment
-import obci_process_supervisor
-import subprocess_monitor
-from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
+import obci.control.launcher.obci_experiment as obci_experiment
+import obci.control.launcher.obci_process_supervisor as obci_process_supervisor
+import obci.control.launcher.subprocess_monitor as subprocess_monitor
+from obci.control.launcher.subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
 STDIN, STDOUT, STDERR, NO_STDIO
 
-from server_scanner import update_nearby_servers, broadcast_server
+from obci.control.launcher.server_scanner import update_nearby_servers, broadcast_server
 
-import twisted_tcp_handling
+import obci.control.launcher.twisted_tcp_handling as twisted_tcp_handling
 
 from obci.utils.openbci_logging import log_crash
 
