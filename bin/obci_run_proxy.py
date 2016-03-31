@@ -40,7 +40,7 @@ def sanitize_path(path):
     path = str(path).strip()
     path = os.path.expanduser(path)
     path = os.path.realpath(path)
-    return path            
+    return path
 
 
 def try_local_path_file():
@@ -82,14 +82,14 @@ if __name__ == '__main__':
     bin_name = sanitize_module_name(bin_name)
 
     try_list = [try_local_path_file, try_env_variable]
-    
+
     for try_func in try_list:
         local_path = try_func()
         if local_path is None:
             continue
         local_path = sanitize_path(local_path)
         if local_path and os.path.isdir(local_path):
-            sys.path.insert(1, os.path.realpath(local_path))            
+            sys.path.insert(1, os.path.realpath(local_path))
             break
 
     try:
@@ -113,4 +113,3 @@ if __name__ == '__main__':
         print('Import path:')
         print('\n'.join(sys.path))
         sys.exit(1)
-

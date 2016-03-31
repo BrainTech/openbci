@@ -29,11 +29,13 @@ MONITORING_OPTIONS = [PING, RETURNCODE]
 
 REG_TIMER = 0
 
+
 class Process(object):
+
     def __init__(self, proc_description,
-                                reg_timeout_desc=None,
-                                monitoring_optflags=PING,
-                                logger=None):
+                 reg_timeout_desc=None,
+                 monitoring_optflags=PING,
+                 logger=None):
 
         self.desc = proc_description
 
@@ -44,10 +46,10 @@ class Process(object):
 
         self.ping_it = monitoring_optflags & PING
         self.check_returncode = monitoring_optflags & RETURNCODE if \
-                                        self.desc.pid is not None else False
+            self.desc.pid is not None else False
 
         self.logger = logger or get_logger(
-                                'subprocess_monitor'+'-'+self.desc.name+'-'+str(self.desc.pid),
+            'subprocess_monitor' + '-' + self.desc.name + '-' + str(self.desc.pid),
                                 stream_level='info')
         self.set_registration_timeout_handler(reg_timeout_desc)
         self.registration_data = None
@@ -62,7 +64,6 @@ class Process(object):
         self._poller = PollingObject()
 
         self.delete = False
-
 
     @property
     def machine_ip(self):
@@ -95,7 +96,7 @@ class Process(object):
         self.must_register = reg_timeout_desc is not None
         self.reg_timeout_desc = reg_timeout_desc
         self.reg_timer = None if not self.must_register else \
-                                        self.new_timer(self.reg_timeout_desc, REG_TIMER)
+            self.new_timer(self.reg_timeout_desc, REG_TIMER)
 
         if self.must_register:
             self.reg_timer.start()
@@ -112,18 +113,18 @@ class Process(object):
 
     def new_timer(self, tim_desc, type_):
         return threading.Timer(tim_desc.timeout, self.timeout_handler,
-                            [tim_desc.timeout_method, tim_desc.timeout_args, type_])
+                               [tim_desc.timeout_method, tim_desc.timeout_args, type_])
 
     def registered(self, reg_data):
         if self.reg_timer is not None:
             self.reg_timer.cancel()
 
         self.logger.info("{0} [{1}]  REGISTERED!!! {2}".format(
-                                            self.name, self.proc_type, reg_data.machine_ip))
-        #print "ping:", self.ping_it, "ret:", self.check_returncode
+            self.name, self.proc_type, reg_data.machine_ip))
+        # print "ping:", self.ping_it, "ret:", self.check_returncode
         with self._status_lock:
             self._status = RUNNING
-        #TODO validate registration data
+        # TODO validate registration data
         self.registration_data = reg_data
         self.logger.info("reg_data" + str(vars(reg_data)))
         if self.ping_it:
@@ -132,11 +133,10 @@ class Process(object):
             self.rq_sock = self._ctx.socket(zmq.REQ)
             for addr in reg_data.rep_addrs:
                 if reg_data.machine_ip != socket.gethostname() and\
-                                                        net.addr_is_local(addr):
+                        net.addr_is_local(addr):
                     continue
                 self.logger.debug(self.name + "connecting to " + addr)
                 self.rq_sock.connect(addr)
-
 
     def stop_monitoring(self):
         if self.reg_timer:
@@ -146,15 +146,15 @@ class Process(object):
 
         if self._ping_thread is not None:
             self.logger.info("%s, %s, %s",
-                            self.proc_type, self.name ,"Joining ping thread")
+                             self.proc_type, self.name, "Joining ping thread")
 
             self._ping_thread.join()
         if self._returncode_thread is not None:
             self.logger.info("%s  %s  %s",
-                            self.proc_type,self.name, "joining returncode thread")
+                             self.proc_type, self.name, "joining returncode thread")
             self._returncode_thread.join()
         self.logger.info("monitor for: %s, %s, %s",
-                    self.proc_type,self.name, "  ...monitoring threads stopped.")
+                         self.proc_type, self.name, "  ...monitoring threads stopped.")
 
     def finished(self):
         finished = True
@@ -194,7 +194,7 @@ class Process(object):
                         result, det = self._poller.poll_recv(socket=self.rq_sock, timeout=1500)
                     if not result and not self._stop_monitoring:
                         self.logger.info("%s %s %s",
-                                self.proc_type, self.name, "NO RESPONSE TO PING!")
+                                         self.proc_type, self.name, "NO RESPONSE TO PING!")
                         with self._status_lock:
                             if self._status not in [FAILED, FINISHED]:
                                 self._status = NON_RESPONSIVE
@@ -204,7 +204,6 @@ class Process(object):
         finally:
             if self.rq_sock is not None:
                 self.rq_sock.close(linger=0)
-
 
     def returncode_monitor(self):
         raise NotImplementedError()

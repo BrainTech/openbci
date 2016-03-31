@@ -10,13 +10,15 @@ from process_io_handler import DEFAULT_TAIL_RQ
 
 import process
 from process import FAILED, FINISHED, TERMINATED, UNKNOWN, NON_RESPONSIVE,\
-PING, RETURNCODE, REG_TIMER
+    PING, RETURNCODE, REG_TIMER
+
 
 class RemoteProcess(process.Process):
+
     def __init__(self, proc_description, rq_address,
-                                reg_timeout_desc=None,
-                                monitoring_optflags=PING,
-                                logger=None):
+                 reg_timeout_desc=None,
+                 monitoring_optflags=PING,
+                 logger=None):
 
         self.rq_address = rq_address
         self._ctx = None
@@ -24,9 +26,8 @@ class RemoteProcess(process.Process):
         monitoring_optflags = monitoring_optflags & ~(1 << RETURNCODE)
 
         super(RemoteProcess, self).__init__(proc_description,
-                                        reg_timeout_desc, monitoring_optflags,
-                                        logger)
-
+                                            reg_timeout_desc, monitoring_optflags,
+                                            logger)
 
     def is_local(self):
         return False
@@ -44,7 +45,7 @@ class RemoteProcess(process.Process):
         pass
 
     def kill(self):
-        #send "kill" to the process or kill request to its supervisor?
+        # send "kill" to the process or kill request to its supervisor?
         self.stop_monitoring()
         if not self._ctx:
             self._ctx = zmq.Context()

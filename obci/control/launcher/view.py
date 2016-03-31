@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+
 class OBCIView(object):
 
     def view(self, msg, where=None):
@@ -53,12 +54,12 @@ class OBCIViewText(OBCIView):
         if isinstance(msg, dict):
             for key in msg.keys():
                 val = msg[key]
-                lst += ['\n','   '*depth, key, ':  ']
-                self._format_msg(val, lst, depth+1)
+                lst += ['\n', '   ' * depth, key, ':  ']
+                self._format_msg(val, lst, depth + 1)
         elif isinstance(msg, list):
             for elt in msg:
-                self._format_msg(elt, lst, depth+2)
-                lst += ['\n', '   '*(depth+3)]
+                self._format_msg(elt, lst, depth + 2)
+                lst += ['\n', '   ' * (depth + 3)]
         else:
             lst += [str(msg)]
 

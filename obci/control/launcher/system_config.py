@@ -15,12 +15,13 @@ from obci.control.peer.peer_config import PeerConfig
 
 from obci.control.common.graph import Graph, Vertex
 
+
 class OBCIExperimentConfig(object):
-    def __init__(self, launch_file_path=None, uuid=None, 
-                                    origin_machine=None, logger=None):
+
+    def __init__(self, launch_file_path=None, uuid=None,
+                 origin_machine=None, logger=None):
         self.uuid = uuid
         self.launch_file_path = launch_file_path
-
 
         self.origin_machine = origin_machine if origin_machine else ''
         self.scenario_dir = ''
@@ -38,7 +39,6 @@ class OBCIExperimentConfig(object):
         if path:
             self._launch_file_path = launcher_tools.obci_root_relative(path)
 
-
     def peer_config(self, peer_id):
         return self.peers[peer_id].config
 
@@ -50,7 +50,7 @@ class OBCIExperimentConfig(object):
     def update_external_param(self, peer_id, p_name, src, src_param):
         if peer_id not in self.peers:
             raise OBCISystemConfigError("Peer ID {0} not in peer list".format(peer_id))
-        return self.peers[peer_id].config.update_external_param_def(p_name, src+'.'+src_param)
+        return self.peers[peer_id].config.update_external_param_def(p_name, src + '.' + src_param)
 
     def update_peer_config(self, peer_id, config_dict):
         if peer_id not in self.peers:
@@ -75,9 +75,9 @@ class OBCIExperimentConfig(object):
     def update_peer_machine(self, peer_id, machine_ip):
         self.peers[peer_id].machine = machine_ip
 
-    def extend_with_peer(self, peer_id, peer_path, peer_cfg, 
-                                            config_sources=None, launch_deps=None, 
-                                            param_overwrites=None, machine=None):
+    def extend_with_peer(self, peer_id, peer_path, peer_cfg,
+                         config_sources=None, launch_deps=None,
+                         param_overwrites=None, machine=None):
         override = peer_id in self.peers
         machine = machine or ""
 
@@ -95,7 +95,7 @@ class OBCIExperimentConfig(object):
                 if src in self.peers:
                     self.set_config_source(peer_id, src, src)
 
-        if launch_deps:            
+        if launch_deps:
             for dep_name, dep_id in launch_deps.iteritems():
                 self.set_launch_dependency(peer_id, dep_name, dep_id)
         else:
@@ -106,7 +106,7 @@ class OBCIExperimentConfig(object):
         if param_overwrites:
             for par, val in param_overwrites.iteritems():
                 self.update_local_param(peer_id, par, val)
-            
+
         return override
 
     def add_peer(self, peer_id):
@@ -211,7 +211,7 @@ class OBCIExperimentConfig(object):
         st = launcher_tools.READY_TO_LAUNCH if ready else launcher_tools.NOT_READY
 
         status_obj.set_status(st, details=details)
-        #TODO details, e.g. info about cycles
+        # TODO details, e.g. info about cycles
 
         for peer_id in self.peers:
             pst = status_obj.peers_status[peer_id] = launcher_tools.PeerStatus(peer_id)
@@ -233,10 +233,9 @@ class OBCIExperimentConfig(object):
                 ldata[peer.peer_id] = peer.launch_data()
         return ldata
 
-
     def peer_graph(self, neighbours_method):
         gr = Graph(bidirectional=False)
-        vs ={}
+        vs = {}
         for p in self.peers.values():
             # print "vertices: ", vs
             meth = getattr(p, neighbours_method)
@@ -277,9 +276,8 @@ class OBCIExperimentConfig(object):
                 part1.remove('mx')
             if 'config_server' in part1:
                 part1.remove('config_server')
-            order = [['mx'],['config_server']] + order
+            order = [['mx'], ['config_server']] + order
         return order
-
 
     def peers_info(self):
         peers = {}
@@ -297,11 +295,10 @@ class OBCIExperimentConfig(object):
         return exp
 
 
-
-
 class PeerConfigDescription(object):
+
     def __init__(self, peer_id, experiment_id, config=None, path=None, machine=None,
-                        logger=None):
+                 logger=None):
         self.peer_id = peer_id
 
         self.experiment_id = experiment_id
@@ -319,9 +316,9 @@ class PeerConfigDescription(object):
     def ready(self, details=None):
         loc_det = {}
         ready = self.config is not None and \
-                self.path is not None and\
-                self.machine is not None and\
-                self.peer_id is not None
+            self.path is not None and\
+            self.machine is not None and\
+            self.peer_id is not None
 
         if not ready:
             return ready
@@ -332,8 +329,8 @@ class PeerConfigDescription(object):
         return ready
 
     def list_config_sources(self):
-        return [val for val in self.config.config_sources.values() if\
-                    val in self.config.used_config_sources()]
+        return [val for val in self.config.config_sources.values() if
+                val in self.config.used_config_sources()]
 
     def list_launch_deps(self):
         return self.config.launch_deps.values()
@@ -361,7 +358,7 @@ class PeerConfigDescription(object):
 
             with codecs.open(conf_path, "r", "utf8") as f:
                 self.logger.info("parsing default config for peer %s, %s ",
-                                                         self.peer_id, conf_path)
+                                 self.peer_id, conf_path)
                 peer_parser.parse(f, base_config)
 
         ser.serialize_diff(base_config, self.config, args)
@@ -369,7 +366,6 @@ class PeerConfigDescription(object):
         return dict(peer_id=self.peer_id, experiment_id=self.experiment_id,
                     path=self.path, machine=self.machine,
                     args=args, peer_type=self.peer_type())
-
 
     def info(self, detailed=False):
         info = dict(peer_id=self.peer_id,
@@ -386,7 +382,6 @@ class PeerConfigDescription(object):
             info[LOCAL_PARAMS] = self.config.local_params
             info[EXT_PARAMS] = self.config.ext_param_defs
         return info
-
 
 
 class OBCISystemConfigError(Exception):

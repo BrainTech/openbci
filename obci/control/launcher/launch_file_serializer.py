@@ -20,6 +20,7 @@ CONFIG_SRCS = "config_sources"
 LAUNCH_DEPS = "launch_dependencies"
 SYS_SECTIONS = [PEERS]
 
+
 class LaunchFileSerializer(object):
 
     def serialize(self, system_config, dump_dir_path, dump_file):
@@ -51,7 +52,9 @@ class LaunchFileSerializer(object):
     def _save(self, dump_file, dump_dir_path):
         raise NotImplementedError()
 
+
 class LaunchFileSerializerINI(LaunchFileSerializer):
+
     """
     Dump scenario to an INI scenario file and separate peer config files.
     """
@@ -65,7 +68,6 @@ class LaunchFileSerializerINI(LaunchFileSerializer):
 
     def _dump_special_sections(self, system_config, dump_file):
         self.parser.set(PEERS, "scenario_dir", system_config.scenario_dir)
-
 
     def _dump_peer_configs(self, system_config, dump_file, dump_dir):
         for peer, descriptor in system_config.peers.iteritems():
@@ -114,16 +116,17 @@ class LaunchFileSerializerINI(LaunchFileSerializer):
         self.parser.write(p_file_obj)
 
 
-
 class LaunchFileSerializerJSON(LaunchFileSerializer):
+
     """
     Dump entire scenario to one large JSON.
     """
+
     def __init__(self):
         self.dic = {}
 
     def _init_tools(self):
-        self.dic = {PEERS : {}}
+        self.dic = {PEERS: {}}
 
     def _prepare(self, system_config, dump_file):
         pass
@@ -173,6 +176,7 @@ class LaunchFileSerializerJSON(LaunchFileSerializer):
     def _save(self, p_file_obj, dump_dir=None):
         json.dump(self.dic, p_file_obj)
 
+
 def serialize_scenario_json(p_system_config):
     buf = io.BytesIO()
     ser = LaunchFileSerializerJSON()
@@ -184,7 +188,7 @@ if __name__ == '__main__':
     import system_config
 
     launch_parser = launch_file_parser.LaunchFileParser(
-                            launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
     config = system_config.OBCIExperimentConfig()
     status = launcher_tools.ExperimentStatus()
     with open(launcher_tools.expand_path('scenarios/cebit/switch/hci_switch_mult_dummy.ini')) as f:
@@ -198,7 +202,7 @@ if __name__ == '__main__':
     print json_ser
 
     jsonpar = launch_file_parser.LaunchJSONParser(
-                        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
     inbuf = io.BytesIO(json_ser.encode(encoding='utf-8'))
     new_conf = system_config.OBCIExperimentConfig()
 

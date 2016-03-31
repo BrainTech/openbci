@@ -22,6 +22,7 @@ _LOOPS = 3
 
 ALLOWED_SILENCE = 45
 
+
 def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None):
     mtool = OBCIMessageTool(message_templates)
 
@@ -53,8 +54,8 @@ def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None)
             msg = msg[:-1]
             message = mtool.unpack_msg(msg)
             changed = srv_data.update(ip=wherefrom[0], hostname=message.sender_ip,
-                                uuid=message.sender, rep_port=message.rep_port,
-                                pub_port=message.pub_port)
+                                      uuid=message.sender, rep_port=message.rep_port,
+                                      pub_port=message.pub_port)
 
         else:
             # print "no data"
@@ -68,15 +69,16 @@ def update_nearby_servers(srv_data, bcast_port, ctx=None, update_push_addr=None)
 
         if changed:
             send_msg(notify_sock, mtool.fill_msg('nearby_machines',
-                                                nearby_machines=srv_data.dict_snapshot()))
+                                                 nearby_machines=srv_data.dict_snapshot()))
 
     s.close()
+
 
 def broadcast_server(server_uuid, rep_port, pub_port, bcast_port):
     mtool = OBCIMessageTool(message_templates)
 
     msg = mtool.fill_msg("server_broadcast", sender_ip=gethostname(), sender=server_uuid,
-                                rep_port=rep_port, pub_port=pub_port)
+                         rep_port=rep_port, pub_port=pub_port)
     msg += u'\n'
     str_msg = msg.encode('utf-8')
 

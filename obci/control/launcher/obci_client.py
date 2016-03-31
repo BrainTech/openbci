@@ -17,13 +17,16 @@ from obci.control.peer import peer_config_parser
 import obci.control.common.obci_control_settings as settings
 import obci.control.common.net_tools as net
 
+
 class EmptyResponse(object):
+
     def __init__(self, details):
         self.type = "no_data"
         self.details = details
 
+
 class OBCIClient(object):
-    default_timeout=5000
+    default_timeout = 5000
 
     def __init__(self, server_addresses, zmq_context=None):
         self.ctx = zmq_context if zmq_context else zmq.Context()
@@ -32,8 +35,8 @@ class OBCIClient(object):
         self.server_req_socket = None
         self.init_server_socket(server_addresses)
 
-        #self = zmq.Poller()
-        #self.register(self.server_req_socket, zmq.POLLIN)
+        # self = zmq.Poller()
+        # self.register(self.server_req_socket, zmq.POLLIN)
         self.poller = PollingObject()
 
         self.mtool = OBCIMessageTool(message_templates)
@@ -74,9 +77,8 @@ class OBCIClient(object):
             for addr in response.rep_addrs:
                 exp_sock.connect(addr)
 
-
             msg = self.mtool.fill_msg('morph_to_new_scenario', launch_file=launch_file,
-                                    name=name, overwrites=overwrites, leave_on=leave_on)
+                                      name=name, overwrites=overwrites, leave_on=leave_on)
             send_msg(exp_sock, msg)
 
             response, details = self.poll_recv(exp_sock, 6000)
@@ -86,7 +88,7 @@ class OBCIClient(object):
 
     def _addr_connectable(self, addr, machine):
         return machine == socket.gethostname() or \
-                    (net.is_ip(addr) and not net.addr_is_local(addr))
+            (net.is_ip(addr) and not net.addr_is_local(addr))
 
     def start_chosen_experiment(self, exp_strname):
         response = self.get_experiment_contact(exp_strname)
@@ -103,9 +105,9 @@ class OBCIClient(object):
                 exp_sock.connect(addr)
 
                 send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
-                reply, details =  self.poll_recv(exp_sock, 20000)
+                reply, details = self.poll_recv(exp_sock, 20000)
 
-                #print reply
+                # print reply
                 return reply
         finally:
             exp_sock.close()
@@ -115,10 +117,9 @@ class OBCIClient(object):
 
     def get_experiment_contact(self, strname):
         send_msg(self.server_req_socket, self.mtool.fill_msg("get_experiment_contact",
-                                        strname=strname))
+                                                             strname=strname))
         response, details = self.poll_recv(self.server_req_socket, self.default_timeout)
         return response
-
 
     def ping_server(self, timeout=50):
         send_msg(self.server_req_socket, self.mtool.fill_msg("ping"))
@@ -133,8 +134,8 @@ class OBCIClient(object):
     def send_create_experiment(self, launch_file=None, sandbox_dir=None, name=None, overwrites=None):
 
         send_msg(self.server_req_socket, self.mtool.fill_msg("create_experiment",
-                            launch_file=launch_file, sandbox_dir=sandbox_dir, name=name,
-                            overwrites=overwrites))
+                                                             launch_file=launch_file, sandbox_dir=sandbox_dir, name=name,
+                                                             overwrites=overwrites))
 
         response, details = self.poll_recv(self.server_req_socket, 5000)
         return response
@@ -149,7 +150,6 @@ class OBCIClient(object):
         send_msg(self.server_req_socket, self.mtool.fill_msg("list_nearby_machines"))
         response, details = self.poll_recv(self.server_req_socket, 4000)
         return response
-
 
     def get_experiment_details(self, strname, peer_id=None):
         response = self.get_experiment_contact(strname)
@@ -190,10 +190,10 @@ class OBCIClient(object):
                     return response
 
             msg = self.mtool.fill_msg("update_peer_config", peer_id=peer_id,
-                                                                    **config_overrides)
+                                      **config_overrides)
 
             send_msg(sock, msg)
-            #print msg
+            # print msg
             response, details = self.poll_recv(sock, 2000)
             return response
         finally:
@@ -202,16 +202,14 @@ class OBCIClient(object):
             # "update_peer_config" : dict(peer_id='', local_params='',
             #                 external_params='', launch_dependencies='', config_sources=''),
 
-
     def kill_exp(self, strname, force=False):
         send_msg(self.server_req_socket,
-                self.mtool.fill_msg("kill_experiment", strname=strname))
+                 self.mtool.fill_msg("kill_experiment", strname=strname))
         return self.poll_recv(self.server_req_socket, 2000)[0]
-
 
     def srv_kill(self):
         send_msg(self.server_req_socket,
-                self.mtool.fill_msg("kill"))
+                 self.mtool.fill_msg("kill"))
         return self.poll_recv(self.server_req_socket, 2000)[0]
 
     def join_experiment(self, strname, peer_id, path):
@@ -226,7 +224,7 @@ class OBCIClient(object):
             self._connect(sock, response.rep_addrs)
 
             send_msg(sock, self.mtool.fill_msg("join_experiment",
-                                            peer_id=peer_id, path=path, peer_type='obci_peer'))
+                                               peer_id=peer_id, path=path, peer_type='obci_peer'))
             response, details = self.poll_recv(sock, 5000)
             sock.close()
             return response
@@ -234,8 +232,8 @@ class OBCIClient(object):
             sock.close()
 
     def add_peer(self, strname, peer_id, path, machine, param_overwrites=None,
-                        custom_config_path=None, config_sources=None, launch_dependencies=None,
-                        apply_globals=True):
+                 custom_config_path=None, config_sources=None, launch_dependencies=None,
+                 apply_globals=True):
         response = self.get_experiment_contact(strname)
 
         if response.type == "rq_error" or response.type == "no_data":
@@ -245,10 +243,10 @@ class OBCIClient(object):
         try:
             self._connect(sock, response.rep_addrs)
             send_msg(sock, self.mtool.fill_msg("add_peer",
-                                            peer_id=peer_id, peer_path=path, peer_type='obci_peer',
-                                            machine=machine, param_overwrites=param_overwrites,
-                                            custom_config_path=custom_config_path, config_sources=config_sources,
-                                            launch_dependencies=launch_dependencies, apply_globals=apply_globals))
+                                               peer_id=peer_id, peer_path=path, peer_type='obci_peer',
+                                               machine=machine, param_overwrites=param_overwrites,
+                                               custom_config_path=custom_config_path, config_sources=config_sources,
+                                               launch_dependencies=launch_dependencies, apply_globals=apply_globals))
             response, details = self.poll_recv(sock, 5000)
             return response
         finally:
@@ -264,7 +262,7 @@ class OBCIClient(object):
             sock = self.ctx.socket(zmq.REQ)
             self._connect(sock, response.rep_addrs)
             send_msg(sock, self.mtool.fill_msg("kill_peer",
-                                            peer_id=peer_id, remove_config=remove_config))
+                                               peer_id=peer_id, remove_config=remove_config))
             response, details = self.poll_recv(sock, 5000)
             return response
         finally:
@@ -302,12 +300,11 @@ class OBCIClient(object):
             self._connect(sock, response.rep_addrs)
 
             send_msg(sock, self.mtool.fill_msg("leave_experiment",
-                                            peer_id=peer_id))
+                                               peer_id=peer_id))
             response, details = self.poll_recv(sock, 5000)
             return response
         finally:
             sock.close()
-
 
     def get_tail(self, strname, peer_id, len_):
         response = self.get_experiment_contact(strname)

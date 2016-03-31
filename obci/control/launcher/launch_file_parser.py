@@ -19,6 +19,7 @@ CONFIG_SRCS = "config_sources"
 LAUNCH_DEPS = "launch_dependencies"
 SYS_SECTIONS = [PEERS]
 
+
 class ScenarioParser(object):
 
     def parse(self, p_file, p_config_obj, apply_globals=False):
@@ -38,14 +39,13 @@ class ScenarioParser(object):
         self._set_launch_deps()
 
         for peer_sec in peer_sections:
-            #print self.config.peers[self._peer_id(peer_sec)].config
+            # print self.config.peers[self._peer_id(peer_sec)].config
             pass
 
-
     def _load_peer(self, peer_id, peer_items):
-        #FIXME rewrite cleaner
+        # FIXME rewrite cleaner
 
-        machine_set= False
+        machine_set = False
         peer_config_file = ''
         config_section_contents = ''
         peer_path = ''
@@ -57,8 +57,8 @@ class ScenarioParser(object):
                 peer_path = self.config.peers[peer_id].path
                 full = expand_path(peer_path)
                 if not os.path.exists(full):
-                    raise OBCISystemConfigError("Path to peer executable not found! Path defined: " +\
-                            value + "   full path:  " + expand_path(peer_path))
+                    raise OBCISystemConfigError("Path to peer executable not found! Path defined: " +
+                                                value + "   full path:  " + expand_path(peer_path))
             elif param == "config":
                 if self.config.scenario_dir:
                     warnings.warn("Choosing {0} for {1} config\
@@ -70,7 +70,7 @@ class ScenarioParser(object):
                 self._set_peer_machine(peer_id, value)
             else:
                 pass
-                #raise OBCISystemConfigError("Unrecognized launch file option {0}".format(param))
+                # raise OBCISystemConfigError("Unrecognized launch file option {0}".format(param))
         if not machine_set:
             self._set_peer_machine(peer_id, '')
         if not config_section_contents:
@@ -84,6 +84,7 @@ class ScenarioParser(object):
             raise OBCISystemConfigError("No program path defined for peer_id {0}".format(peer_id))
         self._parse_peer_config_section(peer_id, config_section_contents, peer_path)
         # self._parse_peer_config(peer_id, peer_config_file, peer_path)
+
 
 class LaunchFileParser(ScenarioParser):
 
@@ -113,7 +114,7 @@ class LaunchFileParser(ScenarioParser):
         if self.parser.has_option(PEERS, 'scenario_dir'):
             self.config.scenario_dir = self.parser.get(PEERS, 'scenario_dir')
             self.config.scenario_dir = expand_path(self.config.scenario_dir, base_dir=self.scenario_dir)
-            #print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
+            # print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
 
     def _load_peer_ids(self, peer_sections):
         for section in peer_sections:
@@ -128,14 +129,13 @@ class LaunchFileParser(ScenarioParser):
 
     def _parse_peer_config(self, peer_id, config_path, peer_program_path):
         peer_cfg, peer_parser = parse_peer_default_config(
-                                                peer_id, peer_program_path, self.logger,
+            peer_id, peer_program_path, self.logger,
                                                 self._apply_globals)
-        #print "Trying to parse {0} for {1}".format(config_path, peer_id)
+        # print "Trying to parse {0} for {1}".format(config_path, peer_id)
         if config_path:
             with codecs.open(config_path, "r", "utf8") as f:
                 self.logger.info("parsing _custom_ config for peer %s, %s ", peer_id, config_path)
                 peer_parser.parse(f, peer_cfg)
-
 
         self.config.set_peer_config(peer_id, peer_cfg)
 
@@ -147,15 +147,15 @@ class LaunchFileParser(ScenarioParser):
         for src_sec in self.__config_src_sections():
             for src_name, src_id in self.parser.items(src_sec):
                 self.config.set_config_source(self._peer_id(src_sec),
-                                                src_name,
-                                                src_id)
+                                              src_name,
+                                              src_id)
 
     def _set_launch_deps(self):
         for dep_sec in self.__launch_dep_sections():
             for dep_name, dep_id in self.parser.items(dep_sec):
                 self.config.set_launch_dependency(self._peer_id(dep_sec),
-                                                dep_name,
-                                                dep_id)
+                                                  dep_name,
+                                                  dep_id)
 
     def _set_peer_machine(self, peer_id, machine_name):
         self.config.set_peer_machine(peer_id, machine_name)
@@ -167,19 +167,19 @@ class LaunchFileParser(ScenarioParser):
         return conf_section.split('.', 1)[0]
 
     def _peer_sections(self):
-        return [sec for sec in self.parser.sections() if \
-                                sec.startswith(PEERS + '.') and \
-                                len(sec.split('.')) == 2]
+        return [sec for sec in self.parser.sections() if
+                sec.startswith(PEERS + '.') and
+                len(sec.split('.')) == 2]
 
     def __config_src_sections(self):
         return [sec for sec in self.parser.sections() if
-                                sec.startswith(PEERS + '.') and \
-                                sec.endswith(CONFIG_SRCS)]
+                sec.startswith(PEERS + '.') and
+                sec.endswith(CONFIG_SRCS)]
 
     def __launch_dep_sections(self):
         return [sec for sec in self.parser.sections() if
-                                sec.startswith(PEERS + '.') and \
-                                sec.endswith(LAUNCH_DEPS)]
+                sec.startswith(PEERS + '.') and
+                sec.endswith(LAUNCH_DEPS)]
 
 
 class LaunchJSONParser(ScenarioParser):
@@ -197,9 +197,8 @@ class LaunchJSONParser(ScenarioParser):
         return True
 
     def _prepare(self, p_file, p_config_obj):
-        self.load = json.load(p_file)#, encoding='ascii')
+        self.load = json.load(p_file)  # , encoding='ascii')
         self.config = p_config_obj
-
 
     def _peer_sections(self):
         items = self.load[PEERS].keys()
@@ -218,7 +217,7 @@ class LaunchJSONParser(ScenarioParser):
         if 'scenario_dir' in items:
             self.config.scenario_dir = items['scenario_dir']
             self.config.scenario_dir = expand_path(self.config.scenario_dir, base_dir=self.scenario_dir)
-            #print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
+            # print "scenario dir: ", self.config.scenario_dir, self.scenario_dir
 
     def _load_peer_ids(self, peer_sections):
         for peer_id in peer_sections:
@@ -233,15 +232,15 @@ class LaunchJSONParser(ScenarioParser):
     def _parse_peer_config_section(self, peer_id, peer_config_section, peer_path):
         # we do not apply globals when parsing JSON - we just assume
         # the globals are already in the JSON config
-        # TODO! apply them if parameter _apply_globals is set 
+        # TODO! apply them if parameter _apply_globals is set
         # and they are not present in the config
 
         peer_cfg, peer_parser = parse_peer_default_config(
-                                                peer_id, peer_path, self.logger)
+            peer_id, peer_path, self.logger)
         config = peer_config_section
         if config:
             self.logger.info("parsing _custom_ JSON config "
-                        "for peer %s. %s ", peer_id, str(config))
+                             "for peer %s. %s ", peer_id, str(config))
             json_parser = peer_config_parser.parser("python")
             json_parser.parse(config, peer_cfg)
 
@@ -268,7 +267,7 @@ class LaunchJSONParser(ScenarioParser):
 
 
 def parse_peer_default_config(peer_id, peer_program_path, logger=None, apply_globals=False):
-    #print "Trying to find default config for {0}, path: {1}".format(
+    # print "Trying to find default config for {0}, path: {1}".format(
     #                                            peer_id, peer_program_path)
     peer_parser = peer_config_parser.parser("ini")
     peer_cfg = peer_config.PeerConfig(peer_id)
@@ -281,23 +280,23 @@ def parse_peer_default_config(peer_id, peer_program_path, logger=None, apply_glo
         with codecs.open(conf_path, "r", "utf8") as f:
             if logger:
                 logger.info("parsing default config "
-                                "for peer %s, %s ", peer_id, conf_path)
+                            "for peer %s, %s ", peer_id, conf_path)
             peer_parser.parse(f, peer_cfg)
-
 
     return peer_cfg, peer_parser
 
-def extend_experiment_config(exp_config, peer_id, peer_path, 
-                                            config_sources=None, launch_deps=None, 
-                                             custom_config_path=None, param_overwrites=None, 
-                                             machine=None, apply_globals=True):
+
+def extend_experiment_config(exp_config, peer_id, peer_path,
+                             config_sources=None, launch_deps=None,
+                             custom_config_path=None, param_overwrites=None,
+                             machine=None, apply_globals=True):
     peer_cfg, cfg_parser = parse_peer_default_config(
-                                    peer_id, peer_path, apply_globals=apply_globals)
+        peer_id, peer_path, apply_globals=apply_globals)
     if custom_config_path:
         with codecs.open(custom_config_path, "r", "utf8") as f:
             print "parsing _custom_ config for peer  ", peer_id, custom_config_path
             cfg_parser.parse(f, peer_cfg)
 
-    return exp_config.extend_with_peer(peer_id, peer_path, peer_cfg, 
-                                            config_sources, launch_deps, 
-                                            param_overwrites, machine)
+    return exp_config.extend_with_peer(peer_id, peer_path, peer_cfg,
+                                       config_sources, launch_deps,
+                                       param_overwrites, machine)

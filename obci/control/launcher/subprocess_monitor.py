@@ -18,7 +18,7 @@ from process_io_handler import start_stdio_handler
 from local_process import LocalProcess
 from remote_process import RemoteProcess
 from process import FAILED, FINISHED, TERMINATED, UNKNOWN,\
-PING, RETURNCODE
+    PING, RETURNCODE
 
 
 NO_STDIO = 0
@@ -28,7 +28,7 @@ STDIN = 4
 
 STDIO = [NO_STDIO, STDOUT, STDERR, STDIN]
 
-PYTHON_CALL = ['python']#, '-u']
+PYTHON_CALL = ['python']  # , '-u']
 
 REGISTER_TIMEOUT = 3
 
@@ -36,14 +36,14 @@ _DEFAULT_TIMEOUT = 20
 _DEFAULT_TIMEOUT_MS = 6000
 
 
-
 class SubprocessMonitor(object):
+
     def __init__(self, zmq_ctx, uuid, logger=None, obci_dns=None):
         self._processes = {}
         self._ctx = zmq_ctx
         self.uuid = uuid
         self.logger = logger or get_logger('subprocess_monitor',
-                                stream_level='warning')
+                                           stream_level='warning')
         self.obci_dns = obci_dns
         self._mtool = OBCIMessageTool(message_templates)
         self.poller = PollingObject()
@@ -61,8 +61,8 @@ class SubprocessMonitor(object):
 
     def unknown_status_processes(self):
         with self._proc_lock:
-            return [proc for proc in self._processes.values()\
-                            if proc.status()[0] == UNKNOWN]
+            return [proc for proc in self._processes.values()
+                    if proc.status()[0] == UNKNOWN]
 
     def process(self, machine_ip, pid):
         with self._proc_lock:
@@ -98,9 +98,9 @@ class SubprocessMonitor(object):
                 proc.stop_monitoring()
 
     def _launch_args(self, path, args):
-        #TODO fix interpreter calls // only python is supported
+        # TODO fix interpreter calls // only python is supported
         if path.endswith('.py'):
-            launch_args = PYTHON_CALL +[path] + args
+            launch_args = PYTHON_CALL + [path] + args
         else:
             launch_args = [path] + args
         return launch_args
@@ -112,7 +112,8 @@ class SubprocessMonitor(object):
             err = subprocess.PIPE
         elif out is not None:
             err = subprocess.STDOUT
-        else: err = None
+        else:
+            err = None
 
         stdin = subprocess.PIPE if io_flags & STDIN else None
         return (out, err, stdin)
@@ -133,7 +134,7 @@ class SubprocessMonitor(object):
                                              bufsize=1, close_fds=ON_POSIX, env=env)
 
             details = "Popen constructor finished for " +\
-                                                 str(launch_args[:3]) + "(...)"
+                str(launch_args[:3]) + "(...)"
             self.logger.info(details)
             return popen_obj, details
         except OSError as e:
@@ -149,15 +150,14 @@ class SubprocessMonitor(object):
             self.logger.error(details)
             return None, details
 
-
     def new_local_process(self, path, args, proc_type='', name='',
-                                capture_io= STDOUT | STDIN,
-                                stdout_log=None,
-                                stderr_log=None,
-                                register_timeout_desc=None,
-                                monitoring_optflags=RETURNCODE | PING,
-                                machine_ip=None,
-                                env=None):
+                          capture_io=STDOUT | STDIN,
+                          stdout_log=None,
+                          stderr_log=None,
+                          register_timeout_desc=None,
+                          monitoring_optflags=RETURNCODE | PING,
+                          machine_ip=None,
+                          env=None):
 
         launch_args = self._launch_args(path, args)
         self.logger.debug(proc_type + " local path:  " + path)
@@ -179,21 +179,21 @@ class SubprocessMonitor(object):
             name = os.path.basename(path)
 
         process_desc = ProcessDescription(proc_type=proc_type,
-                                        name=name,
-                                        path=path,
-                                        args=args,
-                                        machine_ip=machine,
-                                        pid=popen_obj.pid)
+                                          name=name,
+                                          path=path,
+                                          args=args,
+                                          machine_ip=machine,
+                                          pid=popen_obj.pid)
 
         # io_handler will be None if no stdio is captured
         io_handler = start_stdio_handler(popen_obj, std_actions,
-                                                    ':'.join([machine, path, name]),
-                                                    stdout_log, stderr_log)
+                                         ':'.join([machine, path, name]),
+                                         stdout_log, stderr_log)
 
         new_proc = LocalProcess(process_desc, popen_obj, io_handler=io_handler,
-                            reg_timeout_desc=timeout_desc,
-                            monitoring_optflags=monitoring_optflags,
-                            logger=self.logger)
+                                reg_timeout_desc=timeout_desc,
+                                monitoring_optflags=monitoring_optflags,
+                                logger=self.logger)
 
         if monitoring_optflags & PING:
             new_proc._ctx = self._ctx
@@ -206,27 +206,26 @@ class SubprocessMonitor(object):
         return new_proc, None
 
     def new_remote_process(self, path, args, proc_type, name,
-                                machine_ip, conn_addr,
-                                capture_io= STDOUT | STDIN,
-                                stdout_log=None,
-                                stderr_log=None,
-                                register_timeout_desc=None,
-                                monitoring_optflags=PING):
+                           machine_ip, conn_addr,
+                           capture_io=STDOUT | STDIN,
+                           stdout_log=None,
+                           stderr_log=None,
+                           register_timeout_desc=None,
+                           monitoring_optflags=PING):
         """Send a request to conn_addr for a process launch. By default
         the process will be monitored with ping requests and locally by the
         remote peer."""
 
-
         timeout_desc = register_timeout_desc
 
         rq_message = self._mtool.fill_msg('launch_process',
-                                path=path,
-                                args=args, proc_type=proc_type,
-                                name=name,
-                                machine_ip=machine_ip,
-                                capture_io=capture_io,
-                                stdout_log=stdout_log,
-                                stderr_log=stderr_log)
+                                          path=path,
+                                          args=args, proc_type=proc_type,
+                                          name=name,
+                                          machine_ip=machine_ip,
+                                          capture_io=capture_io,
+                                          stdout_log=stdout_log,
+                                          stderr_log=stderr_log)
 
         rq_sock = self._ctx.socket(zmq.REQ)
 
@@ -234,12 +233,12 @@ class SubprocessMonitor(object):
             rq_sock.connect(conn_addr)
         except zmq.ZMQError as e:
             det = "Could not connect to {0}, err: {1}, {2}".format(
-                                                            conn_addr, e, e.args)
+                conn_addr, e, e.args)
             self.logger.error(det)
             return None, det
 
         self.logger.info("SENDING LAUNCH REQUEST  {0}  {1}  {2} {3}".format(
-                                machine_ip, _DEFAULT_TIMEOUT_MS, 'ms', conn_addr))
+            machine_ip, _DEFAULT_TIMEOUT_MS, 'ms', conn_addr))
 
         send_msg(rq_sock, rq_message)
         result, details = self.poller.poll_recv(rq_sock, _DEFAULT_TIMEOUT_MS)
@@ -260,16 +259,16 @@ class SubprocessMonitor(object):
         elif result.type == 'launched_process_info':
             self.logger.info("REQUEST SUCCESS  %s", result.dict())
             process_desc = ProcessDescription(proc_type=result.proc_type,
-                                            name=result.name,
-                                            path=result.path,
-                                            args=args,
-                                            machine_ip=result.machine,
-                                            pid=result.pid)
+                                              name=result.name,
+                                              path=result.path,
+                                              args=args,
+                                              machine_ip=result.machine,
+                                              pid=result.pid)
 
             new_proc = RemoteProcess(process_desc, conn_addr,
-                                reg_timeout_desc=timeout_desc,
-                                monitoring_optflags=monitoring_optflags,
-                                logger=self.logger)
+                                     reg_timeout_desc=timeout_desc,
+                                     monitoring_optflags=monitoring_optflags,
+                                     logger=self.logger)
 
             if monitoring_optflags & PING:
                 new_proc._ctx = self._ctx
@@ -283,6 +282,7 @@ class SubprocessMonitor(object):
 
 
 class ProcessDescription(object):
+
     def __init__(self, proc_type, name, path, args, machine_ip, pid=None):
         self.proc_type = proc_type
         self.name = name
@@ -303,11 +303,12 @@ class ProcessDescription(object):
 
 
 class TimeoutDescription(object):
+
     def __init__(self, timeout=REGISTER_TIMEOUT, timeout_method=None,
-                                                    timeout_args=[]):
+                 timeout_args=[]):
         self.timeout = timeout
         self.timeout_method = timeout_method if timeout_method else \
-                                    self.default_timeout_method
+            self.default_timeout_method
         self.timeout_args = timeout_args
 
     def default_timeout_method(self):
@@ -315,6 +316,7 @@ class TimeoutDescription(object):
 
     def timer(self):
         return threading.Timer(self.timeout, self.timeout_method, self.timeout_args)
+
 
 def default_timeout_handler():
     return TimeoutDescription()

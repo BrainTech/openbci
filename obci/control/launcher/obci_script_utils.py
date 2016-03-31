@@ -90,8 +90,8 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
     srv_rep_port = net.server_rep_port()
     srv_pub_port = net.server_pub_port()
     if server_ip:
-        rep_addrs = ['tcp://'+server_ip+':'+srv_rep_port]
-        pub_addrs = ['tcp://'+server_ip+':'+srv_pub_port]
+        rep_addrs = ['tcp://' + server_ip + ':' + srv_rep_port]
+        pub_addrs = ['tcp://' + server_ip + ':' + srv_pub_port]
     else:
         rep_addrs = ['tcp://*:' + srv_rep_port]
         pub_addrs = ['tcp://*:' + srv_pub_port]
@@ -113,9 +113,8 @@ def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server
             return None
         disp.view("OBCI server launched. PID: {0}".format(srv.pid))
 
-
     if not server_ip:
-        rep_addrs = ['tcp://localhost:'+srv_rep_port]
+        rep_addrs = ['tcp://localhost:' + srv_rep_port]
 
     res, client = connect_client(rep_addrs, client_class=client_class, zmq_ctx=zmq_ctx)
 

@@ -13,16 +13,18 @@ from obci.control.launcher.launcher_messages import message_templates, error_cod
 from obci.control.common.obci_control_settings import PORT_RANGE
 import obci.control.common.net_tools as net
 
-DELIM = chr(ord(':')) #wtf
+DELIM = chr(ord(':'))  # wtf
 END = chr(ord(','))
 
-class OBCIPeerTCP( SocketServer.TCPServer):#, SocketServer.ThreadingMixIn):
+
+class OBCIPeerTCP(SocketServer.TCPServer):  # , SocketServer.ThreadingMixIn):
     allow_reuse_address = True
+
     def __init__(self, server_address, handler_class, bind_and_activate=True,
-                            zmq_ctx=None, zmq_rep_addr=None):
+                 zmq_ctx=None, zmq_rep_addr=None):
         daemon_threads = True
         server_timeout = 45
-        SocketServer.TCPServer.__init__(self,server_address, handler_class, bind_and_activate)
+        SocketServer.TCPServer.__init__(self, server_address, handler_class, bind_and_activate)
         self.mtool = OBCIMessageTool(message_templates)
         self.pl = PollingObject()
         self.ctx = zmq_ctx
@@ -30,28 +32,32 @@ class OBCIPeerTCP( SocketServer.TCPServer):#, SocketServer.ThreadingMixIn):
 
 
 class OBCIServerTCP(OBCIPeerTCP):
+
     def __init__(self, server_address,  bind_and_activate=True,
-                            zmq_ctx=None, zmq_rep_addr=None):
+                 zmq_ctx=None, zmq_rep_addr=None):
         # print server_address, requestHandlerClass
-        OBCIPeerTCP.__init__(self,server_address, OBCIServerRequestHandler, bind_and_activate,
-                        zmq_ctx, zmq_rep_addr)
+        OBCIPeerTCP.__init__(self, server_address, OBCIServerRequestHandler, bind_and_activate,
+                             zmq_ctx, zmq_rep_addr)
         self.pull_sock = self.ctx.socket(zmq.PULL)
         self.pull_port = self.pull_sock.bind_to_random_port('tcp://*',
-                                            min_port=PORT_RANGE[0],
-                                            max_port=PORT_RANGE[1], max_tries=500)
+                                                            min_port=PORT_RANGE[0],
+                                                            max_port=PORT_RANGE[1], max_tries=500)
 
 
 class OBCIExperimentTCP(OBCIPeerTCP):
+
     def __init__(self, server_address, bind_and_activate=True,
-                            zmq_ctx=None, zmq_rep_addr=None):
+                 zmq_ctx=None, zmq_rep_addr=None):
         OBCIPeerTCP.__init__(self, server_address, OBCIExperimentRequestHandler,
-                bind_and_activate, zmq_ctx, zmq_rep_addr)
+                             bind_and_activate, zmq_ctx, zmq_rep_addr)
+
 
 def run_tcp_obci_server(server_address, zmq_ctx, zmq_rep_addr):
     server = OBCIServerTCP(server_address, OBCIServerRequestHandler,
-                            zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
+                           zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
     return _run_tcp_server(server,
-                            zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
+                           zmq_ctx=zmq_ctx, zmq_rep_addr=zmq_rep_addr)
+
 
 def run_tcp_obci_experiment(server_address, zmq_ctx, zmq_rep_addr):
     srv = OBCIExperimentTCP(server_address, OBCIExperimentRequestHandler,
@@ -70,6 +76,7 @@ def _run_tcp_server(server, zmq_ctx, zmq_rep_addr):
     print "serving on: ", server.server_address
     return server_thread, server, server.server_address
 
+
 def _recv_netstring_len(rstream):
     bt = rstream.read(1)
     if bt == '':
@@ -85,6 +92,7 @@ def _recv_netstring_len(rstream):
     print ''
     return int(strlen)
 
+
 def recv_netstring(rstream):
     datalen = _recv_netstring_len(rstream)
     data = rstream.read(datalen)
@@ -97,21 +105,24 @@ def recv_netstring(rstream):
             raise RuntimeError("socket connection broken")
         data = ''.join([data, chunk])
         got += len(chunk)
-        do -=1
+        do -= 1
 
     end = rstream.read(1)
     assert(end == END and got == datalen)
     return data
+
 
 def recv_unicode_netstring(rstream):
     data = recv_netstring(rstream)
     msg = unicode(data, encoding='utf-8')
     return msg
 
+
 def make_unicode_netstring(unicode_str):
     print 'unicode_len (characters): ', len(unicode_str)
     msg = unicode_str.encode('utf-8')
     return make_netstring(msg)
+
 
 def make_netstring(bytes):
     datalen = len(bytes)
@@ -146,6 +157,7 @@ class OBCIPeerRequestHandler(SocketServer.StreamRequestHandler):
 
 
 class OBCIServerRequestHandler(OBCIPeerRequestHandler):
+
     def handle(self):
         print "SERVER REQUEST", self.__class__, "ME: ", self.request.getsockname()
         print "FROM :", self.request.getpeername()
@@ -156,14 +168,14 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
         if parsed.type == 'find_eeg_experiments' or parsed.type == 'find_eeg_amplifiers':
             pull_addr = 'tcp://' + socket.gethostname() + ':' + str(self.server.pull_port)
             parsed.client_push_address = pull_addr
-            
+
         srv_sock = self.make_srv_sock()
         try:
             send_msg(srv_sock, parsed.SerializeToString())
             response, det = pl.poll_recv(srv_sock, timeout=5000)
         finally:
             srv_sock.close()
-        
+
         print "passed msg and got result:  ", response
         if not response:
             self.bad_response(self.wfile, det)
@@ -181,5 +193,3 @@ class OBCIServerRequestHandler(OBCIPeerRequestHandler):
 
 class OBCIExperimentRequestHandler(OBCIPeerRequestHandler):
     pass
-
-

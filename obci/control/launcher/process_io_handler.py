@@ -19,20 +19,22 @@ DEFAULT_TAIL_RQ = 10
 LINES_TO_GET = 5
 IO_WAIT = 0.5
 
-def start_stdio_handler(popen_obj, stdio_actions, name, 
-                                            stdout_log, stderr_log):
+
+def start_stdio_handler(popen_obj, stdio_actions, name,
+                        stdout_log, stderr_log):
     io_handler = None
     if stdio_actions != (None, None, None):
         out, err, stdin = stdio_actions
         out_handle = popen_obj.stdout if out is not None else None
         if err == subprocess.STDOUT or err is None:
             err_handle = None
-        else: err_handle = popen_obj.stderr
+        else:
+            err_handle = popen_obj.stderr
 
         in_handle = popen_obj.stdin if stdin is not None else None
 
         io_handler = ProcessIOHandler(
-                        name=name,
+            name=name,
                         stdout=out_handle,
                         stderr=err_handle,
                         stdin=in_handle,
@@ -40,14 +42,17 @@ def start_stdio_handler(popen_obj, stdio_actions, name,
         io_handler.start_output_handler()
     return io_handler
 
+
 class ProcessIOHandler(object):
+
     """Processes data from descriptors (stdout, stderr) in separate threads.
     Access to the tail is available through attributes *out_tail* and *err_tail*.
     Communication through stdin, if given, is possible by *communicate()* method.
     Data is saved to log files if the handles were given in init.
     """
+
     def __init__(self, name, stdout=None, stderr=None, stdin=None,
-                            out_log=None, err_log=None):
+                 out_log=None, err_log=None):
         self.name = name
         self.stdout = stdout
         self.stdin = stdin
@@ -57,14 +62,13 @@ class ProcessIOHandler(object):
         self._stop = False
 
         self._out_q, self._stdout_thread, self._out_log = \
-                                self.__init_io(self.stdout, out_log)
+            self.__init_io(self.stdout, out_log)
 
         self.out_tail = deque(maxlen=STDIO_TAIL_LEN)
         self.err_tail = deque(maxlen=STDIO_TAIL_LEN)
 
-
         self._err_q, self._stderr_thread, self._err_log = \
-                                    self.__init_io(self.stderr, err_log)
+            self.__init_io(self.stderr, err_log)
 
         if self.stdout or self.stderr:
             self._start_background_io_reading()
@@ -85,7 +89,7 @@ class ProcessIOHandler(object):
         return q, thr, log
 
     def communicate(self, input, response_timeout=None):
-        #TODO :)
+        # TODO :)
         return None
 
     def tail_stdout(self, lines):
@@ -109,7 +113,7 @@ class ProcessIOHandler(object):
 
     def start_output_handler(self):
         self._output_handler_thread = threading.Thread(
-                                        target=self._output_handler)
+            target=self._output_handler)
         self._output_handler_thread.deamon = True
         self._output_handler_thread.start()
 
@@ -127,7 +131,7 @@ class ProcessIOHandler(object):
 
     def finished(self):
         return (not self.__io_readers_alive()) and \
-                (not self._output_handler_thread.is_alive())
+            (not self._output_handler_thread.is_alive())
 
     def __io_readers_alive(self):
         alive = False
@@ -140,7 +144,7 @@ class ProcessIOHandler(object):
     def _output_handler(self):
         while self.__io_readers_alive() and not self._stop:
             self.process_output(lines=LINES_TO_GET, timeout=IO_WAIT)
-            time.sleep(0.1)#IO_WAIT)
+            time.sleep(0.1)  # IO_WAIT)
 
     def _start_background_io_reading(self):
         if self.stdout:
@@ -156,12 +160,11 @@ class ProcessIOHandler(object):
                 if self._stop:
                     break
             except Full:
-                #drop it :/
+                # drop it :/
                 print "Queue full for stream {0} of {1}".format(stream, self.name)
                 print "Dropping line."
 
         stream.close()
-
 
     def _get_lines(self, stream, q, lines=None, timeout=None):
         lines = lines if lines else 1
@@ -174,15 +177,13 @@ class ProcessIOHandler(object):
                     line = q.get(block=False)
             except Empty:
                 return out
-            else: # got line
+            else:  # got line
                 out.append(line)
         return out
 
-
     def _handle_stdout(self, lines=None, timeout=None):
         self._handle_stdio(self.stdout, self._out_q,
-                            self._out_log, self.out_tail, lines, timeout)
-
+                           self._out_log, self.out_tail, lines, timeout)
 
     def _handle_stdio(self, stream, q, log, tail, lines=None, timeout=None):
         out = self._get_lines(stream, q, lines, timeout)
@@ -193,7 +194,6 @@ class ProcessIOHandler(object):
             except Exception, e:
                 print e, e.args
 
-
     def _handle_stderr(self, lines=None, timeout=None):
         self._handle_stdio(self.stderr, self._err_q,
-                            self._err_log, self.err_tail, lines, timeout)
+                           self._err_log, self.err_tail, lines, timeout)

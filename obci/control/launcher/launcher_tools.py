@@ -15,7 +15,7 @@ FINISHED = 'finished'
 FAILED = 'failed'
 TERMINATED = 'terminated'
 
-EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
+EXP_STATUSES = [NOT_READY, READY_TO_LAUNCH, LAUNCHING,
                 FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED]
 
 POST_RUN_STATUSES = [FINISHED, FAILED, TERMINATED, FAILED_LAUNCH]
@@ -23,6 +23,7 @@ RUN_STATUSES = [LAUNCHING, RUNNING]
 
 
 class ExperimentStatus(object):
+
     def __init__(self):
         self.status_name = NOT_READY
         self.details = {}
@@ -52,6 +53,7 @@ class ExperimentStatus(object):
 
 
 class PeerStatus(object):
+
     def __init__(self, peer_id, status_name=NOT_READY):
         self.peer_id = peer_id
         self.status_name = status_name
@@ -63,7 +65,7 @@ class PeerStatus(object):
 
     def as_dict(self):
         return dict(peer_id=self.peer_id, status_name=self.status_name,
-                details=self.details)
+                    details=self.details)
 
 
 def obci_root():
@@ -71,6 +73,7 @@ def obci_root():
     path = os.path.split(path)[0]
     path = os.path.split(path)[0]
     return path
+
 
 def obci_root_relative(path):
     _path = path
@@ -83,17 +86,19 @@ def obci_root_relative(path):
                 _path = _path[1:]
     return _path
 
+
 def obci_pythonpath():
     root = obci_root()
     lib_python_dir = ''.join(['python', str(sys.version_info[0]), '.',
-                                            str(sys.version_info[1])])
+                              str(sys.version_info[1])])
     try:
         import multiplexer.multiplexer_constants
         mx_python_path = ""
     except ImportError:
         mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
-                                    lib_python_dir, 'site-packages')
-    return mx_python_path#os.pathsep.join([root, mx_python_path])
+                                      lib_python_dir, 'site-packages')
+    return mx_python_path  # os.pathsep.join([root, mx_python_path])
+
 
 def update_obci_syspath(paths_str=None):
     paths_str = paths_str or obci_pythonpath()
@@ -101,15 +106,17 @@ def update_obci_syspath(paths_str=None):
         if direct != '':
             sys.path.insert(1, direct)
 
+
 def update_pythonpath(obci_paths=None):
     obci_paths = obci_paths or obci_pythonpath()
-    pythonpath=os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ''
-    pythonpath=os.pathsep.join([pythonpath, obci_paths])
+    pythonpath = os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ''
+    pythonpath = os.pathsep.join([pythonpath, obci_paths])
     os.environ["PYTHONPATH"] = pythonpath
 
 
 def mx_path():
     return os.path.join(obci_root(), 'multiplexer-install', 'bin', 'mxcontrol')
+
 
 def mx_rules_path():
     return os.path.join(obci_root(), 'configs', 'multiplexer.rules')
@@ -119,6 +126,7 @@ def module_path(module):
     path = module.__file__
     path = '.'.join([path.rsplit('.', 1)[0], 'py'])
     return os.path.normpath(path)
+
 
 def default_config_path(peer_program_path):
     file_endings = ['py', 'java', 'jar', 'class', 'exe', 'sh', 'bin']
@@ -130,7 +138,9 @@ def default_config_path(peer_program_path):
     conf_path = expand_path(base + '.ini')
     if os.path.exists(conf_path):
         return conf_path
-    else: return ''
+    else:
+        return ''
+
 
 def expand_path(program_path, base_dir=None):
     if base_dir is None:
@@ -144,5 +154,5 @@ def expand_path(program_path, base_dir=None):
     else:
         return os.path.realpath(os.path.join(base_dir, p))
 
-if __name__=='__main__':
+if __name__ == '__main__':
     print(obci_pythonpath())

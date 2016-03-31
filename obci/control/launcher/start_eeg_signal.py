@@ -19,6 +19,7 @@ from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
 LOGGER = logger.get_logger("start_eeg_signal", "info")
 
+
 def start_eeg_signal_experiment(ctx, srv_addrs, rq_message):
     client = OBCIClient(srv_addrs, ctx)
     # server_req_socket = ctx.socket(zmq.REQ)
@@ -40,15 +41,14 @@ def start_eeg_signal_experiment(ctx, srv_addrs, rq_message):
     overwrites = peer_cmd.peer_overwrites_pack(par_list)
     result = client.launch(rq_message.launch_file, None, rq_message.name, overwrites)
 
-
     LOGGER.info("START EEG signal! return to:  " + rq_message.client_push_address)
     mtool = OBCIMessageTool(message_templates)
     to_client = ctx.socket(zmq.PUSH)
     to_client.connect(rq_message.client_push_address)
     if result is None or result.type == 'no_data':
         send_msg(to_client, mtool.fill_msg("rq_error", err_code="launch_failed",
-                    details="No response from server or experiment"))
+                                           details="No response from server or experiment"))
     else:
         send_msg(to_client, result.raw())
-    LOGGER.info("sent eeg launch result"  + str(result)[:500] )
+    LOGGER.info("sent eeg launch result" + str(result)[:500])
     time.sleep(0.1)

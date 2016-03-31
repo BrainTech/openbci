@@ -15,6 +15,7 @@ from obci.control.launcher.launcher_messages import message_templates, error_cod
 from obci.control.common.obci_control_settings import PORT_RANGE
 import obci.control.common.net_tools as net
 
+
 class OBCIProxy(NetstringReceiver):
 
     def stringReceived(self, string):
@@ -36,12 +37,12 @@ class OBCIProxy(NetstringReceiver):
                     send_msg(req_sock, parsed.SerializeToString())
                 else:
                     send_msg(req_sock, req)
-    
+
             pl = PollingObject()
             msg, det = pl.poll_recv(req_sock, timeout=5000)
         finally:
             req_sock.close()
-       
+
         if not msg:
             msg = self.factory.mtool.fill_msg("rq_error", details=det)
 
@@ -56,7 +57,6 @@ class OBCIProxy(NetstringReceiver):
         encmsg = msg.encode('utf-8')
         self.sendString(encmsg)
         reactor.callFromThread(self.sendString, encmsg)
-
 
 
 class OBCIProxyFactory(Factory):
@@ -79,8 +79,8 @@ class OBCIProxyFactory(Factory):
     def _make_pull_sock(self):
         sock = self.ctx.socket(zmq.PULL)
         port = sock.bind_to_random_port('tcp://*',
-                                            min_port=PORT_RANGE[0],
-                                            max_port=PORT_RANGE[1], max_tries=500)
+                                        min_port=PORT_RANGE[0],
+                                        max_port=PORT_RANGE[1], max_tries=500)
         return (sock, port)
 
 

@@ -9,20 +9,21 @@ from process_io_handler import DEFAULT_TAIL_RQ
 
 import process
 from process import FAILED, FINISHED, TERMINATED, UNKNOWN, NON_RESPONSIVE,\
-PING, RETURNCODE, REG_TIMER
+    PING, RETURNCODE, REG_TIMER
 
 
 class LocalProcess(process.Process):
+
     def __init__(self, proc_description, popen_obj, io_handler=None,
-                                reg_timeout_desc=None,
-                                monitoring_optflags=PING | RETURNCODE,
-                                logger=None):
+                 reg_timeout_desc=None,
+                 monitoring_optflags=PING | RETURNCODE,
+                 logger=None):
         self.popen_obj = popen_obj
         self.io_handler = io_handler
 
         super(LocalProcess, self).__init__(proc_description,
-                                        reg_timeout_desc, monitoring_optflags,
-                                        logger)
+                                           reg_timeout_desc, monitoring_optflags,
+                                           logger)
 
     def is_local(self):
         return True
@@ -70,7 +71,7 @@ class LocalProcess(process.Process):
             if self.popen_obj.returncode is None:
                 if sys.platform == "win32":
                     self.logger.info("[win] sending CTRL_C_EVENT.............. %s", self.name)
-                    #self.popen_obj.send_signal(signal.SIGINT)
+                    # self.popen_obj.send_signal(signal.SIGINT)
                     os.kill(self.popen_obj.pid, signal.CTRL_BREAK_EVENT)
                 else:
                     self.popen_obj.terminate()
@@ -89,14 +90,10 @@ class LocalProcess(process.Process):
                 self._status_details = -(self.popen_obj.returncode)
             self._status = TERMINATED
 
-
-
-
     def returncode_monitor(self):
         # TODO just use wait() instead of poll()ing every 0.5s
         # self.popen_obj.wait()
         # code = self.popen_obj.returncode
-
 
         # print "[subprocess_monitor]",self.proc_type,"process", \
         #                 self.name, "pid", self.pid, "ended with", code
@@ -117,8 +114,8 @@ class LocalProcess(process.Process):
             code = self.popen_obj.returncode
 
             if code is not None:
-                self.logger.info(self.proc_type + " process " + self.name +\
-                                    " pid " + str(self.pid) + " ended with " + str(code))
+                self.logger.info(self.proc_type + " process " + self.name +
+                                 " pid " + str(self.pid) + " ended with " + str(code))
                 with self._status_lock:
                     self.popen_obj.wait()
                     if code == 0:
@@ -132,8 +129,8 @@ class LocalProcess(process.Process):
                         self._status_detals = self.tail_stdout(15)
                 break
             elif self.status()[0] == NON_RESPONSIVE:
-                self.logger.warning(self.proc_type + "process" + self.name +\
-                                         "pid" + self.pid + "is NON_RESPONSIVE")
+                self.logger.warning(self.proc_type + "process" + self.name +
+                                    "pid" + self.pid + "is NON_RESPONSIVE")
                 with self._status_lock:
                     self.popen_obj.poll()
                     if self.popen_obj.returncode is None:
@@ -142,7 +139,7 @@ class LocalProcess(process.Process):
                     self.popen_obj.wait()
             else:
                 time.sleep(0.5)
-        #print "[subprocess_monitor]",self.proc_type,self.name, self.pid,\
+        # print "[subprocess_monitor]",self.proc_type,self.name, self.pid,\
         #                             self.popen_obj.returncode, self._stop_monitoring
         if self.popen_obj.returncode is not None:
             self.popen_obj.wait()
