@@ -26,16 +26,17 @@ import obci.control.common.obci_control_settings as settings
 MODE_BASIC = 'basic'
 MODE_ADVANCED = 'advanced'
 MODE_EXPERT = 'expert'
-MODES = [MODE_ADVANCED, MODE_BASIC]#, MODE_EXPERT]
+MODES = [MODE_ADVANCED, MODE_BASIC]  # , MODE_EXPERT]
 
 DEFAULT_CATEGORY = u'Uncategorised'
 USER_CATEGORY = u'User defined'
 
 SIGNAL_STORAGE_PEERS = {
-    "signal_saver" : "acquisition/signal_saver_peer.py",
-    "tag_saver" : "acquisition/tag_saver_peer.py",
-    "info_saver" : "acquisition/info_saver_peer.py"
+    "signal_saver": "acquisition/signal_saver_peer.py",
+    "tag_saver": "acquisition/tag_saver_peer.py",
+    "info_saver": "acquisition/info_saver_peer.py"
 }
+
 
 class ExperimentEngineInfo(QtCore.QObject):
     exp_saver_msg = QtCore.pyqtSignal(object)
@@ -67,7 +68,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
     def cleanup(self):
         if self.exp_req:
-            self.exp_req.close()#linger=0)
+            self.exp_req.close()  # linger=0)
 
     def setup_from_preset(self, preset_data, launcher=False):
         self.preset_data = preset_data
@@ -92,7 +93,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
     def _addr_connectable(self, addr, machine):
         return machine == socket.gethostname() or \
-                    (net.is_ip(addr) and not net.addr_is_local(addr))
+            (net.is_ip(addr) and not net.addr_is_local(addr))
 
     def setup_from_launcher(self, launcher_data, preset=False, transform=False):
         self.launcher_data = launcher_data
@@ -105,7 +106,7 @@ class ExperimentEngineInfo(QtCore.QObject):
             self.status = launcher_tools.ExperimentStatus()
             self.exp_config = system_config.OBCIExperimentConfig()
 
-        self.name = launcher_data['name']# if not preset else self.old_uid
+        self.name = launcher_data['name']  # if not preset else self.old_uid
         if not preset:
             self.launch_file = launcher_data['launch_file_path']
 
@@ -129,7 +130,6 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         self.exp_config.uuid = launcher_data['uuid']
         self.exp_config.origin_machine = launcher_data['origin_machine']
-
 
         self.uuid = self.exp_config.uuid
 
@@ -162,11 +162,10 @@ class ExperimentEngineInfo(QtCore.QObject):
         self.exp_config.status(self.status)
         return result, details
 
-
-    #FIXME  !!! copy-paste from obci_experiment
+    # FIXME  !!! copy-paste from obci_experiment
     def make_experiment_config(self):
         launch_parser = launch_file_parser.LaunchFileParser(
-                            launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+            launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
         if not self.launch_file:
             return False, "Empty scenario."
 
@@ -196,10 +195,9 @@ class ExperimentEngineInfo(QtCore.QObject):
         print "GOT SCENARIO", response.scenario
         return self._process_experiment_scenario(response.scenario)
 
-
     def _process_experiment_scenario(self, json_scenario):
         jsonpar = launch_file_parser.LaunchJSONParser(
-                        launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
+            launcher_tools.obci_root(), settings.DEFAULT_SCENARIO_DIR)
         inbuf = io.BytesIO(json_scenario.encode('utf-8'))
         jsonpar.parse(inbuf, self.exp_config)
         print "MY PEEEEERS:", self.exp_config.peers.keys()
@@ -224,7 +222,7 @@ class ExperimentEngineInfo(QtCore.QObject):
             # self.exp_config.set_peer_machine(peer, short_info['machine'])
 
             msg = self.comm_exp(self.mtool.fill_msg("get_peer_info",
-                                        peer_id=peer))
+                                                    peer_id=peer))
             if not msg:
                 return
 
@@ -233,13 +231,13 @@ class ExperimentEngineInfo(QtCore.QObject):
                 ext_defs[name] = defi[0] + '.' + defi[1]
             strict_update = os.path.exists(launcher_tools.expand_path(self.launch_file))
             self.exp_config.update_peer_config(peer, dict(config_sources=msg.config_sources,
-                                                launch_dependencies=msg.launch_dependencies,
-                                                local_params=msg.local_params,
-                                                external_params=ext_defs))
+                                                          launch_dependencies=msg.launch_dependencies,
+                                                          local_params=msg.local_params,
+                                                          external_params=ext_defs))
 
         for peer, status in exp_msg.experiment_status['peers_status'].iteritems():
             self.status.peer_status(peer).set_status(
-                                            status['status_name'],
+                status['status_name'],
                                             details=status['details'])
 
     def parameters(self, peer_id, mode):
@@ -255,9 +253,8 @@ class ExperimentEngineInfo(QtCore.QObject):
             for param, defi in peer.config.ext_param_defs.iteritems():
                 source_symbol = defi[0]
                 source = peer.config.config_sources[source_symbol]
-                params[param] = (self.exp_config.param_value(peer_id, param), source+'.'+defi[1])
+                params[param] = (self.exp_config.param_value(peer_id, param), source + '.' + defi[1])
         return params
-
 
     def comm_exp(self, msg):
         send_msg(self.exp_req, msg)
@@ -271,7 +268,6 @@ class ExperimentEngineInfo(QtCore.QObject):
                     self.exp_req.connect(addr)
             return None
         return self.mtool.unpack_msg(response)
-
 
     def updatable(self, peer_id, config_part, **kwargs):
         return False
@@ -288,7 +284,6 @@ class ExperimentEngineInfo(QtCore.QObject):
                 changes[peer_id] = ovr
 
         self.exp_config.update_local_param(peer_id, param, value)
-
 
     def get_launch_args(self):
         d = dict(launch_file=self.launch_file, name=self.name)
@@ -309,12 +304,11 @@ class ExperimentEngineInfo(QtCore.QObject):
         return self.exp_config.peers[peer_id]
 
     def add_peer(self, peer_id, peer_path, config_sources=None, launch_deps=None,
-                                             custom_config_path=None, param_overwrites=None,machine=None):
+                 custom_config_path=None, param_overwrites=None, machine=None):
 
         return launch_file_parser.extend_experiment_config(self.exp_config, peer_id, peer_path,
-                     config_sources, launch_deps,
-                    custom_config_path, param_overwrites, machine, apply_globals=True)
-
+                                                           config_sources, launch_deps,
+                                                           custom_config_path, param_overwrites, machine, apply_globals=True)
 
     def enable_signal_storing(self, store_options):
         if not store_options:
@@ -322,7 +316,7 @@ class ExperimentEngineInfo(QtCore.QObject):
 
         if int(store_options['append_timestamp']):
             store_options = dict(store_options)
-            store_options['save_file_name'] = store_options['save_file_name']+"_"+str(time.time())
+            store_options['save_file_name'] = store_options['save_file_name'] + "_" + str(time.time())
 
         for peer, peer_path in SIGNAL_STORAGE_PEERS.iteritems():
             if peer not in self.exp_config.peers:
@@ -335,7 +329,7 @@ class ExperimentEngineInfo(QtCore.QObject):
                 params[opt] = val
 
     def stop_storing(self, client):
-        join_response = client.join_experiment(self.uuid, "dummy_module_"+str(time.time()), "")
+        join_response = client.join_experiment(self.uuid, "dummy_module_" + str(time.time()), "")
         if join_response is None:
             print "experiment engine info - ERROR - connection timeout on stop signal storing!"
             return
@@ -343,6 +337,5 @@ class ExperimentEngineInfo(QtCore.QObject):
             print "experiment engine info - ERROR - join error on stop signal storing!"
             return
         mx_addr = join_response.params["mx_addr"].split(':')
-        #hang and wait ...
+        # hang and wait ...
         acquisition_helper.finish_saving([(mx_addr[0], int(mx_addr[1]))])
-

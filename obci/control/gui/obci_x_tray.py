@@ -18,19 +18,19 @@ from obci.utils.filesystem import checkpidfile, which
 class ServerController(QObject):
 
     # all values in milliseconds
-    serverPingDelay    = 4000
-    serverReadyTimeout = 3*serverPingDelay
-    serverDiedTiemout = 3*serverPingDelay
-    
+    serverPingDelay = 4000
+    serverReadyTimeout = 3 * serverPingDelay
+    serverDiedTiemout = 3 * serverPingDelay
+
     serverShutdownTimeout = 1000  # 10*1000
 
-    serverReady           = pyqtSignal()          # emitted when server is fully operational
-    serverStartingUpError = pyqtSignal('QString') # emitted when error was detected during startup
-    
-    serverTerminated        = pyqtSignal()          # emitted when server process ends by request
-    serverShuttingDownError = pyqtSignal('QString') # emitted when error occurred during shutting down
-    
-    serverUnexpectedlyDied = pyqtSignal('QString') # emitted when server unexpectedly died during running
+    serverReady = pyqtSignal()          # emitted when server is fully operational
+    serverStartingUpError = pyqtSignal('QString')  # emitted when error was detected during startup
+
+    serverTerminated = pyqtSignal()          # emitted when server process ends by request
+    serverShuttingDownError = pyqtSignal('QString')  # emitted when error occurred during shutting down
+
+    serverUnexpectedlyDied = pyqtSignal('QString')  # emitted when server unexpectedly died during running
 
     def __init__(self, parent=None):
         super(ServerController, self).__init__(parent)
@@ -39,7 +39,7 @@ class ServerController(QObject):
         self.easyMode = False
         self.Gui = False
         self.autostartServer = False
-        opts, args = getopt.getopt(sys.argv[1:],"egs",['easy','gui','startserver'])
+        opts, args = getopt.getopt(sys.argv[1:], "egs", ['easy', 'gui', 'startserver'])
         for opt, arg in opts:
             if opt in ('--easy'):
                 self.easyMode = True
@@ -50,15 +50,15 @@ class ServerController(QObject):
 
         instance = checkpidfile('tray.pid')
         if instance == True and self.Gui == True:
-            os.execl('obci_gui','')
+            os.execl('obci_gui', '')
             sys.exit(0)
         elif instance == True:
             sys.exit(1)
 
         self.process = QProcess()
         self.programName = 'obci srv'
-        #self.process.started.connect(self.processStarted)
-        
+        # self.process.started.connect(self.processStarted)
+
         self.startingStartTime = QTime.currentTime()
         self.terminatingStartTime = QTime.currentTime()
         self.lastResponseTime = QTime.currentTime()
@@ -79,7 +79,7 @@ class ServerController(QObject):
             return True
         except subprocess.CalledProcessError:
             return False
-        
+
     def startServer(self):
         if not self.isServerRunning():
             self.startingStartTime = QTime.currentTime()
@@ -91,7 +91,7 @@ class ServerController(QObject):
             self.startingStartTime = QTime.currentTime()
             self.startingServer = True
             os.system('obci srv_local')
-    
+
     def stopServer(self):
         if self.isServerRunning():
             print("stopServer.isRunning")
@@ -100,12 +100,12 @@ class ServerController(QObject):
             os.system('obci srv_kill')
         else:
             print("stopServer.isNotRunning...")
-        
+
     #---------------------------------------------------------------------------
 
     def startPinging(self):
         QTimer.singleShot(self.serverPingDelay, self.pingServer)
-        
+
     def pingServer(self):
         print("Ping obci server")
         if self.terminatingServer:
@@ -157,7 +157,7 @@ class ServerController(QObject):
             self.lastResponseTime = QTime.currentTime()
             if not self.responding:
                 self.responding = True
-                self.serverReady.emit()                
+                self.serverReady.emit()
             QTimer.singleShot(self.serverPingDelay, self.pingServer)
 
     def _notRunningOnPing(self):
@@ -167,7 +167,7 @@ class ServerController(QObject):
         else:
             if not self.responding:
                 print("notRunningOnPing.Delay passed, just pass....")
-                QTimer.singleShot(self.serverPingDelay*3, self.pingServer)
+                QTimer.singleShot(self.serverPingDelay * 3, self.pingServer)
             else:
                 print("notRunningOnPing.Delay passed for the first time")
                 self.responding = False
@@ -175,32 +175,30 @@ class ServerController(QObject):
                 QTimer.singleShot(self.serverPingDelay, self.pingServer)
 
 
-
-
-
 class MainWidget(QWidget):
+
     def __init__(self, parent=None):
         super(MainWidget, self).__init__(parent)
-        
-        self.menu = QMenu(parent)
-        
-        self.startAction   = QAction(self.tr("&Start OpenBCI server"), self)
-        self.startLocalAction   = QAction(self.tr("&Start OpenBCI server OFFLINE"), self)
-        self.stopAction    = QAction(self.tr("S&top OpenBCI server"),  self)
-        self.quitAction    = QAction(self.tr("&Close OpenBCI tray"), self)
-        self.runGuiAction  = QAction(self.tr("&Run Control Panel (OpenBCI)"),  self)
-        self.runSvarogAction  = QAction(self.tr("&Run Signal Viewer (Svarog)"),  self)
-        self.runPsychopyAction  = QAction(self.tr("&Run Experiment Designer (Psychopy)"),  self)
-        self.runEeglabAction  = QAction(self.tr("&Run Analysis Tool (EEGLAB)"),  self)
-        self.runMatlabAction  = QAction(self.tr("&Run Analysis Tool (Matlab)"),  self)
 
-        self.runningIcon     = QIcon(qApp.style().standardPixmap(QStyle.SP_ComputerIcon))
-        self.startingUpIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxInformation))
+        self.menu = QMenu(parent)
+
+        self.startAction = QAction(self.tr("&Start OpenBCI server"), self)
+        self.startLocalAction = QAction(self.tr("&Start OpenBCI server OFFLINE"), self)
+        self.stopAction = QAction(self.tr("S&top OpenBCI server"),  self)
+        self.quitAction = QAction(self.tr("&Close OpenBCI tray"), self)
+        self.runGuiAction = QAction(self.tr("&Run Control Panel (OpenBCI)"),  self)
+        self.runSvarogAction = QAction(self.tr("&Run Signal Viewer (Svarog)"),  self)
+        self.runPsychopyAction = QAction(self.tr("&Run Experiment Designer (Psychopy)"),  self)
+        self.runEeglabAction = QAction(self.tr("&Run Analysis Tool (EEGLAB)"),  self)
+        self.runMatlabAction = QAction(self.tr("&Run Analysis Tool (Matlab)"),  self)
+
+        self.runningIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_ComputerIcon))
+        self.startingUpIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxInformation))
         self.terminatingIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_TrashIcon))
-        self.serverDownIcon  = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxCritical))
+        self.serverDownIcon = QIcon(qApp.style().standardPixmap(QStyle.SP_MessageBoxCritical))
 
         self.controller = ServerController()
-        
+
         self.guiCommand = which('obci_gui')
         self.svarogCommand = which('svarog')
         self.psychopyCommand = which('psychopy')
@@ -231,11 +229,11 @@ class MainWidget(QWidget):
         if not self.controller.easyMode:
             self.menu.addSeparator()
             self.menu.addAction(self.quitAction)
-        
+
         self.trayIcon = QSystemTrayIcon(self.serverDownIcon)
         self.trayIcon.setContextMenu(self.menu)
         self.trayIcon.show()
-        
+
         self.startAction.triggered.connect(self.startServer)
         self.startLocalAction.triggered.connect(self.startServerLocal)
         self.stopAction.triggered.connect(self.stopServer)
@@ -245,10 +243,10 @@ class MainWidget(QWidget):
         self.runEeglabAction.triggered.connect(self.runEeglab)
         self.runMatlabAction.triggered.connect(self.runMatlab)
         self.quitAction.triggered.connect(self.quit_tray)
-        
+
         self.trayIcon.setIcon(self.serverDownIcon)
         self.setStoppedUi()
-    
+
         self.controller.serverReady.            connect(self.serverReady)
         self.controller.serverStartingUpError.  connect(self.startingUpError)
         self.controller.serverTerminated.       connect(self.serverTerminated)
@@ -272,89 +270,89 @@ class MainWidget(QWidget):
         self.startAction.setVisible(False)
         self.startLocalAction.setVisible(False)
         self.stopAction.setVisible(True)
-        #self.menu.setDefaultAction(self.stopAction)
-        
+        # self.menu.setDefaultAction(self.stopAction)
+
         if disableAll:
             self.setEnabledAll(False)
         else:
             self.setEnabledAll(True)
-       
+
     def setStoppedUi(self, disableAll=False):
         self.startAction.setVisible(True)
         self.startLocalAction.setVisible(True)
         self.stopAction.setVisible(False)
         self.menu.setDefaultAction(self.startAction)
-        
+
         if disableAll:
             self.setEnabledAll(False)
-        else:      
-            self.setEnabledAll(True)  
+        else:
+            self.setEnabledAll(True)
             self.runGuiAction.setEnabled(False)
-        
+
     #---------------------------------------------------------------------------
-        
+
     def startServer(self):
         self.trayIcon.setIcon(self.startingUpIcon)
-        self.setRunningUi(disableAll = True)
+        self.setRunningUi(disableAll=True)
         self.controller.startServer()
 
     def startServerLocal(self):
         self.trayIcon.setIcon(self.startingUpIcon)
-        self.setRunningUi(disableAll = True)
+        self.setRunningUi(disableAll=True)
         self.controller.startServerLocal()
-        
+
     def stopServer(self):
         self.trayIcon.setIcon(self.terminatingIcon)
-        self.setStoppedUi(disableAll = True)
+        self.setStoppedUi(disableAll=True)
         self.controller.stopServer()
-        
+
     #---------------------------------------------------------------------------
-       
+
     def serverReady(self):
-        #print 'serverReady'
+        # print 'serverReady'
         self.trayIcon.setIcon(self.runningIcon)
         self.trayIcon.showMessage(self.tr('OBCI tray'),
                                   self.tr('OpenBCI server ready!'),
                                   QSystemTrayIcon.Information,
-                                  2*1000)
+                                  2 * 1000)
         self.setRunningUi()
 
     def startingUpError(self, errorMsg):
-        #print 'startingUpError'
+        # print 'startingUpError'
         self.trayIcon.setIcon(self.serverDownIcon)
         self.trayIcon.showMessage(self.tr('OpenBCI'),
                                   self.tr('OpenBCI server starting up error: %1.').arg(errorMsg),
                                   QSystemTrayIcon.Critical,
-                                  4*1000)
+                                  4 * 1000)
         self.setStoppedUi()
-        
+
     def serverTerminated(self):
-        #print 'serverTerminated'
+        # print 'serverTerminated'
         self.trayIcon.setIcon(self.serverDownIcon)
         self.trayIcon.showMessage(self.tr('OpenBCI'),
                                   self.tr('OpenBCI server terminated.'),
                                   QSystemTrayIcon.Information,
-                                  2*1000)
+                                  2 * 1000)
         self.setStoppedUi()
-        
+
     def shuttingDownError(self, errorMsg):
-        #print 'shuttingDownError'
+        # print 'shuttingDownError'
         self.trayIcon.setIcon(self.serverDownIcon)
         self.trayIcon.showMessage(self.tr('OpenBCI'),
                                   self.tr('OpenBCI shutting down error: %1.').arg(errorMsg),
                                   QSystemTrayIcon.Critical,
-                                  4*1000)
+                                  4 * 1000)
         self.setStoppedUi()
-        
+
     def serverUnexpectedlyDied(self, errorMsg):
-        #print 'serverUnexpectedlyDied'
+        # print 'serverUnexpectedlyDied'
         self.trayIcon.setIcon(self.serverDownIcon)
         self.trayIcon.showMessage(self.tr('OpenBCI'),
                                   self.tr('OpenBCI server unexpectedly died: %1.').arg(errorMsg),
                                   QSystemTrayIcon.Critical,
-                                  4*1000)
+                                  4 * 1000)
         self.setStoppedUi()
-        
+
     #---------------------------------------------------------------------------
 
     def runGui(self):
@@ -378,7 +376,7 @@ class MainWidget(QWidget):
         if not self.controller.isServerRunning():
             QApplication.instance().quit()
         else:
-            ret = QMessageBox.warning(None, self.tr('OpenBCI'), 
+            ret = QMessageBox.warning(None, self.tr('OpenBCI'),
                                       self.tr('Really quit? This will stop the server!'),
                                       QMessageBox.Yes | QMessageBox.No,
                                       QMessageBox.No)
@@ -386,11 +384,10 @@ class MainWidget(QWidget):
                 self.controller.stopServer()
                 QApplication.instance().quit()
 
+
 def run_obci_x_tray():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     mainWidget = MainWidget()
-    
+
     sys.exit(app.exec_())
-
-

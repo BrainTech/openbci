@@ -27,22 +27,23 @@ from obci.drivers.eeg.driver_discovery import driver_discovery
 
 from obci.control.gui.obci_launcher_engine import OBCILauncherEngine, USER_CATEGORY
 from obci.control.gui.obci_launcher_constants import STATUS_COLORS
-from obci.control.gui.experiment_engine_info import MODE_BASIC,MODE_ADVANCED,MODES
+from obci.control.gui.experiment_engine_info import MODE_BASIC, MODE_ADVANCED, MODES
 import obci.control.launcher.obci_script_utils as obci_script_utils
 from obci.control.launcher.launcher_tools import NOT_READY, READY_TO_LAUNCH, LAUNCHING, \
-                FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
+    FAILED_LAUNCH, RUNNING, FINISHED, FAILED, TERMINATED
 
 import obci.control.common.obci_control_settings as settings
 from obci.control.common.message import LauncherMessage
 import obci.control.common.net_tools as net
 
 import obci.control.gui.obci_log_engine as obci_log_engine
-#import obci.control.gui.obci_log_model_dummy as obci_log_model_dummy
+# import obci.control.gui.obci_log_model_dummy as obci_log_model_dummy
 import obci.control.gui.obci_log_model_real as obci_log_model_real
+
 
 class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     start = pyqtSignal(str, object)
-    #amp_select = pyqtSignal(object)
+    # amp_select = pyqtSignal(object)
     stop = pyqtSignal(str, bool)
     reset = pyqtSignal(str)
 
@@ -99,8 +100,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         self.start_button.clicked.connect(self._start)
         self.stop_button.clicked.connect(self._stop)
-        #self.reset_button.clicked.connect(self._reset)
-        #self.ampselect_pushButton.clicked.connect(self._amp_select)
+        # self.reset_button.clicked.connect(self._reset)
+        # self.ampselect_pushButton.clicked.connect(self._amp_select)
         self.store_container.hide()
         self.store_checkBox.stateChanged.connect(self._update_store)
         self.store_dir_chooser.clicked.connect(self._choose_dir)
@@ -118,14 +119,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.showMaximized()
         if os.environ.get('OBCI_INSTALL_DIR') != None:
             PyQt4.QtGui.QMessageBox.information(self, "Non standard OpenBCI directory",
-                                                "OpenBCI is launched from local directory: "+os.environ.get('OBCI_INSTALL_DIR')+', to start default package version launch "obci_local_remove" in terminal.')
-
+                                                "OpenBCI is launched from local directory: " + os.environ.get('OBCI_INSTALL_DIR') + ', to start default package version launch "obci_local_remove" in terminal.')
 
     @log_crash
     def closeEvent(self, e):
-        progress = QProgressDialog(self,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        progress = QProgressDialog(self, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         progress.setLabelText("Finishing...")
-        progress.setRange(0,5)
+        progress.setRange(0, 5)
         progress.setCancelButton(None)
         progress.show()
         self.stop_logs()
@@ -133,11 +133,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         for i in range(5):
             time.sleep(0.4)
-            progress.setValue(i+1)
+            progress.setValue(i + 1)
         e.accept()
 
     def _crash_extra_tags(self, exception=None):
-        return {'obci_part' : 'launcher'}
+        return {'obci_part': 'launcher'}
 
     def stop_logs(self):
         for i, st in self.exp_states.iteritems():
@@ -177,8 +177,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                 self.engine = None
 
             client = obci_script_utils.client_server_prep(server_ip=self.server_ip,
-                                                           zmq_ctx=ctx,
-                                                           start_srv=True)
+                                                          zmq_ctx=ctx,
+                                                          start_srv=True)
             if client is None:
                 self.quit()
             self.exp_states = {}
@@ -186,11 +186,11 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self._connect_signals()
 
         if self.server_ip and self.server_hostname != socket.gethostname():
-            self.setWindowTitle(self.basic_title + ' - ' + 'remote connection ' + \
-                                ' (' +self.server_ip + ' - ' + self.server_hostname + ')')
+            self.setWindowTitle(self.basic_title + ' - ' + 'remote connection ' +
+                                ' (' + self.server_ip + ' - ' + self.server_hostname + ')')
         else:
-            self.setWindowTitle(self.basic_title + ' - ' + 'local connection (' +\
-                                                self.server_hostname + ')')
+            self.setWindowTitle(self.basic_title + ' - ' + 'local connection (' +
+                                self.server_hostname + ')')
 
         if old_ip is not None:
             self.engine.update_ui.emit(None)
@@ -230,7 +230,6 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.menuMenu.addSeparator()
         self.menuMenu.addAction(self.actionExit)
 
-
     def setupActions(self):
         self.actionExit.triggered.connect(PyQt4.QtGui.qApp.quit)
         self.actionConnect.triggered.connect(self._connect_to_machine)
@@ -241,7 +240,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     @log_crash
     def setScenarios(self, scenarios):
-        scenarios.sort(cmp=lambda a,b: str(a.name) > str(b.name))
+        scenarios.sort(cmp=lambda a, b: str(a.name) > str(b.name))
         self._scenarios = scenarios
         self.scenarios.setSortingEnabled(True)
         self.scenarios.clear()
@@ -282,7 +281,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self._params = experiment
         experiment = experiment.exp
         print("********************")
-        print("Machine/peer from current experiment "+str(experiment.uuid)+":")
+        print("Machine/peer from current experiment " + str(experiment.uuid) + ":")
         for peer_id, peer in experiment.exp_config.peers.iteritems():
             st = experiment.status.peer_status(peer_id).status_name
             mch = str(peer.machine)
@@ -318,7 +317,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
             params = experiment.parameters(peer_id, self.details_mode.currentText())
             for param, (value, src) in params.iteritems():
-                val = unicode(value) #if not src else value + "  ["+src + ']'
+                val = unicode(value)  # if not src else value + "  ["+src + ']'
                 src = src if src else ''
                 child = QTreeWidgetItem([param, val, src])
                 if src:
@@ -348,7 +347,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             if parent is None:
                 print("*****   _getParams:   ", i, peer, "parent none")
                 continue
-            if parent.isExpanded(): expanded.add(parent.text(0))
+            if parent.isExpanded():
+                expanded.add(parent.text(0))
 
             for j, param in enumerate(peer.config.local_params.keys()):
                 child = parent.child(j)
@@ -359,7 +359,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _itemDoubleClicked(self, item, column):
         if item.parent() is None and column != 2:
             uid = str(self.scenarios.currentItem().uuid)
-            #self.exp_states[uid].exp.exp_config.peers[
+            # self.exp_states[uid].exp.exp_config.peers[
             self.log_engine.show_log(item.text(0), uid)
 
     def _itemClicked(self, item, column):
@@ -437,7 +437,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _stop(self):
         uid = str(self.scenarios.currentItem().uuid)
-        print("obciLauncher._stop - begin uid: "+str(uid))
+        print("obciLauncher._stop - begin uid: " + str(uid))
         state = self.exp_states[uid]
         if state.stopping:
             print("Warning!!! - tried to perform stop action again on the same experiment ................................... Ignore")
@@ -450,10 +450,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _amp_select(self):
         p = {'path': 'drivers/eeg/cpp_amplifiers/amplifier_tmsi.py'}
-        d = {'usb_device': '/dev/tmsi0', 'driver_executable':'drivers/eeg/cpp_amplifiers/tmsi_amplifier'}
+        d = {'usb_device': '/dev/tmsi0', 'driver_executable': 'drivers/eeg/cpp_amplifiers/tmsi_amplifier'}
         uuid = str(self.scenarios.currentItem().uuid)
         si = self.scenarios.currentItem()
-        #exp = self.exp_states[uuid].exp
+        # exp = self.exp_states[uuid].exp
         exp = self.exp_states[uuid]
         peers = exp.exp.exp_config.peers
         print(exp)
@@ -463,7 +463,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         print(exp.exp.exp_config)
         print(dir(exp.exp.exp_config))
         cfg = exp.exp.exp_config
-        #cfg.get_pee
+        # cfg.get_pee
         a = peers['amplifier']
         print(peers['amplifier'])
         print(dir(peers['amplifier']))
@@ -480,10 +480,10 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
     def _saver_msg(self, killer_proc):
         print("GUI SAVER MSG")
         reply = QMessageBox.question(self, 'Signal saving',
-            "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
-            "Continue saving?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes)
+                                     "Signal saving is taking quite some time. This is normal for longer EEG sessions.\n"
+                                     "Continue saving?",
+                                     QMessageBox.Yes | QMessageBox.No,
+                                     QMessageBox.Yes)
         killer_proc.poll()
         if reply == QMessageBox.No and killer_proc.returncode is None:
             print("KILLING")
@@ -501,7 +501,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.reset.emit(str(self.server_ip))
 
     def _select_amplifier(self):
-        
+
         if self.select_amplifier_dialog.exec_() is None:
             return
         path = self.select_amplifier_dialog.path
@@ -516,13 +516,13 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         for k, v in params.iteritems():
             print(k, v)
             amp.config.update_local_param(k, v)
-        #self._setParams(exp)
+        # self._setParams(exp)
         self._setInfo(self.scenarios.currentItem(), 1)
         print("AMPLIFIER SELECTED")
 
     def _connect_to_machine(self):
         self.machines_dialog.set_nearby_machines(self._nearby_machines,
-                                    self.server_hostname, self.server_ip)
+                                                 self.server_hostname, self.server_ip)
         if self.machines_dialog.exec_():
             self.stop_logs()
             new_ip, new_name = self.machines_dialog.chosen_machine
@@ -531,8 +531,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _save_current_as(self):
         filename = QFileDialog.getSaveFileName(self, "Save scenario as..,",
-                            os.path.join(settings.DEFAULT_SCENARIO_DIR),
-                            'INI files (*.ini)')
+                                               os.path.join(settings.DEFAULT_SCENARIO_DIR),
+                                               'INI files (*.ini)')
         if not filename:
             return
         filename = str(filename)
@@ -562,8 +562,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
     def _import(self):
         filename = QFileDialog.getOpenFileName(self, "Import scenario...",
-                            os.path.join(settings.DEFAULT_SCENARIO_DIR),
-                            'INI files (*.ini)')
+                                               os.path.join(settings.DEFAULT_SCENARIO_DIR),
+                                               'INI files (*.ini)')
         if not filename:
             return
         self.import_scenario.emit(filename)
@@ -582,9 +582,9 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             str_details = str(json.dumps(error_msg.details, sort_keys=True, indent=4))
         else:
             str_details = str(error_msg.details)
-        QMessageBox.critical(self, "Request error", "Error: " +str(error_msg.err_code) +\
-                                    "\nDetails: " + str_details,
-                                    QMessageBox.Ok)
+        QMessageBox.critical(self, "Request error", "Error: " + str(error_msg.err_code) +
+                             "\nDetails: " + str_details,
+                             QMessageBox.Ok)
 
     @log_crash
     def update_user_interface(self, update_msg):
@@ -616,7 +616,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
                     exp,
                     self.log_engine,
                     self.exp_states.get(exp.old_uid, None)
-                    )
+                )
                 st.exp.destroyed.connect(self.exp_destroyed)
             else:
                 new_states[exp.uuid] = self.exp_states[exp.uuid]
@@ -632,14 +632,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
         if user_imported_uuid is not None:
             current_sc = self.exp_widgets.get(user_imported_uuid,
-                            self._first_exp(self.scenarios))
+                                              self._first_exp(self.scenarios))
         elif current_sc is None:
             current_sc = self._first_exp(self.scenarios)
         else:
             uid = curr_exp.exp_config.uuid
             old_uid = curr_exp.old_uid
             current_sc = self.exp_widgets.get(uid,
-                            self.exp_widgets.get(old_uid, self._first_exp(self.scenarios)))
+                                              self.exp_widgets.get(old_uid, self._first_exp(self.scenarios)))
 
         self.scenarios.setCurrentItem(current_sc)
         self._manage_actions(current_sc)
@@ -683,9 +683,8 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
             self._store_set_enabled(is_amp)
             self.actionSelectAmplifier.setEnabled(is_amp)
             self.stop_button.setEnabled(False)
-            self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |\
-                                         QAbstractItemView.EditKeyPressed)
-
+            self.parameters.setEditTriggers(QAbstractItemView.DoubleClicked |
+                                            QAbstractItemView.EditKeyPressed)
 
         launched = current_exp.status.status_name not in [LAUNCHING, RUNNING, FAILED, TERMINATED]
         self.actionOpen.setEnabled(True)
@@ -704,7 +703,7 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
         self.store_dir_chooser.setEnabled(enable)
         self.store_ts_checkBox.setEnabled(enable)
         # self.store_local_checkBox.setEnabled(enable)
-        #self.ampselect_pushButton.setEnabled(enable)
+        # self.ampselect_pushButton.setEnabled(enable)
 
     def _store_update_info(self, store_options):
         if store_options is not None:
@@ -720,11 +719,14 @@ class ObciLauncherWindow(QMainWindow, Ui_OBCILauncher):
 
 
 class ObciTreeWidgetItem(QTreeWidgetItem):
+
     def __init__(self, header_list, experiment_id):
         self.uuid = experiment_id
         super(ObciTreeWidgetItem, self).__init__(header_list)
 
+
 class ExperimentGuiState(object):
+
     def __init__(self, srv_client, engine_experiment, log_engine, old_exp=None):
 
         self.exp = engine_experiment
@@ -741,10 +743,11 @@ class ExperimentGuiState(object):
 
 
 class ConnectToMachine(QDialog, Ui_ConnectToMachine):
+
     def __init__(self, parent):
         super(ConnectToMachine, self).__init__(parent)
         self.setupUi(self)
-        self.nearby_machines.horizontalHeader().setResizeMode (QHeaderView.Stretch)
+        self.nearby_machines.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 
         self.nearby_machines.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.nearby_machines.setColumnCount(3)
@@ -754,7 +757,6 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
         self.nearby_machines.itemDoubleClicked.connect(self.accept)
 
         self.chosen_machine = None
-
 
     def set_nearby_machines(self, machines, current_hostname, current_ip):
         self.nearby_machines.clearContents()
@@ -771,7 +773,7 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
             st_w = QTableWidgetItem()
             st_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             if (str(ip) == str(current_ip) or str(current_ip) == net.lo_ip())\
-                                 and str(hostname) == str(current_hostname):
+                    and str(hostname) == str(current_hostname):
                 font = QFont()
                 font.setWeight(QFont.Black)
                 hn_w.setFont(font)
@@ -780,10 +782,8 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
                 st_w.setFont(font)
             self.nearby_machines.setItem(i, 2, st_w)
 
-
-
         if machines:
-            self.nearby_machines.setCurrentItem(self.nearby_machines.item(0,0))
+            self.nearby_machines.setCurrentItem(self.nearby_machines.item(0, 0))
         else:
             self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
@@ -794,11 +794,13 @@ class ConnectToMachine(QDialog, Ui_ConnectToMachine):
         self.chosen_machine = (cur_ip.text(), cur_host.text())
         super(ConnectToMachine, self).accept()
 
+
 class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
+
     def __init__(self, parent):
         super(SelectAmplifierDialog, self).__init__(parent)
         self.setupUi(self)
-        self.amplifiers.horizontalHeader().setResizeMode (QHeaderView.Stretch)
+        self.amplifiers.horizontalHeader().setResizeMode(QHeaderView.Stretch)
 
         self.amplifiers.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.amplifiers.setColumnCount(3)
@@ -812,8 +814,8 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
         self.params = {}
 
     def refresh(self):
-        #self.amps = []
-        #self.update()
+        # self.amps = []
+        # self.update()
 
         amps = driver_discovery.find_drivers()
         self.amps = amps
@@ -835,7 +837,7 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
             ip_w = QTableWidgetItem(exp)
             ip_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self.amplifiers.setItem(i, 0, ip_w)
-            
+
             hn_w = QTableWidgetItem(amp_name)
             hn_w.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
             self.amplifiers.setItem(i, 1, hn_w)
@@ -845,7 +847,7 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
             self.amplifiers.setItem(i, 2, st_w)
 
         if len(amps) > 0:
-            self.amplifiers.setCurrentItem(self.amplifiers.item(0,0))
+            self.amplifiers.setCurrentItem(self.amplifiers.item(0, 0))
         else:
             self.buttonBox.button(QDialogButtonBox.Ok).setEnabled(False)
 
@@ -866,6 +868,7 @@ class SelectAmplifierDialog(QDialog, Ui_SelectAmplifier):
         self.params = params
         super(SelectAmplifierDialog, self).accept()
 
+
 def run_obci_gui():
     opts, args = getopt.getopt(sys.argv[1:], '', ['tray', 'presets='])
     presets = None
@@ -879,18 +882,15 @@ def run_obci_gui():
 
     app = QApplication([])
 
-    #p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
-    #s = QSplashScreen(p)
-    #s.show()
-    #s.showMessage("OpenBCI - free as in freedom.")
-    #s.finish(dialog)
-    #commented by now - couses sometimes app.exec_ to hang forever ...
-
+    # p = QPixmap(os.path.join(settings.INSTALL_DIR, "gui/ugm/resources/obci+svarog.png"))
+    # s = QSplashScreen(p)
+    # s.show()
+    # s.showMessage("OpenBCI - free as in freedom.")
+    # s.finish(dialog)
+    # commented by now - couses sometimes app.exec_ to hang forever ...
 
     dialog = ObciLauncherWindow(presets)
-    dialog.start.connect(lambda name:sys.stderr.write('Start %s \n' % name))
-    dialog.stop.connect(lambda name:sys.stderr.write('Stop %s \n' % name))
+    dialog.start.connect(lambda name: sys.stderr.write('Start %s \n' % name))
+    dialog.stop.connect(lambda name: sys.stderr.write('Stop %s \n' % name))
 
     sys.exit(app.exec_())
-
-

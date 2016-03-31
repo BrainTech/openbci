@@ -31,13 +31,14 @@ from obci.control.peer.peer_config import PeerConfig
 from obci.utils.openbci_logging import get_logger, log_crash
 
 from experiment_engine_info import ExperimentEngineInfo, MODE_ADVANCED, MODE_BASIC,\
-DEFAULT_CATEGORY, USER_CATEGORY
+    DEFAULT_CATEGORY, USER_CATEGORY
 
 import obci.control.common.obci_control_settings as settings
 
 PRESETS = 'control/gui/presets/default.ini'
 
 USER_PRESETS = os.path.join(settings.OBCI_HOME_DIR, 'user_presets.ini')
+
 
 class OBCILauncherEngine(QtCore.QObject):
     update_ui = QtCore.pyqtSignal(object)
@@ -46,8 +47,8 @@ class OBCILauncherEngine(QtCore.QObject):
     saver_msg = QtCore.pyqtSignal(object)
 
     internal_msg_templates = {
-        '_launcher_engine_msg' : dict(task='', pub_addr=''),
-        '_user_set_scenario' : dict(uuid='')
+        '_launcher_engine_msg': dict(task='', pub_addr=''),
+        '_user_set_scenario': dict(uuid='')
     }
 
     @log_crash
@@ -82,10 +83,10 @@ class OBCILauncherEngine(QtCore.QObject):
         self.monitor_push.bind(self.monitor_addr)
 
         self._stop_monitoring = False
-        srv_addr = 'tcp://'+server_ip+':'+net.server_pub_port() if server_ip else None
+        srv_addr = 'tcp://' + server_ip + ':' + net.server_pub_port() if server_ip else None
         self.obci_monitor_thr = threading.Thread(target=self.obci_monitor,
-                                                args=[self.ctx, self.monitor_addr,
-                                                srv_addr])
+                                                 args=[self.ctx, self.monitor_addr,
+                                                       srv_addr])
         self.obci_monitor_thr.daemon = True
         self.obci_monitor_thr.start()
 
@@ -98,7 +99,7 @@ class OBCILauncherEngine(QtCore.QObject):
         self.details_mode = MODE_ADVANCED
 
     def _crash_extra_tags(self, exception=None):
-        return {'obci_part' : 'launcher'}
+        return {'obci_part': 'launcher'}
 
     def make_exp_obj(self, *args, **kwargs):
         exp = ExperimentEngineInfo(*args, **kwargs)
@@ -114,7 +115,7 @@ class OBCILauncherEngine(QtCore.QObject):
         print "CLEANUP!!!!"
         self._stop_monitoring = True
 
-        self.monitor_push.close()#linger=0)
+        self.monitor_push.close()  # linger=0)
         for exp in self.experiments:
             exp.cleanup()
             exp.setParent(None)
@@ -149,9 +150,9 @@ class OBCILauncherEngine(QtCore.QObject):
         running = self._list_experiments()
         for exp in running:
             print "running exp::::::  ", exp
-            matches = [(i, e) for i, e in enumerate(experiments) if\
-                        e.launch_file == exp['launch_file_path'] and e.preset_data is not None\
-                        and e.status.status_name == launcher_tools.READY_TO_LAUNCH]
+            matches = [(i, e) for i, e in enumerate(experiments) if
+                       e.launch_file == exp['launch_file_path'] and e.preset_data is not None
+                       and e.status.status_name == launcher_tools.READY_TO_LAUNCH]
             if matches:
                 index, preset = matches.pop()
                 preset.setup_from_launcher(exp, preset=True)
@@ -162,14 +163,14 @@ class OBCILauncherEngine(QtCore.QObject):
 
     def _addr_connectable(self, addr, machine):
         return machine == socket.gethostname() or \
-                    (net.is_ip(addr) and not net.addr_is_local(addr))
+            (net.is_ip(addr) and not net.addr_is_local(addr))
 
     @log_crash
     def _exp_connect(self, exp_data):
         for addr in exp_data['pub_addrs']:
             if not addr.startswith('tcp://localhost') and self._addr_connectable(addr, exp_data['origin_machine']):
                 send_msg(self.monitor_push, self.mtool.fill_msg('_launcher_engine_msg',
-                                                task='connect', pub_addr=addr))
+                                                                task='connect', pub_addr=addr))
 
     def _parse_presets(self, preset_path, cat_name=None):
         preset_file = codecs.open(preset_path, encoding='utf-8')
@@ -177,7 +178,7 @@ class OBCILauncherEngine(QtCore.QObject):
         parser.readfp(preset_file)
         presets = []
         for sec in parser.sections():
-            pres = {'name' : sec}
+            pres = {'name': sec}
             for opt in parser.options(sec):
                 pres[opt] = parser.get(sec, opt)
             if not 'category' in pres:
@@ -222,13 +223,13 @@ class OBCILauncherEngine(QtCore.QObject):
                 break
 
             for socket in socks:
-                if  socks[socket] == zmq.POLLIN:
+                if socks[socket] == zmq.POLLIN:
                     msg = self.mtool.unpack_msg(recv_msg(socket))
                     if not self._stop_monitoring:
                         handle_msg(msg)
 
         for sock in _all:
-            sock.close()#linger=0)
+            sock.close()  # linger=0)
 
     @log_crash
     def handle_obci_state_change(self, launcher_message):
@@ -247,7 +248,7 @@ class OBCILauncherEngine(QtCore.QObject):
         elif type_ == 'kill':
             self._handle_kill(launcher_message)
 
-        elif type_ == 'obci_control_message': #obci_peer_registered, obci_peer_params_changed
+        elif type_ == 'obci_control_message':  # obci_peer_registered, obci_peer_params_changed
             self._handle_obci_control_message(launcher_message)
 
         elif type_ == 'experiment_status_change':
@@ -277,9 +278,9 @@ class OBCILauncherEngine(QtCore.QObject):
     def _handle_experiment_created(self, msg, exp_list=None):
         exps = exp_list if exp_list else self.experiments
 
-        matches = [(i, e) for i, e in enumerate(exps) if\
-                        (e.name == msg.name or e.launch_file == msg.launch_file_path) and\
-                            e.preset_data is not None]
+        matches = [(i, e) for i, e in enumerate(exps) if
+                   (e.name == msg.name or e.launch_file == msg.launch_file_path) and
+                   e.preset_data is not None]
 
         if matches:
             index, exp = matches.pop()
@@ -310,17 +311,17 @@ class OBCILauncherEngine(QtCore.QObject):
             if msg.old_launch_file == e.launch_file:
                 old_matches.append((i, e))
         # old_matches = [(i, e) for i, e in enumerate(exps) if\
-        #         (msg.old_launch_file in e.launch_file) ]#and\
-        #         #    e.preset_data is not None]
+        # (msg.old_launch_file in e.launch_file) ]#and\
+        # e.preset_data is not None]
 
         print "old_matches", old_matches
 
         if old_matches:
             old_index, old_exp = old_matches.pop()
 
-        new_matches = [(i, e) for i, e in enumerate(exps) if\
-                (e.name == msg.name or e.launch_file == msg.launch_file) and\
-                    e.preset_data is not None and e.status.status_name != launcher_tools.RUNNING]
+        new_matches = [(i, e) for i, e in enumerate(exps) if
+                       (e.name == msg.name or e.launch_file == msg.launch_file) and
+                       e.preset_data is not None and e.status.status_name != launcher_tools.RUNNING]
         print "new matches", new_matches
 
         if new_matches:
@@ -336,8 +337,8 @@ class OBCILauncherEngine(QtCore.QObject):
         old_exp.launcher_data['status_name'] = msg.status_name
         old_exp.launcher_data['details'] = msg.details
         old_exp.setup_from_launcher(old_exp.launcher_data,
-                                                preset=(new_index is not None),
-                                                transform=True)
+                                    preset=(new_index is not None),
+                                    transform=True)
 
         if new_index is not None:
             old_exp.name = msg.name if msg.name else self.experiments[new_index].name
@@ -357,7 +358,7 @@ class OBCILauncherEngine(QtCore.QObject):
             exp = self.make_exp_obj(preset_data=preset, ctx=self.ctx)
             self.experiments.append(exp)
         self._process_response(self.mtool.unpack_msg(self.mtool.fill_msg('rq_error', err_code='launcher_shut_down',
-                                        details='Launcher (obci_server) shut down. Starting \
+                                                                         details='Launcher (obci_server) shut down. Starting \
 experiments is possible only when launcher is running (command: obci srv)')))
 
     @log_crash
@@ -374,7 +375,6 @@ experiments is possible only when launcher is running (command: obci srv)')))
             else:
                 del self.experiments[index]
 
-
     def _handle_kill(self, msg):
         pass
 
@@ -388,9 +388,9 @@ experiments is possible only when launcher is running (command: obci srv)')))
             if msg.msg_code in ["obci_peer_registered", "obci_peer_params_changed"]:
                 for par, val in msg.launcher_message['params'].iteritems():
                     exp.update_peer_param(msg.launcher_message['peer_id'],
-                                            par,
-                                            val,
-                                            runtime=True)
+                                          par,
+                                          val,
+                                          runtime=True)
 
     @log_crash
     def _handle_experiment_status_change(self, msg):
@@ -455,7 +455,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
             par.parse(dic_conf, conf)
             exp.exp_config.extend_with_peer(peer_id, msg.peer_path, conf)
             exp.status.peers_status[peer_id] = launcher_tools.PeerStatus(peer_id,
-                                                    status_name=msg.status_name)
+                                                                         status_name=msg.status_name)
         print msg
 
     def list_experiments(self):
@@ -484,9 +484,9 @@ experiments is possible only when launcher is running (command: obci srv)')))
 
     @log_crash
     def stop_experiment(self, msg, stop_storing=False):
-        progress = QProgressDialog(None,Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        progress = QProgressDialog(None, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         progress.setLabelText("Stopping...")
-        progress.setRange(0,5)
+        progress.setRange(0, 5)
         progress.setCancelButton(None)
         progress.show()
 
@@ -501,19 +501,19 @@ experiments is possible only when launcher is running (command: obci srv)')))
             print "this exp is not running...", uid
             return
         if stop_storing:
-            #stop storing ONLY if the experiment was fired from this very obci gui
-            #otherwise the data is lost ....
-            #below code was to stop storing every time signal saver is in scenarios`es modules
-            #but it sometimes hangs forever eg. when we are using morph extensively ...
+            # stop storing ONLY if the experiment was fired from this very obci gui
+            # otherwise the data is lost ....
+            # below code was to stop storing every time signal saver is in scenarios`es modules
+            # but it sometimes hangs forever eg. when we are using morph extensively ...
             #`
-            #or ("signal_saver" in exp.exp_config.peers and\
+            # or ("signal_saver" in exp.exp_config.peers and\
             #    exp.status.peer_status("signal_saver").status_name \
             #                in [launcher_tools.RUNNING, launcher_tools.LAUNCHING]):
             print "STOP STORING"
             exp.stop_storing(self.client)
             for i in range(4):
-                time.sleep(0.6)#FIXME - without it some problem with below kill...
-                progress.setValue(i+1)
+                time.sleep(0.6)  # FIXME - without it some problem with below kill...
+                progress.setValue(i + 1)
         progress.setValue(5)
         self._process_response(self.client.kill_exp(exp.uuid))
 
@@ -549,14 +549,14 @@ experiments is possible only when launcher is running (command: obci srv)')))
         for addr in addrs:
             exp_sock.connect(addr)
         send_msg(exp_sock, self.mtool.fill_msg("set_experiment_scenario", scenario=jsoned,
-                                                launch_file_path=exp.exp_config.launch_file_path))
-        reply, details =  self.client.poll_recv(exp_sock, 20000)
+                                               launch_file_path=exp.exp_config.launch_file_path))
+        reply, details = self.client.poll_recv(exp_sock, 20000)
         ok = self._process_response(reply)
         if not ok:
             exp_sock.close()
             return
         send_msg(exp_sock, self.mtool.fill_msg("start_experiment"))
-        reply, details =  self.client.poll_recv(exp_sock, 20000)
+        reply, details = self.client.poll_recv(exp_sock, 20000)
 
         self._process_response(reply)
         exp_sock.close()
@@ -614,7 +614,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
     def _create_preset_data(self, scenario_path):
         name = os.path.basename(scenario_path)
         name = os.path.splitext(name)[0].replace("_", " ")
-        data = {"name" : name}
+        data = {"name": name}
         data["info"] = "User preset"
         if scenario_path.startswith(os.environ['HOME']):
             scenario_path = scenario_path.replace(os.environ['HOME'], '~')
@@ -659,7 +659,7 @@ experiments is possible only when launcher is running (command: obci srv)')))
         is_ok = False
         if response is None:
             err = self.mtool.fill_msg("rq_error", err_code="no_response",
-                            details="Timeout.")
+                                      details="Timeout.")
             self.rq_error.emit(self.mtool.unpack_msg(err))
         elif response.type == "rq_error":
             self.rq_error.emit(response)

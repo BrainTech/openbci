@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import thread, time
+
+import thread
+import time
+
 from PyQt4 import QtCore
+
 
 class LogModel(QtCore.QObject):
     update_log = QtCore.pyqtSignal(dict)
+
     def __init__(self):
         super(LogModel, self).__init__()
         self._peers = []
@@ -21,13 +26,13 @@ class LogModel(QtCore.QObject):
         self._start_thread(exp)
 
     def _start_thread(self, exp):
-        #self._exp = exp
+        # self._exp = exp
         self._run = True
         self._is_running = True
         thread.start_new_thread(
-                self.run, 
+            self.run,
                 ()
-                )
+        )
 
     def stop_running(self):
         self._run = False
@@ -61,20 +66,19 @@ class LogModel(QtCore.QObject):
         while self._run:
             peer_id, log = self.next_log()
             if peer_id is None:
-                #print ("obci_log_model - ERROR IN RECEIVING LOG ON SOCKET OR TIMEOUT!")
+                # print ("obci_log_model - ERROR IN RECEIVING LOG ON SOCKET OR TIMEOUT!")
                 time.sleep(0.1)
             else:
                 self._mutex.lock()
                 if not self._peers_log.has_key(peer_id):
-                    self._peers_log[peer_id] = {'peer_id':peer_id,
-                                                'logs':[]}
+                    self._peers_log[peer_id] = {'peer_id': peer_id,
+                                                'logs': []}
                 self._peers_log[peer_id]['logs'].append(log)
                 if self._emmit:
-                    e = {'peer_id':peer_id, 'logs':[log]}
+                    e = {'peer_id': peer_id, 'logs': [log]}
                     self.update_log.emit(e)
                 self._mutex.unlock()
 
         print ("obci log model - model stoped running ")
         self.post_run()
         self._is_running = False
-

@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 from PyQt4 import QtCore, QtGui
+
 import obci_log_model
+
 from obci_launcher_constants import STATUS_COLORS
 
+
 class LogEngine(QtCore.QObject):
+
     def __init__(self, tab_widget):
 
         QtCore.QObject.__init__(self)
@@ -32,7 +37,7 @@ class LogEngine(QtCore.QObject):
     def tab_closed(self, tab_id):
         """Called on tab_closed event from GUI"""
         if tab_id > 0:
-            self._model.remove_peer(tab_id-1)
+            self._model.remove_peer(tab_id - 1)
             self.tab_widget.removeTab(tab_id)
 
     def tab_changed(self, tab_id):
@@ -50,7 +55,7 @@ class LogEngine(QtCore.QObject):
     def update_log(self, log):
         try:
             ind = self._model.get_peer_ind(log['peer_id'])
-            w = self.tab_widget.widget(ind+1)
+            w = self.tab_widget.widget(ind + 1)
             w.append('\n'.join([str(l) for l in log['logs']]))
         except ValueError:
             pass
@@ -58,12 +63,12 @@ class LogEngine(QtCore.QObject):
     def show_log(self, peer_id, scenario_id):
         """Called from gui when user requests peer_id module`s
         log. Lets create and show it..."""
-        
-        #TODO - create model.socket if needed
+
+        # TODO - create model.socket if needed
         try:
             ind = self._model.get_peer_ind(peer_id) + 1
             self._show_tab(ind)
-        except ValueError: #this tab is not opened yet
+        except ValueError:  # this tab is not opened yet
             self._model.add_peer(peer_id)
             self.tab_widget.addTab(self._get_log_widget(), peer_id)
             self._update_tab_status()
@@ -74,11 +79,10 @@ class LogEngine(QtCore.QObject):
 
     def experiment_started(self):
         print 'experiment started'
-        #self._model.start_running(self._exp)
+        # self._model.start_running(self._exp)
 
     def on_experiment_start(self, exp):
         self._model.start_running(self._exp)
-        
 
     def _rebuild_tab_widget(self):
         scenario = self.tab_widget.widget(0)
@@ -93,7 +97,7 @@ class LogEngine(QtCore.QObject):
         self.m = QtCore.QSignalMapper(self)
         self.shortcuts = []
         for i in range(9):
-            s = QtGui.QShortcut(QtGui.QKeySequence("Alt+"+str(i+1)), self.tab_widget)
+            s = QtGui.QShortcut(QtGui.QKeySequence("Alt+" + str(i + 1)), self.tab_widget)
             s.connect(s, QtCore.SIGNAL('activated()'), self.m, QtCore.SLOT('map()'))
             self.m.setMapping(s, i)
             self.shortcuts.append(s)
@@ -103,11 +107,11 @@ class LogEngine(QtCore.QObject):
         for i, peer_id in enumerate(self._model.get_peers()):
             st = self._exp.status.peer_status(str(peer_id)).status_name
             c = STATUS_COLORS[st]
-            p = QtGui.QPixmap(16,16)
+            p = QtGui.QPixmap(16, 16)
             p.fill(QtGui.QColor(c))
             ic = QtGui.QIcon()
             ic.addPixmap(p)
-            self.tab_widget.setTabIcon(i+1, ic)
+            self.tab_widget.setTabIcon(i + 1, ic)
 
     @QtCore.pyqtSlot('int')
     def _show_tab(self, tab_id):
@@ -120,7 +124,3 @@ class LogEngine(QtCore.QObject):
         w = QtGui.QTextEdit(self.tab_widget)
         w.setReadOnly(True)
         return w
-
-
-
-        
