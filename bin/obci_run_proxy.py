@@ -92,10 +92,18 @@ if __name__ == '__main__':
             sys.path.insert(1, os.path.realpath(local_path))            
             break
 
-    module_name = 'obci.cmd.{}'.format(bin_name)
-
     try:
-        module = importlib.import_module(module_name)
+        if bin_name == 'obci':
+            import obci.cmd.obci as module
+        elif bin_name == 'obci_server':
+            import obci.cmd.obci_server as module
+        elif bin_name == 'obci_gui':
+            import obci.cmd.obci_gui as module
+        elif bin_name == 'obci_x_tray':
+            import obci.cmd.obci_x_tray as module
+        else:
+            module_name = 'obci.cmd.{}'.format(bin_name)
+            module = importlib.import_module(module_name)
         sys.exit(module.run())
     except ImportError as ie:
         print('OpenBCI Run Proxy Script')

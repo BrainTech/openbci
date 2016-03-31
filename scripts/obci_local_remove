@@ -1,23 +1,20 @@
 #!/bin/bash
 
-echo ''
-
-rm -rf ~/.local/lib/python2.7/site-packages/multiplexer
-rm -rf ~/.local/lib/python2.7/site-packages/azouk
-rm -rf ~/.local/lib/python2.7/site-packages/azlib
-rm -rf ~/.local/lib/python2.7/site-packages/obci
+echo ""
 
 rm -rf ~/bin/obci
+rm -rf ~/bin/obci_server
 rm -rf ~/bin/obci_gui
+rm -rf ~/bin/obci_x_tray
+
 rm -rf ~/bin/obci_local_copy
 rm -rf ~/bin/obci_local_remove
 
-sed -i '/OBCI_INSTALL_DIR/d' ~/.bashrc
-sed -i '/OBCI_INSTALL_DIR/d' ~/.profile
-sed -i '/OBCI_PYTHONPATH/d' ~/.bashrc
-sed -i '/OBCI_PYTHONPATH/d' ~/.profile
+sed -i '/OPENBCI_PATH/d' ~/.bashrc
+sed -i '/OPENBCI_PATH/d' ~/.profile
 
-echo 'You can now remove local openbci directory if you want.'
-echo 'Operation complete, remember to restart your X session!'
-echo ''
+rm -rf ~/.obci/local_path
+
+echo "Operation completed. Remember to restart your system or logout!"
+echo ""
 
