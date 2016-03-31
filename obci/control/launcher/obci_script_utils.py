@@ -8,37 +8,29 @@ import errno
 import socket
 import subprocess
 
+import zmq
+
 import obci.control.common.net_tools as net
 import obci.control.common.obci_control_settings as settings
 import obci.control.launcher.obci_client as obci_client
 import obci.control.launcher.view as view
 
-
 disp = view.OBCIViewText()
 
 
 def launch_obci_server(args=[]):
-    #path = obci_server.__file__
-    #path = '.'.join([path.rsplit('.', 1)[0], 'py'])
-    
-    # FIXME
-    path = '~/openbci/bin/obci_server'
-    
+    # assume 'obci_server' command is available
     try:
-        #if '--win-silent' in args:
-        #    python_command = 'pythonw'
-        #    args.remove('--win-silent')
-        #else:
-        #    python_command = 'python'
-        #srv = subprocess.Popen([python_command, path] + list(args))
-        srv = subprocess.Popen([path] + list(args))
+        srv = subprocess.Popen(['obci_server'] + list(args))
     except Exception, e:
         print 'Server launch error:', str(e)
         return None
     return srv
 
+
 def argv():
     return sys.argv[2:]
+
 
 def server_process_running(expected_dead=False):
     """
@@ -68,6 +60,20 @@ def server_process_running(expected_dead=False):
 
     sock.close()
     return running
+
+
+def connect_client(addresses, client=None, client_class=obci_client.OBCIClient, zmq_ctx=None):
+    if client is None:
+        ctx = zmq_ctx or zmq.Context()
+        try:
+            client = client_class(addresses, ctx)
+        except Exception, e:
+            print("client creation error: ", str(e))
+            return None, None
+    result = client.ping_server(timeout=9000)
+
+    return result, client
+
 
 def client_server_prep(cmdargs=None, client_class=obci_client.OBCIClient, server_ip=None, start_srv=True, zmq_ctx=None):
 

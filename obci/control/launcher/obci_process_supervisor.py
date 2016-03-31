@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, absolute_import
+
 import os
 import sys
 import uuid
@@ -19,13 +21,16 @@ import obci.control.common.obci_control_settings as settings
 from obci.control.peer.config_defaults import CONFIG_DEFAULTS
 
 from obci.control.launcher.obci_control_peer import OBCIControlPeer, basic_arg_parser
-import launcher_tools
+
+import obci.control.launcher.launcher_tools as launcher_tools
 
 from obci.utils.openbci_logging import get_logger, log_crash
 
-from subprocess_monitor import SubprocessMonitor, TimeoutDescription,\
-STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE
-from process_io_handler import DEFAULT_TAIL_RQ
+from obci.control.launcher.subprocess_monitor import (
+    SubprocessMonitor, TimeoutDescription,
+    STDIN, STDOUT, STDERR, NO_STDIO, RETURNCODE)
+
+from obci.control.launcher.process_io_handler import DEFAULT_TAIL_RQ
 
 TEST_PACKS = 100000
 

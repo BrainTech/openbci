@@ -107,7 +107,7 @@ if __name__ == '__main__':
         sys.exit(module.run())
     except ImportError as ie:
         print('OpenBCI Run Proxy Script')
-        print('Couldn\'t import \'{}\' module.'.format(module_name))
+        print('Couldn\'t import \'obci.cmd.{}\' module.'.format(bin_name))
         print('Script location: {}'.format(os.path.abspath(__file__)))
         print('ImportError exception: {}'.format(ie))
         print('Import path:')

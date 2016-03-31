@@ -330,17 +330,6 @@ Optionally leave some peers running instead of restarting them',
 ###############################################################################
 ###############################################################################
 
-def connect_client(addresses, client=None, client_class=obci_client.OBCIClient, zmq_ctx=None):
-    if client is None:
-        ctx = zmq_ctx or zmq.Context()
-        try:
-            client = client_class(addresses, ctx)
-        except Exception, e:
-            print("client creation error: ", str(e))
-            return None, None
-    result = client.ping_server(timeout=9000)
-
-    return result, client
 
 def path_to_file(string):
     if not os.path.exists(string):

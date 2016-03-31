@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, absolute_import
+
 import os
 import sys
 
@@ -65,18 +67,15 @@ class PeerStatus(object):
 
 
 def obci_root():
-    if 'OBCI_INSTALL_DIR' in os.environ:
-        path = os.path.realpath(os.environ['OBCI_INSTALL_DIR'])
-    else:
-        path = os.path.realpath(os.path.dirname(__file__))
-        path = os.path.split(path)[0]
-        path = os.path.split(path)[0]
+    path = os.path.realpath(os.path.dirname(__file__))
+    path = os.path.split(path)[0]
+    path = os.path.split(path)[0]
     return path
 
 def obci_root_relative(path):
     _path = path
     if path:
-        print "---- ", path
+        print("---- ", path)
         root = obci_root()
         if os.path.commonprefix([path, root]).startswith(root):
             _path = path[len(root):]
@@ -134,7 +133,6 @@ def default_config_path(peer_program_path):
     else: return ''
 
 def expand_path(program_path, base_dir=None):
-
     if base_dir is None:
         base_dir = obci_root()
     if not program_path:
@@ -147,4 +145,4 @@ def expand_path(program_path, base_dir=None):
         return os.path.realpath(os.path.join(base_dir, p))
 
 if __name__=='__main__':
-    print obci_pythonpath()
+    print(obci_pythonpath())
