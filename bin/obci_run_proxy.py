@@ -4,6 +4,7 @@
 from __future__ import print_function, absolute_import
 
 import sys
+import os
 import os.path
 import importlib
 
@@ -49,8 +50,12 @@ def try_local_path_file():
             fname = os.path.expanduser('~user/obci/local_path')
         else:
             fname = os.path.expanduser('~/.obci/local_path')
-        with open(fname, 'r') as f:
-            return f.read().strip()
+
+        if os.path.isfile(fname):
+            with open(fname, 'r') as f:
+                return f.read().strip()
+        else:
+            return None
     except Exception as ex:
         print(ex)
         return None
@@ -58,8 +63,8 @@ def try_local_path_file():
 
 def try_env_variable():
     try:
-        if 'OBCI_INSTALL_DIR' in sys.environ:
-            return sys.environ['OBCI_INSTALL_DIR']
+        if 'OBCI_INSTALL_DIR' in os.environ:
+            return os.environ['OBCI_INSTALL_DIR']
     except Exception as ex:
         print(ex)
         return None

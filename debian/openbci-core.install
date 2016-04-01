@@ -1,3 +1,4 @@
+obci/cmd/	  /usr/share/openbci/obci
 obci/acquisition/	  /usr/share/openbci/obci
 obci/analysis/	  /usr/share/openbci/obci
 obci/devices/	  /usr/share/openbci/obci
