@@ -36,7 +36,7 @@ if [[ ${answer} = "Y" || ${answer} = "y" ]]; then
     rm -rf ~/bin/obci
     rm -rf ~/bin/obci_server
     rm -rf ~/bin/obci_gui
-    rm -rf ~/bin/obci_x_tray
+    rm -rf ~/bin/obci_tray
 
     rm -rf ~/bin/obci_local_copy
     rm -rf ~/bin/obci_local_remove
@@ -44,7 +44,7 @@ if [[ ${answer} = "Y" || ${answer} = "y" ]]; then
     ln -s $OBCI_LOCAL_DIR/bin/obci ~/bin/obci
     ln -s $OBCI_LOCAL_DIR/bin/obci_server ~/bin/obci_server
     ln -s $OBCI_LOCAL_DIR/bin/obci_gui ~/bin/obci_gui
-    ln -s $OBCI_LOCAL_DIR/bin/obci_x_tray ~/bin/obci_x_tray
+    ln -s $OBCI_LOCAL_DIR/bin/obci_tray ~/bin/obci_tray
 
     ln -s $OBCI_LOCAL_DIR/scripts/obci_local_activate ~/bin/obci_local_activate
     ln -s $OBCI_LOCAL_DIR/scripts/obci_local_remove ~/bin/obci_local_remove

@@ -5,7 +5,7 @@ echo ""
 rm -rf ~/bin/obci
 rm -rf ~/bin/obci_server
 rm -rf ~/bin/obci_gui
-rm -rf ~/bin/obci_x_tray
+rm -rf ~/bin/obci_tray
 
 rm -rf ~/bin/obci_local_copy
 rm -rf ~/bin/obci_local_remove
