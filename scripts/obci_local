@@ -1,0 +1,98 @@
+#!/bin/bash
+
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+    echo -n "$var"
+}
+
+if [ -z "$1" ]; then
+    echo ""
+    echo "Usage: obci_local [activate|remove] [relative_directory_name]"
+    echo ""
+
+    if [ -f ~/.obci/local_path ]; then
+        echo "Current OpenBCI local path: "`cat ~/.obci/local_path`
+    else
+        echo "OpenBCI local path is not set."
+    fi
+
+    echo ""
+    exit 0
+elif [ "$1" == "activate" ]; then
+    if [ ! -d $2 ]; then
+        echo "Error: Directory '$1' doesn't exist."
+        exit 1
+    fi
+
+    PWD=`pwd`
+    OBCI_LOCAL_DIR=$(cd $PWD/$2 && pwd)
+
+    echo ""
+    echo "OBCI_LOCAL_DIR is detected as '$OBCI_LOCAL_DIR'"
+    echo ""
+
+    mkdir -p ~/.obci
+    echo "$OBCI_LOCAL_DIR" > ~/.obci/local_path
+
+    echo "Install local OpenBCI executables inside ~/bin (if unsure choose n)? [y/n] "
+    read answer
+    if [[ ${answer} = "Y" || ${answer} = "y" ]]; then
+        HOME_DIR=$(cd ~ && pwd)
+        sed -i '/OPENBCI_PATH/d' ~/.bashrc
+        sed -i '/OPENBCI_PATH/d' ~/.profile
+        echo 'export PATH='$HOME_DIR/bin:\${PATH} \# OPENBCI_PATH >> ~/.profile
+        echo 'export PATH='$HOME_DIR/bin:\${PATH} \# OPENBCI_PATH >> ~/.bashrc
+
+        echo "Creating symlinks..."
+
+        mkdir -p ~/bin
+
+        rm -rf ~/bin/obci
+        rm -rf ~/bin/obci_server
+        rm -rf ~/bin/obci_gui
+        rm -rf ~/bin/obci_tray
+        
+        rm -rf ~/bin/obci_local
+
+        ln -s $OBCI_LOCAL_DIR/bin/obci ~/bin/obci
+        ln -s $OBCI_LOCAL_DIR/bin/obci_server ~/bin/obci_server
+        ln -s $OBCI_LOCAL_DIR/bin/obci_gui ~/bin/obci_gui
+        ln -s $OBCI_LOCAL_DIR/bin/obci_tray ~/bin/obci_tray
+
+        ln -s $OBCI_LOCAL_DIR/scripts/obci_local ~/bin/obci_local
+
+        echo "Operation completed. System restart or logging out IS REQUIRED."
+    else
+        echo "Operation completed. System restart or logging out is not required."
+    fi
+
+    echo ""
+    echo "OpenBCI is now configured to run from '$OBCI_LOCAL_DIR'"
+    echo "You can reverse system changes by launchng 'obci_local remove' script."
+    echo ""
+    exit 0
+elif [ "$1" == "remove" ]; then
+    echo ""
+    
+    rm -rf ~/bin/obci
+    rm -rf ~/bin/obci_server
+    rm -rf ~/bin/obci_gui
+    rm -rf ~/bin/obci_tray
+
+    rm -rf ~/bin/obci_local
+
+    sed -i '/OPENBCI_PATH/d' ~/.bashrc
+    sed -i '/OPENBCI_PATH/d' ~/.profile
+
+    rm -rf ~/.obci/local_path
+
+    echo "Operation completed. Remember to restart your system or logout!"
+    echo ""
+    exit 0
+else
+    echo "Unrecognized option: '$1'"
+    exit 1
+fi
+

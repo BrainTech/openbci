@@ -1,5 +1,6 @@
 /usr/share/openbci/obci /usr/lib/python2.7/dist-packages/obci
-/usr/bin/obci_run_proxy.py /usr/bin/obci
-/usr/bin/obci_run_proxy.py /usr/bin/obci_gui
-/usr/bin/obci_run_proxy.py /usr/bin/obci_server
-/usr/bin/obci_run_proxy.py /usr/bin/obci_tray
+/usr/share/openbci/bin/obci_run_proxy.py /usr/bin/obci
+/usr/share/openbci/bin/obci_run_proxy.py /usr/bin/obci_gui
+/usr/share/openbci/bin/obci_run_proxy.py /usr/bin/obci_server
+/usr/share/openbci/bin/obci_run_proxy.py /usr/bin/obci_tray
+/usr/share/openbci/scripts/obci_local /usr/bin/obci_local

@@ -32,8 +32,8 @@ debian/openbci.desktop usr/share/applications
 debian/openbci.png usr/share/pixmaps
 debian/conf/openbci etc/default
 
-bin/obci_run_proxy.py /usr/bin
+bin/obci_run_proxy.py /usr/share/openbci/bin
+scripts/obci_local /usr/share/openbci/scripts
 
-scripts/obci_local_activate /usr/bin
-scripts/obci_local_remove /usr/bin
+COPYING.txt /usr/share/openbci/
 
