@@ -385,7 +385,7 @@ class MainWidget(QWidget):
                 QApplication.instance().quit()
 
 
-def run_obci_x_tray():
+def run_obci_tray():
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(False)
     mainWidget = MainWidget()

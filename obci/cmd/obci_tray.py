@@ -3,8 +3,8 @@
 
 from __future__ import print_function, absolute_import
 
-from obci.control.gui.obci_x_tray import run_obci_x_tray
+from obci.control.gui.obci_tray import run_obci_tray
 
 def run():
-    run_obci_x_tray()
+    run_obci_tray()
 
