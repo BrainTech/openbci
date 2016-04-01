@@ -1,3 +1,9 @@
+openbci (1.9.0-1) ustable; urgency=medium
+
+  * New, heavily refactored OpenBCI
+
+ -- Alex Khrabrov <alex@mroja.net>  Fri, 01 Apr 2016 16:38:50 +0200
+
 openbci (1.8.32-1) unstable; urgency=medium
 
   * Small fix for newtech
