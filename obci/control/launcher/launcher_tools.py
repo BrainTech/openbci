@@ -68,12 +68,9 @@ class PeerStatus(object):
                     details=self.details)
 
 def obci_root():
-    if 'OBCI_INSTALL_DIR' in os.environ['OBCI_INSTALL_DIR']:
-        path = os.path.realpath(os.environ['OBCI_INSTALL_DIR'])
-    else:
-        path = os.path.realpath(os.path.dirname(__file__))
-        path = os.path.split(path)[0]
-        path = os.path.split(path)[0]
+    path = os.path.realpath(os.path.dirname(__file__))
+    path = os.path.split(path)[0]
+    path = os.path.split(path)[0]
     return path
 
 
