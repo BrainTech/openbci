@@ -8,6 +8,14 @@ These tools are:
  * tools for displaying and storing the EEG (and other biomedical time series) signal
  * tools for creating "bindings" or "use scenarios" for some 3rd party software for performing psychological experiments (e-prime, psychopy, visionEGG). This means, that if you prepeare an experiment in some of mentioned software, you will be able to perform this experiment, and store the EEG data, with neccessary tags using openBCI.
 
+# Usage
+
+Following programs are available from command line:
+ * <code>obci</code> - main OpenBCI script
+ * <code>obci_gui</code> - OpenBCI scenario selector GUI
+ * <code>obci_tray</code> - tray application
+ * <code>obci_local</code> - scipt for configuring local copy of OpenBCI (can be used to configure OpenBCI when openbci-core package is not installed)
+
 # License
 
 OpenBCI is licensed under the terms of the GNU GPL version 3.
