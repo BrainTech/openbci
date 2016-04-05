@@ -287,14 +287,6 @@ class OBCIProcessSupervisor(OBCIControlPeer):
         else:
             path = os.path.realpath(p)
 
-        dirname = os.path.dirname(path)
-        if not launcher_tools.obci_root() in dirname:
-            launcher_tools.update_pythonpath(dirname)
-            launcher_tools.update_obci_syspath(dirname)
-            self.env.update({"PYTHONPATH": os.environ["PYTHONPATH"]})
-
-            self.logger.info("PYTHONPATH UPDATED  for " + peer +
-                             "!!!!!!!!   " + str(self.env["PYTHONPATH"]))
         args = data['args']
         args = self._attach_base_config_path(path, args)
         args += ['-p', 'experiment_uuid', self.experiment_uuid]

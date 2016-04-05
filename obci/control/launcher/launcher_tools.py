@@ -86,33 +86,6 @@ def obci_root_relative(path):
     return _path
 
 
-def obci_pythonpath():
-    root = obci_root()
-    lib_python_dir = ''.join(['python', str(sys.version_info[0]), '.',
-                              str(sys.version_info[1])])
-    try:
-        import multiplexer.multiplexer_constants
-        mx_python_path = ""
-    except ImportError:
-        mx_python_path = os.path.join(root, 'multiplexer-install', 'lib',
-                                      lib_python_dir, 'site-packages')
-    return mx_python_path  # os.pathsep.join([root, mx_python_path])
-
-
-def update_obci_syspath(paths_str=None):
-    paths_str = paths_str or obci_pythonpath()
-    for direct in paths_str.split(os.pathsep):
-        if direct != '':
-            sys.path.insert(1, direct)
-
-
-def update_pythonpath(obci_paths=None):
-    obci_paths = obci_paths or obci_pythonpath()
-    pythonpath = os.environ["PYTHONPATH"] if "PYTHONPATH" in os.environ else ''
-    pythonpath = os.pathsep.join([pythonpath, obci_paths])
-    os.environ["PYTHONPATH"] = pythonpath
-
-
 def mx_path():
     return os.path.join(obci_root(), 'multiplexer-install', 'bin', 'mxcontrol')
 
@@ -154,4 +127,5 @@ def expand_path(program_path, base_dir=None):
         return os.path.realpath(os.path.join(base_dir, p))
 
 if __name__ == '__main__':
-    print(obci_pythonpath())
+    print(obci_root())
+
