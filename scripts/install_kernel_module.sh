@@ -1,3 +1,3 @@
 #!/bin/sh
-exec make -C ../drivers/eeg/cpp_amplifiers/tmsi/driver install
+exec make -C ../obci/drivers/eeg/cpp_amplifiers/tmsi/driver install
 
