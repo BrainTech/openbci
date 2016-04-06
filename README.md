@@ -12,18 +12,18 @@ These tools are:
 
 ### From packages
 
-O certain Ubuntu versiona OpenBCI can be installed from packages available at http://deb.braintech.pl.
+O certain Ubuntu versions OpenBCI can be installed from packages available at http://deb.braintech.pl.
 
 ### From git
 
-Download OpenBCI source.
+Download OpenBCI source code:
 
 ```
 $ cd ~
 $ git clone https://github.com/BrainTech/openbci.git
 ```
 
-Now run script to conigure OpenBCI locally. When asked, ansewer 'y' to install binaries inside <code>~/bin</code>.
+Now run script to conigure OpenBCI locally. When asked, ansewer 'y' to install binaries inside <code>~/bin</code>:
 
 ```
 $ cd ~/openbci/scripts
