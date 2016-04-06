@@ -8,6 +8,28 @@ These tools are:
  * tools for displaying and storing the EEG (and other biomedical time series) signal
  * tools for creating "bindings" or "use scenarios" for some 3rd party software for performing psychological experiments (e-prime, psychopy, visionEGG). This means, that if you prepeare an experiment in some of mentioned software, you will be able to perform this experiment, and store the EEG data, with neccessary tags using openBCI.
 
+# Installing
+
+### From packages
+
+O certain Ubuntu versiona OpenBCI can be installed from packages available at http://deb.braintech.pl.
+
+### From git
+
+Download OpenBCI source.
+
+```
+$ cd ~
+$ git clone https://github.com/BrainTech/openbci.git
+```
+
+Now run script to conigure OpenBCI locally. When asked, ansewer 'y' to install binaries inside <code>~/bin</code>.
+
+```
+$ cd ~/openbci/scripts
+$ ./obci_local activate ../../openbci
+```
+
 # Usage
 
 Following programs are available from command line:
