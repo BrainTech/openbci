@@ -12,7 +12,7 @@ These tools are:
 
 ### From packages
 
-O certain Ubuntu versions OpenBCI can be installed from packages available at http://deb.braintech.pl.
+On certain Ubuntu versions OpenBCI can be installed from packages available at http://deb.braintech.pl.
 
 ### From git
 
