@@ -23,7 +23,7 @@ $ cd ~
 $ git clone https://github.com/BrainTech/openbci.git
 ```
 
-Now run script to conigure OpenBCI locally. When asked, ansewer 'y' to install binaries inside <code>~/bin</code>:
+Now run script to configure OpenBCI locally. When asked, ansewer 'y' to install binaries inside <code>~/bin</code> directory:
 
 ```
 $ cd ~/openbci/scripts
