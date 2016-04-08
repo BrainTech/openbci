@@ -93,6 +93,8 @@ class HapticStimulator(object):
                                                 #short times ~ seconds
                                                 #handling timers 
                                                 #should not matter
+        t.daemon = True # timer thread will shutdown at main program
+                        # shutdown
         t.start()
         with self.lock:
             apins = self.ftdi.read_pins()

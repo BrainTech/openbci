@@ -27,50 +27,8 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
-from HapticsControl import HapticStimulator
-from multiprocessing import Process, Pipe
-import os
-
-PIPETIMEOUT = 3
-
-def controlProcess(vid, pid, conn):
-    '''Process to control Stimulator.
-    
-    Stimulator relies on threads to work,
-    peer blocks threads while waiting for message
-    Should terminate when its parrent dies.
-    To do that it checks if it became a child of init (ID==1)
-    
-    :param vid: USB VID of controlled device int or hex NOT string
-    :param pid: USB PID of controlled device int or hex NOT string
-    :param conn: receiving end of Pipe, to read control messages through
-    '''
-    
-    stim = HapticStimulator(vid, pid)
-    while True:
-        if conn.poll(PIPETIMEOUT):#check if any data is sent, if not 
-                                  #sent for some time check parentID
-                                  #if 1 terminate 
-                                  #(to check if parent died and close)
-                                  #BREAKES WINDOWS COMPATABILITY
-        
-            l_msg = conn.recv()
-            
-            if l_msg.key == 'S':
-                chnl_s, time_s = l_msg.value.split(':') #strings
-                stim.stimulate(int(chnl_s), float(time_s))
-            if l_msg.key == 'B':
-                chnl_ls, time_ls = l_msg.value.split(':')#strings of 
-                                                         #lists                 
-                chnl = [int(i) for i in chnl_ls.split(',')]
-                time = [float(i) for i in time_ls.split(',')]
-                stim.bulk_stimulate(chnl, time)
-            if l_msg.key == 'T': #termination message
-                return 
-        else:
-            if os.getppid() == 1:
-                return
-            
+from obci.devices.haptics.HapticsControl import HapticStimulator
+import os, sys
 
 class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
     '''Class to control sensory stimulation'''
@@ -80,25 +38,13 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                                           type=peers.HAPTICS_STIMULATOR)
         ids = self.config.get_param("id").split(":")
         vid, pid = [int(i, base=16) for i in ids]
-        self.sendc, recvc = Pipe() 
-        self.cproc = Process(target=controlProcess,
-                             args=(vid, pid, recvc))
-        self.cproc.daemon=True # subrocess should die with parrent 
-                               # sadly doesn't work on SIGKILL
-                               
         # to report for errors before giving device to control proces
-        try:
-            stim = HapticStimulator(vid, pid)
-            stim.close()
-        except Exception as e:
-            self.logger.error(str(e))
-            raise(e)
-        self.cproc.start()
+        self.stim = HapticStimulator(vid, pid)
         self.ready()
         self.logger.info("HapticController init finished!")
     
     def close(self):
-        self.cproc.terminate()
+        del self.stim
         
     def handle_message(self, mxmsg):
         '''Receives message HAPTIC_CONTROL_MESSAGE and sends it
@@ -122,10 +68,21 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         if mxmsg.type == types.HAPTIC_CONTROL_MESSAGE:
             l_msg = variables_pb2.Variable()
             l_msg.ParseFromString(mxmsg.message)
-            self.sendc.send(l_msg) #send received command to 
-            #control process - threads are being locked by GIL
-            #while waiting for next message
-            self.logger.info('Activating haptic msg:\n{}'.format(l_msg))
+            if l_msg.key == 'S':
+                chnl_s, time_s = l_msg.value.split(':') #strings
+                self.logger.info('Activating haptic msg:\n{}'.format(l_msg))
+                self.stim.stimulate(int(chnl_s), float(time_s))
+            if l_msg.key == 'B':
+                logs = 'Activating multiple haptic channels msg: {}'.format(l_msg)
+                self.logger.info(logs)
+                chnl_ls, time_ls = l_msg.value.split(':') #strings of lists 
+                chnl = [int(i) for i in chnl_ls.split(',')]
+                time = [float(i) for i in time_ls.split(',')]
+                self.stim.bulk_stimulate(chnl, time)
+            if l_msg.key == 'T':
+                self.logger.info('Shutting down')
+                self.stim.close()
+                sys.exit(0)
         self.no_response()
 
 if __name__ == "__main__":

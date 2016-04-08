@@ -28,10 +28,11 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
+import sys
 
 class HapticTestPeer(ConfiguredMultiplexerServer):
     '''
-    Class to control sensory stimulation
+    Class for sending test control messages to Haptic stim
     '''
     @log_crash
     def __init__(self, addresses):
@@ -45,57 +46,70 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
     def generate_test_messages(self):
         '''
         Generates test messages for Haptic stimulator
+        tries to cover all possible combinations of stimulation
         '''
         time.sleep(3)
-        while True:
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '1:1.0'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S1')
-            time.sleep(4)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '2:0.5'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S2')
-            time.sleep(4)
-            
-            msg = variables_pb2.Variable()
-            msg.key = 'B'
-            msg.value = '1,2:0.5,1.5'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S1+2')
-            time.sleep(4)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '1:3'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S1+2 in combination')
-            time.sleep(1)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '2:1'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            time.sleep(5)
-            msg = variables_pb2.Variable()
-            msg.key = 'T'
-            msg.value = '2:1'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('Terminating device')
-            time.sleep(5)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '1:1.0'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S1')
+        time.sleep(4)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '2:0.5'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S2')
+        time.sleep(4)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'B'
+        msg.value = '1,2:0.5,1.5'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S1+2')
+        time.sleep(4)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '1:3'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S1+2 in combination')
+        time.sleep(1)
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '2:1'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        time.sleep(5)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '1:10'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S1')
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'T'
+        msg.value = '2:1'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('Terminating device')
+        time.sleep(5)
+        sys.exit(0)
             
         
 if __name__ == "__main__":
