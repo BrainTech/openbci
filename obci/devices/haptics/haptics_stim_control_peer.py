@@ -38,7 +38,6 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                                           type=peers.HAPTICS_STIMULATOR)
         ids = self.config.get_param("id").split(":")
         vid, pid = [int(i, base=16) for i in ids]
-        # to report for errors before giving device to control proces
         self.stim = HapticStimulator(vid, pid)
         self.ready()
         self.logger.info("HapticController init finished!")
@@ -48,7 +47,7 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         
     def handle_message(self, mxmsg):
         '''Receives message HAPTIC_CONTROL_MESSAGE and sends it
-        to stimulation board control process.
+        to stimulation board.
         
         Message contains info of type::
             
