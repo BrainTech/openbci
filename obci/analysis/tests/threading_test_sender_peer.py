@@ -39,7 +39,7 @@ class ThreadingTestSenderPeer(ConfiguredMultiplexerServer):
         self.ready()
         t = Thread(target = self.generate_test_messages)
         t.start()
-        self.logger.info("Haptics Test Peer init finished!")
+        self.logger.info("threading test sending peer init finished!")
     @log_crash
     def generate_test_messages(self):
         time.sleep(3)
