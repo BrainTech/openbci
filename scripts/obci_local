@@ -7,6 +7,21 @@ trim() {
     echo -n "$var"
 }
 
+remove_from_bin() {
+    # main commands
+    rm -rf ~/bin/obci
+    rm -rf ~/bin/obci_gui
+    rm -rf ~/bin/obci_tray
+
+    # utils script
+    rm -rf ~/bin/obci_local
+
+    # internal commands
+    rm -rf ~/bin/obci_server
+    rm -rf ~/bin/obci_experiment
+    rm -rf ~/bin/obci_process_supervisor
+}
+
 if [ -z "$1" ]; then
     echo ""
     echo "Usage: obci_local [activate|remove] [relative_directory_name]"
@@ -49,19 +64,17 @@ elif [ "$1" == "activate" ]; then
 
         mkdir -p ~/bin
 
-        rm -rf ~/bin/obci
-        rm -rf ~/bin/obci_server
-        rm -rf ~/bin/obci_gui
-        rm -rf ~/bin/obci_tray
-        
-        rm -rf ~/bin/obci_local
+        remove_from_bin
 
         ln -s $OBCI_LOCAL_DIR/bin/obci ~/bin/obci
-        ln -s $OBCI_LOCAL_DIR/bin/obci_server ~/bin/obci_server
         ln -s $OBCI_LOCAL_DIR/bin/obci_gui ~/bin/obci_gui
         ln -s $OBCI_LOCAL_DIR/bin/obci_tray ~/bin/obci_tray
 
         ln -s $OBCI_LOCAL_DIR/scripts/obci_local ~/bin/obci_local
+
+        ln -s $OBCI_LOCAL_DIR/bin/obci_server ~/bin/obci_server
+        ln -s $OBCI_LOCAL_DIR/bin/obci_experiment ~/bin/obci_experiment
+        ln -s $OBCI_LOCAL_DIR/bin/obci_process_supervisor ~/bin/obci_process_supervisor
 
         echo "Operation completed. System restart or logging out IS REQUIRED."
     else
@@ -75,13 +88,8 @@ elif [ "$1" == "activate" ]; then
     exit 0
 elif [ "$1" == "remove" ]; then
     echo ""
-    
-    rm -rf ~/bin/obci
-    rm -rf ~/bin/obci_server
-    rm -rf ~/bin/obci_gui
-    rm -rf ~/bin/obci_tray
 
-    rm -rf ~/bin/obci_local
+    remove_from_bin
 
     sed -i '/OPENBCI_PATH/d' ~/.bashrc
     sed -i '/OPENBCI_PATH/d' ~/.profile

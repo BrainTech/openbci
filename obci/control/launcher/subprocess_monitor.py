@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function, absolute_import
+
 import threading
 import subprocess
 import sys
@@ -14,11 +16,11 @@ from obci.control.launcher.launcher_messages import message_templates
 
 from obci.utils.openbci_logging import get_logger
 
-from process_io_handler import start_stdio_handler
-from local_process import LocalProcess
-from remote_process import RemoteProcess
-from process import FAILED, FINISHED, TERMINATED, UNKNOWN,\
-    PING, RETURNCODE
+from obci.control.launcher.process_io_handler import start_stdio_handler
+from obci.control.launcher.local_process import LocalProcess
+from obci.control.launcher.remote_process import RemoteProcess
+from obci.control.launcher.process import (FAILED, FINISHED, TERMINATED, UNKNOWN,
+    PING, RETURNCODE)
 
 
 NO_STDIO = 0
@@ -320,3 +322,4 @@ class TimeoutDescription(object):
 
 def default_timeout_handler():
     return TimeoutDescription()
+

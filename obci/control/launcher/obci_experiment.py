@@ -177,8 +177,7 @@ class OBCIExperiment(OBCIControlPeer):
         proc_type = 'obci_process_supervisor'
 
         if machine_addr == self.origin_machine:
-            path = obci_process_supervisor.__file__
-            path = '.'.join([path.rsplit('.', 1)[0], 'py'])
+            path = 'obci_process_supervisor'
             sv_obj, details = self.subprocess_mgr.new_local_process(path, args,
                                                                     proc_type=proc_type,
                                                                     capture_io=NO_STDIO)
@@ -1130,8 +1129,8 @@ def experiment_arg_parser():
 
     return parser
 
-if __name__ == '__main__':
 
+def run_obci_experiment():
     args = experiment_arg_parser().parse_args()
     print args
     pack = None
@@ -1141,5 +1140,5 @@ if __name__ == '__main__':
                          args.launch_file, args.sv_addresses, args.sv_pub_addresses,
                          args.rep_addresses, args.pub_addresses, args.name,
                          args.current_ip, args.launch, overwrites=pack)
-
     exp.run()
+

@@ -508,7 +508,7 @@ def process_supervisor_arg_parser():
     return parser
 
 
-if __name__ == '__main__':
+def run_obci_process_supervisor():
     parser = process_supervisor_arg_parser()
     args = parser.parse_args()
 
@@ -520,3 +520,4 @@ if __name__ == '__main__':
                                        experiment_uuid=args.experiment_uuid,
                                        name=args.name)
     process_sv.run()
+

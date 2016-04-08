@@ -186,11 +186,9 @@ class OBCIServer(OBCIControlPeer):
         return args
 
     def start_experiment_process(self, sandbox_dir, launch_file, name=None, overwrites=None):
-        path = module_path(obci_experiment)
-
+        path = 'obci_experiment'
         args = self._args_for_experiment(sandbox_dir, launch_file,
                                          local=True, name=name, overwrites=overwrites)
-
         return self.subprocess_mgr.new_local_process(path, args,
                                                      proc_type='obci_experiment',
                                                      capture_io=NO_STDIO)
