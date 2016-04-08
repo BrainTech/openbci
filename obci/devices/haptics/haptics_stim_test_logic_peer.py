@@ -88,6 +88,14 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
                           type=types.HAPTIC_CONTROL_MESSAGE,
                           flush=True)
             time.sleep(5)
+            msg = variables_pb2.Variable()
+            msg.key = 'T'
+            msg.value = '2:1'
+            self.conn.send_message(message=msg.SerializeToString(), 
+                          type=types.HAPTIC_CONTROL_MESSAGE,
+                          flush=True)
+            self.logger.info('Terminating device')
+            time.sleep(5)
             
         
 if __name__ == "__main__":

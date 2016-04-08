@@ -33,9 +33,11 @@ import time
             
 def test(logger):
     i = 0
+
     while True:
         i += 1
         print('\ntest thread, should print every second '+str(i))
+        
         time.sleep(1)
 
 class ThreadingTestPeer(ConfiguredMultiplexerServer):

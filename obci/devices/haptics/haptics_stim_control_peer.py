@@ -65,6 +65,8 @@ def controlProcess(vid, pid, conn):
                 chnl = [int(i) for i in chnl_ls.split(',')]
                 time = [float(i) for i in time_ls.split(',')]
                 stim.bulk_stimulate(chnl, time)
+            if l_msg.key == 'T': #termination message
+                return 
         else:
             if os.getppid() == 1:
                 return
@@ -83,11 +85,19 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                              args=(vid, pid, recvc))
         self.cproc.daemon=True # subrocess should die with parrent 
                                # sadly doesn't work on SIGKILL
+                               
+        # to report for errors before giving device to control proces
+        try:
+            stim = HapticStimulator(vid, pid)
+            stim.close()
+        except Exception as e:
+            self.logger.error(str(e))
+            raise(e)
         self.cproc.start()
         self.ready()
         self.logger.info("HapticController init finished!")
     
-    def close(self, exc_type, exc_value, traceback):
+    def close(self):
         self.cproc.terminate()
         
     def handle_message(self, mxmsg):
@@ -101,8 +111,9 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                     required string value = 2;
                     }
         
-        :param key: - 'S' or 'B' - Single haptic channel or
-        Bulk - multiple channel to activate
+        :param key: - 'S', 'B' or 'T' - Single haptic channel or
+        Bulk - multiple channel to activate. 'T' - to terminate FTDI
+        control process and release device
         :param value: - for single channel - '1:1.0' - first channel 
         for 1 second. For bulk: '1,2:1.0,0.4' - activate channel 1 for
         1 second and channel 2 for 0.4 seconds. Channels can be in any

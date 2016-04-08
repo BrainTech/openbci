@@ -31,7 +31,7 @@ from obci.utils.openbci_logging import log_crash
 
 
 class ThreadingTestSenderPeer(ConfiguredMultiplexerServer):
-    '''Class to control sensory stimulation'''
+    '''Class to send test messages to thread testing receiver peer'''
     @log_crash
     def __init__(self, addresses):
         super(ThreadingTestSenderPeer, self).__init__(addresses=addresses,
