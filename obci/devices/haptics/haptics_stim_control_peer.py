@@ -71,14 +71,14 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                 chnl_s, time_s = l_msg.value.split(':') #strings
                 self.logger.info('Activating haptic msg:\n{}'.format(l_msg))
                 self.stim.stimulate(int(chnl_s), float(time_s))
-            if l_msg.key == 'B':
+            elif l_msg.key == 'B':
                 logs = 'Activating multiple haptic channels msg: {}'.format(l_msg)
                 self.logger.info(logs)
                 chnl_ls, time_ls = l_msg.value.split(':') #strings of lists 
                 chnl = [int(i) for i in chnl_ls.split(',')]
                 time = [float(i) for i in time_ls.split(',')]
                 self.stim.bulk_stimulate(chnl, time)
-            if l_msg.key == 'T':
+            elif l_msg.key == 'T':
                 self.logger.info('Shutting down')
                 self.stim.close()
                 sys.exit(0)

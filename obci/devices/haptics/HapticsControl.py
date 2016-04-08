@@ -63,7 +63,7 @@ class HapticStimulator(object):
         self.ftdi.open_bitbang(vendorid, productid, interface, 
                                 direction = 0xFF)
                                 # direction FF - all ports output
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.ftdi.write_data([0]) # turn off all channels
         
     def __del__(self):
@@ -93,8 +93,11 @@ class HapticStimulator(object):
                                                 #short times ~ seconds
                                                 #handling timers 
                                                 #should not matter
-        t.daemon = True # timer thread will shutdown at main program
-                        # shutdown
+        t.daemon = True # timer thread shall end immediately at main
+                        # program shutdown, because interface must be
+                        # closed by then and every channel turned off by
+                        # .close() method. No need to wait for 
+                        # schedueled stimulation end.
         t.start()
         with self.lock:
             apins = self.ftdi.read_pins()
