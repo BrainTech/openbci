@@ -50,12 +50,12 @@ class HapticStimulator(object):
                         interface=DEFAULTINTERFACE):
         ''' vendorid, product id - gotten from lsusb for FTDI device,
             interface - for tested board is always 2'''
-        self.f = Ftdi()
-        self.f.open_bitbang(vendorid, productid, interface, 
+        self.ftdi = Ftdi()
+        self.ftdi.open_bitbang(vendorid, productid, interface, 
                                 direction = 0xFF)
                                 # direction FF - all ports output
         self.lock = threading.Lock()
-        self.f.write_data([0]) # turn off all channels
+        self.ftdi.write_data([0]) # turn off all channels
         
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
@@ -66,10 +66,10 @@ class HapticStimulator(object):
     def _turn_off(self, chnl):
         ''' will turn off selected channel'''
         with self.lock:
-            apins = self.f.read_pins()
+            apins = self.ftdi.read_pins()
             activation_mask = ~(1 << (chnl-1)) & 0xFF #select only 
                                                       #needed channel
-            self.f.write_data([apins & activation_mask])
+            self.ftdi.write_data([apins & activation_mask])
     
     def stimulate(self, chnl, time):
         '''Turn on stimulation on channel chnl (integer 1, 2 ...)
@@ -80,11 +80,11 @@ class HapticStimulator(object):
                                                 #should not matter
         t.start()
         with self.lock:
-            apins = self.f.read_pins()
+            apins = self.ftdi.read_pins()
             activation_mask = 1 << (chnl-1) # create byte with bit on
                                             # corresponding channel
                                             # enabled
-            self.f.write_data([apins | activation_mask]) #add active bit
+            self.ftdi.write_data([apins | activation_mask]) #add active bit
                                                        # to other active
                                                        # channels
         
@@ -102,8 +102,8 @@ class HapticStimulator(object):
     
     def close(self):
         '''Releasing device'''
-        self.f.write_data([0]) # turn off all channels
-        self.f.usb_dev.reset() # release device
+        self.ftdi.write_data([0]) # turn off all channels
+        self.ftdi.usb_dev.reset() # release device
         
                                 
 if __name__ == "__main__":
