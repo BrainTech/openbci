@@ -29,11 +29,12 @@ from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexe
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
-class HapticTestPeer(ConfiguredMultiplexerServer):
+
+class ThreadingTestSenderPeer(ConfiguredMultiplexerServer):
     '''Class to control sensory stimulation'''
     @log_crash
     def __init__(self, addresses):
-        super(HapticTestPeer, self).__init__(addresses=addresses,
+        super(ThreadingTestSenderPeer, self).__init__(addresses=addresses,
                                           type=peers.HAPTICS_STIMULATOR)
         self.ready()
         t = Thread(target = self.generate_test_messages)
@@ -49,43 +50,12 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
             self.conn.send_message(message=msg.SerializeToString(), 
                           type=types.HAPTIC_CONTROL_MESSAGE,
                           flush=True)
-            self.logger.info('RUNNING! S1')
-            time.sleep(4)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '2:0.5'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S2')
+            self.logger.info('Sending message!')
             time.sleep(4)
             
-            msg = variables_pb2.Variable()
-            msg.key = 'B'
-            msg.value = '1,2:0.5,1.5'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S1+2')
-            time.sleep(4)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '1:3'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            self.logger.info('RUNNING! S1+2 in combination')
-            time.sleep(1)
-            msg = variables_pb2.Variable()
-            msg.key = 'S'
-            msg.value = '2:1'
-            self.conn.send_message(message=msg.SerializeToString(), 
-                          type=types.HAPTIC_CONTROL_MESSAGE,
-                          flush=True)
-            time.sleep(5)
             
         
 if __name__ == "__main__":
-    HapticTestPeer(settings.MULTIPLEXER_ADDRESSES)
+    ThreadingTestSenderPeer(settings.MULTIPLEXER_ADDRESSES)
     
     

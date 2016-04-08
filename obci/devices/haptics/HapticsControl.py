@@ -57,9 +57,6 @@ class HapticStimulator(object):
         self.lock = threading.Lock()
         self.ftdi.write_data([0]) # turn off all channels
         
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-        
     def __del__(self):
         self.close()
     
@@ -92,7 +89,7 @@ class HapticStimulator(object):
     def bulk_stimulate(self, chnls, times):
         '''enables multiple channels (chnls list of ints) for some time
         in seconds (times list of floats)
-        len(chnls) == len(times)'''
+        len(chnls) and len(times) should be equal'''
         if len(chnls) != len(times):
             raise Exception(
               'Stimulation channels and times are not the same length!'
