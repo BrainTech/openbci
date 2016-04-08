@@ -70,7 +70,7 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         super(HapticStimulatorControlPeer, self).__init__(addresses=addresses,
                                           type=peers.HAPTICS_STIMULATOR)
         ids = self.config.get_param("id").split(":")
-        vid, pid = [int('0x'+i, base=16) for i in ids]
+        vid, pid = [int(i, base=16) for i in ids]
         self.sendc, recvc = Pipe() 
         self.cproc = Process(target=controlProcess,
                              args=(vid, pid, recvc))
