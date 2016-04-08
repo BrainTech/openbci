@@ -21,7 +21,8 @@
 # Author:
 #      Marian Dovgialo <marian.dowgialo@gmail.com>
 #
-'''Contains HapticStimulator class to control FTDI FT2232HL in bitbang 
+'''
+Contains HapticStimulator class to control FTDI FT2232HL in bitbang 
 mode as haptic stimulator.
 Tested on pyftdi 0.11.3 and pyusb 1.0.0.b2
 To work requires user to have access to usb device.
@@ -43,13 +44,21 @@ DEFAULTDIRECTION = 0xFF # All pins - output
 
 
 class HapticStimulator(object):
-    '''Class to initialise and send commands to sensory stimulator built 
+    '''
+    Class to initialise and send commands to sensory stimulator built 
     on FTDI FT2232HL with power trasistors board
-    ("fMRI Pneumatic 5V version") from Politechnika Warszawska'''
+    ("fMRI Pneumatic 5V version") from Politechnika Warszawska
+    '''
     def __init__(self, vendorid=VENDORID, productid=PRODUCTID,
                         interface=DEFAULTINTERFACE):
-        ''' vendorid, product id - gotten from lsusb for FTDI device,
-            interface - for tested board is always 2'''
+        '''
+        Initialises FTDI device as Haptic Stimulator
+        
+        :param vendorid: int or hex NOT string
+        gotten from lsusb for FTDI device
+        :param productid: int or hex NOT string
+        gotten from lsusb for FTDI device
+        :param interface: int - for tested board is always 2'''
         self.ftdi = Ftdi()
         self.ftdi.open_bitbang(vendorid, productid, interface, 
                                 direction = 0xFF)
@@ -61,7 +70,12 @@ class HapticStimulator(object):
         self.close()
     
     def _turn_off(self, chnl):
-        ''' will turn off selected channel'''
+        '''
+        Will turn off selected channel, used by stimulate method on
+        on timer
+        
+        :param chnl: int - number of channel to turn off
+        '''
         with self.lock:
             apins = self.ftdi.read_pins()
             activation_mask = ~(1 << (chnl-1)) & 0xFF #select only 
@@ -69,8 +83,12 @@ class HapticStimulator(object):
             self.ftdi.write_data([apins & activation_mask])
     
     def stimulate(self, chnl, time):
-        '''Turn on stimulation on channel chnl (integer 1, 2 ...)
-        for time in seconds'''
+        '''
+        Turn on stimulation on channel number chnl for time seconds
+        
+        :param chnl: integer - channel number starting from 1
+        :param time: float - stimulation length in seconds
+        '''
         t = threading.Timer(time, self._turn_off, [chnl]) # we expect 
                                                 #short times ~ seconds
                                                 #handling timers 
@@ -87,9 +105,15 @@ class HapticStimulator(object):
         
         
     def bulk_stimulate(self, chnls, times):
-        '''enables multiple channels (chnls list of ints) for some time
-        in seconds (times list of floats)
-        len(chnls) and len(times) should be equal'''
+        '''
+        Enables multiple channels for some time in seconds
+        
+        len(chnls) should be equal to len(times)
+        
+        :param chnls: list of integers - channels to activate
+        :param times: list of floats - activation time lenghts for
+        corresponding channel
+        '''
         if len(chnls) != len(times):
             raise Exception(
               'Stimulation channels and times are not the same length!'

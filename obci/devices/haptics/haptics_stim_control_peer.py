@@ -34,11 +34,18 @@ import os
 PIPETIMEOUT = 3
 
 def controlProcess(vid, pid, conn):
-    '''process to control Stimulator,
+    '''Process to control Stimulator.
+    
     Stimulator relies on threads to work,
     peer blocks threads while waiting for message
-    Should terminate when its parrent dies (checks if it became
-    a child of init (ID==1)'''
+    Should terminate when its parrent dies.
+    To do that it checks if it became a child of init (ID==1)
+    
+    :param vid: USB VID of controlled device int or hex NOT string
+    :param pid: USB PID of controlled device int or hex NOT string
+    :param conn: receiving end of Pipe, to read control messages through
+    '''
+    
     stim = HapticStimulator(vid, pid)
     while True:
         if conn.poll(PIPETIMEOUT):#check if any data is sent, if not 
@@ -74,7 +81,8 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         self.sendc, recvc = Pipe() 
         self.cproc = Process(target=controlProcess,
                              args=(vid, pid, recvc))
-        self.cproc.daemon=True # subrocess should die with parrent
+        self.cproc.daemon=True # subrocess should die with parrent 
+                               # sadly doesn't work on SIGKILL
         self.cproc.start()
         self.ready()
         self.logger.info("HapticController init finished!")
@@ -83,18 +91,22 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         self.cproc.terminate()
         
     def handle_message(self, mxmsg):
-        '''gets message HAPTIC_CONTROL_MESSAGE, which contains:
+        '''Receives message HAPTIC_CONTROL_MESSAGE and sends it
+        to stimulation board control process.
         
-            message Variable {
-                required string key = 1;
-                required string value = 2;
-            }
+        Message contains info of type::
             
-            key - 'S' or 'B' - single haptic channel, or bulk
-            value - for single channel - '1:1.0' - first channel 
-            for 1 second 
-            for bulk: '1,2:1.0,0.4' - activate channel 1 for 1 second
-            and channel 2 for 0.4 seconds. Channels can be in any order'''
+                message Variable {
+                    required string key = 1;
+                    required string value = 2;
+                    }
+        
+        :param key: - 'S' or 'B' - Single haptic channel or
+        Bulk - multiple channel to activate
+        :param value: - for single channel - '1:1.0' - first channel 
+        for 1 second. For bulk: '1,2:1.0,0.4' - activate channel 1 for
+        1 second and channel 2 for 0.4 seconds. Channels can be in any
+        order'''
             
         if mxmsg.type == types.HAPTIC_CONTROL_MESSAGE:
             l_msg = variables_pb2.Variable()
