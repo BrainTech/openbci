@@ -8,6 +8,7 @@ import time
 
 from obci.drivers.etr import etr_amplifier
 from obci.configs import settings, variables_pb2
+from multiplexer.multiplexer_constants import peers, types
 
 from ws4py.client.threadedclient import WebSocketClient
 
@@ -27,18 +28,15 @@ class EtrWebSocketClient(WebSocketClient):
         self.peer.end_the_loop = True
 
     def received_message(self, m):
-        try:
-            msg = json.loads(m)
-            self.peer.logger.info("x = {}, y = {}".format(m['x'], m['y']))
-            
-            l_msg = variables_pb2.Sample2D()
-            l_msg.x = float(m['x'])
-            l_msg.y = float(m['y'])
-            l_msg.timestamp = float(m['timestamp'])
-            
-            self.peer.process_message(l_msg)
-        except Exception as ex:
-            pass
+    
+        msg = json.loads(str(m))
+        self.peer.logger.info("msg: {}".format(m))
+        l_msg = variables_pb2.Sample2D()
+        l_msg.x = float(msg['x'])
+        l_msg.y = float(msg['y'])
+        l_msg.timestamp = float(msg['timestamp'])
+        
+        self.peer.process_message(l_msg)
 
 class EtrWebSocketClientSample(EtrWebSocketClient):
     '''
@@ -51,32 +49,24 @@ class EtrWebSocketClientSample(EtrWebSocketClient):
         self.packetsize = packet
         self.msg_vector = variables_pb2.SampleVector()
     def received_message(self, m):
-        try:
             
-            msg = json.loads(m)
-            self.peer.logger.info("x = {}, y = {}".format(m['x'], m['y']))
-            
-            timestamp = float(m['timestamp'])
-            sample = self.msg_vector.samples.add()
-            sample.timestamp = timestamp
-            
-            sample.channels.extend(
-                [float(m['{}'.format(i)]) for i in self.peer.chs]
-                )
-            
-
-            
-            if len(self.msg_vector.samples) == self.packetsize:
-                #send when big enough and create new empty vector
-                self.peer.process_message(l_msg)
-                self.msg_vector = variables_pb2.SampleVector()
-        except Exception as ex:
-            pass
+        msg = json.loads(str(m))
+        #~ self.peer.logger.info("msg: {}".format(m))
+        timestamp = float(msg['timestamp'])
+        sample = self.msg_vector.samples.add()
+        sample.timestamp = timestamp
+        
+        sample.channels.extend(
+            [float(msg['{}'.format(i)]) for i in self.peer.chs]
+            )
+        if len(self.msg_vector.samples) == self.packetsize:
+            #send when big enough and create new empty vector
+            self.peer.process_message(self.msg_vector)
+            self.msg_vector = variables_pb2.SampleVector()
         
 class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
     def __init__(self, addresses):
         super(EtrWebSocketAmplifier, self).__init__(addresses)
-        
         url = 'ws://{}:{}/ws'.format(
             str(self.config.get_param('etr_ws_server_host')),
             str(self.config.get_param('etr_ws_server_port'))
@@ -104,6 +94,11 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
 
         self.ready()
 
+    def process_message(self, msg):
+        #~ self.logger.debug("ETR WS sending message = "+str(msg))
+        self.conn.send_message(message = msg.SerializeToString(), 
+                               type = types.TOBII_SIGNAL_MESSAGE, flush=True)
+
     def run(self):
         try:
             while True:
@@ -111,7 +106,7 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
                 if self.end_the_loop:
                     break
         finally:
-            ws.close()
+            self.ws.close()
             
 if __name__ == "__main__":
     EtrWebSocketAmplifier(settings.MULTIPLEXER_ADDRESSES).run()
