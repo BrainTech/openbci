@@ -30,6 +30,8 @@ $ cd ~/openbci/scripts
 $ ./obci_local activate ../../openbci
 ```
 
+Running OpenBCI from source requires globally installed Azuk-Multiplexer and may require amplifier drivers. It's highly recommended to install this software from precompiled packages available at http://deb.braintech.pl.
+
 # Usage
 
 Following programs are available from command line:
