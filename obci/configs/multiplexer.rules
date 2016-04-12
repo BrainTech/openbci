@@ -405,6 +405,13 @@ peer {
 
 }
 
+peer {
+    type: 175
+    name: "HAPTICS_STIMULATOR"
+    queue_size: 32768
+
+}
+
 
 # packages and routing rules definitions
 #
@@ -963,6 +970,16 @@ type {
 }
 
 type {
+    type: 160
+    name: "HAPTIC_CONTROL_MESSAGE"
+    to {
+       peer: "HAPTICS_STIMULATOR"
+       whom: ALL
+	report_delivery_error: false
+    }
+}
+
+type {
     type: 209
     name: "ETR_SIGNAL_MESSAGE"
     to {
@@ -1225,7 +1242,6 @@ type {
 }
 
 
-
 type {
      type: 240
      name: "TOBII_SIGNAL_SAVER_FINISHED"
@@ -1351,5 +1367,11 @@ type {
 	report_delivery_error: false
 	}	
 }
-	
+
+
+
+
+
+
+
 	
