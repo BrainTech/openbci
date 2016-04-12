@@ -41,16 +41,29 @@ class EtrWebSocketClient(WebSocketClient):
         except KeyError as e:
             msg = '''
             
-            UNAVAILABLE CHANNELS!!!
+            ERROR: UNAVAILABLE CHANNELS:
+            {}
+            
+            
             Channels from tracker server JSON:
             {}
             
+
             You've tried to access channels:
             
             {}
             
             
-            '''.format(msg.keys(), self.peer.chs)
+            
+            '''.format(', '.join(
+                                set(
+                                    self.peer.chs
+                                    ).difference(set(msg.keys()))
+                                 ),
+                       ', '.join(msg.keys()),
+                       ', '.join(self.peer.chs),
+                            )
+
             self.peer.logger.error(msg)
             raise KeyError(msg)
 
@@ -78,20 +91,17 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
                                           [str(0.0) for i in self.chs]))
             self.number_of_channels = int(len(self.chs))
         else:
-            msg = 
-                '''
+            msg = '''
                 
                 
                 Unrecognised etr_amplifier peer option:
-                 message_type={}
+                message_type={}
                  
                  
                  
                  '''.format(message_type,)
             self.logger.error(msg)
-            raise Exception(msg
-            
-            
+            raise Exception(msg)
         self.ws.daemon = False
         self.ws.connect()
         
@@ -101,7 +111,6 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
         self.logger.info('EtrWebSocketAmplifier init ready')
 
     def process_message(self, msg):
-        #~ self.logger.debug("ETR WS sending message = "+str(msg))
         self.conn.send_message(message = msg.SerializeToString(), 
                                type = types.TOBII_SIGNAL_MESSAGE, flush=True)
 
