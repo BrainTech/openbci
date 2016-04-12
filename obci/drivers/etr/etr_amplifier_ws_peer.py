@@ -51,6 +51,7 @@ class EtrWebSocketClient(WebSocketClient):
             
             
             '''.format(msg.keys(), self.peer.chs)
+            self.peer.logger.error(msg)
             raise KeyError(msg)
 
         if len(self.msg_vector.samples) == self.samples_per_packet:
@@ -77,7 +78,7 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
                                           [str(0.0) for i in self.chs]))
             self.number_of_channels = int(len(self.chs))
         else:
-            raise Exception(
+            msg = 
                 '''
                 
                 
@@ -86,10 +87,9 @@ class EtrWebSocketAmplifier(etr_amplifier.EtrAmplifier):
                  
                  
                  
-                 '''.format(
-                    message_type,
-                    )
-                 )
+                 '''.format(message_type,)
+            self.logger.error(msg)
+            raise Exception(msg
             
             
         self.ws.daemon = False
