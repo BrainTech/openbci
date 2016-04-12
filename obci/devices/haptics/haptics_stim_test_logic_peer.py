@@ -69,8 +69,8 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
         time.sleep(4)
         
         msg = variables_pb2.Variable()
-        msg.key = 'B'
-        msg.value = '1,2:0.5,1.5'
+        msg.key = 'S'
+        msg.value = '1,2:1.5,2.5'
         self.conn.send_message(message=msg.SerializeToString(), 
                       type=types.HAPTIC_CONTROL_MESSAGE,
                       flush=True)
@@ -102,12 +102,12 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
         self.logger.info('RUNNING! S1')
         
         msg = variables_pb2.Variable()
-        msg.key = 'T'
-        msg.value = '2:1'
+        msg.key = 'S'
+        msg.value = '5:1'
         self.conn.send_message(message=msg.SerializeToString(), 
                       type=types.HAPTIC_CONTROL_MESSAGE,
                       flush=True)
-        self.logger.info('Terminating device')
+        self.logger.info('Sending wrong channel')
         time.sleep(5)
         sys.exit(0)
             

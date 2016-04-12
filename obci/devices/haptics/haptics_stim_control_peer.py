@@ -37,6 +37,7 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
         super(HapticStimulatorControlPeer, self).__init__(addresses=addresses,
                                           type=peers.HAPTICS_STIMULATOR)
         ids = self.config.get_param("id").split(":")
+        self.active_channels = set(self.config.get_param('active_channels').split(';'))
         vid, pid = [int(i, base=16) for i in ids]
         self.stim = HapticStimulator(vid, pid)
         self.ready()
@@ -56,11 +57,9 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
                     required string value = 2;
                     }
         
-        :param key: - 'S', 'B' or 'T' - Single haptic channel or
-        Bulk - multiple channel to activate. 'T' - to terminate FTDI
+        :param key: 'S', or 'T' - 'S' - to activate haptic channel(s); 'T' - to terminate FTDI
         control process and release device
-        :param value: - for single channel - '1:1.0' - first channel 
-        for 1 second. For bulk: '1,2:1.0,0.4' - activate channel 1 for
+        :param value: 'T' - doesn't matter; S - ex. '1,2:1.0,0.4' - activate channel 1 for
         1 second and channel 2 for 0.4 seconds. Channels can be in any
         order'''
             
@@ -68,14 +67,21 @@ class HapticStimulatorControlPeer(ConfiguredMultiplexerServer):
             l_msg = variables_pb2.Variable()
             l_msg.ParseFromString(mxmsg.message)
             if l_msg.key == 'S':
-                chnl_s, time_s = l_msg.value.split(':') #strings
-                self.logger.info('Activating haptic msg:\n{}'.format(l_msg))
-                self.stim.stimulate(int(chnl_s), float(time_s))
-            elif l_msg.key == 'B':
                 logs = 'Activating multiple haptic channels msg: {}'.format(l_msg)
                 self.logger.info(logs)
                 chnl_ls, time_ls = l_msg.value.split(':') #strings of lists 
-                chnl = [int(i) for i in chnl_ls.split(',')]
+                chnl_s = [i for i in chnl_ls.split(',')]
+                if not set(chnl_s).issubset(self.active_channels):
+                    self.stim.close()
+                    exc_msg = '''
+                    
+                    Stimulated channel NOT in active channels
+                    Available: {}
+                    Tried to stimulate: {}
+                    
+                    '''.format(self.active_channels, chnl_s)
+                    raise Exception (exc_msg)
+                chnl = [int(i) for i in chnl_s]
                 time = [float(i) for i in time_ls.split(',')]
                 self.stim.bulk_stimulate(chnl, time)
             elif l_msg.key == 'T':
