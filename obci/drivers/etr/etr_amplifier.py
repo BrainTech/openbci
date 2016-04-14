@@ -14,10 +14,10 @@ class EtrAmplifier(ConfiguredClient):
     pyqt won`t work with multithreading..."""
     def __init__(self, addresses):
         super(EtrAmplifier, self).__init__(addresses=addresses, type=peers.ETR_AMPLIFIER)
-        self.logger.info("Start initializin etr amplifier...")
+        self.logger.info("Start initializing etr amplifier...")
 
     def process_message(self, msg):
-        self.logger.debug("ETR sending message ... x = "+str(msg.x) + ", y = "+str(msg.y))
+        self.logger.debug("ETR sending message = "+str(msg))
         self.conn.send_message(message = msg.SerializeToString(), 
                                type = types.ETR_SIGNAL_MESSAGE, flush=True)
     
