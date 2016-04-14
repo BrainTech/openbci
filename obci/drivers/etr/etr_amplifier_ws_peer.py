@@ -39,33 +39,35 @@ class EtrWebSocketClient(WebSocketClient):
         try:
             sample.channels.extend(float(msg[i]) for i in self.peer.chs)
         except KeyError as e:
+            unavailable_channels_set = set(self.peer.chs).difference(
+                                                         set(msg.keys())
+                                                                    )
+            unavailable_channels_msg = ', '.join(
+                                               unavailable_channels_set
+                                               ) 
             msg = '''
             
             ERROR: UNAVAILABLE CHANNELS:
-            {}
+            {unavailable_channels}
             
             
             Channels from tracker server JSON:
-            {}
+            {available_channels}
             
 
             You've tried to access channels:
             
-            {}
+            {requested_channels}
             
             
             
-            '''.format(', '.join(
-                                set(
-                                    self.peer.chs
-                                    ).difference(set(msg.keys()))
-                                 ),
-                       ', '.join(msg.keys()),
-                       ', '.join(self.peer.chs),
+            '''.format(unavailable_channels = unavailable_channels_msg,
+                       available_channels = ', '.join(msg.keys()),
+                       requested_channels = ', '.join(self.peer.chs),
                             )
 
             self.peer.logger.error(msg)
-            raise KeyError(msg)
+            raise KeyError(unavailable_channels_msg)
 
         if len(self.msg_vector.samples) == self.samples_per_packet:
             #send when big enough and create new empty vector
