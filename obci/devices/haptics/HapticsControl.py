@@ -33,7 +33,23 @@ stimulator):
 SUBSYSTEM=="usb", ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE="666"
 '''
 
-from pyftdi.ftdi import Ftdi
+from __future__ import print_function
+try:
+    from pyftdi.ftdi import Ftdi
+except ImportError as e:
+    msg = r'''
+    
+    
+    You have missing libraries:
+    pyftdi 0.11.3 and pyusb 1.0.0.b2
+    to install run:
+    sudo apt-get install python-usb
+    sudo pip install pip install https://github.com/eblot/pyftdi/archive/v0.11.3.zip
+    
+    
+    
+    '''
+    raise ImportError(msg)
 import threading
 import time
 
