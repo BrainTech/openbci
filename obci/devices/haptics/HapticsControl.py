@@ -43,7 +43,7 @@ except ImportError as e:
     You have missing libraries:
     pyftdi 0.11.3 and pyusb 1.0.0.b2
     to install run:
-    sudo pip install --pre pyusb==1.0.0.b2
+    sudo apt-get install python-usb
     sudo pip install pip install https://github.com/eblot/pyftdi/archive/v0.11.3.zip
     
     
