@@ -108,6 +108,24 @@ if __name__ == '__main__':
             import obci.cmd.obci_server as module
         elif bin_name == 'obci_experiment':
             import obci.cmd.obci_experiment as module
+        elif bin_name == 'obci_run_proxy':
+            try:
+                peer_file_name = sys.argv[1]
+            except IndexError:
+                print("\nNo peer file specified.\n")
+                raise
+
+            sys.argv.remove(peer_file_name)
+            sys.argv[0] = peer_file_name
+
+            try:
+                with open(peer_file_name) as f:
+                    code = compile(f.read(), os.path.basename(peer_file_name), 'exec')
+            except IOError as ex:
+                print("\nError reading peer script: {}\n".format(ex))
+                raise
+
+            exec(code)
         else:
             module_name = 'obci.cmd.{}'.format(bin_name)
             module = importlib.import_module(module_name)

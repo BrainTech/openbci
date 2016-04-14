@@ -30,7 +30,7 @@ STDIN = 4
 
 STDIO = [NO_STDIO, STDOUT, STDERR, STDIN]
 
-PYTHON_CALL = ['python']  # , '-u']
+PYTHON_CALL = ['obci_run_proxy']
 
 REGISTER_TIMEOUT = 3
 

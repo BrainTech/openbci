@@ -20,6 +20,7 @@ remove_from_bin() {
     rm -rf ~/bin/obci_server
     rm -rf ~/bin/obci_experiment
     rm -rf ~/bin/obci_process_supervisor
+    rm -rf ~/bin/obci_run_proxy
 }
 
 if [ -z "$1" ]; then
@@ -75,6 +76,7 @@ elif [ "$1" == "activate" ]; then
         ln -s $OBCI_LOCAL_DIR/bin/obci_server ~/bin/obci_server
         ln -s $OBCI_LOCAL_DIR/bin/obci_experiment ~/bin/obci_experiment
         ln -s $OBCI_LOCAL_DIR/bin/obci_process_supervisor ~/bin/obci_process_supervisor
+        ln -s $OBCI_LOCAL_DIR/bin/obci_run_proxy ~/bin/obci_run_proxy
 
         echo "Operation completed. System restart or logging out IS REQUIRED."
     else
