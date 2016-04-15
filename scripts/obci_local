@@ -78,6 +78,18 @@ elif [ "$1" == "activate" ]; then
         ln -s $OBCI_LOCAL_DIR/bin/obci_process_supervisor ~/bin/obci_process_supervisor
         ln -s $OBCI_LOCAL_DIR/bin/obci_run_proxy ~/bin/obci_run_proxy
 
+        if [ -e /usr/bin/tmsi_amplifier ]; then
+            ln -s /usr/bin/tmsi_amplifier $OBCI_LOCAL_DIR/obci/drivers/eeg/cpp_amplifiers/tmsi_amplifier
+        fi
+
+        if [ -e /usr/bin/dummy_amplifier ]; then
+            ln -s /usr/bin/dummy_amplifier $OBCI_LOCAL_DIR/obci/drivers/eeg/cpp_amplifiers/dummy_amplifier
+        fi
+
+        if [ -e /usr/bin/file_amplifier ]; then
+            ln -s /usr/bin/file_amplifier $OBCI_LOCAL_DIR/obci/drivers/eeg/cpp_amplifiers/file_amplifier
+        fi
+
         echo "Operation completed. System restart or logging out IS REQUIRED."
     else
         echo "Operation completed. System restart or logging out is not required."
