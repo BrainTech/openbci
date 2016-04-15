@@ -1,3 +1,9 @@
+openbci-amplifiers (1.9.0-1) unstable; urgency=medium
+
+  * Fixed symlink locations
+
+ -- Alex Khrabrov <alex@mroja.net>  Fri, 15 Apr 2016 14:15:21 +0100
+
 openbci-amplifiers (1.8.10-1) unstable; urgency=medium
 
   * Fixed few possible crashes

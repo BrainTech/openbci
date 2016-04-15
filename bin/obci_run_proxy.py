@@ -98,17 +98,7 @@ if __name__ == '__main__':
             break
 
     try:
-        if bin_name == 'obci':
-            import obci.cmd.obci as module
-        elif bin_name == 'obci_gui':
-            import obci.cmd.obci_gui as module
-        elif bin_name == 'obci_tray':
-            import obci.cmd.obci_tray as module
-        elif bin_name == 'obci_server':
-            import obci.cmd.obci_server as module
-        elif bin_name == 'obci_experiment':
-            import obci.cmd.obci_experiment as module
-        elif bin_name == 'obci_run_proxy':
+        if bin_name == 'obci_run_proxy':
             try:
                 peer_file_name = sys.argv[1]
             except IndexError:
@@ -126,6 +116,17 @@ if __name__ == '__main__':
                 raise
 
             exec(code)
+            sys.exit()
+        elif bin_name == 'obci':
+            import obci.cmd.obci as module
+        elif bin_name == 'obci_gui':
+            import obci.cmd.obci_gui as module
+        elif bin_name == 'obci_tray':
+            import obci.cmd.obci_tray as module
+        elif bin_name == 'obci_server':
+            import obci.cmd.obci_server as module
+        elif bin_name == 'obci_experiment':
+            import obci.cmd.obci_experiment as module
         else:
             module_name = 'obci.cmd.{}'.format(bin_name)
             module = importlib.import_module(module_name)

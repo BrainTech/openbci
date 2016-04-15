@@ -1,1 +1,1 @@
-/usr/bin/dummy_amplifier /usr/share/openbci/drivers/eeg/cpp_amplifiers/dummy_amplifier
+/usr/bin/dummy_amplifier /usr/share/openbci/obci/drivers/eeg/cpp_amplifiers/dummy_amplifier

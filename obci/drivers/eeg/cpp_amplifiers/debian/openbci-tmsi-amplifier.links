@@ -1,1 +1,1 @@
-/usr/bin/tmsi_amplifier /usr/share/openbci/drivers/eeg/cpp_amplifiers/tmsi_amplifier
+/usr/bin/tmsi_amplifier /usr/share/openbci/obci/drivers/eeg/cpp_amplifiers/tmsi_amplifier

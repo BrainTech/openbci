@@ -1,1 +1,1 @@
-/usr/bin/file_amplifier /usr/share/openbci/drivers/eeg/cpp_amplifiers/file_amplifier
+/usr/bin/file_amplifier /usr/share/openbci/obci/drivers/eeg/cpp_amplifiers/file_amplifier
