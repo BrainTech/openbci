@@ -87,22 +87,21 @@ def _feature_reduction_mask(ft, labels, mode):
 class P300EasyClassifier(object):
     '''Easy and modular P300 classifier
     attributes"
-    fname - classifier save filename
-    epoch_buffor - current epoch buffor
-    max_avr - maximum epochs to average
-    decision_buffor - last decisions buffor, when full of identical
-    decisions final decision is made
-    clf - core classifier from sklearn
-    feature_s - feature length'''
+    '''
     
-    def __init__(self, clf=None, fname = './test.class',
+    def __init__(self, clf=None,
                     targetFs=24):
+        '''Args:
+               clf: scikit learn type classifier, None if you want to
+                    use standard LDA with shrinkage
+               targetFS: target sampling rate after downsampling for
+                            feature extraction
+        '''
         if clf is None:
             self.clf = LinearDiscriminantAnalysis(solver = 'lsqr', shrinkage='auto')
-        # store all examples
-        self.fname = fname
         self.targetFs = targetFs
-
+        self.learning_buffor_features = list()
+        self.learning_buffor_classes = list()
         
     def classify(self, features):
         '''
@@ -136,10 +135,17 @@ class P300EasyClassifier(object):
     def calibrate(self, targets, nontargets, bas=-0.1, window=0.4, Fs=None):
         '''Offline learning function
         
-        targets, nontargets - 3D arrays (epoch x channel x time)
-        or list of OBCI smart tags
-        if arrays - need to provide Fs (sampling frequency) in Hz
-        bas - baseline in seconds(negative), in other words start offset'''
+        Args:
+            
+            targets, nontargets: 3D arrays (epoch x channel x time)
+                                or list of OBCI smart tags. 
+                                If arrays - need to provide Fs
+                                (sampling frequency) in Hz
+            bas: baseline in seconds(negative), in other words start 
+                 offset
+            window: seconds after event to consider in classification
+            Fs: needed if 3D numpy array is provided
+        '''
     
         if Fs is None:
             Fs = float(targets[0].get_param('sampling_frequency'))
@@ -152,4 +158,8 @@ class P300EasyClassifier(object):
         data, labels = _remove_artifact_epochs(data, labels)
         features = _feature_extraction(data, Fs, bas, window, self.targetFs)
         self.clf.fit(features, labels)
+        # building a list of features
+        #will be saved and can be extended in online learning later
+        self.learning_buffor_classes=[i for i in labels]
+        self.learning_buffor_features=[i for i in features]
         return self.clf.score(features, labels)

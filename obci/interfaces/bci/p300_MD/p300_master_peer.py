@@ -28,16 +28,16 @@ from obci.interfaces.bci.analysis_master import AnalysisMaster
 from obci.interfaces.bci.p300_MD.p300_classm import P300EasyClassifier
 from obci.interfaces.bci.p300_MD.p300_classm import _feature_extraction_singular
 
-from helper_functions import get_montage, get_montage_matrix_custom
-from helper_functions import leave_channels_array, get_channel_indexes
+from obci.interfaces.bci.p300_MD.helper_functions import get_montage, get_montage_matrix_custom
+from obci.interfaces.bci.p300_MD.helper_functions import leave_channels_array, get_channel_indexes
 
 from obci.analysis.buffers.auto_blink_buffer import AutoBlinkBuffer
 from collections import defaultdict, deque
 from operator import itemgetter
 from obci.utils.openbci_logging import log_crash
 import sys
-from classifier_tests import get_epochs_fromfile
-from classifier_tests import evoked_pair_plot_smart_tags
+from obci.interfaces.bci.p300_MD.helper_functions import get_epochs_fromfile
+from obci.interfaces.bci.p300_MD.helper_functions import evoked_pair_plot_smart_tags
 import numpy as np
 import os.path
 import pickle
@@ -89,7 +89,6 @@ class P300MasterPeer(AnalysisMaster):
                                         )
         return chunk_ready
     def _send_decision(self, decision):
-        ugm_helper.send_stop_blinking(self.conn)
         self.conn.send_message(message = str(decision), type = types.DECISION_MESSAGE, flush=True)
         self._reset_buffors()
     
@@ -156,14 +155,12 @@ class P300MasterPeer(AnalysisMaster):
                 classifier = pickle.load(clf_file)
             self.logger.info('loaded classifier from wisdom_path')
         except Exception as e:
-            classifier = P300EasyClassifier(fname=self.wisdom_path,
-                                            targetFs=self.targetFs)
+            classifier = P300EasyClassifier(targetFs=self.targetFs)
             self.logger.info("Loading classifier failed: {}".format(e))
             self.logger.info('Creating new, untrained classifier')
         return classifier
     def identify_blink(self, blink):
         if self.training_index is not None:
-            
             if blink.index == training_index:
                 return 'target'
             else:
@@ -272,7 +269,7 @@ class P300MasterPeer(AnalysisMaster):
         self.logger.info('EPOCH PARAMS:\n{}'.format(ept[0].get_params()))
         evoked_pair_plot_smart_tags(ept, epnt, labels=['target', 'nontarget'], chnames=['O1', 'O2'])
         self.wisdom_path = self.wisdom_path = self.config.get_param('wisdom_path')
-        cl = P300EasyClassifier(fname = self.wisdom_path)
+        cl = P300EasyClassifier(targetFs=self.targetFs)
         result = cl.calibrate(ept, epnt, bas=baseline, window=window)
         
         self.logger.info('classifier self score on training set: {}'.format(result))
@@ -300,7 +297,6 @@ class P300MasterPeer(AnalysisMaster):
             
         """
         chunk_ready = self._prepare_chunk(chunk, blink)
-        
         self.features[blink.index].append(chunk_ready)
         probabilities = {}
         probabilities['targetSingle'] = classifier.classify(
