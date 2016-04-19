@@ -62,13 +62,12 @@ class P300MasterPeer(AnalysisMaster):
         #final decision buffor
         self.decision_buffor = deque(maxlen = self.decision_stop)
     
-    def _prepare_chunk(self, chunk, blink):
+    def _prepare_chunk(self, chunk):
         '''
         Performs channel selection, montage and feature extraction.
         
         Args:
             chunk: numpy 2D data array (channels × samples)
-            blink: information contained in a single blink
         '''
         chunk_clean_channels, _ = leave_channels_array(
                                       chunk,
@@ -161,7 +160,7 @@ class P300MasterPeer(AnalysisMaster):
         return classifier
     def identify_blink(self, blink):
         if self.training_index is not None:
-            if blink.index == training_index:
+            if blink.index == self.training_index:
                 return 'target'
             else:
                 return 'nontarget'
@@ -259,7 +258,7 @@ class P300MasterPeer(AnalysisMaster):
                                             )
                                         )
         
-        ept, epnt = get_epochs_fromfile(ds_path, filter = filter, duration = 1,
+        ept, epnt = get_epochs_fromfile(ds_path, filter = filter, duration = self.window+1,
                                     montage = montage,
                                     start_offset = baseline,
                                     drop_chnls = exclude_channels
@@ -296,7 +295,7 @@ class P300MasterPeer(AnalysisMaster):
             or None if classification could not be performed
             
         """
-        chunk_ready = self._prepare_chunk(chunk, blink)
+        chunk_ready = self._prepare_chunk(chunk)
         self.features[blink.index].append(chunk_ready)
         probabilities = {}
         probabilities['targetSingle'] = classifier.classify(
@@ -322,8 +321,8 @@ class P300MasterPeer(AnalysisMaster):
             chunk: numpy 2D data array (channels × samples)
             target: name of the target
         """
-        chunk_ready = self._prepare_chunk(chunk, blink)
-        classifier.learn(chunk, target)
+        chunk_ready = self._prepare_chunk(chunk)
+        classifier.learn(chunk_ready, target)
         
 if __name__ == '__main__':
     P300MasterPeer(settings.MULTIPLEXER_ADDRESSES).loop()

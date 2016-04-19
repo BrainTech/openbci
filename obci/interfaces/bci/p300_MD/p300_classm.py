@@ -84,7 +84,7 @@ def _feature_reduction_mask(ft, labels, mode):
     
 
 
-class P300EasyClassifier(object):
+class P300EasyClassifier(AbstractClassifier):
     '''Easy and modular P300 classifier
     attributes"
     '''
@@ -103,6 +103,8 @@ class P300EasyClassifier(object):
         self.learning_buffor_features = list()
         self.learning_buffor_classes = list()
         
+        
+        
     def classify(self, features):
         '''
         Args:
@@ -116,7 +118,7 @@ class P300EasyClassifier(object):
         For online learning thread
         
         Args:
-            chunk: numpy 2D data array (channels × samples)
+            chunk: numpy 1D features array
             target: name of the class
         '''
         if target == 'target':
@@ -124,11 +126,14 @@ class P300EasyClassifier(object):
         else: 
             self.learning_buffor_classes.append(0)
         self.learning_buffor_features.append(chunk)
-        if sum(learning_buffor_classes)%LEARN_EVERY == 0:
+        if sum(self.learning_buffor_classes)%LEARN_EVERY == 0:
+            print('Classifier: fitting clf with new data')
             self.clf.fit(
                             self.learning_buffor_features,
                             self.learning_buffor_classes,
                         )
+            score = self.clf.score(features, labels)
+            print ('Classifier: Test on training set: {}'.format(score))
             
             
             

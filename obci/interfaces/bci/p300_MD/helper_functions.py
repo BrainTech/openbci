@@ -60,8 +60,8 @@ def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0,
                                         end_offset=0.0,
                                         duration=duration)
     stags = SmartTagsManager(tag_def, '', '' ,'', p_read_manager=eeg_rm)
-    target_tags = stags.get_smart_tags(p_func = target_tags_func, p_from = 60.0, p_len=21400.0*512)
-    nontarget_tags = stags.get_smart_tags(p_func = nontarget_tags_func, p_from = 60.0, p_len=21400.0*512)
+    target_tags = stags.get_smart_tags(p_func = target_tags_func,  )
+    nontarget_tags = stags.get_smart_tags(p_func = nontarget_tags_func)
     
     return target_tags, nontarget_tags
     
