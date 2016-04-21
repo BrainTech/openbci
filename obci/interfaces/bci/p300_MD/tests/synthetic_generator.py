@@ -156,7 +156,8 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
             
     def send_target(self):
         self.logger.info('Sending target, focus: {}'.format(self.focus))
-        self.sent_targets+=1
+        with self.lock:
+            self.sent_targets+=1
         length_window = int(self.window*self.sampling_rate)
         length_packet_aligned = length_window - length_window % self.samples_per_packet
         gauss_w = gaussian(length_packet_aligned, length_packet_aligned/10)
@@ -200,10 +201,8 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         for i in xrange(self.test_trials_n):
             for k in xrange(len(self.fields)-1):
                 #handle_message can wait a while
-                with self.lock:
-                    self.send_isi()
-            with self.lock:
-                self.send_target()
+                self.send_isi()
+            self.send_target()
         with self.lock:
             self.save_statistics()
         sys.exit(0)
@@ -226,7 +225,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         self.logger.info(
             '''Basic statistics:
         correct classifications: {:.2f}\% {} out of {}
-        mean targets required {:.2f}'''.format(channel_names, correct, N, mean_targets)
+        mean targets required {:.2f}'''.format(correctperc, correct, N, mean_targets)
             )
             
         

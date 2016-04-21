@@ -7,7 +7,11 @@ import numpy as np
 import scipy.stats
 import scipy.signal as ss
 from sklearn.externals import joblib
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+try:
+    from sklearn.lda import LDA as LinearDiscriminantAnalysis
+except ImportError:
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    
 from collections import deque
 from obci.interfaces.bci.abstract_classifier import AbstractClassifier
 import pickle
