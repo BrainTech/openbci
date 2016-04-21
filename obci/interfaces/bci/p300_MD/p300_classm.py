@@ -51,12 +51,13 @@ def _feature_extraction_singular(epoch, Fs, bas=-0.1,
                                 window = 0.5,
                                 targetFs=30,):
     '''performs feature extraction on epoch (array channels x time),
-    Fs - sampling in Hz
-    bas - baseline in seconds
-    targetFs = target sampling in Hz (will be approximated)
-    window - timewindow after baseline to select in seconds
-    returns  1D array downsampled, len = downsampled samples x channels
-    
+    Args:
+        Fs: sampling in Hz
+        bas: baseline in seconds
+        targetFs: target sampling in Hz (will be approximated)
+        window: timewindow after baseline to select in seconds
+        
+    Returns: 1D array downsampled, len = downsampled samples x channels
     epoch minus mean of baseline, downsampled by factor int(Fs/targetFs)
     samples used - from end of baseline to window timepoint
      '''

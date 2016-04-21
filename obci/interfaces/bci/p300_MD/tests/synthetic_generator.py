@@ -34,6 +34,7 @@ import sys
 from scipy.signal import gaussian
 import json
 from threading import Thread
+from threading import RLock
 import pickle
 
 AMPLITUDE=20
@@ -46,6 +47,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         super(SyntheticGenerator, self).__init__(addresses=addresses,
                                                 type=peers.LOGIC_FEEDBACK)
                                                 
+        self.lock = RLock()
         self.synthetic = int(self.config.get_param('synthetic'))
         if self.synthetic==0:
             self.targets = np.load(self.config.get_param('targets_path'))
@@ -120,8 +122,6 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         
     def send_isi(self):
         '''send empty signal'''
-        #send blink on "distractor" field
-        self.send_nontarget_blink()
         packets = int((self.isi*self.sampling_rate)/self.samples_per_packet)
         length = int(packets*self.samples_per_packet)
         if self.synthetic==1:
@@ -133,17 +133,24 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
             start=int(-self.baseline*self.sampling_rate)
             end = start+length
             signal = self.nontargets[selected_nontarget, :, start:end]
+        sleeping_time = self.samples_per_packet*1.0/self.sampling_rate
         for p in xrange(packets):
             sv = variables_pb2.SampleVector()
             for sn in xrange(self.samples_per_packet):
+                t0 = time.time()
                 s = sv.samples.add()
                 ind = p*self.samples_per_packet+sn
                 s.channels.extend(signal[:,ind].tolist())
                 s.timestamp = self.time
                 self.time+=1.0/self.sampling_rate
-            time.sleep(self.samples_per_packet*1.0/self.sampling_rate)
             self.conn.send_message(message = sv.SerializeToString(), 
                                type = types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
+            if (self.time-self.time_of_blink)>self.isi:
+                #send blink on "distractor" field
+                self.send_nontarget_blink()
+            
+            left_to_sleep = sleeping_time-(time.time()-t0)
+            time.sleep(left_to_sleep if left_to_sleep>0 else 0)
             
     
             
@@ -170,19 +177,21 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
             self.send_target_blink(self.time-self.baseline)
             
         
-        
+        sleeping_time = self.samples_per_packet*1.0/self.sampling_rate
         for i in xrange(length_packet_aligned/self.samples_per_packet):
+            t0 = time.time()
             sv = variables_pb2.SampleVector()
             for sn in xrange(self.samples_per_packet):
                 s = sv.samples.add()
                 s.channels.extend(signal[:,i*self.samples_per_packet+sn].tolist())
                 s.timestamp = self.time
                 self.time+=1.0/self.sampling_rate
-            time.sleep(self.samples_per_packet*1.0/self.sampling_rate)
             self.conn.send_message(message = sv.SerializeToString(), 
                                type = types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             if (self.time-self.time_of_blink)>self.isi:
                 self.send_nontarget_blink()
+            left_to_sleep = sleeping_time-(time.time()-t0)
+            time.sleep(left_to_sleep if left_to_sleep>0 else 0)
         
         
     @log_crash
@@ -190,9 +199,13 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         time.sleep(self.delay)
         for i in xrange(self.test_trials_n):
             for k in xrange(len(self.fields)-1):
-                self.send_isi()
-            self.send_target()
-        self.save_statistics()
+                #handle_message can wait a while
+                with self.lock:
+                    self.send_isi()
+            with self.lock:
+                self.send_target()
+        with self.lock:
+            self.save_statistics()
         sys.exit(0)
     
     def save_statistics(self):
@@ -201,21 +214,38 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         with open(self.statistics_path, 'w') as f:
             json.dump(self.decisions, f)
         self.logger.info('saving statistics - done: {}'.format(self.statistics_path))
+        N = len(self.decisions)
+        correct = 0
+        targetsN = 0
+        for s in self.decisions:
+            if s['focus'] == s['got_decision']:
+                correct+=1
+            targetsN += s['sent_targets']
+        correctperc = 100.0*correct/N
+        mean_targets = targetsN*1.0/N
+        self.logger.info(
+            '''Basic statistics:
+        correct classifications: {:.2f}\% {} out of {}
+        mean targets required {:.2f}'''.format(channel_names, correct, N, mean_targets)
+            )
+            
         
     def handle_message(self, mxmsg):
         if mxmsg.type == types.DECISION_MESSAGE:
-            self.logger.info('Got message: {}'.format(mxmsg.message))
-            
-            decision = int(mxmsg.message)
-            self.decisions.append({'sent_targets':self.sent_targets,
-                                   'focus':self.focus,
-                                   'got_decision':decision
-                                    }
-                                   )
-            self.logger.info('got decision: {}'.format(self.decisions[-1]))
-            self.sent_targets = 0
-            if self.learning == 0:
-                self.focus=random.choice(self.fields)
+            with self.lock:
+                self.logger.info('Got message: {}'.format(mxmsg.message))
+                
+                decision = int(mxmsg.message)
+                self.decisions.append({'sent_targets':self.sent_targets,
+                                       'focus':self.focus,
+                                       'got_decision':decision
+                                        }
+                                       )
+                self.logger.info('got decision: {}'.format(self.decisions[-1]))
+                self.sent_targets = 0
+                if self.learning == 0:
+                    self.focus=random.choice(self.fields)
+        self.no_response()
 
             
 

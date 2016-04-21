@@ -41,7 +41,7 @@ from obci.interfaces.bci.p300_MD.helper_functions import evoked_pair_plot_smart_
 import numpy as np
 import os.path
 import pickle
-
+import pylab as pb
 from obci.gui.ugm import ugm_helper
 
 class P300MasterPeer(AnalysisMaster):
@@ -66,21 +66,27 @@ class P300MasterPeer(AnalysisMaster):
         '''
         Performs channel selection, montage and feature extraction.
         
+        First Montage - look out for average montage and technical channels!!
+        then channel selection
+        then feature extraction
+        
         Args:
             chunk: numpy 2D data array (channels × samples)
         '''
+        
+        chunk_montage = get_montage(
+                                    chunk,
+                                    self.montage_matrix
+                                    )
         chunk_clean_channels, _ = leave_channels_array(
-                                      chunk,
+                                      chunk_montage,
                                       self.channels_for_classification,
                                       self.channel_names
                                       )
                                       
-        chunk_montage = get_montage(
-                                    chunk_clean_channels,
-                                    self.montage_matrix
-                                    )
+        
         chunk_ready = _feature_extraction_singular( 
-                                        chunk_montage,
+                                        chunk_clean_channels,
                                         self.sampling_rate,
                                         self.baseline,
                                         self.window,
@@ -108,7 +114,9 @@ class P300MasterPeer(AnalysisMaster):
                                                         )
         last_single = [blink.index, probabilities['targetSingle']]
         last_mean = [blink.index, probabilities['targetCMean']]
-        self.logger.info('Last mean proba: {}'.format(last_mean))
+        self.logger.info('Last mean dec: {}, proba: {:.2f}'.format(
+                                                            last_mean[0],
+                                                            last_mean[1]))
         if last_mean[1]>0.5:
             self.decision_buffor.append(blink.index)
         
@@ -122,10 +130,11 @@ class P300MasterPeer(AnalysisMaster):
             return
             
         # number of averaged epochs condition
-        maximum_averaged = max(
+        # ensure all buttons have been averaged self.maximum_to_average number of time
+        minimum_averaged = min(
             len(self.averaged_proba_buffor[i]) for i in self.averaged_proba_buffor.keys()
                             )
-        if maximum_averaged > self.maximum_to_average:
+        if minimum_averaged > self.maximum_to_average:
             most_confident_decision = max(
                                     self.averaged_proba_buffor.items(),
                                     key = lambda key: key[1][-1]
@@ -183,7 +192,7 @@ class P300MasterPeer(AnalysisMaster):
         #montage type
         self.montage = 'custom'
         #montage channels
-        channels_count = len(self.channels_for_classification)
+        channels_count = len(self.channel_names)
         self.montage_channels = self.config.get_param("montage_channels").strip().split(';')
         montage_ids = get_channel_indexes(self.channel_names, self.montage_channels)
         self.montage_matrix = get_montage_matrix_custom(channels_count,
@@ -275,7 +284,12 @@ class P300MasterPeer(AnalysisMaster):
         with open(self.wisdom_path, 'w') as fname:
             pickle.dump(cl, fname)
         self.logger.info("classifier -- DONE")
-    
+        #plot features:
+        f = np.array(cl.learning_buffor_features)
+        l = np.array(cl.learning_buffor_classes)
+        pb.plot(np.median(f[l==0], axis=0))
+        pb.plot(np.median(f[l==1], axis=0))
+        pb.show()
     
     
     def classify(self, classifier, chunk, blink):

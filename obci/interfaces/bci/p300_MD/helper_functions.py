@@ -39,7 +39,7 @@ def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0,
             custom requires list of reference channel names
     Return: two lists of smart tags: target_tags, nontarget_tags'''
     eeg_rm = read_manager.ReadManager(ds+'.xml', ds+'.raw', ds+'.tag')
-    eeg_rm = exclude_channels(eeg_rm, drop_chnls)
+    
 
     if filter:
         eeg_rm = mgr_filter(eeg_rm, filter[0], filter[1],filter[2], 
@@ -53,6 +53,7 @@ def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0,
             eeg_rm = montage_custom(eeg_rm, montage[1:])
         else:
             raise Exception('Unknown montage')
+    eeg_rm = exclude_channels(eeg_rm, drop_chnls)
    
     
     tag_def = SmartTagDurationDefinition(start_tag_name=u'blink',
@@ -483,7 +484,7 @@ def get_montage_matrix_custom(n, indexes):
     Return nxn array representing extraction from 
     every channel an avarage of channels in indexes list
     
-    >>> get_montage_matrix_ears(5, 2, 4)
+    >>> get_montage_matrix_custom(5, [2, 4])
     array([[ 1. ,  0. , -0.5,  0. , -0.5],
            [ 0. ,  1. , -0.5,  0. , -0.5],
                [ 0. ,  0. ,  1. ,  0. ,  0. ],
