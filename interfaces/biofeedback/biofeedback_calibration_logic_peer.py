@@ -20,19 +20,28 @@ class BiofeedbackCalibration(ConfiguredMultiplexerServer):
         
         self.target_count = int(self.config.get_param("target_count"))
         self.user_name = self.config.get_param("user_name")
+        self.file_path =self.config.get_param("file_path")
 
         self.ready()
         self.run()
         
     def run(self):
         self.logger.info("START Biofeedback Calibration...")
-        biofeedback_calibration.biofeedback_calibration_run(self.user_name, self.target_count)
+        config = biofeedback_calibration.biofeedback_calibration_run(self.user_name, self.target_count)
         self.logger.info("FINISH Biofeedback Calibration...")
+
+        self._set_config(self.file_path, self.user_name, config)
 
         acquisition_helper.send_finish_saving(self.conn)
 
         time.sleep(5)
         sys.exit(0)
+
+    def _set_config(self, path, name, config):
+        config_file = acquisition_helper.get_file_path(path, name)+'.confapp'
+        f = open(config_file, 'w')
+        pickle.dump(config, f)
+        f.close()
 
 if __name__ == "__main__":
     BiofeedbackCalibration(settings.MULTIPLEXER_ADDRESSES).loop()

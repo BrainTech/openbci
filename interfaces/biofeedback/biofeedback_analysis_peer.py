@@ -48,6 +48,8 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
         #create analysis object to analyse data
         self.analysis = self._get_analysis(self.send_decision)
 
+        self.fft = int(self.config.get_param("fft"))
+
         #Initialise round buffer that will supply analysis with data
         #See auto_ring_buffer documentation
 
@@ -75,7 +77,6 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
             t = time.time() - self._last_dec_time
             if t > self.hold_after_dec:
                 self._last_dec_time = 0
-
             else:
                 if mxmsg.type == types.AMPLIFIER_SIGNAL_MESSAGE and DEBUG:
                     self.debug.next_sample()

@@ -4,6 +4,7 @@
 import time
 import random
 from obci.utils import context as ctx
+import matplotlib.pyplot as plt
 
 DEBUG = False
 
@@ -14,6 +15,10 @@ class BiofeedbackAnalysis(object):
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
+        plt.ion()
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+
         
     def analyse(self, data):
         """Fired as often as defined in hashtable configuration:
@@ -37,9 +42,12 @@ class BiofeedbackAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
-        self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        self.logger.info("Got data to analyse... after: "+str(time.time()-self.last_time))
+        self.logger.info("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
+        plt.clf()
+        self.ax.plot(data[0])
+        plt.draw()
 
         if random.random() > 0.5:
             self.send_func(1)
