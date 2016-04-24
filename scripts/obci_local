@@ -56,10 +56,8 @@ elif [ "$1" == "activate" ]; then
     read answer
     if [[ ${answer} = "Y" || ${answer} = "y" ]]; then
         HOME_DIR=$(cd ~ && pwd)
-        sed -i '/OPENBCI_PATH/d' ~/.bashrc
         sed -i '/OPENBCI_PATH/d' ~/.profile
         echo 'export PATH='$HOME_DIR/bin:\${PATH} \# OPENBCI_PATH >> ~/.profile
-        echo 'export PATH='$HOME_DIR/bin:\${PATH} \# OPENBCI_PATH >> ~/.bashrc
 
         echo "Creating symlinks..."
 
@@ -105,7 +103,6 @@ elif [ "$1" == "remove" ]; then
 
     remove_from_bin
 
-    sed -i '/OPENBCI_PATH/d' ~/.bashrc
     sed -i '/OPENBCI_PATH/d' ~/.profile
 
     rm -f ~/.obci/local_path
