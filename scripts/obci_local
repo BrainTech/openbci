@@ -9,18 +9,18 @@ trim() {
 
 remove_from_bin() {
     # main commands
-    rm -rf ~/bin/obci
-    rm -rf ~/bin/obci_gui
-    rm -rf ~/bin/obci_tray
+    rm -f ~/bin/obci
+    rm -f ~/bin/obci_gui
+    rm -f ~/bin/obci_tray
 
     # utils script
-    rm -rf ~/bin/obci_local
+    rm -f ~/bin/obci_local
 
     # internal commands
-    rm -rf ~/bin/obci_server
-    rm -rf ~/bin/obci_experiment
-    rm -rf ~/bin/obci_process_supervisor
-    rm -rf ~/bin/obci_run_proxy
+    rm -f ~/bin/obci_server
+    rm -f ~/bin/obci_experiment
+    rm -f ~/bin/obci_process_supervisor
+    rm -f ~/bin/obci_run_proxy
 }
 
 if [ -z "$1" ]; then
@@ -108,7 +108,7 @@ elif [ "$1" == "remove" ]; then
     sed -i '/OPENBCI_PATH/d' ~/.bashrc
     sed -i '/OPENBCI_PATH/d' ~/.profile
 
-    rm -rf ~/.obci/local_path
+    rm -f ~/.obci/local_path
 
     echo "Operation completed. Remember to restart your system or logout!"
     echo ""
