@@ -18,32 +18,64 @@
 
 import display
 import numpy as np
+import ast
 
 class ComputeSNR(object):
-    def __init__(self, arg):
-        super(ComputeSNR, self).__init__(samrt_tags, freq_to_train, channel_name, active_field, fs, plot = False)
+    def __init__(self, smart_tags, freq_to_train, channel_name, active_field, fs, target, nontarget, plot = False):
+        super(ComputeSNR, self).__init__()
         self.smart_tags = smart_tags
         self.freq_to_train = freq_to_train
         self.channel_name = channel_name
         self.active_field = active_field
         self.fs = fs
-        self.target_values = {str(f):[] for f in self.freq_to_train}
-        self.nontarget_values = {str(f):[] for f in self.freq_to_train}
+        self.target = target
+        self.nontarget = nontarget
 
     def _display_signal(self, signal, channels_to_display, all_channels, title = ''):
         display.display_signal(signal, channels_to_display, all_channels, title)
 
     def _compute_fft(self, signal):
-        fft = np.abs(np.fft.fft(signal))/sqrt(len(signal))
-        freq = np.fft.ffrfreq(len(fft), 1./fs)
+        fft = np.abs(np.fft.fft(signal))/np.sqrt(len(signal))
+        freq = np.fft.fftfreq(len(fft), 1./self.fs)
         half = len(fft) / 2
         return fft[:half], freq[:half]
 
     def _compute_SNR(self, fft, fftfreq, freq, range=0.5):
+        # print ">=freq-range", freq-range, "<=freq+range", freq+range
+        # print np.where(np.logical_and(fftfreq>=freq-range, fftfreq<=freq+range))
         fft_target = np.mean(fft[np.where(np.logical_and(fftfreq>=freq-range, fftfreq<=freq+range))])
-        fft_nontarget = np.mean([ np.mean(fft[np.where(np.logical_and(fftfreq>=freq+0.5*range, fftfreq<=freq+2*0.5*range))]),
-                                np.mean(fft[np.where(np.logical_and(fftfreq>=freq-2*0.5*range, fftfreq<=freq-0.5*range))])])
+        # print fft_target
+        # print '>=', freq+range, ' <=', freq+2*range
+        # print np.where(np.logical_and(fftfreq>=freq+range, fftfreq<=freq+2*range))
+        # print '>=', freq-2*range, ' <=', freq-range
+        # print np.where(np.logical_and(fftfreq>=freq-2*range, fftfreq<=freq-range))
+        fft_nontarget = np.mean([ np.mean(fft[np.where(np.logical_and(fftfreq>=freq+range, fftfreq<=freq+2*range))]),
+                                np.mean(fft[np.where(np.logical_and(fftfreq>=freq-2*range, fftfreq<=freq-range))])])
+        # print fft_nontarget
         return fft_target/fft_nontarget
 
     def compute(self):
-        pass
+
+        for st in self.smart_tags:
+            signal = st.get_channel_samples(self.channel_name)
+            freq_target = st.get_tags()[0]['desc']['freq']
+            freq_nontarget = ast.literal_eval(st.get_tags()[0]['desc']['freqs'])
+            freq_nontarget.remove(freq_target)
+            try:
+                freq_nontarget.remove(str(int(freq_target)+1))
+            except:
+                pass
+            try:
+                freq_nontarget.remove(str(int(freq_target)-1))
+            except:
+                pass
+
+            fft, freq = self._compute_fft(signal)
+            snr_value = self._compute_SNR(fft, freq, int(freq_target), range=0.5)
+            self.target[freq_target].append(snr_value)
+            for i in freq_nontarget:
+                snr_value = self._compute_SNR(fft, freq, int(i), range=0.5)
+                self.nontarget[i].append(snr_value)
+        return self.target, self.nontarget
+
+

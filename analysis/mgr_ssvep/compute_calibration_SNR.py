@@ -26,6 +26,7 @@ import pickle
 from obci.analysis.obci_signal_processing import read_manager
 import matplotlib.pyplot as plt 
 import obci.analysis.mgr_ssvep.signal_processing.filters as SPF
+import obci.analysis.mgr_ssvep.data_analysis.compute_snr as SPSNR
 import obci.analysis.mgr_ssvep.signal_processing.parse_signal as SPPS
 import obci.analysis.mgr_ssvep.signal_processing.montage_signal as SPSM
 import obci.analysis.mgr_ssvep.signal_processing.csp_analysis as SPCSP
@@ -163,9 +164,15 @@ class ComputeCalibrationSNR(object):
     def _signal_segmentation(self, mgr, l_trial, offset, tag_name):
         return SPPS.signal_segmentation(mgr, l_trial, offset, tag_name)
 
+    def _get_rozklad(self, target, nontarget, freq):
+        t = []
+        nt = []
+        for i in freq:
+            t.append(target[i])
+            nt.append(nontarget[i])
+        return sum(t, []), sum(nt, [])
 
-
-    def calibration_trainer(self, patterns_trenning, patterns_test_target, patterns_test_nontarget):
+    def calibration_trainer(self, target, nontarget):
         # patterns_target_test, patterns_nontarget_test = {}, {}
         # for key in patterns_test.keys():
         #     if 'non' in key:
@@ -173,7 +180,6 @@ class ComputeCalibrationSNR(object):
         #     else:
         #         patterns_target_test[key] = patterns_test[key] 
 
-        target, nontarget = SPCA.cor(patterns_trenning, patterns_test_target, patterns_test_nontarget)
         self.nontarget = nontarget
         self.target = target
         ROC, AUC = SPCA.get_roc_auc_values(target, nontarget)
@@ -183,7 +189,12 @@ class ComputeCalibrationSNR(object):
 
         self.sorted_auc = sorted(AUC.items(), key=operator.itemgetter(1), reverse=True)[:self.freqs_number]
         self.freqs_ = dict(self.sorted_auc).keys()
-        self.target, self.nontarget = SPCA.cor_2(patterns_trenning, patterns_test_target, patterns_test_nontarget, self.freqs_)
+        self.target, self.nontarget = self._get_rozklad(self.target, self.nontarget, self.freqs_)
+        print len(self.target), len(self.nontarget)
+        plt.figure()
+        plt.hist(self.target, alpha=0.5)
+        plt.hist(self.nontarget, alpha=0.5)
+        plt.show()
 
     def comput_classificator(self):
         target_to_class = []
@@ -280,7 +291,9 @@ class ComputeCalibrationSNR(object):
                                   sum([[self.csp_channel_name], self.leave_channels], []), 
                                   'csp')
         return signal
-
+    def get_SNR_values(self, smart_tags, target, nontarget):
+        return SPSNR.ComputeSNR(smart_tags, self.freq_to_train, self.csp_channel_name, self.active_field, self.fs, target, nontarget).compute()
+    
     def run(self):
         # compute csp
         self.csp = ComputeCSP(self.file_dir, self.file_name, 
@@ -293,13 +306,11 @@ class ComputeCalibrationSNR(object):
 
         #1. signal processing...
         #********************************************************************* 
-        smart_tags_trenning = self._signal_segmentation(self.mgr, 3+0.2, 
+        smart_tags_trenning = self._signal_segmentation(self.mgr, 3, 
                                                     0, self.tag_name)
-        print self.l_trial-self.l_train-1
-        print self.l_trial-(self.l_trial-self.l_train-1)
 
-        smart_tags_test = self._signal_segmentation(self.mgr, 3+0.2, 
-                                                    2, self.tag_name)
+        smart_tags_test = self._signal_segmentation(self.mgr, 3, 
+                                                    1, self.tag_name)
         
 
         for ind in xrange(len(smart_tags_trenning)):
@@ -311,12 +322,25 @@ class ComputeCalibrationSNR(object):
 
         self.all_channels = sum([[self.csp_channel_name], self.leave_channels], [])
 
+        self.signal_pattern_test_t = {str(f):[] for f in self.freq_to_train}
+        self.signal_pattern_test_nt = {str(f):[] for f in self.freq_to_train}
 
-        SNR_trenning_target = self.get_SNR_values(smart_tags_trenning)
-        SNR_trenning_nontarget = self.get_SNR_values(smart_tags_trenning)
+        self.signal_pattern_trenning_t = {str(f):[] for f in self.freq_to_train}
+        self.signal_pattern_trenning_nt = {str(f):[] for f in self.freq_to_train}
 
-        SNR_test_target = self.get_SNR_values(smart_tags_test, freq_to_train)
-        SNR_test_nontarget = self.get_SNR_values(smart_tags_test, freq_to_train)
+        self.signal_pattern_trenning_t, self.signal_pattern_trenning_nt = self.get_SNR_values(smart_tags_trenning, self.signal_pattern_trenning_t, self.signal_pattern_trenning_nt)
+        self.signal_pattern_trenning_t, self.signal_pattern_trenning_nt = self.get_SNR_values(smart_tags_test, self.signal_pattern_trenning_t, self.signal_pattern_trenning_nt)
+        # for i in self.freq_to_train:
+        #     print '***********************************',  i, len(self.signal_pattern_trenning_t[str(i)]), len(self.signal_pattern_trenning_nt[str(i)])
+        #     print self.signal_pattern_trenning_t[str(i)]
+        #     print '\n'
+        #     print self.signal_pattern_trenning_nt[str(i)]
+
+
+        # SNR_trenning_nontarget = self.get_SNR_values(smart_tags_trenning)
+
+        # SNR_test_target = self.get_SNR_values(smart_tags_test, freq_to_train)
+        # SNR_test_nontarget = self.get_SNR_values(smart_tags_test, freq_to_train)
 
         # self.get_SNR_values(smart_tags_test)
         # self.signal_pattern_test_target = {str(f):[] for f in self.freq_to_train}
@@ -343,14 +367,15 @@ class ComputeCalibrationSNR(object):
 
         #     self.signal_pattern_trenning_[f] = np.mean(np.array(self.signal_pattern_trenning[f]), axis=0)
 
-        self.calibration_trainer(self.signal_pattern_trenning_, self.signal_pattern_test_target, self.signal_pattern_test_nontarget )
+        self.calibration_trainer(self.signal_pattern_trenning_t, self.signal_pattern_trenning_nt)
 
-        cfg = self.create_config()
-        return cfg
+        # cfg = self.create_config()
+        # return cfg
 
 if __name__ == '__main__':
-    for user in ['ania1', 'iza']:
-        calib = ComputeCalibrationSNR('ssvep_pattern_{}_calibration'.format(user), '~/dane', '~/', 'aaaa')
-        # values = calib.run()
+    for user in ['mateusz_b', 'iza']: #ania2, ania_maria, anna_piatek, karol2, karol_wielki, maciek, magdalena, mati, max, piotrrrr, sasz, tomasz
+        calib = ComputeCalibrationSNR('ssvep_pattern_{}_calibration'.format(user), '~/test/ssvep_pattern', '~/', 'aaaa')
+        # values = 
+        calib.run()
         # with open(os.path.expanduser(os.path.join('~/', user+'_dlugosc')), 'wb') as handle:
             # pickle.dump(values, handle)
