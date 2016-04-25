@@ -35,22 +35,22 @@ class ComputeSNR(object):
         display.display_signal(signal, channels_to_display, all_channels, title)
 
     def _compute_fft(self, signal):
-        fft = np.abs(np.fft.fft(signal))/np.sqrt(len(signal))
+        fft = np.abs(np.fft.fft(np.blackman(len(signal))*signal, 10*512))/np.sqrt(len(signal))
         freq = np.fft.fftfreq(len(fft), 1./self.fs)
         half = len(fft) / 2
         return fft[:half], freq[:half]
 
-    def _compute_SNR(self, fft, fftfreq, freq, range=0.5):
+    def _compute_SNR(self, fft, fftfreq, freq, range=0.3, offset=0.6):
         # print ">=freq-range", freq-range, "<=freq+range", freq+range
-        # print np.where(np.logical_and(fftfreq>=freq-range, fftfreq<=freq+range))
+        # print 'target', fftfreq[np.where(np.logical_and(fftfreq>=freq-range, fftfreq<=freq+range))]
         fft_target = np.mean(fft[np.where(np.logical_and(fftfreq>=freq-range, fftfreq<=freq+range))])
         # print fft_target
         # print '>=', freq+range, ' <=', freq+2*range
-        # print np.where(np.logical_and(fftfreq>=freq+range, fftfreq<=freq+2*range))
+        # print 'nontarget', fftfreq[np.where(np.logical_and(fftfreq>freq+offset, fftfreq<=freq+offset+ range))]
         # print '>=', freq-2*range, ' <=', freq-range
-        # print np.where(np.logical_and(fftfreq>=freq-2*range, fftfreq<=freq-range))
-        fft_nontarget = np.mean([ np.mean(fft[np.where(np.logical_and(fftfreq>=freq+range, fftfreq<=freq+2*range))]),
-                                np.mean(fft[np.where(np.logical_and(fftfreq>=freq-2*range, fftfreq<=freq-range))])])
+        # print 'nontarget', fftfreq[np.where(np.logical_and(fftfreq>=freq-range-offset, fftfreq<freq-offset))]
+        fft_nontarget = np.mean([ np.mean(fft[np.where(np.logical_and(fftfreq>freq+offset, fftfreq<=freq+offset+ range))]),
+                                np.mean(fft[np.where(np.logical_and(fftfreq>=freq-range-offset, fftfreq<freq-offset))])])
         # print fft_nontarget
         return fft_target/fft_nontarget
 
@@ -71,10 +71,14 @@ class ComputeSNR(object):
                 pass
 
             fft, freq = self._compute_fft(signal)
-            snr_value = self._compute_SNR(fft, freq, int(freq_target), range=0.5)
+            snr_value = self._compute_SNR(fft, freq, int(freq_target), range=0.3)
             self.target[freq_target].append(snr_value)
+            # import matplotlib.pyplot as plt
+            # print freq_target
+            # plt.stem(freq,fft)
+            # plt.show()
             for i in freq_nontarget:
-                snr_value = self._compute_SNR(fft, freq, int(i), range=0.5)
+                snr_value = self._compute_SNR(fft, freq, int(i), range=0.3)
                 self.nontarget[i].append(snr_value)
         return self.target, self.nontarget
 
