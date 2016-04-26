@@ -1,3 +1,9 @@
+openbci (1.9.1-1) ustable; urgency=medium
+
+  * New packages for Ubuntu 16.04.
+
+ -- Alex Khrabrov <alex@mroja.net>  Tue, 26 Apr 2016 15:00:00 +0100
+
 openbci (1.9.0-1) ustable; urgency=medium
 
   * New, heavily refactored OpenBCI
