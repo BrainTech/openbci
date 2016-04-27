@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 
-def run(data, fs):
+def run(data, config, channel_names, first_sample_timestampm, fs):
     print "Analysis run..."
 
     config = {'param1': 0, 
