@@ -22,8 +22,7 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
 	"""A class for creating a manifest file with metadata."""
 	@log_crash
 	def __init__(self, addresses):
-		super(BiofeedbackAnalysis, self).__init__(addresses=addresses,
-										  type=peers.LOGIC_P300_CSP)
+		super(BiofeedbackAnalysis, self).__init__(addresses=addresses, type=peers.LOGIC_P300_CSP)
 
 		self._init_params()
 

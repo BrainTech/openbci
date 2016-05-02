@@ -1,6 +1,6 @@
 import sys
 import os
-import utils
+import calibration_utils
 
 
 from PyQt4 import QtGui,QtCore
@@ -100,9 +100,9 @@ class SlideShowPics(QtGui.QMainWindow):
 
 def main(paths):
     if isinstance(paths, list):
-        imgLst = utils.imageFilePaths(paths)
+        imgLst = calibration_utils.imageFilePaths(paths)
     elif isinstance(paths, str):
-        imgLst =  utils.imageFilePaths([paths])
+        imgLst =  calibration_utils.imageFilePaths([paths])
     else:
         print " You can either enter a list of paths or single path"
     app = QtGui.QApplication(sys.argv)

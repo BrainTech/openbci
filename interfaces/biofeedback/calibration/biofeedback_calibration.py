@@ -8,10 +8,7 @@ from SlideShowPics import main
 
 def biofeedback_calibration_run():
     print "running...."
-    curntPaths = os.getcwd()
-    if len(sys.argv) > 1:
-        curntPaths = sys.argv[1:]
-    main(curntPaths)
+    main('/home/jadwiga/openbci/interfaces/biofeedback/calibration/')
 
 if __name__ == '__main__':
-	biofeedback_calibration_run()
+    biofeedback_calibration_run()
