@@ -4,9 +4,8 @@
 import time
 import random
 from obci.utils import context as ctx
-import matplotlib.pyplot as plt
 import numpy as np
-import scipy.signal as ss
+import pylab as py
 
 DEBUG = False
 
@@ -17,37 +16,8 @@ class BiofeedbackAnalysis(object):
         self.send_func = send_func
         self.last_time = time.time()
         self.fs = sampling
-        plt.ion()
-        self.fig = plt.figure()
-        self.ax = self.fig.gca()
-        self.i = 0
-
-    #def _calculate_fft(self, dane, fs):
-        #return sanaliza.calculat_fft(.....)
-
-    #def get_count(self):
-        #return self.i
-    #def set_count(self, j):
-        #self.i = j
-
-    def widmo(self, signal):
-	nyq = self.fs/2.
-	N = len(signal)
-	#[b,a] = butter(2,(49.9/nyq, 50.1/nyq),'bandpass') # projektuje filtr
-	#filtered_syg = ss.filtfilt(b,a,signal) # filtruje
-	# FFT
-	x = np.fft.fft(signal) # transform Fouriera
-	x = np.fft.fftshift(x) # shiftowanie
-	xMod = np.abs(x) #modul syg
-	#roAmpl = xMod/len(xMod) #widmo amplitudowe
-	roMocy = xMod**2/len(x) #widmo mocy
-	freq = np.fft.fftfreq(N, 1.0/self.fs)
-	freq_shifted = np.fft.fftshift(freq) #freq
-	return freq_shifted, roMocy
-	
         
     def analyse(self, data):
-        self.i+=1
         """Fired as often as defined in hashtable configuration:
         # Define from which moment in time (ago) we want to get samples (in seconds)
         'ANALYSIS_BUFFER_FROM':
@@ -69,19 +39,31 @@ class BiofeedbackAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-        #data_filtered = self._filter_butter_data(data)
-	#data_filtered = self._filter_butter_data(data)
- 	#data_filtered = self._filter_butter_data(data)
-        
-	plt.cla()
-        self.logger.info("Got data to analyse... after: "+str(time.time()-self.last_time))
-        self.logger.info("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
+        self.logger.debug("Got data to analyse... after: "+str(time.time()-self.last_time))
+        self.logger.debug("first and last value: "+str(data[0][0])+" - "+str(data[0][-1]))
         self.last_time = time.time()
-        
 
-	# plotowanie
-	freq, moc = self.widmo(data[0])
-	#plt.plot(widmo[0], widmo[1])
-	self.ax.plot(freq, moc)
-        plt.draw()
- 
+        if random.random() > 0.5:
+            self.send_func(1)
+        else:
+            self.logger.info("no decision")
+
+
+####
+	def widmo(signal, Fs):
+		nyq = Fs/2.
+		N = len(signal)
+		[b,a] = butter(2,(49.9/nyq, 50.1/nyq),'bandpass') # projektuje filtr
+		filtered_syg = ss.filtfilt(b,a,signal) # filtruje
+		# FFT
+		x = np.fft.fft(signal) # transform Fouriera
+		x = np.fft.fftshift(x) # shiftowanie
+		xMod = np.abs(x) #modul syg
+		#roAmpl = xMod/len(xMod) #widmo amplitudowe
+		roMocy = xMod**2/len(x) #widmo mocy
+		freq = numpy.fft.fftfreq(N, 1.0/Fs)
+		freq_shifted = numpy.fft.fftshift(freq) #freq
+		return freq_shifted, roAmpl
+
+	py.plot(widmo[0], widmo[1])
+	py.show()

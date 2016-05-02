@@ -3,7 +3,7 @@
 # Author:
 #     Anna Chabuda <anna.chabuda@gmail.com>
 
-import time, sys
+import time, sys, pickle
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
@@ -30,14 +30,14 @@ class BiofeedbackCalibration(ConfiguredMultiplexerServer):
         config = biofeedback_calibration.biofeedback_calibration_run(self.user_name, self.target_count)
         self.logger.info("FINISH Biofeedback Calibration...")
 
-        self._set_config(self.file_path, self.user_name, config)
+        self._set_appconfig(self.file_path, self.user_name, config)
 
         acquisition_helper.send_finish_saving(self.conn)
 
         time.sleep(5)
         sys.exit(0)
 
-    def _set_config(self, path, name, config):
+    def _set_appconfig(self, path, name, config):
         config_file = acquisition_helper.get_file_path(path, name)+'.confapp'
         f = open(config_file, 'w')
         pickle.dump(config, f)

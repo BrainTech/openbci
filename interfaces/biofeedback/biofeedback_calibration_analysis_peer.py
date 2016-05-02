@@ -65,15 +65,26 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
             in_file+'.obci.raw',
             in_file+'.obci.tag')
 
-        fs = float(mgr.get_param("sampling_frequency"))
+        cfg_app = self._get_appconfig(f_dir, f_name)
 
-        config = biofeedback_calibration_analysis.run(mgr.get_samples(), fs)
+        fs = float(mgr.get_param("sampling_frequency"))
+        channel_names = mgr.get_param("channels_names")
+        first_sample_timestamp = float(mgr.get_param('first_sample_timestamp'))
+
+        config = biofeedback_calibration_analysis.run(mgr.get_samples(), cfg_app, channel_names, first_sample_timestamp, fs)
 
         self._set_config(f_dir, f_name, config)
 
         self.logger.info("FINISH Biofeedback Analysis...")
 
         sys.exit(0)
+
+    def _get_appconfig(self, path, name):
+        file_name = acquisition_helper.get_file_path(path, name)+'.confapp'
+        f = open(file_name, 'r')
+        cfg = pickle.load(f)
+        f.close()
+        return cfg
 
     def _set_config(self, path, name, config):
         config_file = acquisition_helper.get_file_path(path, name)+'.conf'
