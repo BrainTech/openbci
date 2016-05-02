@@ -74,9 +74,9 @@ class BiofeedbackAnalysis(object):
         'ANALYSIS_BUFFER_RET_FORMAT'
 
         """
-      #  data_filtered = self._filter_butter_data(data, 1.,'highpass' )
-    #data_filtered = self._filter_butter_data(data)
-    #data_filtered = self._filter_butter_data(data)
+    #  data_filtered = self._filter_butter_data(data, 1.,'highpass' )
+    #  data_filtered = self._filter_butter_data(data)
+    #  data_filtered = self._filter_butter_data(data)
         
         plt.cla()
         self.logger.info("Got data to analyse... after: "+str(time.time()-self.last_time))
