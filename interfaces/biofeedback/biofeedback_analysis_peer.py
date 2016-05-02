@@ -106,6 +106,7 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
             send_func,
             int(self.config.get_param('sampling_rate')),
             context)
+    
 
 
 if __name__ == "__main__":

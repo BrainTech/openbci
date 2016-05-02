@@ -3,7 +3,7 @@
 # Author:
 #     Anna Chabuda <anna.chabuda@gmail.com>
 
-import time, sys
+import time, sys, pickle
 
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer

@@ -81,8 +81,8 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     f = plt.figure()
     ax = f.add_subplot(111)
     ax.plot(os_x, y1[i], os_x, y2[i], color='black')
-    ax.fill_between(os_x, y1[i], y2[i], where=y1[i] >= y2[i], facecolor='green', interpolate=True, alpha = 0.5)
-    #ax.fill_between(os_x, y2[i], y2[i], where=y2[i] <= y1[i], facecolor='red', interpolate=True, )
+    ax.fill_between(os_x, y1[i], y2[i], where=y1[i] >= y2[i], facecolor='green', interpolate=True)
+    ax.fill_between(os_x, y2[i], y2[i], where=y2[i] <= y1[i], facecolor='red', interpolate=True)
     ax.set_title('Korytarz ufnosci')
 
     #Ania: w rysowaniu brakowalo definicji czym jest ax;)

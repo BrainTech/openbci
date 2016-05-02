@@ -19,7 +19,7 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     print "Analysis run..."
     
     config = {'srednie_widmo': 0, 
-              'os_czestosci': 1,
+			  'os_czestosci': 1,
               'odch_std': 2}
     #Ania:zakomentowałam ten czas bo on tylko spowalnia;)
     #time.sleep(10)
@@ -35,8 +35,8 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     
 
     for j in xrange(N_kanalow):
-        for i in xrange(int(ilosc_powtorzen)):
-            pociete_dane[j,:,i]= data[j,i*dl_odcinka : (i+1)* dl_odcinka]
+		for i in xrange(int(ilosc_powtorzen)):
+			pociete_dane[j,:,i]= data[j,i*dl_odcinka : (i+1)* dl_odcinka]
 
     
     #obliczanie widma dla kazdego powtorzenia        
@@ -44,8 +44,8 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     
  
     for j in xrange(int(N_kanalow)):  #petla po kanalach
-        for i in xrange(int(ilosc_powtorzen)): #petla po powtorzeniach
-            os_czestosci, widmo_po_odcinkach[j, :, i] = widmo_mocy(pociete_dane[j,:,i], fs)
+		for i in xrange(int(ilosc_powtorzen)): #petla po powtorzeniach
+			os_czestosci, widmo_po_odcinkach[j, :, i] = widmo_mocy(pociete_dane[j,:,i], fs)
 
     
     #usrednianie powtorzen
@@ -68,27 +68,17 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     ax.plot(os_x,widmo_sr_down[0])
     plt.show() '''
     
-    wymiar = np.shape(widmo)
-    y1 = np.zeros((N_kanalow, len(os_x)))
-    y2 = np.zeros((N_kanalow, len(os_x)))
-    
-    
-    for i in range(N_kanalow):
-        y1[i,:] = widmo[i,:] +od_std[i,:]
-        y2[i,:] = widmo[i,:] -od_std[i,:]
-    
+   
     #wykres z korytarzami
     f = plt.figure()
     ax = f.add_subplot(111)
-    ax.plot(os_x, y1[i], os_x, y2[i], color='black')
-    ax.fill_between(os_x, y1[i], y2[i], where=y1[i] >= y2[i], facecolor='green', interpolate=True, alpha = 0.5)
-    #ax.fill_between(os_x, y2[i], y2[i], where=y2[i] <= y1[i], facecolor='red', interpolate=True, )
-    ax.set_title('Korytarz ufnosci')
+    plt.errorbar(os_x, widmo[0], od_std[0], linestyle='None', marker='^')
+    plt.show()
 
     #Ania: w rysowaniu brakowalo definicji czym jest ax;)
     f = plt.figure()
     ax = f.add_subplot(111)
-    ax.plot(os_x,widmo[0]) #dla konkretnego kanalu
+    ax.plot(os_x,widmo[0])
     plt.show()
         
     print "Analysis finish..."
