@@ -26,16 +26,16 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
 
 		self._init_params()
 
-        self.run_offline = int(self.config.get_param("run_offline"))
+		self.run_offline = int(self.config.get_param("run_offline"))
 		
 		self.ready()
 
-        if self.run_offline:
-            self.run()
-        else:
-            self._data_finished = False
-            self._info_finished = False
-            self._tags_finished = False
+		if self.run_offline:
+			self.run()
+		else:
+			self._data_finished = False
+			self._info_finished = False
+			self._tags_finished = False
 
 	def _init_params(self):
 		self.l_buffor = int(self.config.get_param('l_buffor'))
