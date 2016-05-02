@@ -17,10 +17,7 @@ def widmo_mocy(s, fs):
 
 def run(data, fs, nazwy_kanalow, L_buffer):
     print "Analysis run..."
-    
-    config = {'srednie_widmo': 0, 
-              'os_czestosci': 1,
-              'odch_std': 2}
+
     #Ania:zakomentowałam ten czas bo on tylko spowalnia;)
     #time.sleep(10)
     
@@ -90,8 +87,9 @@ def run(data, fs, nazwy_kanalow, L_buffer):
     ax = f.add_subplot(111)
     ax.plot(os_x,widmo[0]) #dla konkretnego kanalu
     plt.show()
-        
-    print "Analysis finish..."
+    config = {'srednie_widmo': widmo, 
+              'os_czestosci': os_x,
+              'odch_std': od_std}
     return config
 
 #Ania: dopisalam funkcje ponizsze i teraz nie musisz przez obci uruchamiac tej funkcji zeby testowac tylko ten plit robisz w konsoli python NAZWA_PLIKU, to rozwiazanie bedzie szybsze do prototypowania;) 
