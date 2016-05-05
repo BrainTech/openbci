@@ -66,7 +66,7 @@ class UgmBlinkingEngine(ugm_engine.UgmEngine):
         self._curr_blink_id = self.id_mgr.get_id()
         self._curr_blink_ugm = self.ugm_mgr.get_blink_ugm(self._curr_blink_id)
         self._curr_unblink_ugm = self.ugm_mgr.get_unblink_ugm(self._curr_blink_id)
-        curr_time = self.time_mgr.get_time()
+        curr_time = self.time_mgr.get_time() #time if next blink I guess?
         t = 1000*(curr_time - (time.time()-start_time))
         if t < 0:
             t = 0.0
