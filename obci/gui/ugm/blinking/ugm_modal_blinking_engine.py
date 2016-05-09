@@ -15,7 +15,7 @@ from obci.utils import context as ctx
 from obci.gui.ugm import ugm_engine
 from PyQt4 import QtCore
 import time
-
+import os.path
 
 class UgmModalBlinkingEngine(UgmBlinkingEngine):
     """A class representing ugm application. It is supposed to fire ugm,
@@ -59,10 +59,17 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         
     def _init_auditory(self, configs):
         soundfiles = configs.get_param('soundfiles').split(';')
-        self.audio_server = pyo.Server()
+        self.context['logger'].info(str(soundfiles))
+        self.audio_server = pyo.Server(audio='pa')
         self.audio_server.boot()
+        while not self.audio_server.getIsBooted():
+            time.sleep(1)
+            self.context['logger'].info('audio server bootup'+str(self.audio_server.getIsBooted()))
         self.audio_server.start()
-        sounds = [pyo.SfPlayer(f) for f in soundfiles]
+        while not self.audio_server.getIsStarted():
+            time.sleep(1)
+        self.context['logger'].info('soundfiles: {}'.format(soundfiles))
+        sounds = [pyo.SfPlayer(os.path.expanduser(f)) for f in soundfiles]
         assert len(soundfiles) == len(self._active_ids)
         assert len(sounds) == len(self._active_ids)
         self._sounds = dict(zip(self._active_ids, sounds))
@@ -128,5 +135,5 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
             
 
 if __name__ == '__main__':
-	ugm_engine.run()
+    ugm_engine.run()
 
