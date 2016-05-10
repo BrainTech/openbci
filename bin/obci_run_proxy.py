@@ -7,6 +7,7 @@ import sys
 import os
 import os.path
 import importlib
+import traceback
 
 
 def lchop(astring, trailing):
@@ -136,6 +137,10 @@ if __name__ == '__main__':
         print('Couldn\'t import \'obci.cmd.{}\' module.'.format(bin_name))
         print('Script location: {}'.format(os.path.abspath(__file__)))
         print('ImportError exception: {}'.format(ie))
+        print('')
+        traceback.print_exc()
+        print('')
         print('Import path:')
         print('\n'.join(sys.path))
         sys.exit(1)
+
