@@ -13,7 +13,7 @@ import sip
 sip.setapi('QVariant', 2)
 import sys
 from PyQt4 import QtCore, QtGui
-from config.modules import MODULES_LIST
+from obci.gui.frontend.config.modules import MODULES_LIST
 
 class BCIMainWindow(QtGui.QMainWindow):
     """Main window of the BCI application - shows list of available plugins and
@@ -84,7 +84,7 @@ class BCIMainWindow(QtGui.QMainWindow):
     def processModule(self, p_moduleName):
         """Processes sing module with given name and load it into program"""
         # We are importing module from correct directory...
-        l_bciModule = __import__("modules.%s.%s_module" % (p_moduleName, p_moduleName), fromlist=["modules.%s" % (p_moduleName)])
+        l_bciModule = __import__("obci.gui.frontend.modules.%s.%s_module" % (p_moduleName, p_moduleName), fromlist=["modules.%s" % (p_moduleName)])
         # ...and then we create and save its main class into modules dictionary
         self.modules[p_moduleName] = eval("bci_module.%sModule()" % (p_moduleName.title()), {'bci_module' : l_bciModule})
     

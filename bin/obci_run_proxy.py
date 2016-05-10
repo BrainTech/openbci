@@ -117,7 +117,7 @@ if __name__ == '__main__':
                 raise
 
             exec(code)
-            sys.exit()
+            sys.exit(0)
         elif bin_name == 'obci':
             import obci.cmd.obci as module
         elif bin_name == 'obci_gui':
@@ -133,14 +133,24 @@ if __name__ == '__main__':
             module = importlib.import_module(module_name)
         sys.exit(module.run())
     except ImportError as ie:
-        print('OpenBCI Run Proxy Script')
-        print('Couldn\'t import \'obci.cmd.{}\' module.'.format(bin_name))
+        print('--------------------------------------')
+        print('--- OpenBCI Run Proxy Script Error ---')
+        print('--------------------------------------')
+
+        if bin_name == 'obci_run_proxy':
+            print('Traceback while running \'{}\''.format(peer_file_name))
+        else:
+            print('Couldn\'t import \'obci.cmd.{}\' module.'.format(bin_name))
+
         print('Script location: {}'.format(os.path.abspath(__file__)))
-        print('ImportError exception: {}'.format(ie))
         print('')
         traceback.print_exc()
         print('')
         print('Import path:')
-        print('\n'.join(sys.path))
+        for i, p in enumerate(sys.path):
+            print('{:2d}. {:s}'.format(i+1, p))
+        print('---------------------------------------------')
+        print('--- End of OpenBCI Run Proxy Script Error ---')
+        print('---------------------------------------------')
         sys.exit(1)
 
