@@ -52,7 +52,7 @@ def try_local_path_file():
         else:
             obci_dir_name = '.obci'
 
-        fname = os.path.join(os.path.expanduser('~'), '.obci', 'local_path')
+        fname = os.path.join(os.path.expanduser('~'), obci_dir_name, 'local_path')
 
         if os.path.isfile(fname):
             with open(fname, 'r') as f:
