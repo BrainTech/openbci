@@ -48,9 +48,11 @@ def sanitize_path(path):
 def try_local_path_file():
     try:
         if sys.platform.startswith('win'):
-            fname = os.path.expanduser('~user/obci/local_path')
+            obci_dir_name = 'obci'
         else:
-            fname = os.path.expanduser('~/.obci/local_path')
+            obci_dir_name = '.obci'
+
+        fname = os.path.join(os.path.expanduser('~'), '.obci', 'local_path')
 
         if os.path.isfile(fname):
             with open(fname, 'r') as f:
@@ -103,18 +105,16 @@ if __name__ == '__main__':
             try:
                 peer_file_name = sys.argv[1]
             except IndexError:
-                print("\nNo peer file specified.\n")
-                raise
+                raise Exception("No Python script file specified.")
 
             sys.argv.remove(peer_file_name)
             sys.argv[0] = peer_file_name
 
             try:
                 with open(peer_file_name) as f:
-                    code = compile(f.read(), os.path.basename(peer_file_name), 'exec')
+                    code = compile(f.read(), peer_file_name, 'exec')
             except IOError as ex:
-                print("\nError reading peer script: {}\n".format(ex))
-                raise
+                raise Exception("Error reading script file: {}".format(ex))
 
             exec(code)
             sys.exit(0)
@@ -132,17 +132,17 @@ if __name__ == '__main__':
             module_name = 'obci.cmd.{}'.format(bin_name)
             module = importlib.import_module(module_name)
         sys.exit(module.run())
-    except ImportError as ie:
+    except Exception:
         print('--------------------------------------')
         print('--- OpenBCI Run Proxy Script Error ---')
         print('--------------------------------------')
+        print('Script location: \'{}\''.format(os.path.abspath(__file__)))
 
         if bin_name == 'obci_run_proxy':
-            print('Traceback while running \'{}\''.format(peer_file_name))
+            print('Traceback while running: \'{}\''.format(peer_file_name))
         else:
             print('Couldn\'t import \'obci.cmd.{}\' module.'.format(bin_name))
 
-        print('Script location: {}'.format(os.path.abspath(__file__)))
         print('')
         traceback.print_exc()
         print('')
