@@ -5,51 +5,52 @@ import pylab as py
 import numpy as np
 from numpy.fft import  fft, fftfreq, fftshift
 
-def run(data, config, channel_names, first_sample_timestampm, fs):
+
+def run(data, config, channel_names, reverse_channels,  first_sample_timestamp, fs):
     print "Analysis run..."
-    # montaz, odciecie trendu, widmo met Welcha
-    config = {'param1': 0, 
-              'param2': 1}
-    time.sleep(10)
-    
-    N = data.shape[1]
-    NW = 3
-    N_s = N/8
-
-    okno = np.hamming(N_s)
-    #okno = np.blackman(N)
-
-    #welch
-    #okno2 = np.hamming(N_s)
-    #okno2 = np.blackman(N_s)
 
     sygnal = montaz(data, channel_names) #program wyk na sygnale zmontowanym
 
     # Wywolywanie widma mocy met. Welcha i met. multitaper dla wszystkich kanalow #
-    wynikiWelch = np.zeros((len(data), N_s))
-    print "wynikiWelch.shape: ", wynikiWelch.shape
+    print config.keys()
+    wyniki = {}
+    for trial in config.keys():
+        print trial
+        data_app = config[trial]
+        times = data_app[0]
+        sample_start = int((times[0] - first_sample_timestamp)*fs)
+        if sample_start < 0: sample_start = 0
+        sample_stop = int((times[1] - first_sample_timestamp)*fs)
+        print sample_start, sample_stop
+        print sygnal.shape
+        # F_welch, wynikiWelch = trial_analyse(sygnal[:,sample_start:sample_stop])
+        # wyniki[trial] = (F_welch, wynikiWelch)
+    return wyniki
+
+def trial_analyse(sygnal):
+    N = sygnal.shape[1]
+    NW = 3
+    N_s = N/8
+    okno = np.hamming(N_s)
+    wynikiWelch = np.zeros((len(sygnal), N_s))
     wynikiMulti = np.zeros((len(channel_names), fs/2.))
     for i in range(0,sygnal.shape[0]):
-        print "wynikiWelch[i,:].shape: ", wynikiWelch[i,:].shape
         a = pwelch(sygnal[i], okno, 1, fs)
-        print "pwelch(sygnal[i], okno2, 1, fs)[1]: ", a[0].shape
-        print "pwelch(sygnal[i], okno2, 1, fs)[2]: ", a[1].shape
         (wynikiWelch[i,:], F_welch) = pwelch(sygnal[i], okno, 1, fs)
     #for j in range(0,sygnal.shape[0]):
     #    wynikiMulti[j,:], F_multi = multitaper(sygnal[j], NW, fs)
 
     # Plotowanie #
-    py.subplot(2,1,1)
-    py.plot(F_welch, wynikiWelch[0]) 
-    py.title('Widmo mocy metoda Welcha')
+    # py.subplot(2,1,1)
+    # py.plot(F_welch, wynikiWelch[0]) 
+    # py.title('Widmo mocy metoda Welcha')
 
-    #py.subplot(2,1,2)
-    #py.plot(wynikiMulti, F_multi) 
-    #py.title('Widmo mocy metoda multitaper')
-    py.show()
+    # #py.subplot(2,1,2)
+    # #py.plot(wynikiMulti, F_multi) 
+    # #py.title('Widmo mocy metoda multitaper')
+    # py.show()
     
-    print "Analysis finish..."
-    return config
+    return F_welch, wynikiWelch
 
 # Montaz dwubiegunowy uszny #
 def montaz(data, channel_names):
@@ -161,3 +162,48 @@ py.title('periodogram Welcha'+' energia: '+ str(np.sum(P)))
 py.show()'''
 
 """
+def get_appconfig(path, name):
+    import pickle
+    file_name = acquisition_helper.get_file_path(path, name)+'.confapp'
+    f = open(file_name, 'r')
+    cfg = pickle.load(f)
+    f.close()
+    return cfg
+
+if __name__ == '__main__':
+
+    from obci.acquisition import acquisition_helper
+    from obci.analysis.obci_signal_processing import read_manager
+
+    f_name = 'test3'
+    f_dir = '~/kalibracjaMarta'
+    in_file = acquisition_helper.get_file_path(f_dir, f_name)
+    reverse_channels = ['F4', 'Fz', 'F3']
+        
+    mgr = read_manager.ReadManager(
+        in_file+'.obci.xml',
+        in_file+'.obci.raw',
+        in_file+'.obci.tag')
+
+    cfg_app = get_appconfig(f_dir, f_name)
+
+    fs = float(mgr.get_param("sampling_frequency"))
+    channel_names = mgr.get_param("channels_names")
+    first_sample_timestamp = float(mgr.get_param('first_sample_timestamp'))
+
+    w = run(mgr.get_samples(), cfg_app, channel_names, reverse_channels, first_sample_timestamp, fs)
+'''
+    #TODO
+    - obejrzeć w i wyrysować średnie widma dla każdego kanału
+    - śr moc w paśmie alfa ala każdego kanału
+    - wektor wtorzymy jak niżej 
+
+'''
+
+''' 
+    wartosci_ostateczne=['']*len(channel_names)
+    for nazwa, wartosc in zip(channel_names, []):
+        for ind, r_ch_n in enumerate(reverse_channels):
+            if r_ch_n == nazwa:
+                wartosci_ostateczne[ind] = wartosc
+'''
