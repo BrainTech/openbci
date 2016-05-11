@@ -317,19 +317,6 @@ def downsample(mgr, factor):
     samples_source = read_data_source.MemoryDataSource(new_samples)
     return read_manager.ReadManager(info_source, samples_source, tags_source)
 
-
-
-
-
-
-
-
-        
-
-                
-
-
-
 def montage(mgr, montage_type, **montage_params):
     if montage_type == 'common_spatial_average':
         return montage_csa(mgr, **montage_params)
