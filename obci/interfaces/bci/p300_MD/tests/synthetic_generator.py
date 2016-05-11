@@ -126,7 +126,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         length = int(packets*self.samples_per_packet)
         if self.synthetic==1:
             signal=np.random.normal(scale=self.noise_level,
-                                  size=(length, len(self.channels_names)))
+                                  size=(len(self.channels_names), length))
         else:
             selected_nontarget = random.randint(0, self.nontargets.shape[0]-1)
             #nontargets are cut to isi
@@ -140,7 +140,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
                 t0 = time.time()
                 s = sv.samples.add()
                 ind = p*self.samples_per_packet+sn
-                s.channels.extend(signal[:,ind].tolist())
+                s.channels.extend(signal[:, ind].tolist())
                 s.timestamp = self.time
                 self.time+=1.0/self.sampling_rate
             self.conn.send_message(message = sv.SerializeToString(), 
@@ -200,7 +200,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         time.sleep(self.delay)
         for i in xrange(self.test_trials_n):
             for k in xrange(len(self.fields)-1):
-                #handle_message can wait a while
+                
                 self.send_isi()
             self.send_target()
         with self.lock:

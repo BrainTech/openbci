@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # based on obci.analysis.p300.analysis_offline
 # Marian Dovgialo
-from scipy import *
+from scipy import zeros, diag, dot
 from scipy import linalg
 import numpy as np
 import pylab as pb

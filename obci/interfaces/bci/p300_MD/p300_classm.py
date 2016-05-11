@@ -131,13 +131,17 @@ class P300EasyClassifier(AbstractClassifier):
         else: 
             self.learning_buffor_classes.append(0)
         self.learning_buffor_features.append(chunk)
-        if sum(self.learning_buffor_classes)%LEARN_EVERY == 0:
+        targets_count = sum(self.learning_buffor_classes)
+        nontargets_count = sum(i==0 for i in self.learning_buffor_classes)
+        enough = (targets_count>2 and nontargets_count>2)
+        if sum(self.learning_buffor_classes)%LEARN_EVERY == 0 and enough:
             print('Classifier: fitting clf with new data')
             self.clf.fit(
                             self.learning_buffor_features,
                             self.learning_buffor_classes,
                         )
-            score = self.clf.score(features, labels)
+            score = self.clf.score(self.learning_buffor_features,
+                                    self.learning_buffor_classes)
             print ('Classifier: Test on training set: {}'.format(score))
             
             

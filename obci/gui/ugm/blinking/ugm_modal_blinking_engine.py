@@ -6,10 +6,12 @@
 # requires pyo for sound
 from __future__ import print_function
 from ugm_blinking_engine import UgmBlinkingEngine
+import sys
 try:
     import pyo
 except ImportError:
     print ('ERROR no sound library.\n\t\t Installl pyo!\n\t\tsudo apt-get install python-pyo')
+    sys.exit()
 from obci.devices.haptics.HapticsControl import HapticStimulator
 from obci.utils import context as ctx
 from obci.gui.ugm import ugm_engine
@@ -65,9 +67,11 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         while not self.audio_server.getIsBooted():
             time.sleep(1)
             self.context['logger'].info('audio server bootup'+str(self.audio_server.getIsBooted()))
+            self.audio_server.boot()
         self.audio_server.start()
         while not self.audio_server.getIsStarted():
             time.sleep(1)
+            self.audio_server.start()
         self.context['logger'].info('soundfiles: {}'.format(soundfiles))
         sounds = [pyo.SfPlayer(os.path.expanduser(f)) for f in soundfiles]
         assert len(soundfiles) == len(self._active_ids)
