@@ -18,6 +18,7 @@ from obci.gui.ugm import ugm_engine
 from PyQt4 import QtCore
 import time
 import os.path
+import random
 
 class UgmModalBlinkingEngine(UgmBlinkingEngine):
     """A class representing ugm application. It is supposed to fire ugm,
@@ -86,6 +87,22 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         self._haptic_map = dict(zip(self._active_ids, channel_map))
         self._haptic_duration = float(configs.get_param('haptic_duration'))
         
+    def _schedule_blink(self, start_time):
+        '''Schedule the next blink with possibility of "half blink"'''
+        
+        #do halfblinks sometimes
+        if random.random()<self._global_target_proba:
+            self._curr_blink_id = self.id_mgr.get_id()
+        else:
+            self._curr_blink_id = None
+        self._curr_blink_ugm = self.ugm_mgr.get_blink_ugm(self._curr_blink_id)
+        self._curr_unblink_ugm = self.ugm_mgr.get_unblink_ugm(self._curr_blink_id)
+        curr_time = self.time_mgr.get_time()
+        t = 1000*(curr_time - (time.time()-start_time))
+        if t < 0:
+            t = 0.0
+            self.context['logger'].warning("BLINKER WARNING: time between blinks to short for that computer ...")
+        self._blink_timer.start(t)
     
     def set_configs(self, configs):
         for m in self.mgrs:
@@ -97,25 +114,30 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         if self.haptic:
             self._init_haptic(configs)
         self._run_on_start = int(configs.get_param('running_on_start'))
+        self._global_target_proba =  float(configs.get_param('global_target_proba'))
     
                             
     def _blink(self):
         '''Do blinking of configured modality'''
         start_time = time.time()
-        curr_blink_global_id = self._active_ids[self._curr_blink_id]
+        
         if self.visual:
             self.update_from(self._curr_blink_ugm)
         update_time = time.time()
-        if self.auditory:
-            self._sounds[curr_blink_global_id].out()
-        if self.haptic:
-            self.stimulator.stimulate(
-                            self._haptic_map[curr_blink_global_id],
-                            self._haptic_duration)
-        
-        if self._blinks_count >= 0:
-            self._blinks_count -= 1
-        self.connection.send_blink(self._curr_blink_id, update_time)
+        #only visual supports half blinks
+        if self._curr_blink_id:
+            curr_blink_global_id = self._active_ids[self._curr_blink_id]
+            if self.auditory:
+                self._sounds[curr_blink_global_id].out()
+            if self.haptic:
+                self.stimulator.stimulate(
+                                self._haptic_map[curr_blink_global_id],
+                                self._haptic_duration)
+            #half blinks doesnt count to blinks count
+            if self._blinks_count >= 0:
+                self._blinks_count -= 1
+            #and half blinks don't need to be sent
+            self.connection.send_blink(self._curr_blink_id, update_time)
         t = 1000*(self._blink_duration - (time.time() - start_time))
         if t < 0:
             t = 0.0

@@ -142,6 +142,8 @@ class _SingleTextImageOddballUgmManager(object):
 
         self.blink_ugm = []
         self.unblink_ugm = []
+        self.half_blink_ugm = []
+        self.half_unblink_ugm = []
         #create blinks and unblinks for every field
         for dec in active_field_ids:#range(count):
             new_blink_cfgs = []
@@ -157,23 +159,35 @@ class _SingleTextImageOddballUgmManager(object):
             
             for ndec in active_field_ids:
                 cfg = mgr.get_config_for(start_id+ndec)
-                new_blink_cfgs.append({'id':cfg['id'],
-                                 configs.get_param('blink_ugm_key'):configs.get_param('blink_ugm_value')
-                                 })
-                new_unblink_cfgs.append({'id':cfg['id'],
-                                  configs.get_param('blink_ugm_key'):cfg[configs.get_param('blink_ugm_key')]
-                                  })
+                half_blink = {'id':cfg['id'],
+                             configs.get_param('blink_ugm_key'):configs.get_param('blink_ugm_value')
+                                }
+                new_blink_cfgs.append(half_blink)
+                self.half_blink_ugm.append(half_blink)
+                half_unblink = {'id':cfg['id'],
+                            configs.get_param('blink_ugm_key'):cfg[configs.get_param('blink_ugm_key')]
+                                }
+                new_unblink_cfgs.append(half_unblink)
+                self.half_unblink_ugm.append(half_unblink)
             self.blink_ugm.append(new_blink_cfgs)
             self.unblink_ugm.append(new_unblink_cfgs)
+        #creating half blink
+            
 
     def get_blink_ugm(self, area_id):
-        return self.blink_ugm[area_id]
+        if area_id is not None:
+            return self.blink_ugm[area_id]
+        else:
+            return self.half_blink_ugm
 
     def get_unblink_ugm(self, area_id):
-        return self.unblink_ugm[area_id]
+        if area_id is not None:
+            return self.unblink_ugm[area_id]
+        else:
+            return self.half_unblink_ugm
 
 
-class _SingleImageOddballUgmManager(object):
+class _SingleImageOddballUgmManager(_SingleTextImageOddballUgmManager):
     '''Ugm config manager for blinks - images with synchronous nontarget
     blinks and additional target oddball - image - another image.
     
@@ -203,6 +217,8 @@ class _SingleImageOddballUgmManager(object):
 
         self.blink_ugm = []
         self.unblink_ugm = []
+        self.half_unblink_ugm = []
+        self.half_blink_ugm = []
         #create blinks and unblinks for every field
         for dec in active_field_ids:
             new_blink_cfgs = []
@@ -239,12 +255,19 @@ class _SingleImageOddballUgmManager(object):
                                       
             self.blink_ugm.append(new_blink_cfgs)
             self.unblink_ugm.append(new_unblink_cfgs)
-
-    def get_blink_ugm(self, area_id):
-        return self.blink_ugm[area_id]
-
-    def get_unblink_ugm(self, area_id):
-        return self.unblink_ugm[area_id]
+        #creating half blinks:
+        for ndec in active_field_ids:
+            high_image = os.path.join(images_folder,
+                            '{}n.{}'.format(ndec, images_extension))
+            idle_image = os.path.join(images_folder,
+                            '{}i.{}'.format(ndec, images_extension))
+            cfg = mgr.get_config_for(start_id+ndec)
+            self.half_blink_ugm.append({'id':cfg['id'],
+                             'image_path':high_image
+                             })
+            self.half_unblink_ugm.append({'id':cfg['id'],
+                              'image_path':idle_image
+                              })
 
 
 MGRS = {
