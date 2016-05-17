@@ -1,3 +1,9 @@
+openbci (1.9.2-1) ustable; urgency=medium
+
+  * Fix UGM.
+
+ -- Alex Khrabrov <alex@mroja.net>  Tue, 17 May 2016 12:00:00 +0100
+
 openbci (1.9.1-2) ustable; urgency=medium
 
   * Fix dependencies.
