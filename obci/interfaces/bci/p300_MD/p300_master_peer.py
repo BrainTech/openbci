@@ -106,42 +106,43 @@ class P300MasterPeer(AnalysisMaster):
             probabilities (dict): dictionary of {target: probability}
         '''
         #planning for future
-        self.singular_proba_buffor[blink.index].append(
-                                            probabilities['targetSingle']
-                                                        )
-        self.averaged_proba_buffor[blink.index].append(
-                                            probabilities['targetCMean']
-                                                        )
-        last_single = [blink.index, probabilities['targetSingle']]
-        last_mean = [blink.index, probabilities['targetCMean']]
-        self.logger.info('Last mean dec: {}, proba: {:.2f}'.format(
-                                                            last_mean[0],
-                                                            last_mean[1]))
-        if last_mean[1]>0.5:
-            self.decision_buffor.append(blink.index)
-        
-        # enough of the same decisions condition
-        one_decision = (len(set(self.decision_buffor)) == 1)
-        buffor_full = (len(self.decision_buffor) == self.decision_stop)
-        if one_decision and buffor_full:
-            decision = self.decision_buffor[-1]
-            self.logger.info('Decision by decision_stop {}'.format(decision))
-            self._send_decision(decision)
-            return
+        if probabilities:
+            self.singular_proba_buffor[blink.index].append(
+                                                probabilities['targetSingle']
+                                                            )
+            self.averaged_proba_buffor[blink.index].append(
+                                                probabilities['targetCMean']
+                                                            )
+            last_single = [blink.index, probabilities['targetSingle']]
+            last_mean = [blink.index, probabilities['targetCMean']]
+            self.logger.info('Last mean dec: {}, proba: {:.2f}'.format(
+                                                                last_mean[0],
+                                                                last_mean[1]))
+            if last_mean[1]>0.5:
+                self.decision_buffor.append(blink.index)
             
-        # number of averaged epochs condition
-        # ensure all buttons have been averaged self.maximum_to_average number of time
-        minimum_averaged = min(
-            len(self.averaged_proba_buffor[i]) for i in self.averaged_proba_buffor.keys()
-                            )
-        if minimum_averaged > self.maximum_to_average:
-            most_confident_decision = max(
-                                    self.averaged_proba_buffor.items(),
-                                    key = lambda key: key[1][-1]
-                                    )[0]
-            self.logger.info('Decision by max_avr {}'.format(most_confident_decision))
-            self._send_decision(most_confident_decision)
-            return
+            # enough of the same decisions condition
+            one_decision = (len(set(self.decision_buffor)) == 1)
+            buffor_full = (len(self.decision_buffor) == self.decision_stop)
+            if one_decision and buffor_full:
+                decision = self.decision_buffor[-1]
+                self.logger.info('Decision by decision_stop {}'.format(decision))
+                self._send_decision(decision)
+                return
+                
+            # number of averaged epochs condition
+            # ensure all buttons have been averaged self.maximum_to_average number of time
+            minimum_averaged = min(
+                len(self.averaged_proba_buffor[i]) for i in self.averaged_proba_buffor.keys()
+                                )
+            if minimum_averaged > self.maximum_to_average:
+                most_confident_decision = max(
+                                        self.averaged_proba_buffor.items(),
+                                        key = lambda key: key[1][-1]
+                                        )[0]
+                self.logger.info('Decision by max_avr {}'.format(most_confident_decision))
+                self._send_decision(most_confident_decision)
+                return
             
         
     
@@ -209,7 +210,8 @@ class P300MasterPeer(AnalysisMaster):
                                   )
         
         #maximum averaged epochs
-        self.maximum_to_average = int(
+        #can be inf
+        self.maximum_to_average = float(
                             self.config.get_param('maximum_to_average')
                                      )
         #identical decisions to get final answer
@@ -227,6 +229,7 @@ class P300MasterPeer(AnalysisMaster):
         except ValueError:
             self.training_index = None
                 
+        self.ignored_blink_ids = [int(i) for i in self.config.get_param('ignored_blink_ids').strip().split(';')]
 
         self.logger.info('Initialasing buffers')
         self._reset_buffors()
@@ -309,6 +312,8 @@ class P300MasterPeer(AnalysisMaster):
             or None if classification could not be performed
             
         """
+        if blink.index in self.ignored_blink_ids:
+            return None
         chunk_ready = self._prepare_chunk(chunk)
         self.features[blink.index].append(chunk_ready)
         probabilities = {}
@@ -319,8 +324,6 @@ class P300MasterPeer(AnalysisMaster):
         probabilities['targetCMean'] = classifier.classify(
                                                               chunk_mean
                                                                     )
-        
-        
         return probabilities
         
     def learn(self, classifier, chunk, target):

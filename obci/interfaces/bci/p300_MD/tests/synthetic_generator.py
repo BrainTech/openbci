@@ -99,7 +99,8 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         
         
     def send_nontarget_blink(self,):
-        self.logger.info('sending distractor blink')
+        with self.lock:
+            self.logger.info('sending distractor blink')
         choice = random.choice(tuple(set(self.fields)-set([self.focus])))
         b = variables_pb2.Blink()
         timestamp = self.time
@@ -110,7 +111,6 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
                                type = types.BLINK_MESSAGE, flush=True)
                                
     def send_target_blink(self, timestamp=None):
-        self.logger.info('sending target blink')
         b = variables_pb2.Blink()
         if not timestamp:
             timestamp=self.time
@@ -155,8 +155,9 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
     
             
     def send_target(self):
-        self.logger.info('Sending target, focus: {}'.format(self.focus))
+        
         with self.lock:
+            self.logger.info('Sending target, focus: {}'.format(self.focus))
             self.sent_targets+=1
         length_window = int(self.window*self.sampling_rate)
         length_packet_aligned = length_window - length_window % self.samples_per_packet

@@ -20,6 +20,8 @@ import time
 import os.path
 import random
 
+HALFBLINKID=-1
+
 class UgmModalBlinkingEngine(UgmBlinkingEngine):
     """A class representing ugm application. It is supposed to fire ugm,
     receive messages from outside (UGM_UPDATE_MESSAGES) and send`em to
@@ -115,6 +117,7 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
             self._init_haptic(configs)
         self._run_on_start = int(configs.get_param('running_on_start'))
         self._global_target_proba =  float(configs.get_param('global_target_proba'))
+        self._send_halfblinks=int(configs.get_param('send_halfblinks'))
     
                             
     def _blink(self):
@@ -138,6 +141,9 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
                 self._blinks_count -= 1
             #and half blinks don't need to be sent
             self.connection.send_blink(self._curr_blink_id, update_time)
+        elif self._send_halfblinks:
+            self.connection.send_blink(HALFBLINKID, update_time)
+            
         t = 1000*(self._blink_duration - (time.time() - start_time))
         if t < 0:
             t = 0.0
