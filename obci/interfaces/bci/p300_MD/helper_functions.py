@@ -24,7 +24,11 @@ def nontarget_tags_func(tag):
 
 def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0, 
                         filter=None, montage=None,
-                        drop_chnls = [ u'AmpSaw', u'DriverSaw', u'trig1', u'trig2']):
+                        drop_chnls = [ u'AmpSaw', u'DriverSaw', u'trig1', u'trig2'],
+                        target_tags_func = target_tags_func,
+                        nontarget_tags_func = nontarget_tags_func,
+                        tag_name = u'blink'
+                        ):
     '''For offline calibration and testing, load target and nontarget
     epochs using obci read_manager.
     Args:
@@ -37,6 +41,12 @@ def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0,
             montage name can be 'ears', 'csa', 'custom'
             ears require 2 channel names for ear channels
             custom requires list of reference channel names
+        target_tags_func: must return True for provided tag if tag
+                          defines a target
+        nontarget_tags_func: must return False for provided tag if tag
+                          defines a target
+        tag_name: tag name to be considered, if you want to use all
+                  tags use None
     Return: two lists of smart tags: target_tags, nontarget_tags'''
     eeg_rm = read_manager.ReadManager(ds+'.xml', ds+'.raw', ds+'.tag')
     
@@ -56,7 +66,7 @@ def get_epochs_fromfile(ds, start_offset=-0.1,duration=2.0,
     eeg_rm = exclude_channels(eeg_rm, drop_chnls)
    
     
-    tag_def = SmartTagDurationDefinition(start_tag_name=u'blink',
+    tag_def = SmartTagDurationDefinition(start_tag_name=tag_name,
                                         start_offset=start_offset,
                                         end_offset=0.0,
                                         duration=duration)
@@ -87,7 +97,7 @@ def evoked_from_smart_tags(tags, chnames, bas = -0.1):
     
     
 def evoked_pair_plot_smart_tags(tags1, tags2, chnames=['O1', 'O2', 'Pz', 'PO7', 'PO8', 'PO3', 'PO4', 'Cz',],
-                                start_offset=-0.1, labels=['target', 'nontarget']):
+                                start_offset=-0.1, labels=['target', 'nontarget'], show= True):
     '''debug evoked potential plot,
      pairwise comparison of 2 smarttag lists,
      blocks thread
@@ -98,20 +108,22 @@ def evoked_pair_plot_smart_tags(tags1, tags2, chnames=['O1', 'O2', 'Pz', 'PO7', 
     ev2, std2 = evoked_from_smart_tags(tags2, chnames, start_offset)
     Fs = float(tags1[0].get_param('sampling_frequency'))
     time = np.linspace(0+start_offset, ev1.shape[1]/Fs+start_offset, ev1.shape[1])
-    pb.figure()
+    fig = pb.figure()
     for nr, i in enumerate(chnames):
-        pb.subplot( (len(chnames)+1)/2, 2, nr+1)
-        pb.plot(time, ev1[nr], 'r',label = labels[0]+' N:{}'.format(len(tags1)))
-        pb.fill_between(time, ev1[nr]-std1[nr], ev1[nr]+std1[nr],
+        ax = fig.add_subplot( (len(chnames)+1)/2, 2, nr+1)
+        ax.plot(time, ev1[nr], 'r',label = labels[0]+' N:{}'.format(len(tags1)))
+        ax.fill_between(time, ev1[nr]-std1[nr], ev1[nr]+std1[nr],
                             color = 'red', alpha=0.3, )
-        pb.plot(time, ev2[nr], 'b', label = labels[1]+' N:{}'.format(len(tags2)))
-        pb.fill_between(time, ev2[nr]-std2[nr], ev2[nr]+std2[nr],
+        ax.plot(time, ev2[nr], 'b', label = labels[1]+' N:{}'.format(len(tags2)))
+        ax.fill_between(time, ev2[nr]-std2[nr], ev2[nr]+std2[nr],
                         color = 'blue', alpha=0.3)
         
-        pb.title(i)
-    pb.legend()
+        ax.set_title(i)
+    ax.legend()
     
-    pb.show()
+    if show:
+        pb.show()
+    return fig
 
 
 
