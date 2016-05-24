@@ -65,14 +65,13 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
             self.start_blinking()
         
     def initpyo(self, soundfiles):
+        self.context['logger'].info('initialising pyo audio backend')
         try:
             import pyo
         except ImportError:
             print ('ERROR no sound library.\n\t\t Installl pyo!\n\t\tsudo apt-get install python-pyo')
             sys.exit(1)
         self.audio_server = pyo.Server(audio='pa')
-        device = pyo.pa_get_output_devices()[1][-1]
-        self.audio_server.setInOutDevice(device)
         self.audio_server.boot()
         while not self.audio_server.getIsBooted():
             time.sleep(1)
@@ -89,6 +88,8 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         self._sounds = dict(zip(self._active_ids, sounds))
         
     def initpygame(self, soundfiles, pygame_buffor):
+        self.context['logger'].info('initialising pygame audio backend')
+    
         try:
             import pygame
         except ImportError:
@@ -104,6 +105,7 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
     
     
     def _init_auditory(self, configs):
+        
         soundfiles = configs.get_param('soundfiles').split(';')
         self.soundbackend = configs.get_param('soundbackend')
         pygame_buffor = int(configs.get_param('pygamebuffor'))
@@ -160,7 +162,7 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
             self.update_from(self._curr_blink_ugm)
         update_time = time.time()
         #only visual supports half blinks
-        if self._curr_blink_id:
+        if self._curr_blink_id is not None:
             curr_blink_global_id = self._active_ids[self._curr_blink_id]
             if self.auditory:
                 self._sounds[curr_blink_global_id].out()
