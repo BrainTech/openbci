@@ -23,16 +23,20 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
 	@log_crash
 	def __init__(self, addresses):
 		super(BiofeedbackAnalysis, self).__init__(addresses=addresses, type=peers.LOGIC_P300_CSP)
+
 		self._init_params()
+
 		self.run_offline = int(self.config.get_param("run_offline"))
+		
 		self.ready()
+
 		if self.run_offline:
 			self.run()
 		else:
 			self._data_finished = False
 			self._info_finished = False
 			self._tags_finished = False
-			
+
 	def _init_params(self):
 		self.l_buffor = int(self.config.get_param('l_buffor'))
 
