@@ -13,6 +13,8 @@ from obci.acquisition import acquisition_helper
 from obci.utils import tagger
 from obci.utils import context as ctx
 
+from obci.interfaces.biofeedback.biofeedback_online import Application
+
 SOCKET_BUF = 2**19
 
 class UdpServer(object):
@@ -47,7 +49,7 @@ class BiofeedbackOnlineLogicPeer(ConfiguredClient):
         super(BiofeedbackOnlineLogicPeer, self).__init__(addresses=addresses, type=peers.CLIENT)
         #initialise game engin for current user
 
-        engine = a#calibration.Calibration(user_id)
+        engine = Application()#calibration.Calibration(user_id)
         srv = UdpServer(engine, self.get_param('internal_ip'))
         self.set_param('internal_port', str(srv.socket.getsockname()[1]))
         thread.start_new_thread(srv.run, ())

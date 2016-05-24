@@ -17,10 +17,10 @@
 #     Anna Chabuda <anna.chabuda@gmail.com>
 #
 
-import obci.interfaces.biofeedback.logic_online_queue
+from obci.interfaces.biofeedback.logic_online_queue import LogicQueue 
 
-class Application(logic_queue.LogicQueue):
-    def __init__(self, user_id):
+class Application(LogicQueue):
+    def __init__(self):
         super(Application, self).__init__()
 
     def run(self):
@@ -28,6 +28,7 @@ class Application(logic_queue.LogicQueue):
         self.clear_queue() 
         while not done:
             analisys_dec = self.get_message()
+            print 'GOT MESSAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             print analisys_dec
 
 

@@ -7,7 +7,7 @@ from obci.configs import settings, variables_pb2
 import random, time, sys, socket
 
 class BiofeedbackLogicExperimentServer(ConfiguredMultiplexerServer):
-    def __init__(self, addresses, p_type = peers.LOGIC_WII_BOARD):
+    def __init__(self, addresses, p_type = peers.LOGIC_DECISION):
         self._socket = None
         super(BiofeedbackLogicExperimentServer, self).__init__(addresses=addresses, type=p_type)
         self._ip = self.config.get_param('internal_ip')
@@ -19,7 +19,7 @@ class BiofeedbackLogicExperimentServer(ConfiguredMultiplexerServer):
     def handle_message(self, mxmsg):
         if self._socket is None:
             self.no_response()
-        elif mxmsg.type == types.WII_BOARD_ANALYSIS_RESULTS:
+        elif mxmsg.type == types.DECISION_MESSAGE:
             try:
                 self._socket.sendto(mxmsg.message, (self._ip, self._port))
             except Exception, e:
@@ -29,4 +29,4 @@ class BiofeedbackLogicExperimentServer(ConfiguredMultiplexerServer):
             self.no_response() 
 
 if __name__ == "__main__":
-    LogicVenturesExperimentServer(settings.MULTIPLEXER_ADDRESSES).loop()
+    BiofeedbackLogicExperimentServer(settings.MULTIPLEXER_ADDRESSES).loop()
