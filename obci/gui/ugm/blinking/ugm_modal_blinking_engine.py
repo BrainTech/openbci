@@ -88,13 +88,14 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         assert len(sounds) == len(self._active_ids)
         self._sounds = dict(zip(self._active_ids, sounds))
         
-    def initpygame(self, soundfiles):
+    def initpygame(self, soundfiles, pygame_buffor):
         try:
             import pygame
         except ImportError:
             print ('ERROR no sound library.\n\t\t Installl pygame!\n\t\tsudo apt-get install python-pygame')
             sys.exit(1)
-        pygame.mixer.init(44100, -16, 2)
+        
+        pygame.mixer.init(44100, -16, 2, pygame_buffor)
         sounds = [pygame.mixer.Sound(os.path.expanduser(f)) for f in soundfiles]
         soundscompat = [pygameSoundCompat(i) for i in sounds]
         assert len(soundfiles) == len(self._active_ids)
@@ -105,10 +106,11 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
     def _init_auditory(self, configs):
         soundfiles = configs.get_param('soundfiles').split(';')
         self.soundbackend = configs.get_param('soundbackend')
+        pygame_buffor = int(configs.get_param('pygamebuffor'))
         if self.soundbackend == 'pyo':
             self.initpyo(soundfiles)
         elif self.soundbackend == 'pygame':
-            self.initpygame(soundfiles)
+            self.initpygame(soundfiles, pygame_buffor)
         self.context['logger'].info('soundfiles: {}'.format(soundfiles))
     
     def _init_haptic(self, configs):
