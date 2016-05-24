@@ -7,11 +7,7 @@
 from __future__ import print_function
 from ugm_blinking_engine import UgmBlinkingEngine
 import sys
-try:
-    import pyo
-except ImportError:
-    print ('ERROR no sound library.\n\t\t Installl pyo!\n\t\tsudo apt-get install python-pyo')
-    sys.exit()
+
 from obci.devices.haptics.HapticsControl import HapticStimulator
 from obci.utils import context as ctx
 from obci.gui.ugm import ugm_engine
@@ -21,6 +17,12 @@ import os.path
 import random
 
 HALFBLINKID=-1
+
+class pygameSoundCompat:
+    def __init__(self, sound):
+        self.sound = sound
+    def out(self):
+        self.sound.play()
 
 class UgmModalBlinkingEngine(UgmBlinkingEngine):
     """A class representing ugm application. It is supposed to fire ugm,
@@ -62,10 +64,15 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         if self._run_on_start:
             self.start_blinking()
         
-    def _init_auditory(self, configs):
-        soundfiles = configs.get_param('soundfiles').split(';')
-        self.context['logger'].info(str(soundfiles))
+    def initpyo(self, soundfiles):
+        try:
+            import pyo
+        except ImportError:
+            print ('ERROR no sound library.\n\t\t Installl pyo!\n\t\tsudo apt-get install python-pyo')
+            sys.exit(1)
         self.audio_server = pyo.Server(audio='pa')
+        device = pyo.pa_get_output_devices()[1][-1]
+        self.audio_server.setInOutDevice(device)
         self.audio_server.boot()
         while not self.audio_server.getIsBooted():
             time.sleep(1)
@@ -75,11 +82,34 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         while not self.audio_server.getIsStarted():
             time.sleep(1)
             self.audio_server.start()
-        self.context['logger'].info('soundfiles: {}'.format(soundfiles))
+            time.sleep(2)
         sounds = [pyo.SfPlayer(os.path.expanduser(f)) for f in soundfiles]
         assert len(soundfiles) == len(self._active_ids)
         assert len(sounds) == len(self._active_ids)
         self._sounds = dict(zip(self._active_ids, sounds))
+        
+    def initpygame(self, soundfiles):
+        try:
+            import pygame
+        except ImportError:
+            print ('ERROR no sound library.\n\t\t Installl pygame!\n\t\tsudo apt-get install python-pygame')
+            sys.exit(1)
+        pygame.mixer.init(44100, -16, 2)
+        sounds = [pygame.mixer.Sound(os.path.expanduser(f)) for f in soundfiles]
+        soundscompat = [pygameSoundCompat(i) for i in sounds]
+        assert len(soundfiles) == len(self._active_ids)
+        assert len(sounds) == len(self._active_ids)
+        self._sounds = dict(zip(self._active_ids, soundscompat))
+    
+    
+    def _init_auditory(self, configs):
+        soundfiles = configs.get_param('soundfiles').split(';')
+        self.soundbackend = configs.get_param('soundbackend')
+        if self.soundbackend == 'pyo':
+            self.initpyo(soundfiles)
+        elif self.soundbackend == 'pygame':
+            self.initpygame(soundfiles)
+        self.context['logger'].info('soundfiles: {}'.format(soundfiles))
     
     def _init_haptic(self, configs):
         ids = configs.get_param("haptic_device").split(":")
