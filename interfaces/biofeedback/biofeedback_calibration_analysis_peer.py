@@ -63,6 +63,8 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
 		f_name = self.config.get_param("data_file_name")
 		f_dir = self.config.get_param("data_file_path")
 		in_file = acquisition_helper.get_file_path(f_dir, f_name)
+		freq_1 = self.config.get_param("freq_1")
+		freq_2 = self.config.get_param("freq_2")
 			
 		mgr = read_manager.ReadManager(
 			in_file+'.obci.xml',
@@ -75,7 +77,7 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
 
 		print mgr.get_params()
 
-		config = biofeedback_calibration_analysis.run(mgr.get_samples(), fs, channels_names, self.l_buffor)
+		config = biofeedback_calibration_analysis.run(mgr.get_samples(), fs, channels_names, self.l_buffor, freq_1, freq_2)
 
 		self._set_config(f_dir, f_name, config)
 

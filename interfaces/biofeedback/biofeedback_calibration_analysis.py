@@ -15,7 +15,7 @@ def widmo_mocy(s, fs):
 	return (fftshift(F),fftshift(S_moc))
 
 
-def run(data, fs, nazwy_kanalow, L_buffer):
+def run(data, fs, nazwy_kanalow, L_buffer, freq_1, freq_2):
 	print "Analysis run..."
 	print data.shape
 
@@ -50,8 +50,8 @@ def run(data, fs, nazwy_kanalow, L_buffer):
 	widmo_sr = np.mean(widmo_po_odcinkach, axis=2) #kanal x srednie widmo 
 	od_std = np.std(widmo_po_odcinkach, axis=2) #czy to jest poprawnie? 
 	
-	msc_30Hz =  np.where(os_czestosci==30.)[0][0]
-	msc_2Hz =  np.where(os_czestosci==2.)[0][0]
+	msc_30Hz =  np.where(os_czestosci==int(freq_2))[0][0]
+	msc_2Hz =  np.where(os_czestosci==int(freq_1))[0][0]
 
 	#wycinanie przedzialow
 	os_x = os_czestosci[msc_2Hz:msc_30Hz+1]
@@ -95,4 +95,8 @@ def run(data, fs, nazwy_kanalow, L_buffer):
 
 #Ania: dopisalam funkcje ponizsze i teraz nie musisz przez obci uruchamiac tej funkcji zeby testowac tylko ten plit robisz w konsoli python NAZWA_PLIKU, to rozwiazanie bedzie szybsze do prototypowania;) 
 if __name__ == '__main__':
+	'''mgr = read_manager.ReadManager(
+			in_file+'.obci.xml',
+			in_file+'.obci.raw',
+			in_file+'.obci.tag')'''
 	run(np.random.rand(8, 2*256*10), 256, ['a']*8, 2)
