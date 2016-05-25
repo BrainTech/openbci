@@ -10,7 +10,7 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
 
 from obci.analysis.obci_signal_processing import read_manager
-from obci.interfaces.biofeedback import biofeedback_calibration_analysis
+#from obci.interfaces.biofeedback import biofeedback_calibration_analysis
 
 from obci.configs import settings
 from obci.acquisition import acquisition_helper
@@ -71,7 +71,7 @@ class BiofeedbackAnalysis(ConfiguredMultiplexerServer):
         channel_names = mgr.get_param("channels_names")
         first_sample_timestamp = float(mgr.get_param('first_sample_timestamp'))
 
-        config = biofeedback_calibration_analysis.run(mgr.get_samples(), cfg_app, channel_names, first_sample_timestamp, fs)
+        config = {}#biofeedback_calibration_analysis.run(mgr.get_samples(), cfg_app, channel_names, first_sample_timestamp, fs)
 
         self._set_config(f_dir, f_name, config)
 

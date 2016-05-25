@@ -22,13 +22,14 @@ class BiofeedbackCalibration(ConfiguredMultiplexerServer):
         self.pause = int(self.config.get_param("pause"))
         self.user_name = self.config.get_param("user_name")
         self.file_path =self.config.get_param("file_path")
+        self.time_exp = int(self.config.get_param("time_exp"))
 
         self.ready()
         self.run()
         
     def run(self):
         self.logger.info("START Biofeedback Calibration...")
-        config = biofeedback_calibration.biofeedback_calibration_run(self.target_count, self.pause)
+        config = biofeedback_calibration.biofeedback_calibration_run(self.target_count, self.pause, self.time_exp)
         self.logger.info("FINISH Biofeedback Calibration...")
 
         self._set_appconfig(self.file_path, self.user_name, config)
