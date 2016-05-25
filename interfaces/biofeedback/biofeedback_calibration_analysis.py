@@ -178,7 +178,7 @@ if __name__ == '__main__':
     f_name = 'test3'
     f_dir = '~/kalibracjaMarta'
     in_file = acquisition_helper.get_file_path(f_dir, f_name)
-    reverse_channels = ['F4', 'Fz', 'F3']
+    reverse_channels = ['F4', 'Fz', 'F3', 'T3', 'C3', 'Cz', 'C4', 'T4', 'P3', 'Pz', 'P4', 'A2']
         
     mgr = read_manager.ReadManager(
         in_file+'.obci.xml',
@@ -195,10 +195,20 @@ if __name__ == '__main__':
 '''
     #TODO
     - obejrzeć w i wyrysować średnie widma dla każdego kanału
-    - śr moc w paśmie alfa ala każdego kanału
-    - wektor wtorzymy jak niżej 
+    - śr moc w paśmie alfa dla każdego kanału
+    - wektor tworzymy jak niżej '''
 
-'''
+def plotowanie(sygnal, channel_names, okno, fs):
+    wynikiWelch = np.zeros(len(channel_names), fs/2.)
+    for i in range(0,len(channel_names)):
+        a = pwelch(sygnal[i], okno, 1, fs)
+        (wynikiWelch[i,:], F_welch) = pwelch(sygnal[i], okno, 1, fs)
+        py.subplot(2,1,i)
+    	py.plot(F_welch, wynikiWelch[0]) 
+    	py.title('Widmo mocy metoda Welcha')
+    return F_welch, wynikiWelch
+
+plotowanie(sygnal, channel_names, np.hamming(sygnal.shape[1]/8, fs)
 
 ''' 
     wartosci_ostateczne=['']*len(channel_names)

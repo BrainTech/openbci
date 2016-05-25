@@ -7,7 +7,7 @@ import time
 def biofeedback_calibration_run(target_count, pause):
     print "running...."
     root = Tk()
-    my_gui = ControllerClick(root, number = target_count, pause = pause)
+    my_gui = ControllerClickNew(root, number = target_count, pause = pause)
     my_gui.create_oval()
     root.mainloop()
     return my_gui.get_config()
