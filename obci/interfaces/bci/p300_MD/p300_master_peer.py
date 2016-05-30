@@ -50,7 +50,7 @@ class P300MasterPeer(AnalysisMaster):
     def __init__(self, addresses):
         super(P300MasterPeer, self).__init__(addresses=addresses,
                                                 type=peers.P300_ANALYSIS)
-        ugm_helper.send_start_blinking(self.conn)
+        
     
     def _reset_buffors(self):
         #probabilities of selected input for single epochs

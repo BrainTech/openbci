@@ -1024,6 +1024,11 @@ type {
 	whom: ALL
         report_delivery_error: false
 	}	
+    to {
+     	peer: "LOGIC_FEEDBACK"
+	whom: ALL
+        report_delivery_error: false
+	}	
 }
 
 type {

@@ -48,21 +48,18 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
         self.auditory = 'auditory' in modalities
         
         #must be here or else they connect to parent class methods
-        self._blink_timer = QtCore.QTimer(self)
-        self._blink_timer.setSingleShot(True)
-        self._blink_timer.connect(self._blink_timer, QtCore.SIGNAL("timeout()"), self._blink)
+        #~ self._blink_timer = QtCore.QTimer(self)
+        #~ self._blink_timer.setSingleShot(True)
+        #~ self._blink_timer.connect(self._blink_timer, QtCore.SIGNAL("timeout()"), self._blink)
 
-        self._unblink_timer = QtCore.QTimer(self)
-        self._unblink_timer.setSingleShot(True)
-        self._unblink_timer.connect(self._unblink_timer, QtCore.SIGNAL("timeout()"), self._unblink)
+        #~ self._unblink_timer = QtCore.QTimer(self)
+        #~ self._unblink_timer.setSingleShot(True)
+        #~ self._unblink_timer.connect(self._unblink_timer, QtCore.SIGNAL("timeout()"), self._unblink)
 
-        self._stop_timer = QtCore.QTimer(self)
-        self._stop_timer.setSingleShot(True)
-        self._stop_timer.connect(self._stop_timer, QtCore.SIGNAL("timeout()"), self._stop)
+        #~ self._stop_timer = QtCore.QTimer(self)
+        #~ self._stop_timer.setSingleShot(True)
+        #~ self._stop_timer.connect(self._stop_timer, QtCore.SIGNAL("timeout()"), self._stop)
 
-
-        if self._run_on_start:
-            self.start_blinking()
         
     def initpyo(self, soundfiles):
         self.context['logger'].info('initialising pyo audio backend')
@@ -139,6 +136,24 @@ class UgmModalBlinkingEngine(UgmBlinkingEngine):
             t = 0.0
             self.context['logger'].warning("BLINKER WARNING: time between blinks to short for that computer ...")
         self._blink_timer.start(t)
+        
+    def _timer_on_run(self):
+        super(UgmBlinkingEngine, self)._timer_on_run()
+        self._blink_timer = QtCore.QTimer(self)
+        self._blink_timer.setSingleShot(True)
+        self._blink_timer.connect(self._blink_timer, QtCore.SIGNAL("timeout()"), self._blink)
+
+        self._unblink_timer = QtCore.QTimer(self)
+        self._unblink_timer.setSingleShot(True)
+        self._unblink_timer.connect(self._unblink_timer, QtCore.SIGNAL("timeout()"), self._unblink)
+
+        self._stop_timer = QtCore.QTimer(self)
+        self._stop_timer.setSingleShot(True)
+        self._stop_timer.connect(self._stop_timer, QtCore.SIGNAL("timeout()"), self._stop)
+
+        self.context['logger'].info('RUN ON START: {}'.format(self._run_on_start))
+        if self._run_on_start:
+            self.start_blinking()
     
     def set_configs(self, configs):
         for m in self.mgrs:
