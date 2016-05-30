@@ -218,6 +218,7 @@ class AnalysisMaster(ConfiguredMultiplexerServer):
             # we have received a single blink
             data = variables_pb2.Blink()
             data.ParseFromString(mxmsg.message)
+            self.logger.debug('Got blink: {}'.format(data)) 
             self.buffer.handle_blink(data)
 
         else:
