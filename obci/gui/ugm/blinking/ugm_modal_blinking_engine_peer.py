@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
+#     Marian Dovgialo <marian.dowgialo@gmail.com>
 
 import sys
 import thread, os

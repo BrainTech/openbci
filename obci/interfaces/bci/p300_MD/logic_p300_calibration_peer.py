@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Author:
-#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl>
+#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl> 
+#     Marian Dovgialo <marian.dowgialo@gmail.com>
 
 import os.path, sys, time
 

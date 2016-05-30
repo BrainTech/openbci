@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Author:
+#     Mateusz Kruszyński <mateusz.kruszynski@titanis.pl> 
+#     Marian Dovgialo <marian.dowgialo@gmail.com>
 import time
 from multiplexer.multiplexer_constants import peers, types
 from obci.control.peer.configured_multiplexer_server import ConfiguredMultiplexerServer
