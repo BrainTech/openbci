@@ -1,6 +1,0 @@
-debian/dkms.conf /usr/src/tmsi-1.8/
-tmsi.c /usr/src/tmsi-1.8/
-Makefile /usr/src/tmsi-1.8/
-90-tmsi.rules /lib/udev/rules.d
-synfi_init_data /lib/firmware
-fusbi.hex /lib/firmware

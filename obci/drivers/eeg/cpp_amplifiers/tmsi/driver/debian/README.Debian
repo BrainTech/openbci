@@ -1,6 +1,0 @@
-TMSi DKMS module for Debian
----------------------------
-
-The Debian tmsi DKMS source package provides:
-
- * tmsi-dkms, which provides the source for the kernel modules
