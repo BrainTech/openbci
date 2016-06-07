@@ -99,16 +99,17 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         
         
     def send_nontarget_blink(self,):
-        with self.lock:
-            self.logger.info('sending distractor blink')
+        #~ with self.lock:
+            #~ self.logger.info('sending distractor blink')
         choice = random.choice(tuple(set(self.fields)-set([self.focus])))
         b = variables_pb2.Blink()
         timestamp = self.time
         self.time_of_blink=timestamp
         b.timestamp=timestamp
         b.index=choice
+        
         self.conn.send_message(message = b.SerializeToString(), 
-                               type = types.BLINK_MESSAGE, flush=True)
+                           type = types.BLINK_MESSAGE, flush=True)
                                
     def send_target_blink(self, timestamp=None):
         b = variables_pb2.Blink()
@@ -117,6 +118,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         self.time_of_blink=timestamp
         b.timestamp=timestamp
         b.index=self.focus
+        
         self.conn.send_message(message = b.SerializeToString(), 
                                type = types.BLINK_MESSAGE, flush=True)
         
@@ -143,6 +145,7 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
                 s.channels.extend(signal[:, ind].tolist())
                 s.timestamp = self.time
                 self.time+=1.0/self.sampling_rate
+            
             self.conn.send_message(message = sv.SerializeToString(), 
                                type = types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             if (self.time-self.time_of_blink)>self.isi:
@@ -156,9 +159,9 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
             
     def send_target(self):
         
-        with self.lock:
-            self.logger.info('Sending target, focus: {}'.format(self.focus))
-            self.sent_targets+=1
+        #~ with self.lock:
+            #~ self.logger.info('Sending target, focus: {}'.format(self.focus))
+        self.sent_targets+=1
         length_window = int(self.window*self.sampling_rate)
         length_packet_aligned = length_window - length_window % self.samples_per_packet
         gauss_w = gaussian(length_packet_aligned, length_packet_aligned/10)
@@ -188,8 +191,9 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
                 s.channels.extend(signal[:,i*self.samples_per_packet+sn].tolist())
                 s.timestamp = self.time
                 self.time+=1.0/self.sampling_rate
+            #~ with self.lock:
             self.conn.send_message(message = sv.SerializeToString(), 
-                               type = types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
+                           type = types.AMPLIFIER_SIGNAL_MESSAGE, flush=True)
             if (self.time-self.time_of_blink)>self.isi:
                 self.send_nontarget_blink()
             left_to_sleep = sleeping_time-(time.time()-t0)
@@ -198,14 +202,16 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
         
     @log_crash
     def run(self):
+        #~ with self.lock:
         time.sleep(self.delay)
         for i in xrange(self.test_trials_n):
             for k in xrange(len(self.fields)-1):
-                
+                #~ with self.lock:
                 self.send_isi()
+            #~ with self.lock:
             self.send_target()
-        with self.lock:
-            self.save_statistics()
+    
+        self.save_statistics()
         sys.exit(0)
     
     def save_statistics(self):
@@ -245,7 +251,8 @@ class SyntheticGenerator(ConfiguredMultiplexerServer):
                 self.sent_targets = 0
                 if self.learning == 0:
                     self.focus=random.choice(self.fields)
-        self.no_response()
+        with self.lock:
+            self.no_response()
 
             
 
