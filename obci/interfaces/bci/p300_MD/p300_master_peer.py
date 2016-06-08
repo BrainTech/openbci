@@ -115,10 +115,13 @@ class P300MasterPeer(AnalysisMaster):
                                                             )
             last_single = [blink.index, probabilities['targetSingle']]
             last_mean = [blink.index, probabilities['targetCMean']]
+            self.logger.info('Last single dec: {}, proba: {:.2f}'.format(
+                                                                last_single[0],
+                                                                last_single[1]))
             self.logger.info('Last mean dec: {}, proba: {:.2f}'.format(
                                                                 last_mean[0],
                                                                 last_mean[1]))
-            if last_mean[1]>0.5:
+            if last_mean[1]>self.desision_stop_proba_thr:
                 self.decision_buffor.append(blink.index)
             
             # enough of the same decisions condition
@@ -179,6 +182,9 @@ class P300MasterPeer(AnalysisMaster):
     @log_crash
     def init_params(self):
         self.logger.info('Initialasing parameters')
+        #configdence (probability) level for internal decision to be counted to decision stop:
+        self.desision_stop_proba_thr = self.config.get_param(
+                                        'decision_stop_threshold').split(';')
         #available channels
         self.channel_names = self.config.get_param(
                                         'channel_names').split(';')

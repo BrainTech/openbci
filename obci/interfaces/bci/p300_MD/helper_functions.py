@@ -107,15 +107,17 @@ def evoked_pair_plot_smart_tags(tags1, tags2, chnames=['O1', 'O2', 'Pz', 'PO7', 
     ev1, std1 = evoked_from_smart_tags(tags1, chnames, start_offset)
     ev2, std2 = evoked_from_smart_tags(tags2, chnames, start_offset)
     Fs = float(tags1[0].get_param('sampling_frequency'))
-    time = np.linspace(0+start_offset, ev1.shape[1]/Fs+start_offset, ev1.shape[1])
+    time1 = np.linspace(0+start_offset, ev1.shape[1]/Fs+start_offset, ev1.shape[1])
+    time2 = np.linspace(0+start_offset, ev2.shape[1]/Fs+start_offset, ev2.shape[1])
     fig = pb.figure()
     for nr, i in enumerate(chnames):
         ax = fig.add_subplot( (len(chnames)+1)/2, 2, nr+1)
-        ax.plot(time, ev1[nr], 'r',label = labels[0]+' N:{}'.format(len(tags1)))
-        ax.fill_between(time, ev1[nr]-std1[nr], ev1[nr]+std1[nr],
+        
+        ax.plot(time1, ev1[nr], 'r',label = labels[0]+' N:{}'.format(len(tags1)))
+        ax.fill_between(time1, ev1[nr]-std1[nr], ev1[nr]+std1[nr],
                             color = 'red', alpha=0.3, )
-        ax.plot(time, ev2[nr], 'b', label = labels[1]+' N:{}'.format(len(tags2)))
-        ax.fill_between(time, ev2[nr]-std2[nr], ev2[nr]+std2[nr],
+        ax.plot(time2, ev2[nr], 'b', label = labels[1]+' N:{}'.format(len(tags2)))
+        ax.fill_between(time2, ev2[nr]-std2[nr], ev2[nr]+std2[nr],
                         color = 'blue', alpha=0.3)
         
         ax.set_title(i)
