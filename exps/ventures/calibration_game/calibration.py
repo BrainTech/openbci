@@ -34,9 +34,9 @@ class Calibration(logic_queue.LogicQueue):
 
     def _init_calibration_last_data(self):
             data  = calibration_get_last(self.user_id)
-            if data != None:
-                up, right, down, left, t  = data
-                self.screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
+            #if data != None:
+            #    up, right, down, left, t  = data
+           #     self.screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
 
     def instruction(self):
         screens = ['start', 'instruction']

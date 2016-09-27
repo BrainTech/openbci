@@ -7,8 +7,6 @@ from multiplexer.multiplexer_constants import peers, types
 from obci.configs import settings, variables_pb2
 from obci.utils.openbci_logging import log_crash
 
-import obci.drivers.balance.wii_board_xwiimote as wii_board_xwiimote
-import obci.drivers.balance.wii_board_dummy as wii_board_dummy
 
 class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     @log_crash
@@ -18,6 +16,7 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
     def _manage_params(self):
         if int(self.get_param("amplifier_online")) == 1:
             self.logger.info("Start initialize Wii Board amplifier...")
+            import obci.drivers.balance.wii_board_xwiimote as wii_board_xwiimote
             try:
                 self.wbb = wii_board_xwiimote.WiiBalanceBoard()
             except Exception as error:
@@ -27,6 +26,7 @@ class PyAmplifierWiiBoard(py_amplifier.PyAmplifier):
                 self.logger.info("Connect to Wii Board!")
 
         elif int(self.get_param("amplifier_online")) == 0:
+            import obci.drivers.balance.wii_board_dummy as wii_board_dummy
             self.logger.info("Start initialize Wii Board dummy amplifier...")
             self.wbb = wii_board_dummy.WiiBalanceBoard()
             self.logger.info("Connect to Wii Board!")
