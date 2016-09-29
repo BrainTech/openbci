@@ -27,6 +27,6 @@ def get_instruction_text():
 	Obszary te wychodzą od środka ekranu w czterech kierunkach:\n\
 	do przodu, do tyłu, w lewo, w prawo.\n\n\
 	Wychylaj się powoli, pamiętając, aby w żadnym momencie nie oderwać stóp od podłoża.\n\n\
-	Żółtym kolorem oznaczone będą Twoje wyniki z poprzedniej sesji.\n\
+	\n\
 	Postaraj się polepszyć swój rezultat!\n\n\
 	<aby rozpocząć zadanie naciśnij spację>'

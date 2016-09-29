@@ -39,7 +39,7 @@ class Calibration(logic_queue.LogicQueue):
            #     self.screen.set_calibration_last_value(100*float(up), 100*float(right), 100*float(down), 100*float(left))
 
     def instruction(self):
-        screens = ['start', 'instruction']
+        screens = ['instruction']
         screen_status = 0
         self.screen.display_screen(screens[screen_status])
         while screen_status<len(screens):
