@@ -389,7 +389,7 @@ class MazeLogic(object):
             self.load_level()
 
     def instruction(self):
-        screens = ['start', 'instruction1', 'instruction2']
+        screens = ['start', 'instruction1']
         screen_status = 0
         self.screen.display_screen(screens[screen_status])
 

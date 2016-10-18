@@ -22,6 +22,7 @@ class LogicVenturesCognitive(ConfiguredMultiplexerServer):
         tag_dir = acquisition_helper.get_file_path(self.get_param('save_file_path'), '')
         session_name = self.get_param('session_name')
         session_type = 'experiment' if session_name == 'ventures_game' else 'training'
+        print session_type
         maze.MazeGame(user_id, tag_dir=tag_dir, tag_name=tag_name, session_type=session_type).run()
         sys.exit(0)
     

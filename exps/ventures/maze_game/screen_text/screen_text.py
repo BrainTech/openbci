@@ -62,31 +62,15 @@ def get_timeout_level(session_type, session_condition):
     return u"\n\n\nPrzekroczyłeś dwukrotny czas potrzebny do wykonania tego poziomu trudności. \nByć może zadanie jest dla ciebie jeszcze zbyt trudne. Spróbuj lepiej się skoncentrować i ponownie poćwiczyć na niższym poziomie trudności."
 
 def get_instruction_1(session_type, session_condition):
-    ret = u"\nMasz przed sobą trening składający się z labiryntów o wzrastającym poziomie trudności.\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\n\nKulka za każdym razem wykonuje ruch 'wszystko, albo nic', co w praktyce oznacza, że zatrzymuje się dopiero, gdy napotka którąś ze ścian. Nie można zatem zatrzymać się na środku planszy."
-    if session_condition in ['cognitive', 'key_motor']:
-        ret += u"\n\nKulką kieruje się przy użyciu strzałek na klawiaturze."
+    print session_condition
+    if session_condition == 'cognitive':
+        ret = u"\nMasz przed sobą plansze labiryntów o wzrastającym poziomie trudności. Poruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka. Kulką kierujesz się przy użyciu strzałek na klawiaturze.\nRozwiązując zadania pamiętaj o kilku zasadach:\n1)Kulka porusza się do momentu napotkania przeszkody (ściany) – nie możesz zatrzymać się na środku planszy.\n2) Na planszy rozmieszczone są czarne dziury – omijaj je planując swoją trasę. Jeśli wpadniesz 3 razy w czarną dziurę znajdziesz się na niższym poziomie trudności.\nPamiętaj! Staraj się najpierw zaplanować trasę, a dopiero potem ją wykonać!\n<aby przejść dalej naciśnij spację>"
+
+    elif session_condition =='motor':
+        ret = u"\nMasz przed sobą plansze labiryntów o wzrastającym poziomie trudności.\nPoruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka.\nKulką kierujesz za pomocą wychyleń na platformie.\n\nRozwiązując zadania pamiętaj o kilku zasadach:\n1)Kulka porusza się do momentu napotkania przeszkody (ściany) – nie możesz zatrzymać się na środku planszy.\n2) Staraj się poruszać wyznaczoną ścieżką. Jeśli 3 razy zejdziesz ze ścieżki znajdziesz się na niższym poziomie trudności. Na planszy znajdują się również czarne dziury, jeśli będziesz podążał wyznaczoną ścieżką to je ominiesz.\n\nPamiętaj, aby poruszać się wyłącznie po wyznaczonej ścieżce!\n<aby przejść dalej naciśnij spację>"
     else:
-        ret += u"\n\nKulką kieruje się poprzez wychylenie się w odpowiednią stronę i pozostanie w takiej pozycji przez kilka sekund. Należy wychylać się tak, aby wyświetlona strzałka stawała się coraz bardziej zielona."
-    if not (session_condition in ['motor', 'cognitive_motor']):
-        ret += u"\n\n"
-    ret = ret + u"\n<aby przejść dalej naciśnij spację>" 
+        ret = u"Masz przed sobą plansze labiryntów o wzrastającym poziomie trudności. Poruszasz się zieloną kulką, a celem jest dotarcie do zielonego krzyżyka. Kulką kierujesz za pomocą wychyleń na platformie. Należy wychylić się i utrzymać równowagę tak, aby środkowy zakres strzałki wypełnił się kolorem zielonym.\nRozwiązując zadania pamiętaj o kilku zasadach:\n1)Kulka porusza się do momentu napotkania przeszkody (ściany) – nie możesz zatrzymać się na środku planszy.\n2) Na planszy rozmieszczone są czarne dziury – omijaj je planując swoją trasę. Jeśli wpadniesz 3 razy w czarną dziurę znajdziesz się na niższym poziomie trudności.\nPamiętaj! Staraj się najpierw zaplanować trasę, a dopiero potem ją wykonać!\n<aby przejść dalej naciśnij spację>"
     return ret
-
-def get_instruction_2(session_type, session_condition):
-    if not (session_condition in ['motor', 'key_motor']): 
-        ret = u"\nNależy omijać czarne dziury, które są rozmieszczone na każdej planszy tak, aby utrudnić dowolne poruszanie się po labiryncie.\nUważaj, wpadając w dziurę tracisz jedną szansę.\nPo stracie trzech szans spadasz poziom niżej!\n\n"
-    else:
-        ret = u"\nNależy poruszać się wyłącznie po wyznaczonej ścieżce. Dla ułatwienia dwa najbliższe kroki będą zawsze podświetlone na ścieżce.\nUważaj, wykonując ruch zbaczający ze ściezki tracisz jedną szansę. Po stracie trzech szans spadasz poziom niżej!\n\n"
-
-
-    ret += u"Staraj się przejść labirynt jak najszybciej.\nUważaj, przechodząc labirynt zbyt wolno, także spadasz poziom niżej!\n\n"
-
-    if not (session_condition in ['motor', 'key_motor']):
-        ret += u"Pamiętaj! Staraj się najpierw zaplanować trasę, a następnie rozpocząć wykonywanie ruchów.\n\n"
-    else:
-        ret += u'\n\n'
-    return ret + u"<aby rozpocząć trening naciśnij spację>"
-    
 def get_exit_text(session_type, session_condition):
     return u"\n\n\nCzy na pewno chcesz zakończyć sesję?\n\njeżeli tak naciśnij: 't',\njeżeli chcesz powrócić do gry naciśnij: 'n'"
 
