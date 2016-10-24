@@ -393,7 +393,7 @@ class MazeLogic(object):
         screen_status = 0
         self.screen.display_screen(screens[screen_status])
 
-        while screen_status<3:
+        while screen_status<2:
             for event in pygame.event.get():                    
                 if event.type == KEYDOWN:            
                     if event.key == K_SPACE:
