@@ -30,7 +30,7 @@ ARROW_KEY = {'left' : K_LEFT,
              'down' : K_DOWN, 
              'up' : K_UP}
 
-ARROW_TIME = 2
+ARROW_TIME = 3
 
 ARROW_SPEED_UP = float(ARROW_SIZE)/ARROW_TIME
 

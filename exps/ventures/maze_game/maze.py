@@ -27,7 +27,7 @@ from obci.exps.ventures.data import data_manager
 from obci.exps.ventures import logic_queue
 
 class MazeGame(logic_queue.LogicQueue):
-    def __init__(self, user_id, session_type='experiment', session_duration=30*60, motor_min_level=-20.0, motor_max_level=-10.0, time_board_display=5, 
+    def __init__(self, user_id, session_type='experiment', session_duration=30*60, motor_min_level=-30.0, motor_max_level=-20.0, time_board_display=5, 
                  time_left_out=30, tag_name='', tag_dir='./'): #motor_step=5, motor_initial=-3,
         super(MazeGame, self).__init__()
         self.user_id = user_id
