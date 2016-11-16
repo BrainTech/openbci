@@ -23,7 +23,7 @@ pygame.font.init
 import numpy as np
 import random
 
-from constants.constants_levels import LEVELS_IN_ORDER, LEVELS_GAME_TIMEOUT, LEVELS_TRAINING, LEVELS_TRAINING_TIMEOUT, LEVELS_GAME
+from constants.constants_levels import LEVELS_IN_ORDER,LEVELS_IN_ORDER_T, LEVELS_GAME_TIMEOUT, LEVELS_TRAINING, LEVELS_TRAINING_TIMEOUT, LEVELS_GAME
 
 class MazeLevel(object):
     def __init__(self, session_type):
@@ -104,6 +104,7 @@ class MazeLevel(object):
 
     def load_level(self, level_number):
         level, level_type =  self.levels_maze[str(self.level_in_order[int(level_number)])], 'n'
+	print level, level_type, level_number
         self._init_level_arrays(level)
         if level_type == 'T':
             self.level = self.level.T
