@@ -41,6 +41,7 @@ class MazeLevel(object):
             self.levels_maze = LEVELS_GAME
 
     def _init_level_arrays(self, level):
+        
         self.level = np.zeros((len(level), len(level[0])))
         self.level_path = np.zeros((len(level), len(level[0])))
         for y_ind, level_line in enumerate(level):
@@ -103,6 +104,7 @@ class MazeLevel(object):
         print self.left_path_points
 
     def load_level(self, level_number):
+        print str(self.level_in_order[int(level_number)])
         level, level_type =  self.levels_maze[str(self.level_in_order[int(level_number)])], 'n'
 	print level, level_type, level_number
         self._init_level_arrays(level)
