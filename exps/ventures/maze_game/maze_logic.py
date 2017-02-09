@@ -353,7 +353,7 @@ class MazeLogic(object):
         self.update_current_level()
         self.update_session_status()
         self.screen.display_screen('win')
-        if self.get_current_level()<=self.number_of_levels and self.status:
+        if self.get_current_level()<self.number_of_levels and self.status:
             self.load_level()
             self.level_start()
 
