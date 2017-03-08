@@ -104,9 +104,11 @@ class MazeLevel(object):
         print self.left_path_points
 
     def load_level(self, level_number):
-        print str(self.level_in_order[int(level_number)])
-        level, level_type =  self.levels_maze[str(self.level_in_order[int(level_number)])], 'n'
-	print level, level_type, level_number
+        print "***************load_level***********"
+        #print str(self.level_in_order[int(level_number)])
+        print self.levels_maze[str(self.level_in_order[int(level_number)-1])]
+        level, level_type =  self.levels_maze[str(self.level_in_order[int(level_number)-1])], 'n'
+	print "********************"#level, level_type, level_number
         self._init_level_arrays(level)
         if level_type == 'T':
             self.level = self.level.T
