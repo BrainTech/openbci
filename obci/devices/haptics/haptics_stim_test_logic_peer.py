@@ -70,6 +70,25 @@ class HapticTestPeer(ConfiguredMultiplexerServer):
         
         msg = variables_pb2.Variable()
         msg.key = 'S'
+        msg.value = '3:0.5'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S3')
+        time.sleep(4)
+        
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
+        msg.value = '4:0.5'
+        self.conn.send_message(message=msg.SerializeToString(), 
+                      type=types.HAPTIC_CONTROL_MESSAGE,
+                      flush=True)
+        self.logger.info('RUNNING! S4')
+        time.sleep(4)
+        
+        msg = variables_pb2.Variable()
+        msg.key = 'S'
         msg.value = '1,2:1.5,2.5'
         self.conn.send_message(message=msg.SerializeToString(), 
                       type=types.HAPTIC_CONTROL_MESSAGE,

@@ -126,6 +126,7 @@ class AnalysisMaster(ConfiguredMultiplexerServer):
     @log_crash
     def __init__(self, addresses, type=peers.ANALYSIS):
         super(AnalysisMaster, self).__init__(addresses=addresses, type=type)
+        self.logger.info('Initialising parameters')
         # initialize parameters of the subclass
         self.init_params()
         channel_count = len(self.config.get_param('channel_names').split(';'))
@@ -217,6 +218,7 @@ class AnalysisMaster(ConfiguredMultiplexerServer):
             # we have received a single blink
             data = variables_pb2.Blink()
             data.ParseFromString(mxmsg.message)
+            self.logger.debug('Got blink: {}'.format(data)) 
             self.buffer.handle_blink(data)
 
         else:

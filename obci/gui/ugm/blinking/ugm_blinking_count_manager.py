@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author:
 #     Mateusz Kruszyński <mateusz.kruszynski@gmail.com>
-
+#     Marian Dovgialo <marian.dowgialo@gmail.com>
 from obci.utils import sequence_provider
 class DummyProvider(object):
     def get_value(self):
