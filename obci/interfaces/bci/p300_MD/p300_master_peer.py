@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 #
 # OpenBCI - framework for Brain-Computer Interfaces based on EEG signal
@@ -42,6 +42,7 @@ import numpy as np
 import os.path
 import pickle
 import pylab as pb
+import time
 from obci.gui.ugm import ugm_helper
 
 class P300MasterPeer(AnalysisMaster):
@@ -61,6 +62,8 @@ class P300MasterPeer(AnalysisMaster):
         self.features = defaultdict(list)
         #final decision buffor
         self.decision_buffor = deque(maxlen = self.decision_stop)
+        self.hold_time = 1.0
+        self.last_dec_timestamp = 0.0
     
     def _prepare_chunk(self, chunk):
         '''
@@ -96,7 +99,8 @@ class P300MasterPeer(AnalysisMaster):
     def _send_decision(self, decision):
         self.conn.send_message(message = str(decision), type = types.DECISION_MESSAGE, flush=True)
         self._reset_buffors()
-    
+        self.last_dec_timestamp = time.time()
+   
     def add_result(self, blink, probabilities):
         '''
         Sends decision if some last decisions from cumulative mean
@@ -121,12 +125,16 @@ class P300MasterPeer(AnalysisMaster):
             self.logger.info('Last mean dec: {}, proba: {:.2f}'.format(
                                                                 last_mean[0],
                                                                 last_mean[1]))
+
+
             if last_mean[1]>self.desision_stop_proba_thr:
                 self.decision_buffor.append(blink.index)
             
             # enough of the same decisions condition
             one_decision = (len(set(self.decision_buffor)) == 1)
             buffor_full = (len(self.decision_buffor) == self.decision_stop)
+
+            self.logger.info("Decision buffor:", self.decision_buffor)
             if one_decision and buffor_full:
                 decision = self.decision_buffor[-1]
                 self.logger.info('Decision by decision_stop {}'.format(decision))
@@ -183,8 +191,8 @@ class P300MasterPeer(AnalysisMaster):
     def init_params(self):
         self.logger.info('Initialasing parameters')
         #configdence (probability) level for internal decision to be counted to decision stop:
-        self.desision_stop_proba_thr = self.config.get_param(
-                                        'decision_stop_threshold').split(';')
+        self.desision_stop_proba_thr = float(self.config.get_param(
+                                        'decision_stop_threshold').split(';')[0])
         #available channels
         self.channel_names = self.config.get_param(
                                         'channel_names').split(';')
@@ -318,19 +326,20 @@ class P300MasterPeer(AnalysisMaster):
             or None if classification could not be performed
             
         """
-        if blink.index in self.ignored_blink_ids:
-            return None
-        chunk_ready = self._prepare_chunk(chunk)
-        self.features[blink.index].append(chunk_ready)
-        probabilities = {}
-        probabilities['targetSingle'] = classifier.classify(
-                                                            chunk_ready
-                                                                    )
-        chunk_mean = np.array(self.features[blink.index]).mean(axis=0)
-        probabilities['targetCMean'] = classifier.classify(
-                                                              chunk_mean
-                                                                    )
-        return probabilities
+        if time.time()-self.last_dec_timestamp>self.hold_time:
+		if blink.index in self.ignored_blink_ids:
+		    return None
+		chunk_ready = self._prepare_chunk(chunk)
+		self.features[blink.index].append(chunk_ready)
+		probabilities = {}
+		probabilities['targetSingle'] = classifier.classify(
+		                                                    chunk_ready
+		                                                            )
+		chunk_mean = np.array(self.features[blink.index]).mean(axis=0)
+		probabilities['targetCMean'] = classifier.classify(
+		                                                      chunk_mean
+		                                                            )
+		return probabilities
         
     def learn(self, classifier, chunk, target):
         """Learn that given chunk represents given target.
